@@ -134,14 +134,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 			notifyChange(change, situation, resource, task, subResult);
 			
-			PrismObject<? extends ObjectType> object = change.getOldShadow();
-			if (object == null) {
-				object = change.getCurrentShadow();
-			}
+//			PrismObject<? extends ObjectType> object = change.getOldShadow();
+//			if (object == null) {
+//				object = change.getCurrentShadow();
+//			}
 
-			if (object != null) {
-				saveExecutedSituationDescription(object, situation, change, subResult);
-			}
+//			if (object != null) {
+				
+			
+//			}
 			subResult.computeStatus();
 		} catch (Exception ex) {
 			subResult.recordFatalError(ex);
@@ -364,6 +365,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         try {
             LOGGER.trace("Updating user started.");
             String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
+        	saveExecutedSituationDescription(auditRecord.getTarget(), situation, change, parentResult);
             for (Action action : actions) {
                 LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[]{action.getClass()});
 
@@ -391,22 +393,33 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (object == null){
 			return;
 		}
+				
+		List<PrismPropertyValue> syncSituationDescriptionList = new ArrayList<PrismPropertyValue>();
+		//old situation description
+//		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
+//		syncSituationDescription.setSituation(situation.getSituation());
+//		syncSituationDescription.setChannel(change.getSourceChannel());
+//		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+//		syncSituationDescriptionList.add(new PrismPropertyValue(syncSituationDescription));
 		
 		
+		//refresh situation
+//		situation = checkSituation(change, parentResult);
 		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
 		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
 				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation.getSituation());
 		syncSituationDeltas.add(syncSituationDelta);
 
-		
+		// new situation description
 		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
 		syncSituationDescription.setSituation(situation.getSituation());
 		syncSituationDescription.setChannel(change.getSourceChannel());
 		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		syncSituationDescriptionList.add(new PrismPropertyValue(syncSituationDescription));
 		
 		syncSituationDelta = PropertyDelta.createDelta(new PropertyPath(
 				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
-		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
+		syncSituationDelta.addValuesToAdd(syncSituationDescriptionList);
 		syncSituationDeltas.add(syncSituationDelta);
 		
 		T objectType = object.asObjectable();

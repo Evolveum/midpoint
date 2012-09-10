@@ -17,94 +17,99 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
-
 @Embeddable
-public class RSynchronizationSituationDescription implements Serializable{
+public class RSynchronizationSituationDescription implements Serializable {
 
 	@QueryAttribute(enumerated = true)
 	private RSynchronizationSituation situation;
 	private XMLGregorianCalendar timestamp;
 	private String chanel;
-	
-	
+
 	@Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
+	@Column(nullable = true)
 	public RSynchronizationSituation getSituation() {
 		return situation;
 	}
-	
+
 	public void setSituation(RSynchronizationSituation situation) {
 		this.situation = situation;
 	}
-	
+
 	@Column(nullable = true)
 	public XMLGregorianCalendar getTimestamp() {
 		return timestamp;
 	}
-	
+
 	public void setTimestamp(XMLGregorianCalendar timestamp) {
 		this.timestamp = timestamp;
 	}
-	
+
 	public String getChanel() {
 		return chanel;
 	}
-	
+
 	public void setChanel(String chanel) {
 		this.chanel = chanel;
 	}
-	
-	  @Override
-	    public boolean equals(Object o) {
-	        if (this == o) return true;
-	        if (o == null || getClass() != o.getClass()) return false;
 
-	        RSynchronizationSituationDescription that = (RSynchronizationSituationDescription) o;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
-	        if (situation != null ? !situation.equals(that.situation) : that.situation != null) return false;
-	        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
-	        if (chanel != null ? !chanel.equals(that.chanel) : that.chanel != null) return false;
+		RSynchronizationSituationDescription that = (RSynchronizationSituationDescription) o;
 
-	        return true;
-	    }
+		if (situation != null ? !situation.equals(that.situation) : that.situation != null)
+			return false;
+		if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null)
+			return false;
+		if (chanel != null ? !chanel.equals(that.chanel) : that.chanel != null)
+			return false;
 
-	    @Override
-	    public int hashCode() {
-	        int result = situation != null ? situation.hashCode() : 0;
-	        result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
-	        result = 31 * result + (chanel != null ? chanel.hashCode() : 0);
-	        return result;
-	    }
+		return true;
+	}
 
-	    @Override
-	    public String toString() {
-	        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
-	    }
+	@Override
+	public int hashCode() {
+		int result = situation != null ? situation.hashCode() : 0;
+		result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
+		result = 31 * result + (chanel != null ? chanel.hashCode() : 0);
+		return result;
+	}
 
-	    public static RSynchronizationSituationDescription copyFromJAXB(SynchronizationSituationDescriptionType jaxb) {
-	        if (jaxb == null) {
-	            return null;
-	        }
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
+	}
 
-	        RSynchronizationSituationDescription repo = new RSynchronizationSituationDescription();
-	        repo.setChanel(jaxb.getChannel());
-	        repo.setTimestamp(jaxb.getTimestamp());
-	        repo.setSituation(RSynchronizationSituation.toRepoType(jaxb.getSituation()));
-	        
-	        return repo;
-	    }
+	public static RSynchronizationSituationDescription copyFromJAXB(SynchronizationSituationDescriptionType jaxb) {
+		if (jaxb == null) {
+			return null;
+		}
 
-	    public static SynchronizationSituationDescriptionType copyToJAXB(RSynchronizationSituationDescription repo) {
-	        if (repo == null) {
-	            return null;
-	        }
+		RSynchronizationSituationDescription repo = new RSynchronizationSituationDescription();
+		repo.setChanel(jaxb.getChannel());
+		repo.setTimestamp(jaxb.getTimestamp());
+		repo.setSituation(RSynchronizationSituation.toRepoType(jaxb.getSituation()));
 
-	        SynchronizationSituationDescriptionType jaxb = new SynchronizationSituationDescriptionType();
-	        jaxb.setChannel(repo.getChanel());
-	        jaxb.setTimestamp(repo.getTimestamp());
-	        jaxb.setSituation(repo.getSituation().getSyncType());
-	       
-	        return jaxb;
-	    }
-	
+		return repo;
+	}
+
+	public static SynchronizationSituationDescriptionType copyToJAXB(RSynchronizationSituationDescription repo) {
+		if (repo == null) {
+			return null;
+		}
+
+		SynchronizationSituationDescriptionType jaxb = new SynchronizationSituationDescriptionType();
+		jaxb.setChannel(repo.getChanel());
+		jaxb.setTimestamp(repo.getTimestamp());
+		if (repo.getSituation() != null) {
+
+			jaxb.setSituation(repo.getSituation().getSyncType());
+		}
+		return jaxb;
+	}
+
 }

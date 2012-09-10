@@ -922,6 +922,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("objectClass", objectClass);
 		result.addParam("identifiers", identifiers);
 		result.addParam("changes", changes);
+		
+		if (changes.isEmpty()){
+			LOGGER.info("No modifications for connector object specified. Skipping processing.");
+			result.recordSuccess();
+			return new HashSet<PropertyModificationOperation>();
+		}
 
 		ObjectClass objClass = objectClassToIcf(objectClass);
 		

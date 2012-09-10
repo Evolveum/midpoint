@@ -26,22 +26,28 @@ import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -54,7 +60,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -80,20 +88,22 @@ public class ChangeExecutor {
     private PrismContext prismContext;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
+    private PrismObjectDefinition<AccountShadowType> accountDefinition = null;
     
     @PostConstruct
     private void locateUserDefinition() {
     	userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+    	accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
     }
 
-    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, OperationResult parentResult) throws
+    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult parentResult) throws
             ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
             SecurityViolationException {
     	OperationResult result = parentResult.createSubresult(ChangeExecutor.class.getName() + ".executeChanges");
     	result.addParam("changes", changes);
     	try {
 	        for (ObjectDelta<? extends ObjectType> change : changes) {
-	            executeChange(change, result);
+	            executeChange(change, task, result);
 	        }
 	        result.recordSuccess();
     	} catch (SchemaException e) {
@@ -120,7 +130,7 @@ public class ChangeExecutor {
     	}
     }
 
-    public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, OperationResult parentResult) throws ObjectAlreadyExistsException,
+    public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	OperationResult result = parentResult.createSubresult(ChangeExecutor.class+".executeChanges");
@@ -131,7 +141,7 @@ public class ChangeExecutor {
 		        ObjectDelta<F> userDelta = focusContext.getWaveDelta();
 		        if (userDelta != null) {
 		
-		            executeChange(userDelta, result);
+		            executeChange(userDelta, task, result);
 		
 		            // userDelta is composite, mixed from primary and secondary. The OID set into
 		            // it will be lost ... unless we explicitly save it
@@ -152,17 +162,17 @@ public class ChangeExecutor {
 	                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
 	                }
 	                if (focusContext != null) {
-	                	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
+	                	updateAccountLinks(focusContext.getObjectNew(), accCtx, task, result);
 	                }
 	                continue;
 	            }
 	            
-	            executeChange(accDelta, result);
+	            executeChange(accDelta, task, result);
 	            
 	            // To make sure that the OID is set (e.g. after ADD operation)
 	            accCtx.setOid(accDelta.getOid());
 	            if (focusContext != null) {
-	            	updateAccountLinks(focusContext.getObjectNew(), accCtx, result);
+	            	updateAccountLinks(focusContext.getObjectNew(), accCtx, task, result);
 	            }
 	        }
 	        
@@ -201,7 +211,7 @@ public class ChangeExecutor {
      * Make sure that the account is linked (or unlinked) as needed.
      */
     private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject, LensProjectionContext<P> accCtx,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
+    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
     	if (prismObject == null) {
     		return;
     	}
@@ -220,25 +230,34 @@ public class ChangeExecutor {
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
                 if (accountRef.getOid().equals(accountOid)) {
                     // Linked, need to unlink
-                    unlinkAccount(userTypeNew.getOid(), accountOid, result);
+                    unlinkAccount(userTypeNew.getOid(), accountOid, task, result);
                 }
             }
+            
+            //update account situation only if the account was not deleted
+			if (accCtx.getDelta() != null && !accCtx.getDelta().isDelete() && !accCtx.getDelta().getOid().equals(accountOid)) {
+				updateSituationInAccount(task, null, accountOid, result);
+			}
             // Not linked, that's OK
 
         } else {
             // Link should exist
+        	
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
                 if (accountOid.equals(accountRef.getOid())) {
-                    // Already linked, nothing to do
+                    // Already linked, nothing to do, only be sure, the situation is set with the good value
+                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
                     return;
                 }
             }
             // Not linked, need to link
-            linkAccount(userTypeNew.getOid(), accountOid, result);
+            linkAccount(userTypeNew.getOid(), accountOid, task, result);
+            //be sure, that the situation is set correctly
+            updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
         }
     }
 
-    private void linkAccount(String userOid, String accountOid, OperationResult result) throws ObjectNotFoundException,
+    private void linkAccount(String userOid, String accountOid, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException {
 
         LOGGER.trace("Linking account " + accountOid + " to user " + userOid);
@@ -254,13 +273,14 @@ public class ChangeExecutor {
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
+//        updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountRef, result);
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return userDefinition;
 	}
 
-	private void unlinkAccount(String userOid, String accountOid, OperationResult result) throws
+	private void unlinkAccount(String userOid, String accountOid, Task task, OperationResult result) throws
             ObjectNotFoundException, SchemaException {
 
         LOGGER.trace("Unlinking account " + accountOid + " to user " + userOid);
@@ -270,15 +290,55 @@ public class ChangeExecutor {
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
         		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
-
+        
         try {
             cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
-    }
+        
+      //setting new situation to account
+//        updateSituationInAccount(task, null, accountRef, result);
 
-    private <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, OperationResult result) throws ObjectAlreadyExistsException,
+    }
+	
+    private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
+
+		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
+
+		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(accountDefinition,
+				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation);
+		syncSituationDeltas.add(syncSituationDelta);
+
+		// new situation description
+		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
+		syncSituationDescription.setSituation(situation);
+		syncSituationDescription.setChannel(task.getHandlerUri());
+		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		
+		syncSituationDelta = PropertyDelta.createDelta(new PropertyPath(
+				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), accountDefinition);
+		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
+		syncSituationDeltas.add(syncSituationDelta);
+		
+		try {
+			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, parentResult);
+		} catch (ObjectNotFoundException ex) {
+			parentResult.getLastSubresult().recomputeStatus();
+			parentResult.getLastSubresult().muteError();//muteError();
+			// HACK: it can happen, if the account was deleted previously and
+			// now only the link should be removed..It's expected, that it
+			// should happen, but how to recognize it in provisoning that it is
+			// expected?
+//			parentResult.getLastSubresult().recordSuccess();
+			LOGGER.trace("Situation in account could not be updated. Account not found on the resource. Skipping modifying situation in account");
+			
+		}
+		
+		
+	}
+
+	private <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, Task task, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         if (objectDelta == null) {

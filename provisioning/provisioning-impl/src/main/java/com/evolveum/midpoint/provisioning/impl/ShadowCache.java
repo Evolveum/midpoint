@@ -20,46 +20,77 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
+import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.Change;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptArgumentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptsType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -189,8 +220,17 @@ public class ShadowCache {
 
 		try {
 			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
-		} catch (ObjectNotFoundException ex) {
-			// TODO: Discovery
+//		} catch (Exception ex) {
+//			try{
+//				handleError(ex, repositoryShadow, FailedOperation.GET, parentResult);
+//				resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
+//			} catch (GenericFrameworkException e){
+//				
+//			} catch (ObjectAlreadyExistsException e){
+//				
+//			}
+//			 TODO: Discovery
+		} catch (ObjectNotFoundException ex){
 			parentResult.recordFatalError("Object " + ObjectTypeUtil.toShortString(repositoryShadow)
 					+ "not found on the " + ObjectTypeUtil.toShortString(resource), ex);
 
@@ -239,8 +279,10 @@ public class ShadowCache {
 					shadowConverterResult);
 		} catch (Exception ex) {
 			shadow = extendShadow(shadow, FailedOperationTypeType.ADD, shadowConverterResult, resource, null);
-			handleError(ex, shadow, parentResult);
-	
+			handleError(ex, shadow, FailedOperation.ADD, parentResult);
+			if (shadow.getOid() != null){
+				return shadow.getOid();
+			}
 		}
 
 		if (shadow == null) {
@@ -290,7 +332,7 @@ public class ShadowCache {
 				accountShadow = extendShadow(accountShadow, FailedOperationTypeType.DELETE, parentResult, resource,
 						null);
 				try {
-					handleError(ex, accountShadow, parentResult);
+					handleError(ex, accountShadow, FailedOperation.DELETE, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
 					e.printStackTrace();
 				}
@@ -350,11 +392,20 @@ public class ShadowCache {
 
 				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
 				try {
-					handleError(ex, shadow, parentResult);
+					handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
 				}
 				return;
 			
+			}
+			
+			Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
+			if (shadowChanges != null && !shadowChanges.isEmpty()) {
+				try {
+					repositoryService.modifyObject(AccountShadowType.class, oid, shadowChanges, parentResult);
+				} catch (ObjectAlreadyExistsException ex) {
+					throw new SystemException(ex);
+				}
 			}
 
 			if (isReconciled) {
@@ -373,7 +424,23 @@ public class ShadowCache {
 			parentResult.recordSuccess();
 		}
 	}
+	
+	private Collection<? extends ItemDelta> getShadowChanges(Collection<? extends ItemDelta> objectChange) throws SchemaException {
+		
+		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
+		for (ItemDelta itemDelta : objectChange) {
+			if (!new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath())
+					&& SchemaConstants.PATH_PASSWORD_VALUE.equals(itemDelta.getParentPath())
+					&& SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())) {
+				shadowChanges.add(itemDelta);
+			}
 
+		}
+		return shadowChanges;
+		// return repository changes;
+
+	}
+		
 	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
@@ -479,14 +546,14 @@ public class ShadowCache {
 		shadow.setResult(shadowResult.createOperationResultType());
 		shadow.setResource(resource);
 
-		if (shadow.getFailedOperationType() == null) {
-			shadow.setFailedOperationType(failedOperation);
-
-		} else {
-			if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
-				// nothing to do
-			}
-		}
+//		if (shadow.getFailedOperationType() == null) {
+//			shadow.setFailedOperationType(failedOperation);
+//
+//		} else {
+//			if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
+//				// nothing to do
+//			}
+//		}
 
 		if (modifications != null) {
 			ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
@@ -501,7 +568,7 @@ public class ShadowCache {
 		return shadow;
 	}
 
-	private void handleError(Exception ex, ResourceObjectShadowType shadow, OperationResult parentResult)
+	private void handleError(Exception ex, ResourceObjectShadowType shadow, FailedOperation op, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -512,7 +579,7 @@ public class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		handler.handleError(shadow, ex);
+		handler.handleError(shadow, op, ex);
 		
 	}
 

@@ -327,10 +327,10 @@ public abstract class BaseAction implements Action {
         }
     }
 
-    protected void executeChanges(LensContext<UserType, AccountShadowType> context, OperationResult result) throws SynchronizationException {
+    protected void executeChanges(LensContext<UserType, AccountShadowType> context, Task task, OperationResult result) throws SynchronizationException {
         try {
             Validate.notNull(context, "Sync context must not be null.");
-            getExecutor().executeChanges(context, result);
+            getExecutor().executeChanges(context, task, result);
         } catch (Exception ex) {
             throw new SynchronizationException("Couldn't execute changes from context, reason: " + ex.getMessage(), ex);
         }

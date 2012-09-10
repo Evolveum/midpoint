@@ -228,7 +228,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 		
 		LOGGER.trace("Reconciling of user {}: context:\n{}", user,syncContext.dump());
 		
-		changeExecutor.executeChanges(syncContext, result);
+		changeExecutor.executeChanges(syncContext, task, result);
 		
 		// TODO: process result
 		

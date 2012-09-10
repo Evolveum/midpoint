@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.consistency.impl.GenericErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -104,7 +105,7 @@ public class ShadowConverter {
 
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, ResourceType resource,
 			T repoShadow, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
 
 		
 		ObjectClassComplexTypeDefinition objectClassDefinition = applyAttributesDefinition(repoShadow.asPrismObject(), resource);
@@ -117,7 +118,7 @@ public class ShadowConverter {
 		if (identifiers == null || identifiers.isEmpty()) {
 			//check if the account is not only partially created (exist only in repo so far)
 			if (repoShadow.getFailedOperationType()!= null){
-				throw new CommunicationException("Error communicating with connector");
+				throw new GenericConnectorException("Could not get object without identifiers.");
 			}
 			// No identifiers found
 			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "
@@ -287,21 +288,21 @@ public class ShadowConverter {
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
 				.getObjectClassDefinition(shadow);
 
-		if (shadow instanceof AccountShadowType) {
-
-			// Look for password change
-			Operation passwordChangeOp = determinePasswordChange(objectChanges, shadow);
-			if (passwordChangeOp != null) {
-				operations.add(passwordChangeOp);
-			}
-
-			// look for activation change
-			Operation activationOperation = determineActivationChange(objectChanges, resource,
-					resourceAttributeDefinition);
-			if (activationOperation != null) {
-				operations.add(activationOperation);
-			}
-		}
+//		if (shadow instanceof AccountShadowType) {
+//
+//			// Look for password change
+//			Operation passwordChangeOp = determinePasswordChange(objectChanges, shadow);
+//			if (passwordChangeOp != null) {
+//				operations.add(passwordChangeOp);
+//			}
+//
+//			// look for activation change
+//			Operation activationOperation = determineActivationChange(objectChanges, resource,
+//					resourceAttributeDefinition);
+//			if (activationOperation != null) {
+//				operations.add(activationOperation);
+//			}
+//		}
 
 		Collection<? extends ResourceAttribute<?>> identifiers = ResourceObjectShadowUtil
 				.getIdentifiers(shadow);
@@ -315,7 +316,7 @@ public class ShadowConverter {
 					+ objectClassDefinition + ": " + identifiers);
 		}
 
-		getAttributeChanges(objectChanges, operations, objectClassDefinition);
+		getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition);
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 	
@@ -570,12 +571,11 @@ public class ShadowConverter {
 		return null;
 	}
 
-	private Operation determinePasswordChange(Collection<? extends ItemDelta> objectChange,
-			ResourceObjectShadowType objectType) throws SchemaException {
+	private Operation determinePasswordChange(Collection<? extends ItemDelta> objectChange, ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
 
 		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new PropertyPath(AccountShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD));
+				SchemaConstants.PATH_PASSWORD_VALUE);
 		if (passwordPropertyDelta == null) {
 			return null;
 		}
@@ -597,27 +597,48 @@ public class ShadowConverter {
 	}
 
 	private void getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
-			ObjectClassComplexTypeDefinition rod) throws SchemaException {
-		if (changes == null) {
+			ResourceType resource, ResourceObjectShadowType shadow, ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+	if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (itemDelta instanceof PropertyDelta) {
-				// we need to skip activation change, because it was actually
-				// processed
-				if (itemDelta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ACTIVATION))) {
+			if (new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+				if (itemDelta instanceof PropertyDelta) {
+//					// we need to skip activation change, because it was
+//					// actually
+//					// processed
+//					if (itemDelta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ACTIVATION))) {
+//						continue;
+//					}
+					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
+							(PropertyDelta) itemDelta);
+					changes.add(attributeModification);
+				} else if (itemDelta instanceof ContainerDelta) {
+					// skip the container delta - most probably password change
+					// - it
+					// is processed earlier
 					continue;
+				} else {
+					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}
-				PropertyModificationOperation attributeModification = new PropertyModificationOperation(
-						(PropertyDelta) itemDelta);
-				changes.add(attributeModification);
-			} else if (itemDelta instanceof ContainerDelta) {
-				// skip the container delta - most probably password change - it
-				// is processed earlier
-				continue;
+			}else if (SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())){
+				//processed in the previous if clause
+//				LOGGER.trace("Determinig password change");
+//				Operation passwordOperation = determinePasswordChange(objectChange, shadow);
+//				if (passwordOperation != null){
+//					changes.add(passwordOperation);
+//				}				
+			}else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
+				Operation activationOperation = determineActivationChange(objectChange, resource, objectClassDefinition);
+				LOGGER.trace("Determinig activation change");
+				if (activationOperation != null){
+					changes.add(activationOperation);
+				}
 			} else {
-				throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
+				LOGGER.trace("Skipp converting item delta: {}. It's not account change, but it it shadow change.", itemDelta);	
 			}
+			
+			
 		}
 		// return changes;
 	}
