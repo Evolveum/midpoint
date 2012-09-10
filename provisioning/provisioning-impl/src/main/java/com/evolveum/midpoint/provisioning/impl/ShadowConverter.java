@@ -507,17 +507,17 @@ public class ShadowConverter {
 					+ e.getMessage(), e);
 		} catch (CommunicationException e) {
 			parentResult.recordFatalError("Error communication with the connector " + connector
-					+ ". Reason: " + e.getMessage(), e);
+					+ ": " + e.getMessage(), e);
 			throw new CommunicationException("Error communication with the connector " + connector
-					+ ". Reason: " + e.getMessage(), e);
+					+ ": " + e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
 			throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
 					+ e.getMessage(), e);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Can't get resource schema. Reason: " + ex.getMessage(), ex);
-			throw new SchemaException("Can't get resource schema. Reason: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+			throw new SchemaException("Can't get resource object, schema error: " + ex.getMessage(), ex);
 		}
 
 	}
