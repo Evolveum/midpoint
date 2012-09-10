@@ -1705,11 +1705,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
 
-			ResourceAttributeDefinition attributeDefinition = attributesDefinition
-					.findAttributeDefinition(qname);
+			ResourceAttributeDefinition attributeDefinition = attributesDefinition.findAttributeDefinition(qname);
 
 			if (attributeDefinition == null) {
-				throw new SchemaException("Unknown attribute {}. Cannot create definition.", qname);
+				throw new SchemaException("Unknown attribute "+qname+". Cannot create definition. Original ICF name: "+icfAttr.getName(), qname);
 			}
 
 			ResourceAttribute resourceAttribute = attributeDefinition.instantiate(qname);
