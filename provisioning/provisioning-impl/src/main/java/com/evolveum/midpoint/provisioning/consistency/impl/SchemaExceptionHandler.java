@@ -18,7 +18,7 @@ public class SchemaExceptionHandler extends ErrorHandler{
 	@Override
 	public void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException{
 		
-		throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+".", ex);
+		throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 		
 	}
 
