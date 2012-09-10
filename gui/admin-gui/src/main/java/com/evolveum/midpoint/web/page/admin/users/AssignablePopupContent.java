@@ -25,16 +25,20 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignableDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +50,7 @@ public class AssignablePopupContent extends BasePanel {
     private static final String ID_ADD = "add";
 
     private Class<? extends ObjectType> type = RoleType.class;
+    private boolean multiselect;
 
     public AssignablePopupContent(String id) {
         super(id, null);
@@ -56,21 +61,9 @@ public class AssignablePopupContent extends BasePanel {
         Form rolesForm = new Form(ID_ASSIGNABLE_FORM);
         add(rolesForm);
 
-        List<IColumn> columns = new ArrayList<IColumn>();
-
-        IColumn column = new CheckBoxHeaderColumn();
-        columns.add(column);
-
-        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.name"), "value.name"));
-        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.description"), "value.description"));
-
-        TablePanel table = new TablePanel(ID_TABLE, new ObjectDataProvider(getPageBase(), type), columns);
-        table.setOutputMarkupId(true);
+        TablePanel table = createTable();
         rolesForm.add(table);
-        initButtons(rolesForm);
-    }
 
-    private void initButtons(Form form) {
         AjaxLinkButton addButton = new AjaxLinkButton(ID_ADD,
                 createStringResource("assignablePopupContent.button.add")) {
 
@@ -79,7 +72,50 @@ public class AssignablePopupContent extends BasePanel {
                 addPerformed(target, getSelectedObjects());
             }
         };
-        form.add(addButton);
+        addButton.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return multiselect;
+            }
+        });
+        rolesForm.add(addButton);
+    }
+
+    private TablePanel createTable() {
+        List<IColumn> columns = multiselect ? createMultiSelectColumns() : createSingleSelectColumns();
+        TablePanel table = new TablePanel(ID_TABLE, new ObjectDataProvider(getPageBase(), type), columns);
+        table.setOutputMarkupId(true);
+
+        return table;
+    }
+
+    private List<IColumn> createSingleSelectColumns() {
+        List<IColumn> columns = new ArrayList<IColumn>();
+
+        columns.add(new LinkColumn<SelectableBean<? extends ObjectType>>(
+                createStringResource("assignablePopupContent.name"), "value.name") {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
+                addPerformed(target, rowModel.getObject().getValue());
+            }
+        });
+        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.description"), "value.description"));
+
+        return columns;
+    }
+
+    private List<IColumn> createMultiSelectColumns() {
+        List<IColumn> columns = new ArrayList<IColumn>();
+
+        IColumn column = new CheckBoxHeaderColumn();
+        columns.add(column);
+
+        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.name"), "value.name"));
+        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.description"), "value.description"));
+
+        return columns;
     }
 
     private List<UserAssignableDto> getSelectedObjects() {
@@ -102,17 +138,26 @@ public class AssignablePopupContent extends BasePanel {
     public void setType(Class<? extends ObjectType> type) {
         Validate.notNull(type, "Class must not be null.");
 
+        this.type = type;
+        multiselect = !ResourceType.class.isAssignableFrom(type);
+
         TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
         if (table != null) {
             ObjectDataProvider provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
             provider.setType(type);
-        }
 
-        this.type = type;
+            //replace table with table with proper columns
+            Form rolesForm = (Form) get(ID_ASSIGNABLE_FORM);
+            rolesForm.replace(createTable());
+        }
     }
 
     public Class<? extends ObjectType> getType() {
         return type;
+    }
+
+    protected void addPerformed(AjaxRequestTarget target, ObjectType selected) {
+
     }
 
     protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> selected) {

@@ -71,16 +71,17 @@
 			</div>
 
             <div class="operatingFormBlock">
-                <a wicket:id="addAccount" />
+                <span class="operatingFormText"><wicket:message key="pageUser.button.label.assign"/></span>
+                <a wicket:id="assignAccount"/>
+                <a wicket:id="assignRole"/>
+                <a wicket:id="assignOrgUnit"/>
+
+                <a wicket:id="unassign"/>
             </div>
 
             <div class="operatingFormBlock">
-                <span class="operatingFormText"><wicket:message key="pageUser.button.label.assign"/></span>
-                <a wicket:id="addAccountAssign"/>
-                <a wicket:id="addRoleAssign"/>
-                <a wicket:id="addOrgUnitAssign"/>
-
-                <a wicket:id="unassign"/>
+                <span class="operatingFormText"><wicket:message key="pageUser.button.label.add"/></span>
+                <a wicket:id="addAccount" />
             </div>
         </div>
     </form>

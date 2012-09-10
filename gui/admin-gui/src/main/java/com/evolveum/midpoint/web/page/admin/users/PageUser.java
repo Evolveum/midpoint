@@ -656,18 +656,18 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAssignButtons(Form mainForm) {
-        AjaxLinkButton addAccountAssign = new AjaxLinkButton("addAccountAssign", ButtonType.POSITIVE,
-                createStringResource("pageUser.button.addAccount")) {
+        AjaxLinkButton addAccountAssign = new AjaxLinkButton("assignAccount",
+                createStringResource("pageUser.button.assignAccount")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                showAssignablePopup(target, ResourceType.class);
             }
         };
         mainForm.add(addAccountAssign);
 
-        AjaxLinkButton addRoleAssign = new AjaxLinkButton("addRoleAssign", ButtonType.POSITIVE,
-                createStringResource("pageUser.button.addRole")) {
+        AjaxLinkButton addRoleAssign = new AjaxLinkButton("assignRole",
+                createStringResource("pageUser.button.assignRole")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -676,8 +676,8 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(addRoleAssign);
 
-        AjaxLinkButton addOrgUnitAssign = new AjaxLinkButton("addOrgUnitAssign", ButtonType.POSITIVE,
-                createStringResource("pageUser.button.addOrgUnit")) {
+        AjaxLinkButton addOrgUnitAssign = new AjaxLinkButton("assignOrgUnit",
+                createStringResource("pageUser.button.assignOrgUnit")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -818,6 +818,14 @@ public class PageUser extends PageAdminUsers {
         ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
                 createStringResource("pageUser.title.selectAssignable"));
         window.setContent(new AssignablePopupContent(window.getContentId()) {
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, ObjectType selected) {
+                if (!(selected instanceof ResourceType)) {
+                    return;
+                }
+                addSelectedResourceAssignPerformed(target, (ResourceType) selected);
+            }
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> roles) {
@@ -1189,18 +1197,25 @@ public class PageUser extends PageAdminUsers {
         target.add(getAccountsAccordionItem());
     }
 
-    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<UserAssignableDto> newRoles) {
+    private void addSelectedResourceAssignPerformed(AjaxRequestTarget target, ResourceType resource) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
         window.close(target);
 
-        if (newRoles.isEmpty()) {
+
+    }
+
+    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<UserAssignableDto> newAssignables) {
+        ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
+        window.close(target);
+
+        if (newAssignables.isEmpty()) {
             warn(getString("pageUser.message.noAssignableSelected"));
             target.add(getFeedbackPanel());
             return;
         }
 
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
-        for (UserAssignableDto role : newRoles) {
+        for (UserAssignableDto role : newAssignables) {
             try {
                 AssignablePopupContent content = (AssignablePopupContent) window.get(window.getContentId());
                 Class<? extends ObjectType> assignableType = content.getType();
