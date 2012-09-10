@@ -112,7 +112,7 @@ public class PageUser extends PageAdminUsers {
     private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_ACCOUNT_BUTTONS="accountsButtons";
+    private static final String ID_ACCOUNT_BUTTONS = "accountsButtons";
     private static final String ID_ACCORDION = "accordion";
     private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
@@ -636,7 +636,7 @@ public class PageUser extends PageAdminUsers {
 
         initAssignButtons(mainForm);
 
-        WebMarkupContainer buttons =(WebMarkupContainer) getAccountsAccordionItem().getBodyContainer().get(ID_ACCOUNT_BUTTONS);
+        WebMarkupContainer buttons = (WebMarkupContainer) getAccountsAccordionItem().getBodyContainer().get(ID_ACCOUNT_BUTTONS);
         initAccountButtons(buttons);
 
         initAccountButton(mainForm);
@@ -828,8 +828,8 @@ public class PageUser extends PageAdminUsers {
             }
 
             @Override
-            protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> roles) {
-                addSelectedAssignablePerformed(target, roles);
+            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
+                addSelectedAssignablePerformed(target, selected);
             }
         });
         add(window);
@@ -1201,10 +1201,20 @@ public class PageUser extends PageAdminUsers {
         ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
         window.close(target);
 
+        AssignmentType assignment = new AssignmentType();
+        AccountConstructionType construction = new AccountConstructionType();
+        assignment.setAccountConstruction(construction);
+        construction.setResource(resource);
 
+        List<UserAssignmentDto> assignments = assignmentsModel.getObject();
+        UserAssignmentDto dto = new UserAssignmentDto(resource.getName(), UserAssignmentDtoType.ACCOUNT_CONSTRUCTION,
+                UserDtoStatus.ADD, assignment);
+        assignments.add(dto);
+
+        assignmentEditPerformed(target, dto);
     }
 
-    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<UserAssignableDto> newAssignables) {
+    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignables) {
         ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
         window.close(target);
 
@@ -1215,28 +1225,25 @@ public class PageUser extends PageAdminUsers {
         }
 
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
-        for (UserAssignableDto role : newAssignables) {
+        for (ObjectType object : newAssignables) {
             try {
-                AssignablePopupContent content = (AssignablePopupContent) window.get(window.getContentId());
-                Class<? extends ObjectType> assignableType = content.getType();
-                UserAssignmentDtoType aType = UserAssignmentDtoType.getType(assignableType);
+                UserAssignmentDtoType aType = UserAssignmentDtoType.getType(object.getClass());
 
                 ObjectReferenceType targetRef = new ObjectReferenceType();
-                targetRef.setOid(role.getOid());
+                targetRef.setOid(object.getOid());
                 targetRef.setType(aType.getQname());
 
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                assignments.add(new UserAssignmentDto(role.getName(), aType, UserDtoStatus.ADD, assignment));
+                assignments.add(new UserAssignmentDto(object.getName(), aType, UserDtoStatus.ADD, assignment));
             } catch (Exception ex) {
-                error(getString("pageUser.message.couldntAssignObject", role.getName(), ex.getMessage()));
+                error(getString("pageUser.message.couldntAssignObject", object.getName(), ex.getMessage()));
                 LoggingUtils.logException(LOGGER, "Couldn't assign object", ex);
             }
         }
 
-        target.add(getFeedbackPanel());
-        target.add(getAssignmentTable());
+        target.add(getFeedbackPanel(), getAssignmentTable());
     }
 
     private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts,
@@ -1370,7 +1377,7 @@ public class PageUser extends PageAdminUsers {
 
         AccordionItem item = getAssignmentAccordionItem();
         Component wrapper = item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
-        target.add(wrapper);
+        target.add(getFeedbackPanel(), wrapper, getAssignmentTable());
     }
 
     private Component getAssignmentTable() {

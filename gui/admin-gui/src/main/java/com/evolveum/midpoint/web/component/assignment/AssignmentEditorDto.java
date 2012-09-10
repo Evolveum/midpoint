@@ -34,6 +34,7 @@ import java.io.Serializable;
  */
 public class AssignmentEditorDto implements Serializable {
 
+    public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXTENSION = "extension";
 
@@ -46,6 +47,10 @@ public class AssignmentEditorDto implements Serializable {
 
     public UserAssignmentDtoType getType() {
         return assignmentDto.getType();
+    }
+
+    public String getName() {
+        return assignmentDto.getName();
     }
 
     public String getDescription() {

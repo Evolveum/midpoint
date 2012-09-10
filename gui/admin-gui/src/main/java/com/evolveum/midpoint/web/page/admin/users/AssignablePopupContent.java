@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignableDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -118,8 +117,8 @@ public class AssignablePopupContent extends BasePanel {
         return columns;
     }
 
-    private List<UserAssignableDto> getSelectedObjects() {
-        List<UserAssignableDto> roles = new ArrayList<UserAssignableDto>();
+    private List<ObjectType> getSelectedObjects() {
+        List<ObjectType> selected = new ArrayList<ObjectType>();
 
         TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
         ObjectDataProvider<? extends ObjectType> provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
@@ -128,11 +127,10 @@ public class AssignablePopupContent extends BasePanel {
                 continue;
             }
 
-            ObjectType role = bean.getValue();
-            roles.add(new UserAssignableDto(role.getOid(), role.getName(), role.getDescription()));
+            selected.add(bean.getValue());
         }
 
-        return roles;
+        return selected;
     }
 
     public void setType(Class<? extends ObjectType> type) {
@@ -160,7 +158,7 @@ public class AssignablePopupContent extends BasePanel {
 
     }
 
-    protected void addPerformed(AjaxRequestTarget target, List<UserAssignableDto> selected) {
+    protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
 
     }
 }
