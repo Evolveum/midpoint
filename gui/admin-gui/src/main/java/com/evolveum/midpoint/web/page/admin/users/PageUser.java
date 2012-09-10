@@ -112,6 +112,7 @@ public class PageUser extends PageAdminUsers {
     private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_ACCOUNT_BUTTONS="accountsButtons";
     private static final String ID_ACCORDION = "accordion";
     private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
@@ -220,7 +221,7 @@ public class PageUser extends PageAdminUsers {
         accounts.setOutputMarkupId(true);
         accordion.getBodyContainer().add(accounts);
 
-        WebMarkupContainer accountsButtonsPanel = new WebMarkupContainer("accountsButtons");
+        WebMarkupContainer accountsButtonsPanel = new WebMarkupContainer(ID_ACCOUNT_BUTTONS);
         accountsButtonsPanel.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -230,7 +231,6 @@ public class PageUser extends PageAdminUsers {
         });
         accounts.getBodyContainer().add(accountsButtonsPanel);
 
-        initAccountButtons(accountsButtonsPanel);
         initAccounts(accounts);
 
         AccordionItem assignments = new AccordionItem(ID_ASSIGNMENT_LIST, new AbstractReadOnlyModel<String>() {
@@ -635,8 +635,25 @@ public class PageUser extends PageAdminUsers {
         mainForm.add(back);
 
         initAssignButtons(mainForm);
+
+        WebMarkupContainer buttons =(WebMarkupContainer) getAccountsAccordionItem().getBodyContainer().get(ID_ACCOUNT_BUTTONS);
+        initAccountButtons(buttons);
+
+        initAccountButton(mainForm);
     }
 
+    @Deprecated
+    private void initAccountButton(Form mainForm) {
+        AjaxLinkButton addAccount = new AjaxLinkButton("addAccount",
+                createStringResource("pageUser.button.addAccount")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showModalWindow(MODAL_ID_RESOURCE, target);
+            }
+        };
+        mainForm.add(addAccount);
+    }
 
     private void initAssignButtons(Form mainForm) {
         AjaxLinkButton addAccountAssign = new AjaxLinkButton("addAccountAssign", ButtonType.POSITIVE,
