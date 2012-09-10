@@ -155,7 +155,7 @@ public class Clockwork {
 			return;
 		}
 		// execute current wave and go to the next wave
-		changeExecutor.executeChanges(context, result);
+		changeExecutor.executeChanges(context, task, result);
 		// TODO: attempts
 		context.incrementWave();
 		// Force recompute for next wave
