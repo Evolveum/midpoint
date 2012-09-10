@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
@@ -126,7 +125,7 @@ public class PageUser extends PageAdminUsers {
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
     private IModel<List<UserAssignmentDto>> assignmentsModel;
-    private IModel<AssignmentEditorDto> assignmentEditorModel = new Model<AssignmentEditorDto>();
+    private IModel<UserAssignmentDto> assignmentEditorModel = new Model<UserAssignmentDto>();
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -552,8 +551,7 @@ public class PageUser extends PageAdminUsers {
         assignmentEditorWrapper.setOutputMarkupId(true);
         assignments.getBodyContainer().add(assignmentEditorWrapper);
 
-        AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR,
-                assignmentEditorModel);
+        AssignmentEditorPanel assignmentEditor = new AssignmentEditorPanel(ID_ASSIGNMENT_EDITOR, assignmentEditorModel);
         assignmentEditor.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -915,7 +913,9 @@ public class PageUser extends PageAdminUsers {
                 continue;
             }
 
-            userType.getAssignment().add(assDto.createAssignment());
+            AssignmentType assignment = new AssignmentType();
+            assignment.setupContainerValue(assDto.getNewValue());
+            userType.getAssignment().add(assignment);
         }
     }
 
@@ -967,17 +967,18 @@ public class PageUser extends PageAdminUsers {
             switch (assDto.getStatus()) {
                 case ADD:
                 case DELETE:
-                    AssignmentType assignment = assDto.createAssignment();
-                    PrismContainerValue value = assignment.asPrismContainerValue();
-                    value.applyDefinition(def, false);
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                        assDelta.addValueToAdd(value);
+                        assDelta.addValueToAdd(assDto.getNewValue());
                     } else {
-                        assDelta.addValueToDelete(value.clone());
+                        assDelta.addValueToDelete(assDto.getNewValue());
                     }
                     break;
                 case MODIFY:
-                    // todo will be implemented later
+                    if (!assDto.isModified()) {
+                        continue;
+                    }
+                    assDelta.addValueToAdd(assDto.getNewValue());
+                    assDelta.addValueToDelete(assDto.getOldValue());
                     break;
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
@@ -1206,6 +1207,11 @@ public class PageUser extends PageAdminUsers {
         assignment.setAccountConstruction(construction);
         construction.setResource(resource);
 
+        //todo what about assignment adopting?
+//        PrismObject<UserType> user = userModel.getObject().getObject();
+//        user.asObjectable().getAssignment().add(assignment);
+//        getPrismContext().adopt(user);
+
         List<UserAssignmentDto> assignments = assignmentsModel.getObject();
         UserAssignmentDto dto = new UserAssignmentDto(resource.getName(), UserAssignmentDtoType.ACCOUNT_CONSTRUCTION,
                 UserDtoStatus.ADD, assignment);
@@ -1373,7 +1379,8 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void assignmentEditPerformed(AjaxRequestTarget target, UserAssignmentDto assignmentDto) {
-        assignmentEditorModel.setObject(new AssignmentEditorDto(assignmentDto));
+        assignmentDto.startEditing();
+        assignmentEditorModel.setObject(assignmentDto);
 
         AccordionItem item = getAssignmentAccordionItem();
         Component wrapper = item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);

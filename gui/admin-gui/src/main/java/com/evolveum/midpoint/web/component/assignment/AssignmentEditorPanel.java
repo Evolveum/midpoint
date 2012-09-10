@@ -21,8 +21,18 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -31,36 +41,42 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
  */
-public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
+public class AssignmentEditorPanel extends BasePanel<UserAssignmentDto> {
 
     private static final String ID_NAME = "name";
+    private static final String ID_DESCRIPTION = "description";
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE = "attribute";
     private static final String ID_AC_ATTRIBUTE = "acAttribute";
-    private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXTENSION = "extension";
     private static final String ID_ACTIVATION = "activation";
 
-    public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
+    public AssignmentEditorPanel(String id, IModel<UserAssignmentDto> model) {
         super(id, model);
     }
 
     protected void initLayout() {
-        Label name = new Label("name", new PropertyModel<Object>(getModel(), AssignmentEditorDto.F_NAME));
+        Label name = new Label("name", new PropertyModel<Object>(getModel(), UserAssignmentDto.F_NAME));
         add(name);
 
         TextField description = new TextField(ID_DESCRIPTION,
-                new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
+                new PropertyModel(getModel(), UserAssignmentDto.F_DESCRIPTION));
         add(description);
 
         WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
-        attributes.setOutputMarkupId(true);
+        attributes.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                UserAssignmentDto dto = getModel().getObject();
+                return UserAssignmentDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+            }
+        });
         add(attributes);
 
         ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE,
@@ -85,7 +101,40 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private List<ACAttributeDto> loadAttributes() {
-        //todo implement
-        return new ArrayList<ACAttributeDto>();
+        List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
+        try {
+            UserAssignmentDto dto = getModel().getObject();
+
+            AssignmentType assignment = dto.getAssignment();
+            AccountConstructionType construction = assignment.getAccountConstruction();
+            ResourceType resource = construction.getResource();
+
+
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
+                    getPageBase().getPrismContext());
+            PrismContainerDefinition definition = refinedSchema.getAccountDefinition(construction.getType());
+
+            Collection<ItemDefinition> definitions = definition.getDefinitions();
+            for (ItemDefinition attrDef : definitions) {
+                if (!(attrDef instanceof PrismPropertyDefinition)) {
+                    //log skipping or something...
+                    continue;
+                }
+                attributes.add(new ACAttributeDto((PrismPropertyDefinition) attrDef, null, null));
+            }
+        } catch (Exception ex) {
+            //todo error handling
+            ex.printStackTrace();
+        }
+
+        Collections.sort(attributes, new Comparator<ACAttributeDto>() {
+
+            @Override
+            public int compare(ACAttributeDto a1, ACAttributeDto a2) {
+                return String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName());
+            }
+        });
+
+        return attributes;
     }
 }

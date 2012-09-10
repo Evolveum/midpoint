@@ -57,7 +57,8 @@ public class ACAttributeDto implements Serializable {
     }
 
     public String getName() {
-        return definition.getDisplayName(); //todo better impl
+        String name = definition.getDisplayName();
+        return StringUtils.isNotEmpty(name) ? name : definition.getName().getLocalPart();
     }
 
     public String getExpression() {
