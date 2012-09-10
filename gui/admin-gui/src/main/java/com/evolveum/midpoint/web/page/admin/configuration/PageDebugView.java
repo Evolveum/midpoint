@@ -1,11 +1,18 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.util.Collection;
+
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
@@ -53,13 +60,17 @@ public class PageDebugView extends PageAdminConfiguration {
             throw new RestartResponseException(PageDebugList.class);
         }
 
-        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
+        Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
+        OperationResult result = task.getResult();
         ObjectViewDto dto = null;
         try {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
-            RepositoryService repository = application.getRepository();
-
-            PrismObject<ObjectType> object = repository.getObject(ObjectType.class, objectOid.toString(), result);
+//            ModelService modelService = application.getModel();
+            
+            Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
+			// FIXME: ObjectType.class will not work well here. We need more specific type.
+            PrismObject<ObjectType> object = getModelService().getObject(ObjectType.class, objectOid.toString(), options, task, result);
+            
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
             dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
@@ -152,18 +163,19 @@ public class PageDebugView extends PageAdminConfiguration {
             return;
         }
 
-        OperationResult result = new OperationResult(OPERATION_SAVE_OBJECT);
+        Task task = createSimpleTask(OPERATION_SAVE_OBJECT);
+        OperationResult result = task.getResult();
         try {
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
 
             PrismObject<ObjectType> oldObject = dto.getObject();
             PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
             ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
+            Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
 
-            MidPointApplication application = PageDebugView.this.getMidpointApplication();
-            RepositoryService repository = application.getRepository();
-
-            repository.modifyObject(ObjectType.class, delta.getOid(), delta.getModifications(), result);
+            getModelService().executeChanges(deltas, options, task, result);
+            
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save object.", ex);
