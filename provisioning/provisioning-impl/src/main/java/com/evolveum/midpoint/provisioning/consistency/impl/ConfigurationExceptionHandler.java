@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -16,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 public class ConfigurationExceptionHandler extends ErrorHandler {
 
 	@Override
-	public void handleError(ResourceObjectShadowType shadow, Exception ex) throws SchemaException,
+	public void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException {
 		throw new ConfigurationException("Configuration error: "+ex.getMessage(), ex);

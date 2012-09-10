@@ -13,6 +13,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 
 public abstract class ErrorHandler {
 	
-	public abstract void handleError(ResourceObjectShadowType shadow, Exception ex) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
+	public static enum FailedOperation{
+		ADD, DELETE, MODIFY, GET;
+	}
+	
+	public abstract void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
 
 }
