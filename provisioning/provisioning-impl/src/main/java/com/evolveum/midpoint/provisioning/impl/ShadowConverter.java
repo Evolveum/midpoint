@@ -537,7 +537,7 @@ public class ShadowConverter {
 
 	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
+		return connectorTypeManager.getConfiguredConnectorInstance(resource, false, parentResult);
 	}
 
 	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange,

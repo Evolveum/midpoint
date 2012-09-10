@@ -268,7 +268,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ResourceAndConnectorCaching");
 		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		ResourceType resourceType = resource.asObjectable();
-		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(resource.asObjectable(), result);
+		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
+				resource.asObjectable(), false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -294,7 +295,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		
 		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
 		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(resourceTypeAgain, result);
+		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
+				resourceTypeAgain, false, result);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 	}
 	

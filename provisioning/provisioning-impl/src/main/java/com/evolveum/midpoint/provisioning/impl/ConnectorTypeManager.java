@@ -78,7 +78,7 @@ public class ConnectorTypeManager {
 
 	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorTypeManager.ConfiguredConnectorInstanceEntry>();
 
-	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result)
+	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		String resourceOid = resource.getOid();
 		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
@@ -86,7 +86,7 @@ public class ConnectorTypeManager {
 			// Check if the instance can be reused
 			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
 
-			if (configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
+			if (!forceFresh && configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
 					&& configuredConnectorInstanceEntry.configuration.equivalent(resource.asPrismObject()
 							.findContainer(ResourceType.F_CONFIGURATION))) {
 
@@ -104,8 +104,13 @@ public class ConnectorTypeManager {
 			}
 
 		}
-		LOGGER.debug("MISS in connector cache: creating configured connector {} as referenced from {}", connectorOid,
+		if (forceFresh) {
+			LOGGER.debug("FORCE in connector cache: creating configured connector {} as referenced from {}", connectorOid,
+					resource);
+		} else {
+			LOGGER.debug("MISS in connector cache: creating configured connector {} as referenced from {}", connectorOid,
 				resource);
+		}
 
 		// No usable connector in cache. Let's create it.
 		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(resource, result);

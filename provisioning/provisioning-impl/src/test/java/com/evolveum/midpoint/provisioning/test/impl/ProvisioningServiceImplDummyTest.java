@@ -499,14 +499,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test007ResourceAndConnectorCaching() throws Exception {
-		displayTestTile("test007ResourceAndConnectorCaching");
+	public void test010ResourceAndConnectorCaching() throws Exception {
+		displayTestTile("test010ResourceAndConnectorCaching");
 
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test007ResourceAndConnectorCaching");
+				+ ".test010ResourceAndConnectorCaching");
 		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
-				resourceType, result);
+				resourceType, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -533,25 +533,80 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// to make sure that the
 		// configured connector is properly cached
 		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
-				resourceTypeAgain, result);
-		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstance);
+				resourceTypeAgain, false, result);
+		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
+
+		// Check if the connector still works.
+		OperationResult testResult = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test010ResourceAndConnectorCaching.test");
+		configuredConnectorInstanceAgain.test(testResult);
+		testResult.computeStatus();
+		assertSuccess("Connector test failed", testResult);
+		
+		// Test connection should also refresh the connector by itself. So check if it has been refreshed
+		
+		ConnectorInstance configuredConnectorInstanceAfterTest = connectorTypeManager.getConfiguredConnectorInstance(
+				resourceTypeAgain, false, result);
+		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
+		assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
+	}
+
+	@Test
+	public void test011ResourceAndConnectorCachingForceFresh() throws Exception {
+		displayTestTile("test011ResourceAndConnectorCachingForceFresh");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test011ResourceAndConnectorCachingForceFresh");
+		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
+				resourceType, false, result);
+		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		assertNotNull("No resource schema", resourceSchema);
+
+		// WHEN
+		PrismObject<ResourceType> resourceAgain = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
+				null, result);
+
+		// THEN
+		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
+		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
+		assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
+
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainerAgain = resourceAgain
+				.findContainer(ResourceType.F_CONFIGURATION);
+		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
+
+		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
+		assertNotNull("No resource schema (again)", resourceSchemaAgain);
+		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
+
+		// Now we stick our nose deep inside the provisioning impl. But we need
+		// to make sure that the configured connector is properly refreshed
+		// forceFresh = true
+		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
+				resourceTypeAgain, true, result);
+		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
+		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works
 		OperationResult testResult = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test007ResourceAndConnectorCaching.test");
+				+ ".test011ResourceAndConnectorCachingForceFresh.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
 		assertSuccess("Connector test failed", testResult);
 	}
 
+	
 	@Test
-	public void test008ApplyDefinitionShadow() throws Exception {
-		displayTestTile("test008ApplyDefinitionShadow");
+	public void test020ApplyDefinitionShadow() throws Exception {
+		displayTestTile("test020ApplyDefinitionShadow");
 
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test008ApplyDefinitionShadow");
+				+ ".test020ApplyDefinitionShadow");
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
 
@@ -564,12 +619,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test009ApplyDefinitionAddDelta() throws Exception {
-		displayTestTile("test009ApplyDefinitionAddDelta");
+	public void test021ApplyDefinitionAddDelta() throws Exception {
+		displayTestTile("test021ApplyDefinitionAddDelta");
 
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test009ApplyDefinitionAddDelta");
+				+ ".test021ApplyDefinitionAddDelta");
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
 

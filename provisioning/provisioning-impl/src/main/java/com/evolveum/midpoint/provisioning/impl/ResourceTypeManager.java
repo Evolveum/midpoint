@@ -146,7 +146,7 @@ public class ResourceTypeManager {
 			if (resourceSchema == null) { // unless it has been already pulled
 				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
 				try {
-					connector = getConnectorInstance(resource, parentResult);
+					connector = getConnectorInstance(resource, false, parentResult);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
 							+ ": Error creating connector instace: " + e.getMessage(), e);
@@ -297,7 +297,7 @@ public class ResourceTypeManager {
 		ConnectorInstance connector;
 		try {
 
-			connector = getConnectorInstance(resourceType, initResult);
+			connector = getConnectorInstance(resourceType, true, initResult);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
 			// The connector was not found. The resource definition is either
@@ -661,7 +661,7 @@ public class ResourceTypeManager {
 
 		};
 		
-		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
+		ConnectorInstance connector = getConnectorInstance(resourceType, false, parentResult);
 
 		try {
 			// TODO: refactor
@@ -784,7 +784,7 @@ public class ResourceTypeManager {
 		try {
 
 			if (connector == null) {
-				connector = getConnectorInstance(resource, result);
+				connector = getConnectorInstance(resource, false, result);
 			}
 			capabilities = connector.getCapabilities(result);
 
@@ -811,9 +811,9 @@ public class ResourceTypeManager {
 		
 	}
 
-	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
+	private ConnectorInstance getConnectorInstance(ResourceType resource, boolean forceFresh, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
+		return connectorTypeManager.getConfiguredConnectorInstance(resource, forceFresh, parentResult);
 	}
 
 	private PrismObjectDefinition<ResourceType> getResourceTypeDefinition() {
