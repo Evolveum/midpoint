@@ -738,16 +738,17 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		}
 	}
 	
+	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
+		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+	}
+	
 	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(propertyName, 
-				getUserDefinition(), newRealValue);
-		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>();
-		((Collection)modifications).add(propertyDelta);
-		modelService.modifyObject(UserType.class, userOid, modifications , task, result);
+		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyName, newRealValue);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(objectDelta);
+		modelService.executeChanges(deltas, null, task, result);	
 	}
-
 	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,

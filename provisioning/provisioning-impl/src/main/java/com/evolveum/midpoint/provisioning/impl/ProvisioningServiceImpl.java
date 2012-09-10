@@ -209,9 +209,31 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw ex;
 		}
 
-		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)) {
+		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)|| 
+				ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
 			if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
-				applyDefinition((PrismObject<ResourceObjectShadowType>)repositoryObject, result);
+				try {
+					applyDefinition((PrismObject<ResourceObjectShadowType>)repositoryObject, result);
+				} catch (SchemaException e) {
+					if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
+						// This is (almost) OK in raw. We want to get whatever is available, even if it violates
+						// the schema
+						result.recordWarning(e);
+						return repositoryObject;
+					} else {
+						result.recordFatalError(e);
+						throw e;
+					}
+				} catch (ObjectNotFoundException e) {
+					result.recordFatalError(e);
+					throw e;
+				} catch (CommunicationException e) {
+					result.recordFatalError(e);
+					throw e;
+				} catch (ConfigurationException e) {
+					result.recordFatalError(e);
+					throw e;
+				}
 			}
 			result.recordSuccess();
 			return repositoryObject;

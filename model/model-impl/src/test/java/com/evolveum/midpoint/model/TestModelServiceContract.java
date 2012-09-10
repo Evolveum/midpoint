@@ -238,6 +238,32 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
 	}
+	
+	@Test
+    public void test103GetAccountRaw() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test103GetAccountRaw");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test103GetAccountRaw");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
+		
+		// WHEN
+		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, options , task, result);
+		
+		display("Account", account);
+		display("Account def", account.getDefinition());
+		PrismContainer<Containerable> accountContainer = account.findContainer(AccountShadowType.F_ATTRIBUTES);
+		display("Account attributes def", accountContainer.getDefinition());
+		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        assertDummyShadowRepo(account, accountOid, "jack");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
+	}
 
 	@Test
     public void test110GetUserResolveAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
@@ -753,11 +779,78 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount("jack", "Cpt. Jack Sparrow", true);
 	}
+	
+	@Test
+    public void test145ModifyUserJack() throws Exception {
+        displayTestTile(this, "test145ModifyUserJack");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test145ModifyUserJack");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+                        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, "Magnificent Captain Jack Sparrow");
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Magnificent Captain Jack Sparrow");
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+	}
+	
+	@Test
+    public void test146ModifyUserJackRaw() throws Exception {
+        displayTestTile(this, "test146ModifyUserJackRaw");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test146ModifyUserJackRaw");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
+        		PrismTestUtil.createPolyString("Marvelous Captain Jack Sparrow"));
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(objectDelta);
+                        
+		// WHEN
+		modelService.executeChanges(deltas, ObjectOperationOption.createCollection(ObjectOperationOption.RAW), task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Marvelous Captain Jack Sparrow");
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account - the original fullName should not be changed
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
+        
+        // Check account in dummy resource - the original fullName should not be changed
+        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+	}
 		
 	@Test
-    public void test149DeleteUserJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test149DeleteUserJack() throws Exception {
         displayTestTile(this, "test149DeleteUserJack");
 
         // GIVEN
