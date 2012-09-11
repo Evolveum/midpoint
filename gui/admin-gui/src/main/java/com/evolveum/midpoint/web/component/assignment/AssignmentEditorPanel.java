@@ -33,6 +33,10 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -48,6 +52,9 @@ import java.util.*;
  */
 public class AssignmentEditorPanel extends BasePanel<UserAssignmentDto> {
 
+    private static final String ID_BODY = "body";
+    private static final String ID_MINIMIZE_BUTTON = "minimizeButton";
+    private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_ATTRIBUTES = "attributes";
@@ -56,19 +63,47 @@ public class AssignmentEditorPanel extends BasePanel<UserAssignmentDto> {
     private static final String ID_EXTENSION = "extension";
     private static final String ID_ACTIVATION = "activation";
 
+    private IModel<AssignmentEditorDto> editorModel;
+
     public AssignmentEditorPanel(String id, IModel<UserAssignmentDto> model) {
+        this(id, model, new LoadableModel<AssignmentEditorDto>(false) {
+
+            @Override
+            protected AssignmentEditorDto load() {
+                return new AssignmentEditorDto();
+            }
+        });
+    }
+
+    public AssignmentEditorPanel(String id, IModel<UserAssignmentDto> model, IModel<AssignmentEditorDto> editorModel) {
         super(id, model);
+        setOutputMarkupId(true);
+
+        Validate.notNull(editorModel, "Editor model must not be null.");
+        this.editorModel = editorModel;
     }
 
     protected void initLayout() {
         Label name = new Label("name", new PropertyModel<Object>(getModel(), UserAssignmentDto.F_NAME));
         add(name);
 
+        WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
+        body.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto editorDto = editorModel.getObject();
+                return !editorDto.isMinimized();
+            }
+        });
+        add(body);
+
         TextField description = new TextField(ID_DESCRIPTION,
                 new PropertyModel(getModel(), UserAssignmentDto.F_DESCRIPTION));
-        add(description);
+        body.add(description);
 
         WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
+        attributes.setOutputMarkupId(true);
         attributes.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -77,7 +112,7 @@ public class AssignmentEditorPanel extends BasePanel<UserAssignmentDto> {
                 return UserAssignmentDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
             }
         });
-        add(attributes);
+        body.add(attributes);
 
         ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE,
                 new LoadableModel<List<ACAttributeDto>>(false) {
@@ -90,14 +125,62 @@ public class AssignmentEditorPanel extends BasePanel<UserAssignmentDto> {
 
             @Override
             protected void populateItem(ListItem<ACAttributeDto> listItem) {
-                ACAttributePanel acAttribute = new ACAttributePanel(ID_AC_ATTRIBUTE, listItem.getModel());
+                final IModel<ACAttributeDto> attrModel = listItem.getModel();
+                ACAttributePanel acAttribute = new ACAttributePanel(ID_AC_ATTRIBUTE, attrModel);
                 acAttribute.setRenderBodyOnly(true);
                 listItem.add(acAttribute);
+
+                listItem.add(new VisibleEnableBehaviour() {
+
+                    @Override
+                    public boolean isVisible() {
+                        AssignmentEditorDto editorDto = editorModel.getObject();
+                        if (!editorDto.isMinimized()) {
+                            return true;
+                        }
+
+                        ACAttributeDto dto = attrModel.getObject();
+                        return StringUtils.isNotEmpty(dto.getValue()) || StringUtils.isNotEmpty(dto.getExpression());
+                    }
+                });
             }
         };
         attributes.add(attribute);
 
         //todo extension and activation
+
+        initButtons();
+    }
+
+    public IModel<AssignmentEditorDto> getEditorModel() {
+        return editorModel;
+    }
+
+    private void initButtons() {
+        //todo images and CSS
+        AjaxLink showEmptyButton = new AjaxLink(ID_SHOW_EMPTY_BUTTON) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                AssignmentEditorDto dto = editorModel.getObject();
+                dto.setShowEmpty(!dto.isShowEmpty());
+
+                target.add(AssignmentEditorPanel.this.get(ID_BODY + ":" + ID_ATTRIBUTES));
+            }
+        };
+        add(showEmptyButton);
+
+        AjaxLink minimizeButton = new AjaxLink(ID_MINIMIZE_BUTTON) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                AssignmentEditorDto dto = editorModel.getObject();
+                dto.setMinimized(!dto.isMinimized());
+
+                target.add(AssignmentEditorPanel.this);
+            }
+        };
+        add(minimizeButton);
     }
 
     private List<ACAttributeDto> loadAttributes() {

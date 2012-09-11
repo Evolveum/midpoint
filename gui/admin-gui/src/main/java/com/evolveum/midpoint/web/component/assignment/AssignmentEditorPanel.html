@@ -23,21 +23,34 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <h4 wicket:id="name"></h4>
-
     <div>
-        <span><wicket:message key="AssignmentEditorPanel.description"/></span>
-        <input type="text" wicket:id="description"/>
-    </div>
+        <div>
+            <!--header-->
+            <div>
+                <a wicket:id="showEmptyButton">show empty</a>
+                <a wicket:id="minimizeButton">minimize</a>
+            </div>
+            <h4 wicket:id="name"></h4>
+        </div>
+        <div wicket:id="body">
+            <!--body-->
+            <div>
+                <span><wicket:message key="AssignmentEditorPanel.description"/></span>
+                <input type="text" wicket:id="description"/>
+            </div>
 
-    <div wicket:id="attributes">
-        <div wicket:id="attribute">
-            <div wicket:id="acAttribute"/>
+            <h4><wicket:message key="AssignmentEditorPanel.attributes"/></h4>
+            <div wicket:id="attributes">
+                <div wicket:id="attribute">
+                    <div wicket:id="acAttribute"/>
+                </div>
+            </div>
+
+            <!--todo implement activation and extension-->
+        </div>
+        <div>
+            <!--footer-->
         </div>
     </div>
-
-    <!--<textarea wicket:id="extension"/> todo implement -->
-
-    <!--<div wicket:id="activation"/> todo implement -->
 </wicket:panel>
 </html>

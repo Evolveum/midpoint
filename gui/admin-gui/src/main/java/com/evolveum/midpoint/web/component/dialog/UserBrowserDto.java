@@ -21,10 +21,12 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public class UserBrowserDto {
+public class UserBrowserDto implements Serializable {
 
     private String searchText;
     private boolean name = true;

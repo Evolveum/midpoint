@@ -86,7 +86,7 @@ public class UserAssignmentDto extends Selectable {
     }
 
     public boolean isModified() {
-        return oldAssignment != null;
+        return oldAssignment != null && !oldAssignment.equals(newAssignment);
     }
 
     public PrismContainerValue getOldValue() {

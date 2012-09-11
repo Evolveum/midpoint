@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
@@ -1216,6 +1217,15 @@ public class PageUser extends PageAdminUsers {
         UserAssignmentDto dto = new UserAssignmentDto(resource.getName(), UserAssignmentDtoType.ACCOUNT_CONSTRUCTION,
                 UserDtoStatus.ADD, assignment);
         assignments.add(dto);
+
+        AccordionItem item = getAssignmentAccordionItem();
+        Component wrapper = item.getBodyContainer().get(ID_ASSIGNMENT_EDITOR_WRAPPER);
+
+        AssignmentEditorPanel editor = (AssignmentEditorPanel) wrapper.get(ID_ASSIGNMENT_EDITOR);
+        IModel<AssignmentEditorDto> editorModel = editor.getEditorModel();
+        AssignmentEditorDto editorDto = editorModel.getObject();
+        editorDto.setMinimized(false);
+        editorDto.setShowEmpty(true);
 
         assignmentEditPerformed(target, dto);
     }
