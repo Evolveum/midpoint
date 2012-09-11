@@ -57,8 +57,29 @@ def sql = new Sql(connection);
 
 switch ( action ) {
     case "UPDATE":
-    if (attributes.get("fullname").get(0) != null){
-        sql.executeUpdate("update Users set fullname = ? where uid = ?", [attributes.get("fullname").get(0), attributes.get("__NAME__").get(0)])
+    switch ( objectClass ) {
+        case "__ACCOUNT__":
+        sql.executeUpdate("UPDATE Users set fullname = ? where uid = ?", [attributes.get("fullname").get(0), uid]);
+        sql.executeUpdate("UPDATE Users set firstname = ? where uid = ?", [attributes.get("firstname").get(0), uid]);
+        sql.executeUpdate("UPDATE Users set lastname = ? where uid = ?", [attributes.get("lastname").get(0), uid]);
+        sql.executeUpdate("UPDATE Users set email = ? where uid = ?", [attributes.get("email").get(0), uid]);
+        sql.executeUpdate("UPDATE Users set organization = ? where uid = ?", [attributes.get("organization").get(0), uid]);
+        sql.commit();
+        break
+
+        case "__GROUP__":
+        sql.executeUpdate("UPDATE Groups set description = ? where name = ?", [attributes.get("description").get(0), uid]);
+        sql.executeUpdate("UPDATE Groups set gid = ? where name = ?", [attributes.get("gid").get(0), uid]);
+        sql.commit();
+        break
+
+        case "organization":
+        sql.executeUpdate("UPDATE Organizations set description = ? where name = ?", [attributes.get("description").get(0), uid]);
+        sql.commit();
+        break
+
+        default:
+        uid;
     }
     break
 
@@ -70,5 +91,7 @@ switch ( action ) {
 
 
     default:
-    sql
+    uid
 }
+
+return uid;

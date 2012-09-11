@@ -48,29 +48,32 @@ switch ( objectClass ) {
     sql.execute("INSERT INTO Users (uid, firstname,lastname,fullname,email,organization) values (?,?,?,?,?,?)",
         [
             id,
-            attributes.get("firstname").get(0),
-            attributes.get("lastname").get(0),
-            attributes.get("fullname").get(0),
-            attributes.get("email").get(0),
-            attributes.get("organization").get(0)
+            attributes.get("firstname") ? attributes.get("firstname").get(0) : "",
+            attributes.get("lastname")  ? attributes.get("lastname").get(0) : "",
+            attributes.get("fullname")  ? attributes.get("fullname").get(0) : "",
+            attributes.get("email")     ? attributes.get("email").get(0) : "",
+            attributes.get("organization") ? attributes.get("organization").get(0) : ""
         ])
+	sql.commit();
     break
 
     case "__GROUP__":
     sql.execute("INSERT INTO Groups (gid,name,description) values (?,?,?)",
         [
-            attributes.get("gid").get(0),
+            attributes.get("gid") ? attributes.get("gid").get(0) : "",
             id,
-            attributes.get("description").get(0)
+            attributes.get("description") ? attributes.get("description").get(0) : ""
         ])
+	sql.commit();
     break
 
     case "organization":
     sql.execute("INSERT INTO Organizations (name,description) values (?,?)",
         [
             id,
-            attributes.get("description").get(0)
+            attributes.get("description") ? attributes.get("description").get(0) : ""
         ])
+	sql.commit();
     break
 
     default:
