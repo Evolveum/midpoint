@@ -231,13 +231,18 @@ public class ChangeExecutor {
                 if (accountRef.getOid().equals(accountOid)) {
                     // Linked, need to unlink
                     unlinkAccount(userTypeNew.getOid(), accountOid, task, result);
+//                    LOGGER.trace("Start to update situation in account after unlinking it from the user.");
+//    				updateSituationInAccount(task, null, accountOid, result);
+//    				LOGGER.trace("Situation in the account was updated to {}.", "null");
                 }
             }
             
             //update account situation only if the account was not deleted
-			if (accCtx.getDelta() != null && !accCtx.getDelta().isDelete() && !accCtx.getDelta().getOid().equals(accountOid)) {
+//			if (accCtx.getDelta() != null && !accCtx.getDelta().isDelete() && !accCtx.getDelta().getOid().equals(accountOid)) {
+				LOGGER.trace("Account unlinked from the user, updating also situation in account.");
 				updateSituationInAccount(task, null, accountOid, result);
-			}
+				LOGGER.trace("Situation in the account was updated to {}.", "null");
+//			}
             // Not linked, that's OK
 
         } else {
@@ -246,14 +251,18 @@ public class ChangeExecutor {
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
                 if (accountOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
+                	LOGGER.trace("Updating situation in already linked account.");
                 	updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
-                    return;
+                	LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
+                	return;
                 }
             }
             // Not linked, need to link
             linkAccount(userTypeNew.getOid(), accountOid, task, result);
             //be sure, that the situation is set correctly
+            LOGGER.trace("Updating situation after account was linked.");
             updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
+            LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
         }
     }
 
@@ -324,13 +333,16 @@ public class ChangeExecutor {
 		try {
 			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, parentResult);
 		} catch (ObjectNotFoundException ex) {
-			parentResult.getLastSubresult().recomputeStatus();
-			parentResult.getLastSubresult().muteError();//muteError();
 			// HACK: it can happen, if the account was deleted previously and
-			// now only the link should be removed..It's expected, that it
-			// should happen, but how to recognize it in provisoning that it is
-			// expected?
-//			parentResult.getLastSubresult().recordSuccess();
+						// now only the link should be removed..It's expected, that it
+						// should happen, but how to recognize it in provisoning that it is
+						// expected?
+			for (OperationResult subResults : parentResult.getSubresults()){
+				subResults.computeStatus();
+				subResults.muteError();
+			}
+			parentResult.computeStatus();
+			parentResult.muteError();
 			LOGGER.trace("Situation in account could not be updated. Account not found on the resource. Skipping modifying situation in account");
 			
 		}
