@@ -257,6 +257,15 @@ object.
 					</target>
 					</inbound>
 				</attribute>
+				<attribute>
+					<ref>ri:email</ref>
+					<inbound>
+						<target>
+					  	declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						$user/i:emailAddress
+						</target>
+					</inbound>
+				</attribute>
 				<credentials>
 					<password>
 						<outbound>
