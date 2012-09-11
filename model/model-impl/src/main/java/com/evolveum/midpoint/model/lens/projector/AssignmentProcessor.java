@@ -335,8 +335,8 @@ public class AssignmentProcessor {
 		}
 		
 		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(UserType.F_ORG_REF);
-		PropertyPath orgRefPath = new PropertyPath(UserType.F_ORG_REF);
+		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
+		PropertyPath orgRefPath = new PropertyPath(UserType.F_PARENT_ORG_REF);
 		
 		// Plus
 		for (Assignment assignment: evaluatedAssignmentTriple.getPlusSet()) {

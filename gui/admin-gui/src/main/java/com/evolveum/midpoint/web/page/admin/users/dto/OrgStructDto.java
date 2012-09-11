@@ -66,7 +66,7 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 					userList = new ArrayList<NodeDto>();
 				}
 				UserType user = (UserType) nodeObject;
-				userList.add(new NodeDto(null, user.getFullName().toString(), user.getOid(), user.getOrgRef()));
+				userList.add(new NodeDto(null, user.getFullName().toString(), user.getOid(), user.getParentOrgRef()));
 			}
 		}
 	}

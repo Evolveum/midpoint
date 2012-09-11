@@ -34,7 +34,7 @@ public class ObjectQueryUtil {
 	
 	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
 		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(EqualsFilter.createReferenceEqual(OrgType.class,
-				OrgType.F_ORG_REF, prismContext, null));
+				OrgType.F_PARENT_ORG_REF, prismContext, null));
 		return objectQuery;
 	}
 }

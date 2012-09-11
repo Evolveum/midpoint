@@ -1,10 +1,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import org.hibernate.FetchMode;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+import java.io.Serializable;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,16 +8,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
-import java.io.Serializable;
-import java.util.Set;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Index;
 
 /**
  * @author lazyman
@@ -58,9 +49,10 @@ public class ROrgClosure implements Serializable {
 
 
 	@Index(name = "iAncestor")
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, optional=true)
 	@JoinColumns({ @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid"),
 			@JoinColumn(name = "ancestor_id", referencedColumnName = "id") })
+//	@Cascade({org.hibernate.annotations.CascadeType.ALL})
 	public RObject getAncestor() {
 		return ancestor;
 	}
@@ -70,9 +62,10 @@ public class ROrgClosure implements Serializable {
 	}
 
 	@Index(name = "iDescendant")
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, optional=true)
 	@JoinColumns({ @JoinColumn(name = "descendant_oid", referencedColumnName = "oid"),
 		@JoinColumn(name = "descendant_id", referencedColumnName = "id") })
+//	 @Cascade({org.hibernate.annotations.CascadeType.ALL})
 	public RObject getDescendant() {
 		return descendant;
 	}

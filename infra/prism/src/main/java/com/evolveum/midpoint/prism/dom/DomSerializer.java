@@ -45,11 +45,13 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -215,6 +217,15 @@ public class DomSerializer {
 		Element element = createElement(parent.getName());
 		parentElement.appendChild(element);
 		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
+		if (value.getRelation() != null) {
+			QName relation = value.getRelation();
+			relation = getNamespacePrefixMapper().setQNamePrefixExplicit(relation);
+			try {
+				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME, relation);
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
+			}
+		}
 		if (value.getTargetType() != null) {
 			// Make the namespace prefix explicit due to JAXB bug
 			QName targetType = value.getTargetType();
@@ -242,6 +253,7 @@ public class DomSerializer {
 			Element adoptedElement = (Element)doc.adoptNode(value.getFilter().cloneNode(true));
 			filterElement.appendChild(adoptedElement);
 		}
+		
 	}
 
 	private void serializeObject(PrismReferenceValue value, Element parentElement) throws SchemaException {

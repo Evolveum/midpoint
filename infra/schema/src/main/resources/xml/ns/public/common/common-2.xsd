@@ -411,7 +411,7 @@
                 </xsd:annotation>
             </xsd:element>
             
-	        <xsd:element name="org" type="tns:AccountShadowType" minOccurs="0" maxOccurs="unbounded">
+	        <xsd:element name="org" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
 	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
@@ -419,12 +419,24 @@
 	                    (e.g. user manages an organizational unit).
 	                </xsd:documentation>
 	                <xsd:appinfo>
-	        			<a:objectReference>tns:orgRef</a:objectReference>
+	        			<a:objectReference>tns:parentOrgRef</a:objectReference>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
 	        </xsd:element>
 	
-	        <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+<!-- 	        <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"> -->
+<!-- 	            <xsd:annotation> -->
+<!-- 	                <xsd:documentation> -->
+<!-- 	                    Set of the orgs (organizational units, projects, teams) that the object relates to. -->
+<!-- 	                    This usually means that the object belongs to them but it may have other meanings as well -->
+<!-- 	                    (e.g. user manages an organizational unit). -->
+<!-- 	                </xsd:documentation> -->
+<!-- 	                <xsd:appinfo> -->
+<!-- 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType> -->
+<!-- 	        		</xsd:appinfo> -->
+<!-- 	            </xsd:annotation> -->
+<!-- 	        </xsd:element> -->
+	        <xsd:element name="parentOrgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
 	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
@@ -5443,6 +5455,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ADD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="get">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GET"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -36,6 +36,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -51,7 +52,7 @@ public abstract class RObject extends RContainer {
 	private RAnyContainer extension;
 	private long version;
 	@QueryAttribute(multiValue = true)
-	private Set<REmbeddedReference> orgRef;
+	private Set<REmbeddedReference> parentOrgRef;
 	private Set<ROrgClosure> descendants;
 	private Set<ROrgClosure> ancestors;
 
@@ -61,8 +62,8 @@ public abstract class RObject extends RContainer {
 			@JoinColumn(name = "user_oid", referencedColumnName = "oid"),
 			@JoinColumn(name = "user_id", referencedColumnName = "id") })
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public Set<REmbeddedReference> getOrgRef() {
-		return orgRef;
+	public Set<REmbeddedReference> getParentOrgRef() {
+		return parentOrgRef;
 	}
 
 	@OneToOne(optional = true, orphanRemoval = true)
@@ -75,12 +76,14 @@ public abstract class RObject extends RContainer {
 		return extension;
 	}
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "descendant")
+	@OneToMany(fetch = FetchType.LAZY, targetEntity=ROrgClosure.class, mappedBy = "descendant")//, orphanRemoval = true)
+	@Cascade({ org.hibernate.annotations.CascadeType.DELETE })
 	public Set<ROrgClosure> getDescendants() {
 		return descendants;
 	}
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "ancestor")
+	@OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "ancestor")//, orphanRemoval = true)
+	@Cascade({ org.hibernate.annotations.CascadeType.DELETE })
 	public Set<ROrgClosure> getAncestors() {
 		return ancestors;
 	}
@@ -117,8 +120,8 @@ public abstract class RObject extends RContainer {
 		this.version = version;
 	}
 
-	public void setOrgRef(Set<REmbeddedReference> orgRefs) {
-		this.orgRef = orgRefs;
+	public void setParentOrgRef(Set<REmbeddedReference> orgRefs) {
+		this.parentOrgRef = orgRefs;
 	}
 
 	@Override
@@ -166,10 +169,8 @@ public abstract class RObject extends RContainer {
 			RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
 		}
 
-		if (repo.getOrgRef() != null) {
-			for (REmbeddedReference orgRef : repo.getOrgRef()) {
-				jaxb.getOrgRef().add(orgRef.toJAXB(prismContext));
-			}
+		if (repo.getParentOrgRef() != null) {
+			jaxb.getParentOrgRef().addAll(RUtil.safeSetParentOrgRefToList(repo.getParentOrgRef(), prismContext));
 		}
 		
 	}
@@ -196,11 +197,11 @@ public abstract class RObject extends RContainer {
 			RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
 		}
 
-		if (!jaxb.getOrgRef().isEmpty()) {
-			repo.setOrgRef(new HashSet<REmbeddedReference>());
+		if (!jaxb.getParentOrgRef().isEmpty()) {
+			repo.setParentOrgRef(new HashSet<REmbeddedReference>());
 		}
-		for (ObjectReferenceType orgRef : jaxb.getOrgRef()) {
-			repo.getOrgRef().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
+		for (ObjectReferenceType orgRef : jaxb.getParentOrgRef()) {
+			repo.getParentOrgRef().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
 		}
 		
 	}

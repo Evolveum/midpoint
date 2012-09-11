@@ -115,14 +115,30 @@ public class PrismReference extends Item<PrismReferenceValue> {
     public boolean merge(PrismReferenceValue value) {
     	String newOid = value.getOid();
     	PrismReferenceValue existingValue = getValue(newOid);
-    	if (existingValue == null) {
-    		return add(value);
-    	}
-    	if (value.getObject() != null) {
-    		existingValue.setObject(value.getObject());
-    	} else if (value.getTargetType() != null) {
-    		existingValue.setTargetType(value.getTargetType());
-    	}
+		if (existingValue == null) {
+			return add(value);
+		}
+
+		// in the value.getObject() is not null, it it probably only resolving
+		// of refenrence, so only change oid to object
+		if (value.getObject() != null) {
+			existingValue.setObject(value.getObject());
+			return true;
+		}  
+		
+		// in the case, if the existing value and new value are not equal, add
+		// also another reference alhtrough one with the same oid exist. It is
+		// needed for parent org refs, becasue there can exist more than one
+		// reference with the same oid, but they should be different (e.g. user
+		// is member and also manager of the org. unit.)
+		if (!value.equalsComplex(existingValue, false, false)) {
+			return add(value);
+		}
+		
+		if (value.getTargetType() != null) {
+			existingValue.setTargetType(value.getTargetType());
+//			return true;
+		} 
     	// No need to copy OID as OIDs match
     	return true;
     }

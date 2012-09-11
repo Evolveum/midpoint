@@ -297,7 +297,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			RContainerId containerId = (RContainerId) session.save(rObject);
 			oid = containerId.getOid();
 
-			if (objectType instanceof OrgType || !objectType.getOrgRef().isEmpty()) {
+			if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
 				objectType.setOid(oid);
 				fillHierarchy(objectType, session);
 			}
@@ -349,7 +349,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		session.save(closure);
 		// }
 
-		for (ObjectReferenceType orgRef : orgType.getOrgRef()) {
+		for (ObjectReferenceType orgRef : orgType.getParentOrgRef()) {
 			fillTransitiveHierarchy(rOrg, orgRef.getOid(), session);
 		}
 
@@ -748,7 +748,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
 
 		for (ItemDelta delta : modifications) {
-			if (delta.getName().equals(OrgType.F_ORG_REF)) {
+			if (delta.getName().equals(OrgType.F_PARENT_ORG_REF)) {
 				// if modifiction is one of the modify or delete, delete old
 				// record in org closure table and in the next step fill the
 				// closure table with the new records
@@ -835,6 +835,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		fillHierarchy(parent.toJAXB(getPrismContext()), session);
 
 		for (RObject descentant : descendants) {
+			LOGGER.trace("ObjectToRecompte {}", descentant);
 			if (!parent.getOid().equals(descentant.getOid())) {
 				fillTransitiveHierarchy(descentant, parent.getOid(), session);
 			}
@@ -842,7 +843,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	}
 
-	private void deleteHierarchy(RObject objectToDelete, Session session) {
+	private void deleteHierarchy(RObject objectToDelete, Session session) throws DtoTranslationException{
 		Criteria criteria = session.createCriteria(ROrgClosure.class).add(
 				Restrictions.or(Restrictions.eq("ancestor", objectToDelete),
 						Restrictions.eq("descendant", objectToDelete)));
@@ -850,41 +851,42 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		List<ROrgClosure> orgClosure = criteria.list();
 		for (ROrgClosure o : orgClosure) {
 			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
+					new Object[] { o.getAncestor().toJAXB(getPrismContext()),
+					o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
 			session.delete(o);
 		}
 
 	}
 
-	private List<RObject> deleteFromHierarchy(RObject object, Session session) throws SchemaException,
-			DtoTranslationException {
-
-		LOGGER.trace("Deleting records from organization closure table.");
-
-		Criteria criteria = session.createCriteria(ROrgClosure.class);
-		List<RObject> descendants = criteria.setProjection(Projections.property("descendant"))
-				.add(Restrictions.eq("ancestor", object)).list();
-
-		for (RObject desc : descendants) {
-			List<ROrgClosure> orgClosure = session.createCriteria(ROrgClosure.class)
-					.add(Restrictions.eq("descendant", desc)).list();
-			for (ROrgClosure o : orgClosure) {
-				session.delete(o);
-			}
-			// fillHierarchy(desc.toJAXB(getPrismContext()), session);
-		}
-
-		criteria = session.createCriteria(ROrgClosure.class).add(
-				Restrictions.or(Restrictions.eq("ancestor", object), Restrictions.eq("descendant", object)));
-
-		List<ROrgClosure> orgClosure = criteria.list();
-		for (ROrgClosure o : orgClosure) {
-			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
-			session.delete(o);
-		}
-		return descendants;
-	}
+//	private List<RObject> deleteFromHierarchy(RObject object, Session session) throws SchemaException,
+//			DtoTranslationException {
+//
+//		LOGGER.trace("Deleting records from organization closure table.");
+//
+//		Criteria criteria = session.createCriteria(ROrgClosure.class);
+//		List<RObject> descendants = criteria.setProjection(Projections.property("descendant"))
+//				.add(Restrictions.eq("ancestor", object)).list();
+//
+//		for (RObject desc : descendants) {
+//			List<ROrgClosure> orgClosure = session.createCriteria(ROrgClosure.class)
+//					.add(Restrictions.eq("descendant", desc)).list();
+//			for (ROrgClosure o : orgClosure) {
+//				session.delete(o);
+//			}
+//			// fillHierarchy(desc.toJAXB(getPrismContext()), session);
+//		}
+//
+//		criteria = session.createCriteria(ROrgClosure.class).add(
+//				Restrictions.or(Restrictions.eq("ancestor", object), Restrictions.eq("descendant", object)));
+//
+//		List<ROrgClosure> orgClosure = criteria.list();
+//		for (ROrgClosure o : orgClosure) {
+//			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+//					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
+//			session.delete(o);
+//		}
+//		return descendants;
+//	}
 
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,

@@ -20,6 +20,7 @@
 <!--                                                         -->
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
 
 	<!-- Functional organizational structure -->
@@ -37,7 +38,7 @@
 	<org oid="00000000-8888-6666-0000-100000000002">
 		<name>F0002</name>
 		<description>Defending the scum since the ancient times.</description>
-		<orgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
 		<displayName>Ministry of Defense</displayName>
 		<identifier>0002</identifier>
 		<orgType>functional</orgType>
@@ -47,7 +48,7 @@
 	<org oid="00000000-8888-6666-0000-100000000003">
 		<name>F0003</name>
 		<description>Offending. Anyone. Anywhere.</description>
-		<orgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
 		<displayName>Ministry of Offense</displayName>
 		<identifier>0003</identifier>
 		<orgType>functional</orgType>
@@ -57,7 +58,7 @@
 	<org oid="00000000-8888-6666-0000-100000000004">
 		<name>F0004</name>
 		<description>Why is the rum always gone?</description>
-		<orgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
 		<displayName>Ministry of Rum</displayName>
 		<identifier>0004</identifier>
 		<orgType>functional</orgType>
@@ -67,7 +68,7 @@
 	<org oid="00000000-8888-6666-0000-100000000005">
 		<name>F0005</name>
 		<description>Swashing, buckling and insulting. Hard.</description>
-		<orgRef oid="00000000-8888-6666-0000-100000000003"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
 		<displayName>Swashbuckler Section</displayName>
 		<identifier>0005</identifier>
 		<orgType>functional</orgType>
@@ -76,8 +77,8 @@
 	<org oid="00000000-8888-6666-0000-100000000006">
 		<name>F0006</name>
 		<description>Hosting the worst scumm of the Caribbean.</description>
-		<orgRef oid="00000000-8888-6666-0000-100000000003"/>
-		<orgRef oid="00000000-8888-6666-0000-100000000004"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
 		<displayName>Scumm Bar</displayName>
 		<identifier>0006</identifier>
 		<orgType>functional</orgType>
@@ -95,7 +96,7 @@
 
 	<org oid="00000000-8888-6666-0000-200000000001">
 		<name>P0001</name>
-		<orgRef oid="00000000-8888-6666-0000-200000000000"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
 		<displayName>Save Elaine</displayName>
 		<identifier>0001</identifier>
 		<orgType>project</orgType>
@@ -103,7 +104,7 @@
 
 	<org oid="00000000-8888-6666-0000-200000000002">
 		<name>P0002</name>
-		<orgRef oid="00000000-8888-6666-0000-200000000000"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
 		<displayName>Kidnap and marry Elaine</displayName>
 		<identifier>0002</identifier>
 		<orgType>project</orgType>
@@ -113,93 +114,106 @@
 
 	<user>
 		<name>elaine</name>
-		<orgRef oid="00000000-8888-6666-0000-100000000001" relation="org:manager"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
 		<fullName>Elaine Marley</fullName>
 		<givenName>Elaine</givenName>
 		<familyName>Marley</familyName>
 		<title>Governor</title>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000001" relation="org:manager"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
 		</assignment>
 	</user>
 	
 	<user>
 		<name>cheese</name>
 		<description>The owner of Scumm Bar</description>
-		<orgRef oid="00000000-8888-6666-0000-100000000006" relation="org:manager"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType" relation="org:manager"/>
 		<fullName>Ignatius Cheese</fullName>
 		<givenName>Ignatius</givenName>
 		<familyName>Cheese</familyName>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000006" relation="org:manager"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType" relation="org:manager"/>
 		</assignment>
 	</user>
 
 	<user>
 		<name>chef</name>
-		<orgRef oid="00000000-8888-6666-0000-100000000006" relation="org:member"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 		<fullName>Scumm Bar Chef</fullName>
 		<givenName>Chef</givenName>
 		<familyName>Scumm</familyName>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000006" relation="org:member"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 		</assignment>
 	</user>
 	
 	<user>
 		<name>barkeeper</name>
-		<orgRef oid="00000000-8888-6666-0000-100000000006" relation="org:member"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 		<fullName>Horridly Scarred Barkeep</fullName>
 		<givenName>Barkeeper</givenName>
 		<familyName>Scumm</familyName>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000006" relation="org:member"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 		</assignment>
 	</user>
 
 	<user>
 		<name>guybrush</name>
-		<orgRef oid="00000000-8888-6666-0000-100000000006" relation="org:manager"/>
+		<!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
 		<fullName>Guybrush Threepwood</fullName>
 		<givenName>Guybrush</givenName>
 		<familyName>Threepwood</familyName>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000006" relation="org:manager"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-8888-6666-0000-100000000004" relation="org:manager"/>
 		</assignment>
 	</user>
 
 	<user>
 		<name>carla</name>
-		<orgRef oid="00000000-8888-6666-0000-100000000002" relation="org:member"/>
-		<orgRef oid="00000000-8888-6666-0000-200000000001" relation="org:member"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
 		<fullName>Carla the Swordmaster</fullName>
 		<givenName>Carla</givenName>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000002" relation="org:member"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
 		</assignment>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-200000000001" relation="org:member"/>
+			<targetRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
 		</assignment>
 	</user>
 
 	<user>
 		<name>lechuck</name>
-		<orgRef oid="00000000-8888-6666-0000-200000000002" relation="org:manager"/>
+		<!-- LeChuck just manages, does not belong to anywhere -->
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType" relation="org:manager"/>
 		<fullName>Captain LeChuck</fullName>
 		<familyName>LeChuck</familyName>
-		<employeeType>FTE</employeeType>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-200000000002" relation="org:manager"/>
+			<targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType" relation="org:manager"/>
 		</assignment>
 	</user>
 
 	<user>
 		<name>bob</name>
-		<orgRef oid="00000000-8888-6666-0000-200000000002" relation="org:member"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
 		<fullName>Ghost Pirate Bob</fullName>
 		<givenName>Bob</givenName>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-200000000002" relation="org:member"/>
+			<targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
 		</assignment>
 	</user>
 	

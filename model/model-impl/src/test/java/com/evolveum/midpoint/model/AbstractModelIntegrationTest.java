@@ -891,7 +891,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertHasOrg(PrismObject<UserType> user, String orgOid) {
-		for (ObjectReferenceType orgRef: user.asObjectable().getOrgRef()) {
+		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid())) {
 				return;
 			}
@@ -900,7 +900,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertHasNoOrg(PrismObject<UserType> user) {
-		assertTrue(user + " does have orgs "+user.asObjectable().getOrgRef()+" while not expecting them", user.asObjectable().getOrgRef().isEmpty());
+		assertTrue(user + " does have orgs "+user.asObjectable().getParentOrgRef()+" while not expecting them", user.asObjectable().getParentOrgRef().isEmpty());
 	}
 
 	protected void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType) {

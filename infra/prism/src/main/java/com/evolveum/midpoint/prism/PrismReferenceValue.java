@@ -228,6 +228,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 				return false;
 		} else if (!this.targetType.equals(other.targetType))
 			return false;
+		if (this.relation == null) {
+			if (other.relation != null)
+				return false;
+		} else if (!this.relation.equals(other.relation))
+			return false;
 		return true;
 	}
 
@@ -249,6 +254,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		int result = super.hashCode();
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
 		result = prime * result + ((targetType == null) ? 0 : targetType.hashCode());
+		result = prime * result + ((relation == null) ? 0 : relation.hashCode());
 		return result;
 	}
 		

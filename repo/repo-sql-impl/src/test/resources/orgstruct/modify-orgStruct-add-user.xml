@@ -27,7 +27,7 @@
     <modification>
         <t:modificationType>add</t:modificationType>
         <t:value>
-            <c:orgRef oid="00000000-8888-6666-0000-100000000006"/>
+            <c:parentOrgRef oid="00000000-8888-6666-0000-100000000006"/>
         </t:value>
     </modification>
 </objectModification>
