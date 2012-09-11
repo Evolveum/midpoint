@@ -142,13 +142,13 @@ object.
 					<xsd:element ref="icfs:name" />
 					<xsd:element minOccurs="0" ref="icfs:uid" />
 					<xsd:element minOccurs="0" ref="icfs:password" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="firstname" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="fullname" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="lastname" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="email" type="xsd:string" />
-					<xsd:element maxOccurs="unbounded" minOccurs="0" name="organization" type="xsd:string" />
-<!-- timestamp ??? -->
+					<xsd:element maxOccurs="1" minOccurs="0" name="uid" type="xsd:string" />
+					<xsd:element maxOccurs="1" minOccurs="0" name="firstname" type="xsd:string" />
+					<xsd:element maxOccurs="1" minOccurs="0" name="fullname" type="xsd:string" />
+					<xsd:element maxOccurs="1" minOccurs="0" name="lastname" type="xsd:string" />
+					<xsd:element maxOccurs="1" minOccurs="0" name="email" type="xsd:string" />
+					<xsd:element maxOccurs="1" minOccurs="0" name="organization" type="xsd:string" />
+<!-- TODO: how about timestamp ? It's defined in the sample DB and used for Sync -->
 				</xsd:sequence>
 			</xsd:complexType>
 		</xsd:schema>

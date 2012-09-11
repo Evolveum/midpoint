@@ -43,14 +43,17 @@ assert uid != null
 switch ( objectClass ) {
     case "__ACCOUNT__":
     sql.execute("DELETE FROM Users where uid= ?",[uid])
+    sql.commit();
     break
 
     case "__GROUP__":
     sql.execute("DELETE FROM Groups where name= ?",[uid])
+    sql.commit();
     break
 
     case "organization":
     sql.execute("DELETE FROM Organizations where name= ?",[uid])
+    sql.commit();
     break
 
     default:

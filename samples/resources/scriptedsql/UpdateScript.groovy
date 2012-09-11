@@ -53,18 +53,35 @@ import groovy.sql.DataSet;
 
 log.info("Entering "+action+" Script");
 def sql = new Sql(connection);
-
+def doCommit = false;
 
 switch ( action ) {
     case "UPDATE":
     switch ( objectClass ) {
         case "__ACCOUNT__":
-        sql.executeUpdate("UPDATE Users set fullname = ? where uid = ?", [attributes.get("fullname").get(0), uid]);
-        sql.executeUpdate("UPDATE Users set firstname = ? where uid = ?", [attributes.get("firstname").get(0), uid]);
-        sql.executeUpdate("UPDATE Users set lastname = ? where uid = ?", [attributes.get("lastname").get(0), uid]);
-        sql.executeUpdate("UPDATE Users set email = ? where uid = ?", [attributes.get("email").get(0), uid]);
-        sql.executeUpdate("UPDATE Users set organization = ? where uid = ?", [attributes.get("organization").get(0), uid]);
-        sql.commit();
+        if (attributes.get("fullname")) {
+		sql.executeUpdate("UPDATE Users set fullname = ? where uid = ?", [attributes.get("fullname").get(0), uid]);
+		doCommit = true;
+	}
+        if (attributes.get("firstname")) {
+	        sql.executeUpdate("UPDATE Users set firstname = ? where uid = ?", [attributes.get("firstname").get(0), uid]);
+		doCommit = true;
+	}
+        if (attributes.get("lastname")) {
+        	sql.executeUpdate("UPDATE Users set lastname = ? where uid = ?", [attributes.get("lastname").get(0), uid]);
+		doCommit = true;
+	}
+        if (attributes.get("email")) {
+	        sql.executeUpdate("UPDATE Users set email = ? where uid = ?", [attributes.get("email").get(0), uid]);
+		doCommit = true;
+	}
+        if (attributes.get("organization")) {
+        	sql.executeUpdate("UPDATE Users set organization = ? where uid = ?", [attributes.get("organization").get(0), uid]);
+		doCommit = true;
+	}
+        if (doCommit) {
+		sql.commit();
+	}
         break
 
         case "__GROUP__":
