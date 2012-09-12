@@ -23,6 +23,10 @@ package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+
 import org.apache.commons.lang.Validate;
 
 import java.io.PrintWriter;
@@ -33,10 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
 /**
  * @author lazyman
  */
-public class OpResult implements Serializable {
+public class OpResult extends PageAdmin implements Serializable {
 
     private OperationResultStatus status;
     private String operation;
@@ -47,11 +53,12 @@ public class OpResult implements Serializable {
     private String exceptionsStackTrace;
     private List<OpResult> subresults;
     private int count;
+    private String xml;
 
     public OpResult(OperationResult result) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
-
+        
         this.message = result.getMessage();
         this.operation = result.getOperation();
         this.status = result.getStatus();
@@ -95,6 +102,14 @@ public class OpResult implements Serializable {
                 getSubresults().add(new OpResult(subresult));
             }
         }
+
+        try {
+        	OperationResultType resultType = result.createOperationResultType();
+        	ObjectFactory of = new ObjectFactory();
+			xml = getPrismContext().getPrismJaxbProcessor().marshalElementToString(of.createOperationResult(resultType));
+		} catch (JAXBException ex) {
+			error("Can't create xml: " + ex);
+		}
     }
 
     public List<OpResult> getSubresults() {
@@ -140,5 +155,9 @@ public class OpResult implements Serializable {
 
     public int getCount() {
         return count;
+    }
+    
+    public String getXml() {
+    	return xml;
     }
 }
