@@ -133,19 +133,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			session.getTransaction().commit();
 		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
+			rollbackTransaction(session, ex, result);
 			throw ex;
 		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
+			rollbackTransaction(session, ex, result);
 			throw ex;
 		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
+			rollbackTransaction(session, ex, result);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			rollbackTransaction(session, ex, result);
 			throw ex;
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
+				result.recordFatalError("Schema error while getting object with oid: "+ oid +". Reason: "+ ex.getMessage(), ex);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);
@@ -264,6 +265,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		String oid = null;
 		Session session = null;
+		// it is needed to keep the original oid for example for import
+		// options..
+		// if we do not keep it and it was null it can bring some error becasue
+		// the oid is set when the object contains orgRef or it is org..and by
+		// the import we do not know it so it will be trying to delete
+		// non-existing object
+		String originalOid = object.getOid();
 		try {
 			ObjectType objectType = object.asObjectable();
 			if (LOGGER.isTraceEnabled()) {
@@ -272,7 +280,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			// check name uniqueness (by type)
 			session = beginTransaction();
-			if (StringUtils.isNotEmpty(objectType.getOid())) {
+			if (StringUtils.isNotEmpty(originalOid)) {
 				LOGGER.debug("Checking oid uniqueness.");
 				Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
 				criteria.add(Restrictions.eq("oid", object.getOid()));
@@ -297,6 +305,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			RContainerId containerId = (RContainerId) session.save(rObject);
 			oid = containerId.getOid();
 
+			
+			
 			if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
 				objectType.setOid(oid);
 				fillHierarchy(objectType, session);
@@ -324,6 +334,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			// something else,
 			// therefore we're throwing it always as
 			// ObjectAlreadyExistsException
+			// revert to the original oid and prevent of unexpected behaviour
+			// (e.g. by import with overwrite option)
+			if (StringUtils.isEmpty(originalOid)){
+				object.setOid(null);
+			}
 			throw new ObjectAlreadyExistsException(ex);
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {

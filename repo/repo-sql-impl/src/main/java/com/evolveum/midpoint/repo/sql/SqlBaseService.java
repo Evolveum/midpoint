@@ -167,15 +167,17 @@ public class SqlBaseService {
     }
 
     protected void rollbackTransaction(Session session, Exception ex, OperationResult result) {
-        if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
+    	 if (ex != null && result != null) {
+             result.recordFatalError(ex.getMessage(), ex);
+         }
+    	 
+    	if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
         }
 
         session.getTransaction().rollback();
 
-        if (ex != null && result != null) {
-            result.recordFatalError(ex.getMessage(), ex);
-        }
+       
     }
 
     protected void cleanupSessionAndResult(Session session, OperationResult result) {
