@@ -79,6 +79,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 
@@ -478,30 +479,57 @@ public class PageSubmit extends PageAdmin {
 
 		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
 		if (targetRef != null) {
-			PrismObject<RoleType> role = null;
-			try {
-				role = getModelService().getObject(RoleType.class, targetRef.getValue().getOid(), null, task,
-						result);
-			} catch (Exception ex) {
-				result.recordFatalError("Unable to get role object", ex);
-				showResultInSession(result);
-				throw new RestartResponseException(PageUsers.class);
+			if(targetRef.getValue().getTargetType().equals(OrgType.COMPLEX_TYPE)) {
+				PrismObject<OrgType> org = null;
+				try {
+					org = getModelService().getObject(OrgType.class, targetRef.getValue().getOid(), null, task,
+							result);
+				} catch (Exception ex) {
+					result.recordFatalError("Unable to get orgUnit object", ex);
+					showResultInSession(result);
+					throw new RestartResponseException(PageUsers.class);
+				}
+				return WebMiscUtil.getName(org);
+			} else {
+				PrismObject<RoleType> role = null;
+				try {
+					role = getModelService().getObject(RoleType.class, targetRef.getValue().getOid(), null, task,
+							result);
+				} catch (Exception ex) {
+					result.recordFatalError("Unable to get role object", ex);
+					showResultInSession(result);
+					throw new RestartResponseException(PageUsers.class);
+				}
+				return WebMiscUtil.getName(role);
 			}
-			return WebMiscUtil.getName(role);
+			
 		}
 
 		PrismReference accountConstrRef = assignment.findReference(AssignmentType.F_ACCOUNT_CONSTRUCTION);
 		if (accountConstrRef != null) {
-			PrismObject<RoleType> role = null;
-			try {
-				role = getModelService().getObject(RoleType.class, accountConstrRef.getValue().getOid(),
-						null, task, result);
-			} catch (Exception ex) {
-				result.recordFatalError("Unable to get role object", ex);
-				showResultInSession(result);
-				throw new RestartResponseException(PageUsers.class);
+			if(accountConstrRef.getValue().getTargetType().equals(OrgType.COMPLEX_TYPE)) {
+				PrismObject<OrgType> org = null;
+				try {
+					org = getModelService().getObject(OrgType.class, accountConstrRef.getValue().getOid(),
+							null, task, result);
+				} catch (Exception ex) {
+					result.recordFatalError("Unable to get orgUnit object", ex);
+					showResultInSession(result);
+					throw new RestartResponseException(PageUsers.class);
+				}
+				return WebMiscUtil.getName(org);
+			} else {
+				PrismObject<RoleType> role = null;
+				try {
+					role = getModelService().getObject(RoleType.class, accountConstrRef.getValue().getOid(),
+							null, task, result);
+				} catch (Exception ex) {
+					result.recordFatalError("Unable to get role object", ex);
+					showResultInSession(result);
+					throw new RestartResponseException(PageUsers.class);
+				}
+				return WebMiscUtil.getName(role);
 			}
-			return WebMiscUtil.getName(role);
 		}
 
 		return "";
