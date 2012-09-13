@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jvnet.jaxb2_commons.lang.Validate;
@@ -43,13 +45,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 public class OrgStructDto<T extends ObjectType> implements Serializable {
 	private List<NodeDto> orgUnitList;
 	private List<NodeDto> userList;
+	private static QName ORG_MANAGER = new QName("http://midpoint.evolveum.com/xml/ns/public/common/org-2",
+			"manager");
 
-	public OrgStructDto(List<PrismObject<T>> orgUnitList) {
+	public OrgStructDto(List<PrismObject<T>> orgUnitList, NodeDto parent) {
 		Validate.notNull(orgUnitList);
-		initNodes(orgUnitList);
+		initNodes(orgUnitList, parent);
 	}
 
-	private void initNodes(List<PrismObject<T>> list) {
+	private void initNodes(List<PrismObject<T>> list, NodeDto parent) {
+		listNodes:
 		for (PrismObject<T> node : list) {
 			ObjectType nodeObject = node.asObjectable();
 
@@ -58,7 +63,7 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 					orgUnitList = new ArrayList<NodeDto>();
 				}
 				OrgType org = (OrgType) nodeObject;
-				orgUnitList.add(new NodeDto(null, org.getDisplayName().toString(), org.getOid(),
+				orgUnitList.add(new NodeDto(parent, org.getDisplayName().toString(), org.getOid(),
 						NodeType.FOLDER));
 
 			} else if (nodeObject instanceof UserType) {
@@ -66,7 +71,16 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 					userList = new ArrayList<NodeDto>();
 				}
 				UserType user = (UserType) nodeObject;
-				userList.add(new NodeDto(null, user.getFullName().toString(), user.getOid(), user.getParentOrgRef()));
+				if(!userList.isEmpty()) {
+					for (NodeDto userDto : userList) {
+						if(userDto.getOid().equals(user.getOid())) {
+							userDto.addTypeToListTypes(getRelation(parent, user.getParentOrgRef()));
+							continue listNodes;
+						}
+					}
+				}
+				userList.add(new NodeDto(parent, user.getFullName().toString(), user.getOid(), getRelation(
+						parent, user.getParentOrgRef())));
 			}
 		}
 	}
@@ -98,17 +112,15 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 		}
 
 		if (orgRef.getRelation() == null) {
-			return null;
+			return NodeType.MEMBER;
 		}
-		String relation = orgRef.getRelation().getLocalPart();
+		QName relation = orgRef.getRelation();
 
-		if (relation.equals("manager")) {
-			return NodeType.BOSS;
-		} else if (relation.equals("member")) {
+		if (relation.equals(ORG_MANAGER)) {
 			return NodeType.MANAGER;
-		} else {
-			return NodeType.USER;
 		}
+
+		return null;
 	}
 
 }

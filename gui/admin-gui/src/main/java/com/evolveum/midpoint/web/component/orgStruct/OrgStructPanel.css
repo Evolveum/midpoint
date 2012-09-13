@@ -52,19 +52,18 @@ span.tree-content a.tree-folder-other:hover {
 	text-decoration: none;
 }
 
-span.tree-content a.folder_boss {
+span.tree-content a.folder_manager {
 	background-image: url("Boss.png");
 	color: #e54444;
 	text-decoration: underline;
 }
 
-span.tree-content a.folder_boss:hover {
+span.tree-content a.folder_manager:hover {
 	text-decoration: underline;
 }
 
-span.tree-content a.folder_manager {
+span.tree-content a.folder_member {
 	background-image: url("Manager.png");
-	/* color: #2dc63f; */
 	color: #e54444;
 }
 

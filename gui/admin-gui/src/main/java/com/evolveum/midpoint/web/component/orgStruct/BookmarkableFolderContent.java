@@ -199,13 +199,12 @@ public class BookmarkableFolderContent extends Content {
 	}
 
 	private List<NodeDto> getNodes(NodeDto parent) {
-		OrgStructDto orgUnit = loadOrgUnit(parent.getOid());
+		OrgStructDto orgUnit = loadOrgUnit(parent);
 		List<NodeDto> listNodes = new ArrayList<NodeDto>();
 
 		if (orgUnit.getOrgUnitDtoList() != null && !orgUnit.getOrgUnitDtoList().isEmpty()) {
 			for (Object orgObject : orgUnit.getOrgUnitDtoList()) {
 				NodeDto org = (NodeDto) orgObject;
-				org.setParent(parent);
 				listNodes.add(org);
 			}
 		}
@@ -213,27 +212,25 @@ public class BookmarkableFolderContent extends Content {
 		if (orgUnit.getUserDtoList() != null && !orgUnit.getUserDtoList().isEmpty()) {
 			for (Object userObject : orgUnit.getUserDtoList()) {
 				NodeDto user = (NodeDto) userObject;
-				user.setParent(parent);
-				user.setType(OrgStructDto.getRelation(parent, user.getOrgRefs()));
 				listNodes.add(user);
 			}
 		}
 		return listNodes;
 	}
 
-	private OrgStructDto loadOrgUnit(String oid) {
+	private OrgStructDto loadOrgUnit(NodeDto parent) {
 		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
 		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
 
 		OrgStructDto newOrgModel = null;
 		List<PrismObject<ObjectType>> orgUnitList;
 
-		OrgFilter orgFilter = OrgFilter.createOrg(oid, null, "1");
+		OrgFilter orgFilter = OrgFilter.createOrg(parent.getOid(), null, "1");
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
 
 		try {
 			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
-			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList);
+			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Unable to load org unit", ex);

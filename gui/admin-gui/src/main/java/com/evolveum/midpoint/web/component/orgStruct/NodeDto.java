@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 
 /**
@@ -38,36 +39,24 @@ public class NodeDto implements Serializable {
 	private boolean loaded;
 	private NodeDto parent;
 	private String displayName;
-	private NodeType type = NodeType.USER;
-	private List<ObjectReferenceType> orgRefs;
+	private NodeType type = NodeType.MEMBER;
+	private List<NodeType> listTypes;
 	private boolean editable;
 
 	private List<NodeDto> nodes = new ArrayList<NodeDto>();
-	
-	public NodeDto(NodeDto parent, String displayName, String oid) {
-		this.oid = oid;
-		this.displayName = displayName;
-		this.parent = parent;
-	}
 
 	public NodeDto(NodeDto parent, String displayName, String oid, NodeType type) {
-		this(parent, displayName, oid);
+		this.parent = parent;
+		this.displayName = displayName;
+		this.oid = oid;
 		if (type != null) {
 			this.type = type;
+			addTypeToListTypes(type);
 		}
-	}
-	
-	public NodeDto(NodeDto parent, String displayName, String oid, List<ObjectReferenceType> orgRefs) {
-		this(parent, displayName, oid);
-		this.orgRefs = orgRefs;
 	}
 
 	public NodeType getType() {
-		return type;
-	}
-	
-	public void setType(NodeType type) {
-		this.type = type;
+		return listTypes.get(0);
 	}
 
 	public NodeDto getParent() {
@@ -76,10 +65,6 @@ public class NodeDto implements Serializable {
 	
 	public void setParent(NodeDto parent) {
 		this.parent = parent;
-	}
-	
-	public List<ObjectReferenceType> getOrgRefs() {
-		return orgRefs;
 	}
 	
 	public boolean isEditable() {
@@ -96,6 +81,17 @@ public class NodeDto implements Serializable {
 
 	public String getOid() {
 		return oid;
+	}
+	
+	public List<NodeType> getListTypes() {
+		return listTypes;
+	}
+	
+	public void addTypeToListTypes(NodeType type) {
+		if(listTypes == null) {
+			listTypes = new ArrayList<NodeType>();
+		}
+		listTypes.add(type);
 	}
 
 	public List<NodeDto> getNodes() {

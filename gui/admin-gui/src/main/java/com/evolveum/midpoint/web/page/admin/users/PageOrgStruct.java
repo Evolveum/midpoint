@@ -84,7 +84,7 @@ public class PageOrgStruct extends PageAdminUsers {
 	private OrgStructDto getOrgStructDtoFromPrism(PrismObject<OrgType> root) {
 		List<PrismObject<OrgType>> orgUnitList = new ArrayList<PrismObject<OrgType>>();
 		orgUnitList.add(root);
-		return new OrgStructDto<OrgType>(orgUnitList);
+		return new OrgStructDto<OrgType>(orgUnitList, null);
 	}
 
 	private List<PrismObject<OrgType>> loadOrgUnit() {

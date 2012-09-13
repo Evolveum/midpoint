@@ -29,5 +29,5 @@ import org.apache.wicket.model.IModel;
  */
 public enum NodeType {
 	
-    FOLDER, BOSS, MANAGER, USER;
+    FOLDER, MANAGER, MEMBER, USER;
 }

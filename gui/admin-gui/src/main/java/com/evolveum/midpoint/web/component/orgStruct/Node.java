@@ -39,11 +39,10 @@ public class Node<T extends NodeDto> extends StyledLinkLabel<T> {
 		switch (t.getType()) {
 			case FOLDER:
 				return "tree-folder-other folder";
-			case BOSS:
-				return "tree-folder-other folder_boss";
 			case MANAGER:
 				return "tree-folder-other folder_manager";
-			case USER:
+			case MEMBER:
+				return "tree-folder-other folder_member";
 			default:
 				return "tree-folder-other folder_user";
 		}
