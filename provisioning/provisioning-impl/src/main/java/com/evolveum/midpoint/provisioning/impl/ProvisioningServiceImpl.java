@@ -337,7 +337,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				oid = getShadowCache().addShadow((ResourceObjectShadowType) object.asObjectable(), reconciled, scripts,
 						null, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
-				result.recordSuccess();
+				result.computeStatus();
 			} catch (GenericFrameworkException ex) {
 				logFatalError(LOGGER, result, "Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
 				throw new CommunicationException(ex.getMessage(), ex);
@@ -766,7 +766,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// calling shadow cache to modify object
 			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
 					parentResult);
-			result.recordSuccess();
+			result.computeStatus();
 
 		} catch (CommunicationException e) {
 			logFatalError(LOGGER, result, "Couldn't modify object: communication problem: " + e.getMessage(), e);

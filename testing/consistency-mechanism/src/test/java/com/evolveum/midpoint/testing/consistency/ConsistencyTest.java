@@ -653,7 +653,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// WHEN
 		ObjectDelta delta = ObjectDelta.createAddDelta(user);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(delta);
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 //		String oid = modelService.addObject(user, task, result);
 
 		// THEN
@@ -912,7 +912,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_JACK2_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), task,
 //				parentResult);
 
@@ -975,7 +975,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_WILL_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService
 //				.modifyObject(UserType.class, USER_WILL_OID, delta.getModifications(), task, parentResult);
 
@@ -1019,13 +1019,13 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_GUYBRUSH_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(UserType.class, USER_GUYBRUSH_OID, delta.getModifications(), task,
 //				parentResult);
 
 		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, prismContext);
 		deltas = createDeltaCollection(deleteDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, task, parentResult);
 
 		try {
@@ -1072,7 +1072,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), AccountShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
 //				task, parentResult);
 
@@ -1126,7 +1126,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), AccountShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
 //				task, parentResult);
 
@@ -1186,7 +1186,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_E_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 //		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
 
 		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
@@ -1237,7 +1237,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefs.get(0).getOid(), delta.getModifications(), AccountShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 //		modelService.modifyObject(AccountShadowType.class, accountRefs.get(0).getOid(),
 //				delta.getModifications(), task, result);
 
@@ -1282,7 +1282,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), AccountShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), task,
 //				parentResult);
 
@@ -1319,7 +1319,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_DENIELS_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		
 //		modelService.modifyObject(UserType.class, USER_DENIELS_OID, delta.getModifications(), task,
 //				parentResult);
@@ -1331,7 +1331,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, ACCOUNT_DENIELS_OID, prismContext);
 		deltas = createDeltaCollection(deleteDelta);
-		modelService.executeChanges(deltas, task, parentResult);
+		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.deleteObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, task, parentResult);
 
 		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class,
@@ -1349,11 +1349,12 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test024getAccountCommunicationProblem() throws Exception {
+		displayTestTile("test024getAccountCommunicationProblem");
 		OperationResult result = new OperationResult("test024 get account communication problem");
 		AccountShadowType account = modelService.getObject(AccountShadowType.class, ACCOUNT_DENIELS_OID,
 				null, null, result).asObjectable();
-		assertNotNull(account);
-		assertNotNull(account.getFetchResult());
+		assertNotNull("Get method returned null account.", account);
+		assertNotNull("Fetch result was not set in the shadow.", account.getFetchResult());
 	}
 
 	@Test

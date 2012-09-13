@@ -55,7 +55,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private TaskManager taskManager;
 
 	@Override
-	public void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 

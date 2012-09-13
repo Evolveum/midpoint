@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 public class ConfigurationExceptionHandler extends ErrorHandler {
 
 	@Override
-	public void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException {
 		throw new ConfigurationException("Configuration error: "+ex.getMessage(), ex);

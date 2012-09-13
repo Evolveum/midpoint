@@ -26,12 +26,15 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -69,16 +72,20 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	@Override
-	public void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException {
 
-		OperationResult operationResult = new OperationResult(CommunicationExceptionHandler.class.getName()
-				+ ".handleError");
+//		OperationResult operationResult = new OperationResult(CommunicationExceptionHandler.class.getName()
+//				+ ".handleError");
 		Validate.notNull(shadow, "Shadow must not be null.");
+		OperationResult operationResult = OperationResult.createOperationResult(shadow.getResult());
+		operationResult.muteError();
+//		shadowResult.addSubresult(operationResult);
 //		Validate.notNull(shadow.getFailedOperationType(), "Failed operation type must not be null.");
 		// if the failed operation was adding, then what we need is to store the
 		// whole object to the repository to try it add again later
+		modifyResourceAvailabilityStatus(shadow.getResource(), AvailabilityStatusType.DOWN, operationResult);
 		switch (op) {
 		case ADD:
 			if (shadow.getFailedOperationType() == null) {
@@ -87,7 +94,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				}
 				shadow.setAttemptNumber(getAttemptNumber(shadow));
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);
-				return;
+				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), operationResult);
+				shadow.setOid(oid);
+//				return shadow;
 			} else {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
@@ -97,11 +106,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 					delta.add(attemptDelta);
 					cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), delta,
 							operationResult);
-					return;
+//					return shadow;
 				}
-
+				
 			}
-			break;
+			operationResult.muteError();
+			return shadow;
 		case MODIFY:
 			if (shadow.getFailedOperationType() == null) {
 
@@ -110,6 +120,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						operationResult);
+//				return shadow;
 			} else {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 					if (shadow.getObjectChange() != null && shadow.getOid() != null) {
@@ -118,17 +129,23 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deltas,
 								operationResult);
+//						return shadow;
 					}
 				}
 			}
-			break;
+			operationResult.muteError();
+			return shadow;
 		case DELETE:
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
 			List<PropertyDelta> modifications = createShadowModification(shadow);
 
 			getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 					operationResult);
-			break;
+			return shadow;
+		case GET:
+			//nothing to do, just return the shadow from the repo and set fetch result..
+			shadow.setFetchResult(shadow.getResult());
+			return shadow;
 		default:
 			throw new CommunicationException(ex);
 		}
@@ -209,6 +226,18 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 //
 	}
 
+	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		
+		if (resource.getLastAvailabilityStatus() == null || resource.getLastAvailabilityStatus() != status) {
+			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(
+					ResourceType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+			modifications.add(statusDelta);
+			resource.setLastAvailabilityStatus(status);
+			cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+		}
+	}
+	
 	private List<PropertyDelta> createShadowModification(ResourceObjectShadowType shadow) {
 		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 

@@ -117,8 +117,9 @@ public class ShadowConverter {
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			//check if the account is not only partially created (exist only in repo so far)
-			if (repoShadow.getFailedOperationType()!= null){
-				throw new GenericConnectorException("Could not get object without identifiers.");
+			if (repoShadow.getFailedOperationType() != null) {
+				throw new GenericConnectorException(
+						"Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 			}
 			// No identifiers found
 			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "
@@ -332,7 +333,8 @@ public class ShadowConverter {
 
 			//check idetifier if it is not null
 			if (identifiers.isEmpty() && shadow.getFailedOperationType()!= null){
-				throw new CommunicationException("Error communicating with connector");
+				throw new GenericConnectorException(
+						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 			}
 			
 			// Invoke ICF

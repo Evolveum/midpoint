@@ -2320,6 +2320,7 @@
                     </xsd:element>
                     <xsd:element ref="tns:scripts" minOccurs="0"/>
                     <xsd:element ref="tns:synchronization" minOccurs="0"/>
+                    <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5473,6 +5474,33 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
+    </xsd:simpleType>
+    
+     <xsd:simpleType name="AvailabilityStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enum describes the availability of the resource, if it is down, unreachable or ok. 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="up">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
     </xsd:simpleType>
             
 </xsd:schema>

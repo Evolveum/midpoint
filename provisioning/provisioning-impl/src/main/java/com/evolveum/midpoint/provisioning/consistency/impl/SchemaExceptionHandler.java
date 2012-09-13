@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 public class SchemaExceptionHandler extends ErrorHandler{
 
 	@Override
-	public void handleError(ResourceObjectShadowType shadow, FailedOperation op, Exception ex) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException{
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException{
 		
 		throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 		

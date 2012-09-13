@@ -78,6 +78,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -220,33 +221,32 @@ public class ShadowCache {
 
 		try {
 			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
-			// } catch (Exception ex) {
-			// try{
-			// handleError(ex, repositoryShadow, FailedOperation.GET,
-			// parentResult);
-			// resultShadow = shadowConverter.getShadow(type, resource,
-			// repositoryShadow, parentResult);
-			// } catch (GenericFrameworkException e){
-			//
-			// } catch (ObjectAlreadyExistsException e){
-			//
-			// }
-			// TODO: Discovery
-		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Object " + ObjectTypeUtil.toShortString(repositoryShadow)
-					+ "not found on the " + ObjectTypeUtil.toShortString(resource), ex);
-
-			throw ex;
-		} catch (CommunicationException ex) {
-			parentResult.recordWarning("Cannot get " + ObjectTypeUtil.toShortString(repositoryShadow)
-					+ " from resource " + resource.getName()
-					+ ", because the resource is unreachable. The returned object is one from the repository.");
-			repositoryShadow.setFetchResult(parentResult.createOperationResultType());
-			return repositoryShadow;
-		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError("Configuration error. Reason: " + ex.getMessage(), ex);
-			throw ex;
+		} catch (Exception ex) {
+			try {
+				repositoryShadow = extendShadow(repositoryShadow, FailedOperationTypeType.GET, parentResult, resource, null, ex);
+				resultShadow = handleError(ex, repositoryShadow, FailedOperation.GET, parentResult);
+			} catch (GenericFrameworkException e) {
+				throw new SystemException(e);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new SystemException(e);
+			}
 		}
+			// TODO: Discovery
+//		} catch (ObjectNotFoundException ex) {
+//			parentResult.recordFatalError("Object " + ObjectTypeUtil.toShortString(repositoryShadow)
+//					+ "not found on the " + ObjectTypeUtil.toShortString(resource), ex);
+//
+//			throw ex;
+//		} catch (CommunicationException ex) {
+//			parentResult.recordWarning("Cannot get " + ObjectTypeUtil.toShortString(repositoryShadow)
+//					+ " from resource " + resource.getName()
+//					+ ", because the resource is unreachable. The returned object is one from the repository.");
+//			repositoryShadow.setFetchResult(parentResult.createOperationResultType());
+//			return repositoryShadow;
+//		} catch (ConfigurationException ex) {
+//			parentResult.recordFatalError("Configuration error. Reason: " + ex.getMessage(), ex);
+//			throw ex;
+//		}
 		parentResult.recordSuccess();
 		return resultShadow;
 
@@ -279,12 +279,11 @@ public class ShadowCache {
 		try {
 			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, isReconciled,
 					shadowConverterResult);
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
-			shadow = extendShadow(shadow, FailedOperationTypeType.ADD, shadowConverterResult, resource, null);
-			handleError(ex, shadow, FailedOperation.ADD, parentResult);
-			if (shadow.getOid() != null) {
-				return shadow.getOid();
-			}
+			shadow = extendShadow(shadow, FailedOperationTypeType.ADD, shadowConverterResult, resource, null, ex);
+			shadow = handleError(ex, shadow, FailedOperation.ADD, parentResult);
+			return shadow.getOid();
 		}
 
 		if (shadow == null) {
@@ -302,8 +301,21 @@ public class ShadowCache {
 		LOGGER.trace("Object added to the repository successfully.");
 
 		parentResult.recordSuccess();
+		
 		return shadow.getOid();
 
+	}
+
+	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		if (resource.getLastAvailabilityStatus() != null && status == resource.getLastAvailabilityStatus()){
+			return;
+		}
+		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(
+				ResourceType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+		modifications.add(statusDelta);
+		resource.setLastAvailabilityStatus(status);
+		repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 	}
 
 	public void deleteShadow(ObjectType objectType, ScriptsType scripts, ResourceType resource,
@@ -332,7 +344,7 @@ public class ShadowCache {
 				shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
 			} catch (Exception ex) {
 				accountShadow = extendShadow(accountShadow, FailedOperationTypeType.DELETE, parentResult, resource,
-						null);
+						null, ex);
 				try {
 					handleError(ex, accountShadow, FailedOperation.DELETE, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
@@ -353,6 +365,11 @@ public class ShadowCache {
 			}
 			LOGGER.trace("Object deleted from repository successfully.");
 			parentResult.recordSuccess();
+			try {
+				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new SystemException(e);
+			}
 		}
 	}
 
@@ -389,11 +406,13 @@ public class ShadowCache {
 			try {
 				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
 						parentResult);
+				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 			} catch (Exception ex) {
 
-				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
+				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications, ex);
 				try {
 					handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
+//					modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.DOWN, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
 				}
 				return;
@@ -427,7 +446,11 @@ public class ShadowCache {
 				// TODO: implement
 				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
 			}
-
+//			try {
+//				
+//			} catch (ObjectAlreadyExistsException e) {
+//				throw new SystemException(e);
+//			}
 			parentResult.recordSuccess();
 		}
 	}
@@ -547,9 +570,9 @@ public class ShadowCache {
 	}
 
 	private <T extends ResourceObjectShadowType> T extendShadow(T shadow, FailedOperationTypeType failedOperation,
-			OperationResult shadowResult, ResourceType resource, Collection<? extends ItemDelta> modifications)
+			OperationResult shadowResult, ResourceType resource, Collection<? extends ItemDelta> modifications, Exception ex)
 			throws SchemaException {
-
+		shadowResult.recordFatalError(ex.getMessage(), ex);
 		shadow.setResult(shadowResult.createOperationResultType());
 		shadow.setResource(resource);
 
@@ -575,7 +598,7 @@ public class ShadowCache {
 		return shadow;
 	}
 
-	private void handleError(Exception ex, ResourceObjectShadowType shadow, FailedOperation op,
+	private <T extends ResourceObjectShadowType> T handleError(Exception ex, T shadow, FailedOperation op,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -586,7 +609,7 @@ public class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		handler.handleError(shadow, op, ex);
+		return handler.handleError(shadow, op, ex);
 
 	}
 

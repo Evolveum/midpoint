@@ -57,6 +57,7 @@ public class RResource extends RObject {
     private String capabilities;
     private String scripts;
     private String synchronization;
+    private RAvailabilityStatusType lastAvailabilityStatus;
 
     @Type(type = "org.hibernate.type.TextType")
     public String getScripts() {
@@ -102,6 +103,10 @@ public class RResource extends RObject {
     public String getNamespace() {
         return namespace;
     }
+    
+    public RAvailabilityStatusType getLastAvailabilityStatus() {
+		return lastAvailabilityStatus;
+	}
 
     @Index(name = "iResourceName")
     @Column(name = "objectName", unique = true)
@@ -113,6 +118,10 @@ public class RResource extends RObject {
         this.name = name;
     }
 
+    public void setLastAvailabilityStatus(RAvailabilityStatusType lastAvailabilityStatus) {
+		this.lastAvailabilityStatus = lastAvailabilityStatus;
+	}
+    
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
@@ -218,6 +227,9 @@ public class RResource extends RObject {
                     repo.getNativeCapabilities(), CachedCapabilitiesType.class, prismContext));
             jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS), repo.getScripts(),
                     ScriptsType.class, prismContext));
+			if (repo.getLastAvailabilityStatus() != null) {
+				jaxb.setLastAvailabilityStatus(repo.getLastAvailabilityStatus().getStatus());
+			}
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -243,6 +255,9 @@ public class RResource extends RObject {
             repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(), prismContext));
             repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(), prismContext));
             repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
+            if (jaxb.getLastAvailabilityStatus() != null){
+            	repo.setLastAvailabilityStatus(RAvailabilityStatusType.toRepoType(jaxb.getLastAvailabilityStatus()));
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
