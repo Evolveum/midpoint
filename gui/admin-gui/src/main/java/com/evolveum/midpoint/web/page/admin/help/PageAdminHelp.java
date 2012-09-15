@@ -21,82 +21,27 @@
 
 package com.evolveum.midpoint.web.page.admin.help;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
-import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
+import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.home.dto.AdminHomeDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAssignmentDto;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceImport;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mserbak
  */
 public class PageAdminHelp extends PageAdmin {
 
-	@Override
-	public List<BottomMenuItem> getBottomMenuItems() {
-		List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
+    @Override
+    public List<BottomMenuItem> getBottomMenuItems() {
+        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-		items.add(new BottomMenuItem("pageAdminHelp.about", PageAbout.class,
+        items.add(new BottomMenuItem("pageAdminHelp.about", PageAbout.class,
                 new PageDisabledVisibleBehaviour(this, PageAbout.class)));
-		items.add(new BottomMenuItem("pageAdminHelp.system", PageSystem.class,
+        items.add(new BottomMenuItem("pageAdminHelp.system", PageSystem.class,
                 new PageDisabledVisibleBehaviour(this, PageSystem.class)));
 
-		return items;
-	}
+        return items;
+    }
 }

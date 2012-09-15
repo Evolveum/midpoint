@@ -58,7 +58,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.home.dto.AdminHomeDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAssignmentDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
@@ -187,10 +186,10 @@ public class PageHome extends PageAdmin {
 		for (ObjectReferenceType reference : references) {
 			OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
 			try {
-				
-				Collection<ObjectOperationOptions> options = 
+
+				Collection<ObjectOperationOptions> options =
 					ObjectOperationOptions.createCollection(AccountShadowType.F_RESOURCE, ObjectOperationOption.RESOLVE);
-				
+
 				PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
 						reference.getOid(), options, task, subResult);
 				AccountShadowType accountType = account.asObjectable();
