@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.web.page.PageBase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -74,5 +75,9 @@ public abstract class BasePanel<T> extends Panel {
     }
 
     protected void initLayout() {
+    }
+
+    protected String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
     }
 }

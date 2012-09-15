@@ -21,17 +21,45 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-
-import java.io.Serializable;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import org.apache.commons.lang.Validate;
 
 /**
+ * //todo consolidate [lazyman]
+ *
  * @author lazyman
  */
 public class AssignmentEditorDto extends SelectableBean {
 
+    public static final String F_TYPE = "type";
+    public static final String F_NAME = "name";
+    public static final String F_DESCRIPTION = "description";
+
+    private String name;
+    private UserAssignmentDtoType type;
+    private UserDtoStatus status;
+    private AssignmentType oldAssignment;
+    private AssignmentType newAssignment;
+
     private boolean showEmpty = false;
     private boolean minimized = true;
+
+    public AssignmentEditorDto(String name, UserAssignmentDtoType type, UserDtoStatus status, AssignmentType assignment) {
+        Validate.notNull(status, "User dto status must not be null.");
+        Validate.notNull(type, "Type must not be null.");
+        Validate.notNull(assignment, "Assignment must not be null.");
+
+        this.name = name;
+        this.type = type;
+        this.status = status;
+        this.newAssignment = assignment;
+    }
 
     public boolean isMinimized() {
         return minimized;
@@ -47,5 +75,61 @@ public class AssignmentEditorDto extends SelectableBean {
 
     public void setShowEmpty(boolean showEmpty) {
         this.showEmpty = showEmpty;
+    }
+
+    public UserDtoStatus getStatus() {
+        return status;
+    }
+
+    public ActivationType getActivation() {
+        return newAssignment.getActivation();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ObjectReferenceType getTargetRef() {
+        return newAssignment.getTargetRef();
+    }
+
+    public UserAssignmentDtoType getType() {
+        return type;
+    }
+
+    public void setStatus(UserDtoStatus status) {
+        this.status = status;
+    }
+
+    public void startEditing() {
+        PrismContainerValue value = newAssignment.asPrismContainerValue();
+
+        PrismContainerValue oldValue = value.clone();
+        oldAssignment = new AssignmentType();
+        oldAssignment.setupContainerValue(oldValue);
+    }
+
+    public boolean isModified() {
+        return oldAssignment != null && !oldAssignment.equals(newAssignment);
+    }
+
+    public PrismContainerValue getOldValue() {
+        return oldAssignment != null ? oldAssignment.asPrismContainerValue() : null;
+    }
+
+    public PrismContainerValue getNewValue() {
+        return newAssignment.asPrismContainerValue();
+    }
+
+    public String getDescription() {
+        return newAssignment.getDescription();
+    }
+
+    public void setDescription(String description) {
+        newAssignment.setDescription(description);
+    }
+
+    public AssignmentType getAssignment() {
+        return newAssignment;
     }
 }

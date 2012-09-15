@@ -28,6 +28,8 @@ import java.io.Serializable;
  */
 public class Selectable<T extends Serializable> implements Serializable {
 
+    public static final String F_SELECTED = "selected";
+
     private boolean selected;
 
     public boolean isSelected() {

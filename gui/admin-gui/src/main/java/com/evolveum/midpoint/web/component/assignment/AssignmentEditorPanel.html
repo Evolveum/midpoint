@@ -25,12 +25,10 @@
 
     <div>
         <div>
-            <!--header-->
-            <div>
-                <a wicket:id="showEmptyButton">show empty</a>
-                <a wicket:id="minimizeButton">minimize</a>
-            </div>
-            <h4 wicket:id="name"></h4>
+            <input type="checkbox" wicket:id="selected"/>
+            <img wicket:id="typeImage"/>
+            <a wicket:id="name"><span wicket:id="nameLabel"/></a>
+            <span wicket:id="activation"/>
         </div>
         <div wicket:id="body">
             <!--body-->
@@ -39,17 +37,41 @@
                 <input type="text" wicket:id="description"/>
             </div>
 
-            <h4><wicket:message key="AssignmentEditorPanel.attributes"/></h4>
-            <div wicket:id="attributes">
-                <div wicket:id="attribute">
-                    <div wicket:id="acAttribute"/>
+            <h4>
+                <wicket:message key="ActivationType.title"/>
+            </h4>
+            <div>
+                <span><wicket:message key="ActivationType.enabled"/></span>
+                <input type="checkbox" wicket:id="enabled"/>
+
+                <span><wicket:message key="ActivationType.validFrom"/></span>
+                <input wicket:id="validFrom" type="text"/>
+
+                <span><wicket:message key="ActivationType.validTo"/></span>
+                <input wicket:id="validTo" type="text"/>
+            </div>
+
+            <div wicket:id="targetContainer">
+                <h4>
+                    <wicket:message key="AssignmentEditorPanel.target"/>
+                </h4>
+                <span wicket:id="target"/>
+            </div>
+
+            <div wicket:id="constructionContainer">
+                <h4>
+                    <wicket:message key="AssignmentEditorPanel.attributes"/>
+                </h4>
+                <a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
+
+                <div wicket:id="attributes">
+                    <div wicket:id="attribute">
+                        <div wicket:id="acAttribute"/>
+                    </div>
                 </div>
             </div>
 
-            <!--todo implement activation and extension-->
-        </div>
-        <div>
-            <!--footer-->
+            <!--todo implement extension-->
         </div>
     </div>
 </wicket:panel>
