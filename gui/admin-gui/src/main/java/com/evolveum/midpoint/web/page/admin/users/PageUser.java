@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -422,11 +422,11 @@ public class PageUser extends PageAdminUsers {
         List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
         for (AssignmentType assignment : assignments) {
             String name = null;
-            UserAssignmentDtoType type = UserAssignmentDtoType.ACCOUNT_CONSTRUCTION;
+            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
             if (assignment.getTarget() != null) {
                 ObjectType target = assignment.getTarget();
                 name = target.getName();
-                type = UserAssignmentDtoType.getType(target.getClass());
+                type = AssignmentEditorDtoType.getType(target.getClass());
             } else if (assignment.getTargetRef() != null) {
                 ObjectReferenceType ref = assignment.getTargetRef();
                 OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
@@ -444,7 +444,7 @@ public class PageUser extends PageAdminUsers {
 
                 if (target != null) {
                     name = WebMiscUtil.getName(target);
-                    type = UserAssignmentDtoType.getType(target.getCompileTimeClass());
+                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
                 }
             }
 
@@ -1088,7 +1088,7 @@ public class PageUser extends PageAdminUsers {
 //        getPrismContext().adopt(user);
 
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-        AssignmentEditorDto dto = new AssignmentEditorDto(resource.getName(), UserAssignmentDtoType.ACCOUNT_CONSTRUCTION,
+        AssignmentEditorDto dto = new AssignmentEditorDto(resource.getName(), AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
                 UserDtoStatus.ADD, assignment);
         assignments.add(dto);
 
@@ -1112,7 +1112,7 @@ public class PageUser extends PageAdminUsers {
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (ObjectType object : newAssignables) {
             try {
-                UserAssignmentDtoType aType = UserAssignmentDtoType.getType(object.getClass());
+                AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
 
                 ObjectReferenceType targetRef = new ObjectReferenceType();
                 targetRef.setOid(object.getOid());

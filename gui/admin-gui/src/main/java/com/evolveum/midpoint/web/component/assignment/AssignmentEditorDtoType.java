@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.users.dto;
+package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public enum UserAssignmentDtoType {
+public enum AssignmentEditorDtoType {
 
     ACCOUNT_CONSTRUCTION(null, null),
 
@@ -41,7 +41,7 @@ public enum UserAssignmentDtoType {
     private Class<? extends ObjectType> type;
     private QName qname;
 
-    private UserAssignmentDtoType(Class<? extends ObjectType> type, QName qname) {
+    private AssignmentEditorDtoType(Class<? extends ObjectType> type, QName qname) {
         this.type = type;
         this.qname = qname;
     }
@@ -54,12 +54,12 @@ public enum UserAssignmentDtoType {
         return qname;
     }
 
-    public static UserAssignmentDtoType getType(Class<? extends ObjectType> type) {
+    public static AssignmentEditorDtoType getType(Class<? extends ObjectType> type) {
         if (type == null) {
             return ACCOUNT_CONSTRUCTION;
         }
 
-        for (UserAssignmentDtoType e : UserAssignmentDtoType.values()) {
+        for (AssignmentEditorDtoType e : AssignmentEditorDtoType.values()) {
             if (type.equals(e.getType())) {
                 return e;
             }

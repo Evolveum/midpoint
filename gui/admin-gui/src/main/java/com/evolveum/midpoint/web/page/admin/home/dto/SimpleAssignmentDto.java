@@ -21,17 +21,17 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 
 import java.io.Serializable;
 
 public class SimpleAssignmentDto implements Serializable {
     private String assignmentName;
-    private UserAssignmentDtoType type;
+    private AssignmentEditorDtoType type;
     private ActivationType activation;
 
-    public SimpleAssignmentDto(String assignmentName, UserAssignmentDtoType type, ActivationType activation) {
+    public SimpleAssignmentDto(String assignmentName, AssignmentEditorDtoType type, ActivationType activation) {
         this.assignmentName = assignmentName;
         this.type = type;
         this.activation = activation;
@@ -41,7 +41,7 @@ public class SimpleAssignmentDto implements Serializable {
         return assignmentName;
     }
 
-    public UserAssignmentDtoType getType() {
+    public AssignmentEditorDtoType getType() {
         return type;
     }
 

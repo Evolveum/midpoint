@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
@@ -40,9 +39,10 @@ public class AssignmentEditorDto extends SelectableBean {
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_ACTIVATION = "activation";
 
     private String name;
-    private UserAssignmentDtoType type;
+    private AssignmentEditorDtoType type;
     private UserDtoStatus status;
     private AssignmentType oldAssignment;
     private AssignmentType newAssignment;
@@ -50,7 +50,7 @@ public class AssignmentEditorDto extends SelectableBean {
     private boolean showEmpty = false;
     private boolean minimized = true;
 
-    public AssignmentEditorDto(String name, UserAssignmentDtoType type, UserDtoStatus status, AssignmentType assignment) {
+    public AssignmentEditorDto(String name, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment) {
         Validate.notNull(status, "User dto status must not be null.");
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(assignment, "Assignment must not be null.");
@@ -82,7 +82,13 @@ public class AssignmentEditorDto extends SelectableBean {
     }
 
     public ActivationType getActivation() {
-        return newAssignment.getActivation();
+        ActivationType type = newAssignment.getActivation();
+        if (type == null) {
+            type = new ActivationType();
+            newAssignment.setActivation(type);
+        }
+
+        return type;
     }
 
     public String getName() {
@@ -93,7 +99,7 @@ public class AssignmentEditorDto extends SelectableBean {
         return newAssignment.getTargetRef();
     }
 
-    public UserAssignmentDtoType getType() {
+    public AssignmentEditorDtoType getType() {
         return type;
     }
 

@@ -22,20 +22,23 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -50,10 +53,12 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
 /**
@@ -61,6 +66,12 @@ import java.util.*;
  */
 public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorPanel.class);
+
+    private static final String DOT_CLASS = AssignmentEditorPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+
+    private static final String ID_MAIN = "main";
     private static final String ID_SELECTED = "selected";
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
@@ -92,7 +103,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         add(selected);
 
         Image typeImage = new Image(ID_TYPE_IMAGE,
-                createImageTypeModel(new PropertyModel<UserAssignmentDtoType>(getModel(), AssignmentEditorDto.F_TYPE)));
+                createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE)));
         add(typeImage);
 
         AjaxLink name = new AjaxLink(ID_NAME) {
@@ -110,8 +121,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
         add(activation);
 
+        WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
+        main.setOutputMarkupId(true);
+        add(main);
+
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
-        body.setOutputMarkupId(true);
         body.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -120,12 +134,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return !editorDto.isMinimized();
             }
         });
-        add(body);
+        main.add(body);
 
         initBodyLayout(body);
     }
 
-    //todo [lazyman] change and move i18n keys
     private IModel<String> createActivationModel() {
         return new AbstractReadOnlyModel<String>() {
 
@@ -140,20 +153,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 Boolean enabled = activation.isEnabled();
                 String strEnabled;
                 if (enabled != null) {
-                    strEnabled = enabled ? getString("pageUser.assignment.activation.active")
-                            : getString("pageUser.assignment.activation.inactive");
+                    strEnabled = enabled ? getString("AssignmentEditorPanel.active")
+                            : getString("AssignmentEditorPanel.inactive");
                 } else {
-                    strEnabled = getString("pageUser.assignment.activation.undefined");
+                    strEnabled = getString("AssignmentEditorPanel.undefined");
                 }
 
                 if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-                    return getString("pageUser.assignment.activation.enabledFromTo", strEnabled,
+                    return getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
                             MiscUtil.asDate(activation.getValidFrom()), MiscUtil.asDate(activation.getValidTo()));
                 } else if (activation.getValidFrom() != null) {
-                    return getString("pageUser.assignment.activation.enabledFrom", strEnabled,
+                    return getString("AssignmentEditorPanel.enabledFrom", strEnabled,
                             MiscUtil.asDate(activation.getValidFrom()));
                 } else if (activation.getValidTo() != null) {
-                    return getString("pageUser.assignment.activation.enabledTo", strEnabled,
+                    return getString("AssignmentEditorPanel.enabledTo", strEnabled,
                             MiscUtil.asDate(activation.getValidTo()));
                 }
 
@@ -162,29 +175,73 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         };
     }
 
+    private IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
+        return new Model<Date>() {
+
+            @Override
+            public Date getObject() {
+                XMLGregorianCalendar calendar = model.getObject();
+                if (calendar == null) {
+                    return null;
+                }
+                return MiscUtil.asDate(calendar);
+            }
+
+            @Override
+            public void setObject(Date object) {
+                if (object == null) {
+                    model.setObject(null);
+                } else {
+                    model.setObject(MiscUtil.asXMLGregorianCalendar(object));
+                }
+            }
+        };
+    }
+
     private void initBodyLayout(WebMarkupContainer body) {
         TextField description = new TextField(ID_DESCRIPTION,
-                new PropertyModel(getModel(), UserAssignmentDto.F_DESCRIPTION));
+                new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 
-        CheckBox enabled = new CheckBox(ID_ENABLED);//todo model
+        CheckBox enabled = new CheckBox(ID_ENABLED,
+                new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_ACTIVATION + ".enabled"));
         body.add(enabled);
 
-        DateTextField validFrom = DateTextField.forDatePattern(ID_VALID_FROM, null, "dd/MMM/yyyy"); //todo model
+        DateTextField validFrom = DateTextField.forDatePattern(ID_VALID_FROM,
+                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+                        AssignmentEditorDto.F_ACTIVATION + ".validFrom")), "dd/MMM/yyyy");
         validFrom.add(new DatePicker());
         body.add(validFrom);
 
-        DateTextField validTo = DateTextField.forDatePattern(ID_VALID_TO, null, "dd/MMM/yyyy"); //todo model
+        DateTextField validTo = DateTextField.forDatePattern(ID_VALID_TO,
+                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+                        AssignmentEditorDto.F_ACTIVATION + ".validTo")), "dd/MMM/yyyy");
         validTo.add(new DatePicker());
         body.add(validTo);
 
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
+        targetContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                return !AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+            }
+        });
         body.add(targetContainer);
 
-        Label target = new Label(ID_TARGET); //todo model
+        Label target = new Label(ID_TARGET, createTargetModel());
         targetContainer.add(target);
 
         WebMarkupContainer constructionContainer = new WebMarkupContainer(ID_CONSTRUCTION_CONTAINER);
+        constructionContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                AssignmentEditorDto dto = getModel().getObject();
+                return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+            }
+        });
         body.add(constructionContainer);
 
         AjaxLink showEmpty = new AjaxLink(ID_SHOW_EMPTY) {
@@ -211,7 +268,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 AssignmentEditorDto dto = getModel().getObject();
-                return UserAssignmentDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
+                return AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(dto.getType());
             }
         });
         constructionContainer.add(attributes);
@@ -237,7 +294,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     @Override
                     public boolean isVisible() {
                         AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
-                        if (!editorDto.isMinimized()) {
+                        if (editorDto.isShowEmpty()) {
                             return true;
                         }
 
@@ -272,8 +329,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         AssignmentEditorDto dto = AssignmentEditorPanel.this.getModel().getObject();
         dto.setShowEmpty(!dto.isShowEmpty());
 
-        target.add(get(createComponentPath(ID_BODY, ID_CONSTRUCTION_CONTAINER, ID_ATTRIBUTES)),
-                get(createComponentPath(ID_BODY, ID_CONSTRUCTION_CONTAINER, ID_SHOW_EMPTY, ID_SHOW_EMPTY_LABEL)));
+        WebMarkupContainer parent = (WebMarkupContainer) get(createComponentPath(ID_MAIN, ID_BODY,
+                ID_CONSTRUCTION_CONTAINER));
+
+        target.add(parent.get(ID_ATTRIBUTES), parent.get(createComponentPath(ID_SHOW_EMPTY, ID_SHOW_EMPTY_LABEL)));
     }
 
     private List<ACAttributeDto> loadAttributes() {
@@ -284,7 +343,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             AssignmentType assignment = dto.getAssignment();
             AccountConstructionType construction = assignment.getAccountConstruction();
             ResourceType resource = construction.getResource();
-
 
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
                     getPageBase().getPrismContext());
@@ -314,18 +372,17 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         return attributes;
     }
 
-    private IModel<ResourceReference> createImageTypeModel(final IModel<UserAssignmentDtoType> model) {
+    private IModel<ResourceReference> createImageTypeModel(final IModel<AssignmentEditorDtoType> model) {
         return new AbstractReadOnlyModel<ResourceReference>() {
 
             @Override
             public ResourceReference getObject() {
-                UserAssignmentDtoType type = model.getObject();
+                AssignmentEditorDtoType type = model.getObject();
                 switch (type) {
                     case ROLE:
                         return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
                     case ORG_UNIT:
-                        //todo [miso] change picture to org. unit icon
-                        return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
+                        return new SharedResourceReference(ImgResources.class, ImgResources.BUILDING);
                     case ACCOUNT_CONSTRUCTION:
                     default:
                         return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
@@ -338,8 +395,48 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         AssignmentEditorDto dto = getModel().getObject();
         dto.setMinimized(!dto.isMinimized());
 
-        target.add(get(ID_BODY));
+        target.add(get(ID_MAIN));
 
         //todo implement;
+    }
+
+    private IModel<String> createTargetModel() {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                AssignmentEditorDto dto = getModel().getObject();
+                PrismContainerValue assignment = dto.getAssignment().asPrismContainerValue();
+
+                PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
+                if (targetRef == null) {
+                    return getString("AssignmentEditorPanel.undefined");
+                }
+
+                PrismReferenceValue refValue = targetRef.getValue();
+                if (refValue != null && refValue.getObject() != null) {
+                    PrismObject object = refValue.getObject();
+                    return WebMiscUtil.getName(object);
+                }
+
+                String oid = targetRef.getOid();
+                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT);
+                try {
+                    PageBase page = getPageBase();
+                    ModelService model = page.getMidpointApplication().getModel();
+                    Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
+
+                    Collection<ObjectOperationOptions> options = new ArrayList<ObjectOperationOptions>();
+                    options.add(ObjectOperationOptions.create(ObjectOperationOption.NO_FETCH));
+                    PrismObject object = model.getObject(ObjectType.class, oid, options, task, result);
+
+                    return WebMiscUtil.getName(object);
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+                }
+
+                return oid;
+            }
+        };
     }
 }

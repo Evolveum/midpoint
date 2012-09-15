@@ -161,7 +161,7 @@ public abstract class PageBase extends WebPage {
         }
     }
 
-    protected MidPointApplication getMidpointApplication() {
+    public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
 

@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import com.evolveum.midpoint.web.page.admin.users.dto.UserAssignmentDtoType;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -41,7 +41,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -73,7 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -274,11 +272,11 @@ public class PageHome extends PageAdmin {
 		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			String name = null;
-			UserAssignmentDtoType type = UserAssignmentDtoType.ACCOUNT_CONSTRUCTION;
+			AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
 			if (assignment.getTarget() != null) {
 				ObjectType target = assignment.getTarget();
 				name = target.getName();
-                type = UserAssignmentDtoType.getType(target.getClass());
+                type = AssignmentEditorDtoType.getType(target.getClass());
 			} else if (assignment.getTargetRef() != null) {
 				ObjectReferenceType ref = assignment.getTargetRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
@@ -296,7 +294,7 @@ public class PageHome extends PageAdmin {
 
 				if (target != null) {
 					name = WebMiscUtil.getName(target);
-                    type = UserAssignmentDtoType.getType(target.getCompileTimeClass());
+                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
 				}
 			}
 			list.add(new SimpleAssignmentDto(name, type, assignment.getActivation()));

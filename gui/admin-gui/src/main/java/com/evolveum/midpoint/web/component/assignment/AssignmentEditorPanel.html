@@ -22,7 +22,6 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
     <div>
         <div>
             <input type="checkbox" wicket:id="selected"/>
@@ -30,48 +29,50 @@
             <a wicket:id="name"><span wicket:id="nameLabel"/></a>
             <span wicket:id="activation"/>
         </div>
-        <div wicket:id="body">
-            <!--body-->
-            <div>
-                <span><wicket:message key="AssignmentEditorPanel.description"/></span>
-                <input type="text" wicket:id="description"/>
-            </div>
+        <div wicket:id="main">
+            <div wicket:id="body">
+                <!--body-->
+                <div>
+                    <span><wicket:message key="AssignmentEditorPanel.description"/></span>
+                    <input type="text" wicket:id="description"/>
+                </div>
 
-            <h4>
-                <wicket:message key="ActivationType.title"/>
-            </h4>
-            <div>
-                <span><wicket:message key="ActivationType.enabled"/></span>
-                <input type="checkbox" wicket:id="enabled"/>
-
-                <span><wicket:message key="ActivationType.validFrom"/></span>
-                <input wicket:id="validFrom" type="text"/>
-
-                <span><wicket:message key="ActivationType.validTo"/></span>
-                <input wicket:id="validTo" type="text"/>
-            </div>
-
-            <div wicket:id="targetContainer">
                 <h4>
-                    <wicket:message key="AssignmentEditorPanel.target"/>
+                    <wicket:message key="ActivationType.title"/>
                 </h4>
-                <span wicket:id="target"/>
-            </div>
+                <div>
+                    <span><wicket:message key="ActivationType.enabled"/></span>
+                    <input type="checkbox" wicket:id="enabled"/>
 
-            <div wicket:id="constructionContainer">
-                <h4>
-                    <wicket:message key="AssignmentEditorPanel.attributes"/>
-                </h4>
-                <a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
+                    <span><wicket:message key="ActivationType.validFrom"/></span>
+                    <input wicket:id="validFrom" type="text"/>
 
-                <div wicket:id="attributes">
-                    <div wicket:id="attribute">
-                        <div wicket:id="acAttribute"/>
+                    <span><wicket:message key="ActivationType.validTo"/></span>
+                    <input wicket:id="validTo" type="text"/>
+                </div>
+
+                <div wicket:id="targetContainer">
+                    <h4>
+                        <wicket:message key="AssignmentEditorPanel.target"/>
+                    </h4>
+                    <span wicket:id="target"/>
+                </div>
+
+                <div wicket:id="constructionContainer">
+                    <h4>
+                        <wicket:message key="AssignmentEditorPanel.attributes"/>
+                    </h4>
+                    <a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
+
+                    <div wicket:id="attributes">
+                        <div wicket:id="attribute">
+                            <div wicket:id="acAttribute"/>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!--todo implement extension-->
+                <!--todo implement extension-->
+            </div>
         </div>
     </div>
 </wicket:panel>
