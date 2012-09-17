@@ -190,7 +190,7 @@ public final class PrismForJAXBUtil {
 	            if (parent.getContainer() == null) {
 	                parent.add(fieldContainer);
 	            } else {
-	                parent.getContainer().getValue().addReplaceExisting(fieldContainer);
+                    parent.addReplaceExisting(fieldContainer);
 	            }
 	        }
 //	        // Make sure that the definition from parent is applied to new field container
