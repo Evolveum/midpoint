@@ -422,7 +422,7 @@ public class FeedbackMessagePanel extends Panel {
 				} catch (IOException ex) {
 					throw new RuntimeException(ex);
 				}
-				getSession().setAttribute("exportingMessage", "true");
+				getSession().setAttribute("exportingMessage", true);
 				return tempFile;
 			}
 		};

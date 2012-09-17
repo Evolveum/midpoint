@@ -1078,14 +1078,20 @@ public class PageUser extends PageAdminUsers {
         window.close(target);
 
         AssignmentType assignment = new AssignmentType();
+        //todo what about assignment adopting?
+        try {
+            PrismObject<UserType> user = userModel.getObject().getObject();
+            user.asObjectable().getAssignment().add(assignment);
+            getPrismContext().adopt(user);
+            user.asObjectable().getAssignment().remove(assignment);
+            assignment.asPrismContainerValue().setParent(null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         AccountConstructionType construction = new AccountConstructionType();
         assignment.setAccountConstruction(construction);
         construction.setResource(resource);
-
-        //todo what about assignment adopting?
-//        PrismObject<UserType> user = userModel.getObject().getObject();
-//        user.asObjectable().getAssignment().add(assignment);
-//        getPrismContext().adopt(user);
 
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         AssignmentEditorDto dto = new AssignmentEditorDto(resource.getName(), AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
@@ -1119,6 +1125,17 @@ public class PageUser extends PageAdminUsers {
                 targetRef.setType(aType.getQname());
 
                 AssignmentType assignment = new AssignmentType();
+                //todo what about assignment adopting?
+                try {
+                    PrismObject<UserType> user = userModel.getObject().getObject();
+                    user.asObjectable().getAssignment().add(assignment);
+                    getPrismContext().adopt(user);
+                    user.asObjectable().getAssignment().remove(assignment);
+                    assignment.asPrismContainerValue().setParent(null);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
                 assignment.setTargetRef(targetRef);
 
                 assignments.add(new AssignmentEditorDto(object.getName(), aType, UserDtoStatus.ADD, assignment));
@@ -1208,7 +1225,8 @@ public class PageUser extends PageAdminUsers {
                 assignment.setSelected(false);
             }
         }
-        target.add();//todo add assignments list
+
+        target.add(getFeedbackPanel(), getAssignmentAccordionItem());
     }
 
     private void unlinkAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {

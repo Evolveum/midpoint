@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -98,8 +99,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     @Override
     protected void initLayout() {
-        CheckBox selected = new CheckBox(ID_SELECTED,
-                new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED));
+        AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
+                new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                //todo do we want to update something?
+            }
+        };
         add(selected);
 
         Image typeImage = new Image(ID_TYPE_IMAGE,

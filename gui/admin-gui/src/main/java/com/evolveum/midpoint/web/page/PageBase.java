@@ -92,7 +92,7 @@ public abstract class PageBase extends WebPage {
         if(sessionAttr != null) {
         	boolean isExport = (Boolean) sessionAttr;
         	if(isExport) {
-            	getSession().setAttribute("exportingMessage", "false");
+            	getSession().setAttribute("exportingMessage", false);
             	return;
             }
         }
