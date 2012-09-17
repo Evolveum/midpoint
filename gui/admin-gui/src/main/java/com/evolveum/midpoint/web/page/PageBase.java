@@ -87,19 +87,7 @@ public abstract class PageBase extends WebPage {
     @Override
     protected void onAfterRender() {
         super.onAfterRender();
-        
-        Object sessionAttr = getSession().getAttribute("exportingMessage");
-        if(sessionAttr != null) {
-        	boolean isExport = (Boolean) sessionAttr;
-        	if(isExport) {
-            	getSession().setAttribute("exportingMessage", false);
-            	return;
-            }
-        }
-        
-        
-        
-        
+
         //we try to remove messages (and operation results) that were stored in session, but only
         //if all session messages were already rendered.
         boolean allRendered = true;

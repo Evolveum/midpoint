@@ -33,6 +33,10 @@ $(document).ready(function(){
 function init() {
 	//loadScript("js/less.js");
 	setMenuPositionWhileScroll();
+	$(document).unbind("mousedown");
+	$("#blackWindow").css("opacity", .8);
+	$("#blackWindow").hide();
+	$("#xmlExport").hide();
 	
 	$(".left-menu ul li").css("opacity", .8);
 	$(".left-menu ul li a").css("opacity", .5);
@@ -117,6 +121,12 @@ function init() {
         }
     });
     
+    $(document).bind("mousedown", function(e) {
+		if ($("#xmlExport").has(e.target).length === 0) {
+			$("#blackWindow").hide();
+			$("#xmlExport").hide();
+		}
+	});
 }
 
 function showLeftMenu() {
@@ -205,6 +215,13 @@ function scrollToTop() {
 		scrollTop: 0
 	}, 800);
 	return false;
+}
+
+function initXml(xml) {
+	var output = "<small>*to hide the window, please click on the black background</small><h1>XML report</h1>" + xml;
+	$("#xmlExportContent").html(output);
+	$("#xmlExport").show();
+	$("#blackWindow").show();
 }
 
 function disablePaste(disable) {

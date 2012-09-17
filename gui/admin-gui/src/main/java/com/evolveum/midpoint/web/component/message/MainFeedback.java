@@ -37,7 +37,6 @@ import java.util.List;
  * @author lazyman
  */
 public class MainFeedback extends Panel implements IFeedback {
-
     public MainFeedback(String id) {
         super(id);
         setOutputMarkupId(true);

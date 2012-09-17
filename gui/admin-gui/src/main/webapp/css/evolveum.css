@@ -766,7 +766,7 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 
 .popupWindow .popupContent {
 	overflow-y: auto;
-	height: 360px;
+	height: 480px;
 }
 
 .popupWindow .popupButtons {
@@ -846,4 +846,37 @@ div.tabPanel div.tab-row a:hover {
 	-khtml-border-top-left-radius: 2px; 
 	border-top-left-radius: 2px;
     cursor: pointer;
+}
+
+#blackWindow {
+	top: 0px;
+	left: 0px;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background: black;
+	z-index: 99999999;
+	display: none;
+}
+
+#xmlExport {
+	position: fixed;
+	left: 50%;
+	margin-left: -500px;
+	top: 50%;
+	margin-top: -300px;
+	width: 1000px;
+	height: 600px;
+	background: white;
+	z-index: 100000000;
+	overflow: auto;
+	display: none;
+}
+
+#xmlExportContent {
+	height: 560px;
+    overflow: auto;
+    padding: 20px;
+    position: absolute;
+    width: 960px;
 }

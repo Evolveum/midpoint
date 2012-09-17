@@ -21,40 +21,6 @@
 
 package com.evolveum.midpoint.web.component.message;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.link.DownloadLink;
-import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.markup.html.link.ResourceLink;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.IRequestCycle;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.http.WebRequest;
-import org.apache.wicket.request.http.WebResponse;
-import org.apache.wicket.util.file.Files;
-import org.apache.wicket.util.resource.FileResourceStream;
-import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.time.Duration;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -63,13 +29,39 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.FeedbackMessage;
+import org.apache.wicket.feedback.FeedbackMessagesModel;
+import org.apache.wicket.feedback.IFeedbackMessageFilter;
+import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.resource.CssResourceReference;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.file.Files;
+
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 
 /**
  * @author lazyman
  */
 public class FeedbackMessagePanel extends Panel {
+	
+	private String xml = null;
 
 	public FeedbackMessagePanel(String id, IModel<FeedbackMessage> message) {
 		super(id);
@@ -108,7 +100,8 @@ public class FeedbackMessagePanel extends Panel {
 		if (message.getObject().getMessage() instanceof OpResult) {
 
 			OpResult result = (OpResult) message.getObject().getMessage();
-			export(content, new Model<String>(result.getXml()));
+			xml = result.getXml();
+			export(content, new Model<String>(xml));
 
 			ListView<OpResult> subresults = new ListView<OpResult>("subresults",
 					createSubresultsModel(message)) {
@@ -217,6 +210,15 @@ public class FeedbackMessagePanel extends Panel {
 				return getString("feedbackMessagePanel.expandAll");
 			}
 		}));
+	}
+	
+	private IModel<String> getXml() {
+		return new LoadableModel<String>(){
+			@Override
+			protected String load() {
+				return xml;
+			}
+		};
 	}
 
 	private void initExceptionLayout(WebMarkupContainer content, WebMarkupContainer topExceptionContainer,
@@ -389,46 +391,50 @@ public class FeedbackMessagePanel extends Panel {
 		}
 	}
 
-	public void export(WebMarkupContainer content, final IModel<String> model) {
+	public void export(final WebMarkupContainer content, final IModel<String> xml) {	
+		Label export = new Label("export", new LoadableModel<String>() {
 
-		DownloadLink export = new DownloadLink("export", createFileModel(model), "MessageXml.xml");
-		//.setCacheDuration(Duration.NONE).setDeleteAfterDownload(true)
-		content.add(export);
-	}
-
-	private AbstractReadOnlyModel<File> createFileModel(final IModel<String> model) {
-		return new AbstractReadOnlyModel<File>() {
 			@Override
-			public File getObject() {
-				File tempFile;
-				try {
-					MidPointApplication application = getMidpointApplication();
-					WebApplicationConfiguration config = application.getWebApplicationConfiguration();
-					File folder = new File(config.getImportFolder());
-
-					if (!folder.exists() || !folder.isDirectory()) {
-						folder.mkdir();
-					}
-					tempFile = new File(folder, "MessageXml.xml");
-
-					if (tempFile.exists()) {
-						tempFile.delete();
-					}
-
-					tempFile.createNewFile();
-					InputStream data = new ByteArrayInputStream(model.getObject().getBytes());
-					Files.writeTo(tempFile, data);
-
-				} catch (IOException ex) {
-					throw new RuntimeException(ex);
-				}
-				getSession().setAttribute("exportingMessage", true);
-				return tempFile;
+			protected String load() {
+				return getString("feedbackMessagePanel.export");
 			}
-		};
+		});
+		content.add(export);
+		xml.setObject(xml.getObject().replace("\"", "'").replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;"));
+		xml.setObject(xml.getObject().replace("\n", "<br>"));
+		export.add(new AttributeAppender("onClick", "initXml(\""+xml.getObject()+"\")"));
+		
 	}
 
-	private MidPointApplication getMidpointApplication() {
-		return (MidPointApplication) getApplication();
-	}
+//	private LoadableDetachableModel<File> createFileModel(final IModel<String> model) {
+//		return new LoadableDetachableModel<File>() {
+//			@Override
+//			protected File load() {
+//				File tempFile;
+//				try {
+//					MidPointApplication application = getMidpointApplication();
+//					WebApplicationConfiguration config = application.getWebApplicationConfiguration();
+//					File folder = new File(config.getImportFolder());
+//
+//					if (!folder.exists() || !folder.isDirectory()) {
+//						folder.mkdir();
+//					}
+//					tempFile = new File(folder, "MessageXml.xml");
+//
+//					if (tempFile.exists()) {
+//						tempFile.delete();
+//					}
+//
+//					tempFile.createNewFile();
+//					InputStream data = new ByteArrayInputStream("some data".getBytes());
+//					Files.writeTo(tempFile, data);
+//
+//				} catch (IOException ex) {
+//					throw new RuntimeException(ex);
+//				}
+//				getSession().setAttribute("exportingMessage", true);
+//				return tempFile;
+//			}
+//		};
+//	}
 }
