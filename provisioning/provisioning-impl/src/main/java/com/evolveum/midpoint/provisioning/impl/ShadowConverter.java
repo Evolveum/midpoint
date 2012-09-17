@@ -40,6 +40,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.consistency.impl.GenericErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType.EnableDisable;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -206,12 +208,15 @@ public class ShadowConverter {
 			applyAfterOperationAttributes(shadowType, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
-					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
+					"Could not create account on the resource. Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communitacing with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
+			parentResult.recordFatalError("Could not create account on the resource. Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+		} catch (ObjectAlreadyExistsException ex){
+			parentResult.recordFatalError("Could not create account on the resource. Account already exists on the resource: " + ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException("Account already exists on the resource: " + ex.getMessage(), ex);
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
@@ -316,9 +321,23 @@ public class ShadowConverter {
 			throw new SecurityViolationException("Cannot modify protected resource object "
 					+ objectClassDefinition + ": " + identifiers);
 		}
+		
+		ObjectDelta mergedDelta = null;
+		if (shadow.getObjectChange() != null) {
+			ObjectDeltaType deltaType = shadow.getObjectChange();
+			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
+					deltaType.getModification(), shadow.asPrismObject().getDefinition());
+			mergedDelta = ObjectDelta.union(
+					ObjectDelta.createModifyDelta(oid, objectChanges, AccountShadowType.class, prismContext),
+					ObjectDelta.createModifyDelta(oid, pendingModifications, AccountShadowType.class, prismContext));
+		}
 
-		getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition);
-
+		if (mergedDelta == null) {
+			getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition);
+		} else {
+			getAttributeChanges(mergedDelta.getModifications(), operations, resource, shadow,
+					resourceAttributeDefinition);
+		}
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 	
 		Set<PropertyModificationOperation> sideEffectChanges = null;
@@ -336,6 +355,8 @@ public class ShadowConverter {
 				throw new GenericConnectorException(
 						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 			}
+	
+			
 			
 			// Invoke ICF
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,

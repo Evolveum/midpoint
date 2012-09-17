@@ -380,7 +380,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof CommunicationException) {
-				result.recordFatalError("ICF communication error: " + midpointEx.getMessage(), midpointEx);
+				//communication error is not critical.do not add it to the result as 
+//				result.recordFatalError("ICF communication error: " + midpointEx.getMessage(), midpointEx);
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof ConfigurationException) {
 				result.recordFatalError("ICF configuration error: " + midpointEx.getMessage(), midpointEx);
@@ -1042,6 +1043,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (midpointEx instanceof ObjectNotFoundException) {
 				throw (ObjectNotFoundException) midpointEx;
 			} else if (midpointEx instanceof CommunicationException) {
+				//in this situation this is not a critical error, becasue we know to handle it..so mute the error and sign it as expected
+				result.muteError();
+				icfResult.muteError();
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				throw (GenericFrameworkException) midpointEx;
@@ -1104,6 +1108,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				if (midpointEx instanceof ObjectNotFoundException) {
 					throw (ObjectNotFoundException) midpointEx;
 				} else if (midpointEx instanceof CommunicationException) {
+					//in this situation this is not a critical error, becasue we know to handle it..so mute the error and sign it as expected
+					result.muteError();
+					icfResult.muteError();
 					throw (CommunicationException) midpointEx;
 				} else if (midpointEx instanceof GenericFrameworkException) {
 					throw (GenericFrameworkException) midpointEx;
@@ -1153,6 +1160,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (midpointEx instanceof ObjectNotFoundException) {
 				throw (ObjectNotFoundException) midpointEx;
 			} else if (midpointEx instanceof CommunicationException) {
+				//in this situation this is not a critical error, becasue we know to handle it..so mute the error and sign it as expected
+				result.muteError();
+				icfResult.muteError();
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				throw (GenericFrameworkException) midpointEx;

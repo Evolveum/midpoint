@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -17,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 public class SecurityViolationHandler extends ErrorHandler{
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		throw new SecurityViolationException("Security violation during processing shadow " + ObjectTypeUtil.toShortString(shadow) +": "+ ex.getMessage(), ex);

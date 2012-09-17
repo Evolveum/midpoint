@@ -105,7 +105,7 @@ public class ChangeExecutor {
 	        for (ObjectDelta<? extends ObjectType> change : changes) {
 	            executeChange(change, task, result);
 	        }
-	        result.recordSuccess();
+	        result.computeStatus();
     	} catch (SchemaException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -180,7 +180,7 @@ public class ChangeExecutor {
 	            LOGGER.trace("Context after change execution:\n{}", syncContext.dump(false));
 	        }
 	        
-	        result.recordSuccess();
+	        result.computeStatus();
 	        
     	} catch (SchemaException e) {
 			result.recordFatalError(e);

@@ -755,8 +755,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		// getting object to modify
-		PrismObject<T> object = getCacheRepositoryService().getObject(type, oid, parentResult);
-
+		PrismObject<T> object = null;
+		try{
+			object = getCacheRepositoryService().getObject(type, oid, parentResult);
+		} catch (ObjectNotFoundException e) {
+			logFatalError(LOGGER, result, "Can't get object to modify with oid " + oid + ". Reason " + e.getMessage(), e);
+			throw e;
+		} catch (SchemaException ex) {
+			logFatalError(LOGGER, result, "Can't get object to modify with oid " + oid + ". Reason " + ex.getMessage(), ex);
+			throw ex;
+		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.dump());
 		}
@@ -765,7 +773,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			
 			// calling shadow cache to modify object
 			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
-					parentResult);
+					result);
 			result.computeStatus();
 
 		} catch (CommunicationException e) {

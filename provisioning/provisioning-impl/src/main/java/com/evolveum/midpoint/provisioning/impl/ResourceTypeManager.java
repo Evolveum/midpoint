@@ -5,6 +5,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,6 +65,7 @@ public class ResourceTypeManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
 
+	
 	public ResourceTypeManager() {
 		repositoryService = null;
 	}
@@ -126,8 +129,8 @@ public class ResourceTypeManager {
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..
-//		OperationResult result = new OperationResult(ResourceTypeManager.class.getName() + ".testResource.");
-		applyConnectorSchemaToResource(resource, parentResult);
+		OperationResult result = new OperationResult(ResourceTypeManager.class.getName() + ".testResource.");
+		applyConnectorSchemaToResource(resource, result);
 
 		// Check presence of a schema
 		XmlSchemaType xmlSchemaType = resource.getSchema();
@@ -146,7 +149,7 @@ public class ResourceTypeManager {
 			if (resourceSchema == null) { // unless it has been already pulled
 				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
 				try {
-					connector = getConnectorInstance(resource, false, parentResult);
+					connector = getConnectorInstance(resource, false, result);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
 							+ ": Error creating connector instace: " + e.getMessage(), e);
@@ -155,7 +158,7 @@ public class ResourceTypeManager {
 					// Fetch schema from connector, UCF will convert it to
 					// Schema Processor format and add all
 					// necessary annotations
-					resourceSchema = connector.getResourceSchema(parentResult);
+					resourceSchema = connector.getResourceSchema(result);
 
 				} catch (CommunicationException ex) {
 					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
@@ -227,7 +230,7 @@ public class ResourceTypeManager {
 			modifications.add(schemaContainerDelta);
 
             try {
-    			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, parentResult);
+    			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
             } catch (ObjectAlreadyExistsException ex) {
                 throw new SystemException(ex);
             }
@@ -257,12 +260,18 @@ public class ResourceTypeManager {
 
 		try {
 
-			addNativeCapabilities(newResource, connector, parentResult);
+			addNativeCapabilities(newResource, connector, result);
 		} catch (CommunicationException ex) {
 			// HACK: to not show the error message in the GUI
-			parentResult.recordWarning("Cannot add native capabilities to resource object because the resource is unreachable. Resource object returned without native capabilities.");
+			result.recordWarning("Cannot add native capabilities to resource object because the resource is unreachable. Resource object returned without native capabilities.");
 			newResource.setFetchResult(parentResult.createOperationResultType());
 		}
+		result.recordSuccessIfUnknown();
+		if (result.isSuccess()) {
+			parentResult.addSubresult(result);
+
+		}
+		newResource.setFetchResult(result.createOperationResultType());
 
 		parentResult.recordSuccess();
 		return newResource;
@@ -353,10 +362,13 @@ public class ResourceTypeManager {
 
 		parentResult.computeStatus();
 		if (!parentResult.isAcceptable()) {
+			modifyResourceAvailabilityStatus(AvailabilityStatusType.DOWN, resourceType, parentResult);
 			// No point in going on. Following tests will fail anyway, they will
 			// just produce misleading
 			// messages.
 			return;
+		} else {
+			modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, resourceType, parentResult);
 		}
 
 		// === test SCHEMA ===
@@ -426,6 +438,21 @@ public class ResourceTypeManager {
 		// TODO: connector sanity (e.g. at least one account type, identifiers
 		// in schema, etc.)
 
+	}
+	
+	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, ResourceType resourceType, OperationResult parentResult){
+		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(ResourceType.F_LAST_AVAILABILITY_STATUS, getResourceTypeDefinition(), status);
+		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		modifications.add(statusDelta);
+		try {
+			repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, parentResult);
+		} catch (SchemaException ex) {
+			throw new SystemException(ex);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		} catch (ObjectNotFoundException ex) {
+			throw new SystemException(ex);
+		}
 	}
 
 	/**

@@ -84,11 +84,11 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		OperationResult parentResult = OperationResult.createOperationResult(shadow.getResult());
+//		OperationResult parentResult = OperationResult.createOperationResult(shadow.getResult());
 		switch (op) {
 		case DELETE:
 			cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);

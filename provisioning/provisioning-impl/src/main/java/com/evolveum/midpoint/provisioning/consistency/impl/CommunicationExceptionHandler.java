@@ -72,22 +72,26 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
-			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, ConfigurationException {
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex,
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
-//		OperationResult operationResult = new OperationResult(CommunicationExceptionHandler.class.getName()
-//				+ ".handleError");
 		Validate.notNull(shadow, "Shadow must not be null.");
-		OperationResult operationResult = OperationResult.createOperationResult(shadow.getResult());
-		operationResult.muteError();
-//		shadowResult.addSubresult(operationResult);
-//		Validate.notNull(shadow.getFailedOperationType(), "Failed operation type must not be null.");
-		// if the failed operation was adding, then what we need is to store the
-		// whole object to the repository to try it add again later
+		for (OperationResult subRes : parentResult.getSubresults()) {
+			subRes.muteError();
+		}
+		OperationResult operationResult = parentResult.createSubresult("Compensation for communication problem. Operation: " + op.name());
+		operationResult.addParam("shadow", shadow);
+		operationResult.addParam("currentOperation", op);
+		operationResult.addParam("exception", ex.getMessage());
+
+		// first modify last availability status in the resource, so by others
+		// operations, we can know that it is down
 		modifyResourceAvailabilityStatus(shadow.getResource(), AvailabilityStatusType.DOWN, operationResult);
+
 		switch (op) {
 		case ADD:
+			// if it is firt time, just store the whole account to the repo
 			if (shadow.getFailedOperationType() == null) {
 				if (shadow.getName() == null) {
 					shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
@@ -96,7 +100,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);
 				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), operationResult);
 				shadow.setOid(oid);
-//				return shadow;
+			
+				// if it is seccond time ,just increade the attempt number
 			} else {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
@@ -106,11 +111,20 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 					delta.add(attemptDelta);
 					cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), delta,
 							operationResult);
-//					return shadow;
+			
 				}
-				
+
 			}
-			operationResult.muteError();
+			// if the shadow was successfully stored in the repo, just mute the
+			// error
+			operationResult.computeStatus();
+			parentResult
+					.recordStatus(
+							OperationResultStatus.EXPECTED_ERROR,
+							"Could not create account on the resource, becasue resource "
+									+ ObjectTypeUtil.toShortString(shadow.getResource())
+									+ "is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online.");
+			
 			return shadow;
 		case MODIFY:
 			if (shadow.getFailedOperationType() == null) {
@@ -120,7 +134,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						operationResult);
-//				return shadow;
+//				operationResult.recordSuccess();
+				// return shadow;
 			} else {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 					if (shadow.getObjectChange() != null && shadow.getOid() != null) {
@@ -129,11 +144,18 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deltas,
 								operationResult);
-//						return shadow;
+						// return shadow;
+//						operationResult.recordSuccess();
 					}
 				}
 			}
-			operationResult.muteError();
+			operationResult.computeStatus();
+			parentResult
+					.recordStatus(
+							OperationResultStatus.EXPECTED_ERROR,
+							"Could not apply modifications to account on the resource "
+									+ ObjectTypeUtil.toShortString(shadow.getResource())
+									+ ", becasue resource is unreachable. Modifications will be applied when the resource goes online.");
 			return shadow;
 		case DELETE:
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
@@ -141,89 +163,29 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 			getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 					operationResult);
+			parentResult
+					.recordStatus(
+							OperationResultStatus.EXPECTED_ERROR,
+							"Could not delete account from the resource "
+									+ ObjectTypeUtil.toShortString(shadow.getResource())
+									+ ", becasue resource is unreachable. Account will be delete when the resource goes online.");
+//			operationResult.recordSuccess();
+			operationResult.computeStatus();
 			return shadow;
 		case GET:
-			//nothing to do, just return the shadow from the repo and set fetch result..
-			shadow.setFetchResult(shadow.getResult());
+			// nothing to do, just return the shadow from the repo and set fetch
+			// result..
+			parentResult.recordStatus(OperationResultStatus.EXPECTED_ERROR, "Could not get account from the resource "
+					+ ObjectTypeUtil.toShortString(shadow.getResource())
+					+ ", becasue resource is unreachable. Returning shadow from the repository.");
+			shadow.setFetchResult(parentResult.createOperationResultType());
+//			operationResult.recordSuccess();
+			operationResult.computeStatus();
 			return shadow;
 		default:
 			throw new CommunicationException(ex);
 		}
-		
-//		if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
-//
-//			if (shadow.getName() == null) {
-//				shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
-//			}
-//			shadow.setAttemptNumber(0);
-//			
-//			// String oid =
-//			// getCacheRepositoryService().addObject(shadow.asPrismObject(),
-//			// operationResult);
-//			// shadow.setOid(oid);
-//			if (shadow.getObjectChange() != null && shadow.getOid()!= null) {
-//				Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
-//						.getObjectChange().getModification(), shadow.asPrismObject().getDefinition());
-//				
-//				cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deltas, operationResult);
-//			}
-//
-//		} else {
-//			// if the failed operation was modify, we to store the changes, that
-//			// should be applied to the account (also operation result and
-//			// operation type for later processing)
-//
-//			// storing operation result to the account which failed to be
-//			// modified
-//			if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()) {
-//
-//				
-//
-//				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-//
-//				PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
-//						.getDefinition(), ResourceObjectShadowType.F_RESULT, shadow.getResult());
-//				modifications.add(propertyDelta);
-//
-//				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-//						ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, shadow.getFailedOperationType());
-//				modifications.add(propertyDelta);
-//
-//				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-//						ResourceObjectShadowType.F_OBJECT_CHANGE, shadow.getObjectChange());
-//				modifications.add(propertyDelta);
-//
-//				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-//						ResourceObjectShadowType.F_ATTEMPT_NUMBER, 0);
-//				modifications.add(propertyDelta);
-//
-//				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(),
-//						modifications, operationResult);
-//			} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()) {
-//				// this is the case when the deletion of account failed..in this
-//				// case, we need to sign the account with the tombstone and
-//				// delete it later
-//
-//				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-//
-//				PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
-//						.getDefinition(), ResourceObjectShadowType.F_RESULT, shadow.getResult());
-//				modifications.add(propertyDelta);
-//
-//				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-//						ResourceObjectShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.DELETE);
-//				modifications.add(propertyDelta);
-//
-//				propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-//						ResourceObjectShadowType.F_ATTEMPT_NUMBER, 0);
-//				modifications.add(propertyDelta);
-//
-//				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(),
-//						modifications, operationResult);
-//
-//			}
-//		}
-//
+
 	}
 
 	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

@@ -424,6 +424,15 @@ public class OperationResult implements Serializable, Dumpable {
 				}
 				return;
 			}
+			if (sub.getStatus() == OperationResultStatus.EXPECTED_ERROR) {
+				status = OperationResultStatus.EXPECTED_ERROR;
+				if (message == null) {
+					message = sub.getMessage();
+				} else {
+					message = message + ": " + sub.getMessage();
+				}
+				return;
+			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
 					&& sub.getStatus() != OperationResultStatus.EXPECTED_ERROR
 					&& sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {

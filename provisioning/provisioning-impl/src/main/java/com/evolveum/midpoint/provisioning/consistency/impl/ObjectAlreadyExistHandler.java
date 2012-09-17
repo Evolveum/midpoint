@@ -55,11 +55,11 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private TaskManager taskManager;
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException,
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		OperationResult parentResult = OperationResult.createOperationResult(shadow.getResult());
+//		OperationResult parentResult = OperationResult.createOperationResult(shadow.getResult());
 		OperationResult handleErrorResult = parentResult.createSubresult(ObjectAlreadyExistHandler.class
 				+ ".handleError");
 

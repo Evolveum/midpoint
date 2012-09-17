@@ -223,7 +223,7 @@ public class ShadowCache {
 			resultShadow = shadowConverter.getShadow(type, resource, repositoryShadow, parentResult);
 		} catch (Exception ex) {
 			try {
-				repositoryShadow = extendShadow(repositoryShadow, FailedOperationTypeType.GET, parentResult, resource, null, ex);
+				repositoryShadow = extendShadow(repositoryShadow, FailedOperationTypeType.GET, parentResult, resource, null);
 				resultShadow = handleError(ex, repositoryShadow, FailedOperation.GET, parentResult);
 			} catch (GenericFrameworkException e) {
 				throw new SystemException(e);
@@ -273,15 +273,15 @@ public class ShadowCache {
 
 		addExecuteScriptOperation(additionalOperations, OperationTypeType.ADD, scripts, parentResult);
 
-		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName()
-				+ ".addShadow");
+//		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName()
+//				+ ".addShadow");
 
 		try {
 			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, isReconciled,
-					shadowConverterResult);
+					parentResult);
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
-			shadow = extendShadow(shadow, FailedOperationTypeType.ADD, shadowConverterResult, resource, null, ex);
+			shadow = extendShadow(shadow, FailedOperationTypeType.ADD, parentResult, resource, null);
 			shadow = handleError(ex, shadow, FailedOperation.ADD, parentResult);
 			return shadow.getOid();
 		}
@@ -296,7 +296,7 @@ public class ShadowCache {
 		LOGGER.trace("Adding object with identifiers to the repository.");
 
 		LOGGER.trace("Reconciled shadow: {}", isReconciled);
-		addOrReplaceShadowToRepository(shadow, isReconciled, shadowConverterResult.isError(), parentResult);
+		addOrReplaceShadowToRepository(shadow, isReconciled, parentResult.isError(), parentResult);
 
 		LOGGER.trace("Object added to the repository successfully.");
 
@@ -344,7 +344,7 @@ public class ShadowCache {
 				shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
 			} catch (Exception ex) {
 				accountShadow = extendShadow(accountShadow, FailedOperationTypeType.DELETE, parentResult, resource,
-						null, ex);
+						null);
 				try {
 					handleError(ex, accountShadow, FailedOperation.DELETE, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
@@ -409,12 +409,16 @@ public class ShadowCache {
 				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 			} catch (Exception ex) {
 
-				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications, ex);
+				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
 				try {
 					handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
+					
 //					modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.DOWN, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
+					parentResult.recordFatalError("While compensating communication problem for modify operation got: "+ ex.getMessage(), ex);
+					throw new SystemException(e);
 				}
+				parentResult.computeStatus();
 				return;
 
 			}
@@ -570,9 +574,9 @@ public class ShadowCache {
 	}
 
 	private <T extends ResourceObjectShadowType> T extendShadow(T shadow, FailedOperationTypeType failedOperation,
-			OperationResult shadowResult, ResourceType resource, Collection<? extends ItemDelta> modifications, Exception ex)
+			OperationResult shadowResult, ResourceType resource, Collection<? extends ItemDelta> modifications)
 			throws SchemaException {
-		shadowResult.recordFatalError(ex.getMessage(), ex);
+		
 		shadow.setResult(shadowResult.createOperationResultType());
 		shadow.setResource(resource);
 
@@ -609,7 +613,7 @@ public class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		return handler.handleError(shadow, op, ex);
+		return handler.handleError(shadow, op, ex, parentResult);
 
 	}
 

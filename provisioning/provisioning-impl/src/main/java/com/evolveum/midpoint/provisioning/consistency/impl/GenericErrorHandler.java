@@ -44,77 +44,91 @@ public class GenericErrorHandler extends ErrorHandler{
 	
 	
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException{
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException{
 		
-		OperationResult result = OperationResult.createOperationResult(shadow.getResult());
+//		OperationResult result = OperationResult.createOperationResult(shadow.getResult());
+		String operation = (shadow.getFailedOperationType() == null ? "null" : shadow.getFailedOperationType().name());
 		
-		if (AvailabilityStatusType.DOWN == shadow.getResource().getLastAvailabilityStatus()){
-			result.muteError();
-			shadow.setFetchResult(result.createOperationResultType());
-			return shadow;
-		}
+		OperationResult result = parentResult.createSubresult("Compensating operation: " + operation + " while executing operation: "+ op.name());
+		result.addParam("shadow", shadow);
+		result.addParam("currentOperation", op);
+		result.addParam("reconciled", true);
 		
 		switch (op) {
 		case GET:
+			if (AvailabilityStatusType.DOWN == shadow.getResource().getLastAvailabilityStatus()){
+				parentResult.computeStatus("Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+				parentResult.muteError();
+				shadow.setFetchResult(parentResult.createOperationResultType());
+				return shadow;
+			}
 			
 			if (shadow.getFailedOperationType() != null){
+				
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					OperationResult subResult = new OperationResult(GenericErrorHandler.class.getName() +".re-add");
-					result.addSubresult(subResult);
-					subResult.addParam("shadow", shadow);
-					subResult.addParam("currentOperation", op);
-					subResult.addParam("reconciled", true);
-					String oid = provisioningService.addObject(shadow.asPrismObject(), null, subResult);
-					if (subResult.isSuccess()){
-						 shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, subResult);
+					
+					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
+					if (result.isSuccess()){
+						 shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
 					}
-					return shadow;
 				} else if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()){
-					OperationResult subResult = new OperationResult(GenericErrorHandler.class.getName() +".re-modify");
-					result.addSubresult(subResult);
-					subResult.addParam("shadow", shadow);
-					subResult.addParam("currentOperation", op);
-					subResult.addParam("reconciled", true);
-					ObjectDeltaType deltaType = shadow.getObjectChange();
-					Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow.asPrismObject().getDefinition());
-					provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null, subResult);
+					if (shadow.getObjectChange() != null) {
+						ObjectDeltaType deltaType = shadow.getObjectChange();
+						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+								deltaType.getModification(), shadow.asPrismObject().getDefinition());
+						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null, result);
+					} 
+					shadow = (T) shadowCache.getShadow(shadow.getClass(), shadow.getOid(), null, result);
 				} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
-					OperationResult subResult = new OperationResult(GenericErrorHandler.class.getName() +".re-delete");
-					result.addSubresult(subResult);
-					subResult.addParam("shadow", shadow);
-					subResult.addParam("currentOperation", op);
-					subResult.addParam("reconciled", true);
-					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), null, subResult);
+					
+					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), null, result);
 				}
 			}
 			return shadow;
 		case MODIFY:
-			if (shadow.getFailedOperationType() != null){
-				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					OperationResult parentResult = new OperationResult(GenericErrorHandler.class.getName() +".re-add");
-					parentResult.addParam("shadow", shadow);
-					parentResult.addParam("currentOperation", op);
-					parentResult.addParam("reconciled", true);
-					provisioningService.addObject(shadow.asPrismObject(), null, parentResult);
-//					if (oid != null){
-//						shadow = shadowCache.getShadow(AccountShadowType.class, oid, null, parentResult);
-					// }
-					parentResult.computeStatus();
-					ObjectDeltaType deltaType = shadow.getObjectChange();
-					Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-							deltaType.getModification(), shadow.asPrismObject().getDefinition());
-					if (parentResult.isSuccess()) {
-						// we assume, that tha account was successfully created,
-						// so apply also modifications to the resource account
-						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null,
-								parentResult);
-					} else{
-						// account wasn't created, probably resource is still
-						// down, or there is other reason.just save the pending
-						// modifications to the shadow in the repository..next
-						// time by processing this shadow, we can try again
-						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, parentResult);
+			if (shadow.getFailedOperationType() != null) {
+				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
+					// get the modifications from the shadow before the account
+					// is created, because after successful creation of account,
+					// the modification will be lost
+					Collection<? extends ItemDelta> modifications = null;
+					if (shadow.getObjectChange() != null) {
+						ObjectDeltaType deltaType = shadow.getObjectChange();
+
+						modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
+								.asPrismObject().getDefinition());
 					}
+
+					provisioningService.addObject(shadow.asPrismObject(), null, result);
+					// if (oid != null){
+					// shadow = shadowCache.getShadow(AccountShadowType.class,
+					// oid, null, parentResult);
+					// }
+					result.computeStatus();
+
+					if (result.isSuccess()) {
+						// we assume, that the account was successfully
+						// created,
+						// so apply also modifications to the resource
+						// account
+						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null,
+								result);
+						result.computeStatus();
+					} else {
+						// account wasn't created, probably resource is
+						// still
+						// down, or there is other reason.just save the
+						// pending
+						// modifications to the shadow in the
+						// repository..next
+						// time by processing this shadow, we can try again
+						// TODO: probably there is a need to union current
+						// changes with previous
+						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
+								result);
+						result.recordStatus(OperationResultStatus.EXPECTED_ERROR, "Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
+					}
+
 				}
 			}
 			return shadow;
