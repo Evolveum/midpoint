@@ -68,6 +68,7 @@ public class GenericErrorHandler extends ErrorHandler{
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
 					
 					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
+					result.computeStatus();
 					if (result.isSuccess()){
 						 shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
 					}
