@@ -780,6 +780,9 @@ public class PageUser extends PageAdminUsers {
             userType.getAccount().add(account.asObjectable());
         }
 
+        PrismObjectDefinition userDef = user.getDefinition();
+        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+
         // handle added assignments
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
@@ -791,6 +794,14 @@ public class PageUser extends PageAdminUsers {
             AssignmentType assignment = new AssignmentType();
             assignment.setupContainerValue(assDto.getNewValue());
             userType.getAssignment().add(assignment);
+            PrismContainerValue value = assDto.getNewValue();
+
+            try {
+                value.applyDefinition(assignmentDef, false);
+            } catch (Exception ex) {
+                //todo error handling
+                ex.printStackTrace();
+            }
         }
     }
 
@@ -837,10 +848,21 @@ public class PageUser extends PageAdminUsers {
             throws SchemaException {
         ContainerDelta assDelta = new ContainerDelta(new PropertyPath(), UserType.F_ASSIGNMENT, def);
 
+        PrismObject<UserType> user = userModel.getObject().getObject();
+        PrismObjectDefinition userDef = user.getDefinition();
+        PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
             switch (assDto.getStatus()) {
                 case ADD:
+                    PrismContainerValue value = assDto.getNewValue();
+                    try {
+                        value.applyDefinition(assignmentDef, false);
+                    } catch (Exception ex) {
+                        //todo error handling
+                        ex.printStackTrace();
+                    }
                 case DELETE:
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
                         assDelta.addValueToAdd(assDto.getNewValue());
@@ -940,13 +962,12 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
 
-        if (!result.isSuccess()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        } else {
+        if (result.isSuccess() || result.isExpectedError()) {
             showResultInSession(result);
             setResponsePage(PageUsers.class);
-
+        } else {
+            showResult(result);
+            target.add(getFeedbackPanel());
         }
     }
 
@@ -999,12 +1020,13 @@ public class PageUser extends PageAdminUsers {
             result.recordFatalError("Couldn't submit user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
-        if (result.isError()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        } else {
+
+        if (result.isSuccess() || result.isExpectedError()) {
             PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, accountsBeforeModify);
             setResponsePage(pageSubmit);
+        } else {
+            showResult(result);
+            target.add(getFeedbackPanel());
         }
     }
 
@@ -1078,17 +1100,6 @@ public class PageUser extends PageAdminUsers {
         window.close(target);
 
         AssignmentType assignment = new AssignmentType();
-        //todo what about assignment adopting?
-        try {
-            PrismObject<UserType> user = userModel.getObject().getObject();
-            user.asObjectable().getAssignment().add(assignment);
-            getPrismContext().adopt(user);
-            user.asObjectable().getAssignment().remove(assignment);
-            assignment.asPrismContainerValue().setParent(null);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
         AccountConstructionType construction = new AccountConstructionType();
         assignment.setAccountConstruction(construction);
         construction.setResource(resource);
@@ -1125,17 +1136,6 @@ public class PageUser extends PageAdminUsers {
                 targetRef.setType(aType.getQname());
 
                 AssignmentType assignment = new AssignmentType();
-                //todo what about assignment adopting?
-                try {
-                    PrismObject<UserType> user = userModel.getObject().getObject();
-                    user.asObjectable().getAssignment().add(assignment);
-                    getPrismContext().adopt(user);
-                    user.asObjectable().getAssignment().remove(assignment);
-                    assignment.asPrismContainerValue().setParent(null);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
                 assignment.setTargetRef(targetRef);
 
                 assignments.add(new AssignmentEditorDto(object.getName(), aType, UserDtoStatus.ADD, assignment));
