@@ -1136,6 +1136,23 @@ public class PageUser extends PageAdminUsers {
                 targetRef.setType(aType.getQname());
 
                 AssignmentType assignment = new AssignmentType();
+                //todo what about assignment adopting?
+//                try {
+//                    PrismObject<UserType> user = userModel.getObject().getObject();
+//                    PrismObjectDefinition userDef = user.getDefinition();
+//                    PrismContainerDefinition assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+//
+//                    assignment.asPrismContainerValue().applyDefinition(assignmentDef, false);
+////
+////                    PrismObject<UserType> user = userModel.getObject().getObject();
+////                    user.asObjectable().getAssignment().add(assignment);
+////                    getPrismContext().adopt(user);
+////                    user.asObjectable().getAssignment().remove(assignment);
+////                    assignment.asPrismContainerValue().setParent(null);
+//                } catch (Exception ex) {
+//                    ex.printStackTrace();
+//                }
+
                 assignment.setTargetRef(targetRef);
 
                 assignments.add(new AssignmentEditorDto(object.getName(), aType, UserDtoStatus.ADD, assignment));

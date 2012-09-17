@@ -57,6 +57,7 @@ public class RAssignment extends RContainer implements ROwnable {
     @QueryEntity(any = true)
     private RAnyContainer extension;
     //assignment fields
+    private String description;
     @QueryEntity(embedded = true)
     private RActivation activation;
     private String accountConstruction;
@@ -114,6 +115,15 @@ public class RAssignment extends RContainer implements ROwnable {
     @Type(type = "org.hibernate.type.TextType")
     public String getAccountConstruction() {
         return accountConstruction;
+    }
+
+    @Type(type = "org.hibernate.type.TextType")
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setActivation(RActivation activation) {
@@ -183,6 +193,7 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setId(RUtil.getStringFromLong(repo.getId()));
+        jaxb.setDescription(repo.getDescription());
 
         if (repo.getExtension() != null) {
             ExtensionType extension = new ExtensionType();
@@ -211,6 +222,7 @@ public class RAssignment extends RContainer implements ROwnable {
 
         repo.setOid(parent.getOid());
         repo.setId(RUtil.getLongWrappedFromString(jaxb.getId()));
+        repo.setDescription(jaxb.getDescription());
 
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();
