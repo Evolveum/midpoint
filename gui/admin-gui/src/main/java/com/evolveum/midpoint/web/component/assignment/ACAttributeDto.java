@@ -21,10 +21,14 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
 
 /**
@@ -34,22 +38,16 @@ public class ACAttributeDto implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_VALUE = "value";
-    public static final String F_EXPRESSION = "expression";
 
     private PrismPropertyDefinition definition;
-    private String value;
-    private String expression;
+    private ValueConstructionType construction;
 
-    public ACAttributeDto(PrismPropertyDefinition definition) {
-        this(definition, null, null);
-    }
-
-    public ACAttributeDto(PrismPropertyDefinition definition, String value, String expression) {
+    public ACAttributeDto(PrismPropertyDefinition definition, ValueConstructionType construction) {
         Validate.notNull(definition, "Prism property definition must not be null.");
+        Validate.notNull(construction, "Value construction must not be null.");
 
         this.definition = definition;
-        this.expression = expression;
-        this.value = value;
+        this.construction = construction;
     }
 
     public PrismPropertyDefinition getDefinition() {
@@ -61,23 +59,22 @@ public class ACAttributeDto implements Serializable {
         return StringUtils.isNotEmpty(name) ? name : definition.getName().getLocalPart();
     }
 
-    public String getExpression() {
-        return expression;
-    }
-
     public String getValue() {
-        return value;
+        JAXBElement element = construction.getValueConstructor();
+        if (element == null) {
+            return null;
+        }
+        Object value = element.getValue();
+        return value != null ? value.toString() : null;
     }
 
     public void setValue(String value) {
-        this.value = value;
-    }
+        if (value == null) {
+            construction.setValueConstructor(null);
+        } else {
+            construction.setValueConstructor(new ObjectFactory().createValue(value));
+        }
 
-    public void setExpression(String expression) {
-        this.expression = expression;
-    }
-
-    public boolean isExpressionUsed() {
-        return StringUtils.isNotEmpty(expression);
+        construction.getSequence().getValueConstructor().clear();
     }
 }

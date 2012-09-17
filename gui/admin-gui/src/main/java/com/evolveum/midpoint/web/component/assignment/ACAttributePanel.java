@@ -51,14 +51,14 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
         TextField attributeValue = new TextField(ID_ATTRIBUTE_VALUE, new PropertyModel(getModel(), ACAttributeDto.F_VALUE));
         add(attributeValue);
 
-        AjaxLink showExprEditor = new AjaxLink(ID_SHOW_EXPR_EDITOR) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showExprEditorPerformed(target);
-            }
-        };
-        add(showExprEditor);
+//        AjaxLink showExprEditor = new AjaxLink(ID_SHOW_EXPR_EDITOR) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showExprEditorPerformed(target);
+//            }
+//        };
+//        add(showExprEditor);
     }
 
     private void showExprEditorPerformed(AjaxRequestTarget target) {

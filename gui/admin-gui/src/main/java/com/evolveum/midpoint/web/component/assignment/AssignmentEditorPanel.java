@@ -306,7 +306,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                         }
 
                         ACAttributeDto dto = attrModel.getObject();
-                        return StringUtils.isNotEmpty(dto.getValue()) || StringUtils.isNotEmpty(dto.getExpression());
+                        return StringUtils.isNotEmpty(dto.getValue());
                     }
                 });
             }
@@ -355,13 +355,18 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     getPageBase().getPrismContext());
             PrismContainerDefinition definition = refinedSchema.getAccountDefinition(construction.getType());
 
+            List<ValueConstructionType> attrConstructions = construction.getAttribute();
+
             Collection<ItemDefinition> definitions = definition.getDefinitions();
             for (ItemDefinition attrDef : definitions) {
                 if (!(attrDef instanceof PrismPropertyDefinition)) {
                     //log skipping or something...
                     continue;
                 }
-                attributes.add(new ACAttributeDto((PrismPropertyDefinition) attrDef, null, null));
+
+                PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) attrDef;
+                attributes.add(new ACAttributeDto(propertyDef,
+                        findOrCreateValueConstruction(propertyDef, attrConstructions)));
             }
         } catch (Exception ex) {
             //todo error handling
@@ -377,6 +382,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         });
 
         return attributes;
+    }
+
+    private ValueConstructionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
+                                                                List<ValueConstructionType> attrConstructions) {
+        for (ValueConstructionType construction : attrConstructions) {
+            if (attrDef.getName().equals(construction.getRef())) {
+                return construction;
+            }
+        }
+
+        ValueConstructionType construction = new ValueConstructionType();
+        construction.setRef(attrDef.getName());
+        return construction;
     }
 
     private IModel<ResourceReference> createImageTypeModel(final IModel<AssignmentEditorDtoType> model) {
@@ -400,11 +418,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private void nameClickPerformed(AjaxRequestTarget target) {
         AssignmentEditorDto dto = getModel().getObject();
-        dto.setMinimized(!dto.isMinimized());
+        boolean minimized = dto.isMinimized();
+        if (minimized) {
+            dto.startEditing();
+        }
+
+        dto.setMinimized(!minimized);
 
         target.add(get(ID_MAIN));
-
-        //todo implement;
     }
 
     private IModel<String> createTargetModel() {

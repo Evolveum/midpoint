@@ -108,6 +108,10 @@ public class AssignmentEditorDto extends SelectableBean {
     }
 
     public void startEditing() {
+        if (oldAssignment != null) {
+            return;
+        }
+
         PrismContainerValue value = newAssignment.asPrismContainerValue();
 
         PrismContainerValue oldValue = value.clone();
