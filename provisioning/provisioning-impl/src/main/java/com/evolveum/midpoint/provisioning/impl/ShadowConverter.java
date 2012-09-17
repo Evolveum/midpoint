@@ -537,11 +537,13 @@ public class ShadowConverter {
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
 					"Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
+			parentResult.getLastSubresult().muteError();
 			throw new ObjectNotFoundException("Object not found. Identifiers: " + identifiers + ". Reason: "
 					+ e.getMessage(), e);
 		} catch (CommunicationException e) {
 			parentResult.recordFatalError("Error communication with the connector " + connector
 					+ ": " + e.getMessage(), e);
+			parentResult.getLastSubresult().muteError();
 			throw new CommunicationException("Error communication with the connector " + connector
 					+ ": " + e.getMessage(), e);
 		} catch (GenericFrameworkException e) {

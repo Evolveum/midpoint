@@ -4806,10 +4806,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="expected_error">
+            <xsd:enumeration value="handled_error">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXPECTED_ERROR"/>
+                        <jaxb:typesafeEnumMember name="HANDLED_ERROR"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

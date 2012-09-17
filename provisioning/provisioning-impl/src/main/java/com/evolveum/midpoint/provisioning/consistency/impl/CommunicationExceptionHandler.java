@@ -120,7 +120,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			operationResult.computeStatus();
 			parentResult
 					.recordStatus(
-							OperationResultStatus.EXPECTED_ERROR,
+							OperationResultStatus.HANDLED_ERROR,
 							"Could not create account on the resource, because "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online.");
@@ -152,7 +152,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			operationResult.computeStatus();
 			parentResult
 					.recordStatus(
-							OperationResultStatus.EXPECTED_ERROR,
+							OperationResultStatus.HANDLED_ERROR,
 							"Could not apply modifications to account on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", becasue resource is unreachable. Modifications will be applied when the resource goes online.");
@@ -165,7 +165,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 					operationResult);
 			parentResult
 					.recordStatus(
-							OperationResultStatus.EXPECTED_ERROR,
+							OperationResultStatus.HANDLED_ERROR,
 							"Could not delete account from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", becasue resource is unreachable. Account will be delete when the resource goes online.");
@@ -175,7 +175,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		case GET:
 			// nothing to do, just return the shadow from the repo and set fetch
 			// result..
-			parentResult.recordStatus(OperationResultStatus.EXPECTED_ERROR, "Could not get account from the resource "
+			parentResult.recordStatus(OperationResultStatus.HANDLED_ERROR, "Could not get account from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
 					+ ", becasue resource is unreachable. Returning shadow from the repository.");
 			shadow.setFetchResult(parentResult.createOperationResultType());

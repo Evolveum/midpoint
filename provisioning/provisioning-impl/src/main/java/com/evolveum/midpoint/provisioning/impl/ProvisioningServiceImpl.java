@@ -270,6 +270,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO: object resolving
 
 			result.recordSuccess();
+			if (shadow == null){
+				return null;
+			}
 			return shadow.asPrismObject();
 
 		} else if (repositoryObject.canRepresent(ResourceType.class)) {

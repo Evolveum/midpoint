@@ -64,7 +64,7 @@ public enum OperationResultStatus {
 	 * equivalent to success for all practical cases except for displaying the result. But using
 	 * success status for this situation might be misleading.
 	 */
-	EXPECTED_ERROR,
+	HANDLED_ERROR,
 	
 	/**
 	 * Result does not make any sense for the operation. This is useful in cases that the
@@ -91,6 +91,8 @@ public enum OperationResultStatus {
 				return FATAL_ERROR;
 			case PARTIAL_ERROR:
 				return PARTIAL_ERROR;
+			case HANDLED_ERROR:
+				return HANDLED_ERROR;
 			case SUCCESS:
 				return SUCCESS;
 			case WARNING:
@@ -118,6 +120,8 @@ public enum OperationResultStatus {
 				return OperationResultStatusType.FATAL_ERROR;
 			case PARTIAL_ERROR:
 				return OperationResultStatusType.PARTIAL_ERROR;
+			case HANDLED_ERROR:
+				return OperationResultStatusType.HANDLED_ERROR;
 			case NOT_APPLICABLE:
 				return OperationResultStatusType.NOT_APPLICABLE;
 			case IN_PROGRESS:

@@ -162,7 +162,7 @@ public class IntegrationTestTools {
 			fail(logmsg);
 		}
 		
-		if (result.isSuccess() || result.isExpectedError()) {
+		if (result.isSuccess() || result.isHandledError()) {
 			// OK ... expected error is as good as success
 		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
 			// OK

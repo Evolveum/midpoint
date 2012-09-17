@@ -127,7 +127,7 @@ public class GenericErrorHandler extends ErrorHandler{
 						// changes with previous
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 								result);
-						result.recordStatus(OperationResultStatus.EXPECTED_ERROR, "Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
+						result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
 					}
 
 				}
@@ -135,7 +135,7 @@ public class GenericErrorHandler extends ErrorHandler{
 			return shadow;
 		case DELETE:
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);
-			result.recordStatus(OperationResultStatus.EXPECTED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
+			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
 		default:
 			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
 					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);

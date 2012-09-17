@@ -343,8 +343,8 @@ public class OperationResult implements Serializable, Dumpable {
 		return (status == OperationResultStatus.PARTIAL_ERROR);
 	}
 	
-	public boolean isExpectedError() {
-		return (status == OperationResultStatus.EXPECTED_ERROR);
+	public boolean isHandledError() {
+		return (status == OperationResultStatus.HANDLED_ERROR);
 	}
 
 	/**
@@ -424,17 +424,16 @@ public class OperationResult implements Serializable, Dumpable {
 				}
 				return;
 			}
-			if (sub.getStatus() == OperationResultStatus.EXPECTED_ERROR) {
-				status = OperationResultStatus.EXPECTED_ERROR;
+			if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
+				status = OperationResultStatus.HANDLED_ERROR;
 				if (message == null) {
 					message = sub.getMessage();
 				} else {
 					message = message + ": " + sub.getMessage();
 				}
-				return;
 			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
-					&& sub.getStatus() != OperationResultStatus.EXPECTED_ERROR
+					&& sub.getStatus() != OperationResultStatus.HANDLED_ERROR
 					&& sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}
@@ -618,7 +617,7 @@ public class OperationResult implements Serializable, Dumpable {
 	 */
 	public void muteError() {
 		if (isError()) {
-			status = OperationResultStatus.EXPECTED_ERROR;
+			status = OperationResultStatus.HANDLED_ERROR;
 		}
 	}
 	
