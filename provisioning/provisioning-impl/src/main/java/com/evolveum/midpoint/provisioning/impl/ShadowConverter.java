@@ -132,6 +132,10 @@ public class ShadowConverter {
 							+ ObjectTypeUtil.toShortString(repoShadow), ex);
 			throw ex;
 		}
+		
+		if (repoShadow.getObjectChange() != null){
+			throw new GenericConnectorException("Found changes that have been not applied to the account yet. Trying to apply them now.");
+		}
 
 		Collection<? extends ResourceAttribute<?>> attributes = ResourceObjectShadowUtil
 				.getAttributes(repoShadow);
@@ -251,6 +255,13 @@ public class ShadowConverter {
 			throw new SecurityViolationException("Cannot delete protected resource object "
 					+ objectClassDefinition + ": " + identifiers);
 		}
+		
+		//check idetifier if it is not null
+		if (identifiers.isEmpty() && shadow.getFailedOperationType()!= null){
+			throw new GenericConnectorException(
+					"Unable to delete account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+		}
+
 
 		try {
 

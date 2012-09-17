@@ -132,6 +132,9 @@ public class GenericErrorHandler extends ErrorHandler{
 				}
 			}
 			return shadow;
+		case DELETE:
+			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);
+			result.recordStatus(OperationResultStatus.EXPECTED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
 		default:
 			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
 					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);

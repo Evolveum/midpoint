@@ -121,9 +121,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordStatus(
 							OperationResultStatus.EXPECTED_ERROR,
-							"Could not create account on the resource, becasue resource "
+							"Could not create account on the resource, because "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ "is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online.");
+									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online.");
 			
 			return shadow;
 		case MODIFY:
@@ -153,7 +153,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordStatus(
 							OperationResultStatus.EXPECTED_ERROR,
-							"Could not apply modifications to account on the resource "
+							"Could not apply modifications to account on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", becasue resource is unreachable. Modifications will be applied when the resource goes online.");
 			return shadow;
