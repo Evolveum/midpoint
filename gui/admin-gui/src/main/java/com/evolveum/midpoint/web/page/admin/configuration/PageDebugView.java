@@ -43,6 +43,7 @@ public class PageDebugView extends PageAdminConfiguration {
     public static final String PARAM_OBJECT_ID = "objectId";
     private IModel<ObjectViewDto> model;
     private AceEditor<String> editor;
+    private final IModel<Boolean> encrypt = new Model<Boolean>(true);
 
     public PageDebugView() {
         model = new LoadableModel<ObjectViewDto>(false) {
@@ -99,6 +100,13 @@ public class PageDebugView extends PageAdminConfiguration {
         mainForm.add(new Label("oid", new PropertyModel<Object>(model, "oid")));
         mainForm.add(new Label("name", new PropertyModel<Object>(model, "name")));
         final IModel<Boolean> editable = new Model<Boolean>(false);
+        
+        mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+			}
+        });
         mainForm.add(new AjaxCheckBox("edit", editable) {
 
             @Override
@@ -173,6 +181,10 @@ public class PageDebugView extends PageAdminConfiguration {
             ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
             Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
             Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+            
+            if(encrypt.getObject()) {
+            	options.add(ObjectOperationOption.CRYPT);
+            }  
 
             getModelService().executeChanges(deltas, options, task, result);
             
