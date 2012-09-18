@@ -186,18 +186,18 @@ public class PageResources extends PageAdminResources {
             }
         });
    
-        column = new IconColumn<ResourceDto>(createStringResource("pageResources.status")) {
+        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
             @Override
             protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
                 return new AbstractReadOnlyModel<ResourceReference>() {
 
                     @Override
-                    public ResourceReference getObject() {
-                        ResourceDto dto = rowModel.getObject();
-                        ResourceState state = dto.getState();
+                    public ResourceReference getObject() {   
+                    	ResourceDto dto = rowModel.getObject();
                         ResourceController.updateLastAvailabilityState(dto.getState(),
-								dto.getLastAvailabilityStatus());			
+        						dto.getLastAvailabilityStatus());
+                        ResourceState state = dto.getState();
                         return new PackageResourceReference(PageResources.class, state
 								.getLastAvailability().getIcon());
                     }
@@ -210,15 +210,19 @@ public class PageResources extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        ResourceDto dto = rowModel.getObject();
-                        ResourceState state = dto.getState();
-                        ResourceController.updateLastAvailabilityState(dto.getState(),
-								dto.getLastAvailabilityStatus());
+                    	ResourceState state = rowModel.getObject().getState();
                         return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + state
 								.getLastAvailability().name());
                     }
                 };
             }
+            
+			@Override
+			protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel,
+					AjaxLink link) {
+				testResourcePerformed(target, rowModel);
+				target.add(link);
+			}
         };
         columns.add(column);
 
@@ -424,4 +428,31 @@ public class PageResources extends PageAdminResources {
         result.recomputeStatus();
         showResult(result);
     }
+    
+	private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
+
+		OperationResult result = null;
+
+		ResourceDto dto = rowModel.getObject();
+		if (StringUtils.isEmpty(dto.getOid())) {
+			result.recordFatalError("Resource oid not defined in request");
+		}
+
+		try {
+			result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_RESOURCE));
+			ResourceController.updateResourceState(dto.getState(), result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Fail to test resource connection", ex);
+		}
+
+		if (result == null) {
+			result = new OperationResult(TEST_RESOURCE);
+		}
+
+		if (!result.isSuccess()) {
+			showResult(result);
+			target.add(getFeedbackPanel());
+		}
+
+	}
 }

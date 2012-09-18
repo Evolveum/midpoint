@@ -85,6 +85,11 @@ public class ResourceController {
 		ResourceStatus lastAvailability = ResourceStatus.NOT_TESTED;
 		
 		if(lastAvailabilityStatus == null) {
+			if(state.getOverall() == ResourceStatus.SUCCESS) {
+				lastAvailability = ResourceStatus.UP;
+			} else if (state.getOverall() == ResourceStatus.ERROR){
+				lastAvailability = ResourceStatus.DOWN;
+			}
 			state.setLastAvailability(lastAvailability);
 			return;
 		}
