@@ -431,6 +431,7 @@ public class OperationResult implements Serializable, Dumpable {
 				} else {
 					message = message + ": " + sub.getMessage();
 				}
+				return;
 			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
 					&& sub.getStatus() != OperationResultStatus.HANDLED_ERROR
