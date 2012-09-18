@@ -962,7 +962,7 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
 
-        if (result.isSuccess() || result.isExpectedError()) {
+        if (result.isSuccess() || result.isHandledError()) {
             showResultInSession(result);
             setResponsePage(PageUsers.class);
         } else {
@@ -1021,7 +1021,7 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
 
-        if (result.isSuccess() || result.isExpectedError()) {
+        if (result.isSuccess() || result.isHandledError()) {
             PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, accountsBeforeModify);
             setResponsePage(pageSubmit);
         } else {
