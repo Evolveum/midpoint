@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitle
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
+import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceState;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
@@ -183,8 +185,8 @@ public class PageResources extends PageAdminResources {
                 });
             }
         });
-
-        column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
+   
+        column = new IconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
             @Override
             protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
@@ -193,11 +195,11 @@ public class PageResources extends PageAdminResources {
                     @Override
                     public ResourceReference getObject() {
                         ResourceDto dto = rowModel.getObject();
-                        ResourceStatus status = dto.getOverallStatus();
-                        if (status == null) {
-                            status = ResourceStatus.NOT_TESTED;
-                        }
-                        return new PackageResourceReference(PageResources.class, status.getIcon());
+                        ResourceState state = dto.getState();
+                        ResourceController.updateLastAvailabilityState(dto.getState(),
+								dto.getLastAvailabilityStatus());			
+                        return new PackageResourceReference(PageResources.class, state
+								.getLastAvailability().getIcon());
                     }
                 };
             }
@@ -209,20 +211,13 @@ public class PageResources extends PageAdminResources {
                     @Override
                     public String getObject() {
                         ResourceDto dto = rowModel.getObject();
-                        ResourceStatus status = dto.getOverallStatus();
-                        if (status == null) {
-                            status = ResourceStatus.NOT_TESTED;
-                        }
-
-                        return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + status.name());
+                        ResourceState state = dto.getState();
+                        ResourceController.updateLastAvailabilityState(dto.getState(),
+								dto.getLastAvailabilityStatus());
+                        return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + state
+								.getLastAvailability().name());
                     }
                 };
-            }
-
-            @Override
-            protected void onClickPerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel, AjaxLink link) {
-                testResourcePerformed(target, rowModel);
-                target.add(link);
             }
         };
         columns.add(column);
@@ -395,30 +390,6 @@ public class PageResources extends PageAdminResources {
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getResourceTable());
-    }
-
-    private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-        OperationResult result = null;
-        ResourceDto dto = rowModel.getObject();
-        if (StringUtils.isEmpty(dto.getOid())) {
-            result.recordFatalError("Resource oid not defined in request");
-        }
-
-        try {
-            result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_RESOURCE));
-            ResourceController.updateResourceState(dto.getState(), result);
-        } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Fail to test resource connection", ex);
-        }
-
-        if (result == null) {
-            result = new OperationResult(TEST_RESOURCE);
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        }
     }
 
     private void showSyncStatus(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {

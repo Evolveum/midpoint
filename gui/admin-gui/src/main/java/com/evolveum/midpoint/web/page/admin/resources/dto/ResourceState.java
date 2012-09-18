@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ResourceState implements Serializable {
 
+	private ResourceStatus lastAvailability;
 	private ResourceStatus overall;
 	private ResourceStatus confValidation;
 	private ResourceStatus conInitialization;
@@ -122,6 +123,17 @@ public class ResourceState implements Serializable {
 
 	public void setExtraName(String extraName) {
 		this.extraName = extraName;
+	}
+	
+	public ResourceStatus getLastAvailability() {
+		if (lastAvailability == null) {
+			return ResourceStatus.NOT_TESTED;
+		}
+		return lastAvailability;
+	}
+
+	public void setLastAvailability(ResourceStatus lastAvailability) {
+		this.lastAvailability = lastAvailability;
 	}
 
 	private ResourceStatus updateOverallStatus() {

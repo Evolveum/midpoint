@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
@@ -55,6 +56,7 @@ public class ResourceDto extends Selectable {
     private String progress;
     private String type;
     private ResourceState state;
+    private AvailabilityStatusType lastAvailabilityStatus;
     private List<ResourceObjectTypeDto> objectTypes;
     private List<String> capabilities;
     private ResourceSync sync;
@@ -70,6 +72,7 @@ public class ResourceDto extends Selectable {
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
+        lastAvailabilityStatus = resource.asObjectable().getLastAvailabilityStatus();
     }
 
     public ResourceDto(PrismObject<ResourceType> resource, PrismContext prismContext, ConnectorType connector, List<String> capabilities) {
@@ -149,6 +152,10 @@ public class ResourceDto extends Selectable {
 			return ResourceStatus.NOT_TESTED;
 		}
 		return state.getOverall();
+	}
+    
+    public AvailabilityStatusType getLastAvailabilityStatus() {
+    	return lastAvailabilityStatus;
 	}
     
     public List<ResourceObjectTypeDto> getObjectTypes() {

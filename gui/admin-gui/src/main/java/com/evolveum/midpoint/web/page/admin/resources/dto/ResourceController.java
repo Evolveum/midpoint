@@ -27,6 +27,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 
 /**
  * @author mserbak
@@ -78,5 +79,24 @@ public class ResourceController {
 				status = ResourceStatus.ERROR;
 		}
 		return status;
+	}
+	
+	public static void updateLastAvailabilityState(ResourceState state, AvailabilityStatusType lastAvailabilityStatus) {
+		ResourceStatus lastAvailability = ResourceStatus.NOT_TESTED;
+		
+		if(lastAvailabilityStatus == null) {
+			state.setLastAvailability(lastAvailability);
+			return;
+		}
+		
+		switch (lastAvailabilityStatus) {
+			case UP:
+				lastAvailability = ResourceStatus.UP;
+				break;
+			case DOWN:
+				lastAvailability = ResourceStatus.DOWN;
+				break;
+		}
+		state.setLastAvailability(lastAvailability);
 	}
 }
