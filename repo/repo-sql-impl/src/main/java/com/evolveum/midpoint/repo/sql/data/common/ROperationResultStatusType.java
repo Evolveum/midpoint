@@ -34,7 +34,8 @@ public enum ROperationResultStatusType {
     FATAL_ERROR(OperationResultStatusType.FATAL_ERROR),
     NOT_APPLICABLE(OperationResultStatusType.NOT_APPLICABLE),
     IN_PROGRESS(OperationResultStatusType.IN_PROGRESS),
-    UNKNOWN(OperationResultStatusType.UNKNOWN);
+    UNKNOWN(OperationResultStatusType.UNKNOWN),
+    HANDLED_ERROR(OperationResultStatusType.HANDLED_ERROR);
 
     private OperationResultStatusType status;
 
