@@ -25,6 +25,11 @@
 	height: 14px;
 	position: absolute;
 	background-repeat: no-repeat;
+	margin-top: 3px;
+}
+
+.threeStateLabel {
+	margin-left: 18px;
 }
 
 .unchecked {

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.threeStateCheckBox;
 
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -43,9 +44,8 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 /**
  * @author lazyman
  */
-public class ThreeStateCheckBox extends Panel {
-	private WebMarkupContainer threeStateBox;
-	private HiddenField threeStateInput;
+public class ThreeStateCheckBox extends HiddenField<ThreeCheckState> {
+	private String label = "";
 
 	public ThreeStateCheckBox(String id) {
 		this(id, new Model<ThreeCheckState>(ThreeCheckState.UNDEFINED));
@@ -53,15 +53,14 @@ public class ThreeStateCheckBox extends Panel {
 
 	public ThreeStateCheckBox(String id, final IModel<ThreeCheckState> model) {
 		super(id, model);
+		setOutputMarkupId(true);
+		Validate.notNull(model, "Model must not be null.");
+		add(new AttributeModifier("value", getStateModel(model)));
+	}
 
-		threeStateBox = new WebMarkupContainer("threeStateBox");
-		threeStateBox.setOutputMarkupId(true);
-		add(threeStateBox);
-
-		threeStateInput = new HiddenField("threeStateInput");
-		threeStateInput.setMarkupId(threeStateBox.getMarkupId() + "State");
-		threeStateInput.add(new AttributeModifier("value", getStateModel(model)));
-		threeStateBox.add(threeStateInput);
+	public ThreeStateCheckBox(String id, final IModel<String> label, final IModel<ThreeCheckState> model) {
+		this(id, model);
+		this.label = label.getObject();
 	}
 
 	private AbstractReadOnlyModel<String> getStateModel(final IModel<ThreeCheckState> model) {
@@ -93,22 +92,14 @@ public class ThreeStateCheckBox extends Panel {
 			tag.setType(XmlTag.TagType.OPEN);
 		}
 	}
-	
-	public WebMarkupContainer getPanelComponent() {
-        return threeStateBox;
-    }
-
-    public void onUpdate(AjaxRequestTarget target) {
-    }
 
 	@Override
 	public void renderHead(IHeaderResponse response) {
 		super.renderHead(response);
 		response.renderJavaScriptReference(new PackageResourceReference(ThreeStateCheckBox.class,
-				"ThreeState.js"));
-		response.renderCSSReference(new PackageResourceReference(ThreeStateCheckBox.class, "ThreeStateCheckBox.css"));
-
-		response.renderOnLoadJavaScript("initTriStateCheckBox('" + threeStateBox.getMarkupId() + "', '"
-				+ threeStateInput.getMarkupId() + "', true);");
+				"ThreeStateCheckBox.js"));
+		response.renderCSSReference(new PackageResourceReference(ThreeStateCheckBox.class,
+				"ThreeStateCheckBox.css"));
+		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "', '" + label + "')");
 	}
 }
