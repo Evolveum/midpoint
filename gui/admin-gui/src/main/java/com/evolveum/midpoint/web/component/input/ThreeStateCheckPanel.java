@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import java.util.Date;
+
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeCheckState;
 import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox;
@@ -29,37 +32,57 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author mserbak
  */
 public class ThreeStateCheckPanel extends InputPanel {
 
-    public ThreeStateCheckPanel(String id, IModel<Boolean> model) {
-        super(id);
+	public ThreeStateCheckPanel(String id, IModel<Boolean> model) {
+		super(id);
 
-        ThreeStateCheckBox check = new ThreeStateCheckBox("input", checkThreeState(model));
-        add(check);
-    }
-    
-    private IModel<ThreeCheckState> checkThreeState(final IModel<Boolean> model) {
-    	return new AbstractReadOnlyModel<ThreeCheckState>(){
+		ThreeStateCheckBox check = new ThreeStateCheckBox("input", checkThreeState(model));
+		add(check);
+	}
 
+	private IModel<ThreeCheckState> checkThreeState(final IModel<Boolean> model) {
+		return new Model<ThreeCheckState>() {
 			@Override
 			public ThreeCheckState getObject() {
-				if(model.getObject() == null) {
+				if (model.getObject() == null) {
 					return ThreeCheckState.UNDEFINED;
-				} else if(model.getObject()) {
+				} else if (model.getObject()) {
 					return ThreeCheckState.CHECKED;
 				} else {
 					return ThreeCheckState.UNCHECKED;
 				}
 			}
-    	};
-    }
 
-    @Override
-    public FormComponent getBaseFormComponent() {
-        return (FormComponent) get("input");
-    }
+			@Override
+			public void setObject(ThreeCheckState object) {
+				if (ThreeCheckState.UNCHECKED.equals(object)) {
+					model.setObject(null);
+				}
+
+				boolean state = false;
+
+				switch (object) {
+					case CHECKED:
+						state = true;
+						break;
+					case UNCHECKED:
+						state = false;
+						break;
+				}
+				model.setObject(state);
+			}
+
+		};
+	}
+
+	@Override
+	public FormComponent getBaseFormComponent() {
+		return (FormComponent) get("input");
+	}
 }
