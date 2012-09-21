@@ -253,8 +253,9 @@ public class PrismValuePanel extends Panel {
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
-            AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onKeyUp");
-            validator.setThrottleDelay(Duration.ONE_SECOND);
+            //AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onKeyUp");
+            AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur");
+            //validator.setThrottleDelay(Duration.ONE_SECOND);
             formComponent.add(validator);
         }
 
@@ -273,7 +274,7 @@ public class PrismValuePanel extends Panel {
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
             panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"), form);
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-            panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
+            panel = new CheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
         } else {

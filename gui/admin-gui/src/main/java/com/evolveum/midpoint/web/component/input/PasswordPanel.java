@@ -60,7 +60,7 @@ public class PasswordPanel extends InputPanel {
         password2.setResetPassword(false);
         add(password2);
 
-        password1.add(new PasswordValidator(password1, password2));
+        password2.add(new PasswordValidator(password1, password2));
     }
 
     @Override
