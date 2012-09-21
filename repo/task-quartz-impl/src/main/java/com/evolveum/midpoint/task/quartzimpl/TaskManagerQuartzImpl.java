@@ -341,6 +341,23 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return stopped;
     }
 
+    // todo: better name for this method
+
+    @Override
+    public void unpauseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "unpauseTask");
+        result.addParam("task", task);
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+            String message = "Attempted to unpause a task that is not in the WAITING state (task = " + task + ", state = " + task.getExecutionStatus();
+            LOGGER.error(message);
+            result.recordFatalError(message);
+            return;
+        }
+        resumeOrUnpauseTask(task, result);
+    }
+
     @Override
     public void resumeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
@@ -354,15 +371,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             result.recordFatalError(message);
             return;
         }
+        resumeOrUnpauseTask(task, result);
+    }
+
+    private void resumeOrUnpauseTask(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 
         try {
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);
         } catch (ObjectNotFoundException e) {
-            String message = "A task cannot be resumed, because it does not exist; task = " + task;
+            String message = "A task cannot be resumed/unpaused, because it does not exist; task = " + task;
             LoggingUtils.logException(LOGGER, message, e);
             throw e;
         } catch (SchemaException e) {
-            String message = "A task cannot be resumed due to schema exception; task = " + task;
+            String message = "A task cannot be resumed/unpaused due to schema exception; task = " + task;
             LoggingUtils.logException(LOGGER, message, e);
             throw e;
         }

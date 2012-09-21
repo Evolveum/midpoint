@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.wrappers;
+package com.evolveum.midpoint.wf.processes;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,16 +30,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.WfHook;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.

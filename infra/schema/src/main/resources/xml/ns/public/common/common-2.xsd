@@ -1452,14 +1452,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kindOfOperation" type="tns:ModelOperationKindType">
+            <xsd:element name="kindOfOperation" type="tns:ModelOperationKindType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         A kind of operation that is to be (being) executed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="stage" type="tns:ModelOperationStageType">
+            <xsd:element name="stage" type="tns:ModelOperationStageType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         In which stage is this operation?

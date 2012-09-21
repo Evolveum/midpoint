@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -110,6 +111,14 @@ public class ActivitiEngine {
             }
 
             LOGGER.info("Finished creating workflow user '" + ADMINISTRATOR + "' and its group membership.");
+        } else {
+            User admin = uq.singleResult();
+            LOGGER.info("User " + ADMINISTRATOR + " with ID " + admin.getId() + " exists.");
+            List<Group> groups = identityService.createGroupQuery().groupMember(admin.getId()).list();
+            for (Group g : groups) {
+                LOGGER.info(" - member of " + g.getId());
+            }
+
         }
     }
 
@@ -118,7 +127,7 @@ public class ActivitiEngine {
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         String adf = wfConfiguration.getAutoDeploymentFrom();
 
-        Resource[] resources = new Resource[0];
+        Resource[] resources;
         try {
             resources = resolver.getResources(adf);
         } catch (IOException e) {
@@ -148,22 +157,25 @@ public class ActivitiEngine {
         URL url = resource.getURL();
         String name = url.toString();
         long resourceLastModified = resource.lastModified();
-        LOGGER.info("Checking resource " + name + " (last modified = " + new Date(resourceLastModified) + ")");
+        LOGGER.debug("Checking resource " + name + " (last modified = " + new Date(resourceLastModified) + ")");
 
-        Deployment existing = repositoryService.createDeploymentQuery().deploymentName(name).orderByDeploymenTime().desc().singleResult();
+        boolean tooOld = false;
+
+        List<Deployment> existingList = repositoryService.createDeploymentQuery().deploymentName(name).orderByDeploymenTime().desc().listPage(1, 1);
+        Deployment existing = existingList != null && !existingList.isEmpty() ? existingList.get(0) : null;
         if (existing != null) {
-            LOGGER.info("Found deployment " + existing.getName() + ", last modified " + existing.getDeploymentTime());
             if (resourceLastModified >= existing.getDeploymentTime().getTime()) {
-                LOGGER.info("... it is too old, we'll redeploy it.");
-                existing = null;
+                tooOld = true;
             }
+            LOGGER.debug("Found deployment " + existing.getName() + ", last modified " + existing.getDeploymentTime() +
+                    (tooOld ? " (too old)" : " (current)"));
         } else {
-            LOGGER.info("Deployment with name " + name + " was not found.");
+            LOGGER.debug("Deployment with name " + name + " was not found.");
         }
 
-        if (existing == null) {
-            Deployment deployment = repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
-            LOGGER.info("Deployment of " + name + " done.");
+        if (existing == null || tooOld) {
+            repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
+            LOGGER.info("Successfully deployed Activiti resource " + name);
         }
 
 //        Document d = DOMUtil.parse(resource.getInputStream());

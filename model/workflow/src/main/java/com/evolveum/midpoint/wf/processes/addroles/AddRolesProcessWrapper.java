@@ -19,9 +19,10 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.wrappers;
+package com.evolveum.midpoint.wf.processes.addroles;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -40,11 +42,15 @@ import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfHook;
 import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.ProcessWrapper;
+import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import org.jvnet.jaxb2_commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,9 +58,9 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class AddRoleProcessWrapper implements ProcessWrapper {
+public class AddRolesProcessWrapper implements ProcessWrapper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AddRoleProcessWrapper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AddRolesProcessWrapper.class);
 
     @Autowired(required = true)
     private RepositoryService repositoryService;
@@ -65,9 +71,10 @@ public class AddRoleProcessWrapper implements ProcessWrapper {
     @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
 
+    public static final String USER_NAME = "userName";
     public static final String ROLES_TO_APPROVE = "rolesToApprove";
-    public static final String APPROVED_ROLES = "approvedRoles";
-    private static final String ADD_ROLE_PROCESS = "addRole";
+    public static final String DECISION_LIST = "decisionList";
+    private static final String ADD_ROLE_PROCESS = "AddRoles";
 
     @PostConstruct
     public void register() {
@@ -136,22 +143,25 @@ public class AddRoleProcessWrapper implements ProcessWrapper {
                 }
             }
         } else {
-            return null;            // MODIFY does not need role approval
+            return null;            // DELETE does not need role approval
         }
 
         if (!rolesToAdd.isEmpty()) {
 
-            UserType oldUser = (UserType) context.getFocusContext().getObjectOld().asObjectable();
-            UserType newUser = (UserType) context.getFocusContext().getObjectNew().asObjectable();
+            ModelElementContext<UserType> fc = context.getFocusContext();
+            UserType oldUser = fc.getObjectOld() != null ? fc.getObjectOld().asObjectable() : null;
+            UserType newUser = fc.getObjectNew() != null ? fc.getObjectNew().asObjectable() : null;
 
             StartProcessInstruction spi = new StartProcessInstruction();
             spi.setProcessName(ADD_ROLE_PROCESS);
             spi.setSimple(true);
             spi.setTaskName("Workflow for approving adding " + rolesToAdd.size() + " role(s) to " + newUser.getName());
+            spi.addProcessVariable(USER_NAME, newUser.getName());
             spi.addProcessVariable(WfConstants.MIDPOINT_OBJECT_OLD, oldUser);
             spi.addProcessVariable(WfConstants.MIDPOINT_OBJECT_NEW, newUser);
             spi.addProcessVariable(WfConstants.MIDPOINT_DELTA, change);
             spi.addProcessVariable(ROLES_TO_APPROVE, rolesToAdd);
+            spi.addProcessVariable(DECISION_LIST, new DecisionList());
             return spi;
         }
         return null;
@@ -174,13 +184,87 @@ public class AddRoleProcessWrapper implements ProcessWrapper {
     }
 
     @Override
-    public void finishProcess(ProcessEvent event, Task task, OperationResult result) {
+    public boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result) {
 
-        if (event.getAnswer() == Boolean.TRUE) {
-            //wfTaskUtil.markAcceptation(task, result);
-        } else {
-            //wfTaskUtil.markRejection(task, result);
+        DecisionList decisionList = (DecisionList) event.getVariables().get(DECISION_LIST);
+        if (decisionList == null) {
+            throw new IllegalStateException("DecisionList is null");           // todo
         }
+
+        if (context.getState() != ModelState.PRIMARY) {
+            throw new IllegalStateException("Model state is not PRIMARY (it is " + context.getState() + "); task = " + task);
+        }
+
+        List<String> rolesApproved = new ArrayList<String>();
+        List<String> rolesDisapproved = new ArrayList<String>();
+        for (Decision decision : decisionList.getDecisionList()) {
+            LOGGER.info("Workflow result: approved=" + decision.isApproved() + " for role=" + decision.getRole());
+            if (decision.isApproved()) {
+                rolesApproved.add(decision.getRole().getOid());
+            } else {
+                rolesDisapproved.add(decision.getRole().getOid());
+            }
+        }
+
+        ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
+        if (change.getChangeType() == ChangeType.ADD) {
+
+            PrismObject<?> prismToAdd = change.getObjectToAdd();
+            boolean isUser = prismToAdd.getCompileTimeClass().isAssignableFrom(UserType.class);
+
+            if (!isUser) {
+                throw new IllegalStateException("Object to be added is not User; task = " + task);
+            }
+
+            UserType user = (UserType) prismToAdd.asObjectable();
+            LOGGER.info("Assignments (" + user.getAssignment().size() + "): ");
+            for (AssignmentType a : new ArrayList<AssignmentType>(user.getAssignment())) {      // copy, because we want to modify the list
+                ObjectReferenceType ort = a.getTargetRef();
+                LOGGER.info("ort = " + ort);
+                LOGGER.info("ort.getType = " + ort.getType());
+                if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
+                    LOGGER.info(" - role: " + ort);
+                    if (rolesApproved.contains(ort.getOid())) {
+                        LOGGER.info(" --- approved");
+                    } else {
+                        LOGGER.info(" --- rejected; will be removed from the list");
+                        user.getAssignment().remove(a);
+                    }
+                }
+            }
+        } else if (change.getChangeType() == ChangeType.MODIFY) {
+
+            boolean isUser = change.getObjectTypeClass().isAssignableFrom(UserType.class);
+
+            if (!isUser) {
+                throw new IllegalStateException("Object to be added is not User; task = " + task);
+            }
+
+            for (ItemDelta delta : change.getModifications()) {
+                if (UserType.F_ASSIGNMENT.equals(delta.getName())) {
+                    for (Object o : new ArrayList<Object>(delta.getValuesToAdd())) {
+                        LOGGER.info("Value to add = " + o);
+                        PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
+                        ObjectReferenceType ort = at.getValue().getTargetRef();
+                        LOGGER.info("ort = " + ort);
+                        LOGGER.info("ort.getType = " + ort.getType());
+                        if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
+                            LOGGER.info(" - role: " + ort);
+                            if (rolesApproved.contains(ort.getOid())) {
+                                LOGGER.info(" --- approved");
+                            } else {
+                                LOGGER.info(" --- rejected; will be removed from the list");
+                                delta.getValuesToAdd().remove(o);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            throw new IllegalStateException("Operation that has to be continued is neither ADD nor MODIFY; task = " + task);
+        }
+
+        return true;
 
     }
 }

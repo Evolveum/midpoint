@@ -558,4 +558,7 @@ public interface Task extends Dumpable {
     ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue);
 
     void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, ItemDelta<?> delta);
+
+    void finishHandler(OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException;
 }

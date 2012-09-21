@@ -623,7 +623,8 @@ public class TaskQuartzImpl implements Task {
 //        setHandlerUri(newUri);
 //        setSchedule(schedule);
 //    }
-	
+
+    @Override
 	public void finishHandler(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
 

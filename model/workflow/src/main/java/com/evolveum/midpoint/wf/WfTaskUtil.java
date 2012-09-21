@@ -21,27 +21,31 @@
 
 package com.evolveum.midpoint.wf;
 
+import java.io.FileNotFoundException;
 import java.text.DateFormat;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.QueryProcessResponse;
-import com.evolveum.midpoint.wf.wrappers.ProcessWrapper;
+import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.opends.server.admin.PropertyDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -91,7 +95,8 @@ public class WfTaskUtil {
 	private PrismPropertyDefinition wfStatusPropertyDefinition;
 
 	// wfLastEvent - stores last event received from WfMS
-	
+
+    public static final QName WFLASTVARIABLES1_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastVariables1");
 	public static final QName WFLASTVARIABLES_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastVariables");
 	private PrismPropertyDefinition wfLastVariablesPropertyDefinition;
 
@@ -104,25 +109,25 @@ public class WfTaskUtil {
 	
 	public static final QName WFPROCESSID_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfProcessId");
 	private PrismPropertyDefinition wfProcessIdPropertyDefinition;
+    private static final long TASK_START_DELAY = 5000L;
 
     @PostConstruct
     public void prepareDefinitions() {
 
-        wfStatusPropertyDefinition = new PrismPropertyDefinition(WFSTATUS_PROPERTY_NAME, WFSTATUS_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
-        wfStatusPropertyDefinition.setMaxOccurs(-1);
-        wfStatusPropertyDefinition.setMinOccurs(0);
+//        try {
+//            prismContext.getSchemaRegistry().loadPrismSchemaResource("schema/workflows-in-task.xsd");
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot load workflow-related task extensions due schema exception", e);
+//        }
 
-		wfLastVariablesPropertyDefinition = new PrismPropertyDefinition(WFLASTVARIABLES_PROPERTY_NAME, WFLASTVARIABLES_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
-		wfLastVariablesPropertyDefinition.setMinOccurs(0);
-		wfLastVariablesPropertyDefinition.setMaxOccurs(1);
+        wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFSTATUS_PROPERTY_NAME);
+		wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
+		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESS_WRAPPER_PROPERTY_NAME);
+		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESSID_PROPERTY_NAME);
 
-		wfProcessWrapperPropertyDefinition = new PrismPropertyDefinition(WFPROCESS_WRAPPER_PROPERTY_NAME, WFPROCESS_WRAPPER_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
-		wfProcessWrapperPropertyDefinition.setMinOccurs(0);
-		wfProcessWrapperPropertyDefinition.setMaxOccurs(1);
-
-		wfProcessIdPropertyDefinition = new PrismPropertyDefinition(WFPROCESSID_PROPERTY_NAME, WFPROCESSID_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
-		wfProcessIdPropertyDefinition.setMinOccurs(0);
-		wfProcessIdPropertyDefinition.setMaxOccurs(1);
+        if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
+            throw new SystemException("wfLastVariables property definition was not found or is not correct (its isIndexed should be FALSE)");
+        }
 	}
 
 
@@ -137,10 +142,18 @@ public class WfTaskUtil {
         if (StringUtils.isEmpty(t.getName())) {
 		    t.setName(taskName);
         }
-		t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, new ScheduleType(), null);
+
+        t.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
+
+        ScheduleType schedule = new ScheduleType();
+        schedule.setInterval(workflowManager.getWfConfiguration().getProcessCheckInterval());
+        schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + TASK_START_DELAY)));
+		t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, schedule, null);
+
         t.setCategory(TaskCategory.WORKFLOW);
         t.setBinding(TaskBinding.LOOSE);
-		t.makeRecurrentSimple(workflowManager.getWfConfiguration().getProcessCheckInterval());
+
+
         t.makeRunnable();
         // TODO fix this ugly hack
         t.setOwner(repositoryService.getObject(UserType.class, "00000000-0000-0000-0000-000000000002", parentResult));
@@ -191,10 +204,11 @@ public class WfTaskUtil {
 
 	String getLastVariables(Task task) {
 		PrismProperty<?> p = task.getExtension(WFLASTVARIABLES_PROPERTY_NAME);
-		if (p == null)
+		if (p == null) {
 			return null;
-		else
+        } else {
 			return p.getValue(String.class).getValue();
+        }
 	}
 	
 	/**
@@ -319,7 +333,11 @@ public class WfTaskUtil {
 			if (event != null) {
 				PrismProperty wfLastVariablesProperty = wfLastVariablesPropertyDefinition.instantiate();
 				String variables = dumpVariables(event);
+//                if (variables.length() > 255) {             // todo fix this hack
+//                    variables = variables.substring(0, 252) + "...";
+//                }
                 wfLastVariablesProperty.setValue(new PrismPropertyValue<String>(variables));
+                LOGGER.info("WfLastVariable INDEXED = " + wfLastVariablesProperty.getDefinition().isIndexed());
                 task.setExtensionProperty(wfLastVariablesProperty);
 			}
 
@@ -416,7 +434,7 @@ public class WfTaskUtil {
 			first = false;
 		}
 
-		return sb.toString();
+        return sb.toString();
 	}
 
 //    void putWorkflowAnswerIntoTask(boolean doit, Task task, OperationResult result) throws IOException, ClassNotFoundException {

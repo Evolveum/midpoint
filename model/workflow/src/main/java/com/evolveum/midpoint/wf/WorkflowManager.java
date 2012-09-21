@@ -24,6 +24,7 @@ package com.evolveum.midpoint.wf;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.activiti.engine.FormService;
 import org.activiti.engine.IdentityService;
 import org.activiti.engine.TaskService;
@@ -42,6 +44,8 @@ import org.activiti.engine.form.FormType;
 import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.identity.Group;
 import org.activiti.engine.identity.GroupQuery;
+import org.activiti.engine.runtime.Execution;
+import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
@@ -91,6 +95,7 @@ public class WorkflowManager implements BeanFactoryAware {
     private WfConfiguration wfConfiguration;
 
     private BeanFactory beanFactory;
+    private static final char PROPERTY_TYPE_SEPARATOR_CHAR = '$';
 
     @PostConstruct
     public void initialize() throws Exception {     // todo exception handling
@@ -233,6 +238,9 @@ public class WorkflowManager implements BeanFactoryAware {
             return null;
         }
 
+        Map<String,Object> variables = activitiEngine.getProcessEngine().getRuntimeService().getVariables((task.getExecutionId()));
+        LOGGER.info("Execution " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+
         // todo - use NS other than NS_C (at least for form properties)
 
         ComplexTypeDefinition ctd = new ComplexTypeDefinition(WORK_ITEM_NAME, WORK_ITEM_NAME, prismContext);
@@ -241,32 +249,49 @@ public class WorkflowManager implements BeanFactoryAware {
         ctd.createPropertyDefinifion(WORK_ITEM_ASSIGNEE, DOMUtil.XSD_STRING);
         ctd.createPropertyDefinifion(WORK_ITEM_CANDIDATES, DOMUtil.XSD_STRING);
 
+        LOGGER.info("t0");
+
         TaskFormData data = activitiEngine.getFormService().getTaskFormData(task.getId());
 
         for (FormProperty formProperty : data.getFormProperties()) {
 
-            QName pname = new QName(SchemaConstants.NS_C, "WI_" + formProperty.getId());
-            FormType t = formProperty.getType();
-            String ts = t.getName();
+            String propertyName = getPropertyName(formProperty);
+            String propertyType = getPropertyType(formProperty);
+
+            QName pname = new QName(SchemaConstants.NS_C, "WI_" + propertyName);
             QName ptype;
-            if ("string".equals(ts)) {
-                ptype = DOMUtil.XSD_STRING;
-            } else if ("boolean".equals(ts)) {
-                ptype = DOMUtil.XSD_BOOLEAN;
-            } else if ("long".equals(ts)) {
-                ptype = DOMUtil.XSD_LONG;
-            } else if ("date".equals(ts)) {
-                ptype = new QName(W3C_XML_SCHEMA_NS_URI, "date",
-                        DOMUtil.NS_W3C_XML_SCHEMA_PREFIX);
-            } else if ("enum".equals(ts)) {
-                ptype = DOMUtil.XSD_INT;        // TODO: implement somehow ...
+
+            if (propertyType == null) {
+                FormType t = formProperty.getType();
+                String ts = t == null ? "string" : t.getName();
+
+                if ("string".equals(ts)) {
+                    ptype = DOMUtil.XSD_STRING;
+                } else if ("boolean".equals(ts)) {
+                    ptype = DOMUtil.XSD_BOOLEAN;
+                } else if ("long".equals(ts)) {
+                    ptype = DOMUtil.XSD_LONG;
+                } else if ("date".equals(ts)) {
+                    ptype = new QName(W3C_XML_SCHEMA_NS_URI, "date",
+                            DOMUtil.NS_W3C_XML_SCHEMA_PREFIX);
+                } else if ("enum".equals(ts)) {
+                    ptype = DOMUtil.XSD_INT;        // TODO: implement somehow ...
+                } else {
+                    LOGGER.warn("Unknown Activiti type: " + ts);
+                    continue;
+                }
+                ctd.createPropertyDefinifion(pname, ptype);
             } else {
-                LOGGER.warn("Unknown Activiti type: " + ts);
-                continue;
+                ptype = new QName(SchemaConstants.NS_C, propertyType);
+                ComplexTypeDefinition childCtd = prismContext.getSchemaRegistry().findComplexTypeDefinition(ptype);
+                LOGGER.info("Complex type = " + ptype + ", its definition = " + childCtd);
+                PrismContainerDefinition pcd = new PrismContainerDefinition(pname, childCtd, prismContext);
+                ctd.add(pcd);
             }
 
-            ctd.createPropertyDefinifion(pname, ptype);
         }
+
+        LOGGER.info("t1");
 
         ctd.setObjectMarker(true);
 
@@ -282,13 +307,40 @@ public class WorkflowManager implements BeanFactoryAware {
             instance.findOrCreateProperty(WORK_ITEM_CANDIDATES).setValue(new PrismPropertyValue<Object>(candidates));
         }
 
+        LOGGER.info("t2");
+
         for (FormProperty formProperty : data.getFormProperties()) {
 
-            QName pname = new QName(SchemaConstants.NS_C, "WI_" + formProperty.getId());
-            instance.findOrCreateProperty(pname).setValue(new PrismPropertyValue<Object>(formProperty.getValue()));
+            String propertyName = getPropertyName(formProperty);
+            String propertyType = getPropertyType(formProperty);
+
+            QName pname = new QName(SchemaConstants.NS_C, "WI_" + propertyName);
+            if (propertyType == null) {
+                instance.findOrCreateProperty(pname).setValue(new PrismPropertyValue<Object>(formProperty.getValue()));
+            } else {
+                Object value = variables.get(propertyName);
+                if (value instanceof RoleType) {
+                    RoleType roleType = (RoleType) value;
+                    PrismContainer container = instance.findOrCreateContainer(pname);
+                    container.add(roleType.asPrismContainerValue().clone());
+                }
+            }
         }
 
+        LOGGER.info("Resulting prism object instance = " + instance.debugDump());
         return instance;
+    }
+
+    private String getPropertyName(FormProperty formProperty) {
+        String id = formProperty.getId();
+        int i = id.indexOf(PROPERTY_TYPE_SEPARATOR_CHAR);
+        return i < 0 ? id : id.substring(0, i);
+    }
+
+    private String getPropertyType(FormProperty formProperty) {
+        String id = formProperty.getId();
+        int i = id.indexOf(PROPERTY_TYPE_SEPARATOR_CHAR);
+        return i < 0 ? null : id.substring(i+1);
     }
 
     private List<String> getCandidates(Task task) {
@@ -329,6 +381,8 @@ public class WorkflowManager implements BeanFactoryAware {
 
     public void saveWorkItemPrism(PrismObject object, OperationResult result) {
 
+        LOGGER.info("WorkItem form object = " + object.debugDump());
+
         String taskId = (String) object.getPropertyRealValue(WORK_ITEM_TASK_ID, String.class);
 
         LOGGER.trace("Saving work item " + taskId);
@@ -337,7 +391,11 @@ public class WorkflowManager implements BeanFactoryAware {
         Map<String,String> propertiesToSubmit = new HashMap<String,String>();
         TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
 
+        LOGGER.trace("# of form properties: " + data.getFormProperties().size());
+
         for (FormProperty formProperty : data.getFormProperties()) {
+
+            LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
 
             if (formProperty.isWritable()) {
                 QName propertyName = new QName(SchemaConstants.NS_C, "WI_" + formProperty.getId());
@@ -349,6 +407,8 @@ public class WorkflowManager implements BeanFactoryAware {
                 }
             }
         }
+
+        LOGGER.trace("Submitting " + propertiesToSubmit.size() + " properties");
 
         formService.submitTaskFormData(taskId, propertiesToSubmit);
     }

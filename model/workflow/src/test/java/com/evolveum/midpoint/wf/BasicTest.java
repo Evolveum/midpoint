@@ -1,0 +1,217 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+package com.evolveum.midpoint.wf;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.processes.addroles.Decision;
+import com.evolveum.midpoint.wf.processes.addroles.DecisionList;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import org.activiti.engine.*;
+import org.activiti.engine.form.FormProperty;
+import org.activiti.engine.form.TaskFormData;
+import org.activiti.engine.history.HistoricDetail;
+import org.activiti.engine.history.HistoricVariableUpdate;
+import org.activiti.engine.runtime.ProcessInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getDefaultImportOptions;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+import static org.testng.AssertJUnit.*;
+
+/**
+ * @author mederly
+ *
+ */
+@ContextConfiguration(locations = {"classpath:application-context-model.xml",
+        "classpath:application-context-repository.xml",
+        "classpath:application-context-repo-cache.xml",
+        "classpath:application-context-configuration-test.xml",
+        "classpath:application-context-provisioning.xml",
+        "classpath:application-context-task.xml",
+		"classpath:application-context-audit.xml"})
+
+public class BasicTest extends AbstractTestNGSpringContextTests {
+
+    private static final String TEST_FILE_DIRECTORY = "src/test/resources/repo/";
+    private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
+    private static final File IMPORT_USERS_AND_ROLES_FILE = new File(TEST_FILE_DIRECTORY, "users-and-roles.xml");
+    private static final String USER_JACK_OID = "00000000-d34d-b33f-f00d-111111111111";
+    private static final String ROLES_OID = "00000001-d34d-b33f-f00d-00000000000";
+    private static String getRoleOid(String roleNumber) { return ROLES_OID + roleNumber; }
+
+    @Autowired(required = true)
+    ModelService modelService;
+
+    @Autowired(required = true)
+    private com.evolveum.midpoint.repo.api.RepositoryService repositoryService;
+
+    @Autowired(required = true)
+    private TaskManager taskManager;
+
+    private static ProcessEngine processEngine;
+
+    @BeforeClass
+    public void init() throws FileNotFoundException {
+        processEngine = ProcessEngineConfiguration
+                .createStandaloneInMemProcessEngineConfiguration()
+                .setHistory(ProcessEngineConfiguration.HISTORY_FULL)
+                .buildProcessEngine();
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        repositoryService.createDeployment().addClasspathResource("processes/AddRoles.bpmn20.xml").deploy();
+
+        import1();
+    }
+
+    public void import1() throws FileNotFoundException {
+
+        OperationResult result = new OperationResult("import1");
+        Task task = taskManager.createTaskInstance();
+        FileInputStream stream = new FileInputStream(IMPORT_USERS_AND_ROLES_FILE);
+
+        modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+        result.computeStatus();
+        display("Result after good import", result);
+        if (!result.isSuccess()) {
+            throw new RuntimeException("Import of users and roles has failed: " + result.getMessage());
+        }
+    }
+
+    @Test
+    public void test000Integrity() throws Exception {
+        OperationResult result = createResult("000Integrity");
+        assertNotNull(modelService);
+        assertNotNull(repositoryService);
+
+        PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, result);
+        assertNotNull("Jack is not there", jack);
+
+        assertNotNull("Role1 is not there", repositoryService.getObject(RoleType.class, getRoleOid("1"), result));
+        assertNotNull("Role2 is not there", repositoryService.getObject(RoleType.class, getRoleOid("2"), result));
+        assertNotNull("Role3 is not there", repositoryService.getObject(RoleType.class, getRoleOid("3"), result));
+    }
+
+    @Test
+    public void test010StartProcessInstance() throws ObjectNotFoundException, SchemaException {
+
+        OperationResult result = createResult("010StartProcessInstance");
+        Map<String, Object> variableMap = new HashMap<String, Object>();
+        variableMap.put("userName", "jack");
+        List<RoleType> rolesToApprove = new ArrayList<RoleType>();
+        rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("1"), result).asObjectable());
+        rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("2"), result).asObjectable());
+        rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("3"), result).asObjectable());
+        variableMap.put("rolesToApprove", rolesToApprove);
+        variableMap.put("decisionList", new DecisionList());
+        ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey("AddRoles", variableMap);
+        assertNotNull(processInstance.getId());
+        System.out.println("test010: id " + processInstance.getId() + " " + processInstance.getProcessDefinitionId());
+
+        TaskService taskService = processEngine.getTaskService();
+        List<org.activiti.engine.task.Task> tasks = taskService.createTaskQuery().taskAssignee("administrator").list();
+        assertEquals("Number of tasks is not correct", 3, tasks.size());
+        completeTask(tasks.get(0));
+        completeTask(tasks.get(1));
+        completeTask(tasks.get(2));
+
+        assertEquals("Process instance is still running", 0, processEngine.getRuntimeService().createProcessInstanceQuery().processInstanceId(processInstance.getProcessInstanceId()).count());
+
+        boolean decisionListTested = false;
+        List<HistoricDetail> historicVariableUpdateList = processEngine.getHistoryService()
+                .createHistoricDetailQuery()
+                .variableUpdates()
+                .orderByTime().desc()
+                .list();
+        for (HistoricDetail historicDetail : historicVariableUpdateList) {
+            HistoricVariableUpdate historicVariableUpdate = (HistoricVariableUpdate) historicDetail;
+            if("decisionList".equals(historicVariableUpdate.getVariableName())) {
+                decisionListTested = true;
+                DecisionList decisionList = (DecisionList) historicVariableUpdate.getValue();
+                assertEquals("There are not 3 answers", 3, decisionList.getDecisionList().size());
+                int yes = 0, no = 0;
+                for (Decision decision : decisionList.getDecisionList()) {
+                    if (decision.isApproved()) {
+                        yes++;
+                        assertTrue("Wrong OK comment", "Role1 OK".equals(decision.getComment()) || "Role3 OK".equals(decision.getComment()));
+                    } else {
+                        no++;
+                        assertEquals("Wrong NOT OK comment", decision.getComment(), "Role2 NOT OK");
+                    }
+                }
+                break;
+            }
+        }
+        assertTrue("DecisionList was not tested", decisionListTested);
+    }
+
+    private void completeTask(org.activiti.engine.task.Task task) {
+        TaskFormData tfd = processEngine.getFormService().getTaskFormData(task.getId());
+        Map<String,String> items = new HashMap<String,String>();
+        for (FormProperty fp : tfd.getFormProperties()) {
+            items.put(fp.getId(), fp.getValue());
+            LOGGER.trace("Task id " + task.getId() + " form variable " + fp.getId() + " = " + fp.getValue());
+        }
+        assertEquals("Username is not correct in form", "jack", items.get("userName"));
+        String role = items.get("role");
+        LOGGER.trace("Role: " + role);
+        String decision;
+        String comment;
+        if ("Role1".equals(role)) {
+            decision = "true";
+            comment = "Role1 OK";
+        } else if ("Role2".equals(role)) {
+            decision = "false";
+            comment = "Role2 NOT OK";
+        } else if ("Role3".equals(role)) {
+            decision = "true";
+            comment = "Role3 OK";
+        } else {
+            throw new IllegalStateException("Unknown role name: " + role);
+        }
+
+        Map<String,String> outputItems = new HashMap<String,String>();
+        outputItems.put("decision", decision);
+        outputItems.put("comment", comment);
+        processEngine.getFormService().submitTaskFormData(task.getId(), outputItems);
+    }
+
+    private OperationResult createResult(String test) {
+        displayTestTile(this, "test" + test);
+        return new OperationResult(BasicTest.class.getName() + ".test" + test);
+    }
+
+}

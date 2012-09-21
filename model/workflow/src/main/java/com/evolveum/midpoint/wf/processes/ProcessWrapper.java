@@ -19,17 +19,14 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.wrappers;
+package com.evolveum.midpoint.wf.processes;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
-import java.util.Collection;
+import java.io.IOException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,5 +39,5 @@ public interface ProcessWrapper {
 
     StartProcessInstruction startProcessIfNeeded(ModelContext context, Task task, OperationResult result);
 
-    void finishProcess(ProcessEvent event, Task task, OperationResult result);
+    boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result);
 }

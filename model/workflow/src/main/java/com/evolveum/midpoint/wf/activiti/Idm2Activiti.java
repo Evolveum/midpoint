@@ -70,12 +70,15 @@ public class Idm2Activiti {
             qpr.setTaskOid(qpc.getTaskOid());
 
             LOGGER.trace("Querying process instance id = " + pid);
+            System.out.println("#######################################################\nQuerying process instance id = " + pid);
 
             HistoryService hs = activitiEngine.getHistoryService();
+
             HistoricDetailQuery hdq = hs.createHistoricDetailQuery()
                     .variableUpdates()
                     .processInstanceId(pid)
-                    .orderByVariableRevision().desc();
+                    //.orderByVariableRevision().desc();
+                    .orderByTime().desc();
 
             for (HistoricDetail hd : hdq.list())
             {
@@ -83,8 +86,10 @@ public class Idm2Activiti {
                 String varname = hvu.getVariableName();
                 Object value = hvu.getValue();
                 LOGGER.trace("hvu: " + varname + " <- " + value);
-                System.out.println("Variable: " + varname + " <- " + value);
-                qpr.putVariable(varname, value);
+                System.out.println("Variable: " + varname + " <- " + value + " [rev:" + hvu.getRevision() + "]");
+                if (!qpr.containsVariable(varname)) {
+                    qpr.putVariable(varname, value);
+                }
             }
 
             HistoricDetailQuery hdq2 = hs.createHistoricDetailQuery()
@@ -104,6 +109,7 @@ public class Idm2Activiti {
             ProcessInstance pi = activitiEngine.getProcessEngine().getRuntimeService().createProcessInstanceQuery().processInstanceId(pid).singleResult();
             qpr.setRunning(pi != null && !pi.isEnded());
             System.out.println("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
+            LOGGER.trace("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
 
             // is the process still running? (needed if value == null)
 //            if (qpr.getAnswer() == null)
@@ -147,6 +153,7 @@ public class Idm2Activiti {
                 event.setTaskOid(spic.getTaskOid());
                 event.setPid(pi.getProcessInstanceId());
                 event.setVariablesFrom(map);
+                event.setRunning(!pi.isEnded());
 
                 LOGGER.info("Event to be sent to IDM: " + event);
                 activiti2Idm.onWorkflowMessage(event);

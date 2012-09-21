@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2011 Evolveum
+/*
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -15,7 +15,8 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
 package com.evolveum.midpoint.model.test.util.mock;
 

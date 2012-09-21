@@ -437,6 +437,9 @@ public class PrismProperty<V> extends Item<PrismPropertyValue<V>> {
         if (def != null) {
             sb.append(" def(");
             def.debugDumpShortToString(sb);
+//            if (def.isIndexed() != null) {
+//                sb.append(def.isIndexed() ? ",i+" : ",i-");
+//            }
             sb.append(")");
         }
         return sb.toString();

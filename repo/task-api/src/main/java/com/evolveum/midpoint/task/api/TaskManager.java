@@ -515,4 +515,6 @@ public interface TaskManager {
     String getHandlerUriForCategory(String category);
 
     ParseException validateCronExpression(String cron);
+
+    void unpauseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

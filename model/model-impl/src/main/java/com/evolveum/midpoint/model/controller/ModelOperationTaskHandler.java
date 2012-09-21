@@ -32,7 +32,13 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.SerializationUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -64,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateT
  * @author mederly
  */
 
+@Component
 public class ModelOperationTaskHandler implements TaskHandler {
 
 	public static final String MODEL_OPERATION_TASK_URI = "http://evolveum.com/model-operation-task-uri";
@@ -73,7 +80,13 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
 	@Autowired(required = true)
 	private ModelController model;
-	
+
+    @Autowired(required = true)
+    private PrismContext prismContext;
+
+    @Autowired(required = true)
+    private Clockwork clockwork;
+
     @Autowired(required = false)
     private HookRegistry hookRegistry;
 
@@ -110,28 +123,18 @@ public class ModelOperationTaskHandler implements TaskHandler {
 			result.recordFatalError(message);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 		} else {
-//			ModelOperationKindType kind = state.getKindOfOperation();
-//			ModelOperationPhaseType phase = state.getPhase();
-//			try {
-//				switch (kind) {
-//					case ADD:
-//						model.addObjectWithContext(null, task, phase, result);
-//						break;
-//					case DELETE:
-//						break;
-//					case MODIFY:
-//						break;
-//					default:
-//						break;
-//				}
-//				runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-//			} catch (Exception e) {
-//				String message = "An exception occured within model operation " + kind + ", phase " + phase + ", in task " + task;
-//				LoggingUtils.logException(LOGGER, message, e);
-//				result.recordPartialError(message, e);
-//				// TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
-//				runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//			}
+            LensContext context;
+            try {
+                context = (LensContext) SerializationUtil.fromString(state.getOperationData());
+                context.adopt(prismContext);
+                clockwork.run(context, task, task.getResult());
+            } catch (Exception e) { // todo
+                String message = "An exception occurred within model operation, in task " + task;
+                LoggingUtils.logException(LOGGER, message, e);
+                result.recordPartialError(message, e);
+                // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
+                runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			}
 		}
 
 		runResult.setOperationResult(result);
@@ -157,7 +160,6 @@ public class ModelOperationTaskHandler implements TaskHandler {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @SuppressWarnings("unused")
 	@PostConstruct
 	private void initialize() throws Exception {
 		LOGGER.info("Registering with taskManager as a handler for " + MODEL_OPERATION_TASK_URI);

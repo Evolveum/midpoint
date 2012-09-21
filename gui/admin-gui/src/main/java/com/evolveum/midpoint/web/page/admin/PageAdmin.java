@@ -57,15 +57,14 @@ public class PageAdmin extends PageBase {
 //        items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description", PageHome.class));
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
-        
-        if (getWorkflowManager().isEnabled()) {
-            items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
-                    PageWorkItems.class, PageAdminWorkItems.class));
-        }
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",
                 PageRoles.class, PageAdminRoles.class));
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
                 PageResources.class, PageAdminResources.class));
+        if (getWorkflowManager().isEnabled()) {
+            items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
+                    PageWorkItems.class, PageAdminWorkItems.class));
+        }
         items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
                 PageTasks.class, PageAdminTasks.class));
         items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",

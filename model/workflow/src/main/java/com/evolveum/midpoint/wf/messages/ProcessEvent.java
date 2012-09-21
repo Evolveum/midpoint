@@ -113,4 +113,12 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
     public String toString() {
         return this.getClass().getSimpleName() + "[pid=" + pid + ", running=" + running + ", task=" + taskOid +  ", variables=" + variables + "]";
     }
+
+    public boolean containsVariable(String varname) {
+        if (variables == null) {
+            return false;
+        } else {
+            return variables.containsKey(varname);
+        }
+    }
 }

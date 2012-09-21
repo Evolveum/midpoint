@@ -37,6 +37,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
@@ -80,6 +81,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Radovan Semancik
@@ -212,6 +214,128 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
     }
 
+
+    @Test(enabled = false)          // this is probably OK to fail, so do not enable it (at least for now)
+    public void test004aTaskBigProperty() throws Exception {
+        String test = "004aTaskBigProperty";
+        OperationResult result = createResult(test);
+
+        String string300 = "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-";
+        String string300a = "AAAAAAAAA-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-";
+
+        addObjectFromFile(taskFilename(test));
+
+        TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
+
+        // property definition
+        QName bigStringQName = new QName("http://midpoint.evolveum.com/repo/test", "bigString");
+        PrismPropertyDefinition bigStringDefinition = new PrismPropertyDefinition(bigStringQName, bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
+        bigStringDefinition.setIndexed(false);
+        bigStringDefinition.setMinOccurs(0);
+        bigStringDefinition.setMaxOccurs(1);
+        System.out.println("bigstring property definition = " + bigStringDefinition);
+
+        PrismProperty<String> bigStringProperty = (PrismProperty<String>) bigStringDefinition.instantiate();
+        bigStringProperty.setRealValue(string300);
+        task.setExtensionProperty(bigStringProperty);
+
+        task.savePendingModifications(result);
+
+        System.out.println("1st round: Task = " + task.dump());
+
+        logger.trace("Retrieving the task and comparing its properties...");
+
+        Task task001 = taskManager.getTask(taskOid(test), result);
+        System.out.println("1st round: Task from repo: " + task001.dump());
+
+        PrismProperty<String> bigString001 = (PrismProperty<String>) task001.getExtension(bigStringQName);
+        assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
+
+        // second round
+
+        bigStringProperty.setRealValue(string300a);
+        task001.setExtensionProperty(bigStringProperty);
+
+        // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
+        task001.getExtension(bigStringQName).getDefinition().setIndexed(false);
+
+        System.out.println("2nd round: Task before save = " + task001.dump());
+        task001.savePendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
+
+        Task task002 = taskManager.getTask(taskOid(test), result);
+        System.out.println("2nd round: Task from repo: " + task002.dump());
+
+        PrismProperty<String> bigString002 = (PrismProperty<String>) task002.getExtension(bigStringQName);
+        assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
+    }
+
+    @Test(enabled = true)
+    public void test004bTaskBigProperty() throws Exception {
+        String test = "004aTaskBigProperty";
+        OperationResult result = createResult(test);
+
+        String string300 = "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-";
+        String string300a = "AAAAAAAAA-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-"
+                + "123456789-123456789-123456789-123456789-123456789-";
+
+        addObjectFromFile(taskFilename(test));
+
+        TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
+
+        // property definition
+        QName shipStateQName = new QName("http://myself.me/schemas/whatever", "shipState");
+        PrismPropertyDefinition shipStateDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
+        assertNotNull("Cannot find property definition for shipState", shipStateDefinition);
+
+        PrismProperty<String> shipStateProperty = (PrismProperty<String>) shipStateDefinition.instantiate();
+        shipStateProperty.setRealValue(string300);
+        task.setExtensionProperty(shipStateProperty);
+
+        task.savePendingModifications(result);
+
+        System.out.println("1st round: Task = " + task.dump());
+
+        logger.trace("Retrieving the task and comparing its properties...");
+
+        Task task001 = taskManager.getTask(taskOid(test), result);
+        System.out.println("1st round: Task from repo: " + task001.dump());
+
+        PrismProperty<String> shipState001 = (PrismProperty<String>) task001.getExtension(shipStateQName);
+        assertEquals("Big string not retrieved correctly (1st round)", shipStateProperty.getRealValue(), shipState001.getRealValue());
+
+        // second round
+
+        shipStateProperty.setRealValue(string300a);
+        task001.setExtensionProperty(shipStateProperty);
+
+        System.out.println("2nd round: Task before save = " + task001.dump());
+        task001.savePendingModifications(result);
+
+        Task task002 = taskManager.getTask(taskOid(test), result);
+        System.out.println("2nd round: Task from repo: " + task002.dump());
+
+        PrismProperty<String> bigString002 = (PrismProperty<String>) task002.getExtension(shipStateQName);
+        assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
+    }
 
     @Test(enabled = true)
     public void test004TaskProperties() throws Exception {
@@ -997,7 +1121,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test016WaitForSubtasks() throws Exception {
         final String test = "016WaitForSubtasks";
         final OperationResult result = createResult(test);

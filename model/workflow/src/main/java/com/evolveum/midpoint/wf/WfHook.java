@@ -21,13 +21,15 @@
 
 package com.evolveum.midpoint.wf;
 
+import java.io.IOException;
 import java.util.*;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,12 +37,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.activiti.Idm2Activiti;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
-import com.evolveum.midpoint.wf.wrappers.ProcessWrapper;
-import com.evolveum.midpoint.wf.wrappers.StartProcessInstruction;
+import com.evolveum.midpoint.wf.processes.ProcessWrapper;
+import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import org.apache.commons.lang.Validate;
+import org.jvnet.jaxb2_commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -82,6 +85,10 @@ public class WfHook implements ChangeHook {
     @Override
     public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
 
+        if (context.getFocusContext() == null) {        // probably not a user-related event
+            return HookOperationMode.FOREGROUND;
+        }
+
         LensContext<UserType,AccountShadowType> lensContext = (LensContext<UserType,AccountShadowType>) context;
 
         LOGGER.info("=====================================================================");
@@ -103,7 +110,7 @@ public class WfHook implements ChangeHook {
             LOGGER.info(" - Sync delta:" + (mpc.getSyncDelta() == null ? "(null)" : mpc.getSyncDelta().debugDump()));
         }
 
-        return HookOperationMode.FOREGROUND;
+        return executeProcessStart(context, task, result);
     }
 
 //    @Override
@@ -145,7 +152,7 @@ public class WfHook implements ChangeHook {
             if (startCommand != null) {
                 LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
                 try {
-                    startProcessInstance(startCommand, wrapper, task, result);
+                    startProcessInstance(startCommand, wrapper, task, context, result);
                 } catch(Exception e) { // TODO better error handling here
                     LoggingUtils.logException(LOGGER, "Workflow process instance couldn't be started", e);
                     return HookOperationMode.ERROR;
@@ -183,8 +190,8 @@ public class WfHook implements ChangeHook {
     /**
      * Starts a process instance in WfMS.
      */
-    private void startProcessInstance(StartProcessInstruction startInstruction, ProcessWrapper wrapper, Task task,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private void startProcessInstance(StartProcessInstruction startInstruction, ProcessWrapper wrapper, Task task, ModelContext context,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
         LOGGER.trace(" === startProcessInstance starting ===");
 
         if (!task.isTransient()) {
@@ -199,6 +206,9 @@ public class WfHook implements ChangeHook {
         }
 
         taskUtil.setProcessWrapper(task, wrapper);
+        ModelOperationStateType state = new ModelOperationStateType();
+        state.setOperationData(SerializationUtil.toString(context));
+        task.setModelOperationState(state);
 
         taskManager.switchToBackground(task, parentResult);
 
@@ -222,7 +232,7 @@ public class WfHook implements ChangeHook {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to start a process instance to workflow management system", e);
             taskUtil.recordProcessState(task, "Workflow process instance creation could not be requested: " + e, "", null, parentResult);
-            parentResult.recordPartialError("Couldn't send a request to start a process instance to workflow management system", e);
+            parentResult.recordPartialError("Couldn't send a request to start a process instance to workflow management system: " + e.getMessage(), e);
         }
 
         // final
@@ -245,6 +255,8 @@ public class WfHook implements ChangeHook {
 
     void finishProcessing(ProcessEvent event, Task task, OperationResult result)
     {
+        LOGGER.trace("finishProcessing called for task " + task + ", event " + event);
+
         if (task == null) {
             try {
                 task = taskManager.getTask(event.getTaskOid(), result);
@@ -255,9 +267,35 @@ public class WfHook implements ChangeHook {
             }
         }
 
-        ProcessWrapper wrapper = taskUtil.getProcessWrapper(task, wrappers);
-        wrapper.finishProcess(event, task, result);
+        ModelOperationStateType state = task.getModelOperationState();
+        if (state == null || StringUtils.isEmpty(state.getOperationData())) {
+            throw new IllegalStateException("The task does not contain model operation context; task = " + task);
+        }
+        ModelContext context;
+        try {
+            context = (ModelContext) SerializationUtil.fromString(state.getOperationData());
+        } catch (IOException e) {
+            throw new IllegalStateException("Model Context could not be fetched from the task due to IOException; task = " + task, e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Model Context could not be fetched from the task due to ClassNotFoundException; task = " + task, e);
+        }
 
+        ProcessWrapper wrapper = taskUtil.getProcessWrapper(task, wrappers);
+        wrapper.finishProcess(context, event, task, result);
+        try {
+            state.setOperationData(SerializationUtil.toString(context));
+            task.setModelOperationState(state);
+            task.finishHandler(result);
+            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+                taskManager.unpauseTask(task, result);
+            }
+        } catch (ObjectNotFoundException e) {
+            throw new IllegalStateException(e);         // todo fixme
+        } catch (SchemaException e) {
+            throw new IllegalStateException(e);         // todo fixme
+        } catch (IOException e) {
+            throw new SystemException(e);               // todo fixme (serialization error)
+        }
 
 //		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
 

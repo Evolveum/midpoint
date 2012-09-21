@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.wf.WorkItem;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -72,6 +74,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
         }
 
         if (!result.isSuccess()) {
@@ -140,7 +143,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target);
+                try {
+                    savePerformed(target);
+                } catch(RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Exception in savePerformed", e);
+                    throw e;
+                }
             }
 
             @Override
@@ -173,7 +181,11 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ObjectWrapper itemWrapper = workItemModel.getObject();
         try {
-            getWorkflowManager().saveWorkItemPrism(itemWrapper.getObject(), result);
+            PrismObject object = itemWrapper.getObject();
+            ObjectDelta delta = itemWrapper.getObjectDelta();
+            delta.applyTo(object);
+
+            getWorkflowManager().saveWorkItemPrism(object, result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);

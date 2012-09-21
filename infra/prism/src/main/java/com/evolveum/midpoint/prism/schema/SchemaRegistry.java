@@ -267,7 +267,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		parsePrismSchema(desc);
 	}
 
-	/**
+    public void loadPrismSchemaResource(String resourcePath) throws SchemaException {
+        SchemaDescription desc = SchemaDescription.parseResource(resourcePath);
+        desc.setPrismSchema(true);
+        registerSchemaDescription(desc);
+        parsePrismSchema(desc);
+    }
+
+    /**
 	 * This can be used to read additional schemas even after the registry was initialized.
 	 */	
 	public void initialize() throws SAXException, IOException, SchemaException {
