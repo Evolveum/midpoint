@@ -20,11 +20,15 @@
 package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
@@ -34,10 +38,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -75,6 +76,10 @@ public class SystemConfigurationHandler implements ChangeHook {
     }
 
     public void postInit(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
+        applyLoggingConfiguration(systemConfiguration, parentResult);
+    }
+
+    private void applyLoggingConfiguration(PrismObject<SystemConfigurationType> systemConfiguration, OperationResult parentResult) {
         SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
         LoggingConfigurationType loggingConfigType = systemConfigurationType.getLogging();
         if (loggingConfigType != null) {
@@ -83,6 +88,7 @@ public class SystemConfigurationHandler implements ChangeHook {
     }
 
     @Override
+    @Deprecated
     public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult parentResult) {
 
         boolean relatesToSystemConfiguration = false;
@@ -116,7 +122,7 @@ public class SystemConfigurationHandler implements ChangeHook {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("System configuration version read from repo: " + config.getVersion());
             }
-            postInit(config, result);
+            applyLoggingConfiguration(config, result);
             result.recordSuccessIfUnknown();
 
         } catch (ObjectNotFoundException e) {
@@ -130,11 +136,78 @@ public class SystemConfigurationHandler implements ChangeHook {
         }
     }
 
-    /**
-     * TODO implement this method after non-user-related model operations will be switched to new clockwork mechanism
-     */
     @Override
-    public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
+    public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult) {
+
+        ModelState state = context.getState();
+        if (state != ModelState.FINAL) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("sysconfig handler called in state = " + state + ", exiting.");
+            }
+            return HookOperationMode.FOREGROUND;
+        } else {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("sysconfig handler called in state = " + state + ", proceeding.");
+            }
+        }
+
+        boolean relatesToSystemConfiguration = false;
+        boolean isDeletion = false;     // is this config-related change a deletion?
+        for (Object o : context.getProjectionContexts()) {      // for some reason, system configuration is treated as a projection, not as a focus
+            boolean deletion = false;
+            PrismObject object = ((ModelElementContext) o).getObjectNew();
+            if (object == null) {
+                deletion = true;
+                object = ((ModelElementContext) o).getObjectOld();
+                if (object == null) {
+                    throw new SystemException("Invalid projection context: both old and new objects are null");
+                }
+            }
+            if (object.getCompileTimeClass().isAssignableFrom(SystemConfigurationType.class)) {
+                relatesToSystemConfiguration = true;
+                isDeletion = deletion;
+            }
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("change relates to sysconfig: " + relatesToSystemConfiguration + ", is deletion: " + isDeletion);
+        }
+
+        if (!relatesToSystemConfiguration) {
+            return HookOperationMode.FOREGROUND;
+        }
+
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "invoke");
+        try {
+            if (isDeletion) {
+                LoggingConfigurationManager.resetCurrentlyUsedVersion();        // because the new config (if any) will have version number probably starting at 1 - so to be sure to read it when it comes
+                return HookOperationMode.FOREGROUND;
+            }
+
+            /*
+             * Because we need to know actual version of the system configuration (generated by repo), we have to re-read
+             * current configuration. (At this moment, it is already stored there.)
+             */
+
+            PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("System configuration version read from repo: " + config.getVersion());
+            }
+            applyLoggingConfiguration(config, result);
+            result.recordSuccessIfUnknown();
+
+        } catch (ObjectNotFoundException e) {
+            String message = "Cannot read system configuration because it does not exist in repository: " + e.getMessage();
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+        } catch (SchemaException e) {
+            String message = "Cannot read system configuration because of schema exception: " + e.getMessage();
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+        }
+
         return HookOperationMode.FOREGROUND;
     }
 }
