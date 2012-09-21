@@ -362,16 +362,24 @@ public class TestPrismParsing {
 		PrismAsserts.assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
 		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_USER_EXT, "multi")).getValues();
 		assertEquals("Multi",3,multiPVals.size());
-		
+
 		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), USER_EXT_BAR_ELEMENT);
 		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
 		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
 		assertNotNull("No definition for bar", barPropertyDef);
+
 		PrismAsserts.assertDefinition(barPropertyDef, USER_EXT_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
-		
-	}
+
+        // 'indexed' attribute test -- should not it be present in the property definitions???
+
+        assertEquals("'Indexed' attribute on 'bar' property is wrong", Boolean.TRUE, barPropertyDef.isIndexed());
+
+        PrismProperty<?> multi = extension.findProperty(new QName(NS_USER_EXT, "multi"));
+        assertEquals("'Indexed' attribute on 'multi' property is wrong", Boolean.FALSE, multi.getDefinition().isIndexed());
+
+    }
 
 	private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
 		
