@@ -32,16 +32,32 @@
         <honorificPrefix>Cpt.</honorificPrefix>
     </user>
 
+    <user oid="00000000-d34d-b33f-f00d-111111111112">
+        <name>r2boss</name>
+        <fullName>Role2 Boss</fullName>
+        <givenName>Role2</givenName>
+        <familyName>Boss</familyName>
+    </user>
+
+    <user oid="00000000-d34d-b33f-f00d-111111111113">
+        <name>r3boss</name>
+        <fullName>Role3 Boss</fullName>
+        <givenName>Role3</givenName>
+        <familyName>Boss</familyName>
+    </user>
+
     <role oid="00000001-d34d-b33f-f00d-000000000001">
         <name>Role1</name>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000002">
         <name>Role2</name>
+        <approverRef oid="00000000-d34d-b33f-f00d-111111111112" type="UserType"/>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000003">
         <name>Role3</name>
+        <approverRef oid="00000000-d34d-b33f-f00d-111111111113" type="UserType"/>
     </role>
 
 </objects>

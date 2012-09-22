@@ -962,7 +962,7 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
 
-        if (result.isSuccess() || result.isHandledError()) {
+        if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
             showResultInSession(result);
             setResponsePage(PageUsers.class);
         } else {

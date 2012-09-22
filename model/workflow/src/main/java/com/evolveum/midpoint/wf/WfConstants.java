@@ -30,13 +30,15 @@ package com.evolveum.midpoint.wf;
  */
 public class WfConstants {
 
-    public static final String MIDPOINT_TASK_OID = "midPointTaskOid";
-    public static final String MIDPOINT_ANSWER = "midPointAnswer";
-    public static final String MIDPOINT_STATE = "midPointState";
+    public static final String VARIABLE_MIDPOINT_TASK_OID = "midPointTaskOid";
+    public static final String VARIABLE_MIDPOINT_ANSWER = "midPointAnswer";
+    public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
 
-    public static final String MIDPOINT_OBJECT_OLD = "midPointObjectOld";
-    public static final String MIDPOINT_OBJECT_NEW = "midPointObjectNew";
-    public static final String MIDPOINT_DELTA = "midPointDelta";
+    public static final String VARIABLE_MIDPOINT_OBJECT_OLD = "midPointObjectOld";
+    public static final String VARIABLE_MIDPOINT_OBJECT_NEW = "midPointObjectNew";
+    public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";
 
-    public static final String MIDPOINT_LISTENER = "midPointListener";
+    public static final String VARIABLE_UTIL = "util";
+
+    public static final String VARIABLE_MIDPOINT_LISTENER = "midPointListener";
 }

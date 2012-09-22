@@ -52,7 +52,7 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
     private boolean running;
 
     public Boolean getAnswer() {
-        Object a = variables.get(WfConstants.MIDPOINT_ANSWER);
+        Object a = variables.get(WfConstants.VARIABLE_MIDPOINT_ANSWER);
         if (a == null) {
             return null;
         } if (a instanceof Boolean) {
@@ -63,7 +63,7 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
     }
 
     public String getState() {
-        return (String) variables.get(WfConstants.MIDPOINT_STATE);
+        return (String) variables.get(WfConstants.VARIABLE_MIDPOINT_STATE);
     }
 
     public String getPid() {

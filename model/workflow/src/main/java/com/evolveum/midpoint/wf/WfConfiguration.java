@@ -22,11 +22,14 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
  *
@@ -43,23 +46,38 @@ public class WfConfiguration {
 
     private boolean activitiSchemaUpdate;
 
-    private String database;
+//    private String database;
     private String jdbcDriver;
     private String jdbcUrl;
     private String jdbcUser;
     private String jdbcPassword;
 
-    private String hibernateDialect;
-    private boolean databaseIsEmbedded;
+//    private String hibernateDialect;
+//    private boolean databaseIsEmbedded;
     private int processCheckInterval;
     private String autoDeploymentFrom;
 
 
-    void initialize(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig) {
+    void initialize(MidpointConfiguration masterConfig, BeanFactory beanFactory) {
 
         Configuration c = masterConfig.getConfiguration(WF_CONFIG_SECTION);
 
         enabled = c.getBoolean("enabled", false);
+        if (!enabled) {
+            return;
+        }
+
+        // activiti properties related to database connection will be taken from SQL repository
+        SqlRepositoryConfiguration sqlConfig;
+        try {
+            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
+            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+        } catch(NoSuchBeanDefinitionException e) {
+            LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");
+            LOGGER.trace("Reason is", e);
+            sqlConfig = null;
+        }
+
         activitiSchemaUpdate = c.getBoolean("activitiSchemaUpdate", false);
         jdbcDriver = c.getString("jdbcDriver", sqlConfig != null ? sqlConfig.getDriverClassName() : null);
         jdbcUrl = c.getString("jdbcUrl", sqlConfig != null ? sqlConfig.getJdbcUrl() : null);
@@ -69,13 +87,7 @@ public class WfConfiguration {
         processCheckInterval = c.getInt("processCheckInterval", 30);
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
-        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
-
-//        String defaultSqlSchemaFile = schemas.get(hibernateDialect);
-//        String defaultDriverDelegate = delegates.get(hibernateDialect);
-
-//        sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
-//        jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
+//        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
         validate();
     }
@@ -86,8 +98,6 @@ public class WfConfiguration {
         notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or in SQL repository configuration).");
         notNull(jdbcUser, "JDBC user name must be specified (either explicitly or in SQL repository configuration).");
         notNull(jdbcPassword, "JDBC password must be specified (either explicitly or in SQL repository configuration).");
-//        notEmpty(jdbcDriverDelegateClass, "JDBC driver delegate class must be specified (either explicitly or through one of supported Hibernate dialects).");
-//        notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");
     }
 
     private void notEmpty(String value, String message) {
@@ -102,17 +112,17 @@ public class WfConfiguration {
         }
     }
 
-    private void mustBeTrue(boolean condition, String message) {
-        if (!condition) {
-            throw new SystemException(message);
-        }
-    }
-
-    private void mustBeFalse(boolean condition, String message) {
-        if (condition) {
-            throw new SystemException(message);
-        }
-    }
+//    private void mustBeTrue(boolean condition, String message) {
+//        if (!condition) {
+//            throw new SystemException(message);
+//        }
+//    }
+//
+//    private void mustBeFalse(boolean condition, String message) {
+//        if (condition) {
+//            throw new SystemException(message);
+//        }
+//    }
 
     public boolean isActivitiSchemaUpdate() {
         return activitiSchemaUpdate;

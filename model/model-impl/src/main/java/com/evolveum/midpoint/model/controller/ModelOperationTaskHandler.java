@@ -128,6 +128,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 context = (LensContext) SerializationUtil.fromString(state.getOperationData());
                 context.adopt(prismContext);
                 clockwork.run(context, task, task.getResult());
+                runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
             } catch (Exception e) { // todo
                 String message = "An exception occurred within model operation, in task " + task;
                 LoggingUtils.logException(LOGGER, message, e);

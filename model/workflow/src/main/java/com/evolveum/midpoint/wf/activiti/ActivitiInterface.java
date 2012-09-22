@@ -21,13 +21,16 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.WfCore;
 import com.evolveum.midpoint.wf.messages.*;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.*;
 import org.activiti.engine.HistoryService;
-import org.activiti.engine.ProcessEngines;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.history.*;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -38,19 +41,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *  Transports messages from midPoint to Activiti. (Originally via Camel, currently using direct java calls.)
+ *  Transports messages between midPoint and Activiti. (Originally via Camel, currently using direct java calls.)
  */
 
 @Component
-public class Idm2Activiti {
+public class ActivitiInterface {
 
     @Autowired(required = true)
     ActivitiEngine activitiEngine;
 
     @Autowired(required = true)
-    Activiti2Idm activiti2Idm;
+    TaskManager taskManager;
 
-    private static final Trace LOGGER = TraceManager.getTrace(Idm2Activiti.class);
+    @Autowired(required = true)
+    WfCore wfCore;
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivitiInterface.class);
 
     /**
      * Processes a message coming from midPoint to activiti
@@ -127,7 +133,7 @@ public class Idm2Activiti {
 //            }
 
             LOGGER.trace("Response to be sent to midPoint: " + qpr);
-            activiti2Idm.onWorkflowMessage(qpr);
+            activiti2midpoint(qpr);
         }
         else if (cmd instanceof StartProcessCommand)
         {
@@ -137,8 +143,8 @@ public class Idm2Activiti {
 
             LOGGER.trace("midpointTaskOid = " + spic.getTaskOid());
 
-            map.put(WfConstants.MIDPOINT_TASK_OID, spic.getTaskOid());
-            map.put(WfConstants.MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
+            map.put(WfConstants.VARIABLE_MIDPOINT_TASK_OID, spic.getTaskOid());
+            map.put(WfConstants.VARIABLE_MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
             map.putAll(spic.getVariables());
 
             LOGGER.trace("process name = " + spic.getProcessName());
@@ -156,7 +162,7 @@ public class Idm2Activiti {
                 event.setRunning(!pi.isEnded());
 
                 LOGGER.info("Event to be sent to IDM: " + event);
-                activiti2Idm.onWorkflowMessage(event);
+                activiti2midpoint(event);
             }
         }
         else
@@ -164,6 +170,38 @@ public class Idm2Activiti {
             String message = "Unknown incoming message type: " + cmd.getClass().getName();
             LOGGER.error(message);
         }
+    }
+
+    public void activiti2midpoint(ActivitiToMidPointMessage msg) {
+
+        OperationResult result = new OperationResult("activiti2midpoint");
+
+        LOGGER.info("activiti2midpoint starting.");
+        try {
+
+            if (msg instanceof ProcessEvent) {
+
+                ProcessEvent event = (ProcessEvent) msg;
+                LOGGER.info("Received ProcessEvent: " + event);
+                String taskOid = event.getTaskOid();
+
+                if (taskOid != null) {
+
+                    Task task = taskManager.getTask(taskOid, result);
+                    wfCore.processWorkflowMessage(event, task, result);
+
+                } else
+                    throw new Exception("Got a workflow message without taskOid: " + event.toString());
+            } else
+                throw new Exception("Unknown message type coming from the workflow: " + msg);
+
+        } catch (Exception e) {
+            String message = "Couldn't process an event coming from the workflow management system";
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+        }
+        result.computeStatus();
+        LOGGER.info("activiti2midpoint ending; operation result status = " + result.getStatus());
     }
 
 }

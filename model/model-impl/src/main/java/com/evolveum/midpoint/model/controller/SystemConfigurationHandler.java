@@ -159,11 +159,10 @@ public class SystemConfigurationHandler implements ChangeHook {
             if (object == null) {
                 deletion = true;
                 object = ((ModelElementContext) o).getObjectOld();
-                if (object == null) {
-                    throw new SystemException("Invalid projection context: both old and new objects are null");
-                }
             }
-            if (object.getCompileTimeClass().isAssignableFrom(SystemConfigurationType.class)) {
+            if (object == null) {
+                LOGGER.warn("Probably invalid projection context: both old and new objects are null");          // if the handler would not work because of this, for us to see the reason
+            } else if (object.getCompileTimeClass().isAssignableFrom(SystemConfigurationType.class)) {
                 relatesToSystemConfiguration = true;
                 isDeletion = deletion;
             }

@@ -608,6 +608,10 @@ public class OperationResult implements Serializable, Dumpable {
 		status = OperationResultStatus.SUCCESS;
 	}
 
+    public void recordInProgress() {
+        status = OperationResultStatus.IN_PROGRESS;
+    }
+
 	public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}

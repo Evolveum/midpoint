@@ -529,4 +529,21 @@ public class WfTaskUtil {
 //        }
 
     }
+
+    public String getProcessId(Task task) {
+        // let us request the current task status
+        // todo make this property single-valued in schema to be able to use getRealValue
+        PrismProperty idProp = task.getExtension(WfTaskUtil.WFPROCESSID_PROPERTY_NAME);
+        Collection<String> values = null;
+        if (idProp != null) {
+            values = idProp.getRealValues(String.class);
+        }
+        if (values == null || values.isEmpty()) {
+            LOGGER.error("Process ID is not known for task " + task.getName());
+            return null;
+        } else {
+            return values.iterator().next();
+            //String id = (String) idProp.getRealValue(String.class);
+        }
+    }
 }

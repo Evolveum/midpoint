@@ -51,7 +51,7 @@
             </multiInstanceLoopCharacteristics>
             <startEvent id="startSub" />
             <sequenceFlow sourceRef="startSub" targetRef="approve" />
-            <userTask id="approve" name="Approve adding ${role.name} to ${userName}" activiti:assignee="administrator">
+            <userTask id="approve" name="Approve adding ${role.name} to ${userName}" activiti:assignee="${util.getApprover(role)}">
                 <extensionElements>
                     <activiti:formProperty id="userName" name="User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
                     <activiti:formProperty id="role" expression="#{role.name}" name="Role" required="false" readable="true" writable="false"></activiti:formProperty>

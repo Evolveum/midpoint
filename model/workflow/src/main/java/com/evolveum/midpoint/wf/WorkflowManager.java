@@ -24,9 +24,6 @@ package com.evolveum.midpoint.wf;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -37,22 +34,16 @@ import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.activiti.engine.FormService;
-import org.activiti.engine.IdentityService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.FormType;
 import org.activiti.engine.form.TaskFormData;
-import org.activiti.engine.identity.Group;
-import org.activiti.engine.identity.GroupQuery;
-import org.activiti.engine.runtime.Execution;
-import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,11 +57,33 @@ import java.util.Map;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 14.5.2012
- * Time: 13:20
- * To change this template use File | Settings | File Templates.
+ * Some notes about the workflow package and its classes/subpackages:
+ *
+ * External interfaces:
+ * - WorkflowManager: externally-visible functionality (initialization, methods needed by GUI).
+ * - WfHook: interface to the model ChangeHook mechanism
+ * - WfTaskHandler: interface to the midPoint task scheduling mechanism (for active tasks)
+ * - ActivitiInterface: communication with Activiti (currently only local instance, in the future probably remote as well)
+ *
+ * Core:
+ * - WfCore: core functionality of the workflow subsystem
+ * - processes.ProcessWrapper and its implementations, processes.*:
+ *     functionality specific to particular workflow processes
+ *
+ * Data containers:
+ * - messages.*: data that is transferred from/to Activiti
+ * - WorkItem: objects for communication with the GUI
+ *
+ * Helper classes:
+ * - WfTaskUtil: utility methods to work with tasks as wf process instance "mirrors"
+ * - WfConfiguration: container for the configuration of the workflow module
+ * - WfConstants: some constants (e.g. names of commonly used process variables)
+ * - ActivitiEngine: management of the locally-run engine
+ * - activiti.* (other): helpher classes for BPMN processes
+ *
+ *
+ *
+ * @author mederly
  */
 @Component
 public class WorkflowManager implements BeanFactoryAware {
@@ -78,19 +91,19 @@ public class WorkflowManager implements BeanFactoryAware {
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManager.class);
 
     @Autowired(required = true)
-    ActivitiEngine activitiEngine;
+    private ActivitiEngine activitiEngine;
+
+    @Autowired(required = true)
+    private WfHook wfHook;
+
+    @Autowired(required = true)
+    private PrismContext prismContext;
+
+    @Autowired(required = true)
+    private MidpointConfiguration midpointConfiguration;
 
     @Autowired(required = true)
     private HookRegistry hookRegistry;
-
-    @Autowired(required = true)
-    WfHook wfHook;
-
-    @Autowired(required = true)
-    PrismContext prismContext;
-
-    @Autowired(required = true)
-    MidpointConfiguration midpointConfiguration;
 
     private WfConfiguration wfConfiguration;
 
@@ -98,48 +111,30 @@ public class WorkflowManager implements BeanFactoryAware {
     private static final char PROPERTY_TYPE_SEPARATOR_CHAR = '$';
 
     @PostConstruct
-    public void initialize() throws Exception {     // todo exception handling
+    public void initialize() {
 
         wfConfiguration = new WfConfiguration();
-
-        SqlRepositoryConfiguration sqlConfig;
-
-        // activiti properties related to database connection will be taken from SQL repository
-        // todo do this only when workflows are enabled
-        try {
-            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
-            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
-        } catch(NoSuchBeanDefinitionException e) {
-            LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");
-            LOGGER.trace("Reason is", e);
-            sqlConfig = null;
-        }
-
-        wfConfiguration.initialize(midpointConfiguration, sqlConfig);
+        wfConfiguration.initialize(midpointConfiguration, beanFactory);
 
         if (!wfConfiguration.isEnabled()) {
             LOGGER.info("Workflow management is not enabled.");
         } else {
-
             activitiEngine.initialize(wfConfiguration);
-
-            // todo move to wfhook
-            LOGGER.trace("Registering workflow hook");
-            hookRegistry.registerChangeHook(WfHook.WORKFLOW_HOOK_URI, wfHook);
+            wfHook.register(hookRegistry);
         }
     }
 
-    private static final QName WORK_ITEM_NAME = new QName(SchemaConstants.NS_C, "WorkItem");
-    private static final QName WORK_ITEM_TASK_ID = new QName(SchemaConstants.NS_C, "taskId");
-    private static final QName WORK_ITEM_TASK_NAME = new QName(SchemaConstants.NS_C, "taskName");
-    private static final QName WORK_ITEM_ASSIGNEE = new QName(SchemaConstants.NS_C, "assignee");
-    private static final QName WORK_ITEM_CANDIDATES = new QName(SchemaConstants.NS_C, "candidates");
+    /*
+     * Some externally-visible methods. These count* and list* methods are used by the GUI.
+     */
 
     public int countWorkItemsAssignedToUser(String user, OperationResult parentResult) {
         TaskService taskService = activitiEngine.getTaskService();
         TaskQuery tq = taskService.createTaskQuery();
         tq.taskAssignee(user);
-        LOGGER.info("countWorkItemsAssignedToUser, user=" + user + ": " + tq.count());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("countWorkItemsAssignedToUser, user=" + user + ": " + tq.count());
+        }
         return (int) tq.count();
     }
 
@@ -148,14 +143,17 @@ public class WorkflowManager implements BeanFactoryAware {
         TaskQuery tq = taskService.createTaskQuery();
         tq.taskAssignee(user);
         List<Task> tasks = tq.listPage(first, count);
-        LOGGER.info("listWorkItemsAssignedToUser, user=" + user + ", first/count=" + first + "/" + count + ": " + tasks);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("listWorkItemsAssignedToUser, user=" + user + ", first/count=" + first + "/" + count + ": " + tasks);
+        }
         return tasksToWorkItems(tasks);
     }
 
     private List<WorkItem> tasksToWorkItems(List<Task> tasks) {
         List<WorkItem> retval = new ArrayList<WorkItem>();
-        for (Task task : tasks)
+        for (Task task : tasks) {
             retval.add(taskToWorkItem(task));
+        }
         return retval;
     }
 
@@ -171,50 +169,68 @@ public class WorkflowManager implements BeanFactoryAware {
     }
 
     public int countWorkItemsAssignableToUser(String user, OperationResult parentResult) {
-
-        List<String> groups = groupsForUser(user);
-        LOGGER.info("countWorkItemsAssignableToUser, user=" + user + ", groups: " + groups);
-        if (groups.isEmpty()) {
-            return 0;
-        } else {
-            TaskService taskService = activitiEngine.getTaskService();
-            TaskQuery tq = taskService.createTaskQuery();
-            tq.taskCandidateGroupIn(groups);
-            LOGGER.info("countWorkItemsAssignableToUser, user=" + user + ": " + tq.count());
-            return (int) tq.count();
+        TaskService taskService = activitiEngine.getTaskService();
+        TaskQuery tq = taskService.createTaskQuery();
+        tq.taskCandidateUser(user);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("countWorkItemsAssignableToUser, user=" + user + ": " + tq.count());
         }
+        return (int) tq.count();
+//        List<String> groups = groupsForUser(user);
+//        if (LOGGER.isTraceEnabled()) {
+//            LOGGER.trace("countWorkItemsAssignableToUser, user=" + user + ", groups: " + groups);
+//        }
+//        if (groups.isEmpty()) {
+//            return 0;
+//        } else {
+//            TaskService taskService = activitiEngine.getTaskService();
+//            TaskQuery tq = taskService.createTaskQuery();
+//            tq.taskCandidateGroupIn(groups);
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("countWorkItemsAssignableToUser, user=" + user + ": " + tq.count());
+//            }
+//            return (int) tq.count();
+//        }
     }
 
     public List<WorkItem> listWorkItemsAssignableToUser(String user, int first, int count, OperationResult parentResult) {
-
-        List<String> groups = groupsForUser(user);
-        List<Task> tasks;
-        if (groups.isEmpty()) {
-            tasks = new ArrayList<Task>();
-        } else {
-            TaskService taskService = activitiEngine.getTaskService();
-            TaskQuery tq = taskService.createTaskQuery();
-            tq.taskCandidateGroupIn(groups);
-            tasks = tq.listPage(first, count);
+        TaskService taskService = activitiEngine.getTaskService();
+        TaskQuery tq = taskService.createTaskQuery();
+        tq.taskCandidateUser(user);
+        List<Task> tasks = tq.listPage(first, count);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("listWorkItemsAssignableToUser, user=" + user + ", first/count=" + first + "/" + count + ": " + tasks);
         }
-
-        LOGGER.info("Activiti tasks assignable to " + user + ": " + tasks);
         return tasksToWorkItems(tasks);
+
+//        List<String> groups = groupsForUser(user);
+//        List<Task> tasks;
+//        if (groups.isEmpty()) {
+//            tasks = new ArrayList<Task>();
+//        } else {
+//            TaskService taskService = activitiEngine.getTaskService();
+//            TaskQuery tq = taskService.createTaskQuery();
+//            tq.taskCandidateGroupIn(groups);
+//            tasks = tq.listPage(first, count);
+//        }
+//
+//        LOGGER.info("Activiti tasks assignable to " + user + ": " + tasks);
+//        return tasksToWorkItems(tasks);
     }
 
-    private List<String> groupsForUser(String user) {
-        IdentityService identityService = activitiEngine.getIdentityService();
-        GroupQuery gq = identityService.createGroupQuery();
-        gq.groupMember(user);
-        List<String> groupNames = new ArrayList<String>();
-        List<Group> groups = gq.list();
-        LOGGER.trace("Activiti groups for " + user + ":");
-        for (Group g : groups) {
-            LOGGER.trace(" - group: id = " + g.getId() + ", name = " + g.getName());
-            groupNames.add(g.getId());
-        }
-        return groupNames;
-    }
+//    private List<String> groupsForUser(String user) {
+//        IdentityService identityService = activitiEngine.getIdentityService();
+//        GroupQuery gq = identityService.createGroupQuery();
+//        gq.groupMember(user);
+//        List<String> groupNames = new ArrayList<String>();
+//        List<Group> groups = gq.list();
+//        LOGGER.trace("Activiti groups for " + user + ":");
+//        for (Group g : groups) {
+//            LOGGER.trace(" - group: id = " + g.getId() + ", name = " + g.getName());
+//            groupNames.add(g.getId());
+//        }
+//        return groupNames;
+//    }
 
     public void claimWorkItem(WorkItem workItem, String userId, OperationResult result) {
         TaskService taskService = activitiEngine.getTaskService();
@@ -227,6 +243,12 @@ public class WorkflowManager implements BeanFactoryAware {
         taskService.claim(workItem.getTaskId(), null);
         result.recordSuccess();
     }
+
+    private static final QName WORK_ITEM_NAME = new QName(SchemaConstants.NS_C, "WorkItem");
+    private static final QName WORK_ITEM_TASK_ID = new QName(SchemaConstants.NS_C, "taskId");
+    private static final QName WORK_ITEM_TASK_NAME = new QName(SchemaConstants.NS_C, "taskName");
+    private static final QName WORK_ITEM_ASSIGNEE = new QName(SchemaConstants.NS_C, "assignee");
+    private static final QName WORK_ITEM_CANDIDATES = new QName(SchemaConstants.NS_C, "candidates");
 
     /**
      * Brutally hacked... should be completely rewritten

@@ -99,7 +99,10 @@ public class JobExecutor implements InterruptableJob {
 			if (handler==null) {
 				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
                 closeFlawedTask(task, executionResult);
-				throw new JobExecutionException("No handler for URI '" + task.getHandlerUri() + "'");
+                return;
+				//throw new JobExecutionException("No handler for URI '" + task.getHandlerUri() + "'");
+                // actually there is no point in throwing JEE; the only thing that is done with it is
+                // that it is logged by Quartz
 			}
 		
 			if (task.isCycle()) {
@@ -252,7 +255,7 @@ public class JobExecutor implements InterruptableJob {
 
 		} catch (Throwable t) {
 			LoggingUtils.logException(LOGGER, "An exception occurred during processing of task {}", t, task);
-			throw new JobExecutionException("An exception occurred during processing of task " + task, t);
+			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		} finally {
 			RepositoryCache.exit();
 		}
@@ -377,10 +380,10 @@ mainCycle:
 			if (task.canRun()) {
 				LOGGER.error("CycleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 			} else {
-				LOGGER.debug("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage()});
+				LOGGER.info("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage()});
 				LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 			}
-			throw new JobExecutionException("An exception occurred during processing of task " + task, t);
+			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
 	

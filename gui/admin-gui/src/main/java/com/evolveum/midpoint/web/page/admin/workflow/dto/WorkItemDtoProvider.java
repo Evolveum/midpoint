@@ -53,7 +53,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
             return "Unknown";
         }
 
-        return principal.getName();
+        return principal.getOid();
     }
 
     public WorkItemDtoProvider(PageBase page, boolean assigned) {

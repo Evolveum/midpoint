@@ -21,16 +21,11 @@
 
 package com.evolveum.midpoint.wf;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.wf.activiti.Idm2Activiti;
-import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
-import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
+import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.messages.QueryProcessCommand;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfQueryProcessInstanceCommandType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +36,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 
 @Component
 public class WfTaskHandler implements TaskHandler, InitializingBean {
 
 	public static final String WF_SHADOW_TASK_URI = "http://evolveum.com/wf-shadow-task-uri";
-
-	@Autowired(required = true)
-	private WfHook workflowHook;
 
     @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
@@ -62,7 +53,7 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
     private WorkflowManager workflowManager;
 
     @Autowired(required = true)
-    private Idm2Activiti idm2Activiti;
+    private ActivitiInterface activitiInterface;
 
     private static final Trace LOGGER = TraceManager.getTrace(WfTaskHandler.class);
 
@@ -77,13 +68,13 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
      * instance finishes, the task status will be changed to RUNNABLE, and then this task 
      * will be picked up by TaskManager to be run. This handler will be then called.
      * However, as for now, all processing (including post-processing after wf process
-     * finish) is done within WorkflowHook.onWorkflowMessage method.
+     * finish) is done within WorkflowHook.activiti2midpoint method.
      * 
      * As for *active tasks*, these are used to monitor simple wf processes, which do
      * not send any information to midpoint by themselves. These tasks are recurrent,
      * so their run() method is periodically executed. This method simply asks the
      * WfMS for the information about the particular process id. The response is asynchronous,
-     * and is processed within WorkflowHook.onWorkflowMessage method. 
+     * and is processed within WorkflowHook.activiti2midpoint method.
      *  
      */
 	@Override
@@ -91,23 +82,13 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
 
         if (workflowManager.isEnabled()) {
 		
-		    // is this task already closed? (this flag is set by onWorkflowMessage when it gets information about wf process termination)
+		    // is this task already closed? (this flag is set by activiti2midpoint when it gets information about wf process termination)
 		    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-			    LOGGER.info("Task " + task.getName() + " has been flagged as closed, so exit the run() method.");
+			    LOGGER.info("Task " + task.getName() + " has been flagged as closed; exiting the run() method.");
 		    }
             else {
-                // let us request the current task status
-                // todo make this property single-valued in schema to be able to use getRealValue
-                PrismProperty idProp = task.getExtension(WfTaskUtil.WFPROCESSID_PROPERTY_NAME);
-                Collection<String> values = null;
-                if (idProp != null) {
-                    values = idProp.getRealValues(String.class);
-                }
-                if (values == null || values.isEmpty())
-                    LOGGER.error("Process ID is not known for task " + task.getName());
-                else {
-                    String id = values.iterator().next();
-                    //String id = (String) idProp.getRealValue(String.class);
+                String id = wfTaskUtil.getProcessId(task);
+                if (id != null) {
                     LOGGER.info("Task " + task.getName() + ": requesting status for wf process id " + id + "...");
                     queryProcessInstance(id, task, null);
                 }
@@ -165,7 +146,7 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
         qpc.setPid(id);
 
         try {
-            idm2Activiti.idm2activiti(qpc);
+            activitiInterface.idm2activiti(qpc);
         } catch (RuntimeException e) {     // FIXME
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to query a process instance to workflow management system", e);
@@ -173,51 +154,6 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
         }
 
         parentResult.recordSuccessIfUnknown();
-    }
-
-
-    /**
-     * Processes a message got from workflow engine - either synchronously (while waiting for
-     * replies after sending - i.e. in a thread that requested the operation), or asynchronously
-     * (directly from onWorkflowMessage, in a separate thread).
-     *
-     * @param event an event got from workflow engine
-     * @param task a task instance (should be as current as possible)
-     * @param result
-     * @throws Exception
-     */
-    public void processWorkflowMessage(ProcessEvent event, Task task, OperationResult result) throws Exception {
-
-        String pid = event.getPid();
-        //String answer = event.getWfAnswer();
-
-        // let us generate description if there is none
-        String description = event.getState();
-        if (description == null || description.isEmpty())
-        {
-            if (event instanceof ProcessStartedEvent) {
-                description = "Workflow process instance has been created (process id " + pid + ")";
-            } else if (event instanceof ProcessFinishedEvent) {
-                description = "Workflow process instance has ended (process id " + pid + ")";
-            } else {
-                description = "Workflow process instance has proceeded further (process id " + pid + ")";
-            }
-        }
-
-        // record the process state
-        String details = wfTaskUtil.dumpVariables(event);
-        wfTaskUtil.recordProcessState(task, description, details, event, result);
-
-        // let us record process id (when getting "process started" event)
-        if (event instanceof ProcessStartedEvent) {
-            wfTaskUtil.setWfProcessId(task, event.getPid(), result);
-        }
-
-        // should we finish this task?
-        if (event instanceof ProcessFinishedEvent || !event.isRunning()) {
-            workflowHook.finishProcessing(event, task, result);
-        }
-
     }
 
 }

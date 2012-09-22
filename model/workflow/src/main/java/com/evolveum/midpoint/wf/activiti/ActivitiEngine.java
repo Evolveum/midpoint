@@ -28,11 +28,14 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.activiti.users.MidPointUserManagerFactory;
 import org.activiti.engine.*;
 import org.activiti.engine.identity.Group;
 import org.activiti.engine.identity.GroupQuery;
 import org.activiti.engine.identity.User;
 import org.activiti.engine.identity.UserQuery;
+import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
+import org.activiti.engine.impl.interceptor.SessionFactory;
 import org.activiti.engine.repository.Deployment;
 import org.apache.commons.lang.Validate;
 import org.springframework.context.annotation.DependsOn;
@@ -49,10 +52,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.xpath.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -72,18 +72,25 @@ public class ActivitiEngine {
     private WfConfiguration wfConfiguration;
     private static final String BPMN_URI = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
-    public void initialize(WfConfiguration configuration) throws Exception {
+    public void initialize(WfConfiguration configuration) {
 
         Validate.notNull(configuration);
 
         wfConfiguration = configuration;
 
-        LOGGER.trace("Attempting to create Activiti engine.");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Attempting to create Activiti engine.");
+        }
 
-        processEngine = ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration()
+        List<SessionFactory> sessionFactories = new ArrayList<SessionFactory>();
+        sessionFactories.add(new MidPointUserManagerFactory());
+
+        // todo fix this hack (explicit casting)
+        processEngine = ((StandaloneProcessEngineConfiguration) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration())
                 .setDatabaseSchemaUpdate(configuration.isActivitiSchemaUpdate() ?
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
+                .setCustomSessionFactories(sessionFactories)
                 .setJdbcUrl(configuration.getJdbcUrl())
                 .setJdbcDriver(configuration.getJdbcDriver())
                 .setJdbcUsername(configuration.getJdbcUser())
@@ -96,30 +103,30 @@ public class ActivitiEngine {
 
         autoDeploy();
 
-        IdentityService identityService = getIdentityService();
-
-        UserQuery uq = identityService.createUserQuery().userId(ADMINISTRATOR);
-        if (uq.count() == 0) {
-            User admin = identityService.newUser(ADMINISTRATOR);
-            identityService.saveUser(admin);
-            LOGGER.info("Created workflow user '" + ADMINISTRATOR + "'");
-
-            GroupQuery gq = identityService.createGroupQuery();
-            for (Group group : gq.list()) {
-                identityService.createMembership(ADMINISTRATOR, group.getId());
-                LOGGER.info("Created membership of user '" + ADMINISTRATOR + "' in group '" + group.getId() + "'");
-            }
-
-            LOGGER.info("Finished creating workflow user '" + ADMINISTRATOR + "' and its group membership.");
-        } else {
-            User admin = uq.singleResult();
-            LOGGER.info("User " + ADMINISTRATOR + " with ID " + admin.getId() + " exists.");
-            List<Group> groups = identityService.createGroupQuery().groupMember(admin.getId()).list();
-            for (Group g : groups) {
-                LOGGER.info(" - member of " + g.getId());
-            }
-
-        }
+//        IdentityService identityService = getIdentityService();
+//
+//        UserQuery uq = identityService.createUserQuery().userId(ADMINISTRATOR);
+//        if (uq.count() == 0) {
+//            User admin = identityService.newUser(ADMINISTRATOR);
+//            identityService.saveUser(admin);
+//            LOGGER.info("Created workflow user '" + ADMINISTRATOR + "'");
+//
+//            GroupQuery gq = identityService.createGroupQuery();
+//            for (Group group : gq.list()) {
+//                identityService.createMembership(ADMINISTRATOR, group.getId());
+//                LOGGER.info("Created membership of user '" + ADMINISTRATOR + "' in group '" + group.getId() + "'");
+//            }
+//
+//            LOGGER.info("Finished creating workflow user '" + ADMINISTRATOR + "' and its group membership.");
+//        } else {
+//            User admin = uq.singleResult();
+//            LOGGER.info("User " + ADMINISTRATOR + " with ID " + admin.getId() + " exists.");
+//            List<Group> groups = identityService.createGroupQuery().groupMember(admin.getId()).list();
+//            for (Group g : groups) {
+//                LOGGER.info(" - member of " + g.getId());
+//            }
+//
+//        }
     }
 
     private void autoDeploy() {

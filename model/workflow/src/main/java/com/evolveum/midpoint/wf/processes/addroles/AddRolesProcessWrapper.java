@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -41,16 +40,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfHook;
 import com.evolveum.midpoint.wf.WfTaskUtil;
+import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import org.jvnet.jaxb2_commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,14 +105,20 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             }
 
             UserType user = (UserType) prismToAdd.asObjectable();
-            LOGGER.info("Assignments (" + user.getAssignment().size() + "): ");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Role-related assignments in user add delta (" + user.getAssignment().size() + "): ");
+            }
+
             for (AssignmentType a : user.getAssignment()) {
                 ObjectReferenceType ort = a.getTargetRef();
-                LOGGER.info("ort = " + ort);
-                LOGGER.info("ort.getType = " + ort.getType());
+//                LOGGER.trace("ort = " + ort);
+//                LOGGER.trace("ort.getType = " + ort.getType());
                 if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
                     RoleType role = resolveRoleRef(a, result);
-                    LOGGER.info(" - role: " + role);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace(" - role: " + role);
+                    }
                     rolesToAdd.add(role);
                 }
             }
@@ -129,14 +133,18 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             for (ItemDelta delta : change.getModifications()) {
                 if (UserType.F_ASSIGNMENT.equals(delta.getName())) {
                     for (Object o : delta.getValuesToAdd()) {
-                        LOGGER.info("Value to add = " + o);
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Assignment to add = " + o) ;
+                        }
                         PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
                         ObjectReferenceType ort = at.getValue().getTargetRef();
-                        LOGGER.info("ort = " + ort);
-                        LOGGER.info("ort.getType = " + ort.getType());
+//                        LOGGER.info("ort = " + ort);
+//                        LOGGER.info("ort.getType = " + ort.getType());
                         if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
                             RoleType role = resolveRoleRef(at.getValue(), result);
-                            LOGGER.info(" - role: " + role);
+                            if (LOGGER.isTraceEnabled()) {
+                                LOGGER.trace(" - role: " + role);
+                            }
                             rolesToAdd.add(role);
                         }
                     }
@@ -157,11 +165,12 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             spi.setSimple(true);
             spi.setTaskName("Workflow for approving adding " + rolesToAdd.size() + " role(s) to " + newUser.getName());
             spi.addProcessVariable(USER_NAME, newUser.getName());
-            spi.addProcessVariable(WfConstants.MIDPOINT_OBJECT_OLD, oldUser);
-            spi.addProcessVariable(WfConstants.MIDPOINT_OBJECT_NEW, newUser);
-            spi.addProcessVariable(WfConstants.MIDPOINT_DELTA, change);
             spi.addProcessVariable(ROLES_TO_APPROVE, rolesToAdd);
             spi.addProcessVariable(DECISION_LIST, new DecisionList());
+            spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD, oldUser);
+            spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW, newUser);
+            spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_DELTA, change);
+            spi.addProcessVariable(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
             return spi;
         }
         return null;

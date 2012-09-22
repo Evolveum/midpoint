@@ -326,8 +326,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 				LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
 				clockwork.run(context, task, result);
 			}
-		
-			result.computeStatus();
+
+            if (!result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
+			    result.computeStatus();
+            }
 			
 		} catch (ObjectAlreadyExistsException e) {
 			try {

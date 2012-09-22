@@ -37,7 +37,24 @@ import java.io.IOException;
  */
 public interface ProcessWrapper {
 
+    /**
+     * Determines whether to start a workflow process (and, if so, with what properties).
+     *
+     * @param context Context of the model operation.
+     * @param task Enclosing task to which results of the process will be stored. (todo ????????)
+     * @param result
+     * @return Instruction to start the process, or null if no process should be started.
+     */
     StartProcessInstruction startProcessIfNeeded(ModelContext context, Task task, OperationResult result);
 
+    /**
+     * Does a process-specific processing of wf result (i.e. of the final message from workflow).
+     *
+     * @param context Current context of the model operation. (todo ??????????)
+     * @param event Message from the WfMS
+     * @param task Enclosing task to which results of the process were (and are) written. (todo ?????????)
+     * @param result
+     * @return TODO xxxxxx
+     */
     boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result);
 }

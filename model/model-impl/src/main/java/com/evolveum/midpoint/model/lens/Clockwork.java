@@ -78,7 +78,11 @@ public class Clockwork {
 		}
 		while (context.getState() != ModelState.FINAL) {
             HookOperationMode mode = click(context, task, result);
-            if (mode != HookOperationMode.FOREGROUND) {
+
+            if (mode == HookOperationMode.BACKGROUND) {
+                result.recordInProgress();
+                return mode;
+            } else if (mode == HookOperationMode.ERROR) {
                 return mode;
             }
 		}

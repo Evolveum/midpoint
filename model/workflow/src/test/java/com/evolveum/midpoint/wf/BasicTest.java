@@ -27,6 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.addroles.Decision;
 import com.evolveum.midpoint.wf.processes.addroles.DecisionList;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
@@ -72,6 +73,9 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
     private static final String USER_JACK_OID = "00000000-d34d-b33f-f00d-111111111111";
     private static final String ROLES_OID = "00000001-d34d-b33f-f00d-00000000000";
     private static String getRoleOid(String roleNumber) { return ROLES_OID + roleNumber; }
+
+    private static final String R2BOSS_OID = "00000000-d34d-b33f-f00d-111111111112";
+    private static final String R3BOSS_OID = "00000000-d34d-b33f-f00d-111111111113";
 
     @Autowired(required = true)
     ModelService modelService;
@@ -137,16 +141,23 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
         rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("3"), result).asObjectable());
         variableMap.put("rolesToApprove", rolesToApprove);
         variableMap.put("decisionList", new DecisionList());
+        variableMap.put("util", new ActivitiUtil());
         ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey("AddRoles", variableMap);
         assertNotNull(processInstance.getId());
         System.out.println("test010: id " + processInstance.getId() + " " + processInstance.getProcessDefinitionId());
 
         TaskService taskService = processEngine.getTaskService();
-        List<org.activiti.engine.task.Task> tasks = taskService.createTaskQuery().taskAssignee("administrator").list();
-        assertEquals("Number of tasks is not correct", 3, tasks.size());
-        completeTask(tasks.get(0));
-        completeTask(tasks.get(1));
-        completeTask(tasks.get(2));
+        List<org.activiti.engine.task.Task> tasks1 = taskService.createTaskQuery().taskAssignee(ActivitiUtil.DEFAULT_APPROVER).list();
+        assertEquals("Number of tasks for default approver is not correct", 1, tasks1.size());
+        completeTask(tasks1.get(0), "true", "Role1 OK");
+
+        List<org.activiti.engine.task.Task> tasks2 = taskService.createTaskQuery().taskAssignee(R2BOSS_OID).list();
+        assertEquals("Number of tasks for R2 approver is not correct", 1, tasks2.size());
+        completeTask(tasks2.get(0), "false", "Role2 NOT OK");
+
+        List<org.activiti.engine.task.Task> tasks3 = taskService.createTaskQuery().taskAssignee(R3BOSS_OID).list();
+        assertEquals("Number of tasks for R3 approver is not correct", 1, tasks3.size());
+        completeTask(tasks3.get(0), "true", "Role3 OK");
 
         assertEquals("Process instance is still running", 0, processEngine.getRuntimeService().createProcessInstanceQuery().processInstanceId(processInstance.getProcessInstanceId()).count());
 
@@ -178,7 +189,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
         assertTrue("DecisionList was not tested", decisionListTested);
     }
 
-    private void completeTask(org.activiti.engine.task.Task task) {
+    private void completeTask(org.activiti.engine.task.Task task, String decision, String comment) {
         TaskFormData tfd = processEngine.getFormService().getTaskFormData(task.getId());
         Map<String,String> items = new HashMap<String,String>();
         for (FormProperty fp : tfd.getFormProperties()) {
@@ -188,20 +199,18 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
         assertEquals("Username is not correct in form", "jack", items.get("userName"));
         String role = items.get("role");
         LOGGER.trace("Role: " + role);
-        String decision;
-        String comment;
-        if ("Role1".equals(role)) {
-            decision = "true";
-            comment = "Role1 OK";
-        } else if ("Role2".equals(role)) {
-            decision = "false";
-            comment = "Role2 NOT OK";
-        } else if ("Role3".equals(role)) {
-            decision = "true";
-            comment = "Role3 OK";
-        } else {
-            throw new IllegalStateException("Unknown role name: " + role);
-        }
+//        if ("Role1".equals(role)) {
+//            decision = "true";
+//            comment = "Role1 OK";
+//        } else if ("Role2".equals(role)) {
+//            decision = "false";
+//            comment = "Role2 NOT OK";
+//        } else if ("Role3".equals(role)) {
+//            decision = "true";
+//            comment = "Role3 OK";
+//        } else {
+//            throw new IllegalStateException("Unknown role name: " + role);
+//        }
 
         Map<String,String> outputItems = new HashMap<String,String>();
         outputItems.put("decision", decision);
