@@ -59,11 +59,11 @@ public class TablePanel<T> extends Panel {
     private void initLayout(List<IColumn<T>> columns, int itemsPerPage, ISortableDataProvider provider) {
         DataTable<T> table = new DataTable<T>(TABLE, columns, provider, itemsPerPage);
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
-
+        table.setOutputMarkupId(true);
         add(table);
-
         add(new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)));
         add(new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)));
+        
     }
 
     private boolean showPagedPaging(ISortableDataProvider provider) {

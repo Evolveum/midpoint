@@ -21,25 +21,29 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigation;
+import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.AbstractLink;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.IPagingLabelProvider;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigation;
-import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
+import org.apache.wicket.markup.html.navigation.paging.PagingNavigationIncrementLink;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 /**
  * @author lazyman
  */
-public class NavigatorPanel extends PagingNavigator {
+public class NavigatorPanel extends AjaxPagingNavigator {
 
     private static final Trace LOGGER = TraceManager.getTrace(NavigatorPanel.class);
     private boolean showPageListing = true;
@@ -64,13 +68,14 @@ public class NavigatorPanel extends PagingNavigator {
     }
 
     @Override
-    protected PagingNavigation newNavigation(String id, IPageable pageable, IPagingLabelProvider labelProvider) {
-        PagingNavigation navigation = super.newNavigation(id, pageable, labelProvider);
-        navigation.add(createVisibilityForSimplePaging());
-        return navigation;
-    }
+	protected PagingNavigation newNavigation(String id, IPageable pageable, IPagingLabelProvider labelProvider) {
+    	PagingNavigation navigation = super.newNavigation(id, pageable, labelProvider);
+    	navigation.setOutputMarkupId(true);
+    	navigation.add(createVisibilityForSimplePaging());
+    	return navigation;
+	}
 
-    private VisibleEnableBehaviour createVisibilityForSimplePaging() {
+	private VisibleEnableBehaviour createVisibilityForSimplePaging() {
         return new VisibleEnableBehaviour() {
 
             @Override
@@ -81,20 +86,22 @@ public class NavigatorPanel extends PagingNavigator {
     }
 
     @Override
-    protected AbstractLink newPagingNavigationIncrementLink(String id, IPageable pageable, int increment) {
-        AbstractLink link = super.newPagingNavigationIncrementLink(id, pageable, increment);
-        link.add(createVisibleBehaviour(pageable));
-        return link;
-    }
+	protected Link<?> newPagingNavigationIncrementLink(String id, IPageable pageable, int increment) {
+    	Link<?>  link = super.newPagingNavigationIncrementLink(id, pageable, increment);
+    	link.setOutputMarkupId(true);
+    	link.add(createVisibleBehaviour(pageable));
+    	return link;
+	}
 
-    @Override
-    protected AbstractLink newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
-        AbstractLink link = super.newPagingNavigationLink(id, pageable, pageNumber);
-        link.add(createVisibleBehaviour(pageable));
-        return link;
-    }
+	@Override
+	protected Link<?> newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
+		Link<?>  link = super.newPagingNavigationLink(id, pageable, pageNumber);
+		link.setOutputMarkupId(true);
+		link.add(createVisibleBehaviour(pageable));
+    	return link;
+	}
 
-    private IModel<String> createModel(final IPageable pageable) {
+	private IModel<String> createModel(final IPageable pageable) {
         return new LoadableModel<String>() {
 
             @Override

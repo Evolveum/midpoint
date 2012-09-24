@@ -639,7 +639,7 @@ public class PageUser extends PageAdminUsers {
 
         modal.setInitialWidth(1100);
         modal.setWidthUnit("px");
-        modal.setInitialHeight(500);
+        modal.setInitialHeight(520);
         modal.setHeightUnit("px");
 
         modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {

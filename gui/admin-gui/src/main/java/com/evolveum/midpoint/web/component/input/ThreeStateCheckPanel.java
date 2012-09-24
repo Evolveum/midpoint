@@ -39,8 +39,6 @@ public class ThreeStateCheckPanel extends InputPanel {
 
 		ThreeStateCheckBox check = new ThreeStateCheckBox("input", checkThreeState(model));
 		add(check);
-		
-		
 	}
 
 	private IModel<String> checkThreeState(final IModel<Boolean> model) {
