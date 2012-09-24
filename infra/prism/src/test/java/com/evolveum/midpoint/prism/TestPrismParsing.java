@@ -266,8 +266,8 @@ public class TestPrismParsing {
 		user.checkConsistence();
 		user.assertDefinitions("test");
 		assertUserContent(user);
-		assertUserExtensionBar(user);
-		assertVisitor(user,44);
+		assertUserExtension(user);
+		assertVisitor(user,49);
 	}
 	
 	private void assertUserAdhoc(PrismObject<UserType> user) {
@@ -351,33 +351,41 @@ public class TestPrismParsing {
 		
 	}
 	
-	private void assertUserExtensionBar(PrismObject<UserType> user) {
+	private void assertUserExtension(PrismObject<UserType> user) {
 		
 		PrismContainer<?> extension = user.getExtension();
 		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
 		PrismContainerValue<?> extensionValue = extension.getValue();
 		assertTrue("Extension parent", extensionValue.getParent() == extension);
 		assertNull("Extension ID", extensionValue.getId());
-		PrismAsserts.assertPropertyValue(extension, USER_EXT_BAR_ELEMENT, "BAR");
-		PrismAsserts.assertPropertyValue(extension, new QName(NS_USER_EXT, "num"), 42);
-		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(new QName(NS_USER_EXT, "multi")).getValues();
+		PrismAsserts.assertPropertyValue(extension, EXTENSION_BAR_ELEMENT, "BAR");
+		PrismAsserts.assertPropertyValue(extension, EXTENSION_NUM_ELEMENT, 42);
+		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(EXTENSION_MULTI_ELEMENT).getValues();
 		assertEquals("Multi",3,multiPVals.size());
 
-		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), USER_EXT_BAR_ELEMENT);
+        PrismProperty<?> singleStringType = extension.findProperty(EXTENSION_SINGLE_STRING_TYPE_ELEMENT);
+        PrismPropertyDefinition singleStringTypePropertyDef = singleStringType.getDefinition();
+        PrismAsserts.assertDefinition(singleStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, 1);
+        assertNull("'Indexed' attribute on 'singleStringType' property is not null", singleStringTypePropertyDef.isIndexed());
+
+        PrismProperty<?> indexedString = extension.findProperty(EXTENSION_INDEXED_STRING_TYPE_ELEMENT);
+        PrismPropertyDefinition indexedStringPropertyDef = indexedString.getDefinition();
+        PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+        assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
+		
+		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
 		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
 		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
 		assertNotNull("No definition for bar", barPropertyDef);
+		PrismAsserts.assertDefinition(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+		assertNull("'Indexed' attribute on 'bar' property is not null", barPropertyDef.isIndexed());
 
-		PrismAsserts.assertDefinition(barPropertyDef, USER_EXT_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
-
-        // 'indexed' attribute test -- should not it be present in the property definitions???
-
-        assertEquals("'Indexed' attribute on 'bar' property is wrong", Boolean.TRUE, barPropertyDef.isIndexed());
-
-        PrismProperty<?> multi = extension.findProperty(new QName(NS_USER_EXT, "multi"));
-        assertEquals("'Indexed' attribute on 'multi' property is wrong", Boolean.FALSE, multi.getDefinition().isIndexed());
+        PrismProperty<?> multi = extension.findProperty(EXTENSION_MULTI_ELEMENT);
+        PrismPropertyDefinition multiPropertyDef = multi.getDefinition();
+        PrismAsserts.assertDefinition(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+        assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
 
     }
 

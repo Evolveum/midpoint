@@ -77,7 +77,6 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName OBJECT_REFERENCE_TYPE_QNAME = new QName(NS_FOO, "ObjectReferenceType");
 	
 	public static final QName USER_EXTENSION_QNAME = new QName(NS_FOO,"extension");
-	public static final QName USER_EXTENSION_MULTI_QNAME = new QName(NS_USER_EXT,"multi");
 	
 	public static final QName USER_NAME_QNAME = new QName(NS_FOO,"name");
 	public static final QName USER_FULLNAME_QNAME = new QName(NS_FOO,"fullName");
@@ -122,8 +121,17 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
+	public static final QName EXTENSION_INDEXED_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "indexedString");
 	
-	// user-extension
+	// These are NOT in the extension.xsd but are used as dynamic elements
+	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
+	public static final QName EXTENSION_FOOBAR_ELEMENT = new QName(NS_EXTENSION, "foobar");
+	public static final QName EXTENSION_NUM_ELEMENT = new QName(NS_EXTENSION, "num");
+	public static final QName EXTENSION_MULTI_ELEMENT = new QName(NS_EXTENSION, "multi");
+
+	// Definitions used in schema-extra/extension/user.xsd
+	// this is loaded as an extra schema, it is not part of usual tests. Mind the namespace that is
+	// different from the previous elements
 	public static final QName USER_EXT_BAR_ELEMENT = new QName(NS_USER_EXT, "bar");
 	public static final QName USER_EXT_FOOBAR_ELEMENT = new QName(NS_USER_EXT, "foobar");
 	public static final QName USER_EXT_NUM_ELEMENT = new QName(NS_USER_EXT, "num");

@@ -23,9 +23,12 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-		xmlns:ext="http://example.com/xml/ns/user-extension">
+		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
     <extension>
+		<ext:singleStringType>foobar</ext:singleStringType>
+		<ext:indexedString>alpha</ext:indexedString>
+		<ext:indexedString>bravo</ext:indexedString>
 		<ext:bar xsi:type="xsd:string">bar</ext:bar>
 		<ext:num xsi:type="xsd:int">42</ext:num>
 		<ext:multi xsi:type="xsd:string">raz</ext:multi>

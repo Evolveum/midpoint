@@ -25,14 +25,28 @@
 		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
-		xmlns:ext="http://example.com/xml/ns/user-extension">
+		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
     <extension>
+    
+    	<!-- String type from extra schema -->
+		<ext:singleStringType>foobar</ext:singleStringType>
+		
+		<!-- Indexed (and multivalued) string from  extra schema -->
+		<ext:indexedString>alpha</ext:indexedString>
+		<ext:indexedString>bravo</ext:indexedString>
+    
+    	<!-- Dynamic string type -->
 		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
+		
+		<!-- Dynamic int type -->
 		<ext:num xsi:type="xsd:int">42</ext:num>
+		
+		<!-- Dynamic multivalued string type -->
 		<ext:multi xsi:type="xsd:string">raz</ext:multi>
 		<ext:multi xsi:type="xsd:string">dva</ext:multi>
 		<ext:multi xsi:type="xsd:string">tri</ext:multi>
+		
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>  -->

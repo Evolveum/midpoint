@@ -60,6 +60,14 @@
 			</xsd:appinfo>
 		</xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="indexedString" type="xsd:string">
+	    <xsd:annotation>
+			<xsd:appinfo>
+				<a:indexed/>
+			</xsd:appinfo>
+		</xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="LocationsType">
         <xsd:sequence>
