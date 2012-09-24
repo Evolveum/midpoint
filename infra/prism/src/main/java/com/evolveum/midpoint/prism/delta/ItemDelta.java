@@ -513,7 +513,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 */
 	public void applyTo(Item item) throws SchemaException {
 		if (item.getDefinition() == null && getDefinition() != null){
-			item.setDefinition(getDefinition());
+			item.applyDefinition(getDefinition());
 		}
 		if (valuesToReplace != null) {
 			item.replaceAll(PrismValue.cloneCollection(valuesToReplace));
