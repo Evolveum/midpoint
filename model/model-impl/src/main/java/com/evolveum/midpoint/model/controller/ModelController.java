@@ -64,6 +64,7 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -71,6 +72,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -307,6 +310,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 			if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
 				// Go directly to repository
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
+					if (ObjectOperationOption.hasOption(options, ObjectOperationOption.CRYPT)) {
+						encryptValues(delta, result);
+					}
 					if (delta.isAdd()) {
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), result);
 						delta.setOid(oid);
@@ -366,6 +372,40 @@ public class ModelController implements ModelService, ModelInteractionService {
 			throw e;
 		} finally {
 			RepositoryCache.exit();
+		}
+	}
+	
+	private void encryptValues(ObjectDelta delta, OperationResult objectResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException {
+
+		if (!delta.hasCompleteDefinition()) {
+			provisioning.applyDefinition(delta, objectResult);
+		}
+
+		Utils.encryptValues(protector, delta, objectResult);
+		return;
+	}
+	
+	private void encryptValue(PrismProperty password){
+		PrismPropertyDefinition def = password.getDefinition();
+		if (def == null || def.getTypeName() == null){
+			LOGGER.trace("No definition for property " + password.getName());
+			return;
+		}
+		if (!def.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)){
+			return;
+		}
+		
+		ProtectedStringType passValue = (ProtectedStringType) password.getValue().getValue();
+		
+		if (passValue.getClearValue() != null) {
+			try {
+				LOGGER.info("Encrypting cleartext value for field " + password.getName() + ".");
+				protector.encrypt(passValue);
+			} catch (EncryptionException e) {
+				LOGGER.info("Faild to encrypt cleartext value for field " + password.getName() + ".");
+				return;
+			}
 		}
 	}
 	

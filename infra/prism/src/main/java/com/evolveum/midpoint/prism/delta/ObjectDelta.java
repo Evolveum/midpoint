@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -68,7 +70,7 @@ import java.util.*;
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable, Serializable {
+public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable, Visitable, Serializable {
 
     private ChangeType changeType;
 
@@ -103,6 +105,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         this.prismContext = prismContext;
         objectToAdd = null;
         modifications = createEmptyModifications();
+    }
+    
+    @Override
+    public void accept(Visitor visitor){
+    	visitor.visit(this);
+    	for (ItemDelta<?> delta : getModifications()){
+    		delta.accept(visitor);
+    	}
     }
 
     public ChangeType getChangeType() {

@@ -1,10 +1,35 @@
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -15,36 +40,36 @@ import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 @Component
 public class ResourceTypeManager {
@@ -851,4 +876,113 @@ public class ResourceTypeManager {
 		return resourceTypeDefinition;
 	}
 
+	public void applyDefinition(ObjectDelta<ResourceType> delta, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		PrismObject<ResourceType> resource = null;
+		
+		String resourceOid = null;
+		if (delta.isAdd()) {
+			resource = delta.getObjectToAdd();
+		} else if (delta.isModify()) {
+			resourceOid = delta.getOid();
+		} else {
+			return;
+		}
+		if (resource == null) {
+			Validate.notNull(resourceOid, "Resource oid not specified in the object delta. Could not apply definition.");
+			resource = getResource(resourceOid, objectResult);
+		}
+		ResourceType resourceType = resource.asObjectable();
+//		ResourceType resourceType = completeResource(resource.asObjectable(), null, objectResult);
+		//TODO TODO TODO FIXME FIXME FIXME copied from ObjectImprted..union this two cases
+		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resourceType);
+        if (configurationContainer == null || configurationContainer.isEmpty()) {
+            // Nothing to check
+            objectResult.recordWarning("The resource has no configuration");
+            return;
+        }
+
+        // Check the resource configuration. The schema is in connector, so fetch the connector first
+        String connectorOid = resourceType.getConnectorRef().getOid();
+        if (StringUtils.isBlank(connectorOid)) {
+            objectResult.recordFatalError("The connector reference (connectorRef) is null or empty");
+            return;
+        }
+
+        PrismObject<ConnectorType> connector = null;
+        ConnectorType connectorType = null;
+        try {
+            connector = getRepositoryService().getObject(ConnectorType.class, connectorOid, objectResult);
+            connectorType = connector.asObjectable();
+        } catch (ObjectNotFoundException e) {
+            // No connector, no fun. We can't check the schema. But this is referential integrity problem.
+            // Mark the error ... there is nothing more to do
+            objectResult.recordFatalError("Connector (OID:" + connectorOid + ") referenced from the resource is not in the repository", e);
+            return;
+        } catch (SchemaException e) {
+            // Probably a malformed connector. To be kind of robust, lets allow the import.
+            // Mark the error ... there is nothing more to do
+            objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
+            LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
+            return;
+        }
+        
+        Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
+        PrismSchema connectorSchema = null;
+        if (connectorSchemaElement == null) {
+        	// No schema to validate with
+        	return;
+        }
+		try {
+			connectorSchema = PrismSchema.parse(connectorSchemaElement, "schema for " + connector, prismContext);
+		} catch (SchemaException e) {
+			objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
+			return;
+		}
+        QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
+		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+		if (configContainerDef == null) {
+			objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
+            return;
+		}
+        
+        try {
+			configurationContainer.applyDefinition(configContainerDef);
+		} catch (SchemaException e) {
+			objectResult.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
+            return;
+		}
+     
+        resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION).applyDefinition(configContainerDef);
+ 
+        for (ItemDelta itemDelta : delta.getModifications()){
+        	if (itemDelta.getParentPath() == null){
+        		LOGGER.trace("No parent path defined for item delta {}", itemDelta);
+        		continue;
+        	}
+        	
+        	QName first = itemDelta.getParentPath().first().getName();
+        	
+        	if (first == null){
+        		continue;
+        	}
+        	
+        	if (itemDelta.getDefinition() == null && (ResourceType.F_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
+        		PropertyPath path = itemDelta.getPath().rest();
+        		ItemDefinition itemDef = configContainerDef.findItemDefinition(path);
+				itemDelta.applyDefinition(itemDef);
+        		
+        	}
+        }
+	}
+
+	private PrismObject<ResourceType> getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
+		PrismObject<ResourceType> prismResource = getRepositoryService().getObject(ResourceType.class, oid, parentResult);
+		return prismResource;
+	}
+
+	public void applyDefinition(PrismObject<ResourceType> object, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ResourceType completedResource = completeResource(object.asObjectable(), null, parentResult);
+		object = completedResource.asPrismObject().clone();
+		
+	}
 }

@@ -386,13 +386,13 @@ public interface ProvisioningService {
 	/**
 	 * Applies appropriate definition to the shadow delta.
 	 */
-	public <T extends ResourceObjectShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult) 
+	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult) 
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 		
 	/**
 	 * Applies appropriate definition to the shadow.
 	 */
-	public <T extends ResourceObjectShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 
+	public <T extends ObjectType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult) 
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**

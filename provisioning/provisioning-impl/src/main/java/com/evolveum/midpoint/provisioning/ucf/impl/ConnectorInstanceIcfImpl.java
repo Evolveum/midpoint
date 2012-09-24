@@ -858,8 +858,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (midpointEx instanceof ObjectAlreadyExistsException) {
 				throw (ObjectAlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof CommunicationException) {
-				icfResult.muteError();
-				result.muteError();
+//				icfResult.muteError();
+//				result.muteError();
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				throw (GenericFrameworkException) midpointEx;

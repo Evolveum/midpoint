@@ -1258,14 +1258,28 @@ private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> condit
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
+	public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		shadowCache.applyDefinition(delta, parentResult);
+		if (ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){	
+			shadowCache.applyDefinition((ObjectDelta<ResourceObjectShadowType>) delta, parentResult);
+		} else if (ResourceType.class.isAssignableFrom(delta.getObjectTypeClass())){
+			resourceTypeManager.applyDefinition((ObjectDelta<ResourceType>) delta, parentResult);
+		} else {
+			throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + delta.getObjectTypeClass());
+		}
+		
+		
 	}
 	
-	public <T extends ResourceObjectShadowType> void applyDefinition(PrismObject<T> shadow, OperationResult parentResult)
+	public <T extends ObjectType> void applyDefinition(PrismObject<T> object, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		shadowCache.applyDefinition(shadow, parentResult);
+		if (ResourceObjectShadowType.class.isAssignableFrom(object.getCompileTimeClass())){	
+			shadowCache.applyDefinition((PrismObject<ResourceObjectShadowType>) object, parentResult);
+		} else if (ResourceType.class.isAssignableFrom(object.getCompileTimeClass())){
+			resourceTypeManager.applyDefinition((PrismObject<ResourceType>) object, parentResult);
+		} else {
+			throw new IllegalArgumentException("Could not apply definition to deltas for object type: " + object.getCompileTimeClass());
+		}
 	}
 	
 

@@ -38,6 +38,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -48,7 +50,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Serializable {
+public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, Serializable {
 
 	/**
 	 * Name of the property
@@ -121,6 +123,26 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		this.definition = definition;
 	}
 
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		if (getValuesToAdd() != null) {
+			for (V pval : getValuesToAdd()) {
+				pval.accept(visitor);
+			}
+		}
+		if (getValuesToDelete() != null) {
+			for (V pval : getValuesToDelete()) {
+				pval.accept(visitor);
+			}
+		}
+		if (getValuesToReplace() != null) {
+			for (V pval : getValuesToReplace()) {
+				pval.accept(visitor);
+			}
+		}
+	}
+	
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		this.definition = definition;
 		if (getValuesToAdd() != null) {
@@ -490,6 +512,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * Apply this delta (path) to a property.
 	 */
 	public void applyTo(Item item) throws SchemaException {
+		if (item.getDefinition() == null && getDefinition() != null){
+			item.setDefinition(getDefinition());
+		}
 		if (valuesToReplace != null) {
 			item.replaceAll(PrismValue.cloneCollection(valuesToReplace));
 			return;
@@ -504,6 +529,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (valuesToDelete != null) {
 			item.removeAll(valuesToDelete);
 		}
+		
 	}
 
 	/**

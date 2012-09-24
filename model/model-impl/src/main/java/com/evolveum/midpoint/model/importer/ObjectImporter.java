@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -142,7 +143,7 @@ public class ObjectImporter {
                 }
                 
                 if (BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
-                    encryptValues(object, objectResult);
+                    Utils.encryptValues(protector, object, objectResult);
                 }
 
                 objectResult.computeStatus();
@@ -593,47 +594,47 @@ public class ObjectImporter {
 		}
 	}
     
-    private <T extends ObjectType> void encryptValues(final PrismObject<T> object, OperationResult objectResult) {
-        final OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
-        Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue pval = (PrismPropertyValue)visitable;
-				encryptValue(object, pval, result);
-			}
-		};
-		object.accept(visitor);
-        result.recordSuccessIfUnknown();
-    }
-    
-    private <T extends ObjectType> void encryptValue(PrismObject<T> object, PrismPropertyValue pval, OperationResult result) {
-    	Itemable item = pval.getParent();
-    	if (item == null) {
-    		return;
-    	}
-    	ItemDefinition itemDef = item.getDefinition();
-    	if (itemDef == null || itemDef.getTypeName() == null) {
-    		return;
-    	}
-    	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-    		return;
-    	}
-    	QName propName = item.getName();
-    	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
-    	ProtectedStringType ps = psPval.getValue();
-    	if (ps.getClearValue() != null) {
-            try {
-                LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + object);
-                protector.encrypt(ps);
-            } catch (EncryptionException e) {
-                LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + object);
-                result.recordFatalError("Faild to encrypt value for field " + propName + ": " + e.getMessage(), e);
-                return;
-            }
-        }
-    }
+//    private <T extends ObjectType> void encryptValues(final PrismObject<T> object, OperationResult objectResult) {
+//        final OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
+//        Visitor visitor = new Visitor() {
+//			@Override
+//			public void visit(Visitable visitable) {
+//				if (!(visitable instanceof PrismPropertyValue)) {
+//					return;
+//				}
+//				PrismPropertyValue pval = (PrismPropertyValue)visitable;
+//				encryptValue(object, pval, result);
+//			}
+//		};
+//		object.accept(visitor);
+//        result.recordSuccessIfUnknown();
+//    }
+//    
+//    private <T extends ObjectType> void encryptValue(PrismObject<T> object, PrismPropertyValue pval, OperationResult result) {
+//    	Itemable item = pval.getParent();
+//    	if (item == null) {
+//    		return;
+//    	}
+//    	ItemDefinition itemDef = item.getDefinition();
+//    	if (itemDef == null || itemDef.getTypeName() == null) {
+//    		return;
+//    	}
+//    	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+//    		return;
+//    	}
+//    	QName propName = item.getName();
+//    	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
+//    	ProtectedStringType ps = psPval.getValue();
+//    	if (ps.getClearValue() != null) {
+//            try {
+//                LOGGER.info("Encrypting cleartext value for field " + propName + " while importing " + object);
+//                protector.encrypt(ps);
+//            } catch (EncryptionException e) {
+//                LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + object);
+//                result.recordFatalError("Faild to encrypt value for field " + propName + ": " + e.getMessage(), e);
+//                return;
+//            }
+//        }
+//    }
 }
  
