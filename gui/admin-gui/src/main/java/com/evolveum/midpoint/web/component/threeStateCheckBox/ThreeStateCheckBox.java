@@ -43,47 +43,25 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 
 /**
  * @author lazyman
+ * @author mserbak
  */
-public class ThreeStateCheckBox extends HiddenField<ThreeCheckState> {
+public class ThreeStateCheckBox extends HiddenField<String> {
 	private String label = "";
 
 	public ThreeStateCheckBox(String id) {
-		this(id, new Model<ThreeCheckState>(ThreeCheckState.UNDEFINED));
+		this(id, new Model<String>(ThreeCheckState.UNDEFINED.toString()));
 	}
 
-	public ThreeStateCheckBox(String id, final IModel<ThreeCheckState> model) {
+	public ThreeStateCheckBox(String id, final IModel<String> model) {
 		super(id, model);
 		setOutputMarkupId(true);
-		Validate.notNull(model, "Model must not be null.");
-		add(new AttributeModifier("value", getStateModel(model)));
 	}
 
-	public ThreeStateCheckBox(String id, final IModel<String> label, final IModel<ThreeCheckState> model) {
+	public ThreeStateCheckBox(String id, final IModel<String> label, final IModel<String> model) {
 		this(id, model);
 		this.label = label.getObject();
 	}
-
-	private AbstractReadOnlyModel<String> getStateModel(final IModel<ThreeCheckState> model) {
-		return new AbstractReadOnlyModel<String>() {
-			@Override
-			public String getObject() {
-				String state = null;
-				switch (model.getObject()) {
-					case UNCHECKED:
-						state = "0";
-						break;
-					case CHECKED:
-						state = "1";
-						break;
-					case UNDEFINED:
-						state = "-1";
-						break;
-				}
-				return state;
-			}
-		};
-	}
-
+	
 	@Override
 	protected void onComponentTag(ComponentTag tag) {
 		super.onComponentTag(tag);
@@ -102,4 +80,6 @@ public class ThreeStateCheckBox extends HiddenField<ThreeCheckState> {
 				"ThreeStateCheckBox.css"));
 		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "', '" + label + "')");
 	}
+	
+	
 }

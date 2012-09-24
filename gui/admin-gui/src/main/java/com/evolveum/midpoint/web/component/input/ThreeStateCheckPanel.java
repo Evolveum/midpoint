@@ -21,18 +21,13 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import java.util.Date;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeCheckState;
 import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox;
-
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 /**
  * @author mserbak
@@ -48,38 +43,20 @@ public class ThreeStateCheckPanel extends InputPanel {
 		
 	}
 
-	private IModel<ThreeCheckState> checkThreeState(final IModel<Boolean> model) {
-		return new Model<ThreeCheckState>() {
+	private IModel<String> checkThreeState(final IModel<Boolean> model) {
+		return new Model<String>() {
 			@Override
-			public ThreeCheckState getObject() {
+			public String getObject() {
+				String object = "";
 				if (model.getObject() == null) {
-					return ThreeCheckState.UNDEFINED;
+					object = ThreeCheckState.UNDEFINED.toString();
 				} else if (model.getObject()) {
-					return ThreeCheckState.CHECKED;
+					object = ThreeCheckState.CHECKED.toString();
 				} else {
-					return ThreeCheckState.UNCHECKED;
+					object = ThreeCheckState.UNCHECKED.toString();
 				}
+				return object;
 			}
-
-			@Override
-			public void setObject(ThreeCheckState object) {
-				if (ThreeCheckState.UNCHECKED.equals(object)) {
-					model.setObject(null);
-				}
-
-				boolean state = false;
-
-				switch (object) {
-					case CHECKED:
-						state = true;
-						break;
-					case UNCHECKED:
-						state = false;
-						break;
-				}
-				model.setObject(state);
-			}
-
 		};
 	}
 

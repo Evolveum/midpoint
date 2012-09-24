@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.PasswordPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
+import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
@@ -254,9 +255,9 @@ public class PrismValuePanel extends Panel {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
             //AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onKeyUp");
-            AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur");
             //validator.setThrottleDelay(Duration.ONE_SECOND);
-            formComponent.add(validator);
+        	AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur");
+        	formComponent.add(validator);
         }
 
         return component;
@@ -274,7 +275,7 @@ public class PrismValuePanel extends Panel {
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
             panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"), form);
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
-            panel = new CheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
+            panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
         } else {
