@@ -106,7 +106,6 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_ASSIGNMENT_LIST = "assignmentList";
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_USER_FORM = "userForm";
-    private static final String ID_ORG_UNIT_LIST = "orgUnitList";
     private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
@@ -230,17 +229,6 @@ public class PageUser extends PageAdminUsers {
         accordion.getBodyContainer().add(assignments);
 
         initAssignments(assignments);
-
-        AccordionItem orgUnits = new AccordionItem(ID_ORG_UNIT_LIST, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString("pageUser.orgUnits", 0);
-            }
-        });
-        orgUnits.setOutputMarkupId(true);
-        accordion.getBodyContainer().add(orgUnits);
-
         initButtons(mainForm);
 
         initResourceModal();
