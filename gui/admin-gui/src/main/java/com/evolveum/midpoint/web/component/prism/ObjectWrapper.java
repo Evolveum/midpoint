@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -160,12 +161,12 @@ public class ObjectWrapper implements Serializable {
 	private List<ContainerWrapper> createCustomContainerWrapper(PrismObject object, QName name) {
 		PrismContainer container = object.findContainer(name);
 		ContainerStatus status = container == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING;
+		List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
 		if (container == null) {
 			PrismContainerDefinition definition = object.getDefinition().findContainerDefinition(name);
 			container = definition.instantiate();
 		}
 
-		List<ContainerWrapper> list = new ArrayList<ContainerWrapper>();
 		list.add(new ContainerWrapper(this, container, status, new PropertyPath(name)));
 		list.addAll(createContainerWrapper(container, new PropertyPath(name)));
 
@@ -188,12 +189,15 @@ public class ObjectWrapper implements Serializable {
 
 				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new PropertyPath(
 						ResourceObjectShadowType.F_ATTRIBUTES));
+				
 				container.setMain(true);
 				containers.add(container);
-
-				containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
-				if (AccountShadowType.class.isAssignableFrom(clazz)) {
-					containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
+				
+				if (hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource())){
+					containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
+					if (AccountShadowType.class.isAssignableFrom(clazz)) {
+						containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
+					}
 				}
 			} else {
 				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);

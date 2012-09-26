@@ -74,6 +74,7 @@ ul.messagesTop .messages-error{
 ul.messagesTop .messages-error .messages-error-content, 
 ul.messagesTop .messages-succ .messages-succ-content, 
 ul.messagesTop .messages-warn .messages-warn-content, 
+ul.messagesTop .messages-warn .messages-exp-content,
 ul.messagesTop .messages-info .messages-info-content {
 	display: none;
 	padding-left: 20px;
