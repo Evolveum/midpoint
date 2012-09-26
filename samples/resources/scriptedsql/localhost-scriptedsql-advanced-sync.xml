@@ -141,7 +141,7 @@ object.
 				<xsd:sequence>
 					<xsd:element ref="icfs:name" />
 					<xsd:element minOccurs="0" ref="icfs:uid" />
-					<xsd:element minOccurs="0" ref="icfs:password" />
+				<!--	<xsd:element minOccurs="0" ref="icfs:password" />-->
 					<xsd:element maxOccurs="1" minOccurs="0" name="uid" type="xsd:string" />
 					<xsd:element maxOccurs="1" minOccurs="0" name="firstname" type="xsd:string" />
 					<xsd:element maxOccurs="1" minOccurs="0" name="fullname" type="xsd:string" />
