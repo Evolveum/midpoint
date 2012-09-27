@@ -78,8 +78,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.types.ModificationType;
 import org.opends.server.util.ChangeRecordEntry;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.ModifyChangeRecordEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -136,6 +134,8 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSanity extends AbstractIntegrationTest {
 
+	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
+	
     private static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
@@ -205,35 +205,37 @@ public class TestSanity extends AbstractIntegrationTest {
     private static final String ROLE_JUDGE_FILENAME = "src/test/resources/repo/role-judge.xml";
     private static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
     
-    private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = REQUEST_DIR_NAME + "user-modify-add-account.xml";
 
-    private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME = "src/test/resources/request/user-modify-add-account-derby.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME = REQUEST_DIR_NAME + "user-modify-add-account-derby.xml";
     private static final String USER_JACK_DERBY_LOGIN = "jsparrow";
 
-    private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
-    private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = "src/test/resources/request/user-modify-password.xml";
-    private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = "src/test/resources/request/user-modify-activation-disable.xml";
-    private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = "src/test/resources/request/user-modify-activation-enable.xml";
+    private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = REQUEST_DIR_NAME + "user-modify-fullname-locality.xml";
+    private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = REQUEST_DIR_NAME + "user-modify-password.xml";
+    private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = REQUEST_DIR_NAME + "user-modify-activation-disable.xml";
+    private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = REQUEST_DIR_NAME + "user-modify-activation-enable.xml";
 
-    private static final String REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-add-role-pirate.xml";
-    private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME = "src/test/resources/request/user-modify-add-role-captain-1.xml";
-    private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME = "src/test/resources/request/user-modify-add-role-captain-2.xml";
-    private static final String REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME = "src/test/resources/request/user-modify-add-role-judge.xml";
-    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME = "src/test/resources/request/user-modify-delete-role-pirate.xml";
-    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME = "src/test/resources/request/user-modify-delete-role-captain-1.xml";
-    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME = "src/test/resources/request/user-modify-delete-role-captain-2.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME = REQUEST_DIR_NAME + "user-modify-add-role-pirate.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME = REQUEST_DIR_NAME + "user-modify-add-role-captain-1.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME = REQUEST_DIR_NAME + "user-modify-add-role-captain-2.xml";
+    private static final String REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME = REQUEST_DIR_NAME + "user-modify-add-role-judge.xml";
+    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-pirate.xml";
+    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-captain-1.xml";
+    private static final String REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME = REQUEST_DIR_NAME + "user-modify-delete-role-captain-2.xml";
 
-    private static final String REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME = "src/test/resources/request/account-modify-attrs.xml";
+    private static final String REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME = REQUEST_DIR_NAME + "account-modify-attrs.xml";
 
-    private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
-    private static final String LDIF_WILL_MODIFY_FILENAME = "src/test/resources/request/will-modify.ldif";
-    private static final String LDIF_WILL_WITHOUT_LOCATION_FILENAME = "src/test/resources/request/will-without-location.ldif";
+    private static final String LDIF_WILL_FILENAME = REQUEST_DIR_NAME + "will.ldif";
+    private static final String LDIF_WILL_MODIFY_FILENAME = REQUEST_DIR_NAME + "will-modify.ldif";
+    private static final String LDIF_WILL_WITHOUT_LOCATION_FILENAME = REQUEST_DIR_NAME + "will-without-location.ldif";
     private static final String WILL_NAME = "wturner";
 
-    private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
+    private static final String LDIF_ELAINE_FILENAME = REQUEST_DIR_NAME + "elaine.ldif";
     private static final String ELAINE_NAME = "elaine";
     
-    private static final String LDIF_GIBBS_MODIFY_FILENAME = "src/test/resources/request/gibbs-modify.ldif";
+    private static final String LDIF_GIBBS_MODIFY_FILENAME = REQUEST_DIR_NAME + "gibbs-modify.ldif";
+    
+    private static final String  LDIF_HERMAN_FILENAME = REQUEST_DIR_NAME + "herman.ldif";
 
     private static final QName IMPORT_OBJECTCLASS = new QName(
             "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -2409,11 +2411,6 @@ public class TestSanity extends AbstractIntegrationTest {
     public void test102LiveSyncModify() throws Exception {
         displayTestTile("test102LiveSyncModify");
 
-        LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_MODIFY_FILENAME);
-        LDIFReader ldifReader = new LDIFReader(importConfig);
-        ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
-        display("Entry from LDIF", entry);
-
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test102LiveSyncModify");
         final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
@@ -2423,13 +2420,11 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Sync token before", tokenBefore);
 
         // WHEN
-        display("Modifying LDAP entry "+entry);
-        ModifyOperation modifyOperation = openDJController.getInternalConnection()
-                .processModify((ModifyChangeRecordEntry) entry);
+        display("Modifying LDAP entry");
+        ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_WILL_MODIFY_FILENAME);
 
         // THEN
-        AssertJUnit.assertEquals("LDAP modify operation failed", ResultCode.SUCCESS,
-                modifyOperation.getResultCode());
+        display("Entry from LDIF", entry);
 
         // Wait a bit to give the sync cycle time to detect the change
         basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 1, result);
@@ -2538,8 +2533,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
         Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
-        assertNotNull(localities);
-        assertEquals(1, localities.size());
+        assertNotNull("null value list for attribute 'l'", localities);
+        assertEquals("unexpected number of values of attribute 'l'", 1, localities.size());
         assertEquals("Locality doesn't match", "middle of nowhere", localities.iterator().next());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 3);
@@ -2599,14 +2594,12 @@ public class TestSanity extends AbstractIntegrationTest {
                 + ".test200ImportFromResource");
         
         // Make sure Mr. Gibbs has "l" attribute set to the same value as an outbound expression is setting
-        LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_GIBBS_MODIFY_FILENAME);
-        LDIFReader ldifReader = new LDIFReader(importConfig);
-        ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
+        ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_GIBBS_MODIFY_FILENAME);
         display("Entry from LDIF", entry);
-        ModifyOperation modifyOperation = openDJController.getInternalConnection()
-        		.processModify((ModifyChangeRecordEntry) entry);
-        AssertJUnit.assertEquals("LDAP modify operation failed", ResultCode.SUCCESS,
-                modifyOperation.getResultCode());
+        
+        // Let's add an entry with multiple uids.
+        Entry addEntry = openDJController.addEntryFromLdifFile(LDIF_HERMAN_FILENAME);
+        display("Entry from LDIF", addEntry);
 
         // WHEN
         TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS);

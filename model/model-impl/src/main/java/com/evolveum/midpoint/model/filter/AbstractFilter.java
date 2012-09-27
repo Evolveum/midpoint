@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.model.filter;
 
-import com.evolveum.midpoint.model.controller.Filter;
+import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

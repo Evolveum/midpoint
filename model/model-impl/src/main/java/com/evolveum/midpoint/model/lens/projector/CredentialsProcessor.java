@@ -19,10 +19,12 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -33,11 +35,13 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,7 +72,7 @@ public class CredentialsProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private ValueConstructionFactory valueConstructionFactory;
+    private MappingFactory valueConstructionFactory;
     
     @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
@@ -111,7 +115,6 @@ public class CredentialsProcessor {
             LOGGER.trace("userNew is null, skipping credentials processing");
             return;
         }
-        PrismProperty<PasswordType> userPasswordNew = focusContext.getObjectNew().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
         
         PrismObjectDefinition<AccountShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismPropertyDefinition accountPasswordPropertyDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.PATH_PASSWORD_VALUE);
@@ -156,19 +159,21 @@ public class CredentialsProcessor {
           return;
         }
         
-        ValueConstructionType outbound = refinedAccountDef.getCredentialsOutbound();
+        MappingType outboundMappingType = refinedAccountDef.getCredentialsOutbound();
         
-        if (outbound == null) {
+        if (outboundMappingType == null) {
             LOGGER.trace("No outbound definition in password definition in credentials in account type {}, skipping credentials processing", rat);
             return;
         }
         
-        // TODO: is the parentPath correct (null)?
-        ValueConstruction passwordConstruction = valueConstructionFactory.createValueConstruction(outbound, 
-        		accountPasswordPropertyDefinition, "outbound password in account type " + rat);
-        passwordConstruction.setInput(userPasswordNew);
-        passwordConstruction.evaluate(result);
-        PrismProperty accountPasswordNew = (PrismProperty) passwordConstruction.getOutput();
+        Mapping<PrismPropertyValue<?>> passwordMapping = valueConstructionFactory.createMapping(outboundMappingType, 
+        		"outbound password mapping in account type " + rat);
+        passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
+        ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
+        Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
+		passwordMapping.setDefaultSource(source);
+        passwordMapping.evaluate(result);
+        PrismProperty accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
         if (accountPasswordNew == null) {
             LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
             return;

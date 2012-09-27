@@ -593,13 +593,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ScriptCapabilityType capScript = new ScriptCapabilityType();
 			if (supportedOperations.contains(ScriptOnResourceApiOp.class)) {
 				Host host = new Host();
-				host.setType(ScriptHostType.RESOURCE);
+				host.setType(ProvisioningScriptHostType.RESOURCE);
 				capScript.getHost().add(host);
 				// language is unknown here
 			}
 			if (supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
 				Host host = new Host();
-				host.setType(ScriptHostType.CONNECTOR);
+				host.setType(ProvisioningScriptHostType.CONNECTOR);
 				capScript.getHost().add(host);
 				// language is unknown here
 			}
@@ -842,12 +842,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Uid uid = null;
 		try {
 
-			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.BEFORE);
+			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE);
 
 			// CALL THE ICF FRAMEWORK
 			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
 
-			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
+			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER);
 
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
@@ -991,8 +991,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				passwordChangeOperation = (PasswordChangeOperation) operation;
 				// TODO: check for multiple occurrences and fail
 
-			} else if (operation instanceof ExecuteScriptOperation) {
-				ExecuteScriptOperation scriptOperation = (ExecuteScriptOperation) operation;
+			} else if (operation instanceof ExecuteProvisioningScriptOperation) {
+				ExecuteProvisioningScriptOperation scriptOperation = (ExecuteProvisioningScriptOperation) operation;
 				additionalOperations.add(scriptOperation);
 
 			} else {
@@ -1006,7 +1006,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// icfResult for each operation
 		// and handle the faults individually
 
-		checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.BEFORE);
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE);
 
 		OperationResult icfResult = null;
 		try {
@@ -1177,7 +1177,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
-		checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
+		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER);
 		result.recordSuccess();
 
 		Set<PropertyModificationOperation> sideEffectChanges = new HashSet<PropertyModificationOperation>();
@@ -1234,13 +1234,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
-			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.BEFORE);
+			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE);
 
 			icfConnectorFacade.delete(objClass, uid, new OperationOptionsBuilder().build());
 
 			
 			
-			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
+			checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER);
 			icfResult.recordSuccess();
 
 		} catch (Exception ex) {
@@ -2000,7 +2000,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @param additionalOperations
 	 * @param order
 	 */
-	private void checkAndExecuteAdditionalOperation(Set<Operation> additionalOperations, ScriptOrderType order) {
+	private void checkAndExecuteAdditionalOperation(Set<Operation> additionalOperations, ProvisioningScriptOrderType order) {
 
 		if (additionalOperations == null) {
 			// TODO: add warning to the result
@@ -2008,9 +2008,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		for (Operation op : additionalOperations) {
-			if (op instanceof ExecuteScriptOperation) {
+			if (op instanceof ExecuteProvisioningScriptOperation) {
 
-				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
+				ExecuteProvisioningScriptOperation executeOp = (ExecuteProvisioningScriptOperation) op;
 				LOGGER.trace("Find execute script operation: {}", SchemaDebugUtil.prettyPrint(executeOp));
 				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
@@ -2021,7 +2021,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private void executeScript(ExecuteScriptOperation executeOp) {
+	private void executeScript(ExecuteProvisioningScriptOperation executeOp) {
 
 		// convert execute script operation to the script context required from
 		// the connector
@@ -2041,7 +2041,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private ScriptContext convertToScriptContext(ExecuteScriptOperation executeOp) {
+	private ScriptContext convertToScriptContext(ExecuteProvisioningScriptOperation executeOp) {
 		// creating script arguments map form the execute script operation
 		// arguments
 		Map<String, Object> scriptArguments = new HashMap<String, Object>();

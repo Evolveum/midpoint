@@ -149,7 +149,9 @@ object.
 					<access>read</access>
 					<outbound>
 						<initial>true</initial>
-						<path>$user/name</path>
+						<source>
+							<path>$user/name</path>
+						</source>
 					</outbound>
 				</attribute>
 
@@ -158,7 +160,9 @@ object.
 					<displayName>First name</displayName>
 					<description>Definition of Firstname attribute handling.</description>
 					<outbound>
-						<path>$user/givenName</path>
+						<source>
+							<path>$user/givenName</path>
+						</source>
 					</outbound>
 							
 				</attribute>
@@ -167,7 +171,9 @@ object.
 					<displayName>Last name</displayName>
 					<description>Definition of Lastname attribute handling.</description>
 					<outbound>
-						<path>$user/familyName</path>
+						<source>
+							<path>$user/familyName</path>
+						</source>
 					</outbound>
 							
 				</attribute>
@@ -176,21 +182,19 @@ object.
 					<displayName>Full name</displayName>
 					<description>Definition of Fullname attribute handling.</description>
 					<outbound>
-						<path>$user/fullName</path>
+						<source>
+							<path>$user/fullName</path>
+						</source>
 					</outbound>
 				</attribute>
 				<credentials>
 					<password>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 					</password>
 				</credentials>
 				<activation>
 					<enabled>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 					</enabled>
 				</activation>
 			</accountType>

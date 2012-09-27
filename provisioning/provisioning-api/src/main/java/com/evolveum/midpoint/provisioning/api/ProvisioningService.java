@@ -152,7 +152,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
 			SecurityViolationException;
 
@@ -286,7 +286,7 @@ public interface ProvisioningService {
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
+			ProvisioningScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
 			CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -313,7 +313,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts, OperationResult parentResult)
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 	/**

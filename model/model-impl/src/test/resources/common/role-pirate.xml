@@ -30,19 +30,27 @@
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<attribute>
                 <ref>ri:title</ref>
-				<value>Bloody Pirate</value>
+                <outbound>
+                	<expression>
+						<value>Bloody Pirate</value>
+					</expression>
+				</outbound>
             </attribute>
             <attribute>
                 <ref>ri:location</ref>
-				<path>
-                	locality
-				</path>
-				<condition>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-					<code>
-						user?.getLocality()?.getNorm() != "hidden"
-					</code>
-				</condition>
+                <outbound>
+                	<source>
+						<path>locality</path>
+					</source>
+					<condition>
+						<script>
+							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+							<code>
+								locality?.getNorm() != "hidden"
+							</code>
+						</script>
+					</condition>
+				</outbound>
             </attribute>
     	</accountConstruction>
     </assignment>    

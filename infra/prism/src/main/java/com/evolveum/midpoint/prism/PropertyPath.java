@@ -104,7 +104,13 @@ public class PropertyPath implements Serializable {
 	public PropertyPath subPath(PropertyPathSegment subSegment) {
 		return new PropertyPath(segments, subSegment);
 	}
-	
+
+	public PropertyPath subPath(PropertyPath subPath) {
+		PropertyPath newPath = new PropertyPath(segments);
+		newPath.segments.addAll(subPath.getSegments());
+		return newPath;
+	}
+
 //	private void addAll(List<QName> qnames) {
 //		for (QName qname: qnames) {
 //			add(qname);
@@ -140,6 +146,26 @@ public class PropertyPath implements Serializable {
 		return segments.get(segments.size()-1);
 	}
 
+	/**
+	 * Returns first segment in a form of path.
+	 */
+	public PropertyPath head() {
+		return new PropertyPath(first());
+	}
+	
+	/**
+	 * Returns path containinig all segments except the first.
+	 */
+	public PropertyPath tail() {
+		if (segments.size() == 0) {
+			return EMPTY_PATH;
+		}
+		return new PropertyPath(segments.subList(1, segments.size()));
+	}
+
+	/**
+	 * Returns a path containing all segments except the last one.
+	 */
 	public PropertyPath allExceptLast() {
 		if (segments.size() == 0) {
 			return EMPTY_PATH;

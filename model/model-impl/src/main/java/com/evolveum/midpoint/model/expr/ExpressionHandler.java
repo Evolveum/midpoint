@@ -20,28 +20,39 @@
  */
 package com.evolveum.midpoint.model.expr;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -75,7 +86,7 @@ public class ExpressionHandler {
     @Autowired(required = true)
     private PrismContext prismContext;
 	
-	private XPathExpressionEvaluator xpathEvaluator = null;
+	private XPathScriptEvaluator xpathEvaluator = null;
 	
 
 	private ModelController getModel() {
@@ -96,11 +107,19 @@ public class ExpressionHandler {
 		
 		Map<QName, Object> variables = getDefaultXPathVariables(null, shadow, resource);
 		
-		Expression expression = expressionFactory.createExpression(expressionType, shortDesc);
-		expression.addVariableDefinitions(variables);
+		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				DOMUtil.XSD_STRING, prismContext);
+		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, shortDesc);
 
-        PrismPropertyValue<String> value = expression.evaluateScalar(String.class, result);
-        return value != null ? value.getValue() : null;
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(null, variables, false, shortDesc, result);
+		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
+		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+			return null;
+		}
+        if (nonNegativeValues.size() > 1) {
+        	throw new ExpressionEvaluationException("Expression returned more than one value ("+nonNegativeValues.size()+") in "+shortDesc);
+        }
+        return nonNegativeValues.iterator().next().getValue();
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
@@ -112,12 +131,29 @@ public class ExpressionHandler {
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource);
+		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
-		Expression expression = expressionFactory.createExpression(expressionType, "Confiration expression for "+resource.asPrismObject());
-		expression.addVariableDefinitions(variables);
-		String expressionResult = expression.evaluateScalar(String.class, result).getValue();
-		
-		return Boolean.valueOf(expressionResult);
+		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				DOMUtil.XSD_BOOLEAN, prismContext);
+		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, shortDesc);
+
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(null, variables, false, shortDesc, result);
+		Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
+		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+			throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);
+		}
+        if (nonNegativeValues.size() > 1) {
+        	throw new ExpressionEvaluationException("Expression returned more than one value ("+nonNegativeValues.size()+") in "+shortDesc);
+        }
+        PrismPropertyValue<Boolean> resultpval = nonNegativeValues.iterator().next();
+        if (resultpval == null) {
+        	throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);
+        }
+        Boolean resultVal = resultpval.getValue();
+        if (resultVal == null) {
+        	throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);
+        }
+		return resultVal;
 	}
 
 	// TODO: refactor - this method is also in SchemaHandlerImpl
@@ -170,24 +206,5 @@ public class ExpressionHandler {
 		return repositoryService.getObject(type, ref.getOid(), result).asObjectable();
 
 	}
-	
-	public ValueConstructionFactory createValueConstructionFactory(ObjectResolver resolver) {
-		ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
-		registerEvaluators(expressionFactory);
-		expressionFactory.setObjectResolver(resolver);
 		
-		ValueConstructionFactory valueConstructionFactory = new ValueConstructionFactory();
-		valueConstructionFactory.setExpressionFactory(expressionFactory);
-		valueConstructionFactory.setObjectResolver(resolver);
-		valueConstructionFactory.setPrismContext(prismContext);
-		return valueConstructionFactory;
-	}
-	
-	public void registerEvaluators(ExpressionFactory expressionFactory) {
-		if (xpathEvaluator == null) {
-			xpathEvaluator = new XPathExpressionEvaluator(prismContext);
-		}
-		expressionFactory.registerEvaluator(XPathExpressionEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
-	}
-
 }

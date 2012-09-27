@@ -1,0 +1,306 @@
+/*
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ */
+package com.evolveum.midpoint.common.expression.script;
+
+import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Processor;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionRelativityModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionReturnTypeType;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+/**
+ * @author Radovan Semancik
+ */
+public class ScriptExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
+
+	private ScriptExpressionEvaluatorType scriptType;
+	private ScriptExpression scriptExpression;
+
+    ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression) {
+    	this.scriptType = scriptType;
+        this.scriptExpression = scriptExpression;
+    }
+
+    /* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public PrismValueDeltaSetTriple<V> evaluate(Collection<Source<? extends PrismValue>> sources, Map<QName, Object> variables,
+			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+			ExpressionEvaluationException, ObjectNotFoundException {
+        
+		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(sources);
+		
+        PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
+    
+        if (scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.ABSOLUTE) {
+        	
+        	outputTriple = evaluateAbsoluteExpression(sourceTriples, variables, contextDescription, result);
+        
+        } else if (scriptType.getRelativityMode() == null || scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.RELATIVE) {
+        	
+        	if (sourceTriples == null || sourceTriples.isEmpty()) {
+        		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
+        		outputTriple = evaluateAbsoluteExpression(null, variables, contextDescription, result);
+        	} else {
+        		outputTriple = evaluateRelativeExpression(sourceTriples, variables, regress, contextDescription, result);
+        	}
+        	
+        } else {
+        	throw new IllegalArgumentException("Unknown relativity mode "+scriptType.getRelativityMode());
+        }
+        
+        return outputTriple;        
+    }
+
+	private List<SourceTriple<? extends PrismValue>> processSources(Collection<Source<? extends PrismValue>> sources) {
+		List<SourceTriple<? extends PrismValue>> sourceTriples = 
+			new ArrayList<SourceTriple<? extends PrismValue>>(sources == null ? 0 : sources.size());
+		if (sources == null) {
+			return sourceTriples;
+		}
+		for (Source<? extends PrismValue> source: sources) {
+			SourceTriple<? extends PrismValue> sourceTriple = new SourceTriple<PrismValue>((Source<PrismValue>) source);
+			ItemDelta<? extends PrismValue> delta = source.getDelta();
+			if (delta != null) {
+				sourceTriple.merge((DeltaSetTriple) delta.toDeltaSetTriple((Item) source.getItemOld()));
+			} else {
+				if (source.getItemOld() != null) {
+					sourceTriple.addAllToZeroSet((Collection)source.getItemOld().getValues());
+				}
+			}
+			sourceTriples.add(sourceTriple);
+		}
+		return sourceTriples;
+	}
+
+	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<SourceTriple<? extends PrismValue>> sourceTriples,
+			Map<QName, Object> variables, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		
+		ScriptVariables scriptVariables = new ScriptVariables();
+		scriptVariables.addVariableDefinitionsNew(variables);
+		
+		if (sourceTriples != null) {
+			// Add sources to variables
+			for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
+				QName name = sourceTriple.getName();
+				if (name == null) {
+					if (sourceTriples.size() == 1) {
+						name = ExpressionConstants.VAR_INPUT;
+					} else {
+						throw new ExpressionSyntaxException("No name definition for source in "+contextDescription);
+					}
+				}
+				Collection<? extends PrismValue> values = sourceTriple.getNonNegativeValues();
+				Item<? extends PrismValue> item = null;
+				if (sourceTriple.getSource().isNull()) {
+					scriptVariables.addVariableDefinition(name, (Item<?>)null);
+				} else {
+					item = sourceTriple.getSource().getEmptyItem();
+					item.addAll((Collection) PrismValue.cloneCollection(values));
+					scriptVariables.addVariableDefinition(name, item);
+				}
+				
+			}
+		}
+		
+		List<PrismPropertyValue<Object>> scriptResults = scriptExpression.evaluate(scriptVariables, null, contextDescription, result);
+		
+		if (scriptResults == null || scriptResults.isEmpty()) {
+			return null;
+		}
+		
+		Collection<V> zeroSet = new ArrayList<V>(scriptResults.size());
+		for (PrismPropertyValue<Object> pval: scriptResults) {
+			if (pval == null || pval.getValue() == null) {
+				continue;
+			}
+			Object realValue = pval.getValue();
+			if (realValue instanceof String) {
+				if (((String)realValue).isEmpty()) {
+					continue;
+				}
+			}
+			if (realValue instanceof PolyString) {
+				if (((PolyString)realValue).isEmpty()) {
+					continue;
+				}
+			}
+			zeroSet.add((V) pval);
+		}
+		
+		PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>((Collection<V>) zeroSet, null, null);
+		return outputTriple;
+	}
+	
+	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,
+			final Map<QName, Object> variables, boolean regress, final String contextDescription, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		
+		List<Collection<? extends PrismValue>> valueCollections = new ArrayList<Collection<? extends PrismValue>>(sourceTriples.size());
+		for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
+			valueCollections.add(sourceTriple.union());
+		}
+		
+		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
+		
+		Processor<Collection<? extends PrismValue>> processor = new Processor<Collection<? extends PrismValue>>() {
+			@Override
+			public void process(Collection<? extends PrismValue> pvalues) {
+				Map<QName, Object> sourceVariables = new HashMap<QName, Object>();
+				Iterator<SourceTriple<? extends PrismValue>> sourceTriplesIterator = sourceTriples.iterator();
+				boolean hasMinus = false;
+				boolean hasZero = false;
+				boolean hasPlus = false;
+				for (PrismValue pval: pvalues) {
+					SourceTriple<PrismValue> sourceTriple = (SourceTriple<PrismValue>) sourceTriplesIterator.next();
+					QName name = sourceTriple.getName();
+					sourceVariables.put(name, pval);
+					if (sourceTriple.presentInMinusSet(pval)) {
+						hasMinus = true;
+					}
+					if (sourceTriple.presentInZeroSet(pval)) {
+						hasZero = true;
+					}
+					if (sourceTriple.presentInPlusSet(pval)) {
+						hasPlus = true;
+					}
+				}
+				if (!hasPlus && !hasMinus && !hasZero) {
+					throw new IllegalStateException("Internal error! The impossible has happened!");
+				}
+				if (hasPlus && hasMinus) {
+					// Both plus and minus. Ignore this combination. It should not appear in output
+					return;
+				}
+				
+				ScriptVariables scriptVariables = new ScriptVariables();
+				if (hasPlus) {
+					// Pluses and zeroes: Result goes to plus set
+					scriptVariables.addVariableDefinitions(sourceVariables);
+					scriptVariables.addVariableDefinitionsNew(variables);
+				} else if (hasMinus) {
+					// Minuses and zeroes: Result goes to minus set
+					scriptVariables.addVariableDefinitions(sourceVariables);
+					scriptVariables.addVariableDefinitionsOld(variables);
+				} else {
+					// All zeros: Result goes to zero set
+					scriptVariables.addVariableDefinitions(sourceVariables);
+					scriptVariables.addVariableDefinitionsNew(variables);
+				}
+				
+				List<V> scriptResults;
+				try {
+					scriptResults = (List<V>) scriptExpression.evaluate(scriptVariables, ScriptExpressionReturnTypeType.SCALAR, 
+							contextDescription, result);
+				} catch (ExpressionEvaluationException e) {
+					throw new TunnelException(new ExpressionEvaluationException(e.getMessage()+
+							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+				} catch (ObjectNotFoundException e) {
+					throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
+							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+				} catch (SchemaException e) {
+					throw new TunnelException(new SchemaException(e.getMessage()+
+							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+				} catch (RuntimeException e) {
+					throw new TunnelException(new RuntimeException(e.getMessage()+
+							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+				}
+				
+				if (hasPlus) {
+					// Pluses and zeroes: Result goes to plus set
+					outputTriple.addAllToPlusSet(scriptResults);
+				} else if (hasMinus) {
+					// Minuses and zeroes: Result goes to minus set
+					outputTriple.addAllToMinusSet(scriptResults);
+				} else {
+					// All zeros: Result goes to zero set
+					outputTriple.addAllToZeroSet(scriptResults);
+				}
+			}
+		};
+		try {
+			MiscUtil.carthesian((Collection)valueCollections, (Processor)processor);
+		} catch (TunnelException e) {
+			Throwable originalException = e.getCause();
+			if (originalException instanceof ExpressionEvaluationException) {
+				throw (ExpressionEvaluationException)originalException;
+			} else if (originalException instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)originalException;
+			} else if (originalException instanceof SchemaException) {
+				throw (SchemaException)originalException;
+			} else if (originalException instanceof RuntimeException) {
+				throw (RuntimeException)originalException;
+			} else {
+				throw new IllegalStateException("Unexpected exception: "+e+": "+e.getMessage(),e);
+			}
+		}
+		
+		return outputTriple;
+	}
+	
+	private String dumpSourceValues(Map<QName, Object> variables) {
+		StringBuilder sb = new StringBuilder();
+		for (Entry<QName, Object> entry: variables.entrySet()) {
+			sb.append(DebugUtil.prettyPrint(entry.getKey()));
+			sb.append("=");
+			sb.append(DebugUtil.prettyPrint(entry.getValue()));
+			sb.append("; ");
+		}
+		return sb.toString();
+	}	
+	
+}

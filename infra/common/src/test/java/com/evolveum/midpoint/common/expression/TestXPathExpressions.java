@@ -20,7 +20,8 @@
  */
 package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
+import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import java.io.File;
@@ -28,11 +29,11 @@ import java.io.File;
 /**
  * @author Radovan Semancik
  */
-public class TestXPathExpressions extends AbstractExpressionTest {
+public class TestXPathExpressions extends AbstractScriptTest {
 
     @Override
-	protected ExpressionEvaluator createEvaluator(PrismContext prismContext) {
-		return new XPathExpressionEvaluator(prismContext);
+	protected ScriptEvaluator createEvaluator(PrismContext prismContext) {
+		return new XPathScriptEvaluator(prismContext);
 	}
 
 	@Override

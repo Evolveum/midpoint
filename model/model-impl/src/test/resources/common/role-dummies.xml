@@ -30,11 +30,19 @@
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<attribute>
                 <ref>ri:title</ref>
-				<value>The Great Voodoo Master</value>
+                <outbound>
+                	<expression>
+						<value>The Great Voodoo Master</value>
+					</expression>
+				</outbound>
             </attribute>
     		<attribute>
                 <ref>ri:ship</ref>
-				<value>The Lost Souls</value>
+                <outbound>
+                	<expression>
+						<value>The Lost Souls</value>
+					</expression>
+				</outbound>
             </attribute>
     	</accountConstruction>
     </assignment>    

@@ -232,5 +232,17 @@ public class ResourceObjectShadowUtil {
 		}
 		return null;
 	}
+
+	public static <T> Collection<T> getAttributeValues(ResourceObjectShadowType shadow, QName attributeQname, Class<T> type) {
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		if (attributesContainer == null) {
+			return null;
+		}
+		ResourceAttribute<T> attribute = attributesContainer.findAttribute(attributeQname);
+		if (attribute == null) {
+			return null;
+		}
+		return attribute.getRealValues(type);
+	}
 	
 }

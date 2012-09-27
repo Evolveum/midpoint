@@ -22,98 +22,146 @@ package com.evolveum.midpoint.common.expression;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 
 /**
- * 
- * @author Radovan Semancik
+ * @author semancik
  *
  */
 public class ExpressionFactory {
 	
-	public static String DEFAULT_LANGUAGE = "http://www.w3.org/TR/xpath/";
-	
-	private Map<String,ExpressionEvaluator> evaluators;
-	private ObjectResolver objectResolver;
+	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactories = new HashMap<QName, ExpressionEvaluatorFactory>();
+	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
+	private Map<ExpressionIdentifier, Expression<?>> cache = new HashMap<ExpressionIdentifier, Expression<?>>();
 	private PrismContext prismContext;
-	private MidPointFunctions functionLibrary;
+	private ObjectResolver objectResolver;
 	
-	public ExpressionFactory(PrismContext prismContext) {
-		this.prismContext = prismContext;
-		evaluators = new HashMap<String, ExpressionEvaluator>();
-		functionLibrary = new MidPointFunctions(prismContext);
-	}
-	
-	/**
-	 * Factory method created especially to be used from the Spring context.
-	 */
-	@Deprecated
-	public static ExpressionFactory createExpressionFactory(PrismContext prismContext, Map<String,ExpressionEvaluator> evaluators) {
-		ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
-		for (Entry<String, ExpressionEvaluator> entry: evaluators.entrySet()) {
-			expressionFactory.registerEvaluator(entry.getKey(), entry.getValue());
-		}
-		return expressionFactory;
-	}
-	
-	/**
-	 * Factory method created especially to be used from the Spring context.
-	 */
-	public static ExpressionFactory createExpressionFactory(PrismContext prismContext, Collection<ExpressionEvaluator> evaluators) {
-		ExpressionFactory expressionFactory = new ExpressionFactory(prismContext);
-		for (ExpressionEvaluator evaluator: evaluators) {
-			expressionFactory.registerEvaluator(evaluator.getLanguageUrl(), evaluator);
-		}
-		return expressionFactory;
-	}
-	
-	public ObjectResolver getObjectResolver() {
-		return objectResolver;
-	}
-
-	public void setObjectResolver(ObjectResolver objectResolver) {
+	public ExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext) {
+		super();
 		this.objectResolver = objectResolver;
+		this.prismContext = prismContext;
+	}
+	
+	/**
+	 * Factory method created especially to be used from the Spring context.
+	 */
+	public ExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
+			Collection<ExpressionEvaluatorFactory> evaluatorFactories) {
+		super();
+		this.objectResolver = objectResolver;
+		this.prismContext = prismContext;
+		for (ExpressionEvaluatorFactory evaluatorFactory: evaluatorFactories) {
+			addEvaluatorFactory(evaluatorFactory);
+		}
+	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
 	}
 
-	public Map<String, ExpressionEvaluator> getEvaluators() {
-		return evaluators;
+	public <V extends PrismValue> Expression<V> makeExpression(ExpressionType expressionType, ItemDefinition outputDefinition, String shortDesc) throws SchemaException {
+		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
+		Expression<V> expression = (Expression<V>) cache.get(eid);
+		if (expression == null) {
+			expression = createExpression(expressionType, outputDefinition, shortDesc);
+			cache.put(eid, expression);
+		}
+		return expression;
 	}
 
-	public Expression createExpression(ExpressionType expressionType, String shortDesc) throws ExpressionEvaluationException {
-		Expression expression = new Expression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType, shortDesc);
-		expression.setObjectResolver(objectResolver);
-		expression.setReturnType(expressionType.getReturnType());
-		expression.setFunctionLibrary(functionLibrary);
+	private <V extends PrismValue> Expression<V> createExpression(ExpressionType expressionType, ItemDefinition outputDefinition, String shortDesc) throws SchemaException {
+		Expression<V> expression = new Expression<V>(expressionType, outputDefinition, objectResolver, prismContext);
+		expression.parse(this, shortDesc);
 		return expression;
 	}
 	
-	public void registerEvaluator(String language, ExpressionEvaluator evaluator) {
-		if (evaluators.containsKey(language)) {
-			throw new IllegalArgumentException("Evaluator for language "+language+" already registered");
-		}
-		evaluators.put(language,evaluator);
+	public <V extends PrismValue> ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
+		return evaluatorFactories.get(elementName);
 	}
 	
-	private ExpressionEvaluator getEvaluator(String language, String shortDesc) throws ExpressionEvaluationException {
-		ExpressionEvaluator evaluator = evaluators.get(language);
-		if (evaluator == null) {
-			throw new ExpressionEvaluationException("Language "+language+" used in expression "+shortDesc+" is not supported");
-		}
-		return evaluator;
+	public void addEvaluatorFactory(ExpressionEvaluatorFactory factory) {
+		evaluatorFactories.put(factory.getElementName(), factory);
+	}
+	
+	public ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
+		return defaultEvaluatorFactory;
+	}
+	
+	public void setDefaultEvaluatorFactory(ExpressionEvaluatorFactory defaultEvaluatorFactory) {
+		this.defaultEvaluatorFactory = defaultEvaluatorFactory;
 	}
 
-	private String getLanguage(ExpressionType expressionType) {
-		if (expressionType.getLanguage() != null) {
-			return expressionType.getLanguage();
+	class ExpressionIdentifier {
+		private ExpressionType expressionType;
+		private ItemDefinition outputDefinition;
+		
+		ExpressionIdentifier(ExpressionType expressionType, ItemDefinition outputDefinition) {
+			super();
+			this.expressionType = expressionType;
+			this.outputDefinition = outputDefinition;
 		}
-		return DEFAULT_LANGUAGE;
+
+		public ExpressionType getExpressionType() {
+			return expressionType;
+		}
+
+		public void setExpressionType(ExpressionType expressionType) {
+			this.expressionType = expressionType;
+		}
+
+		public ItemDefinition getOutputDefinition() {
+			return outputDefinition;
+		}
+
+		public void setOutputDefinition(ItemDefinition outputDefinition) {
+			this.outputDefinition = outputDefinition;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((expressionType == null) ? 0 : expressionType.hashCode());
+			result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ExpressionIdentifier other = (ExpressionIdentifier) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (expressionType == null) {
+				if (other.expressionType != null)
+					return false;
+			} else if (!expressionType.equals(other.expressionType))
+				return false;
+			if (outputDefinition == null) {
+				if (other.outputDefinition != null)
+					return false;
+			} else if (!outputDefinition.equals(other.outputDefinition))
+				return false;
+			return true;
+		}
+
+		private ExpressionFactory getOuterType() {
+			return ExpressionFactory.this;
+		}
 	}
-	
+
 }
-

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.prism.delta;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -140,6 +142,35 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		super.applyTo(item);
 	}
 	
+	public ItemDelta<?> findItemDelta(PropertyPath path) {
+		if (path.isEmpty()) {
+			return this;
+		}
+		ItemDefinition itemDefinition = getDefinition().findItemDefinition(path);
+		ItemDelta<?> itemDelta = itemDefinition.createEmptyDelta(getPath().subPath(path));
+		itemDelta.addValuesToAdd(findItemValues(path, getValuesToAdd()));
+		itemDelta.addValuesToDelete(findItemValues(path, getValuesToDelete()));
+		itemDelta.setValuesToReplace(findItemValues(path, getValuesToReplace()));
+		if (itemDelta.isEmpty()) {
+			return null;
+		}
+		return itemDelta;
+	}
+	
+	private Collection findItemValues(PropertyPath path, Collection<PrismContainerValue<V>> cvalues) {
+		if (cvalues == null) {
+			return null;
+		}
+		Collection<PrismValue> subValues = new ArrayList<PrismValue>();
+		for (PrismContainerValue<V> cvalue: cvalues) {
+			Item<?> item = cvalue.findItem(path);
+			if (item != null) {
+				subValues.addAll(item.getValues());
+			}
+		}
+		return subValues;
+	}
+
 	@Override
 	public ContainerDelta<V> clone() {
 		ContainerDelta<V> clone = new ContainerDelta<V>(getName(), getDefinition());

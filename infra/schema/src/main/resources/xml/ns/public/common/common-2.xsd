@@ -411,7 +411,7 @@
                 </xsd:annotation>
             </xsd:element>
             
-	        <xsd:element name="org" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
+	        <xsd:element name="parentOrg" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
 	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
@@ -422,20 +422,7 @@
 	        			<a:objectReference>tns:parentOrgRef</a:objectReference>
 	        		</xsd:appinfo>
 	            </xsd:annotation>
-	        </xsd:element>
-	
-<!-- 	        <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"> -->
-<!-- 	            <xsd:annotation> -->
-<!-- 	                <xsd:documentation> -->
-<!-- 	                    Set of the orgs (organizational units, projects, teams) that the object relates to. -->
-<!-- 	                    This usually means that the object belongs to them but it may have other meanings as well -->
-<!-- 	                    (e.g. user manages an organizational unit). -->
-<!-- 	                </xsd:documentation> -->
-<!-- 	                <xsd:appinfo> -->
-<!-- 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType> -->
-<!-- 	        		</xsd:appinfo> -->
-<!-- 	            </xsd:annotation> -->
-<!-- 	        </xsd:element> -->
+	        </xsd:element>	
 	        <xsd:element name="parentOrgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
@@ -2318,7 +2305,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element ref="tns:scripts" minOccurs="0"/>
+                    <xsd:element name="scripts" type="tns:ProvisioningScriptsType" minOccurs="0"/>
                     <xsd:element ref="tns:synchronization" minOccurs="0"/>
                     <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
@@ -2599,7 +2586,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outbound" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the attribute value is constructed in case of information flow from IDM to the
@@ -2617,12 +2604,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:ValueAssignmentType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the attribute values are used (assigned) in case of information flow from resource
-                        to
-                        IDM, e.g. in case of synchronization, reconciliation or discovery.
+                        to IDM, e.g. in case of synchronization, reconciliation or discovery.
 
                         In case a source expression is used, the expression variables should be as follows:
                         $user - the user to whom the account belongs
@@ -2655,7 +2641,7 @@
 
     <xsd:complexType name="ResourcePasswordDefinitionType">
         <xsd:sequence>
-            <xsd:element name="outbound" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the password value is constructed in case of information flow from IDM to the
@@ -2663,7 +2649,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:ValueAssignmentType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
             			Defines how user password is constructed if he user is created or updated from this account.
@@ -2699,7 +2685,7 @@
 
     <xsd:complexType name="ResourceActivationEnableDefinitionType">
         <xsd:sequence>
-            <xsd:element name="outbound" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the "enable" value is constructed in case of information flow from IDM to the
@@ -2707,7 +2693,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:ValueAssignmentType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
             	<xsd:annotation>
             		<xsd:documentation>
             			Defines how user "enable" value is constructed if the user is created or updated from this account.
@@ -2836,14 +2822,14 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptsType">
+    <xsd:complexType name="ProvisioningScriptsType">
         <xsd:annotation>
             <xsd:documentation>
                 Collection of scripts to be executed for various provisioning operations.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="script" type="tns:ScriptType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="script" type="tns:ProvisioningScriptType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Specific script definition.
@@ -2853,16 +2839,16 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="scripts" type="tns:ScriptsType"/>
+    <xsd:element name="provisioningScripts" type="tns:ProvisioningScriptsType"/>
 
-    <xsd:complexType name="ScriptType">
+    <xsd:complexType name="ProvisioningScriptType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies how and when a script is executed during provisioning.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="operation" type="tns:OperationTypeType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="operation" type="tns:ProvisioningOperationTypeType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines a set of operations for which the script should be executed.
@@ -2873,7 +2859,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="order" type="tns:ScriptOrderType">
+            <xsd:element name="order" type="tns:ProvisioningScriptOrderType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines the order in which a script is executed.
@@ -2881,7 +2867,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="host" type="tns:ScriptHostType" minOccurs="0" default="resource">
+            <xsd:element name="host" type="tns:ProvisioningScriptHostType" minOccurs="0" default="resource">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines where the script should be executed
@@ -2897,7 +2883,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="argument" type="tns:ScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="argument" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Script aguments. The arguments will passed to the script
@@ -2921,7 +2907,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="OperationTypeType">
+    <xsd:simpleType name="ProvisioningOperationTypeType">
         <xsd:annotation>
             <xsd:documentation>
                 Type of an operation (change). It defines operations to change
@@ -2961,7 +2947,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="ScriptOrderType">
+    <xsd:simpleType name="ProvisioningScriptOrderType">
         <xsd:annotation>
             <xsd:documentation>
                 An enumeration that defines when the script will be excuted.
@@ -2991,7 +2977,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="ScriptHostType">
+    <xsd:simpleType name="ProvisioningScriptHostType">
         <xsd:annotation>
             <xsd:documentation>
                 An enumeration that defines where the script will be excuted.
@@ -3028,7 +3014,7 @@
     </xsd:simpleType>
 
 
-    <xsd:complexType name="ScriptArgumentType">
+    <xsd:complexType name="ProvisioningScriptArgumentType">
         <xsd:annotation>
             <xsd:documentation>
                 Script argument. It is subtype of Value Construction, therefore
@@ -3038,7 +3024,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ValueConstructionType">
+            <xsd:extension base="tns:ExpressionType">
                 <xsd:sequence>
                     <xsd:element name="name" type="xsd:string">
                         <xsd:annotation>
@@ -3077,7 +3063,16 @@
     </xsd:complexType>
 
 
-    <xsd:complexType name="ValueConstructionType">
+
+
+
+
+
+
+
+
+
+    <xsd:complexType name="MappingType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines how a value of a property (or attribute) should be
@@ -3104,15 +3099,6 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the property that this value should be assigned to.
-                        OPTIONAL. It may be defined explicitly by the structure that contains
-                        value construction. But in case that it is not, this element may define it.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3134,189 +3120,41 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:stringFilter" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:choice>
-                <xsd:element ref="tns:valueConstructor" minOccurs="1" maxOccurs="1"/>
-                <xsd:element name="sequence">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element ref="tns:valueConstructor" maxOccurs="unbounded"/>
-                        </xsd:sequence>
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:element ref="tns:condition" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="source" type="tns:MappingSourceDeclarationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="target" type="tns:MappingTargetDeclarationType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0"/>
+            <xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="mapping" type="tns:MappingType"/>
 
-    <xsd:element name="valueConstruction" type="tns:ValueConstructionType"/>
-
-    <xsd:element name="stringFilter" type="tns:StringFilterType"/>
-
-    <xsd:complexType name="StringFilterType">
+	<xsd:complexType name="MappingSourceDeclarationType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
         </xsd:annotation>
-    </xsd:complexType>
-
-    <xsd:element name="valueConstructor" abstract="true"/>
-
-    <xsd:element name="value" type="xsd:anyType" substitutionGroup="tns:valueConstructor" nillable="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                Static value for the attribute or property.
-
-                Static attribute values. The values in this element should be
-                assigned to the account as-is.
-
-                List of values for the attribute provided in an propriate XML elements
-                that specify attribute name. (as is usual for properties)
-
-                Only one attribute may be specified here, although it may have multiple
-                values. Multi-valued attributes are expressed by repeating the same XML
-                element multiple times.
-                Hence all the XML elements that match this xsd:any must have the same
-                element names (may have different values of course).
-
-
-                Please note that this is nillable and therefore it may be
-                explicitly set to "nil" value. Doing this means that empty
-                set of values should be constructed. E.g. setting
-                this to "nil" and also setting "authoritative" flag
-                may enforce removal of all attribute values (if used properly).
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:complexType name="AsIsValueConstructorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Copy value as is, without any modification.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:complexType>
-
-    <xsd:element name="asIs" type="tns:AsIsValueConstructorType" substitutionGroup="tns:valueConstructor"/>
-
-    <xsd:complexType name="GenerateValueConstructorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Generate value according to a policy that is associated with the property/attribute.
-            </xsd:documentation>
-        </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="length" type="xsd:int" minOccurs="0" default="8">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				Length of randomly-generated value (in characters).
-        				
-        				UNSTABLE. WILL MOST LIKELY CHANGE IN NEXT RELEASES.
-        				Optional reference to a (password/string) policy will be here. 
-        			</xsd:documentation>
-        		</xsd:annotation>
-        	</xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="generate" type="tns:GenerateValueConstructorType" substitutionGroup="tns:valueConstructor"/>
-
-    <xsd:element name="expression" type="tns:ExpressionType" substitutionGroup="tns:valueConstructor"/>
-
-	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:valueConstructor"/>
-
-    <xsd:complexType name="PropertyConstructionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Definition of construction of a (general) property. The property
-                may be constructed as a static value of as a result of an
-                expression (See ValueConstructionType documentation).
-                This can be used e.g. to constuct a value for user's fullName
-                in User Template or also on other places in the future.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-    		<xsd:element name="property" type="t:XPathType"/>
+            <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="valueConstruction" type="tns:ValueConstructionType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference (QName) of the property which value is defined by this type.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+           	<xsd:element name="path" type="t:XPathType"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ValueAssignmentType">
+	<xsd:complexType name="MappingTargetDeclarationType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines an assignment of value from one place (or
-                expression) to another place.
-                This is supposed to be a general-purpose construct.
-                TODO: merging options
-
-                This type is marked with jaxb:dom annotation, which will avoid
-                JAXB parsing of it. This is a workaround to a JAXB limitation,
-                which cannot handle more than one "any" elements in a type.
-                See http://java.net/jira/browse/JAXB-798
+                TODO
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:valueFilter" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        List of filters that will be applied to the value before
-                        it even gets processed by this assignment. The filters
-                        will get applied even before the expression.
-
-                        The filters will be executed in chain in the
-                        order as specified here.
-
-                        The filters are supposed to "clean up" or transcode
-                        the value to comply with usual XML standards.
-                        (but see the note in ValueFilterType documentation)
-                        
-                        DEPRECATED. Use filters in the value construction (source) instead.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="source" type="c:ValueConstructionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Source of assignment. R-value. The value (or
-                        values) will be copied from this place
-                        or from the result of the expression.
-                        Depending on how this type is used, the source may be
-                        implicit. Therefore the source definition is optional.
-
-                        The expression will most likely contain variables.
-                        Please refer to the documentation of containing or
-                        derived type for more details.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="target" type="t:XPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Destination of the assignment. L-value. The value
-                        (or values) will be copied to this place. It is
-                        an XPath pointer that must point to an existing,
-                        mutable part of XML document.
-                        
-                        The target may be implicit, which is usual in case of
-                        standard attributes (such as password or activation).
-
-                        The copy will replace all existing values. But that
-                        behavior may change in the future.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+           	<xsd:element name="path" type="t:XPathType"/>
         </xsd:sequence>
     </xsd:complexType>
-
+    
     <xsd:complexType name="ValueFilterType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3355,7 +3193,313 @@
         </xsd:attribute>
     </xsd:complexType>
 
-    <xsd:element name="valueFilter" type="tns:ValueFilterType"/>
+    <xsd:complexType name="ExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			DEPRECATED. Only for use in search filters. Can be removed once the filters are fixed.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stringFilter" type="tns:StringFilterType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="variable" type="tns:ExpressionVariableDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of additional variables that should be
+                        present during evaluation of the expression.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="1"/>
+                <xsd:element name="sequence">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element ref="tns:expressionEvaluator" maxOccurs="unbounded"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="expression" type="tns:ExpressionType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                The expression that can be used to dynamically evaluate the value, e.g. in the query filter.
+                
+                It must be a top-level element so the processor of Query schema can find it. See prism query-2 schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="valueExpression" type="tns:ExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                DEPRECATED. For compatibility only (search filters).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="StringFilterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ExpressionVariableDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a variable. This type declares a variable name
+                and defines the initial content of the variable.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Variable name. The variable will be presented to the expression using specified name.
+
+                        The name is a QName, which is good for XML-based expression languages such as XPath.
+                        For languages with flat names the namespace is fixed (see documentation of midPoint
+                        language binding) and the only relevant name is the local part.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:choice>
+            	<xsd:element name="path" type="t:XPathType"/>
+                <xsd:element name="objectRef" type="tns:ObjectReferenceType">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element ref="tns:value">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            TODO
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="expressionEvaluator" abstract="true"/>
+
+    <xsd:element name="value" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator" nillable="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Static value for the attribute or property.
+
+                Static attribute values. The values in this element should be
+                assigned to the account as-is.
+
+                List of values for the attribute provided in an propriate XML elements
+                that specify attribute name. (as is usual for properties)
+
+                Only one attribute may be specified here, although it may have multiple
+                values. Multi-valued attributes are expressed by repeating the same XML
+                element multiple times.
+                Hence all the XML elements that match this xsd:any must have the same
+                element names (may have different values of course).
+
+
+                Please note that this is nillable and therefore it may be
+                explicitly set to "nil" value. Doing this means that empty
+                set of values should be constructed. E.g. setting
+                this to "nil" and also setting "authoritative" flag
+                may enforce removal of all attribute values (if used properly).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="AsIsExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Copy value as is, without any modification.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:element name="asIs" type="tns:AsIsExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="GenerateExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generate value according to a policy that is associated with the property/attribute.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="length" type="xsd:int" minOccurs="0" default="8">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Length of randomly-generated value (in characters).
+        				
+        				UNSTABLE. WILL MOST LIKELY CHANGE IN NEXT RELEASES.
+        				Optional reference to a (password/string) policy will be here. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="generate" type="tns:GenerateExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="ScriptExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic script expression. The purpose of the expression is to return
+                a value. The expression must produce something that is a piece
+                of XML, which means that it may produce either string value,
+                XML node or a list of XML nodes.
+
+                The expression may use variables or arguments. However, such
+                variables or arguments passed to the expression will be different
+                for each invocation. It should be documented in each case this type is used.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Language of the expression. Groovy is the default language if other language is not specified.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The type of the expression result, either "list" or "scalar". If not set it will be
+                        determined automatically from the target data type for the expression. This setting
+                        should be used only if the automatic mechanism does not work as expected.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="relativityMode" type="tns:ScriptExpressionRelativityModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScriptExpressionCodeType" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                The expression code is supposed to be in the contect of this type. The content ix "mixed"
+                which allows both XML and non-XML languages.
+
+                The expression may use variables or arguments. However, such variables or arguments passed
+                to the expression will be different for each invocation. It should be documented in each
+                case this type is used.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:dom/>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ScriptExpressionReturnTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The type of the expression result, either "list" or "scalar".
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="scalar">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Single return value
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SCALAR"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="list">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Multiple return values
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LIST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="ScriptExpressionRelativityModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Relativity mode of an expression.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="relative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Relative expression. Works on (partial) individual values transforming each of them one by one.
+                        This is the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="absolute">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Absolute expression. Works on all the values at once. May not be entirelly reliable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ABSOLUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+
+
+
+
+
+
+
 
     <xsd:element name="synchronization" type="tns:SynchronizationType"/>
 
@@ -4037,182 +4181,6 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:complexType name="ExpressionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Generic expression. The purpose of the expression is to return
-                a value. The expression must produce something that is a piece
-                of XML, which means that it may produce either string value,
-                XML node or a list of XML nodes.
-
-                The expression may use variables or arguments. However, such
-                variables or arguments passed to the expression will be different
-                for each invocation. It should be documented in each case this type is used.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        QName of the XML node that the expression is
-                        supposed to produce. This attribute is optional.
-
-                        If this attribute is used and the expression produces a string output, the output
-                        should be considered as the content of a XML element defined by the contect of this
-                        attribute.
-
-                        If the expression produces a XML node or a set of nodes, the node(s) should match the
-                        content of this attribute.
-
-                        However, the exact interpretation of this attribute is not defined here, it may be
-                        different for each use of this type.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://www.w3.org/TR/xpath/">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Language of the expression. The expressions in multiple languages may be supported in
-                        later versions of midPoint. Now the only supported language is XPath 2.0, which is also the
-                        default language.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="variable" type="tns:VariableDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Definition of additional variables that should be
-                        present during evaluation of the expression.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="returnType" type="tns:ExpressionReturnTypeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The type of the expression result, either "list" or "scalar". If not set it will be
-                        determined automatically from the target data type for the expression. This setting
-                        should be used only if the automatic mechanism does not work as expected.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="code" type="tns:ExpressionCodeType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    
-    <xsd:element name="valueExpression" type="tns:ExpressionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                The expression that can be used to dynamically evaluate the value, e.g. in the query filter.
-                
-                It must be a top-level element so the processor of Query schema can find it. See prism query-2 schema.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-    
-
-    <xsd:complexType name="ExpressionCodeType" mixed="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                The expression code is supposed to be in the contect of this type. The content ix "mixed"
-                which allows both XML and non-XML languages.
-
-                The expression may use variables or arguments. However, such variables or arguments passed
-                to the expression will be different for each invocation. It should be documented in each
-                case this type is used.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:complexType>
-
-    <xsd:simpleType name="ExpressionReturnTypeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                The type of the expression result, either "list" or "scalar".
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="scalar">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Single return value
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SCALAR"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="list">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Multiple return values
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="LIST"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:element name="condition" type="tns:ExpressionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Boolean condition. The return of this expression  must be either true or false.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
-    <xsd:complexType name="VariableDefinitionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Definition of a variable. This type declares a variable name
-                and defines the initial content of the variable.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Variable name. The variable will be presented to the expression using specified name.
-
-                        The name is a QName, which is good for XML-based expression languages such as XPath.
-                        For languages with flat names the namespace is fixed (see documentation of midPoint
-                        language binding) and the only relevant name is the local part.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:choice>
-                <xsd:element name="objectRef" type="tns:ObjectReferenceType">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="value" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            TODO
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="RoleType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4416,7 +4384,7 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
-            <xsd:element ref="c:condition" minOccurs="0">
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The account is implied only if the condition is evaluated to true.
@@ -4424,7 +4392,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="attribute" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Account attribute values implied by this role.
@@ -4453,7 +4421,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="propertyConstruction" type="tns:PropertyConstructionType" minOccurs="0"
+                    <xsd:element name="mapping" type="tns:MappingType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4471,7 +4439,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- TODO: Assignment construction. Later. -->
                     <xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>

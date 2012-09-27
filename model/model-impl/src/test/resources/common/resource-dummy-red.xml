@@ -115,15 +115,21 @@
 				<displayName>Username</displayName>
 				<outbound>
 				    <initial>true</initial>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
 					<expression>
-						<code>
-							concat($c:user/c:name, $c:iterationToken)
-						</code>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								concat($c:name, $c:iterationToken)
+							</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:name
+						<path>$c:user/c:name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -139,13 +145,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-						$user/fullName
-					</path>
+					<source>
+						<path>fullName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						<path>fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -156,9 +162,9 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-						$c:user/c:organizationalUnit
-					</path>
+					<source>
+						<path>$c:user/c:organizationalUnit</path>
+					</source>
 				</outbound>
 			</attribute>
 			<dependency>

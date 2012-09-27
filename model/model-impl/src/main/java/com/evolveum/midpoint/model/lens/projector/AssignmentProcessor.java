@@ -21,9 +21,9 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
@@ -93,7 +93,7 @@ public class AssignmentProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private ValueConstructionFactory valueConstructionFactory;
+    private MappingFactory valueConstructionFactory;
     
     @Autowired(required = true)
     private ProvisioningService provisioningService;

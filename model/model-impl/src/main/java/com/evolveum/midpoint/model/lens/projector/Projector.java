@@ -25,8 +25,10 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
 
@@ -118,6 +121,8 @@ public class Projector {
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", context, false);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        
+		        checkContextSanity(context, "inbound and user policy", result);
 		
 		        assignmentProcessor.processAssignmentsProjections(context, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
@@ -197,6 +202,9 @@ public class Projector {
 			throw e;
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
+			// This should not normally happen unless there is something really bad or there is a bug.
+			// Make sure that it is logged.
+			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
 		} finally {
 			context.setWave(originalWave);
@@ -233,5 +241,17 @@ public class Projector {
 		accountContext.setWave(wave);
 	}
 
+	private <F extends ObjectType, P extends ObjectType> void checkContextSanity(LensContext<F,P> context, String activityDescription, 
+			OperationResult result) throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext != null) {
+			PrismObject<F> focusObjectNew = focusContext.getObjectNew();
+			if (focusObjectNew != null) {
+				if (focusObjectNew.asObjectable().getName() == null) {
+					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
+				}
+			}
+		}
+	}
 
 }

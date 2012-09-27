@@ -63,7 +63,7 @@ import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.ReflectionUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -687,16 +687,16 @@ public class PrismDomProcessor {
 	 * So we try both ways before raising an error.
 	 */
 	private PrismReferenceValue parseReferenceValueFromObject(Object referenceObject) throws SchemaException {
-		String oid = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
-		QName type = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
+		String oid = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
+		QName type = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 		refVal.setTargetType(type);
-		String description = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
+		String description = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
 		refVal.setDescription(description);
-		Object filterType = MiscUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
+		Object filterType = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
 		if (filterType != null) {
-			if (MiscUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
-				List filterElementList = MiscUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
+			if (ReflectionUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
+				List filterElementList = ReflectionUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
 				if (filterElementList != null ) {
 					Object firstElement = filterElementList.get(0);
 					if (firstElement instanceof Element) {
@@ -705,8 +705,8 @@ public class PrismDomProcessor {
 						throw new SchemaException("Unknown type of filter element "+firstElement.getClass());
 					}
 				}
-			} else if (MiscUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
-				Element filterElement = MiscUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
+			} else if (ReflectionUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
+				Element filterElement = ReflectionUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
 				refVal.setFilter(filterElement);
 			} else {
 				throw new SchemaException("JAXB bean of type "+referenceObject.getClass().getName()+" representing prism reference"+

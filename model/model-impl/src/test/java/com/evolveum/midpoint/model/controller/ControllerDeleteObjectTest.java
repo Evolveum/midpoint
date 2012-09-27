@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -61,7 +62,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 
@@ -142,13 +143,13 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConsistencyViolationException, FileNotFoundException, ConfigurationException, 
 			PolicyViolationException, SecurityViolationException {
-		final ResourceType expectedResource = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER_COMMON,
-				"resource-opendj.xml"), ResourceType.class);
+		final PrismObject<ResourceType> expectedResource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON,
+				"resource-opendj.xml"));
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repository.getObject(any(Class.class), eq(oid),
-						any(OperationResult.class))).thenReturn(expectedResource.asPrismObject());
+						any(OperationResult.class))).thenReturn(expectedResource);
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {
 			controller.deleteObject(ResourceType.class, oid, taskManager.createTaskInstance(), result);
@@ -156,7 +157,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ProvisioningScriptsType.class),
 				any(OperationResult.class));
 	}
 }

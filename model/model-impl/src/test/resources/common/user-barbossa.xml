@@ -48,15 +48,27 @@
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
 				<ref>ri:o</ref>
-				<value>Pirate Brethren, Inc.</value>
+				<outbound>
+					<expression>
+						<value>Pirate Brethren, Inc.</value>
+					</expression>
+				</outbound>
 			</attribute>
 			<attribute>
 				<ref>ri:l</ref>
-				<expression>
-					<code>
-						$c:user/c:locality/t:orig
-					</code>
-				</expression>
+				<outbound>
+					<source>
+						<path>$c:user/c:locality</path>
+					</source>
+					<expression>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								$c:locality/t:orig
+							</code>
+						</script>
+					</expression>
+				</outbound>
 			</attribute>
 		</accountConstruction>
 	</assignment>
@@ -68,7 +80,11 @@
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
 				<ref>ri:l</ref>
-				<value>Shipwreck cove</value>
+				<outbound>
+					<expression>
+						<value>Shipwreck cove</value>
+					</expression>
+				</outbound>
 			</attribute>
 		</accountConstruction>
 	</assignment>

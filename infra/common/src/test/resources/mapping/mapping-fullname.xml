@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+	<source>
+		<path>$user/givenName</path>
+		<name>givenName</name>
+	</source>
+	<source>
+		<path>$user/familyName</path>
+		<name>familyName</name>
+	</source>
+	<expression>
+		<script>
+			<code>givenName + ' ' + familyName</code>
+		</script>
+	</expression>
+	<target>
+		<path>$user/fullName</path>
+	</target>
+</mapping>

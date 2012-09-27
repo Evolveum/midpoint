@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -168,10 +169,8 @@ public class TestProjector extends AbstractModelIntegrationTest {
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
 
         PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
-        PrismContainer<?> attributes = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
-        assertNotNull("No attribute in account new", attributes);
-        PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "jack");
-        PrismAsserts.assertPropertyValue(attributes, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");        
+        IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
+        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");
 	}
 	
 	@Test
@@ -213,18 +212,22 @@ public class TestProjector extends AbstractModelIntegrationTest {
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
+        display("New account", newAccount);
+        
         assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
-        PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
-        assertEquals("jack", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-        assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
-        
+        IntegrationTestTools.assertIcfsNameAttribute(newAccount, "jack");
+        IntegrationTestTools.assertAttribute(newAccount, new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname"), "Jack Sparrow");
 	}
 
+	/**
+	 * User barbossa has a direct account assignment. This assignment has an expression for user/locality -> opendj/l.
+	 * Let's try if the "l" gets updated if we update barbosa's locality.
+	 */
 	@Test
     public void test050ModifyUserBarbossaLocality() throws Exception {
         displayTestTile(this, "test050ModifyUserBarbossaLocality");

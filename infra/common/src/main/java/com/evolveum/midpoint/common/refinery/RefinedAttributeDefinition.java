@@ -30,9 +30,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueAssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -50,8 +49,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private boolean read = true;
     private boolean update = true;
     private ResourceAttributeDefinition attributeDefinition;
-    private ValueConstructionType outboundValueConstructionType;
-    private List<ValueAssignmentType> inboundAssignmentTypes;
+    private MappingType outboundMappingType;
+    private List<MappingType> inboundMappingTypes;
 
     private RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
         super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName(), prismContext);
@@ -165,24 +164,24 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         this.attributeDefinition = attributeDefinition;
     }
 
-    public ValueConstructionType getOutboundValueConstructionType() {
-        return outboundValueConstructionType;
+    public MappingType getOutboundMappingType() {
+        return outboundMappingType;
     }
 
-    public void setOutboundValueConstructionType(ValueConstructionType outboundValueConstructionType) {
-        this.outboundValueConstructionType = outboundValueConstructionType;
+    public void setOutboundMappingType(MappingType outboundMappingType) {
+        this.outboundMappingType = outboundMappingType;
     }
     
-    public boolean hasOutboundExpression() {
-    	return outboundValueConstructionType != null;
+    public boolean hasOutboundMapping() {
+    	return outboundMappingType != null;
     }
 
-    public List<ValueAssignmentType> getInboundAssignmentTypes() {
-        return inboundAssignmentTypes;
+    public List<MappingType> getInboundMappingTypes() {
+        return inboundMappingTypes;
     }
 
-    public void setInboundAssignmentTypes(List<ValueAssignmentType> inboundAssignmentTypes) {
-        this.inboundAssignmentTypes = inboundAssignmentTypes;
+    public void setInboundMappingTypes(List<MappingType> inboundAssignmentTypes) {
+        this.inboundMappingTypes = inboundAssignmentTypes;
     }
 
     public QName getName() {
@@ -256,11 +255,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         	}
         	
             if (attrDefType.getOutbound() != null) {
-                rAttrDef.setOutboundValueConstructionType(attrDefType.getOutbound());
+                rAttrDef.setOutboundMappingType(attrDefType.getOutbound());
             }
 
             if (attrDefType.getInbound() != null) {
-                rAttrDef.setInboundAssignmentTypes(attrDefType.getInbound());
+                rAttrDef.setInboundMappingTypes(attrDefType.getInbound());
             }
             
         }
@@ -308,7 +307,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         if (getDescription() != null) {
             sb.append(",Desc");
         }
-        if (getOutboundValueConstructionType() != null) {
+        if (getOutboundMappingType() != null) {
             sb.append(",OUT");
         }
 		return sb.toString();

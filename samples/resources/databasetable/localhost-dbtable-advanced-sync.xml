@@ -149,13 +149,14 @@ object.
 					<access>read</access>
 					<outbound>
 						<initial>true</initial>
-						<path>$user/name</path>
+						<source>
+							<path>$user/name</path>
+						</source>
 					</outbound>
 					<inbound>
-					<target>
-					  declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-					  $user/i:name
-					</target>
+						<target>
+						  <path>$user/name</path>
+						</target>
 					</inbound>
 				</attribute>
 
@@ -164,13 +165,14 @@ object.
 					<displayName>First name</displayName>
 					<description>Definition of Firstname attribute handling.</description>
 					<outbound>
-						<path>$user/givenName</path>
+						<source>
+							<path>$user/givenName</path>
+						</source>
 					</outbound>
 					<inbound>
-					<target>
-					  declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-					  $user/i:givenName
-					</target>
+						<target>
+						  <path>$user/givenName</path>
+						</target>
 					</inbound>
 							
 				</attribute>
@@ -179,12 +181,13 @@ object.
 					<displayName>Last name</displayName>
 					<description>Definition of Lastname attribute handling.</description>
 					<outbound>
-						<path>$user/familyName</path>
+						<source>
+							<path>$user/familyName</path>
+						</source>
 					</outbound>
 					<inbound>
 					<target>
-					  declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-					  $user/i:familyName
+					  <path>$user/familyName</path>
 					</target>
 					</inbound>
 							
@@ -194,39 +197,33 @@ object.
 					<displayName>Full name</displayName>
 					<description>Definition of Fullname attribute handling.</description>
 					<outbound>
-						<path>$user/fullName</path>
+						<source>
+							<path>$user/fullName</path>
+						</source>
 					</outbound>
 					<inbound>
 					<target>
-					  declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-					  $user/i:fullName
+					  <path>$user/fullName</path>
 					</target>
 					</inbound>
 				</attribute>
 				<credentials>
 					<password>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 						<inbound>
-						  <source>
-						    <initial>true</initial>
+					    <initial>true</initial>
+						  <expression>
 						    <generate/>
-						  </source>
+						  </expression>
 						</inbound>
 					</password>
 				</credentials>
 				<activation>
 					<enabled>
-						<outbound>
-							<asIs/>
-						</outbound>
-                        			<inbound>
-			                            <source>
+						<outbound/>
+						<inbound>
 							<initial>true</initial>
-			                                <asIs/>
-			                            </source>
-			                        </inbound>
+						</inbound>
 					</enabled>
 				</activation>
 			</accountType>
@@ -264,12 +261,15 @@ object.
 	                </q:description>
 	                <q:equal>
 	                    <q:path>.</q:path>
-	                    <valueExpression>
+	                    <expression>
 	                        <ref>name</ref>
-	                        <code>
-	                            $c:account/c:attributes/icfs:name
-	                        </code>
-	                    </valueExpression>
+	                        <script>
+	                        	<language>http://www.w3.org/TR/xpath/</language>
+		                        <code>
+		                            $c:account/c:attributes/icfs:name
+		                        </code>
+	                        </script>
+	                    </expression>
 	                </q:equal>
 	            </correlation>
 	

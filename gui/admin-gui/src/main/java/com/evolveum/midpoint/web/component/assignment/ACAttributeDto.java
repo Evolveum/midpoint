@@ -21,10 +21,9 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAttributeDefinitionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -40,9 +39,9 @@ public class ACAttributeDto implements Serializable {
     public static final String F_VALUE = "value";
 
     private PrismPropertyDefinition definition;
-    private ValueConstructionType construction;
+    private ResourceAttributeDefinitionType construction;
 
-    public ACAttributeDto(PrismPropertyDefinition definition, ValueConstructionType construction) {
+    public ACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction) {
         Validate.notNull(definition, "Prism property definition must not be null.");
         Validate.notNull(construction, "Value construction must not be null.");
 
@@ -60,21 +59,24 @@ public class ACAttributeDto implements Serializable {
     }
 
     public String getValue() {
-        JAXBElement element = construction.getValueConstructor();
-        if (element == null) {
-            return null;
-        }
-        Object value = element.getValue();
-        return value != null ? value.toString() : null;
+//        JAXBElement element = construction.getValueConstructor();
+//        if (element == null) {
+//            return null;
+//        }
+//        Object value = element.getValue();
+//        return value != null ? value.toString() : null;
+    	// TODO
+    	return null;
     }
 
     public void setValue(String value) {
-        if (value == null) {
-            construction.setValueConstructor(null);
-        } else {
-            construction.setValueConstructor(new ObjectFactory().createValue(value));
-        }
-
-        construction.getSequence().getValueConstructor().clear();
+    	// TODO
+//        if (value == null) {
+//            construction.setValueConstructor(null);
+//        } else {
+//            construction.setValueConstructor(new ObjectFactory().createValue(value));
+//        }
+//
+//        construction.getSequence().getValueConstructor().clear();
     }
 }

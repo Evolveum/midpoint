@@ -37,7 +37,11 @@
 					<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 					<c:attribute>
 						<c:ref>ri:l</c:ref>
-						<c:value>Shipwreck cove</c:value>
+						<c:outbound>
+							<c:expression>
+								<c:value>Shipwreck cove</c:value>
+							</c:expression>
+						</c:outbound>
 					</c:attribute>
 				</c:accountConstruction>
 			</c:assignment>

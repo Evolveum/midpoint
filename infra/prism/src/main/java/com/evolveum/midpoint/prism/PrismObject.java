@@ -141,7 +141,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 			return findCreateItem(path, type, null, false);
 		} catch (SchemaException e) {
 			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
+			throw new SystemException("Internal Error:(path="+path+",type="+type+"): "+e.getMessage(),e);
 		}
 	}
 
@@ -151,7 +151,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 			return findCreateItem(path, Item.class, null, false);
 		} catch (SchemaException e) {
 			// This should not happen
-			throw new SystemException("Internal Error: "+e.getMessage(),e);
+			throw new SystemException("Internal Error:(path="+path+"): "+e.getMessage(),e);
 		}
 	}
 

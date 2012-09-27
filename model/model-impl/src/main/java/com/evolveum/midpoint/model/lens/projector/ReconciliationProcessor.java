@@ -21,10 +21,10 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -183,7 +183,7 @@ public class ReconciliationProcessor {
         	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
         	for (PropertyValueWithOrigin shouldBePvwo: shouldBePValues) {
-        		ValueConstruction<?> shouldBeVc = shouldBePvwo.getValueConstruction();
+        		Mapping<?> shouldBeVc = shouldBePvwo.getValueConstruction();
         		if (shouldBeVc == null) {
         			continue;
         		}

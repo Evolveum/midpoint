@@ -24,14 +24,16 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -47,10 +49,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 
 /**
  * @author semancik
@@ -61,11 +64,12 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private AssignmentPath assignmentPath;
 	private AccountConstructionType accountConstructionType;
 	private ObjectType source;
+	private SourceType originType;
 	private ObjectDeltaObject<UserType> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
-	private ValueConstructionFactory valueConstructionFactory;
-	private Collection<ValueConstruction<? extends PrismPropertyValue<?>>> attributeConstructions;
+	private MappingFactory valueConstructionFactory;
+	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeConstructions;
 	private RefinedAccountDefinition refinedAccountDefinition;
 	private PrismContext prismContext;
 	
@@ -82,6 +86,14 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.source = source;
 	}
 		
+	public SourceType getOriginType() {
+		return originType;
+	}
+
+	public void setOriginType(SourceType originType) {
+		this.originType = originType;
+	}
+
 	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
 		this.userOdo = userOdo;
 	}
@@ -102,11 +114,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.prismContext = prismContext;
 	}
 
-	public ValueConstructionFactory getValueConstructionFactory() {
+	public MappingFactory getValueConstructionFactory() {
 		return valueConstructionFactory;
 	}
 
-	public void setValueConstructionFactory(ValueConstructionFactory valueConstructionFactory) {
+	public void setValueConstructionFactory(MappingFactory valueConstructionFactory) {
 		this.valueConstructionFactory = valueConstructionFactory;
 	}
 
@@ -121,15 +133,15 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return accountConstructionType.getDescription();
 	}
 	
-	public Collection<ValueConstruction<? extends PrismPropertyValue<?>>> getAttributeConstructions() {
+	public Collection<Mapping<? extends PrismPropertyValue<?>>> getAttributeConstructions() {
 		if (attributeConstructions == null) {
-			attributeConstructions = new ArrayList<ValueConstruction<? extends PrismPropertyValue<?>>>();
+			attributeConstructions = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
 		}
 		return attributeConstructions;
 	}
 	
-	public ValueConstruction<? extends PrismPropertyValue<?>> getAttributeConstruction(QName attrName) {
-		for (ValueConstruction<? extends PrismPropertyValue<?>> myVc : getAttributeConstructions()) {
+	public Mapping<? extends PrismPropertyValue<?>> getAttributeConstruction(QName attrName) {
+		for (Mapping<? extends PrismPropertyValue<?>> myVc : getAttributeConstructions()) {
 			if (myVc.getItemName().equals(attrName)) {
 				return myVc;
 			}
@@ -137,12 +149,12 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return null;
 	}
 	
-	public void addAttributeConstruction(ValueConstruction<? extends PrismPropertyValue<?>> valueConstruction) {
+	public void addAttributeConstruction(Mapping<? extends PrismPropertyValue<?>> valueConstruction) {
 		getAttributeConstructions().add(valueConstruction);
 	}
 
 	public boolean containsAttributeConstruction(QName attributeName) {
-		for (ValueConstruction<?> myVc: getAttributeConstructions()) {
+		for (Mapping<?> myVc: getAttributeConstructions()) {
 			if (attributeName.equals(myVc.getItemName())) {
 				return true;
 			}
@@ -208,48 +220,74 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	}
 
 	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		attributeConstructions = new ArrayList<ValueConstruction<? extends PrismPropertyValue<?>>>();
+		attributeConstructions = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
 //		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
 //				assignments.size(), assignments});
-		for (ValueConstructionType attributeConstructionType : accountConstructionType.getAttribute()) {
-			ValueConstruction<? extends PrismPropertyValue<?>> attributeConstruction = evaluateAttribute(attributeConstructionType, result);
+		for (ResourceAttributeDefinitionType attribudeDefinitionType : accountConstructionType.getAttribute()) {
+			QName attrName = attribudeDefinitionType.getRef();
+			if (attrName == null) {
+				throw new SchemaException("No attribute name (ref) in attribute definition in account construction in "+source);
+			}
+			if (!attribudeDefinitionType.getInbound().isEmpty()) {
+				throw new SchemaException("Cannot process inbound section in definition of attribute "+attrName+" in account construction in "+source);
+			}
+			MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
+			if (outboundMappingType == null) {
+				throw new SchemaException("No oubound section in definition of attribute "+attrName+" in account construction in "+source);
+			}
+			Mapping<? extends PrismPropertyValue<?>> attributeConstruction = evaluateAttribute(attribudeDefinitionType, result);
 			attributeConstructions.add(attributeConstruction);
 		}
 	}
 
-	private ValueConstruction<? extends PrismPropertyValue<?>> evaluateAttribute(ValueConstructionType attributeConstructionType, OperationResult result) 
+	private Mapping<? extends PrismPropertyValue<?>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		QName attrName = attributeConstructionType.getRef();
+		QName attrName = attribudeDefinitionType.getRef();
 		if (attrName == null) {
 			throw new SchemaException("Missing 'ref' in attribute construction in account construction in "+ObjectTypeUtil.toShortString(source));
+		}
+		if (!attribudeDefinitionType.getInbound().isEmpty()) {
+			throw new SchemaException("Cannot process inbound section in definition of attribute "+attrName+" in account construction in "+source);
+		}
+		MappingType outboundMappingType = attribudeDefinitionType.getOutbound();
+		if (outboundMappingType == null) {
+			throw new SchemaException("No onbound section in definition of attribute "+attrName+" in account construction in "+source);
 		}
 		PrismPropertyDefinition outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
-		ValueConstruction<? extends PrismPropertyValue<?>> attributeConstruction = valueConstructionFactory.createValueConstruction(attributeConstructionType, outputDefinition, 
+		Mapping<? extends PrismPropertyValue<?>> mapping = valueConstructionFactory.createMapping(outboundMappingType,
 				"for attribute " + DebugUtil.prettyPrint(attrName)  + " in "+source);
-		attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-		attributeConstruction.setRootNode(userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		mapping.setSourceContext(userOdo);
+		mapping.setRootNode(userOdo);
+		mapping.setDefaultTargetDefinition(outputDefinition);
+		mapping.setOriginType(originType);
+		mapping.setOriginObject(source);
 		if (!assignmentPath.isEmpty()) {
 			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
-			attributeConstruction.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentType.asPrismContainerValue());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentType.asPrismContainerValue());
 		}
 		// TODO: other variables ?
 		
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 		// (e.g. in old values in ADD situations and new values in DELETE situations).
 		if (userOdo.getOldObject() == null) {
-			attributeConstruction.setConditionMaskOld(false);
+			mapping.setConditionMaskOld(false);
 		}
 		if (userOdo.getNewObject() == null) {
-			attributeConstruction.setConditionMaskNew(false);
+			mapping.setConditionMaskNew(false);
 		}
 
-		attributeConstruction.evaluate(result);
+		mapping.evaluate(result);
 		
-		LOGGER.trace("Evaluated construction for "+attrName+": "+attributeConstruction);
-		return attributeConstruction;
+		LOGGER.trace("Evaluated mapping for "+attrName+": "+mapping);
+		return mapping;
+	}
+
+	private PrismObjectDefinition<?> getUserDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
@@ -330,7 +368,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		}
 		sb.append(")");
 		if (attributeConstructions != null) {
-			for (ValueConstruction attrConstr: attributeConstructions) {
+			for (Mapping attrConstr: attributeConstructions) {
 				sb.append("\n");
 				sb.append(attrConstr.debugDump(indent+1));
 			}

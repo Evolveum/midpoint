@@ -37,8 +37,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public abstract class PrismValue implements Visitable, Serializable, Dumpable, DebugDumpable {
 	
-	private SourceType type;
-    private Objectable source;
+	private SourceType originType;
+    private Objectable originObject;
     private Itemable parent;
     protected Element domElement = null;
     
@@ -48,31 +48,31 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
     
     PrismValue(SourceType type, Objectable source) {
 		super();
-		this.type = type;
-		this.source = source;
+		this.originType = type;
+		this.originObject = source;
 	}
     
     PrismValue(SourceType type, Objectable source, Itemable parent) {
 		super();
-		this.type = type;
-		this.source = source;
+		this.originType = type;
+		this.originObject = source;
 		this.parent = parent;
 	}
 
-	public void setSource(Objectable source) {
-        this.source = source;
+	public void setOriginObject(Objectable source) {
+        this.originObject = source;
     }
 
-    public void setType(SourceType type) {
-        this.type = type;
+    public void setOriginType(SourceType type) {
+        this.originType = type;
     }
     
-    public SourceType getType() {
-        return type;
+    public SourceType getOriginType() {
+        return originType;
     }
 
-    public Objectable getSource() {
-        return source;
+    public Objectable getOriginObject() {
+        return originObject;
     }
     
 	public Itemable getParent() {
@@ -179,8 +179,8 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	public abstract PrismValue clone();
 	
 	protected void copyValues(PrismValue clone) {
-		clone.type = this.type;
-		clone.source = this.source;
+		clone.originType = this.originType;
+		clone.originObject = this.originObject;
 		// Do not clone parent. The clone will most likely go to a different prism
 		// and setting the parent will make it difficult to add it there.
 		clone.parent = null;
@@ -214,12 +214,12 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
 		// parent is not considered at all. it is not relevant.
 		if (!ignoreMetadata) {
-			if (source == null) {
-				if (other.source != null)
+			if (originObject == null) {
+				if (other.originObject != null)
 					return false;
-			} else if (!source.equals(other.source))
+			} else if (!originObject.equals(other.originObject))
 				return false;
-			if (type != other.type)
+			if (originType != other.originType)
 				return false;
 		}
 		return true;

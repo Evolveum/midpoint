@@ -44,8 +44,8 @@
 			<class name="com.evolveum.midpoint.common.expression.TestXPathExpressions" />
 			<class name="com.evolveum.midpoint.common.expression.TestJavaScriptExpressions" />
 			<class name="com.evolveum.midpoint.common.expression.TestGroovyExpressions" />
-			<class name="com.evolveum.midpoint.common.valueconstruction.TestValueConstructionStatic" />
-			<class name="com.evolveum.midpoint.common.valueconstruction.TestValueConstructionDynamic" />
+			<class name="com.evolveum.midpoint.common.expression.TestMidPointFunctions" />
+			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamic" />
 		</classes>
 	</test>
 		<test name="Schema" preserve-order="false">

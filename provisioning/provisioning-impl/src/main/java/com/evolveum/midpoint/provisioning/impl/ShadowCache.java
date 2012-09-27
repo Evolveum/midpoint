@@ -32,9 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOpe
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
@@ -82,15 +82,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusTy
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptArgumentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptArgumentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
@@ -252,7 +252,7 @@ public class ShadowCache {
 
 	}
 
-	public String addShadow(ResourceObjectShadowType shadow, boolean isReconciled, ScriptsType scripts,
+	public String addShadow(ResourceObjectShadowType shadow, boolean isReconciled, ProvisioningScriptsType scripts,
 			ResourceType resource, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
@@ -271,7 +271,7 @@ public class ShadowCache {
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 
-		addExecuteScriptOperation(additionalOperations, OperationTypeType.ADD, scripts, parentResult);
+		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, parentResult);
 
 //		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName()
 //				+ ".addShadow");
@@ -318,7 +318,7 @@ public class ShadowCache {
 		repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 	}
 
-	public void deleteShadow(ObjectType objectType, ScriptsType scripts, ResourceType resource,
+	public void deleteShadow(ObjectType objectType, ProvisioningScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException {
 
@@ -338,7 +338,7 @@ public class ShadowCache {
 
 			Set<Operation> additionalOperations = new HashSet<Operation>();
 
-			addExecuteScriptOperation(additionalOperations, OperationTypeType.DELETE, scripts, parentResult);
+			addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, parentResult);
 
 			try {
 				shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
@@ -374,7 +374,7 @@ public class ShadowCache {
 	}
 
 	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
-			Collection<? extends ItemDelta> modifications, boolean isReconciled, ScriptsType scripts,
+			Collection<? extends ItemDelta> modifications, boolean isReconciled, ProvisioningScriptsType scripts,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException {
 
@@ -395,7 +395,7 @@ public class ShadowCache {
 			}
 
 			Set<Operation> changes = new HashSet<Operation>();
-			addExecuteScriptOperation(changes, OperationTypeType.MODIFY, scripts, parentResult);
+			addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
@@ -617,7 +617,7 @@ public class ShadowCache {
 
 	}
 
-	private void addExecuteScriptOperation(Set<Operation> operations, OperationTypeType type, ScriptsType scripts,
+	private void addExecuteScriptOperation(Set<Operation> operations, ProvisioningOperationTypeType type, ProvisioningScriptsType scripts,
 			OperationResult result) throws SchemaException {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
@@ -626,14 +626,14 @@ public class ShadowCache {
 			return;
 		}
 
-		for (ScriptType script : scripts.getScript()) {
-			for (OperationTypeType operationType : script.getOperation()) {
+		for (ProvisioningScriptType script : scripts.getScript()) {
+			for (ProvisioningOperationTypeType operationType : script.getOperation()) {
 				if (type.equals(operationType)) {
-					ExecuteScriptOperation scriptOperation = new ExecuteScriptOperation();
+					ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-					for (ScriptArgumentType argument : script.getArgument()) {
+					for (ProvisioningScriptArgumentType argument : script.getArgument()) {
 						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
-								ValueConstruction.getStaticValueList(argument));
+								Mapping.getStaticValueList(argument));
 						scriptOperation.getArgument().add(arg);
 					}
 
@@ -642,11 +642,11 @@ public class ShadowCache {
 
 					scriptOperation.setScriptOrder(script.getOrder());
 
-					if (script.getHost().equals(ScriptHostType.CONNECTOR)) {
+					if (script.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
 						scriptOperation.setConnectorHost(true);
 						scriptOperation.setResourceHost(false);
 					}
-					if (script.getHost().equals(ScriptHostType.RESOURCE)) {
+					if (script.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
 						scriptOperation.setConnectorHost(false);
 						scriptOperation.setResourceHost(true);
 					}

@@ -19,9 +19,11 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -61,7 +64,7 @@ public class ActivationProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private ValueConstructionFactory valueConstructionFactory;
+    private MappingFactory valueConstructionFactory;
 
     public <F extends ObjectType, P extends ObjectType> void processActivation(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
@@ -90,7 +93,6 @@ public class ActivationProcessor {
             LOGGER.trace("userNew is null, skipping activation processing");
             return;
         }
-        PrismProperty userEnabledNew = userNew.findProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         PrismObjectDefinition<AccountShadowType> accountDefinition = 
         	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
@@ -130,18 +132,21 @@ public class ActivationProcessor {
             LOGGER.trace("No 'enabled' definition in activation in account type {}, skipping activation processing", rat);
             return;
         }
-        ValueConstructionType outbound = enabledType.getOutbound();
+        MappingType outbound = enabledType.getOutbound();
         if (outbound == null) {
             LOGGER.trace("No outbound definition in 'enabled' definition in activation in account type {}, skipping activation processing", rat);
             return;
         }
         
-        ValueConstruction<PrismPropertyValue<Boolean>> enabledConstruction =
-        	valueConstructionFactory.createValueConstruction(outbound, accountEnabledPropertyDefinition, 
-        		"outbound activation in account type " + rat);
-        enabledConstruction.setInput(userEnabledNew);
-        enabledConstruction.evaluate(result);
-        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledConstruction.getOutput();
+        Mapping<PrismPropertyValue<Boolean>> enabledMapping =
+        	valueConstructionFactory.createMapping(outbound, 
+        		"outbound activation mapping in account type " + rat);
+        enabledMapping.setDefaultTargetDefinition(accountEnabledPropertyDefinition);
+        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
+		enabledMapping.setDefaultSource(source);
+        enabledMapping.evaluate(result);
+        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
         if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
             LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
             return;

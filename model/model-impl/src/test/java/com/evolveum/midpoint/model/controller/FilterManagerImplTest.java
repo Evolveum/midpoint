@@ -27,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.common.filter.Filter;
+import com.evolveum.midpoint.common.filter.FilterManager;
+
 /**
  * 
  * @author lazyman

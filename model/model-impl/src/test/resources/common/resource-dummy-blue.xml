@@ -115,15 +115,18 @@
 				<displayName>Username</displayName>
 				<outbound>
 				    <initial>true</initial>
+				    <source>
+				    	<path>name</path>
+				    </source>
 					<expression>
-						<code>
-							concat($c:user/c:name, $c:iterationToken)
-						</code>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:name
+						<path>$c:user/c:name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -139,13 +142,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-						$user/fullName
-					</path>
+					<source>
+						<path>$user/fullName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						<path>$c:user/c:fullName</path>
 					</target>
 				</inbound>
 			</attribute>

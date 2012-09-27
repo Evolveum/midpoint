@@ -279,11 +279,17 @@ object.
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-				    <initial>true</initial>
+					<initial>true</initial>
+					<source>
+						<path>$user/name</path>
+					</source>
 					<expression>
-						<code>
-							concat('uid=', $c:user/c:name, $c:iterationToken, ',ou=people,dc=example,dc=com')
-						</code>
+						<script>
+							<!-- No explicit script language was specified. It means that this is Groovy -->
+							<code>
+								'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+							</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -299,15 +305,13 @@ object.
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
-							$c:user/c:fullName/t:orig
-						</code>
-					</expression>
+					<source>
+						<path>$user/fullName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						<path>$user/fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -318,15 +322,15 @@ object.
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
-							$c:user/c:familyName/t:orig
-						</code>
-					</expression>
+					<source>
+						<!-- The path can be shorteden like this. $user is a default source "context" in outbound -->
+						<path>familyName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:familyName
+						<!-- The path can be shorteden like this. $user is a default target "context" in inbound -->
+						<path>familyName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -337,15 +341,14 @@ object.
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
-							$c:user/c:givenName/t:orig
-						</code>
-					</expression>
+					<source>
+						<!-- Full namespace prefixes can be used in the path -->
+						<path>$c:user/c:givenName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:givenName
+						<path>$c:user/c:givenName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -355,15 +358,15 @@ object.
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-					<expression>
-						<code>
-							$c:user/c:name
-						</code>
-					</expression>
+					<source>
+						<description>Source may have description</description>
+						<path>$user/name</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:name
+						<description>Targets may have description</description>
+						<path>$c:user/c:name</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -371,19 +374,18 @@ object.
 				<ref>ri:description</ref>
 				<outbound>
 					<initial>true</initial>
-					<value>Created by IDM</value>
+					<expression>
+						<description>Expression that assigns a fixed value</description>
+						<value>Created by IDM</value>
+					</expression>
 				</outbound>
 				<inbound>
-					<!-- c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
-						xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
-						<f:replace>
-							<f:pattern>\p{C}</f:pattern>
-							<f:replacement />
-						</f:replace>
-					</c:valueFilter>  -->
 					<target>
-						declare namespace my="http://whatever.com/my";
-						$c:user/c:extension/my:description
+						<!-- Namespace prefixes can be also declared inside a path -->
+						<path>
+							declare namespace my="http://whatever.com/my";
+							$c:user/c:extension/my:description
+						</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -395,51 +397,56 @@ object.
 							<name>my:defaultLocation</name>
 							<value xsi:type="xsd:string">middle of nowhere</value>
 						</variable>
-						<returnType>scalar</returnType>
-						<c:code xmlns:my="http://whatever.com/my">
-								$my:defaultLocation
-						</c:code>
+						<script>
+							<description>XPath expression that is using a variable declared above</description>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<returnType>scalar</returnType>
+							<code xmlns:my="http://whatever.com/my">
+									$my:defaultLocation
+							</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
 			
-                <credentials>
-                    <password>
-                        <outbound>
+            <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<initial>true</initial>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
+            <activation>
+                <enabled>
+                    <outbound/>
+                    <inbound>
+                    	<initial>true</initial>
+                        <expression>
                             <asIs/>
-                        </outbound>
-                        <inbound>
-                            <source>
-                                <initial>true</initial>
-                                <generate/>
-                            </source>
-                        </inbound>
-                    </password>
-                </credentials>
-                <activation>
-                    <enabled>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
-                        <inbound>
-                            <source>
-				<initial>true</initial>
-                                <asIs/>
-                            </source>
-                        </inbound>
-                    </enabled>
-                </activation>
-				<iteration>
+                        </expression>
+                    </inbound>
+                </enabled>
+            </activation>
+			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
-		<protected>
+			<protected>
                 <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
             </protected>
 		</accountType>
 	</schemaHandling>
 
 
-        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
             <cap:activation>
 
                 <cap:enableDisable>
@@ -454,7 +461,7 @@ object.
             </cap:credentials>
             <cap:liveSync/>
             <cap:testConnection/>
-        </capabilities>
+    </capabilities>
 
         <!--
             Synchronization section describes the synchronization policy, timing,

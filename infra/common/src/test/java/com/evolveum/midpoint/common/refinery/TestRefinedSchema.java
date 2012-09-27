@@ -291,7 +291,7 @@ public class TestRefinedSchema {
                 assertEquals("Attribute " + name + " maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
                 if (hasSchemaHandling) {
 	                assertEquals("Attribute " + name + " displayName mismatch", displayName, def.getDisplayName());
-	                assertEquals("Attribute " + name + " outbound mismatch", hasOutbound, def.getOutboundValueConstructionType() != null);
+	                assertEquals("Attribute " + name + " outbound mismatch", hasOutbound, def.getOutboundMappingType() != null);
                 }
                 return;
             }

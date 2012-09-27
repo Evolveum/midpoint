@@ -109,7 +109,7 @@ public class ObjectImporter {
                 	objectResult.recordFatalError(message);
                     LOGGER.error("Import of object {} failed: {}",
                             new Object[]{prismObjectObjectable, message});
-                    return EventResult.skipObject();
+                    return EventResult.skipObject(message);
                 }
                 ObjectType objectType = (ObjectType)objectable;
                 PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
@@ -511,11 +511,11 @@ public class ObjectImporter {
                                 + e.getMessage(), e);
                 // But continue otherwise
             }
-            if (object != null && refVal.getType() != null) {
+            if (object != null && refVal.getOriginType() != null) {
                 // Check if declared and actual type matches
                 if (!object.getClass().equals(type)) {
                     result.recordWarning("Type mismatch on property " + refName + ": declared:"
-                            + refVal.getType() + ", actual: " + object.getClass());
+                            + refVal.getOriginType() + ", actual: " + object.getClass());
                 }
             }
             result.recordSuccessIfUnknown();

@@ -20,12 +20,12 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,8 +47,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +68,7 @@ public class OutboundProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private ValueConstructionFactory valueConstructionFactory;
+    private MappingFactory mappingFactory;
 
     void processOutbound(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -90,42 +91,46 @@ public class OutboundProcessor {
         }
         
         ObjectDeltaObject<UserType> userOdo = context.getFocusContext().getObjectDeltaObject();
+        ObjectDeltaObject<AccountShadowType> accountOdo = accCtx.getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
 
         for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
 			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
 						
-			ValueConstructionType outboundValueConstructionType = refinedAttributeDefinition.getOutboundValueConstructionType();
-			if (outboundValueConstructionType == null) {
+			MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
+			if (outboundMappingType == null) {
 			    continue;
 			}
 			
 			// TODO: check access
 			
-			ValueConstruction<? extends PrismPropertyValue<?>> valueConstruction = valueConstructionFactory.createValueConstruction(outboundValueConstructionType, 
-					refinedAttributeDefinition,
-			        "outbound expression for " + DebugUtil.prettyPrint(refinedAttributeDefinition.getName())
+			Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
+			        "outbound mapping for " + DebugUtil.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + ObjectTypeUtil.toShortString(rAccount.getResourceType()));
 			
-			valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-			valueConstruction.addVariableDefinition(ExpressionConstants.VAR_ITERATION, accCtx.getIteration());
-			valueConstruction.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
-			valueConstruction.setRootNode(userOdo);
+			mapping.setDefaultTargetDefinition(refinedAttributeDefinition);
+			mapping.setSourceContext(userOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, accCtx.getIteration());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
+			mapping.setRootNode(userOdo);
+			mapping.setOriginType(SourceType.OUTBOUND);
 			// TODO: other variables?
 			
 			// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 			// (e.g. in old values in ADD situations and new values in DELETE situations).
 			if (userOdo.getOldObject() == null) {
-				valueConstruction.setConditionMaskOld(false);
+				mapping.setConditionMaskOld(false);
 			}
 			if (userOdo.getNewObject() == null) {
-				valueConstruction.setConditionMaskNew(false);
+				mapping.setConditionMaskNew(false);
 			}
 			
-			valueConstruction.evaluate(result);
+			mapping.evaluate(result);
 			
-			outboundAccountConstruction.addAttributeConstruction(valueConstruction);
+			outboundAccountConstruction.addAttributeConstruction(mapping);
         }
         
         accCtx.setOutboundAccountConstruction(outboundAccountConstruction);

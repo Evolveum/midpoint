@@ -29,6 +29,7 @@ public class ExpressionConstants {
 
 	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
 	public static final QName VAR_USER = new QName(SchemaConstants.NS_C, "user");
+	public static final QName VAR_ACCOUNT = new QName(SchemaConstants.NS_C, "account");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 	
 	/**
@@ -43,5 +44,7 @@ public class ExpressionConstants {
 	 * value is determined by the iteration settings.
 	 */
 	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C, "iterationToken");
+	
+	public static final QName OUTPUT_ELMENT_NAME = new QName(SchemaConstants.NS_C, "output");
 	
 }

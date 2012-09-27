@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2012 [name of copyright owner]     -->
+<!--                                                         -->
+ 
+<user oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" 
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
+        xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <name>jack</name>
+    <fullName>
+        <t:orig>Jack Sparrow</t:orig>
+        <t:norm>jack sparrow</t:norm>
+    </fullName>
+    <givenName>
+    	<t:orig>Jack</t:orig>
+        <t:norm>jack</t:norm>
+    </givenName>
+    <familyName>
+        <t:orig>Sparrow</t:orig>
+        <t:norm>sparrow</t:norm>
+	</familyName>
+    <honorificPrefix>
+    	<t:orig>Cpt.</t:orig>
+        <t:norm>cpt</t:norm>
+    </honorificPrefix>
+    <emailAddress></emailAddress>
+    <employeeType>PIRATE</employeeType>
+    <organizationalUnit>
+    	<t:orig>Brethren of the Coast</t:orig>
+    	<t:norm>brethren of the coast</t:norm>
+    </organizationalUnit>
+    <organizationalUnit>
+    	<t:orig>Davie Jones' Locker</t:orig>
+    	<t:norm>davie jones locker</t:norm>
+    </organizationalUnit>
+    <locality>
+    	<t:orig>Black Pearl</t:orig>
+    	<t:norm>black pearl</t:norm>
+    </locality>
+    <credentials>
+        <password>
+            <protectedString>
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                    <ds:KeyInfo>
+                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+         			</ds:KeyInfo>
+                    <enc:CipherData>
+                        <enc:CipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</enc:CipherValue>
+                    </enc:CipherData>
+                </enc:EncryptedData>
+            </protectedString>
+        </password>
+        <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
+    </credentials>
+    <activation>
+        <enabled>true</enabled>
+    </activation>
+    
+    <assignment id="111">
+    	<accountConstruction>
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
+    	</accountConstruction>
+    </assignment>
+    
+</user>

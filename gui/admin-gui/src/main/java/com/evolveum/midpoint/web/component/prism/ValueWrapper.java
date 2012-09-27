@@ -58,7 +58,7 @@ public class ValueWrapper<T> implements Serializable {
             if (val instanceof PolyString) {    
                 PolyString poly = (PolyString)val;
                 this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()), 
-                        value.getType(), value.getSource());
+                        value.getOriginType(), value.getOriginObject());
             } else {
                 this.value = value.clone();
             }
@@ -70,7 +70,7 @@ public class ValueWrapper<T> implements Serializable {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<T>(val, this.value.getType(), this.value.getSource());
+            oldValue = new PrismPropertyValue<T>(val, this.value.getOriginType(), this.value.getOriginObject());
         }
         this.oldValue = oldValue;
     }

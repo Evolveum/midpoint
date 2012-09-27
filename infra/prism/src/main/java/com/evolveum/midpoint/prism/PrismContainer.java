@@ -195,7 +195,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
-    	PrismProperty<?> property = findProperty(propertyName);
+    	PrismProperty<T> property = findProperty(propertyName);
     	if (property == null) {          // when using sql repo, even non-existing properties do not have 'null' here
     		return null;
     	}

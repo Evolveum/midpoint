@@ -131,7 +131,9 @@ using an Identity Connector Framework connector.
 					<access>read</access>
 					<outbound>
 						<initial>true</initial>
-						<path>$user/name</path>
+						<source>
+							<path>$user/name</path>
+						</source>
 					</outbound>
 				</attribute>
 
@@ -141,7 +143,9 @@ using an Identity Connector Framework connector.
 					<description>Definition of Firstname attribute handling.</description>
 					<outbound>
 						<initial>true</initial>
-						<path>$user/givenName</path>
+						<source>
+							<path>$user/givenName</path>
+						</source>
 					</outbound>
 				</attribute>
 				<attribute>
@@ -150,7 +154,9 @@ using an Identity Connector Framework connector.
 					<description>Definition of Lastname attribute handling.</description>
 					<outbound>
 						<initial>true</initial>
-						<path>$user/familyName</path>
+						<source>
+							<path>$user/familyName</path>
+						</source>
 					</outbound>
 				</attribute>
 <!--
@@ -164,16 +170,12 @@ using an Identity Connector Framework connector.
 				</attribute>-->
 				<credentials>
 					<password>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 					</password>
 				</credentials>
 				<activation>
 					<enabled>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 					</enabled>
 				</activation>
 

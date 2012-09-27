@@ -100,7 +100,7 @@ public class PrismPropertyPanel extends Panel {
                 }
 
                 RefinedAttributeDefinition refinedDef = (RefinedAttributeDefinition) def;
-                return refinedDef.hasOutboundExpression();
+                return refinedDef.hasOutboundMapping();
             }
         });
         add(hasOutbound);

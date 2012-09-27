@@ -101,10 +101,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptsType;
 
 /**
  * Implementation of provisioning service.
@@ -311,7 +311,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ScriptsType scripts,
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
 			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		// TODO
@@ -731,7 +731,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, ScriptsType scripts, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -807,7 +807,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts,
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 		// TODO Auto-generated method stub

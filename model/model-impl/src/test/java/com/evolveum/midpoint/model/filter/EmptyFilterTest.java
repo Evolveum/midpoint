@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.model.controller.Filter;
+import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**

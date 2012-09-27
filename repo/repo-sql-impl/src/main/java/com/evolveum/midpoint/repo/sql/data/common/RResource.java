@@ -226,7 +226,7 @@ public class RResource extends RObject {
             jaxb.setNativeCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_NATIVE_CAPABILITIES),
                     repo.getNativeCapabilities(), CachedCapabilitiesType.class, prismContext));
             jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS), repo.getScripts(),
-                    ScriptsType.class, prismContext));
+                    ProvisioningScriptsType.class, prismContext));
 			if (repo.getLastAvailabilityStatus() != null) {
 				jaxb.setLastAvailabilityStatus(repo.getLastAvailabilityStatus().getStatus());
 			}

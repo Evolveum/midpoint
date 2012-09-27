@@ -117,11 +117,13 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Given Name</displayName>
                     <outbound>
                         <initial>true</initial>
-                        <path>$user/givenName</path>
+                        <source>
+                        	<path>$user/givenName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            $c:user/c:givenName
+                            <path>$user/givenName</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -130,11 +132,13 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Surname</displayName>
                     <outbound>
                         <initial>true</initial>
-                        <path>$user/familyName</path>
+                        <source>
+                        	<path>$user/familyName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            $c:user/c:familyName
+                            <path>$user/familyName</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -144,11 +148,13 @@ This resource definition contains only the very basic definitions for midPoint t
                     <displayName>Login name</displayName>
                     <outbound>
                         <initial>true</initial>
-                        <path>$user/name</path>
+                        <source>
+                        	<path>$user/name</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            $c:user/c:name
+                            <path>$user/name</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -156,11 +162,13 @@ This resource definition contains only the very basic definitions for midPoint t
                 <attribute>
                     <ref>ri:mail</ref>
                     <outbound>
-			<path>$user/emailAddress</path>
-                         </outbound>
+                    	<source>
+							<path>$user/emailAddress</path>
+						</source>
+                    </outbound>
                     <inbound>
                         <target>
-                            $c:user/c:emailAddress
+                            <path>$user/emailAddress</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -176,7 +184,9 @@ to "false". The only way of resetting the flag is to change user's password.
 -->
 			<ref>ri:__PASSWORD_EXPIRED__</ref>
 			<outbound>
-				<value>true</value>
+				<expression>
+					<value>true</value>
+				</expression>
 			</outbound>
 		</attribute>
 
@@ -189,26 +199,29 @@ to "false". The only way of resetting the flag is to change user's password.
 
                     <outbound>
                         <initial>true</initial>
+                        <source>
+                        	<path>$user/givenName</path>
+                        </source>
+                        <source>
+                        	<path>$user/familyName</path>
+                        </source>
                         <expression>
-                            <code>
-				concat('cn=',
-				$c:user/c:givenName/t:orig, ' ', $c:user/c:familyName/t:orig, $c:iterationToken, ',cn=Users,dc=example,dc=com')
-                            </code>
+                        	<script>
+                            	<code>
+				'cn='+givenName+' '+familyName+iterationToken+',cn=Users,dc=example,dc=com'
+                            	</code>
+                            </script>
                         </expression>
                     </outbound>
                 </attribute>
                 <credentials>
                     <password>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <outbound/>
                     </password>
                 </credentials>
                 <activation>
                     <enabled>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <outbound/>
                     </enabled>
                 </activation>
 		<iteration>
@@ -312,12 +325,15 @@ to "false". The only way of resetting the flag is to change user's password.
 	                </q:description>
 	                <q:equal>
 	                    <q:path>.</q:path>
-	                    <valueExpression>
+	                    <expression>
 	                        <ref>name</ref>
-	                        <code>
-	                            $c:account/c:attributes/ri:sAMAccountName
-	                        </code>
-	                    </valueExpression>
+	                        <script>
+	                        	<language>http://www.w3.org/TR/xpath/</language>
+		                        <code>
+		                            $c:account/c:attributes/ri:sAMAccountName
+		                        </code>
+	                        </script>
+	                    </expression>
 	                </q:equal>
 	            </correlation>
 	
@@ -371,16 +387,26 @@ to "false". The only way of resetting the flag is to change user's password.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-            <valueConstruction>
-                <initial>true</initial>
-                <expression>
-
-                    <code>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                        concat($i:user/i:givenName,' ',$i:user/i:familyName)
-                    </code>
-                </expression>
-            </valueConstruction>
+            <mapping>
+				<initial>true</initial>
+				<source>
+					<path>$user/givenName</path>
+				</source>
+				<source>
+					<path>$user/familyName</path>
+				</source>
+				<expression>
+					<script>
+						<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+						<code>
+							givenName + ' ' + familyName
+						</code>
+					</script>
+				</expression>
+				<target>
+					<path>fullName</path>
+				</target>
+			</mapping>
         </propertyConstruction>
 
     </userTemplate>

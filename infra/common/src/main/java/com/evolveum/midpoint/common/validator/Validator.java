@@ -326,6 +326,10 @@ public class Validator {
 
 			if (validateSchemas) {
 				postValidationTree = validateSchema(objectDoc, objectResult);
+				if (postValidationTree == null) {
+					// There was an error
+					return EventResult.skipObject(objectResult.getMessage());
+				}
 			}
 
 			if (handler != null) {

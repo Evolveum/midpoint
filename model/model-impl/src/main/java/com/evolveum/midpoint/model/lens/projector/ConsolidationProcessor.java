@@ -23,10 +23,10 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
 import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -184,7 +184,7 @@ public class ConsolidationProcessor {
                 }
 
                 boolean initialOnly = true;
-                ValueConstruction<?> exclusiveVc = null;
+                Mapping<?> exclusiveVc = null;
                 Collection<PropertyValueWithOrigin> pvwosToAdd = null;
                 if (addUnchangedValues) {
                     pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
@@ -194,7 +194,7 @@ public class ConsolidationProcessor {
 
                 if (!pvwosToAdd.isEmpty()) {
                     for (PropertyValueWithOrigin pvwoToAdd : pvwosToAdd) {
-                        ValueConstruction<?> vc = pvwoToAdd.getValueConstruction();
+                        Mapping<?> vc = pvwoToAdd.getValueConstruction();
                         if (!vc.isInitial()) {
                             initialOnly = false;
                         }
@@ -502,7 +502,7 @@ public class ConsolidationProcessor {
 	private void sqeezeAttributesFromAccountConstruction(
 			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
 			AccountConstruction accountConstruction) {
-		for (ValueConstruction<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
+		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
 			DeltaSetTriple<PropertyValueWithOrigin> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
@@ -517,7 +517,7 @@ public class ConsolidationProcessor {
 	private void sqeezeAttributesFromAccountConstructionNonminusToPlus(
 			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
 			AccountConstruction accountConstruction) {
-		for (ValueConstruction<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
+		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
 			DeltaSetTriple<PropertyValueWithOrigin> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
@@ -532,7 +532,7 @@ public class ConsolidationProcessor {
 	private void sqeezeAttributesFromAccountConstructionNonminusToMinus(
 			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
 			AccountConstruction accountConstruction) {
-		for (ValueConstruction<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
+		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
 			DeltaSetTriple<PropertyValueWithOrigin> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), vc, accountConstruction);
@@ -543,10 +543,12 @@ public class ConsolidationProcessor {
 
 	private void convertSqueezeSet(Collection<? extends PrismPropertyValue<?>> fromSet,
 			Collection<PropertyValueWithOrigin> toSet,
-			ValueConstruction<? extends PrismPropertyValue<?>> valueConstruction, AccountConstruction accountConstruction) {
-		for (PrismPropertyValue<?> from: fromSet) {
-			PropertyValueWithOrigin pvwo = new PropertyValueWithOrigin(from, valueConstruction, accountConstruction);
-			toSet.add(pvwo);
+			Mapping<? extends PrismPropertyValue<?>> valueConstruction, AccountConstruction accountConstruction) {
+		if (fromSet != null) {
+			for (PrismPropertyValue<?> from: fromSet) {
+				PropertyValueWithOrigin pvwo = new PropertyValueWithOrigin(from, valueConstruction, accountConstruction);
+				toSet.add(pvwo);
+			}
 		}
 	}
 

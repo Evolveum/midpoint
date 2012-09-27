@@ -31,46 +31,68 @@
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
     		<attribute>
                 <ref>ri:employeeType</ref>
-				<value>sailor</value>
+                <outbound>
+                	<expression>
+						<value>sailor</value>
+					</expression>
+				</outbound>
             </attribute>
     		<attribute>
                 <ref>ri:title</ref>
-				<value>Honorable Captain</value>
+      			<outbound>
+                	<expression>
+						<value>Honorable Captain</value>
+					</expression>
+				</outbound>
             </attribute>    		
     		<attribute>
                 <ref>ri:carLicense</ref>
-				<value>
-				  <ri:carLicense>C4PT41N</ri:carLicense>
-				</value>
+                <outbound>
+                	<expression>
+						<value>
+						  <ri:carLicense>C4PT41N</ri:carLicense>
+						</value>
+					</expression>
+				</outbound>
             </attribute>    		
     		<attribute>
                 <ref>ri:businessCategory</ref>
-				<value>
-					<ri:businessCategory>cruise</ri:businessCategory>
-				</value>
+                <outbound>
+                	<expression>
+						<value>
+							<ri:businessCategory>cruise</ri:businessCategory>
+						</value>
+					</expression>
+				</outbound>
             </attribute>    		
     		<attribute> 
                 <ref>ri:departmentNumber</ref>
-				<expression>
-					<returnType>scalar</returnType>
-					<code>
-                        concat('Department of ',$c:user/c:givenName/t:orig)
-					</code>
-				</expression>
+                <outbound>
+                	<source>
+                		<path>$user/givenName</path>
+                	</source>
+                	<expression>
+						<script>
+							<code>'Department of ' + givenName</code>
+						</script>
+					</expression>
+				</outbound>
             </attribute>
             <attribute>
                 <ref>ri:destinationIndicator</ref>
-				<path>fullName</path>
+                <outbound>
+                	<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
             </attribute>
     		<attribute>
                 <ref>ri:physicalDeliveryOfficeName</ref>
-				<expression>
-					<code>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-						declare namespace my="http://whatever.com/my";
-                        $c:assignment/c:extension/my:shipName
-					</code>
-				</expression>
+                <outbound>
+                	<source>
+                		<path xmlns:my="http://whatever.com/my">$c:assignment/c:extension/my:shipName</path>
+                	</source>
+                </outbound>
             </attribute>
     	</accountConstruction>
     </assignment>    

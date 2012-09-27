@@ -19,10 +19,28 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
+import javax.naming.InvalidNameException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 
 /**
  * Library of standard midPoint functions. These functions are made available to all
@@ -34,6 +52,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 public class MidPointFunctions {
 	
 	public static final String NAME_SEPARATOR = " ";
+	
+	public static final Trace LOGGER = TraceManager.getTrace(MidPointFunctions.class);
 	
 	private PrismContext prismContext;
 
@@ -97,5 +117,117 @@ public class MidPointFunctions {
 		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
 		return polyString.getNorm();
 	}
+	
+	public Collection<Object> getAttributeValues(ResourceObjectShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+		return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
+	}
+	
+	public Collection<Object> getAttributeValues(ResourceObjectShadowType shadow, groovy.xml.QName attributeQname) {
+		return getAttributeValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
+	}
+	
+	public Collection<Object> getAttributeValues(ResourceObjectShadowType shadow, javax.xml.namespace.QName attributeQname) {
+		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, Object.class);
+	}
 
+	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+		return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
+	}
+	
+	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, groovy.xml.QName attributeQname) {
+		return getAttributeStringValues(shadow, attributeQname.getNamespaceURI(), attributeQname.getLocalPart());
+	}
+	
+	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, javax.xml.namespace.QName attributeQname) {
+		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
+	}
+	
+	public String determineLdapSingleAttributeValue(Element dn, String attributeName, Element valueElement) throws NamingException {
+		// Trivial case: the value is a single elmenet therefore it has a single value.
+		return valueElement.getTextContent();
+	}
+	
+	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Element valueElement) throws NamingException {
+		// Trivial case: the value is a single elmenet therefore it has a single value.
+		return valueElement.getTextContent();
+	}
+	
+	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
+		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
+	}
+	
+	public String determineLdapSingleAttributeValue(Element dnElement, String attributeName, Collection<String> values) throws NamingException {
+		if (values == null || values.isEmpty()) {
+			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
+			return null;
+		}
+		if (dnElement == null) {
+			throw new IllegalArgumentException("No dn argument specified");
+		}
+		return determineLdapSingleAttributeValue(dnElement.getTextContent(), attributeName, values);
+	}
+
+	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
+		if (values == null || values.isEmpty()) {
+			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
+			return null;
+		}
+		if (dns == null || dns.isEmpty()) {
+			throw new IllegalArgumentException("No dn argument specified");
+		}
+		if (dns.size() > 1) {
+			throw new IllegalArgumentException("Nore than one value ("+dns.size()+" for dn argument specified");
+		}
+		return determineLdapSingleAttributeValue(dns.iterator().next(), attributeName, values);
+	}
+		
+	// We cannot have Collection<String> here. The generic type information will disappear at runtime and the scripts can pass
+	// anything that they find suitable. E.g. XPath is passing elements
+	public String determineLdapSingleAttributeValue(String dn, String attributeName, Collection<?> values) throws NamingException {
+		if (values == null || values.isEmpty()) {
+			return null;
+		}
+		
+		Collection<String> stringValues = null;
+		// Determine item type, try to convert to strings
+		Object firstElement = values.iterator().next();
+		if (firstElement instanceof String) {
+			stringValues = (Collection)values;
+		} else if (firstElement instanceof Element) {
+			stringValues = new ArrayList<String>(values.size());
+			for (Object value: values) {
+				Element element = (Element)value;
+				stringValues.add(element.getTextContent());
+			}
+		} else {
+			throw new IllegalArgumentException("Unexpected value type "+firstElement.getClass());
+		}
+		
+		if (stringValues.size() == 1) {
+			return stringValues.iterator().next();
+		}
+		
+		LdapName parsedDn =  new LdapName(dn);
+		for (int i=0; i < parsedDn.size(); i++) {
+			Rdn rdn = parsedDn.getRdn(i);
+			Attributes rdnAttributes = rdn.toAttributes();
+			NamingEnumeration<String> rdnIDs = rdnAttributes.getIDs();
+			while (rdnIDs.hasMore()) {
+				String rdnID = rdnIDs.next();
+				Attribute attribute = rdnAttributes.get(rdnID);
+				if (attributeName.equals(attribute.getID())) {
+					for (int j=0; j < attribute.size(); j++) {
+						Object value = attribute.get(j);
+						if (stringValues.contains(value)) {
+							return (String) value;
+						}
+					}
+				}
+			}
+		}
+		
+		// Fallback. No values in DN. Just return the first alphabetically-wise value.
+		return Collections.min(stringValues);
+	}
+	
 }

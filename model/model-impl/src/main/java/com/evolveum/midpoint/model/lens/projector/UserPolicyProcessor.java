@@ -28,9 +28,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -62,14 +63,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 
 /**
  * Processor to handle user template and possible also other user "policy"
@@ -84,7 +84,7 @@ public class UserPolicyProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(UserPolicyProcessor.class);
 
 	@Autowired(required = true)
-	private ValueConstructionFactory valueConstructionFactory;
+	private MappingFactory mappingFactory;
 
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -139,72 +139,81 @@ public class UserPolicyProcessor {
 
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getWaveSecondaryDelta();
 		ObjectDelta<UserType> userPrimaryDelta = focusContext.getWavePrimaryDelta();
-		for (PropertyConstructionType propConstr : userTemplate.getPropertyConstruction()) {
-			XPathHolder propertyXPath = new XPathHolder(propConstr.getProperty());
-			PropertyPath itemPath = propertyXPath.toPropertyPath();
-
-			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-			ItemDefinition itemDefinition = userDefinition.findItemDefinition(itemPath);
-			if (itemDefinition == null) {
-				throw new SchemaException("The property " + itemPath + " is not a valid user property, defined in "
-						+ ObjectTypeUtil.toShortString(userTemplate));
-			}
-
-			ValueConstructionType valueConstructionType = propConstr.getValueConstruction();
-			// TODO: is the parentPath correct (null)?
-			ValueConstruction valueConstruction = valueConstructionFactory.createValueConstruction(
-					valueConstructionType, itemDefinition, "user template expression for " + itemDefinition.getName()
-							+ " while processing user " + focusContext.getObjectNew());
-
-			PrismProperty existingUserProperty = focusContext.getObjectNew().findProperty(itemPath);
-			if (existingUserProperty != null && !existingUserProperty.isEmpty() && valueConstruction.isInitial()) {
-				// This valueConstruction only applies if the property does not have a value yet.
-				// ... but it does
-				continue;
-			}
-
-			evaluateUserTemplateValueConstruction(valueConstruction, itemDefinition, context, result);
-
-			PrismValueDeltaSetTriple<? extends PrismValue> outputTriple = valueConstruction.getOutputTriple();
-			if (outputTriple != null) {
-				ItemDelta itemDelta = valueConstruction.createEmptyDelta(itemPath);
-				Collection<? extends PrismValue> nonNegativeValues = outputTriple.getNonNegativeValues();
-				if (itemDefinition.isMultiValue()) {
-					for (PrismValue value: nonNegativeValues) {
-						if (!hasValue(existingUserProperty, value)) {
-							itemDelta.addValueToAdd(value.clone());
-						}
+		ObjectDeltaObject<UserType> userOdo = focusContext.getObjectDeltaObject();
+		for (MappingType mappingType : userTemplate.getMapping()) {
+			ItemDelta<PrismValue> itemDelta = evaluateMapping(mappingType, userTemplate, userOdo, result);
+			
+			if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
+				if (itemDelta != null && !itemDelta.isEmpty()) {
+					if (userSecondaryDelta == null) {
+						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
+						focusContext.setWaveSecondaryDelta(userSecondaryDelta);
 					}
-					// TODO: remove values
-				} else {
-					if (nonNegativeValues.size() > 1) {
-						throw new SchemaException("Attempt to store "+nonNegativeValues.size()+" values in single-valued user property "+itemPath);
-					}
-					if (nonNegativeValues.size() == 0) {
-						if (existingUserProperty != null && !existingUserProperty.isEmpty()) {
-							// Empty set in replace value will cause the property to remove all existing values.
-							itemDelta.setValuesToReplace(nonNegativeValues);
-						}
-					} else {
-						PrismValue value = nonNegativeValues.iterator().next();
-						if (!hasValue(existingUserProperty, value)) {
-							itemDelta.setValueToReplace(value.clone());
-						}
-					}
-				}
-				if (!userPrimaryDelta.containsModification(itemDelta)) {
-					if (!itemDelta.isEmpty()) {
-						if (userSecondaryDelta == null) {
-							userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
-							focusContext.setWaveSecondaryDelta(userSecondaryDelta);
-						}
-						userSecondaryDelta.addModification(itemDelta);	
-					}
+					userSecondaryDelta.mergeModification(itemDelta);	
 				}
 			}
 		}
 
 	}
+
+	private <V extends PrismValue> ItemDelta<V> evaluateMapping(MappingType mappingType, UserTemplateType userTemplate, 
+			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
+				"user template mapping in " + userTemplate
+				+ " while processing user " + userOdo.getAnyObject());
+		mapping.setSourceContext(userOdo);
+		mapping.setTargetContext(getUserDefinition());
+		mapping.setRootNode(userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+
+		ItemDefinition outputDefinition = mapping.getOutputDefinition();
+		PropertyPath itemPath = mapping.getOutputPath();
+		
+		PrismProperty<?> existingUserProperty = userOdo.getNewObject().findProperty(itemPath);
+		if (existingUserProperty != null && !existingUserProperty.isEmpty() && mapping.isInitial()) {
+			// This valueConstruction only applies if the property does not have a value yet.
+			// ... but it does
+			return null;
+		}
+
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		// TODO: more variables?
+
+		mapping.evaluate(result);
+
+		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
+		ItemDelta<V> itemDelta = null;
+		if (outputTriple != null) {
+			itemDelta = mapping.createEmptyDelta(itemPath);
+			Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
+			if (outputDefinition.isMultiValue()) {
+				for (V value: nonNegativeValues) {
+					if (!hasValue(existingUserProperty, value)) {
+						itemDelta.addValueToAdd((V) value.clone());
+					}
+				}
+				// TODO: remove values
+			} else {
+				if (nonNegativeValues.size() > 1) {
+					throw new SchemaException("Attempt to store "+nonNegativeValues.size()+" values in single-valued user property "+itemPath);
+				}
+				if (nonNegativeValues.size() == 0) {
+					if (existingUserProperty != null && !existingUserProperty.isEmpty()) {
+						// Empty set in replace value will cause the property to remove all existing values.
+						itemDelta.setValuesToReplace(nonNegativeValues);
+					}
+				} else {
+					PrismValue value = nonNegativeValues.iterator().next();
+					if (!hasValue(existingUserProperty, value)) {
+						itemDelta.setValueToReplace((V) value.clone());
+					}
+				}
+			}
+		}
+
+		return itemDelta;
+	}
+
 
 	private boolean hasValue(PrismProperty existingUserProperty, PrismValue newValue) {
 		if (existingUserProperty == null) {
@@ -218,18 +227,6 @@ public class UserPolicyProcessor {
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().getObjectSchema()
 				.findObjectDefinitionByCompileTimeClass(UserType.class);
-	}
-
-	private void evaluateUserTemplateValueConstruction(ValueConstruction valueConstruction,
-			ItemDefinition propertyDefinition, LensContext<UserType, AccountShadowType> context, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
-		valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectNew());
-		// TODO: variables
-		// TODO: root node
-
-		valueConstruction.evaluate(result);
-
 	}
 
 }

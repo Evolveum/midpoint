@@ -355,20 +355,20 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         if (waves.size() == 1) {
         	sb.append(" single wave\n");
         	sb.append(waves.get(0).debugDump(indent + 1));
-        }
-
-        sb.append(waves.size()).append(" waves");
-        for (int wave = 0; wave < waves.size(); wave++) {
-        	sb.append("\n");
-			ObjectDelta<O> delta = waves.get(wave);
-			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("wave ").append(wave).append(":");
-			if (delta == null) {
-				sb.append(" null");
-			} else {
-				sb.append("\n");
-				sb.append(delta.debugDump(indent + 2));
-			}
+        } else {
+	        sb.append(waves.size()).append(" waves");
+	        for (int wave = 0; wave < waves.size(); wave++) {
+	        	sb.append("\n");
+				ObjectDelta<O> delta = waves.get(wave);
+				DebugUtil.indentDebugDump(sb, indent + 1);
+				sb.append("wave ").append(wave).append(":");
+				if (delta == null) {
+					sb.append(" null");
+				} else {
+					sb.append("\n");
+					sb.append(delta.debugDump(indent + 2));
+				}
+	        }
         }
         
         return sb.toString();

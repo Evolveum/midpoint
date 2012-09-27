@@ -228,22 +228,34 @@ public class IntegrationTestTools {
 		assertAttribute("Wrong attribute " + name + " in shadow", repoShadow,
 				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), value);
 	}
-
-	public static void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
-		Collection<String> values = getAttributeValues(repoShadow, name);
+	
+	public static void assertAttribute(ResourceObjectShadowType shadowType, QName name, String value) {
+		assertAttribute(shadowType.asPrismObject(), name, value);
+	}
+	
+	public static void assertAttribute(PrismObject<? extends ResourceObjectShadowType> shadow, QName name, String value) {	
+		Collection<String> values = getAttributeValues(shadow, name);
 		if (values == null || values.isEmpty()) {
-			AssertJUnit.fail("Attribute "+name+" is not present in "+ObjectTypeUtil.toShortString(repoShadow));
+			AssertJUnit.fail("Attribute "+name+" is not present in "+shadow);
 		}
 		if (values.size() > 1) {
-			AssertJUnit.fail("Too many values for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow));	
+			AssertJUnit.fail("Too many values for attribute "+name+" in "+shadow);	
 		}
-		assertEquals("Wrong value for attribute "+name+" in "+ObjectTypeUtil.toShortString(repoShadow), value, values.iterator().next());
+		assertEquals("Wrong value for attribute "+name+" in "+shadow, value, values.iterator().next());
 	}
 
 	public static void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
 		Collection<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(message, 1, values.size());
 		assertEquals(message, value, values.iterator().next());
+	}
+	
+	public static void assertIcfsNameAttribute(ResourceObjectShadowType repoShadow, String value) {
+		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
+	}
+	
+	public static void assertIcfsNameAttribute(PrismObject<? extends ResourceObjectShadowType> repoShadow, String value) {
+		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
 	}
 
 	public static void assertAttributeNotNull(ResourceObjectShadowType repoShadow, QName name) {
@@ -295,7 +307,13 @@ public class IntegrationTestTools {
 	}
 
 	public static Collection<String> getAttributeValues(ResourceObjectShadowType shadowType, QName name) {
-		PrismObject shadow = shadowType.asPrismObject();
+		return getAttributeValues(shadowType.asPrismObject(), name);
+	}
+	
+	public static Collection<String> getAttributeValues(PrismObject<? extends ResourceObjectShadowType> shadow, QName name) {
+		if (shadow == null) {
+			throw new IllegalArgumentException("No shadow");
+		}
 		PrismContainer attrCont = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		if (attrCont == null) {
 			return null;
@@ -582,6 +600,9 @@ public class IntegrationTestTools {
 		XPathHolder xpath = new XPathHolder(AccountShadowType.F_ATTRIBUTES);
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
 		PrismProperty<String> identifier = attributesContainer.findProperty(SchemaTestConstants.ICFS_UID);
+		if (identifier == null) {
+			throw new SchemaException("No identifier in "+resourceShadow);
+		}
 
 		Document doc = DOMUtil.getDocument();
 //		Element filter;

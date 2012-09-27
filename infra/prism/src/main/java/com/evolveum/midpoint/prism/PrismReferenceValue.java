@@ -293,8 +293,8 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		} else {
 			sb.append("object=").append(object);
 		}
-		sb.append(", type=").append(getType());
-		sb.append(", source=").append(getSource());
+		sb.append(", type=").append(getOriginType());
+		sb.append(", source=").append(getOriginObject());
 		if (filter != null) {
 			sb.append(", (filter)");
 		}
@@ -325,7 +325,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 
     @Override
     public PrismReferenceValue clone() {
-        PrismReferenceValue clone = new PrismReferenceValue(getOid(), getType(), getSource());
+        PrismReferenceValue clone = new PrismReferenceValue(getOid(), getOriginType(), getOriginObject());
         copyValues(clone);
         return clone;
     }

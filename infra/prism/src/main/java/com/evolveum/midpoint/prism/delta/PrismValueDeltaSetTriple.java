@@ -21,8 +21,10 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.Cloner;
@@ -147,6 +149,40 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			item.applyDefinition(itemDefinition);
 		}
 	}
+	
+	/**
+	 * Sets specified source type for all values in all sets
+	 */
+	public void setOriginType(SourceType sourceType) {
+		setOriginType(zeroSet, sourceType);
+		setOriginType(plusSet, sourceType);
+		setOriginType(minusSet, sourceType);
+	}
+
+	private void setOriginType(Collection<V> set, SourceType sourceType) {
+		if (set != null) {
+			for (V val: set) {
+				val.setOriginType(sourceType);
+			}
+		}
+	}
+	
+	/**
+	 * Sets specified origin object for all values in all sets
+	 */
+	public void setOriginObject(Objectable originObject) {
+		setOriginObject(zeroSet, originObject);
+		setOriginObject(plusSet, originObject);
+		setOriginObject(minusSet, originObject);
+	}
+
+	private void setOriginObject(Collection<V> set, Objectable originObject) {
+		if (set != null) {
+			for (V val: set) {
+				val.setOriginObject(originObject);
+			}
+		}
+	}
 
 	public PrismValueDeltaSetTriple<V> clone() {
 		PrismValueDeltaSetTriple<V> clone = new PrismValueDeltaSetTriple<V>();
@@ -183,6 +219,5 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	protected String debugName() {
     	return "PVDeltaSetTriple";
     }
-
 
 }

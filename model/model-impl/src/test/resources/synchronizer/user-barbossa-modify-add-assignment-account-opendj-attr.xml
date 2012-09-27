@@ -36,14 +36,22 @@
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 					<c:attribute>
 						<c:ref>ri:secretary</c:ref>
-						<c:value>Jack the Monkey</c:value>
+						<c:outbound>
+							<c:expression>
+								<c:value>Jack the Monkey</c:value>
+							</c:expression>
+						</c:outbound>
 					</c:attribute>
 					<c:attribute>
 						<c:ref>ri:l</c:ref>
-						<c:value>
-							<ri:l>Caribbean</ri:l>
-							<ri:l>World's End</ri:l>
-						</c:value>
+						<c:outbound>
+							<c:expression>
+								<c:value>
+									<ri:l>Caribbean</ri:l>
+									<ri:l>World's End</ri:l>
+								</c:value>
+							</c:expression>
+						</c:outbound>
 					</c:attribute>
 				</c:accountConstruction>
 			</c:assignment>

@@ -866,7 +866,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	public PrismContainerValue<T> clone() {
-    	PrismContainerValue<T> clone = new PrismContainerValue<T>(getType(), getSource(), getParent(), getId());
+    	PrismContainerValue<T> clone = new PrismContainerValue<T>(getOriginType(), getOriginObject(), getParent(), getId());
     	copyValues(clone);
         return clone;
     }

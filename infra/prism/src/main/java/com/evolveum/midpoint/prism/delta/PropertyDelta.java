@@ -111,6 +111,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
         return (Collection) MiscUtil.union(valuesToAdd, valuesToDelete);
     }
     
+	public T getAnyRealValue() {
+		PrismPropertyValue<T> anyValue = getAnyValue();
+		return anyValue.getValue();
+	}
+
+    
     public <P extends PrismProperty> P instantiateEmptyProperty() {
     	PrismPropertyDefinition propertyDefinition = getPropertyDefinition();
     	if (propertyDefinition == null) {

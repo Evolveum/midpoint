@@ -110,6 +110,7 @@ object.
                 <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
                 <default>true</default>
+
                 <!-- Reference to the Resource Schema (see above) specifying
                      object class for this account type -->
                 <objectClass>ri:AccountObjectClass</objectClass>
@@ -136,19 +137,22 @@ object.
                          This specific expression will construct DN by concatenating
                          name from user object and string constants.
 
-                         The expression is marked as "default", therefore it will
-                         be evaluated only if the entry already does not have an DN.
-
-                         It is an XPath expression, similar to BPEL assignment expressions. -->
+                         The expression is marked as "initial", therefore it will
+                         be evaluated only if the entry already does not have an DN. -->
                     <outbound>
                         <initial>true</initial>
+                        <source>
+                        	<path>$user/name</path>
+                        </source>
                         <expression>
-                            <code>
-                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                                concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
-                            </code>
+                        	<script>
+                            	<code>'uid=' + name + ',ou=people,dc=example,dc=com'</code>
+                            </script>
                         </expression>
                     </outbound>
+<!-- Try this, but it does not work as of 24.5.2012 10:44
+                                'uid=' + name + iterationToken +',ou=people,dc=example,dc=com'
+-->
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
 
@@ -187,15 +191,16 @@ object.
                     <outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
-                        <path>$user/name</path>
+                        <source>
+				   			<path>$user/name</path>
+			   			</source>
                     </outbound>
                     <inbound>
                         <description>It is mapped to (and also from) "name" property of
                             user. It is essentially a login name
                         </description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:name
+                            <path>$user/name</path>
                         </target>
                     </inbound>
 
@@ -203,6 +208,7 @@ object.
                 <!-- Definition of cn attribute handling. -->
                 <attribute>
                     <ref>ri:cn</ref>
+
                     <displayName>Common Name</displayName>
                     <access>create</access>
                     <access>read</access>
@@ -218,7 +224,9 @@ object.
                          overwriting the original value of "cn" on the resource.
                      -->
                     <outbound>
-                        <path>$user/fullName</path>
+                    	<source>
+                        	<path>$user/fullName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <description>
@@ -228,8 +236,7 @@ object.
                             from the account to the fullName property of the user.
                         </description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:fullName
+                            <path>$user/fullName</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -242,13 +249,14 @@ object.
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <path>$user/familyName</path>
+                    	<source>
+                          <path>$user/familyName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <description>sn will be synchronized to user's familyName</description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:familyName
+                            <path>$user/familyName</path>
                         </target>
                     </inbound>
 
@@ -263,13 +271,14 @@ object.
                     <access>read</access>
                     <access>update</access>
                     <outbound>
-                        <path>$user/givenName</path>
+                    	<source>
+                        	<path>$user/givenName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <description>givenName will be synchronized to user's givenName</description>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $i:user/i:givenName
+                            <path>$user/givenName</path>
                         </target>
                     </inbound>
 
@@ -277,31 +286,23 @@ object.
                 <credentials>
                     <password>
                         <outbound>
-                            <asIs/>
+                        	<initial>true</initial>
+                        	<expression>
+                        		<generate/>
+                        	</expression>
                         </outbound>
-                        <inbound>
-                            <source>
-                                <initial>true</initial>
-                                <generate/>
-                            </source>
-                        </inbound>
                     </password>
                 </credentials>
                 <activation>
                     <enabled>
                         <outbound>
-                            <asIs/>
+                        	<initial>true</initial>
                         </outbound>
-                        <inbound>
-                            <source>
-				<initial>true</initial>
-                                <asIs/>
-                            </source>
-                        </inbound>
                     </enabled>
                 </activation>
             </accountType>
         </schemaHandling>
+        
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
             <cap:activation>
                 <cap:enableDisable>
@@ -339,14 +340,17 @@ object.
 	                </q:description>
 	                <q:equal>
 	                    <q:path>.</q:path>
-	                    <valueExpression>
+	                    <expression>
 	                        <ref>c:name</ref>
-	                        <code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-	                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa";
-	                            $c:account/c:attributes/ri:uid
-	                        </code>
-	                    </valueExpression>
+	                        <script>
+		                        <language>http://www.w3.org/TR/xpath/</language>
+		                        <code>
+		                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+		                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa";
+		                            $c:account/c:attributes/ri:uid
+		                        </code>
+	                        </script>
+	                    </expression>
 	                </q:equal>
 	            </correlation>
 	

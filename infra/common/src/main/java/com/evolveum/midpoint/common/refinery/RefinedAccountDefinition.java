@@ -580,7 +580,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
         Collection<QName> attrNames = new HashSet<QName>();
         for (RefinedAttributeDefinition attrDef : getAttributeDefinitions()) {
-            if (attrDef.getOutboundValueConstructionType() != null) {
+            if (attrDef.getOutboundMappingType() != null) {
                 attrNames.add(attrDef.getName());
             }
         }
@@ -590,7 +590,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
         Collection<QName> attrNames = new HashSet<QName>();
         for (RefinedAttributeDefinition attrDef : getAttributeDefinitions()) {
-            List<ValueAssignmentType> inbounds = attrDef.getInboundAssignmentTypes();
+            List<MappingType> inbounds = attrDef.getInboundMappingTypes();
             if (inbounds != null && !inbounds.isEmpty()) {
                 attrNames.add(attrDef.getName());
             }
@@ -620,7 +620,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return definition;
     }
 
-    public ValueAssignmentType getCredentialsInbound() {
+    public MappingType getCredentialsInbound() {
         
     	ResourcePasswordDefinitionType password = getPasswordDefinition();
     	
@@ -631,7 +631,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return password.getInbound();
     }
     
-	public ValueConstructionType getCredentialsOutbound() {
+	public MappingType getCredentialsOutbound() {
 
 		ResourcePasswordDefinitionType password = getPasswordDefinition();
 
@@ -666,7 +666,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return credentials.getPassword();
     }
 
-    public ValueAssignmentType getActivationInbound() {
+    public MappingType getActivationInbound() {
         
         ResourceActivationEnableDefinitionType enabled = getActivationEnableDefinition();
         if (enabled == null || enabled.getInbound() == null) {
@@ -676,7 +676,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return (enabled.getInbound());
     }
  
-	public ValueConstructionType getActivationOutbound() {
+	public MappingType getActivationOutbound() {
 
 		ResourceActivationEnableDefinitionType enabled = getActivationEnableDefinition();
 		if (enabled == null || enabled.getOutbound() == null) {

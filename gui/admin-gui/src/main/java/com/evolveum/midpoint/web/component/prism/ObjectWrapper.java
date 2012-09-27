@@ -315,7 +315,7 @@ public class ObjectWrapper implements Serializable {
 					}
 
 					PrismPropertyValue val = valueWrapper.getValue();
-					val.setType(SourceType.USER_ACTION);
+					val.setOriginType(SourceType.USER_ACTION);
 					switch (valueWrapper.getStatus()) {
 					case ADDED:
 						if (SchemaConstants.PATH_PASSWORD.equals(path)) {

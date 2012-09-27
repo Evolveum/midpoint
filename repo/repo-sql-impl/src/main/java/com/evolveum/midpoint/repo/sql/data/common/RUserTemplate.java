@@ -114,7 +114,7 @@ public class RUserTemplate extends RObject {
 
             if (StringUtils.isNotEmpty(repo.getPropertyConstruction())) {
                 UserTemplateType holder = RUtil.toJAXB(repo.getPropertyConstruction(), UserTemplateType.class, prismContext);
-                jaxb.getPropertyConstruction().addAll(holder.getPropertyConstruction());
+                jaxb.getMapping().addAll(holder.getMapping());
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -133,9 +133,9 @@ public class RUserTemplate extends RObject {
                 repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
             }
 
-            if (!jaxb.getPropertyConstruction().isEmpty()) {
+            if (!jaxb.getMapping().isEmpty()) {
                 UserTemplateType template = new UserTemplateType();
-                template.getPropertyConstruction().addAll(jaxb.getPropertyConstruction());
+                template.getMapping().addAll(jaxb.getMapping());
                 repo.setPropertyConstruction(RUtil.toRepo(template, prismContext));
             }
         } catch (Exception ex) {

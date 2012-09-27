@@ -25,8 +25,10 @@
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-	 xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
 	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
 	    <filter>
@@ -250,10 +252,16 @@
 				<access>read</access>
 				<outbound>
 				    <initial>true</initial>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
 					<expression>
-						<code>
-							concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
-						</code>
+						<script>
+							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+							<code>
+								'uid=' + name + ',ou=people,dc=example,dc=com'
+							</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -269,13 +277,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-							$c:user/c:fullName
-					</path>
+					<source>
+						<path>$user/fullName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$user/fullName
+						<path>$user/fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -286,13 +294,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-						$c:user/c:familyName
-					</path>
+					<source>
+						<path>$c:user/c:familyName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:familyName
+						<path>$c:user/c:familyName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -303,15 +311,21 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
+					<source>
+						<path>givenName</path>
+					</source>
 					<expression>
-						<code>
-							$c:user/c:givenName
-						</code>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								$c:givenName
+							</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:givenName
+						<path>$c:user/c:givenName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -321,15 +335,13 @@
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-					<expression>
-						<code>
-							$c:user/c:name
-						</code>
-					</expression>
+					<source>
+						<path>name</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:name
+						<path>name</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -337,7 +349,9 @@
 				<ref>ri:description</ref>
 				<outbound>
 					<initial>true</initial>
-					<value>Created by IDM</value>
+					<expression>
+						<value>Created by IDM</value>
+					</expression>
 				</outbound>
 				<inbound>
 					<!-- c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
@@ -348,8 +362,10 @@
 						</f:replace>
 					</c:valueFilter>  -->
 					<target>
-						declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
-						$c:user/c:extension/piracy:tales
+						<path>
+							declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
+							$c:user/c:extension/piracy:tales
+						</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -361,10 +377,13 @@
 							<name>my:defaultLocation</name>
 							<value xsi:type="xsd:string">middle of nowhere</value>
 						</variable>
-						<returnType>scalar</returnType>
-						<c:code xmlns:my="http://myself.me/schemas/whatever">
-								$my:defaultLocation
-						</c:code>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<returnType>scalar</returnType>
+							<c:code xmlns:my="http://myself.me/schemas/whatever">
+									$my:defaultLocation
+							</c:code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -380,10 +399,13 @@
 					<path>.</path>
 					<valueExpression>
 						<ref>c:name</ref>
-						<code>
-							declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-							$c:account/c:attributes/dj:uid
-						</code>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+								$c:account/c:attributes/dj:uid
+							</code>
+						</script>
 					</valueExpression>
 				</equal>
 			</correlation>

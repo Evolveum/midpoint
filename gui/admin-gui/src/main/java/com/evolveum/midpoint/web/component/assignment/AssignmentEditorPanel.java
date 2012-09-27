@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -355,7 +356,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     getPageBase().getPrismContext());
             PrismContainerDefinition definition = refinedSchema.getAccountDefinition(construction.getType());
 
-            List<ValueConstructionType> attrConstructions = construction.getAttribute();
+            List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();
 
             Collection<ItemDefinition> definitions = definition.getDefinitions();
             for (ItemDefinition attrDef : definitions) {
@@ -384,15 +385,15 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         return attributes;
     }
 
-    private ValueConstructionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
-                                                                List<ValueConstructionType> attrConstructions) {
-        for (ValueConstructionType construction : attrConstructions) {
+    private ResourceAttributeDefinitionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
+                                                                List<ResourceAttributeDefinitionType> attrConstructions) {
+        for (ResourceAttributeDefinitionType construction : attrConstructions) {
             if (attrDef.getName().equals(construction.getRef())) {
                 return construction;
             }
         }
 
-        ValueConstructionType construction = new ValueConstructionType();
+        ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
         construction.setRef(attrDef.getName());
         return construction;
     }

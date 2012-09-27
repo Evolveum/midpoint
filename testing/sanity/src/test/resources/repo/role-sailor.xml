@@ -29,7 +29,11 @@
     		<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
     		<attribute>
                 <ref>ri:employeeType</ref>
-				<value>sailor</value>
+                <outbound>
+                	<expression>
+						<value>sailor</value>
+					</expression>
+				</outbound>
             </attribute>
     	</accountConstruction>
     </assignment>    

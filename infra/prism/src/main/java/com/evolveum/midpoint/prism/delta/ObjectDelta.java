@@ -478,20 +478,24 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         }
         return delta;
     }
-
-    private void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) throws SchemaException {
-        for (ItemDelta propDelta : modificationsToMerge) {
-            if (changeType == ChangeType.ADD) {
-                propDelta.applyTo(objectToAdd);
-            } else if (changeType == ChangeType.MODIFY) {
-            	ItemDelta myDelta = findModification(propDelta.getPath(), ItemDelta.class);
-                if (myDelta == null) {
-                    addModification(propDelta.clone());
-                } else {
-                    myDelta.merge(propDelta);
-                }
-            } // else it is DELETE. There's nothing to do. Merging anything to delete is still delete
+    
+    public void mergeModifications(Collection<? extends ItemDelta> modificationsToMerge) throws SchemaException {
+        for (ItemDelta<?> propDelta : modificationsToMerge) {
+        	mergeModification(propDelta);
         }
+    }
+    
+    public void mergeModification(ItemDelta<?> modificationToMerge) throws SchemaException {
+        if (changeType == ChangeType.ADD) {
+        	modificationToMerge.applyTo(objectToAdd);
+        } else if (changeType == ChangeType.MODIFY) {
+        	ItemDelta myDelta = findModification(modificationToMerge.getPath(), ItemDelta.class);
+            if (myDelta == null) {
+                addModification(modificationToMerge.clone());
+            } else {
+                myDelta.merge(modificationToMerge);
+            }
+        } // else it is DELETE. There's nothing to do. Merging anything to delete is still delete
     }
 
 
@@ -567,6 +571,12 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return propertyDelta;
     }
     
+    public <X> PropertyDelta<X> createPropertyModification(PropertyPath path) {
+	    PrismObjectDefinition<T> objDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(getObjectTypeClass());
+		PrismPropertyDefinition propDef = objDef.findPropertyDefinition(path);
+		return createPropertyModification(path, propDef);
+    }
+	    
     public <X> PropertyDelta<X> createPropertyModification(PropertyPath path, PrismPropertyDefinition propertyDefinition) {
     	PropertyDelta<X> propertyDelta = new PropertyDelta<X>(path, propertyDefinition);
     	addModification(propertyDelta);
@@ -601,6 +611,22 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return objectDelta;
     }
     
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationAddProperty(Class<O> type, String oid, 
+    		PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	fillInModificationAddProperty(objectDelta, propertyPath, propertyValues);
+    	return objectDelta;
+    }
+    
+    public static <O extends Objectable, X> ObjectDelta<O> createModificationDeleteProperty(Class<O> type, String oid, 
+    		PropertyPath propertyPath, PrismContext prismContext, X... propertyValues) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	fillInModificationDeleteProperty(objectDelta, propertyPath, propertyValues);
+    	return objectDelta;
+    }
+    
     public <X> void addModificationReplaceProperty(QName propertyQName, X... propertyValues) {
     	addModificationReplaceProperty(new PropertyPath(propertyQName), propertyValues);
     }
@@ -608,26 +634,69 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public <X> void addModificationReplaceProperty(PropertyPath propertyPath, X... propertyValues) {
     	fillInModificationReplaceProperty(this, propertyPath, propertyValues);
     }
-        	
+    
+    public <X> void addModificationAddProperty(QName propertyQName, X... propertyValues) {
+    	addModificationAddProperty(new PropertyPath(propertyQName), propertyValues);
+    }
+    
+    public <X> void addModificationAddProperty(PropertyPath propertyPath, X... propertyValues) {
+    	fillInModificationAddProperty(this, propertyPath, propertyValues);
+    }
+    
+    public <X> void addModificationDeleteProperty(QName propertyQName, X... propertyValues) {
+    	addModificationDeleteProperty(new PropertyPath(propertyQName), propertyValues);
+    }
+     
+    public <X> void addModificationDeleteProperty(PropertyPath propertyPath, X... propertyValues) {
+    	fillInModificationDeleteProperty(this, propertyPath, propertyValues);
+    }
+    
     protected static <O extends Objectable, X> void fillInModificationReplaceProperty(ObjectDelta<O> objectDelta,
     		PropertyPath propertyPath, X... propertyValues) {
-    	PrismObjectDefinition<O> objDef = objectDelta.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectDelta.getObjectTypeClass());
-    	PrismPropertyDefinition propDef = objDef.findPropertyDefinition(propertyPath);
-    	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyPath, propDef);
+    	PropertyDelta<X> propertyDelta = createModification(objectDelta, propertyPath);
     	if (propertyValues != null) {
-	    	Collection<PrismPropertyValue<X>> valuesToReplace = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
-	    	for (X val: propertyValues) {
-	    		if (val instanceof PolyString) {
-	    			PolyString polyStringVal = (PolyString)val;
-	    			if (!polyStringVal.isComputed()) {
-	    				polyStringVal.recompute(objectDelta.getPrismContext().getDefaultPolyStringNormalizer());
-	    			}
-	    		}
-	    		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
-	    		valuesToReplace.add(pval);
-	    	}
+	    	Collection<PrismPropertyValue<X>> valuesToReplace = toPrismPropertyValues(objectDelta.getPrismContext(), propertyValues);
 	    	propertyDelta.setValuesToReplace(valuesToReplace);
     	}
+    }
+
+    protected static <O extends Objectable, X> void fillInModificationAddProperty(ObjectDelta<O> objectDelta,
+    		PropertyPath propertyPath, X... propertyValues) {
+    	PropertyDelta<X> propertyDelta = createModification(objectDelta, propertyPath);
+    	if (propertyValues != null) {
+	    	Collection<PrismPropertyValue<X>> valuesToAdd = toPrismPropertyValues(objectDelta.getPrismContext(), propertyValues);
+	    	propertyDelta.addValuesToAdd(valuesToAdd);
+    	}
+    }
+    
+    protected static <O extends Objectable, X> void fillInModificationDeleteProperty(ObjectDelta<O> objectDelta,
+    		PropertyPath propertyPath, X... propertyValues) {
+    	PropertyDelta<X> propertyDelta = createModification(objectDelta, propertyPath);
+    	if (propertyValues != null) {
+	    	Collection<PrismPropertyValue<X>> valuesToDelete = toPrismPropertyValues(objectDelta.getPrismContext(), propertyValues);
+	    	propertyDelta.addValuesToDelete(valuesToDelete);
+    	}
+    }
+    
+    protected static <O extends Objectable, X> PropertyDelta<X> createModification(ObjectDelta<O> objectDelta, PropertyPath propertyPath) {
+    	PrismObjectDefinition<O> objDef = objectDelta.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectDelta.getObjectTypeClass());
+    	PrismPropertyDefinition propDef = objDef.findPropertyDefinition(propertyPath);
+    	return objectDelta.createPropertyModification(propertyPath, propDef);
+    }
+    
+    protected static <X> Collection<PrismPropertyValue<X>> toPrismPropertyValues(PrismContext prismContext, X... propertyValues) {
+    	Collection<PrismPropertyValue<X>> pvalues = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
+    	for (X val: propertyValues) {
+    		if (val instanceof PolyString) {
+    			PolyString polyStringVal = (PolyString)val;
+    			if (!polyStringVal.isComputed()) {
+    				polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
+    			}
+    		}
+    		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
+    		pvalues.add(pval);
+    	}
+    	return pvalues;
     }
     
     /**

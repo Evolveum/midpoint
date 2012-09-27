@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<valueConstruction xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
-	<expression>
-		<code>
-			concat('foo','BAR')
-		</code>
-	</expression>
-</valueConstruction>

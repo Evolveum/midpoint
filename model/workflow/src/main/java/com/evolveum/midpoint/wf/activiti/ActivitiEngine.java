@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
-import com.evolveum.midpoint.common.expression.xpath.MidPointNamespaceContext;
+import com.evolveum.midpoint.common.expression.script.xpath.MidPointNamespaceContext;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;

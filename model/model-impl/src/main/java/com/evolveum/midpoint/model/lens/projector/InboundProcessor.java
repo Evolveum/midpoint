@@ -21,19 +21,22 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.filter.Filter;
+import com.evolveum.midpoint.common.filter.FilterManager;
+import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
-import com.evolveum.midpoint.model.controller.Filter;
-import com.evolveum.midpoint.model.controller.FilterManager;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -84,7 +87,7 @@ public class InboundProcessor {
     @Autowired(required = true)
     private FilterManager<Filter> filterManager;
     @Autowired(required = true)
-    private ValueConstructionFactory valueConstructionFactory;
+    private MappingFactory mappingFactory;
 
     <F extends ObjectType, P extends ObjectType> void processInbound(LensContext<F,P> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
@@ -153,42 +156,39 @@ public class InboundProcessor {
 
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getWaveSecondaryDelta();
         
-        PrismObject<AccountShadowType> oldAccount = accContext.getObjectOld();
-        for (QName name : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
+        PrismObject<AccountShadowType> accountOld = accContext.getObjectOld();
+        PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
+        for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
             if (aPrioriDelta != null) {
-                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), name);
+                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), accountAttributeName);
                 if (accountAttributeDelta == null) {
                     LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
-                    		name, accContext.getResourceShadowDiscriminator());
+                    		accountAttributeName, accContext.getResourceShadowDiscriminator());
                     continue;
                 }
             }
 
-            RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(name);
-            List<ValueAssignmentType> inboundJaxbTypes = attrDef.getInboundAssignmentTypes();
-            LOGGER.trace("Processing inbound for {} in {}; ({} expressions)", new Object[]{
-            		DebugUtil.prettyPrint(name), accContext.getResourceShadowDiscriminator(), (inboundJaxbTypes != null ? inboundJaxbTypes.size() : 0)});
+            RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(accountAttributeName);
+            List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
+            LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
+            		DebugUtil.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
 
-            for (ValueAssignmentType inboundJaxbType : inboundJaxbTypes) {
-                if (checkInitialSkip(inboundJaxbType, context.getFocusContext().getObjectNew())) {
-                    LOGGER.debug("Skipping because of initial flag.");
-                    continue;
-                }
-
+            for (MappingType inboundMappingType : inboundMappingTypes) {
+            	
                 PropertyDelta<?> userPropertyDelta = null;
                 if (aPrioriDelta != null) {
                     LOGGER.debug("Processing inbound from a priori delta.");
-                    userPropertyDelta = evaluateInboundExpressionFromDelta(inboundJaxbType, accountAttributeDelta, 
-                    		context.getFocusContext().getObjectNew(), accContext.getResource(), result);
-                } else if (oldAccount != null) {
+                    userPropertyDelta = evaluateInboundExpression(inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
+                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
+                } else if (accountOld != null) {
                 	if (!accContext.isFullShadow()) {
                 		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
                 	}
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
-                    PrismProperty<?> oldAccountProperty = oldAccount.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, name));
-                    userPropertyDelta = evaluateInboundExpressionFromAbsolute(inboundJaxbType, oldAccountProperty, context.getFocusContext().getObjectNew(),
-                    		accContext.getResource(), result);
+                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
+                    userPropertyDelta = evaluateInboundExpression(inboundMappingType, accountAttributeName, oldAccountProperty, null, 
+                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 }
 
                 if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
@@ -222,168 +222,124 @@ public class InboundProcessor {
 		return null;
 	}
 
-	private boolean checkInitialSkip(ValueAssignmentType inbound, PrismObject<UserType> newUser) {
-        ValueConstructionType valueConstruction = inbound.getSource();
-        if (valueConstruction == null) {
-            return false;
+	private boolean checkInitialSkip(Mapping<?> inbound, PrismObject<UserType> newUser) throws SchemaException {
+        if (!inbound.isInitial()) {
+        	return false;
         }
-
-        boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
-        PrismProperty<?> property = newUser.findProperty(createUserPropertyPath(inbound));
-        if (initial && property != null && !property.isEmpty()) {
+        PrismProperty<?> property = newUser.findProperty(inbound.getOutputPath());
+        if (property != null && !property.isEmpty()) {
             return true;
         }
 
         return false;
     }
+    
+    private <A,U> PropertyDelta<U> evaluateInboundExpression(MappingType inboundMappingType, 
+    		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
+            PrismObject<UserType> newUser, PrismObject<AccountShadowType> account, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-    private <T> PropertyDelta<T> evaluateInboundExpressionFromAbsolute(ValueAssignmentType inbound, PrismProperty<T> oldAccountProperty,
-            PrismObject<UserType> newUser, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        List<ValueFilterType> filters = inbound.getValueFilter();
-        
-        if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
+    	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
-        
-        
-        PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
-        PrismProperty<T> targetUserProperty = null;
-        if (newUser != null) {
-        	targetUserProperty = newUser.findProperty(targetUserPropertyPath);
+    	
+    	Mapping<PrismPropertyValue<U>> mapping = mappingFactory.createMapping(inboundMappingType, 
+    			"inbound expression for "+accountAttributeName+" in "+resource);
+    	
+    	Source<PrismPropertyValue<A>> defaultSource = new Source<PrismPropertyValue<A>>(oldAccountProperty, accountAttributeDelta, null, ExpressionConstants.VAR_INPUT);
+    	defaultSource.recompute();
+		mapping.setDefaultSource(defaultSource);
+		mapping.setTargetContext(getUserDefinition());
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account);
+    	
+    	if (checkInitialSkip(mapping, newUser)) {
+            LOGGER.debug("Skipping because of initial flag.");
+            return null;
         }
+        
+        PropertyPath targetUserPropertyPath = mapping.getOutputPath();
+		PrismProperty<U> targetUserProperty = newUser.findProperty(targetUserPropertyPath);
         PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
         if (targetPropertyDef == null) {
         	throw new SchemaException("No definition for user property "+targetUserPropertyPath+", cannot process inbound expression in "+resource);
         }
         
-        PrismProperty<T> sourceProperty = null;
-        // Try to process source
-        if (oldAccountProperty != null) {
-        	ValueConstructionType sourceValueConstructionType = inbound.getSource();
-        	ValueConstruction<PrismPropertyValue<T>> valueConstruction = null;
-        	if (sourceValueConstructionType != null) {
-        		valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
-	        			"inbound expression for "+oldAccountProperty.getName());
-        	} else {
-        		valueConstruction = valueConstructionFactory.createDefaultValueConstruction(targetPropertyDef, 
-	        			"inbound expression for "+oldAccountProperty.getName());
-        	}
-        	valueConstruction.setInput(oldAccountProperty);
-        	valueConstruction.setInputDelta(null);
-        	valueConstruction.setOutputDefinition(targetPropertyDef);
-        	valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
-        	// Add variables
-        	valueConstruction.evaluate(result);
-        	PrismValueDeltaSetTriple<PrismPropertyValue<T>> triple = valueConstruction.getOutputTriple();
-        	sourceProperty = (PrismProperty<T>) valueConstruction.getOutput();
-        }
-        
-        PropertyDelta<T> delta = null;
-        if (targetUserProperty != null) {
-            LOGGER.trace("Simple property comparing user property {} to computed property {} ",
-                    new Object[]{targetUserProperty, sourceProperty});
-            //simple property comparing if user property exists
-            delta = targetUserProperty.diff(sourceProperty, targetUserPropertyPath);
-            if (delta != null) {
-	            delta.setName(targetUserPropertyPath.last().getName());
-	            delta.setParentPath(targetUserPropertyPath.allExceptLast());
-            }
-        } else {
-            if (sourceProperty != null) {
-                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
-                //if user property doesn't exist we have to add it (as delta), because inbound say so
-                delta = PropertyDelta.createDelta(targetUserPropertyPath, newUser.getDefinition());
-                delta.addValuesToAdd(sourceProperty.getClonedValues());
-            }
-            //we don't have to create delta, because everything is alright
-            LOGGER.trace("We don't have to create delta, everything is alright.");
-        }
-
-        return delta;
-    }
-    
-    private <T> PropertyDelta<T> evaluateInboundExpressionFromDelta(ValueAssignmentType inbound, PropertyDelta<T> accountAttributeDelta,
-            PrismObject<UserType> newUser, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-        List<ValueFilterType> filters = inbound.getValueFilter();
-
-        PropertyPath targetUserPropertyPath = createUserPropertyPath(inbound);
-        PrismProperty<T> targetUserProperty = (PrismProperty<T>) newUser.findProperty(targetUserPropertyPath);        
-        PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
-        if (targetPropertyDef == null) {
-        	throw new SchemaException("No definition for user property "+targetUserPropertyPath+", cannot process inbound expression in "+resource);
-        }
-        PropertyDelta<T> delta = new PropertyDelta<T>(targetUserPropertyPath, targetPropertyDef);
-        delta.checkConsistence();
-        
-        PrismValueDeltaSetTriple<PrismPropertyValue<T>> triple = null;
-        
-        ValueConstructionType sourceValueConstructionType = inbound.getSource();
-    	ValueConstruction<PrismPropertyValue<T>> valueConstruction = null;
-    	if (sourceValueConstructionType != null) {
-    		valueConstruction = valueConstructionFactory.createValueConstruction(sourceValueConstructionType, targetPropertyDef, 
-        			"inbound expression for "+accountAttributeDelta.getName());
-    	} else {
-    		valueConstruction = valueConstructionFactory.createDefaultValueConstruction(targetPropertyDef, 
-        			"inbound expression for "+accountAttributeDelta.getName());
+        PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetUserPropertyPath, targetPropertyDef);
+    	
+        mapping.evaluate(result);
+    	
+    	PrismValueDeltaSetTriple<PrismPropertyValue<U>> triple = mapping.getOutputTriple();
+    	// Meaning of the resulting triple:
+    	//   values in PLUS set will be added     (valuesToAdd in delta)
+    	//   values in MINUS set will be removed  (valuesToDelete in delta)
+    	//   values in ZERO set will be compared with existing values in user property
+    	//                  the differences will be added to delta
+    	
+    	if (LOGGER.isTraceEnabled()) {
+    		LOGGER.trace("Inbound value constrution for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
     	}
-    	valueConstruction.setInput(null);
-    	valueConstruction.setInputDelta(accountAttributeDelta);
-    	valueConstruction.setOutputDefinition(targetPropertyDef);
-    	valueConstruction.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
-    	// Add variables
-    	valueConstruction.evaluate(result);
-    	triple = valueConstruction.getOutputTriple();
         
-        if (triple.getPlusSet() != null) {
-            LOGGER.trace("Checking account sync property delta values to add");
-            for (PrismPropertyValue<T> value : triple.getPlusSet()) {
-                PrismPropertyValue<T> filteredValue = filterValue(value, filters);
+    	if (triple != null) {
+    		
+	        if (triple.getPlusSet() != null) {
+	            for (PrismPropertyValue<U> value : triple.getPlusSet()) {
+	
+	                if (targetUserProperty != null && targetUserProperty.hasRealValue(value)) {
+	                    continue;
+	                }
+	
+	                //if property is not multi value replace existing attribute
+	                if (targetUserProperty != null && !targetUserProperty.getDefinition().isMultiValue() && !targetUserProperty.isEmpty()) {
+	                    Collection<PrismPropertyValue<U>> replace = new ArrayList<PrismPropertyValue<U>>();
+	                    replace.add(value);
+	                    outputUserPropertydelta.setValuesToReplace(replace);
+	                } else {
+	                    outputUserPropertydelta.addValueToAdd(value);
+	                }
+	            }
+	        }
+	        if (triple.getMinusSet() != null) {
+	            LOGGER.trace("Checking account sync property delta values to delete");
+	            for (PrismPropertyValue<U> value : triple.getMinusSet()) {
+	
+	                if (targetUserProperty == null || targetUserProperty.hasRealValue(value)) {
+	                    outputUserPropertydelta.addValueToDelete(value);
+	                }
+	            }
+	        }
+	        
+	        if (triple.hasZeroSet()) {
+		        PrismProperty<U> sourceProperty = targetPropertyDef.instantiate();
+		    	sourceProperty.addAll(PrismValue.cloneCollection(triple.getZeroSet()));
+		        if (targetUserProperty != null) {
+		            LOGGER.trace("Simple property comparing user property {} to computed property {} ",
+		                    new Object[]{targetUserProperty, sourceProperty});
+		            //simple property comparing if user property exists
+		            PropertyDelta<U> diffDelta = targetUserProperty.diff(sourceProperty, targetUserPropertyPath);
+		            if (diffDelta != null) {
+		            	diffDelta.setName(targetUserPropertyPath.last().getName());
+		            	diffDelta.setParentPath(targetUserPropertyPath.allExceptLast());
+		            	outputUserPropertydelta.merge(diffDelta);
+		            }
+		        } else {
+		            if (sourceProperty != null) {
+		                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value)");
+		                //if user property doesn't exist we have to add it (as delta), because inbound say so
+		                outputUserPropertydelta.addValuesToAdd(sourceProperty.getClonedValues());
+		            }
+		            //we don't have to create delta, because everything is alright
+		            LOGGER.trace("We don't have to create delta, everything is alright.");
+		        }
+	        }
+    	}
 
-                if (targetUserProperty != null && targetUserProperty.hasRealValue(filteredValue)) {
-                    continue;
-                }
-
-                //if property is not multi value replace existing attribute
-                if (targetUserProperty != null && !targetUserProperty.getDefinition().isMultiValue() && !targetUserProperty.isEmpty()) {
-                    Collection<PrismPropertyValue<T>> replace = new ArrayList<PrismPropertyValue<T>>();
-                    replace.add(filteredValue);
-                    delta.setValuesToReplace(replace);
-                    delta.checkConsistence();
-                } else {
-                    delta.addValueToAdd(filteredValue);
-                    delta.checkConsistence();
-                }
-            }
-        }
-        if (triple.getMinusSet() != null) {
-            LOGGER.trace("Checking account sync property delta values to delete");
-            for (PrismPropertyValue<T> value : triple.getMinusSet()) {
-                PrismPropertyValue<T> filteredValue = filterValue(value, filters);
-
-                if (targetUserProperty == null || targetUserProperty.hasRealValue(filteredValue)) {
-                    delta.addValueToDelete(filteredValue);
-                    delta.checkConsistence();
-                }
-            }
-        }
-
-        //if nothing changes was generated return null
-        return delta.getValues(Object.class).isEmpty() ? null : delta;
-    }
-
-    private PropertyPath createUserPropertyPath(ValueAssignmentType inbound) {
-        PropertyPath path = new XPathHolder(inbound.getTarget()).toPropertyPath();
-        List<PropertyPathSegment> segments = path.getSegments();
-        if (!segments.isEmpty() && SchemaConstants.I_USER.equals(segments.get(0).getName())) {
-            segments.remove(0);
-        }
-
-        return path;
+        // if no changes were generated return null
+        return outputUserPropertydelta.isEmpty() ? null : outputUserPropertydelta;
     }
 
     private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
         PrismPropertyValue<T> filteredValue = propertyValue.clone();
-        filteredValue.setType(SourceType.INBOUND);
+        filteredValue.setOriginType(SourceType.INBOUND);
 
         if (filters == null || filters.isEmpty()) {
             return filteredValue;
@@ -400,25 +356,27 @@ public class InboundProcessor {
     /**
      * Processing for special (fixed-schema) properties such as credentials and activation. 
      */
-    private void processSpecialPropertyInbound(ValueAssignmentType inbound, PropertyPath path,
-            PrismObject<UserType> newUser, LensProjectionContext<AccountShadowType> accContext, RefinedAccountDefinition accountDefinition,
-            LensContext<UserType,AccountShadowType> context, OperationResult opResult) throws SchemaException {
-        if (inbound == null || newUser == null) {
+    private void processSpecialPropertyInbound(MappingType inboundMappingType, PropertyPath sourcePath,
+            PrismObject<UserType> newUser, LensProjectionContext<AccountShadowType> accContext, 
+            RefinedAccountDefinition accountDefinition, LensContext<UserType,AccountShadowType> context, 
+            OperationResult opResult) throws SchemaException {
+    	
+        if (inboundMappingType == null || newUser == null) {
             return;
         }
 
-        ValueConstructionType valueConstruction = inbound.getSource();
-        boolean initial = valueConstruction.isInitial() == null ? false : valueConstruction.isInitial();
+        Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingType, 
+        		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
 
-        PrismProperty<?> property = newUser.findOrCreateProperty(path);
-        if (initial && !property.isEmpty()) {
+        PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
+        if (mapping.isInitial() && !property.isEmpty()) {
             //inbound will be constructed only if initial == false or initial == true and value doesn't exist
             return;
         }
         
         ObjectDelta<UserType> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
         if (userPrimaryDelta != null) {
-        	PropertyDelta primaryPropDelta = userPrimaryDelta.findPropertyDelta(path);
+        	PropertyDelta primaryPropDelta = userPrimaryDelta.findPropertyDelta(sourcePath);
         	if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
         		// Replace primary delta overrides any inbound
         		return;
@@ -427,7 +385,7 @@ public class InboundProcessor {
 
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getWaveSecondaryDelta();
         if (userSecondaryDelta != null) {
-	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(path);
+	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
 	        if (delta != null) {
 	            //remove delta if exists, it will be handled by inbound
 	            userSecondaryDelta.getModifications().remove(delta);
@@ -448,25 +406,32 @@ public class InboundProcessor {
             }
         }
 
-        PrismProperty input = accContext.getObjectNew().findProperty(path);
+        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
+        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), sourceIdi.getDelta(), 
+        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
+		mapping.setDefaultSource(source);
+    	mapping.setDefaultTargetDefinition(property.getDefinition());
+
+    	
         PrismProperty result;
         try {
-        	// TODO: is the parentPath correct (null)?
-            ValueConstruction construction = valueConstructionFactory.createValueConstruction(
-                    valueConstruction, property.getDefinition(), "Inbound value construction");
-            construction.setInput(input);
-            construction.evaluate(opResult);
-            result = (PrismProperty) construction.getOutput();
+        	mapping.evaluate(opResult);
+            result = (PrismProperty) mapping.getOutput();
         } catch (SchemaException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new SchemaException(ex.getMessage(), ex);
         }
 
-        PropertyDelta<?> delta = property.diff(result, path);
+        PropertyDelta<?> delta = property.diff(result, sourcePath);
         if (delta != null && !delta.isEmpty()) {
-        	delta.setParentPath(path.allExceptLast());
+        	delta.setParentPath(sourcePath.allExceptLast());
         	context.getFocusContext().swallowToWaveSecondaryDelta(delta);
         }
     }
+    
+    private PrismObjectDefinition<UserType> getUserDefinition() {
+		return prismContext.getSchemaRegistry().getObjectSchema()
+				.findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
 }

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<expression 
+<script 
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 		xmlns:func="http://midpoint.evolveum.com/xml/ns/public/common/function-2">
+	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
 		func:norm('Guľôčka v jamôčke!')
 	</code>
-</expression>
+</script>

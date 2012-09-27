@@ -20,50 +20,23 @@
  */
 package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator;
-import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
+import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Radovan Semancik
  */
-public class TestJavaScriptExpressions extends AbstractExpressionTest {
+public class TestJavaScriptExpressions extends AbstractScriptTest {
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
 	 */
 	@Override
-	protected ExpressionEvaluator createEvaluator(PrismContext prismContext) {
-		return new Jsr223ExpressionEvaluator("JavaScript", prismContext);
+	protected ScriptEvaluator createEvaluator(PrismContext prismContext) {
+		return new Jsr223ScriptEvaluator("JavaScript", prismContext);
 	}
 
 	/* (non-Javadoc)

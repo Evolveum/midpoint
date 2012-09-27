@@ -470,7 +470,7 @@ public class ChangeExecutor {
         }
 
         try {
-            ScriptsType scripts = getScripts(object.asObjectable(), result);
+            ProvisioningScriptsType scripts = getScripts(object.asObjectable(), result);
             String oid = provisioning.addObject(object, scripts, result);
             return oid;
         } catch (ObjectNotFoundException ex) {
@@ -513,9 +513,9 @@ public class ChangeExecutor {
         }
     }
 
-    private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException,
+    private ProvisioningScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ScriptsType scripts = null;
+    	ProvisioningScriptsType scripts = null;
         if (object instanceof ResourceType) {
             ResourceType resource = (ResourceType) object;
             scripts = resource.getScripts();
@@ -531,7 +531,7 @@ public class ChangeExecutor {
         }
 
         if (scripts == null) {
-            scripts = new ScriptsType();
+            scripts = new ProvisioningScriptsType();
         }
 
         return scripts;

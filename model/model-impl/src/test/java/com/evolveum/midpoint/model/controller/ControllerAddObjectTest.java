@@ -74,7 +74,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 
@@ -202,7 +202,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		final String oid = "abababab-abab-abab-abab-000000000002";
 		when(
 				provisioning.addObject(argThat(new ObjectTypeNameMatcher(expectedResourceType.getName())),
-						any(ScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
+						any(ProvisioningScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
@@ -221,7 +221,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 			LOGGER.debug(result.dump());
 
 			verify(provisioning, times(1)).addObject(
-					argThat(new ObjectTypeNameMatcher(expectedResourceType.getName())), any(ScriptsType.class),
+					argThat(new ObjectTypeNameMatcher(expectedResourceType.getName())), any(ProvisioningScriptsType.class),
 					any(OperationResult.class));
 		}
 	}

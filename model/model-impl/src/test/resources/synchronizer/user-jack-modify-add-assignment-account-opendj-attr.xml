@@ -35,11 +35,19 @@
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 					<c:attribute>
 						<c:ref>ri:o</c:ref>
-						<c:value>Pirate Brethren, Inc.</c:value>
+						<c:outbound>
+							<c:expression>
+								<c:value>Pirate Brethren, Inc.</c:value>
+							</c:expression>
+						</c:outbound>
 					</c:attribute>
 					<c:attribute>
 						<c:ref>ri:l</c:ref>
-						<c:value>Caribbean</c:value>
+						<c:outbound>
+							<c:expression>
+								<c:value>Caribbean</c:value>
+							</c:expression>
+						</c:outbound>
 					</c:attribute>
 				</c:accountConstruction>
 			</c:assignment>

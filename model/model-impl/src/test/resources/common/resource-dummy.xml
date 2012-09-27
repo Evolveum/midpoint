@@ -116,20 +116,22 @@
 				<displayName>Username</displayName>
 				<outbound>
 				    <initial>true</initial>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
 					<expression>
-						<code>
-							concat($c:user/c:name, $c:iterationToken)
-						</code>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
-					<source>
-						<!-- This avoids "kickback" of a name from account to a user. -->
-						<initial>true</initial>
-						<asIs/>
-					</source>
+					<!-- This avoids "kickback" of a name from account to a user. -->
+					<initial>true</initial>
 					<target>
-						$c:user/c:name
+						<path>$c:user/c:name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -145,13 +147,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-						$user/fullName
-					</path>
+					<source>
+						<path>$user/fullName</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						<path>$user/fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -162,9 +164,11 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<path>
-						$c:user/c:locality
-					</path>
+					<source>
+						<path>
+							$c:user/c:locality
+						</path>
+					</source>
 				</outbound>
 			</attribute>
 			<attribute>
@@ -174,14 +178,13 @@
 				<access>read</access>
 				<access>update</access>
 				<inbound>
-					<source>
-						<expression>
-							<returnType>scalar</returnType>
-							<code>concat('The crew of ',$c:input)</code>
-						</expression>
-					</source>
+					<expression>
+						<script>
+							<code>'The crew of ' + input</code>
+						</script>
+					</expression>
 					<target>
-						$c:user/c:organizationalUnit
+						<path>organizationalUnit</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -199,9 +202,12 @@
 					<q:path>.</q:path>
 					<valueExpression>
 						<ref>c:name</ref>
-						<code>
-							$c:account/c:attributes/icfs:name
-						</code>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								$c:account/c:attributes/icfs:name
+							</code>
+						</script>
 					</valueExpression>
 				</q:equal>
 			</correlation>

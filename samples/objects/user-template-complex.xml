@@ -27,58 +27,77 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
     <name>Complex User Template</name>
-    <propertyConstruction>
-        <property>c:fullName</property>
-        <valueConstruction>
-        	<!-- This expression is NOT initial so if will in fact FORCE fullname consistency -->
-            <expression>
-            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>
-            		user.getGivenName() + ' ' + user.getFamilyName()
-                </code>
-            </expression>
-        </valueConstruction>
-    </propertyConstruction>
+    <mapping>
+		<!-- This expression is NOT initial so if will in fact FORCE fullname consistency -->
+		<source>
+			<path>$user/givenName</path>
+		</source>
+		<source>
+			<path>$user/familyName</path>
+		</source>
+		<expression>
+			<script>
+				<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+				<code>
+					givenName + ' ' + familyName
+				</code>
+			</script>
+		</expression>
+		<target>
+			<path>fullName</path>
+		</target>
+	</mapping>
     
-    <!-- Unconditional automatic assignment of account on OpenDJ resource -->
-    <propertyConstruction>
-        <property>assignment</property>
-        <valueConstruction>
+	<!-- Unconditional automatic assignment of Blue Dummy resource -->
+    <mapping>
+    	<expression>
             <value>
             	<assignment>
 					<accountConstruction>
-						<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+						<resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
 					</accountConstruction>
 				</assignment>
-            </value>
-        </valueConstruction>
-    </propertyConstruction>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
     
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
-    <propertyConstruction>
-        <property>assignment</property>
-        <valueConstruction>
+    <mapping>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
             <value>
             	<assignment>
-					<targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
+					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
 				</assignment>
-            </value>
-            <condition>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<!-- Need to use contains instead of == as the employeeType is a multivalued property -->
-            	<code>user.getEmployeeType().contains("PIRATE")</code>
-            </condition>
-        </valueConstruction>
-    </propertyConstruction>
+            	<code>employeeType == 'PIRATE'</code>
+            </script>
+		</condition>
+    </mapping>
     
     <!-- Automatically generate employee number if there is none (note the "initial" flag) -->
-    <propertyConstruction>
-        <property>employeeNumber</property>
-        <valueConstruction>
-        	<initial>true</initial>
-        	<generate>
+    <mapping>
+    	<initial>true</initial>
+    	<expression>
+            <generate>
         		<length>10</length>
         	</generate>
-        </valueConstruction>
-    </propertyConstruction>
+    	</expression>
+    	<target>
+    		<path>employeeNumber</path>
+    	</target>
+    </mapping>
+
 </userTemplate>

@@ -19,14 +19,14 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<expression
+<script
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:foo='http://midpoint.evolveum.com/xml/ns/samples/foo'>
 
-	<ref>piracy:flag</ref>
+	<language>http://www.w3.org/TR/xpath/</language>
 	<code xmlns:bar='http://midpoint.evolveum.com/xml/ns/samples/bar'>
 		$c:user/c:extension/foo:something/bar:somethingElse
 	 </code>
- </expression>
+ </script>

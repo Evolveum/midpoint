@@ -20,40 +20,32 @@
  */
 package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import java.util.Collection;
+import java.util.Map;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Radovan Semancik
+ * 
  */
-public interface ExpressionEvaluator {
+public interface ExpressionEvaluator<V extends PrismValue> {
 
-    public <T> PrismPropertyValue<T> evaluateScalar(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
-    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
-
-    public <T> List<PrismPropertyValue<T>> evaluateList(Class<T> type, Element code, Map<QName, Object> variables, ObjectResolver objectResolver,
-    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
-
-    /**
-     * Returns human readable name of the language that this evaluator supports
-     */
-    public String getLanguageName();
-
-	/**
-	 * Returns URL of the language that this evaluator can handle
-	 */
-	public String getLanguageUrl();
+	PrismValueDeltaSetTriple<V> evaluate(
+			Collection<Source<?>> sources, Map<QName, Object> variables, 
+			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+			ExpressionEvaluationException, ObjectNotFoundException;
 
 }

@@ -134,48 +134,83 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable 
     }
     
     public void addToPlusSet(T item) {
-    	if (plusSet == null) {
-    		plusSet = createSet();
-    	}
-    	plusSet.add(item);
+    	addToSet(plusSet, item);
     }
 
     public void addToMinusSet(T item) {
-    	if (minusSet == null) {
-    		minusSet = createSet();
-    	}
-    	minusSet.add(item);
+    	addToSet(minusSet, item);
     }
 
     public void addToZeroSet(T item) {
-    	if (zeroSet == null) {
-    		zeroSet = createSet();
-    	}
-    	zeroSet.add(item);
+    	addToSet(zeroSet, item);
     }
 
     public void addAllToPlusSet(Collection<T> items) {
-    	if (plusSet == null) {
-    		plusSet = createSet();
-    	}
-    	plusSet.addAll(items);
+    	addAllToSet(plusSet, items);
     }
 
-    public void addAllToMinusSet(Collection<T> items) {
-    	if (minusSet == null) {
-    		minusSet = createSet();
-    	}
-    	minusSet.addAll(items);
+	public void addAllToMinusSet(Collection<T> items) {
+    	addAllToSet(minusSet, items);
     }
 
     public void addAllToZeroSet(Collection<T> items) {
-    	if (zeroSet == null) {
-    		zeroSet = createSet();
-    	}
-    	zeroSet.addAll(items);
+    	addAllToSet(zeroSet, items);
+
     }
 
-    /**
+	private void addAllToSet(Collection<T> set, Collection<T> items) {
+		for (T item: items) {
+			addToSet(set, item);
+		}
+	}
+
+	private void addToSet(Collection<T> set, T item) {
+		if (set == null) {
+			set = createSet();
+    	}
+		if (!set.contains(item)) {
+			set.add(item);
+		}
+	}
+
+    public boolean presentInPlusSet(T item) {
+    	return presentInSet(plusSet, item);
+    }
+
+    public boolean presentInMinusSet(T item) {
+    	return presentInSet(minusSet, item);
+    }
+
+    public boolean presentInZeroSet(T item) {
+    	return presentInSet(zeroSet, item);
+    }
+
+	private boolean presentInSet(Collection<T> set, T item) {
+		if (set == null) {
+			return false;
+		}
+		return set.contains(item);
+	}
+	
+	public void clearPlusSet() {
+		clearSet(plusSet);
+	}
+	
+	public void clearMinusSet() {
+		clearSet(minusSet);
+	}
+	
+	public void clearZeroSet() {
+		clearSet(zeroSet);
+	}
+
+	private void clearSet(Collection<T> set) {
+		if (set != null) {
+			set.clear();
+		}
+	}
+
+	/**
      * Returns all values, regardless of the internal sets.
      */
     public Collection<T> union() {
@@ -184,6 +219,10 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable 
 
     public Collection<T> getNonNegativeValues() {
         return MiscUtil.union(zeroSet, plusSet);
+    }
+    
+    public Collection<T> getNonPositiveValues() {
+        return MiscUtil.union(zeroSet, minusSet);
     }
     
 	public void merge(DeltaSetTriple<T> triple) {

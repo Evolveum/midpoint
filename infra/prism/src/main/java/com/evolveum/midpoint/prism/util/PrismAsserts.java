@@ -266,23 +266,23 @@ public class PrismAsserts {
 	// DeltaSetTriple asserts
 	
 	public static <T, V extends PrismValue> void assertTriplePlus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
-		assert triple != null : "Plus set is null";
+		assert triple != null : "triple is null";
 		assertTripleSet("plus set", triple.getPlusSet(), expectedValues);
 	}
 
 	public static <T, V extends PrismValue> void assertTripleZero(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
-		assert triple != null : "Zero set is null";
+		assert triple != null : "triple is null";
 		assertTripleSet("zero set", triple.getZeroSet(), expectedValues);
 	}
 
 	public static <T, V extends PrismValue> void assertTripleMinus(PrismValueDeltaSetTriple<V> triple, T... expectedValues) {
-		assert triple != null : "Minus set is null";
+		assert triple != null : "triple is null";
 		assertTripleSet("minus set", triple.getMinusSet(), expectedValues);
 	}
 	
 	public static <T, V extends PrismValue> void assertTripleSet(String setName, Collection<V> tripleSet, T... expectedValues) {
 		assert tripleSet.size() == expectedValues.length : "Unexpected number of elements in triple "+setName+", expected "+
-			expectedValues.length + ", was " + tripleSet.size();
+			expectedValues.length + ", was " + tripleSet.size() + ": "+tripleSet;
 		for (T expectedValue: expectedValues) {
 			boolean found = false;
 			for (V tval: tripleSet) {
@@ -303,14 +303,17 @@ public class PrismAsserts {
 	}
 	
 	public static <V extends PrismValue> void assertTripleNoPlus(PrismValueDeltaSetTriple<V> triple) {
+		assert triple != null : "triple is null";
 		assertTripleNoSet("plus set", triple.getPlusSet());
 	}
 
 	public static <V extends PrismValue> void assertTripleNoZero(PrismValueDeltaSetTriple<V> triple) {
+		assert triple != null : "triple is null";
 		assertTripleNoSet("zero set", triple.getZeroSet());
 	}
 
 	public static <V extends PrismValue> void assertTripleNoMinus(PrismValueDeltaSetTriple<V> triple) {
+		assert triple != null : "triple is null";
 		assertTripleNoSet("minus set", triple.getMinusSet());
 	}
 	

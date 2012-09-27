@@ -48,6 +48,7 @@
 	<test name="Utils">
 		<classes>
 			<class name="com.evolveum.midpoint.util.TestMiscUtil" />
+			<class name="com.evolveum.midpoint.util.TestReflectionUtil" />
 		</classes>
 	</test>
 </suite>

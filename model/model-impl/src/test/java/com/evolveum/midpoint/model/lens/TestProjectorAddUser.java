@@ -123,7 +123,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 						any(OperationResult.class))).thenReturn(
 				resourceType.asPrismObject());
 		when(
-				provisioning.addObject(any(PrismObject.class), any(ScriptsType.class),
+				provisioning.addObject(any(PrismObject.class), any(ProvisioningScriptsType.class),
 						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {

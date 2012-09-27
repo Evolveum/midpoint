@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsT
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
@@ -182,5 +185,11 @@ public class MiscSchemaUtil {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
 
+    public static ObjectReferenceType createObjectReference(String oid, QName type) {
+    	ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(oid);
+        ref.setType(type);
+        return ref;
+    }
 
 }

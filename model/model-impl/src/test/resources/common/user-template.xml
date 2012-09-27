@@ -25,17 +25,23 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
     <name>Default User Template</name>
-    <propertyConstruction>
-        <property>c:fullName</property>
-        <valueConstruction>
-        	<initial>true</initial>
-            <expression>
-            	<code>
-                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                    declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
-                    concat($c:user/c:givenName/t:orig,' ',$c:user/c:familyName/t:orig)
-                </code>
-            </expression>
-        </valueConstruction>
-    </propertyConstruction>
+    <mapping>
+    	<initial>true</initial>
+    	<source>
+    		<path>$user/givenName</path>
+    	</source>
+    	<source>
+    		<path>$user/familyName</path>
+    	</source>
+    	<expression>
+			<script>
+				<code>
+					givenName + ' ' + familyName
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>fullName</path>
+    	</target>
+    </mapping>
 </userTemplate>

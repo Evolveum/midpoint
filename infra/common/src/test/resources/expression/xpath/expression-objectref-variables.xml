@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
 		xmlns:x="http://example.com/xxx"
 		xmlns:y="http://example.com/yyy">
+    <language>http://www.w3.org/TR/xpath/</language>
     <variable>
     	<name>x:foo</name>
     	<value>Captain</value>
@@ -14,4 +15,4 @@
 	<code xmlns:x="http://example.com/xxx">
 		concat($x:foo,' ',$y:jack/c:name)
 	</code>
-</expression>
+</script>

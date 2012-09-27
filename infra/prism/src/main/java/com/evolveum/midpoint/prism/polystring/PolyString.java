@@ -19,12 +19,17 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.Recomputable;
+import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
 import java.io.Serializable;
+
+import javax.xml.namespace.QName;
 
 /**
  * Polymorphic string. String that may have more than one representation at
@@ -39,7 +44,7 @@ import java.io.Serializable;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString implements Recomputable, Dumpable, DebugDumpable, Serializable {
+public class PolyString implements Recomputable, Structured, Dumpable, DebugDumpable, Serializable {
 
 	private String orig;
 	private String norm = null;
@@ -63,12 +68,47 @@ public class PolyString implements Recomputable, Dumpable, DebugDumpable, Serial
 		return norm;
 	}
 	
+	public boolean isEmpty() {
+		if (orig == null) {
+			return true;
+		}
+		return orig.isEmpty();
+	}
+	
 	public void recompute(PolyStringNormalizer normalizer) {
 		norm = normalizer.normalize(orig);
 	}
 	
 	public boolean isComputed() {
 		return !(norm == null);
+	}
+	
+	@Override
+	public Object resolve(PropertyPath subpath) {
+		if (subpath == null || subpath.isEmpty()) {
+			return this;
+		}
+		if (subpath.size() > 1) {
+			throw new IllegalArgumentException("Cannot resolve path "+subpath+" on polystring "+this+", the path is too deep");
+		}
+		QName itemName = subpath.first().getName();
+		if ("orig".equals(itemName.getLocalPart())) {
+			return orig;
+		} else if ("norm".equals(itemName.getLocalPart())) {
+			return norm;
+		} else {
+			throw new IllegalArgumentException("Unknown path segment "+itemName);
+		}
+	}
+	
+	// Groovy operator overload
+	public PolyString plus(PolyString other) {
+		return new PolyString(this.orig + other.orig);
+	}
+
+	// Groovy operator overload
+	public PolyString plus(String other) {
+		return new PolyString(this.orig + other);
 	}
 
 	@Override
@@ -147,5 +187,6 @@ public class PolyString implements Recomputable, Dumpable, DebugDumpable, Serial
 		sb.append(")");
 		return sb.toString();
 	}
+
 	
 }

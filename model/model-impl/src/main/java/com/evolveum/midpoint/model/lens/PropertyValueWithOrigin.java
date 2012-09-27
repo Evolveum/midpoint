@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import com.evolveum.midpoint.common.valueconstruction.ValueConstruction;
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -32,11 +32,11 @@ import com.evolveum.midpoint.util.Dumpable;
 public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 	
 	private PrismPropertyValue<?> propertyValue;
-	private ValueConstruction<?> valueConstruction;
+	private Mapping<?> valueConstruction;
 	private AccountConstruction accountConstruction;
 	
 	public PropertyValueWithOrigin(PrismPropertyValue<?> propertyValue,
-			ValueConstruction<?> valueConstruction, AccountConstruction accountConstruction) {
+			Mapping<?> valueConstruction, AccountConstruction accountConstruction) {
 		super();
 		this.propertyValue = propertyValue;
 		this.valueConstruction = valueConstruction;
@@ -47,7 +47,7 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		return propertyValue;
 	}
 	
-	public ValueConstruction<?> getValueConstruction() {
+	public Mapping<?> getValueConstruction() {
 		return valueConstruction;
 	}
 	

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<expression xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
     <variable>
     	<name>jack</name>
@@ -8,4 +8,4 @@
 	<code>
 		jack.getOrganizationalUnit();
 	</code>
-</expression>
+</script>

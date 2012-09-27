@@ -266,7 +266,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 			sb.append(", ");
 		}
 		if (act.getAttribute() != null) {
-			for (ValueConstructionType attrConstr: act.getAttribute()) {
+			for (ResourceAttributeDefinitionType attrConstr: act.getAttribute()) {
 				sb.append(prettyPrint(attrConstr));
 			}
 		}
@@ -275,7 +275,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 	
-	public static String prettyPrint(ValueConstructionType vc) {
+	public static String prettyPrint(ResourceAttributeDefinitionType vc) {
 		if (vc == null) {
 			return "null";
 		}
@@ -283,22 +283,22 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		if (vc.getRef() != null) {
 			sb.append("ref=");
 			sb.append(prettyPrint(vc.getRef()));
-			sb.append(",");
+			sb.append("...");
 		}
 		
-		if (vc.getValueConstructor() != null) {
-			prettyPringValueConstructor(sb, vc.getValueConstructor());
-			sb.append(",");
-		}
-		
-		if (vc.getSequence() != null) {
-			sb.append("[");
-			for (JAXBElement vconstr: vc.getSequence().getValueConstructor()) {
-				prettyPringValueConstructor(sb,vconstr);
-				sb.append(",");
-			}
-			sb.append("]");
-		}
+//		if (vc.getValueConstructor() != null) {
+//			prettyPringValueConstructor(sb, vc.getValueConstructor());
+//			sb.append(",");
+//		}
+//		
+//		if (vc.getSequence() != null) {
+//			sb.append("[");
+//			for (JAXBElement vconstr: vc.getSequence().getValueConstructor()) {
+//				prettyPringValueConstructor(sb,vconstr);
+//				sb.append(",");
+//			}
+//			sb.append("]");
+//		}
 		
 		// TODO: Other properties
 		sb.append(")");

@@ -24,14 +24,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -39,7 +38,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author semancik
@@ -133,73 +131,6 @@ public class MiscUtil {
         return fileData.toString();
 	}
 
-	/**
-	 * Try to get java property from the object by reflection
-	 */
-	public static <T> T getJavaProperty(Object object, String propertyName, Class<T> propetyClass) {
-		String getterName = getterName(propertyName);
-		Method method;
-		try {
-			method = object.getClass().getMethod(getterName);
-		} catch (SecurityException e) {
-			throw new IllegalArgumentException("Security error getting getter for property "+propertyName+": "+e.getMessage(),e);
-		} catch (NoSuchMethodException e) {
-			throw new IllegalArgumentException("No getter for property "+propertyName+" in "+object+" ("+object.getClass()+")");
-		}
-		if (method == null) {
-			throw new IllegalArgumentException("No getter for property "+propertyName+" in "+object+" ("+object.getClass()+")");
-		}
-		if (!propetyClass.isAssignableFrom(method.getReturnType())) {
-			throw new IllegalArgumentException("The getter for property " + propertyName + " returns " + method.getReturnType() +
-					", expected " + propetyClass+" in "+object+" ("+object.getClass()+")");
-		}
-		try {
-			return (T) method.invoke(object);
-		} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
-					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
-		} catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
-					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
-		} catch (InvocationTargetException e) {
-			throw new IllegalArgumentException("Error invoking getter for property "+propertyName+" in "+object+" ("+object.getClass()+"): "
-					+e.getClass().getSimpleName()+": "+e.getMessage(),e);
-		}
-	}
-	
-	public static boolean hasJavaProperty(Object object, String propertyName) {
-		return findGetter(object, propertyName) != null;
-	}
-	
-	public static Method findGetter(Object object, String propertyName) {
-		String getterName = getterName(propertyName);
-		return findMethod(object, getterName, 0);
-	}
-	
-	public static Method findMethod(Object object, String methodName, int arity) {
-		for (Method method: object.getClass().getMethods()) {
-			if (method.getName().equals(methodName) &&
-					method.getParameterTypes().length == arity &&
-					!method.isVarArgs()) {
-				return method;
-			}
-		}
-		return null;
-	}
-	
-	public static Method findVarArgsMethod(Object object, String methodName) {
-		for (Method method: object.getClass().getMethods()) {
-			if (method.getName().equals(methodName) && method.isVarArgs()) {
-				return method;
-			}
-		}
-		return null;
-	}
-
-	private static String getterName(String propertyName) {
-		return "get" + StringUtils.capitalize(propertyName);
-	}
-
 	public static <T> Collection<T> createCollection(T... items) {
 		Collection<T> collection = new ArrayList<T>(items.length);
 		for (T item: items) {
@@ -207,7 +138,7 @@ public class MiscUtil {
 		}
 		return collection;
 	}
-
+	
 	/**
 	 * n-ary and that ignores null values.
 	 */
@@ -268,5 +199,32 @@ public class MiscUtil {
             return xgc.toGregorianCalendar().getTime();
         }
     }
+    
+    public static <T> void carthesian(Collection<Collection<T>> dimensions, Processor<Collection<T>> processor) {
+    	List<Collection<T>> dimensionList = new ArrayList<Collection<T>>(dimensions.size());
+    	dimensionList.addAll(dimensions);
+    	carthesian(new ArrayList<T>(dimensions.size()), dimensionList, 0, processor);
+    }
+        
+    private static <T> void carthesian(List<T> items, List<Collection<T>> dimensions, int dimensionNum, Processor<Collection<T>> processor) {
+    	Collection<T> myDimension = dimensions.get(dimensionNum);
+    	for (T item: myDimension) {
+    		items.add(item);
+    		if (dimensionNum < dimensions.size() - 1) {
+    			carthesian(items, dimensions, dimensionNum + 1, processor);
+    		} else {
+    			processor.process(items);
+    		}
+    		items.remove(items.size() - 1);
+    	}
+    }
+    
+	public static String concat(Collection<String> stringCollection) {
+		StringBuilder sb = new StringBuilder();
+		for (String s: stringCollection) {
+			sb.append(s);
+		}
+		return sb.toString();
+	}
 		
 }

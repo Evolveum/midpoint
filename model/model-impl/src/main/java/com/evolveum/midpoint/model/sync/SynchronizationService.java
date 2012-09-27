@@ -607,7 +607,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					equal.removeChild(path);
 				}
 
-				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
+				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "expression");
+				if (valueExpressionElement == null) {
+					// Compatibility
+					valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
+				}
 				if (valueExpressionElement != null) {
 					equal.removeChild(valueExpressionElement);
 					copyNamespaceDefinitions(equal, valueExpressionElement);

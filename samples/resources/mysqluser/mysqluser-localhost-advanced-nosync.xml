@@ -112,10 +112,13 @@ This resource definition contains only the very basic definitions for midPoint t
 				<access>read</access>
 				<outbound>
 				    <initial>true</initial>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
 					<expression>
-						<code>
-							concat($c:user/c:name, $c:iterationToken)
-						</code>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -127,27 +130,20 @@ This resource definition contains only the very basic definitions for midPoint t
 			
                 <credentials>
                     <password>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <outbound/>
                         <inbound>
-                            <source>
-                                <initial>true</initial>
+							<initial>true</initial>
+                            <expression>
                                 <generate/>
-                            </source>
+                            </expression>
                         </inbound>
                     </password>
                 </credentials>
                 <activation>
                     <enabled>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <outbound/>
                         <inbound>
-                            <source>
 				<initial>true</initial>
-                                <asIs/>
-                            </source>
                         </inbound>
                     </enabled>
                 </activation>

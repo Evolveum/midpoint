@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -61,6 +62,8 @@ import com.evolveum.midpoint.util.Dumpable;
     "any"
 })
 public class PolyStringType implements Dumpable, DebugDumpable, Serializable {
+	
+	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "PolyStringType"); 
 
     @XmlElement(required = true)
     protected String orig;

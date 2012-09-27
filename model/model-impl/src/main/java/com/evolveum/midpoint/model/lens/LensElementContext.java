@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.lens;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

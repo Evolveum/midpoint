@@ -44,6 +44,7 @@ import java.util.jar.JarFile;
 import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
@@ -57,9 +58,11 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.ModifyChangeRecordEntry;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -565,6 +568,18 @@ public class OpenDJController {
         }
         
         return ldifEntry;
+	}
+	
+	public ChangeRecordEntry executeLdifChange(String filename) throws IOException, LDIFException {
+		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
+        ModifyOperation modifyOperation = getInternalConnection()
+        		.processModify((ModifyChangeRecordEntry) entry);
+        if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
+        	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
+        }
+        return entry;
 	}
 
 }

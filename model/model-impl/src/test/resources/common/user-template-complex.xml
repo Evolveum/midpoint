@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
+<!-- Copyright (c) 2012 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
 <!-- of the Common Development and Distribution License      -->
@@ -16,7 +16,7 @@
 <!-- with the fields enclosed by brackets [] replaced by     -->
 <!-- your own identifying information:                       -->
 <!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
 <userTemplate oid="10000000-0000-0000-0000-000000000222"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -24,57 +24,76 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
     <name>Complex User Template</name>
-    <propertyConstruction>
-        <property>c:fullName</property>
-        <valueConstruction>
-        	<!-- This expression is NOT initial so if will in fact FORCE fullname consistency -->
-            <expression>
-            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>
-            		user.getGivenName() + ' ' + user.getFamilyName()
-                </code>
-            </expression>
-        </valueConstruction>
-    </propertyConstruction>
+    <mapping>
+    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+    	<source>
+    		<path>$user/givenName</path>
+    	</source>
+    	<source>
+    		<path>$user/familyName</path>
+    	</source>
+    	<expression>
+			<script>
+				<code>
+					givenName + ' ' + familyName
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>$user/fullName</path>
+    	</target>
+    </mapping>
     
     <!-- Unconditional automatic assignment of Blue Dummy resource -->
-    <propertyConstruction>
-        <property>assignment</property>
-        <valueConstruction>
+    <mapping>
+    	<expression>
             <value>
             	<assignment>
 					<accountConstruction>
 						<resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
 					</accountConstruction>
 				</assignment>
-            </value>
-        </valueConstruction>
-    </propertyConstruction>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
     
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
-    <propertyConstruction>
-        <property>assignment</property>
-        <valueConstruction>
+    <mapping>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
             <value>
             	<assignment>
 					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
 				</assignment>
-            </value>
-            <condition>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
             	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-            	<code>user.getEmployeeType().contains("PIRATE")</code>
-            </condition>
-        </valueConstruction>
-    </propertyConstruction>
+            	<code>employeeType == 'PIRATE'</code>
+            </script>
+		</condition>
+    </mapping>
     
     <!-- Automatically generate employee number if there is none (note the "initial" flag) -->
-    <propertyConstruction>
-        <property>employeeNumber</property>
-        <valueConstruction>
-        	<initial>true</initial>
-        	<generate>
+    <mapping>
+    	<initial>true</initial>
+    	<expression>
+            <generate>
         		<length>10</length>
         	</generate>
-        </valueConstruction>
-    </propertyConstruction>
+    	</expression>
+    	<target>
+    		<path>employeeNumber</path>
+    	</target>
+    </mapping>
+
 </userTemplate>

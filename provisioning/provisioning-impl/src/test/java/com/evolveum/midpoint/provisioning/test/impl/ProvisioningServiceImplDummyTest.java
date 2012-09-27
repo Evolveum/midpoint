@@ -1044,7 +1044,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, objectModification.getOid(),
-				delta.getModifications(), new ScriptsType(), result);
+				delta.getModifications(), new ProvisioningScriptsType(), result);
 
 		// THEN
 		delta.checkConsistence();
@@ -1079,7 +1079,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ScriptsType(), result);
+				new ProvisioningScriptsType(), result);
 
 		// THEN
 		delta.checkConsistence();
@@ -1104,7 +1104,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ScriptsType(), result);
+				new ProvisioningScriptsType(), result);
 
 		// THEN
 		delta.checkConsistence();
@@ -1128,7 +1128,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(account.asPrismObject().dump());
 
-		ScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ScriptsType.class);
+		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
 		System.out.println(PrismTestUtil.marshalWrap(scriptsType));
 
 		// WHEN

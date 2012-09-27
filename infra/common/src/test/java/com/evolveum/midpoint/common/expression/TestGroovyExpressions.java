@@ -20,8 +20,9 @@
  */
 package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.common.expression.jsr223.Jsr223ExpressionEvaluator;
-import com.evolveum.midpoint.common.expression.xpath.XPathExpressionEvaluator;
+import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -56,14 +57,14 @@ import static org.testng.AssertJUnit.assertEquals;
 /**
  * @author Radovan Semancik
  */
-public class TestGroovyExpressions extends AbstractExpressionTest {
+public class TestGroovyExpressions extends AbstractScriptTest {
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
 	 */
 	@Override
-	protected ExpressionEvaluator createEvaluator(PrismContext prismContext) {
-		return new Jsr223ExpressionEvaluator("groovy", prismContext);
+	protected ScriptEvaluator createEvaluator(PrismContext prismContext) {
+		return new Jsr223ScriptEvaluator("groovy", prismContext);
 	}
 
 	/* (non-Javadoc)

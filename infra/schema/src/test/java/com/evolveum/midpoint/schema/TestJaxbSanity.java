@@ -48,11 +48,11 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueConstructionType;
 
 /**
  * @author semancik
@@ -76,12 +76,12 @@ public class TestJaxbSanity {
 		
 		assertHasEquals(ObjectType.class);
 		assertHasEquals(AssignmentType.class);
-		assertHasEquals(ValueConstructionType.class);
+		assertHasEquals(MappingType.class);
 		assertHasEquals(ProtectedStringType.class);
 
         assertHasHashCode(ObjectType.class);
         assertHasHashCode(AssignmentType.class);
-        assertHasHashCode(ValueConstructionType.class);
+        assertHasHashCode(MappingType.class);
         assertHasHashCode(ProtectedStringType.class);
 	}
 	

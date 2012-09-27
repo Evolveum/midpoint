@@ -136,12 +136,13 @@ object.
                     <access>read</access>
                     <outbound>
                         <initial>true</initial>
-                        <path>$user/name</path>
+                        <source>
+                        	<path>$user/name</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $user/i:name
+                        	<path>$user/name</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -152,12 +153,13 @@ object.
                     <description>Definition of Firstname attribute handling.</description>
                     <outbound>
                         <initial>true</initial>
-                        <path>$user/givenName</path>
+                        <source>
+                        	<path>$user/givenName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $user/i:givenName
+                            <path>$user/givenName</path>
                         </target>
                     </inbound>
 
@@ -168,12 +170,13 @@ object.
                     <description>Definition of Lastname attribute handling.</description>
                     <outbound>
                         <initial>true</initial>
-                        <path>$user/familyName</path>
+                        <source>
+                        	<path>$user/familyName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                            $user/i:familyName
+                            <path>$user/familyName</path>
                         </target>
                     </inbound>
                 </attribute>
@@ -188,28 +191,21 @@ object.
                     </attribute>-->
                 <credentials>
                     <password>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <outbound/>
                         <inbound>
-                            <source>
-                                <initial>true</initial>
+                            <initial>true</initial>
+                            <expression>
                                 <generate/>
-                            </source>
+                            </expression>
                         </inbound>
 						<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:PasswordPolicyType"/>
                     </password>
                 </credentials>
                 <activation>
                     <enabled>
-                        <outbound>
-                            <asIs/>
-                        </outbound>
+                        <outbound/>
                         <inbound>
-                            <source>
-				<initial>true</initial>
-                                <asIs/>
-                            </source>
+							<initial>true</initial>
                         </inbound>
                     </enabled>
                 </activation>
@@ -248,12 +244,13 @@ object.
 	                </q:description>
 	                <q:equal>
 	                    <q:path>.</q:path>
-	                    <valueExpression>
+	                    <expression>
 	                        <ref>name</ref>
-	                        <code>
-	                            $c:account/c:attributes/icfs:name
-	                        </code>
-	                    </valueExpression>
+	                        <script>
+	                        	<language>http://www.w3.org/TR/xpath/</language>
+		                        <code>$c:account/c:attributes/icfs:name</code>
+	                        </script>
+	                    </expression>
 	                </q:equal>
 	            </correlation>
 	

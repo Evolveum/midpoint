@@ -22,8 +22,8 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.common.valueconstruction.ObjectDeltaObject;
-import com.evolveum.midpoint.common.valueconstruction.ValueConstructionFactory;
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.SourceType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.SimpleDelta;
@@ -61,7 +62,7 @@ public class AssignmentEvaluator {
 	private ObjectDeltaObject<UserType> userOdo;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
-	private ValueConstructionFactory valueConstructionFactory;
+	private MappingFactory valueConstructionFactory;
 	
 	public RepositoryService getRepository() {
 		return repository;
@@ -95,11 +96,11 @@ public class AssignmentEvaluator {
 		this.prismContext = prismContext;
 	}
 
-	public ValueConstructionFactory getValueConstructionFactory() {
+	public MappingFactory getValueConstructionFactory() {
 		return valueConstructionFactory;
 	}
 
-	public void setValueConstructionFactory(ValueConstructionFactory valueConstructionFactory) {
+	public void setValueConstructionFactory(MappingFactory valueConstructionFactory) {
 		this.valueConstructionFactory = valueConstructionFactory;
 	}
 
@@ -169,6 +170,7 @@ public class AssignmentEvaluator {
 		accContruction.setObjectResolver(objectResolver);
 		accContruction.setPrismContext(prismContext);
 		accContruction.setValueConstructionFactory(valueConstructionFactory);
+		accContruction.setOriginType(SourceType.ASSIGNMENTS);
 		
 		accContruction.evaluate(result);
 		

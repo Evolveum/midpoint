@@ -103,6 +103,14 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         return value;
     }
     
+    public static <T> Collection<T> getValues(Collection<PrismPropertyValue<T>> pvals) {
+    	Collection<T> realValues = new ArrayList<T>(pvals.size());
+		for (PrismPropertyValue<T> pval: pvals) {
+			realValues.add(pval.getValue());
+		}
+		return realValues;
+    }
+    
     public Object getRawElement() {
 		return rawElement;
 	}
@@ -168,7 +176,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
 	@Override
     public PrismPropertyValue<T> clone() {
-        PrismPropertyValue clone = new PrismPropertyValue(null, getType(), getSource());
+        PrismPropertyValue clone = new PrismPropertyValue(null, getOriginType(), getOriginObject());
         copyValues(clone);
         return clone;
     }
@@ -364,13 +372,11 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     }
 
 	private void dumpSuffix(StringBuilder builder) {
-        if (getType() != null) {
-	        builder.append(", type: ");
-	        builder.append(getType());
-        }
-        if (getSource() != null) {
-	        builder.append(", source: ");
-	        builder.append(getSource());
+        if (getOriginType() != null || getOriginObject() != null) {
+	        builder.append(", origin: ");
+	        builder.append(getOriginType());
+	        builder.append(":");
+	        builder.append(getOriginObject());
         }
         if (getRawElement() != null) {
 	        builder.append(", raw element: ");

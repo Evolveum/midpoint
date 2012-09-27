@@ -120,16 +120,12 @@ connector server.
 				</c:attribute>
 				<credentials>
 					<password>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 					</password>
 				</credentials>
 				<activation>
 					<enabled>
-						<outbound>
-							<asIs/>
-						</outbound>
+						<outbound/>
 					</enabled>
 				</activation>
 			</c:accountType>
