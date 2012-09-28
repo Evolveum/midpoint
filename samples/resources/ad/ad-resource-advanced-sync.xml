@@ -379,35 +379,32 @@ to "false". The only way of resetting the flag is to change user's password.
             This object is used when creating a new account, to set it up as needed.
         </description>
 
-        <propertyConstruction>
-            <property>fullName</property>
-            <description>
-                Property construction.
+        <mapping>
+			<description>
+                Property mapping.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-            <mapping>
-				<initial>true</initial>
-				<source>
-					<path>$user/givenName</path>
-				</source>
-				<source>
-					<path>$user/familyName</path>
-				</source>
-				<expression>
-					<script>
-						<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-						<code>
-							givenName + ' ' + familyName
-						</code>
-					</script>
-				</expression>
-				<target>
-					<path>fullName</path>
-				</target>
-			</mapping>
-        </propertyConstruction>
+			<initial>true</initial>
+			<source>
+				<path>$user/givenName</path>
+			</source>
+			<source>
+				<path>$user/familyName</path>
+			</source>
+			<expression>
+				<script>
+					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+					<code>
+						givenName + ' ' + familyName
+					</code>
+				</script>
+			</expression>
+			<target>
+				<path>fullName</path>
+			</target>
+		</mapping>
 
     </userTemplate>
 

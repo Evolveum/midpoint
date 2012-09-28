@@ -488,10 +488,11 @@ object.
 	                    <q:path>.</q:path>
 	                    <valueExpression>
 	                        <ref>name</ref>
-	
-	                        <code>
-	                            $c:account/c:attributes/ri:uid
-	                        </code>
+							<script>
+		                        <code>
+		                            $c:account/c:attributes/ri:uid
+		                        </code>
+	                        </script>
 	                    </valueExpression>
 	                </q:equal>
 	            </correlation>
@@ -548,26 +549,32 @@ object.
             This object is used when creating a new account, to set it up as needed.
         </description>
 
-        <propertyConstruction>
-            <property>i:fullName</property>
-            <description>
-
-                Property construction.
+        <mapping>
+			<description>
+                Property mapping.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-            <valueConstruction>
-                <initial>true</initial>
-                <expression>
-                    <code>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                        concat($i:user/i:givenName,' ',$i:user/i:familyName)
-                    </code>
-                </expression>
-
-            </valueConstruction>
-        </propertyConstruction>
+			<initial>true</initial>
+			<source>
+				<path>$user/givenName</path>
+			</source>
+			<source>
+				<path>$user/familyName</path>
+			</source>
+			<expression>
+				<script>
+					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+					<code>
+						givenName + ' ' + familyName
+					</code>
+				</script>
+			</expression>
+			<target>
+				<path>fullName</path>
+			</target>
+		</mapping>
 
         <accountConstruction>
             <description>
@@ -593,25 +600,32 @@ object.
             This object is used when creating a new account, to set it up as needed.
         </description>
 
-        <propertyConstruction>
-            <property>fullName</property>
-            <description>
-                Property construction.
+		<mapping>
+			<description>
+                Property mapping.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-            <valueConstruction>
-                <initial>true</initial>
-                <expression>
-
-                    <code>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-                        concat($i:user/i:givenName,' ',$i:user/i:familyName)
-                    </code>
-                </expression>
-            </valueConstruction>
-        </propertyConstruction>
+			<initial>true</initial>
+			<source>
+				<path>$user/givenName</path>
+			</source>
+			<source>
+				<path>$user/familyName</path>
+			</source>
+			<expression>
+				<script>
+					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+					<code>
+						givenName + ' ' + familyName
+					</code>
+				</script>
+			</expression>
+			<target>
+				<path>fullName</path>
+			</target>
+		</mapping>
 
     </userTemplate>
 

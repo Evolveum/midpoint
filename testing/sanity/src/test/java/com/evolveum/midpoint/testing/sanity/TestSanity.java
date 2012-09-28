@@ -2813,7 +2813,7 @@ public class TestSanity extends AbstractIntegrationTest {
         }
         
         // This also includes "idm" user imported from LDAP. Later we need to ignore that one.
-        assertEquals("Wrong number of users after import",9,uobjects.getObject().size());
+        assertEquals("Wrong number of users after import", 10, uobjects.getObject().size());
         
         checkAllShadows();
     }

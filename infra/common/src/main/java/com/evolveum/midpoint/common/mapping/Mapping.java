@@ -378,12 +378,14 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		List<MappingSourceDeclarationType> sourceTypes = mappingType.getSource();
 		if (sourceTypes == null || sourceTypes.isEmpty()) {
 			if (defaultSource != null) {
+				defaultSource.recompute();
 				sources.add(defaultSource);
 			}
 			return sources;
 		} else {
 			for (MappingSourceDeclarationType sourceType: sourceTypes) {
 				Source<?> source = parseSource(sourceType, result);
+				source.recompute();
 				sources.add(source);
 			}
 		}

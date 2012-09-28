@@ -31,7 +31,11 @@
             <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <attribute>
                 <ref>ri:title</ref>
-                <value>Master Blacksmith</value>
+                <outbound>
+                   	<expression>
+               			<value>Master Blacksmith</value>
+               		</expression>
+                </outbound>
             </attribute>
         </accountConstruction>
     </assignment>    

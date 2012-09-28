@@ -945,7 +945,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		PasswordChangeOperation passwordChangeOperation = null;
 		Collection<PropertyDelta> activationDeltas = new HashSet<PropertyDelta>();
-		PropertyDelta<?> passwordDelta = null;
+		PropertyDelta<ProtectedStringType> passwordDelta = null;
 
 		for (Operation operation : changes) {
 			if (operation instanceof PropertyModificationOperation) {
@@ -982,7 +982,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				} else if (delta.getParentPath().equals(
 						new PropertyPath(new PropertyPath(AccountShadowType.F_CREDENTIALS),
 								CredentialsType.F_PASSWORD))) {
-					passwordDelta = delta;
+					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
 				} else {
 					throw new SchemaException("Change of unknown attribute " + delta.getName());
 				}
@@ -1857,13 +1857,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private void convertFromPassword(Set<Attribute> attributes, PropertyDelta passwordDelta) {
+	private void convertFromPassword(Set<Attribute> attributes, PropertyDelta<ProtectedStringType> passwordDelta) throws SchemaException {
 		if (passwordDelta == null) {
 			throw new IllegalArgumentException("No password was provided");
 		}
 
 		if (passwordDelta.getName().equals(PasswordType.F_PROTECTED_STRING)) {
-			GuardedString guardedPassword = toGuardedString((ProtectedStringType) passwordDelta
+			GuardedString guardedPassword = toGuardedString(passwordDelta
 					.getPropertyNew().getValue().getValue(), "new password");
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 		}

@@ -526,18 +526,20 @@ object.
                 <!-- Following search queury will look for users that have "name"
                      equal to the "uid" attribute of the account. Simply speaking,
                      it will look for match in usernames in the IDM and the resource. -->
-                <c:equal>
-                    <c:path>.</c:path>
-                    <c:valueExpression>
-			<c:ref>c:name</c:ref>
-			<c:code>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
-        	                declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-        	                $i:account/i:attributes/dj:uid
-			</c:code>
-                    </c:valueExpression>
-                </c:equal>
-            </i:correlation>
+				<c:equal>
+					<c:path>.</c:path>
+					<c:expression>
+						<c:ref>c:name</c:ref>
+						<c:script>
+							<c:code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+								declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+								$i:account/i:attributes/dj:uid
+							</c:code>
+						</c:script>
+					</c:expression>
+				</c:equal>
+			            </i:correlation>
 
             <!-- Confirmation rule may be here, but as the search above will
                  always return at most one match, the confirmation rule is not needed. -->

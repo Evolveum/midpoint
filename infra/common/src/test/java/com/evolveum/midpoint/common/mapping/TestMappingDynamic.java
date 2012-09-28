@@ -508,31 +508,23 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
+    
     @Test
     public void testScriptListAbsoluteXPath() throws Exception {
-    	// WHEN
-    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-script-list-absolute-xpath.xml",
-    			"testScriptListAbsoluteXPath",
-    			"organizationalUnit",					// target
-    			"organizationalUnit",				// changed property
-    			PrismTestUtil.createPolyString("Antropomorphic Personifications"));	// changed values
-    	
-    	// THEN
-    	PrismAsserts.assertTripleZero(outputTriple, 
-    			PrismTestUtil.createPolyString("Brethren of the Coast"), 
-    			PrismTestUtil.createPolyString("Davie Jones' Locker"),
-    			PrismTestUtil.createPolyString("Antropomorphic Personifications"));
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    	testScriptListAbsolute("mapping-script-list-absolute-xpath.xml");
     }
     
     @Test
     public void testScriptListAbsoluteGroovy() throws Exception {
+    	testScriptListAbsolute("mapping-script-list-absolute-groovy.xml");
+    }
+    
+
+    public void testScriptListAbsolute(String fileName) throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-script-list-absolute-groovy.xml",
-    			"testScriptListAbsoluteXPath",
+    			fileName,
+    			"testScriptListAbsolute",
     			"organizationalUnit",					// target
     			"organizationalUnit",				// changed property
     			PrismTestUtil.createPolyString("Antropomorphic Personifications"));	// changed values
@@ -540,12 +532,12 @@ public class TestMappingDynamic {
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, 
     			PrismTestUtil.createPolyString("Brethren of the Coast"), 
-    			PrismTestUtil.createPolyString("Davie Jones' Locker"),
+    			PrismTestUtil.createPolyString("Davie Jones' Locker"));
+    	PrismAsserts.assertTriplePlus(outputTriple,
     			PrismTestUtil.createPolyString("Antropomorphic Personifications"));
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+        
     @Test
     public void testValueConditionTrue() throws Exception {
     	// WHEN

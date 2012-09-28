@@ -147,10 +147,10 @@ public class MidPointFunctions {
 		return valueElement.getTextContent();
 	}
 	
-	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Element valueElement) throws NamingException {
-		// Trivial case: the value is a single elmenet therefore it has a single value.
-		return valueElement.getTextContent();
-	}
+//	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Element valueElement) throws NamingException {
+//		// Trivial case: the value is a single elmenet therefore it has a single value.
+//		return valueElement.getTextContent();
+//	}
 	
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
 		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());

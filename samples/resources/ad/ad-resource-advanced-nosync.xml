@@ -158,7 +158,9 @@ This resource definition contains only the very basic definitions for midPoint t
 							<path>$user/familyName</path>
 						</source>
 						<expression>
-							<code>'cn=' + givenName + ' ' + familyName + iterationToken + ',cn=Users,dc=example,dc=com'</code>
+							<script>
+								<code>'cn=' + givenName + ' ' + familyName + iterationToken + ',cn=Users,dc=example,dc=com'</code>
+							</script>
 						</expression>
 					</outbound>
 				</attribute>

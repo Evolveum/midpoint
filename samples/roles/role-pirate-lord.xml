@@ -37,14 +37,22 @@
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     		<attribute>
                     <ref>ri:title</ref>
-                    <value>His Bloodthirstyness</value>
+                    <outbound>
+                    	<expression>
+                    		<value>His Bloodthirstyness</value>
+                    	</expression>
+                    </outbound>
                 </attribute>    		
 		<!-- Example of specification of several values for a multi-valued attribute -->
     		<attribute>
                     <ref>ri:businessCategory</ref>
-                    <value>
-                        <ri:businessCategory>politics</ri:businessCategory>
-                    </value>
+                    <outbound>
+                    	<expression>
+		                    <value>
+		                        <ri:businessCategory>politics</ri:businessCategory>
+		                    </value>
+		                </expression>
+		           </outbound>
             </attribute>
     	</accountConstruction>
     </assignment>  

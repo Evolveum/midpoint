@@ -36,28 +36,44 @@
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     		<attribute>
                     <ref>ri:title</ref>
-                    <value>Honorable Captain</value>
+                    <outbound>
+                    	<expression>
+                    		<value>Honorable Captain</value>
+                    	</expression>
+                    </outbound>
                 </attribute>    		
     		<attribute>
                     <ref>ri:carLicense</ref>
-                    <value>
-                        <ri:carLicense>C4PT41N</ri:carLicense>
-                    </value>
+                    <outbound>
+                    	<expression>
+		                    <value>
+		                        <ri:carLicense>C4PT41N</ri:carLicense>
+		                    </value>
+		                </expression>
+		           	</outbound>
                 </attribute>    		
     		<attribute>
                     <ref>ri:businessCategory</ref>
-                    <value>
-                        <ri:businessCategory>cruise</ri:businessCategory>
-                    </value>
+                    <outbound>
+                    	<expression>
+		                    <value>
+		                        <ri:businessCategory>cruise</ri:businessCategory>
+		                    </value>
+		                </expression>
+		            </outbound>
                 </attribute>    		
                 <attribute> 
                     <ref>ri:departmentNumber</ref>
-                    <expression>
-                        <returnType>scalar</returnType>
-                        <code>
-                            concat('Department of ',$c:user/c:givenName/t:orig)
-                        </code>
-                     </expression>
+                    <outbound>
+                    	<source>
+                    		<path>$user/givenName</path>
+                    	</source>
+                    	<expression>
+		                    <script>
+		                        <code>'Department of ' + givenName</code>
+		                     </script>
+		                 </expression>
+		             </outbound>
                 </attribute>
     	</accountConstruction>
     </assignment>    

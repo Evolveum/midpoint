@@ -217,10 +217,17 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     /**
      * Returns the "new" state of the property - the state that would be after the delta
      * is applied.
-     * Assumes "replace" delta.
      */
-    public PrismProperty<T> getPropertyNew() {
+    public PrismProperty<T> getPropertyNew() throws SchemaException {
         return (PrismProperty<T>) super.getItemNew();
+    }
+    
+    /**
+     * Returns the "new" state of the property - the state that would be after the delta
+     * is applied.
+     */
+    public PrismProperty<T> getPropertyNew(PrismProperty<T> propertyOld) throws SchemaException {
+        return (PrismProperty<T>) super.getItemNew(propertyOld);
     }
     
     public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {

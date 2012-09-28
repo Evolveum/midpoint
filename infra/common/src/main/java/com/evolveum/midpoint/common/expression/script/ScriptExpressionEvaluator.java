@@ -46,6 +46,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionRelativityModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionReturnTypeType;
@@ -69,6 +71,8 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 
 	private ScriptExpressionEvaluatorType scriptType;
 	private ScriptExpression scriptExpression;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
 
     ScriptExpressionEvaluator(ScriptExpressionEvaluatorType scriptType, ScriptExpression scriptExpression) {
     	this.scriptType = scriptType;
@@ -82,21 +86,20 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	public PrismValueDeltaSetTriple<V> evaluate(Collection<Source<? extends PrismValue>> sources, Map<QName, Object> variables,
 			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-        
-		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(sources);
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
     
         if (scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.ABSOLUTE) {
         	
-        	outputTriple = evaluateAbsoluteExpression(sourceTriples, variables, contextDescription, result);
+        	outputTriple = evaluateAbsoluteExpression(sources, variables, contextDescription, result);
         
         } else if (scriptType.getRelativityMode() == null || scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.RELATIVE) {
         	
-        	if (sourceTriples == null || sourceTriples.isEmpty()) {
+        	if (sources == null || sources.isEmpty()) {
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
         		outputTriple = evaluateAbsoluteExpression(null, variables, contextDescription, result);
         	} else {
+        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(sources);
         		outputTriple = evaluateRelativeExpression(sourceTriples, variables, regress, contextDescription, result);
         	}
         	
@@ -128,43 +131,58 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		return sourceTriples;
 	}
 
-	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<SourceTriple<? extends PrismValue>> sourceTriples,
+	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<? extends PrismValue>> sources,
 			Map<QName, Object> variables, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
-		ScriptVariables scriptVariables = new ScriptVariables();
-		scriptVariables.addVariableDefinitionsNew(variables);
+		Collection<V> outputSetOld = evaluateScriptExpression(sources, variables, contextDescription, false, result);
+		Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, result);
 		
-		if (sourceTriples != null) {
+		PrismValueDeltaSetTriple<V> outputTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
+		return outputTriple;
+	}
+	
+	private Collection<V> evaluateScriptExpression(Collection<Source<? extends PrismValue>> sources,
+			Map<QName, Object> variables, String contextDescription, boolean useNew, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		
+		ScriptVariables scriptVariables = new ScriptVariables();
+		if (useNew) {
+			scriptVariables.addVariableDefinitionsNew(variables);
+		} else {
+			scriptVariables.addVariableDefinitionsOld(variables);
+		}
+		
+		if (sources != null) {
 			// Add sources to variables
-			for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
-				QName name = sourceTriple.getName();
+			for (Source<? extends PrismValue> source: sources) {
+				LOGGER.trace("source: {}", source);
+				QName name = source.getName();
 				if (name == null) {
-					if (sourceTriples.size() == 1) {
+					if (sources.size() == 1) {
 						name = ExpressionConstants.VAR_INPUT;
 					} else {
 						throw new ExpressionSyntaxException("No name definition for source in "+contextDescription);
 					}
 				}
-				Collection<? extends PrismValue> values = sourceTriple.getNonNegativeValues();
-				Item<? extends PrismValue> item = null;
-				if (sourceTriple.getSource().isNull()) {
-					scriptVariables.addVariableDefinition(name, (Item<?>)null);
-				} else {
-					item = sourceTriple.getSource().getEmptyItem();
-					item.addAll((Collection) PrismValue.cloneCollection(values));
-					scriptVariables.addVariableDefinition(name, item);
-				}
 				
+				Collection<? extends PrismValue> values = null;
+				if (useNew) {
+					Item<? extends PrismValue> itemNew = source.getItemNew();
+					scriptVariables.addVariableDefinition(name, itemNew);
+				} else {
+					Item<? extends PrismValue> itemOld = source.getItemOld();
+					scriptVariables.addVariableDefinition(name, itemOld);
+				}
 			}
 		}
 		
-		List<PrismPropertyValue<Object>> scriptResults = scriptExpression.evaluate(scriptVariables, null, contextDescription, result);
+		List<PrismPropertyValue<Object>> scriptResults = scriptExpression.evaluate(scriptVariables, null,
+				(useNew ? "(new) " : "(old) " ) + contextDescription, result);
 		
 		if (scriptResults == null || scriptResults.isEmpty()) {
 			return null;
 		}
 		
-		Collection<V> zeroSet = new ArrayList<V>(scriptResults.size());
+		Collection<V> outputSet = new ArrayList<V>(scriptResults.size());
 		for (PrismPropertyValue<Object> pval: scriptResults) {
 			if (pval == null || pval.getValue() == null) {
 				continue;
@@ -180,11 +198,10 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 					continue;
 				}
 			}
-			zeroSet.add((V) pval);
+			outputSet.add((V) pval);
 		}
 		
-		PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>((Collection<V>) zeroSet, null, null);
-		return outputTriple;
+		return outputSet;
 	}
 	
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,

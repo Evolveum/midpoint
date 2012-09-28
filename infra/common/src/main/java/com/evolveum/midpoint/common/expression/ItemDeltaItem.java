@@ -127,13 +127,10 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 	
 	public void recompute() throws SchemaException {
-		if (itemOld == null) {
-			itemNew = null;
+		if (delta != null) {
+			itemNew = delta.getItemNew(itemOld);
 		} else {
-			itemNew = itemOld.clone();
-		}
-		if (delta != null && itemNew != null) {
-			delta.applyTo(itemNew);
+			itemNew = itemOld;
 		}
 	}
 

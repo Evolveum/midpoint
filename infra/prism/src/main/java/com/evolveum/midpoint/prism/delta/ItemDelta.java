@@ -569,33 +569,34 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	/**
 	 * Returns the "new" state of the property - the state that would be after
-	 * the delta is applied. Assumes "replace" delta.
+	 * the delta is applied.
 	 */
-	public Item getItemNew() {
+	public Item<V> getItemNew() throws SchemaException {
+		return getItemNew(null);
+	}
+	
+	/**
+	 * Returns the "new" state of the property - the state that would be after
+	 * the delta is applied.
+	 */
+	public Item<V> getItemNew(Item<V> itemOld) throws SchemaException {
 		if (definition == null) {
 			throw new IllegalStateException("No definition in "+this);
 		}
-		if (valuesToDelete != null) {
-			throw new IllegalStateException("Cannot fetch new item state from DELETE delta: "+this);
-		}
-		Item item = definition.instantiate();
-		if (valuesToAdd != null) {
-			if (definition.isSingleValue()) {
-				item.getValues().addAll((Collection) valuesToAdd);
-			} else {
-				throw new IllegalStateException("Cannot fetch new item state from ADD delta of multivalue property: "+this);
+		if (itemOld == null) {
+			if (isEmpty()) {
+				return null;
 			}
+			itemOld = definition.instantiate(getName());
 		}
-		if (valuesToReplace == null || valuesToReplace.isEmpty()) {
-			return item;
-		}
-		item.getValues().addAll((Collection) valuesToReplace);
-		return item;
+		Item<V> itemNew = itemOld.clone();
+		applyTo(itemNew);
+		return itemNew;
 	}
 
-	public abstract ItemDelta clone();
+	public abstract ItemDelta<V> clone();
 
-	protected void copyValues(ItemDelta clone) {
+	protected void copyValues(ItemDelta<V> clone) {
 		clone.definition = this.definition;
 		clone.name = this.name;
 		clone.parentPath = this.parentPath;

@@ -40,15 +40,23 @@
     		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
     		<attribute>
                     <ref>ri:title</ref>
-                    <value>Bloody Pirate</value>
+                    <outbound>
+                    	<expression>
+                    		<value>Bloody Pirate</value>
+                    	</expression>
+                    </outbound>
                 </attribute>    		
 		<!-- Example of specification of several values for a multi-valued attribute -->
     		<attribute>
                     <ref>ri:businessCategory</ref>
-                    <value>
-                        <ri:businessCategory>loot</ri:businessCategory>
-                        <ri:businessCategory>murder</ri:businessCategory>
-                    </value>
+                    <outbound>
+                    	<expression>
+		                    <value>
+		                        <ri:businessCategory>loot</ri:businessCategory>
+		                        <ri:businessCategory>murder</ri:businessCategory>
+		                    </value>
+		                </expression>
+		            </outbound>
             </attribute>    		
     	</accountConstruction>
     </assignment>  
