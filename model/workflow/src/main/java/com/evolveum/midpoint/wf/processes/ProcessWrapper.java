@@ -25,8 +25,12 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import org.activiti.engine.history.HistoricProcessInstance;
+import org.activiti.engine.runtime.ProcessInstance;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -57,4 +61,7 @@ public interface ProcessWrapper {
      * @return TODO xxxxxx
      */
     boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result);
+
+    String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks);
+    String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars);
 }

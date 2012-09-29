@@ -134,6 +134,8 @@ public class WfCore {
         spc.setProcessName(startInstruction.getProcessName());
         spc.setSendStartConfirmation(startInstruction.isSimple());	// for simple processes we should get wrapper-generated start events
         spc.setVariablesFrom(startInstruction.getProcessVariables());
+        spc.setProcessOwner(task.getOwner().getOid());      // todo: is this ok?
+        spc.addVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
 
         try {
             activitiInterface.idm2activiti(spc);

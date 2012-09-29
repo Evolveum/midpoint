@@ -76,7 +76,7 @@ public class ActivitiInterface {
             qpr.setTaskOid(qpc.getTaskOid());
 
             LOGGER.trace("Querying process instance id = " + pid);
-            System.out.println("#######################################################\nQuerying process instance id = " + pid);
+            //System.out.println("#######################################################\nQuerying process instance id = " + pid);
 
             HistoryService hs = activitiEngine.getHistoryService();
 
@@ -92,7 +92,7 @@ public class ActivitiInterface {
                 String varname = hvu.getVariableName();
                 Object value = hvu.getValue();
                 LOGGER.trace("hvu: " + varname + " <- " + value);
-                System.out.println("Variable: " + varname + " <- " + value + " [rev:" + hvu.getRevision() + "]");
+                //System.out.println("Variable: " + varname + " <- " + value + " [rev:" + hvu.getRevision() + "]");
                 if (!qpr.containsVariable(varname)) {
                     qpr.putVariable(varname, value);
                 }
@@ -108,13 +108,13 @@ public class ActivitiInterface {
                 String varname = hfp.getPropertyId();
                 Object value = hfp.getPropertyValue();
                 LOGGER.trace("form-property: " + varname + " <- " + value);
-                System.out.println("form-property: " + varname + " <- " + value);
+                //System.out.println("form-property: " + varname + " <- " + value);
                 qpr.putVariable(varname, value);
             }
 
             ProcessInstance pi = activitiEngine.getProcessEngine().getRuntimeService().createProcessInstanceQuery().processInstanceId(pid).singleResult();
             qpr.setRunning(pi != null && !pi.isEnded());
-            System.out.println("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
+            //System.out.println("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
             LOGGER.trace("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
 
             // is the process still running? (needed if value == null)
@@ -150,7 +150,13 @@ public class ActivitiInterface {
             LOGGER.trace("process name = " + spic.getProcessName());
 
             RuntimeService rs = activitiEngine.getProcessEngine().getRuntimeService();
-            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), map);
+
+            String owner = ((StartProcessCommand) cmd).getProcessOwner();
+            if (owner != null) {
+                activitiEngine.getIdentityService().setAuthenticatedUserId(owner);
+            }
+            String businessKey = (String) map.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID);
+            ProcessInstance pi = rs.startProcessInstanceByKey(spic.getProcessName(), businessKey, map);
 
             // let us send a reply back (useful for listener-free processes)
 

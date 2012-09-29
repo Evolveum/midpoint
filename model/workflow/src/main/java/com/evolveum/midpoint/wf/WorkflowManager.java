@@ -24,15 +24,19 @@ package com.evolveum.midpoint.wf;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import org.activiti.engine.FormService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
@@ -105,10 +109,14 @@ public class WorkflowManager implements BeanFactoryAware {
     @Autowired(required = true)
     private HookRegistry hookRegistry;
 
+    @Autowired(required = true)
+    private RepositoryService repositoryService;
+
     private WfConfiguration wfConfiguration;
 
+    private WfDataAccessor wfDataAccessor;
+
     private BeanFactory beanFactory;
-    private static final char PROPERTY_TYPE_SEPARATOR_CHAR = '$';
 
     @PostConstruct
     public void initialize() {
@@ -122,319 +130,9 @@ public class WorkflowManager implements BeanFactoryAware {
             activitiEngine.initialize(wfConfiguration);
             wfHook.register(hookRegistry);
         }
+
+        wfDataAccessor = new WfDataAccessor(this);
     }
-
-    /*
-     * Some externally-visible methods. These count* and list* methods are used by the GUI.
-     */
-
-    public int countWorkItemsAssignedToUser(String user, OperationResult parentResult) {
-        TaskService taskService = activitiEngine.getTaskService();
-        TaskQuery tq = taskService.createTaskQuery();
-        tq.taskAssignee(user);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("countWorkItemsAssignedToUser, user=" + user + ": " + tq.count());
-        }
-        return (int) tq.count();
-    }
-
-    public List<WorkItem> listWorkItemsAssignedToUser(String user, int first, int count, OperationResult parentResult) {
-        TaskService taskService = activitiEngine.getTaskService();
-        TaskQuery tq = taskService.createTaskQuery();
-        tq.taskAssignee(user);
-        List<Task> tasks = tq.listPage(first, count);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("listWorkItemsAssignedToUser, user=" + user + ", first/count=" + first + "/" + count + ": " + tasks);
-        }
-        return tasksToWorkItems(tasks);
-    }
-
-    private List<WorkItem> tasksToWorkItems(List<Task> tasks) {
-        List<WorkItem> retval = new ArrayList<WorkItem>();
-        for (Task task : tasks) {
-            retval.add(taskToWorkItem(task));
-        }
-        return retval;
-    }
-
-    private WorkItem taskToWorkItem(Task task) {
-        WorkItem wi = new WorkItem();
-
-        wi.setTaskId(task.getId());
-        wi.setAssignee(task.getAssignee());
-        wi.setName(task.getName());
-        wi.setProcessId(task.getProcessInstanceId());
-        wi.setCandidates(getCandidatesAsString(task));
-        return wi;
-    }
-
-    public int countWorkItemsAssignableToUser(String user, OperationResult parentResult) {
-        TaskService taskService = activitiEngine.getTaskService();
-        TaskQuery tq = taskService.createTaskQuery();
-        tq.taskCandidateUser(user);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("countWorkItemsAssignableToUser, user=" + user + ": " + tq.count());
-        }
-        return (int) tq.count();
-//        List<String> groups = groupsForUser(user);
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("countWorkItemsAssignableToUser, user=" + user + ", groups: " + groups);
-//        }
-//        if (groups.isEmpty()) {
-//            return 0;
-//        } else {
-//            TaskService taskService = activitiEngine.getTaskService();
-//            TaskQuery tq = taskService.createTaskQuery();
-//            tq.taskCandidateGroupIn(groups);
-//            if (LOGGER.isTraceEnabled()) {
-//                LOGGER.trace("countWorkItemsAssignableToUser, user=" + user + ": " + tq.count());
-//            }
-//            return (int) tq.count();
-//        }
-    }
-
-    public List<WorkItem> listWorkItemsAssignableToUser(String user, int first, int count, OperationResult parentResult) {
-        TaskService taskService = activitiEngine.getTaskService();
-        TaskQuery tq = taskService.createTaskQuery();
-        tq.taskCandidateUser(user);
-        List<Task> tasks = tq.listPage(first, count);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("listWorkItemsAssignableToUser, user=" + user + ", first/count=" + first + "/" + count + ": " + tasks);
-        }
-        return tasksToWorkItems(tasks);
-
-//        List<String> groups = groupsForUser(user);
-//        List<Task> tasks;
-//        if (groups.isEmpty()) {
-//            tasks = new ArrayList<Task>();
-//        } else {
-//            TaskService taskService = activitiEngine.getTaskService();
-//            TaskQuery tq = taskService.createTaskQuery();
-//            tq.taskCandidateGroupIn(groups);
-//            tasks = tq.listPage(first, count);
-//        }
-//
-//        LOGGER.info("Activiti tasks assignable to " + user + ": " + tasks);
-//        return tasksToWorkItems(tasks);
-    }
-
-//    private List<String> groupsForUser(String user) {
-//        IdentityService identityService = activitiEngine.getIdentityService();
-//        GroupQuery gq = identityService.createGroupQuery();
-//        gq.groupMember(user);
-//        List<String> groupNames = new ArrayList<String>();
-//        List<Group> groups = gq.list();
-//        LOGGER.trace("Activiti groups for " + user + ":");
-//        for (Group g : groups) {
-//            LOGGER.trace(" - group: id = " + g.getId() + ", name = " + g.getName());
-//            groupNames.add(g.getId());
-//        }
-//        return groupNames;
-//    }
-
-    public void claimWorkItem(WorkItem workItem, String userId, OperationResult result) {
-        TaskService taskService = activitiEngine.getTaskService();
-        taskService.claim(workItem.getTaskId(), userId);
-        result.recordSuccess();
-    }
-
-    public void releaseWorkItem(WorkItem workItem, OperationResult result) {
-        TaskService taskService = activitiEngine.getTaskService();
-        taskService.claim(workItem.getTaskId(), null);
-        result.recordSuccess();
-    }
-
-    private static final QName WORK_ITEM_NAME = new QName(SchemaConstants.NS_C, "WorkItem");
-    private static final QName WORK_ITEM_TASK_ID = new QName(SchemaConstants.NS_C, "taskId");
-    private static final QName WORK_ITEM_TASK_NAME = new QName(SchemaConstants.NS_C, "taskName");
-    private static final QName WORK_ITEM_ASSIGNEE = new QName(SchemaConstants.NS_C, "assignee");
-    private static final QName WORK_ITEM_CANDIDATES = new QName(SchemaConstants.NS_C, "candidates");
-
-    /**
-     * Brutally hacked... should be completely rewritten
-     */
-    public PrismObject<? extends ObjectType> getWorkItemPrism(String taskId) throws SchemaException {
-
-        Task task = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
-        if (task == null) {
-            return null;
-        }
-
-        Map<String,Object> variables = activitiEngine.getProcessEngine().getRuntimeService().getVariables((task.getExecutionId()));
-        LOGGER.info("Execution " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
-
-        // todo - use NS other than NS_C (at least for form properties)
-
-        ComplexTypeDefinition ctd = new ComplexTypeDefinition(WORK_ITEM_NAME, WORK_ITEM_NAME, prismContext);
-        ctd.createPropertyDefinifion(WORK_ITEM_TASK_ID, DOMUtil.XSD_STRING);
-        ctd.createPropertyDefinifion(WORK_ITEM_TASK_NAME, DOMUtil.XSD_STRING);
-        ctd.createPropertyDefinifion(WORK_ITEM_ASSIGNEE, DOMUtil.XSD_STRING);
-        ctd.createPropertyDefinifion(WORK_ITEM_CANDIDATES, DOMUtil.XSD_STRING);
-
-        LOGGER.info("t0");
-
-        TaskFormData data = activitiEngine.getFormService().getTaskFormData(task.getId());
-
-        for (FormProperty formProperty : data.getFormProperties()) {
-
-            String propertyName = getPropertyName(formProperty);
-            String propertyType = getPropertyType(formProperty);
-
-            QName pname = new QName(SchemaConstants.NS_C, "WI_" + propertyName);
-            QName ptype;
-
-            if (propertyType == null) {
-                FormType t = formProperty.getType();
-                String ts = t == null ? "string" : t.getName();
-
-                if ("string".equals(ts)) {
-                    ptype = DOMUtil.XSD_STRING;
-                } else if ("boolean".equals(ts)) {
-                    ptype = DOMUtil.XSD_BOOLEAN;
-                } else if ("long".equals(ts)) {
-                    ptype = DOMUtil.XSD_LONG;
-                } else if ("date".equals(ts)) {
-                    ptype = new QName(W3C_XML_SCHEMA_NS_URI, "date",
-                            DOMUtil.NS_W3C_XML_SCHEMA_PREFIX);
-                } else if ("enum".equals(ts)) {
-                    ptype = DOMUtil.XSD_INT;        // TODO: implement somehow ...
-                } else {
-                    LOGGER.warn("Unknown Activiti type: " + ts);
-                    continue;
-                }
-                ctd.createPropertyDefinifion(pname, ptype);
-            } else {
-                ptype = new QName(SchemaConstants.NS_C, propertyType);
-                ComplexTypeDefinition childCtd = prismContext.getSchemaRegistry().findComplexTypeDefinition(ptype);
-                LOGGER.info("Complex type = " + ptype + ", its definition = " + childCtd);
-                PrismContainerDefinition pcd = new PrismContainerDefinition(pname, childCtd, prismContext);
-                ctd.add(pcd);
-            }
-
-        }
-
-        LOGGER.info("t1");
-
-        ctd.setObjectMarker(true);
-
-        PrismObjectDefinition<ObjectType> prismObjectDefinition = new PrismObjectDefinition<ObjectType>(WORK_ITEM_NAME, ctd, prismContext, ObjectType.class);
-        PrismObject<ObjectType> instance = prismObjectDefinition.instantiate();
-        instance.findOrCreateProperty(WORK_ITEM_TASK_ID).setValue(new PrismPropertyValue<Object>(taskId));
-        instance.findOrCreateProperty(WORK_ITEM_TASK_NAME).setValue(new PrismPropertyValue<Object>(task.getName()));
-        if (task.getAssignee() != null) {
-            instance.findOrCreateProperty(WORK_ITEM_ASSIGNEE).setValue(new PrismPropertyValue<Object>(task.getAssignee()));
-        }
-        String candidates = getCandidatesAsString(task);
-        if (candidates != null) {
-            instance.findOrCreateProperty(WORK_ITEM_CANDIDATES).setValue(new PrismPropertyValue<Object>(candidates));
-        }
-
-        LOGGER.info("t2");
-
-        for (FormProperty formProperty : data.getFormProperties()) {
-
-            String propertyName = getPropertyName(formProperty);
-            String propertyType = getPropertyType(formProperty);
-
-            QName pname = new QName(SchemaConstants.NS_C, "WI_" + propertyName);
-            if (propertyType == null) {
-                instance.findOrCreateProperty(pname).setValue(new PrismPropertyValue<Object>(formProperty.getValue()));
-            } else {
-                Object value = variables.get(propertyName);
-                if (value instanceof RoleType) {
-                    RoleType roleType = (RoleType) value;
-                    PrismContainer container = instance.findOrCreateContainer(pname);
-                    container.add(roleType.asPrismContainerValue().clone());
-                }
-            }
-        }
-
-        LOGGER.info("Resulting prism object instance = " + instance.debugDump());
-        return instance;
-    }
-
-    private String getPropertyName(FormProperty formProperty) {
-        String id = formProperty.getId();
-        int i = id.indexOf(PROPERTY_TYPE_SEPARATOR_CHAR);
-        return i < 0 ? id : id.substring(0, i);
-    }
-
-    private String getPropertyType(FormProperty formProperty) {
-        String id = formProperty.getId();
-        int i = id.indexOf(PROPERTY_TYPE_SEPARATOR_CHAR);
-        return i < 0 ? null : id.substring(i+1);
-    }
-
-    private List<String> getCandidates(Task task) {
-
-        List<String> retval = new ArrayList<String>();
-
-        TaskService taskService = activitiEngine.getTaskService();
-
-        List<IdentityLink> ils = taskService.getIdentityLinksForTask(task.getId());
-        for (IdentityLink il : ils) {
-            if ("candidate".equals(il.getType())) {
-                if (il.getGroupId() != null) {
-                    retval.add("G:" + il.getGroupId());
-                }
-                if (il.getUserId() != null) {
-                    retval.add("U:" + il.getUserId());
-                }
-            }
-        }
-
-        return retval;
-    }
-
-    private String getCandidatesAsString(Task task) {
-
-        StringBuffer retval = new StringBuffer();
-        boolean first = true;
-        for (String c : getCandidates(task)) {
-            if (first) {
-                first = false;
-            } else {
-                retval.append(", ");
-            }
-            retval.append(c);
-        }
-        return retval.toString();
-    }
-
-    public void saveWorkItemPrism(PrismObject object, OperationResult result) {
-
-        LOGGER.info("WorkItem form object = " + object.debugDump());
-
-        String taskId = (String) object.getPropertyRealValue(WORK_ITEM_TASK_ID, String.class);
-
-        LOGGER.trace("Saving work item " + taskId);
-
-        FormService formService = activitiEngine.getFormService();
-        Map<String,String> propertiesToSubmit = new HashMap<String,String>();
-        TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
-
-        LOGGER.trace("# of form properties: " + data.getFormProperties().size());
-
-        for (FormProperty formProperty : data.getFormProperties()) {
-
-            LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
-
-            if (formProperty.isWritable()) {
-                QName propertyName = new QName(SchemaConstants.NS_C, "WI_" + formProperty.getId());
-
-                Object value = object.getPropertyRealValue(propertyName, Object.class);
-                LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
-                if (value != null) {
-                    propertiesToSubmit.put(formProperty.getId(), value.toString());
-                }
-            }
-        }
-
-        LOGGER.trace("Submitting " + propertiesToSubmit.size() + " properties");
-
-        formService.submitTaskFormData(taskId, propertiesToSubmit);
-    }
-
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -447,5 +145,22 @@ public class WorkflowManager implements BeanFactoryAware {
 
     public boolean isEnabled() {
         return wfConfiguration.isEnabled();
+    }
+
+
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
+
+    public ActivitiEngine getActivitiEngine() {
+        return activitiEngine;
+    }
+
+    public WfDataAccessor getDataAccessor() {
+        return wfDataAccessor;
+    }
+
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
     }
 }

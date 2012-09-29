@@ -43,6 +43,8 @@ public class PageAdminWorkItems extends PageAdmin {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
         items.add(new BottomMenuItem("pageAdminWorkItems.listWorkItems", PageWorkItems.class));
+        items.add(new BottomMenuItem("pageAdminWorkItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class));
+        items.add(new BottomMenuItem("pageAdminWorkItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class));
         return items;
     }
 

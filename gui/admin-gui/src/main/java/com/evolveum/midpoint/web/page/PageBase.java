@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -173,6 +174,10 @@ public abstract class PageBase extends WebPage {
 
     protected WorkflowManager getWorkflowManager() {
         return workflowManager;
+    }
+
+    protected WfDataAccessor getWorkflowDataAccessor() {
+        return workflowManager.getDataAccessor();
     }
 
     protected IModel<String> createPageTitleModel() {

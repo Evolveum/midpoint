@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,7 +65,9 @@ import java.util.*;
  */
 public class PrismContainer<V extends Containerable> extends Item<PrismContainerValue<V>> implements PrismContainerable<V> {
     private static final long serialVersionUID = 5206821250098051028L;
-    
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainer.class);
+
     protected Class<V> compileTimeClass;
 
     public PrismContainer(QName name) {
@@ -347,7 +351,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     <I extends Item<?>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException {
-   		return getValue().findCreateItem(itemQName, type, null, create);
+        // brutal hack - to be removed later
+        if (getValues().size() == 0 && !create && getDefinition() != null && !getDefinition().isDynamic() && !getDefinition().isSingleValue()) {
+            LOGGER.warn("findCreateItem called on potentially multi-value container with 0 values; item = " + itemQName + "; container: " + dump());
+            return null;
+        }
+        return getValue().findCreateItem(itemQName, type, null, create);
     }
         
     public <I extends Item<?>> I findItem(PropertyPath propPath, Class<I> type) {

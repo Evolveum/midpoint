@@ -23,6 +23,7 @@ package com.evolveum.midpoint.wf;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,31 +32,23 @@ import java.util.Date;
  * Time: 13:34
  * To change this template use File | Settings | File Templates.
  */
-public class WorkItem implements Serializable {
+public class ProcessInstance implements Serializable {
 
     private String processId;
-    private String processName;
-    private String taskId;
     private String name;
-    private String assignee;
-    private String assigneeName;
-    private String candidates;
-    private Date createTime;
+    private Date startTime;
+    private Date endTime;
+    private List<WorkItem> workItems;
+    // process-specific details useful for the requestor/assignee - e.g. current status of DecisionList variable
+    // currently brutally hacked (as whole workflow package ;)
+    private String details;
 
-    public String getAssignee() {
-        return assignee;
+    public String getDetails() {
+        return details;
     }
 
-    public void setAssignee(String assignee) {
-        this.assignee = assignee;
-    }
-
-    public String getAssigneeName() {
-        return assigneeName;
-    }
-
-    public void setAssigneeName(String assigneeName) {
-        this.assigneeName = assigneeName;
+    public void setDetails(String details) {
+        this.details = details;
     }
 
     public String getName() {
@@ -66,14 +59,6 @@ public class WorkItem implements Serializable {
         this.name = name;
     }
 
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
     public String getProcessId() {
         return processId;
     }
@@ -82,27 +67,31 @@ public class WorkItem implements Serializable {
         this.processId = processId;
     }
 
-    public String getProcessName() {
-        return processName;
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setProcessName(String processName) {
-        this.processName = processName;
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
     }
 
-    public String getCandidates() {
-        return candidates;
+    public List<WorkItem> getWorkItems() {
+        return workItems;
     }
 
-    public void setCandidates(String candidates) {
-        this.candidates = candidates;
+    public void setWorkItems(List<WorkItem> workItems) {
+        this.workItems = workItems;
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public Date getEndTime() {
+        return endTime;
     }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
+
+    public String toString() {
+        return "[process instance: id=" + processId + ", name=" + name + "]";
     }
 }

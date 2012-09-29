@@ -213,8 +213,8 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 //        }
 
         Map<String,String> outputItems = new HashMap<String,String>();
-        outputItems.put("decision", decision);
-        outputItems.put("comment", comment);
+        outputItems.put("decision#C", decision);
+        outputItems.put("comment#C", comment);
         processEngine.getFormService().submitTaskFormData(task.getId(), outputItems);
     }
 

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
-import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -65,11 +65,11 @@ public class PageWorkItems extends PageAdminWorkItems {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        List<IColumn<WorkItemDto>> unassignedItemColumns = initUnassignedItemColumns();
-        TablePanel<WorkItemDto> unassignedItemTable = new TablePanel<WorkItemDto>("unassignedItemTable", new WorkItemDtoProvider(PageWorkItems.this, false),
-                unassignedItemColumns);
-        unassignedItemTable.setOutputMarkupId(true);
-        mainForm.add(unassignedItemTable);
+//        List<IColumn<WorkItemDto>> unassignedItemColumns = initUnassignedItemColumns();
+//        TablePanel<WorkItemDto> unassignedItemTable = new TablePanel<WorkItemDto>("unassignedItemTable", new WorkItemDtoProvider(PageWorkItems.this, false),
+//                unassignedItemColumns);
+//        unassignedItemTable.setOutputMarkupId(true);
+//        mainForm.add(unassignedItemTable);
 
         List<IColumn<WorkItemDto>> assignedItemColumns = initAssignedItemColumns();
         TablePanel<WorkItemDto> assignedItemTable = new TablePanel<WorkItemDto>("assignedItemTable", new WorkItemDtoProvider(PageWorkItems.this, true),
@@ -77,7 +77,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         assignedItemTable.setOutputMarkupId(true);
         mainForm.add(assignedItemTable);
 
-        initItemButtons(mainForm);
+        //initItemButtons(mainForm);
     }
 
     private List<IColumn<WorkItemDto>> initUnassignedItemColumns() {
@@ -120,25 +120,25 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void initItemButtons(Form mainForm) {
-        AjaxLinkButton claim = new AjaxLinkButton("claim",
-                createStringResource("pageWorkItems.button.claim")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                claimWorkItemsPerformed(target);
-            }
-        };
-        mainForm.add(claim);
-
-        AjaxLinkButton release = new AjaxLinkButton("release",
-                createStringResource("pageWorkItems.button.release")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                releaseWorkItemsPerformed(target);
-            }
-        };
-        mainForm.add(release);
+//        AjaxLinkButton claim = new AjaxLinkButton("claim",
+//                createStringResource("pageWorkItems.button.claim")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                claimWorkItemsPerformed(target);
+//            }
+//        };
+//        mainForm.add(claim);
+//
+//        AjaxLinkButton release = new AjaxLinkButton("release",
+//                createStringResource("pageWorkItems.button.release")) {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                releaseWorkItemsPerformed(target);
+//            }
+//        };
+//        mainForm.add(release);
 
         AjaxLinkButton approve = new AjaxLinkButton("approve",
                 createStringResource("pageWorkItems.button.approve")) {
@@ -220,11 +220,11 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
-        WorkflowManager wfManager = getWorkflowManager();
+        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
             try {
-                wfManager.claimWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), result);
+                wfDataAccessor.claimWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), result);
             } catch (Exception e) {
                 result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
             }
@@ -252,11 +252,11 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
-        WorkflowManager wfManager = getWorkflowManager();
+        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
             try {
-                wfManager.releaseWorkItem(workItemDto.getWorkItem(), result);
+                wfDataAccessor.releaseWorkItem(workItemDto.getWorkItem(), result);
             } catch (Exception e) {
                 result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
             }

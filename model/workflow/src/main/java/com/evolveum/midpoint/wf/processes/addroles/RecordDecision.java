@@ -40,10 +40,16 @@ public class RecordDecision implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
         RoleType role = (RoleType) execution.getVariableLocal("role");
-        Boolean yesOrNo = (Boolean) execution.getVariable("decision");
-        String comment = (String) execution.getVariable("comment");
+        Boolean yesOrNo = (Boolean) execution.getVariable("decision#C");
+        String comment = (String) execution.getVariable("comment#C");
+
+        if (comment != null && comment.startsWith("+")) {
+            comment = comment.substring(1);
+            yesOrNo = true;
+        }
+
         Decision decision = new Decision();
-        decision.setUser("administrator");
+        decision.setUser("TODO");       // TODO
         decision.setApproved(yesOrNo == null ? false : yesOrNo);
         decision.setComment(comment);
         decision.setRole(role);

@@ -53,10 +53,10 @@
             <sequenceFlow sourceRef="startSub" targetRef="approve" />
             <userTask id="approve" name="Approve adding ${role.name} to ${userName}" activiti:assignee="${util.getApprover(role)}">
                 <extensionElements>
-                    <activiti:formProperty id="userName" name="User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
-                    <activiti:formProperty id="role" expression="#{role.name}" name="Role" required="false" readable="true" writable="false"></activiti:formProperty>
-                    <activiti:formProperty id="decision" name="Do you approve adding this role to this user?" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
-                    <activiti:formProperty id="comment" name="Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                    <activiti:formProperty id="userName" expression="#{userName}" name="01: User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
+                    <activiti:formProperty id="role" expression="#{role.name}" name="02: Role" required="false" readable="true" writable="false"></activiti:formProperty>
+                    <activiti:formProperty id="decision#C" name="03: Add role to the user?" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
+                    <activiti:formProperty id="comment#C" name="04: Comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                 </extensionElements>
             </userTask>
             <sequenceFlow sourceRef="approve" targetRef="recordDecision" />

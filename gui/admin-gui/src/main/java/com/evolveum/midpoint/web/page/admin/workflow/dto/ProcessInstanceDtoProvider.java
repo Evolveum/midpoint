@@ -29,8 +29,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WfDataAccessor;
-import com.evolveum.midpoint.wf.WorkItem;
 
 import java.util.Iterator;
 import java.util.List;
@@ -38,14 +38,21 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
+public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<ProcessInstanceDto> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemDtoProvider.class);
-    private static final String DOT_CLASS = WorkItemDtoProvider.class.getName() + ".";
+    private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceDtoProvider.class);
+    private static final String DOT_CLASS = ProcessInstanceDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_ITEMS = DOT_CLASS + "listItems";
     private static final String OPERATION_COUNT_ITEMS = DOT_CLASS + "countItems";
 
-    boolean assigned;
+    /*
+     * requestedBy:
+     * - true = we are interested in process instances REQUESTED BY a user (e.g. the user has requested granting a role to another user)
+     * - false = we are interested in process instances REQUESTED FOR a user (e.g. the user is to be granted a role)
+     */
+
+    boolean requestedBy;
+    private boolean finished;
 
     public static String currentUser() {
         PrincipalUser principal = SecurityUtils.getPrincipalUser();
@@ -56,13 +63,15 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return principal.getOid();
     }
 
-    public WorkItemDtoProvider(PageBase page, boolean assigned) {
+    public ProcessInstanceDtoProvider(PageBase page, boolean requestedBy, boolean finished) {
         super(page);
-        this.assigned = assigned;
+        LOGGER.trace("requestedBy = " + requestedBy + ", finished = " + finished);
+        this.requestedBy = requestedBy;
+        this.finished = finished;
     }
 
     @Override
-    public Iterator<? extends WorkItemDto> iterator(int first, int count) {
+    public Iterator<? extends ProcessInstanceDto> iterator(int first, int count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
@@ -77,17 +86,15 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 //            }
 
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            List<WorkItem> items = assigned ?
-                    wfm.listWorkItemsAssignedToUser(currentUser(), first, count, result) :
-                    wfm.listWorkItemsAssignableToUser(currentUser(), first, count, result);
+            List<ProcessInstance> items = wfm.listProcessInstances(requestedBy, finished, currentUser(), first, count, result);
 
-            for (WorkItem item : items) {
-                getAvailableData().add(new WorkItemDto(item));
+            for (ProcessInstance item : items) {
+                getAvailableData().add(new ProcessInstanceDto(item));
             }
 
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Unhandled exception when listing work items", ex);
-            result.recordFatalError("Couldn't list work items.", ex);
+            LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instances", ex);
+            result.recordFatalError("Couldn't list process instances.", ex);
         }
 
         if (result.isUnknown()) {
@@ -103,11 +110,11 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
             WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-            count = assigned ?
-                    wfDataAccessor.countWorkItemsAssignedToUser(currentUser(), result) :
-                    wfDataAccessor.countWorkItemsAssignableToUser(currentUser(), result);
+            count = wfDataAccessor.countProcessInstances(requestedBy, finished, currentUser(), result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count work items assigned to user.", ex);
+            String msg = "Couldn't list process instances requested " + (requestedBy ? "by":"for") + " a user.";
+            LoggingUtils.logException(LOGGER, msg, ex);
+            result.recordFatalError(msg, ex);
         }
 
         if (result.isUnknown()) {

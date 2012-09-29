@@ -223,6 +223,10 @@ public class ActivitiEngine {
         return processEngine.getTaskService();
     }
 
+    public RuntimeService getRuntimeService() {
+        return processEngine.getRuntimeService();
+    }
+
     public IdentityService getIdentityService() {
         return processEngine.getIdentityService();
     }

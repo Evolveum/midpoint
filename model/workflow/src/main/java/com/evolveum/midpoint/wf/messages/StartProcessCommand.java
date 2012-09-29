@@ -31,6 +31,7 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
 
     private Map<String,Object> variables;
     private String processName;
+    private String processOwner;
     private String taskOid;
     private boolean sendStartConfirmation;
 
@@ -68,6 +69,21 @@ public class StartProcessCommand extends MidPointToActivitiMessage {
 
     public void setVariablesFrom(Map<String, Object> variables) {
         this.variables = new HashMap<String,Object>(variables);
+    }
+
+    public void addVariable(String name, Object value) {
+        if (variables == null) {
+            variables = new HashMap<String,Object>();
+        }
+        variables.put(name, value);
+    }
+
+    public String getProcessOwner() {
+        return processOwner;
+    }
+
+    public void setProcessOwner(String processOwner) {
+        this.processOwner = processOwner;
     }
 
     @Override

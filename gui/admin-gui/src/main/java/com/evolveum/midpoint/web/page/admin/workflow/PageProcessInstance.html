@@ -23,40 +23,36 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-
     <form wicket:id="mainForm">
-
-        <table width="100%">
+        <table>
             <tr>
-                <td><h3><wicket:message key="pageWorkItem.mainInfo"/></h3></td>
-                <td><h3><wicket:message key="pageWorkItem.additionalInfo"/></h3></td>
+                <td><wicket:message key="pageProcessInstance.name"/></td>
+                <td><b><span wicket:id="name"/></b></td>
             </tr>
             <tr>
-                <td style="width: 620px; vertical-align: top;">
-                    <div wicket:id="requestCommonForm"/>
-                    <div wicket:id="requestSpecificForm"/>
-
-                </td>
-                <td style="vertical-align: top;">
-                    <div wicket:id="requesterForm"/>
-                    <div wicket:id="objectOldForm"/>
-                    <div wicket:id="objectNewForm"/>
-                    <!-- delta should be here -->
-                    <div wicket:id="additionalDataForm"/>
-                </td>
+                <td><wicket:message key="pageProcessInstance.pid"/></td>
+                <td><b><span wicket:id="pid"/></b></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageProcessInstance.started"/></td>
+                <td><b><span wicket:id="started"/></b></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageProcessInstance.finished"/></td>
+                <td><b><span wicket:id="finished"/></b></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageProcessInstance.tasks"/></td>
+                <td><b><pre><span wicket:id="tasks"/></pre></b></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="pageProcessInstance.details"/></td>
+                <td><b><pre><span wicket:id="details"/></pre></b></td>
             </tr>
         </table>
-
-
+       	
         <div class="operatingFormButtons">
-            
-            <div class="operatingFormBlock">
-
-<!--                <a wicket:id="approve"/>
-                <a wicket:id="reject"/> -->
-                <a wicket:id="done"/>
-                <a wicket:id="cancel"/>
-			</div>
+            <a wicket:id="backButton"/>
         </div>
     </form>
 </wicket:extend>

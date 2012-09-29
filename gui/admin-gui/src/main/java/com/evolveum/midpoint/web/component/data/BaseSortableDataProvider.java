@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.wf.WfDataAccessor;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -93,6 +94,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected WorkflowManager getWorkflowManager() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getWorkflowManager();
+    }
+
+    protected WfDataAccessor getWorkflowDataAccessor() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getWorkflowManager().getDataAccessor();
     }
 
     public List<T> getAvailableData() {
