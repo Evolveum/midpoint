@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -812,9 +813,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
 //        QueryType query = QueryUtil.createResourceAndAccountQuery(resource.asObjectable(), objectClass, null);
 
-        AndFilter and = AndFilter.createAnd(EqualsFilter.createReferenceEqual(AccountShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()),
-        		EqualsFilter.createEqual(AccountShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, objectClass));
-        ObjectQuery query = ObjectQuery.createObjectQuery(and);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+//        AndFilter and = AndFilter.createAnd(Ref.createReferenceEqual(AccountShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()),
+//        		EqualsFilter.createEqual(AccountShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, objectClass));
+//        ObjectQuery query = ObjectQuery.createObjectQuery(and);
         
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 

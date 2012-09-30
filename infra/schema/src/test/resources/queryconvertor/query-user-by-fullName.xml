@@ -23,8 +23,7 @@
        xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
     <equal>
-        <value>
-            <c:fullName>cpt jack sparrow</c:fullName>
-        </value>
+    <path>c:fullName</path>
+        <value>cpt jack sparrow</value>
     </equal>
 </query>

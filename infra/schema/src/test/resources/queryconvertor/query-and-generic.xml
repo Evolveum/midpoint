@@ -23,17 +23,14 @@
 
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
        xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
-    <and>
-        <equal>
-            <value>
-                <c:name>generic object</c:name>
-            </value>
-        </equal>
-        <equal>
-            <path>c:extension</path>
-            <value>
-                <p:intType xmlns:p="http://midpoint.evolveum.com/xml/ns/test/extension">123</p:intType>
-            </value>
-        </equal>
-    </and>
+	<and>
+		<equal>
+			<path>c:name</path>
+			<value>generic object</value>
+		</equal>
+		<equal>
+			<path xmlns:p="http://midpoint.evolveum.com/xml/ns/test/extension">c:extension/p:intType</path>
+			<value>123</value>
+		</equal>
+	</and>
 </query>

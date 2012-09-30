@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -542,7 +543,7 @@ public class ShadowCacheUtil {
 			// .createEqualFilterFromElements(doc, xpath, identifierElements,
 			// resourceShadow
 			// .asPrismObject().getPrismContext()));
-			filter = AndFilter.createAnd(EqualsFilter.createReferenceEqual(AccountShadowType.class,
+			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(AccountShadowType.class,
 					AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
 					new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(),
 					identifier.getValues()));

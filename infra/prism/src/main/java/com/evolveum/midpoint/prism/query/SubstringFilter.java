@@ -41,19 +41,29 @@ public class SubstringFilter extends StringValueFilter {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("SUBSTRING: \n");
+		if (getPath() != null){
+			DebugUtil.indentDebugDump(sb, indent+1);
+			sb.append("PATH: ");
+			sb.append(getPath().toString());
+			sb.append("\n");
+		}
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("DEF: ");
 		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent + 1));
+			sb.append(getDefinition().debugDump(indent));
 			sb.append("\n");
 		} else {
-			DebugUtil.indentDebugDump(sb, indent + 1);
+			DebugUtil.indentDebugDump(sb, indent);
 			sb.append("null\n");
 		}
 
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("VALUE: ");
 		if (getValue() != null) {
-			DebugUtil.indentDebugDump(sb, indent + 1);
+			DebugUtil.indentDebugDump(sb, indent);
 			sb.append(getValue());
 		} else {
-			DebugUtil.indentDebugDump(sb, indent + 1);
+			DebugUtil.indentDebugDump(sb, indent);
 			sb.append("null\n");
 		}
 		return sb.toString();

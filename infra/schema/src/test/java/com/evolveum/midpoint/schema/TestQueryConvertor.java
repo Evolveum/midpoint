@@ -71,12 +71,13 @@ public class TestQueryConvertor {
 			ObjectQuery query = null;
 			try {
 				query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType,
-						PrismTestUtil.getPrismContext());
+						prismContext);
 				LOGGER.info("query converted: ");
 
 				LOGGER.info("QUERY DUMP: {}", query.dump());
 				
 				QueryType convertedQueryType = QueryConvertor.createQueryType(query);
+				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 				
 			} catch (SchemaException ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
@@ -100,18 +101,21 @@ public class TestQueryConvertor {
 		LOGGER.info("===[ query type parsed ]===");
 		ObjectQuery query = null;
 		try {
-			query = QueryConvertor.createObjectQuery(ConnectorType.class, queryType, PrismTestUtil.getPrismContext());
+			query = QueryConvertor.createObjectQuery(ConnectorType.class, queryType, prismContext);
 			LOGGER.info("query converted: ");
 
 			LOGGER.info("QUERY DUMP: {}", query.dump());
 			AssertJUnit.assertNotNull(query);
 			AssertJUnit.assertEquals(EqualsFilter.class, query.getFilter().getClass());
-			List<PrismValue> values = ((EqualsFilter) query.getFilter()).getValues();
+			List<? extends PrismValue> values = ((EqualsFilter) query.getFilter()).getValues();
 			AssertJUnit.assertEquals(1, values.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, values.get(0).getClass());
 			AssertJUnit.assertEquals("org.identityconnectors.ldap.LdapConnector", ((PrismPropertyValue) values.get(0)).getValue());
 			AssertJUnit.assertEquals(ConnectorType.F_CONNECTOR_TYPE, ((EqualsFilter)query.getFilter()).getDefinition().getName());
 			AssertJUnit.assertEquals(DOMUtil.XSD_STRING, ((EqualsFilter)query.getFilter()).getDefinition().getTypeName());
+			
+			QueryType convertedQueryType = QueryConvertor.createQueryType(query);
+			LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 		} catch (SchemaException ex) {
 			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			throw ex;
@@ -134,7 +138,7 @@ public class TestQueryConvertor {
 		ObjectQuery query = null;
 		try {
 			query = QueryConvertor.createObjectQuery(GenericObjectType.class, queryType,
-					PrismTestUtil.getPrismContext());
+					prismContext);
 			LOGGER.info("query converted: ");
 
 			LOGGER.info("QUERY DUMP: {}", query.dump());
@@ -145,7 +149,7 @@ public class TestQueryConvertor {
 			//check first condition
 			ObjectFilter first = ((AndFilter) query.getFilter()).getCondition().get(0);
 			AssertJUnit.assertEquals(EqualsFilter.class, first.getClass());
-			List<PrismValue> values = ((EqualsFilter) first).getValues();
+			List<? extends PrismValue> values = ((EqualsFilter) first).getValues();
 			AssertJUnit.assertEquals(1, values.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, values.get(0).getClass());
 			AssertJUnit.assertEquals("generic object", ((PrismPropertyValue) values.get(0)).getValue());
@@ -154,12 +158,15 @@ public class TestQueryConvertor {
 			//check second condition
 			ObjectFilter second = ((AndFilter) query.getFilter()).getCondition().get(1);
 			AssertJUnit.assertEquals(EqualsFilter.class, second.getClass());
-			List<PrismValue> secValues = ((EqualsFilter) second).getValues();
+			List<? extends PrismValue> secValues = ((EqualsFilter) second).getValues();
 			AssertJUnit.assertEquals(1, secValues.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, secValues.get(0).getClass());
 			AssertJUnit.assertEquals(123, ((PrismPropertyValue) secValues.get(0)).getValue());
 			AssertJUnit.assertEquals(new QName("http://midpoint.evolveum.com/xml/ns/test/extension", "intType"), ((EqualsFilter)second).getDefinition().getName());
 			AssertJUnit.assertEquals(DOMUtil.XSD_INT, ((EqualsFilter)second).getDefinition().getTypeName());
+			
+			QueryType convertedQueryType = QueryConvertor.createQueryType(query);
+			LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 		} catch (SchemaException ex) {
 			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			throw ex;
@@ -184,10 +191,13 @@ public class TestQueryConvertor {
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
 			try {
-				query = QueryConvertor.createObjectQuery(UserType.class, queryType, PrismTestUtil.getPrismContext());
+				query = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
 				LOGGER.info("QUERY DUMP: {}", query.dump());
+				
+				QueryType convertedQueryType = QueryConvertor.createQueryType(query);
+				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 			} catch (SchemaException ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 				throw ex;

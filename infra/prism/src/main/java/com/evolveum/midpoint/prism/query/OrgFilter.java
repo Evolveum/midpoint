@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.prism.query;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -50,7 +52,7 @@ public class OrgFilter extends ObjectFilter {
 	public void setMaxDepth(String maxDepth) {
 		this.maxDepth = maxDepth;
 	}
-
+	
 	@Override
 	public String dump() {
 		return debugDump(0);

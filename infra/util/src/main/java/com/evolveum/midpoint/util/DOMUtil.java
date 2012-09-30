@@ -52,6 +52,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -339,6 +340,20 @@ public class DOMUtil {
 		}
 
 		return null;
+	}
+	
+	public static List<Element> getElement(Element element, QName elementName){
+		Validate.notNull(elementName, "Element name to get must not be null");
+		List<Element> elements = new ArrayList<Element>();
+		NodeList childNodes = element.getChildNodes();
+		for (int i= 0; i< childNodes.getLength(); i++){
+			Node childNode = childNodes.item(i);
+			if (QNameUtil.compareQName(elementName, childNode)){
+				elements.add((Element)childNode);
+			}
+		}
+		return elements;
+		
 	}
 
 	public static List<Element> listChildElements(Node node) {

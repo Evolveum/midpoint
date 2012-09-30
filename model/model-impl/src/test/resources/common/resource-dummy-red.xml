@@ -33,9 +33,8 @@
 		<filter>
 			<and>
 				<equal>
-					<value>
-						<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
-					</value>
+				<path>c:connectorType</path>
+					<value>com.evolveum.icf.dummy.connector.DummyConnector</value>
 				</equal>
 			</and>
 		</filter>

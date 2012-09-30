@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -117,7 +118,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
 		ObjectQuery query = new ObjectQuery();
 		PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		query.setFilter(EqualsFilter.createEquals(null, userObjectDef, UserType.F_NAME, ELAINE_NAME));
+		query.setFilter(EqualsFilter.createEqual(null, userObjectDef, UserType.F_NAME, ELAINE_NAME));
 
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
@@ -402,7 +403,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		QueryType query = QueryUtil.createQuery(filter);
 //		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
 		try{
-		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(EqualsFilter.createReferenceEqual(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, null));
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, null));
 //		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		// List<>
 		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, objectQuery, null, parentResult);

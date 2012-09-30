@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -499,7 +500,7 @@ public class IntegrationTestTools {
 //		query.setFilter(QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF, resourceType.getOid())
 //				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
 //				));
-		EqualsFilter equal = EqualsFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid());
+		RefFilter equal = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		return query;
 	}
@@ -512,7 +513,7 @@ public class IntegrationTestTools {
 //				QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS, objectClass)
 //				));
 		AndFilter and = AndFilter.createAnd(
-				EqualsFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
+				RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
 				EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_OBJECT_CLASS, objectClass));
 		ObjectQuery query = ObjectQuery.createObjectQuery(and);
 		return query;
@@ -618,7 +619,7 @@ public class IntegrationTestTools {
 //					resourceShadow.asPrismObject().getPrismContext());
 			ItemDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findItemDefinition(AccountShadowType.F_RESOURCE_REF);
 			filter = AndFilter.createAnd(
-					EqualsFilter.createReferenceEqual(null, itemDef, resourceShadow.getResourceRef().getOid()),
+					RefFilter.createReferenceEqual(null, itemDef, resourceShadow.getResourceRef().getOid()),
 					EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifier.getValue()));
 			
 //		} catch (SchemaException e) {

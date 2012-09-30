@@ -21,13 +21,12 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-       xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 
-    <or xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
-        <substring>
-            <value>
-                <c:fullName xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">cpt jack sparrow</c:fullName>
-            </value>
-        </substring>
-    </or>
+	<or xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+		<substring>
+			<path>c:fullName</path>
+			<value>cpt jack sparrow</value>
+		</substring>
+	</or>
 </query>

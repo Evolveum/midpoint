@@ -21,33 +21,32 @@
 
 <!-- Import test file with references between objects -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-	
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+
 	<connector>
-	   <name>ICF org.identityconnectors.ldap.LdapConnector</name>
-   	   <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-	   <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-	   <connectorVersion>1.0.5531</connectorVersion>
-	   <namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector</namespace>
+		<name>ICF org.identityconnectors.ldap.LdapConnector</name>
+		<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1
+		</framework>
+		<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+		<connectorVersion>1.0.5531</connectorVersion>
+		<namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector
+		</namespace>
 	</connector>
 
-	<resource>
+	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">
-		  <filter>
-<!-- 		      <q:and> -->
-<!-- 		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/> -->
-		        <q:equal>
-		          <q:value>
-		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-		          </q:value>
-		        </q:equal>
-<!-- 		      </q:and> -->
-	      </filter>
+			<filter>
+				<!-- <q:and> -->
+				<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/> -->
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+				</q:equal>
+				<!-- </q:and> -->
+			</filter>
 		</connectorRef>
 		<namespace>http://foo.bar.com/</namespace>
 		<configuration>

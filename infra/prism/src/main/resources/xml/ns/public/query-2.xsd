@@ -118,20 +118,20 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="ValueType">
+    <xsd:complexType name="ValueType" mixed="true">
         <xsd:sequence>
-            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The elements and values of queried properties.
-                        Multi-valued properties are not allowed here.
-                        Use "and" or "or" clauses if needed.
-                    </xsd:documentation>
+           	<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+               	<xsd:annotation>
+                   	<xsd:documentation>
+                       	The elements and values of queried properties.
+                       	Multi-valued properties are not allowed here.
+                       	Use "and" or "or" clauses if needed.
+                   	</xsd:documentation>
                     <xsd:appinfo>
-<!--                         <xjc:dom/> -->
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:any>
+       	                <xjc:dom/>
+           	        </xsd:appinfo>
+               	</xsd:annotation>
+           	</xsd:any>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -219,6 +219,7 @@
 <xsd:element name="orgRef" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
 <xsd:element name="maxDepth" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
 <xsd:element name="minDepth" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+<xsd:element name="ref" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
 
     <xsd:element name="present" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
     <xsd:element name="true" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
@@ -253,6 +254,7 @@
     <xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType"/>
+    
     
 
 </xsd:schema>

@@ -37,9 +37,8 @@
 				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
 				<c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType" />
 				<c:equal>
-					<c:value>
-						<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
-					</c:value>
+				<c:path>c:connectorType</c:path>
+					<c:value>org.identityconnectors.ldap.LdapConnector</c:value>
 				</c:equal>
 			</and>
 		</filter>

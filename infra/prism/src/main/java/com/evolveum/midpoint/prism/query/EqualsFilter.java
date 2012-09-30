@@ -6,6 +6,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -21,27 +24,31 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class EqualsFilter extends PropertyValueFilter {
 
-	public EqualsFilter(PropertyPath path, ItemDefinition definition, List<PrismValue> values) {
+	EqualsFilter(PropertyPath path, ItemDefinition definition, List<PrismValue> values) {
 		super(path, definition, values);
 	}
 
-	public EqualsFilter(PropertyPath path, ItemDefinition definition, PrismValue value) {
+	EqualsFilter(PropertyPath path, ItemDefinition definition, PrismValue value) {
 		super(path, definition, value);
 	}
-
-	// public EqualsFilter(ItemDefinition item, List<PrismValue> value) {
-	// this.item = item;
-	// this.value = value;
-	// }
-
-	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition item, PrismValue value) {
-		List<PrismValue> values = new ArrayList<PrismValue>();
-		values.add(value);
-		return new EqualsFilter(path, item, values);
+	
+	EqualsFilter(PropertyPath path, ItemDefinition definition, Element expression) {
+		super(path, definition, expression);
 	}
 
-	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition item, List<PrismValue> values) {
-		return new EqualsFilter(path, item, values);
+	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition itemDef, PrismValue value) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(path, itemDef, value);
+	}
+
+	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition itemDef, List<PrismValue> values) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(path, itemDef, values);
+	}
+
+	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition itemDef, Element expression) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(path, itemDef, expression);
 	}
 
 	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition item, Object realValue) {
@@ -62,37 +69,8 @@ public class EqualsFilter extends PropertyValueFilter {
 		return createEqual(path, item, value);
 	}
 
-	public static EqualsFilter createReferenceEqual(PropertyPath path, ItemDefinition item, String oid) {
-		PrismReferenceValue value = new PrismReferenceValue(oid);
-		return createEqual(path, item, value);
-	}
-
-	public static EqualsFilter createReferenceEqual(Class type, QName propertyName, PrismContext prismContext,
-			String oid) throws SchemaException {
-		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createReferenceEquals(null, objDef, propertyName, oid);
-
-	}
-
-	public static EqualsFilter createReferenceEquals(PropertyPath path, PrismContainerDefinition containerDef,
-			QName propertyName, String realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
-					+ containerDef);
-		}
-		return createReferenceEqual(path, itemDef, realValue);
-	}
-
-	public static EqualsFilter createReferenceEqual(PropertyPath path, ItemDefinition item, PrismReferenceValue ref) {
-		return createEqual(path, item, ref);
-	}
-
-	public static EqualsFilter createReferenceEqual(PropertyPath path, ItemDefinition item, List<Object> refs) {
-		return createEqual(path, item, refs);
-	}
-
-	public static EqualsFilter createEquals(PropertyPath path, PrismContainerDefinition containerDef,
+	
+	public static EqualsFilter createEqual(PropertyPath path, PrismContainerDefinition containerDef,
 			QName propertyName, PrismValue... values) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {
@@ -103,7 +81,7 @@ public class EqualsFilter extends PropertyValueFilter {
 		return createEqual(path, itemDef, values);
 	}
 
-	public static EqualsFilter createEquals(PropertyPath path, PrismContainerDefinition containerDef,
+	public static EqualsFilter createEqual(PropertyPath path, PrismContainerDefinition containerDef,
 			QName propertyName, Object realValue) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {
@@ -117,7 +95,7 @@ public class EqualsFilter extends PropertyValueFilter {
 	public static EqualsFilter createEqual(Class type, PrismContext prismContext, QName propertyName, Object realValue)
 			throws SchemaException {
 		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createEquals(null, objDef, propertyName, realValue);
+		return createEqual(null, objDef, propertyName, realValue);
 	}
 
 	@Override
@@ -135,26 +113,34 @@ public class EqualsFilter extends PropertyValueFilter {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("EQUALS: \n");
-		// sb.append("item def: ");
+		
+		if (getPath() != null){
+			DebugUtil.indentDebugDump(sb, indent+1);
+			sb.append("PATH: ");
+			sb.append(getPath().toString());
+			sb.append("\n");
+		} 
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("DEF: ");
 		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent + 1));
+			sb.append(getDefinition().debugDump(indent));
 			sb.append("\n");
 		} else {
-			DebugUtil.indentDebugDump(sb, indent + 1);
+			DebugUtil.indentDebugDump(sb, indent);
 			sb.append("null\n");
 		}
-		// sb.append("value: ");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("VALUE: ");
 		if (getValues() != null) {
 			indent += 1;
 			for (PrismValue val : getValues()) {
 				sb.append(val.debugDump(indent));
 			}
 		} else {
-			DebugUtil.indentDebugDump(sb, indent + 1);
+			DebugUtil.indentDebugDump(sb, indent);
 			sb.append("null\n");
 		}
 		return sb.toString();
-
 	}
 
 }

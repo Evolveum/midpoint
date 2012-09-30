@@ -30,42 +30,32 @@
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
 
-   <!-- Query filter example -->
+	<!-- Query filter example -->
 
-    <q:and>
-        <q:equal>
-            <q:value>
-                <i:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-            </q:value>
-        </q:equal>
-        <q:equal>
-            <q:value>
-                <i:objectClass>ri:AccountObjectClass</i:objectClass>
-            </q:value>
-        </q:equal>
-        <q:equal>
-        <q:path>c:attributes</q:path>
-            <q:value>
-                <icfs:name>uid=will123,ou=People,dc=example,dc=com</icfs:name>
-            </q:value>
-        </q:equal>
-        <q:equal>
-        <q:path>c:attributes</q:path>
-            <q:value>
-                <ri:cn xsi:type="xsd:string">Will Turner</ri:cn>
-            </q:value>
-        </q:equal>
-        <q:equal>
-        <q:path>c:attributes</q:path>
-            <q:value>
-                <ri:givenName xsi:type="xsd:string">Will</ri:givenName>
-            </q:value>
-        </q:equal>
-        <q:equal>
-        <q:path>c:attributes</q:path>
-            <q:value>
-                <ri:sn xsi:type="xsd:string">Turner</ri:sn>
-            </q:value>
-        </q:equal>
-    </q:and>
+	<q:and>
+		<q:ref>
+			<q:path>i:resourceRef</q:path>
+			<q:oid>ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</q:oid>
+		</q:ref>
+		<q:equal>
+			<q:path>i:objectClass</q:path>
+			<q:value>ri:AccountObjectClass</q:value>
+		</q:equal>
+		<q:equal>
+			<q:path>c:attributes/icfs:name</q:path>
+			<q:value>uid=will123,ou=People,dc=example,dc=com</q:value>
+		</q:equal>
+		<q:equal>
+			<q:path>c:attributes/ri:cn</q:path>
+			<q:value xsi:type="xsd:string">Will Turner</q:value>
+		</q:equal>
+		<q:equal>
+			<q:path>c:attributes/ri:givenNam</q:path>
+			<q:value xsi:type="xsd:string">Will</q:value>
+		</q:equal>
+		<q:equal>
+			<q:path>c:attributes/ri:sn</q:path>
+			<q:value xsi:type="xsd:string">Turner</q:value>
+		</q:equal>
+	</q:and>
 </q:query>

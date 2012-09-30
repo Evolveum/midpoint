@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -1091,15 +1092,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private String getResourceOidFromFilter(List<? extends ObjectFilter> conditions) throws SchemaException{
 			
 			for (ObjectFilter f : conditions){
-				if (f instanceof EqualsFilter && ResourceObjectShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
-					List<PrismValue> values = ((EqualsFilter) f).getValues();
+				if (f instanceof RefFilter && ResourceObjectShadowType.F_RESOURCE_REF.equals(((RefFilter) f).getDefinition().getName())){
+					List<PrismReferenceValue> values = (List<PrismReferenceValue>)((RefFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one resource references defined in the search query.");
 					}
 					if (values.size() < 1){
 						throw new SchemaException("Search query does not have specified resource reference.");
 					}
-					return ((PrismReferenceValue)values.get(0)).getOid();
+					return values.get(0).getOid();
 				}
 				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
 					return getResourceOidFromFilter(((NaryLogicalFilter) f).getCondition());
@@ -1117,7 +1118,7 @@ private QName getObjectClassFromFilter(List<? extends ObjectFilter> conditions) 
 		
 			for (ObjectFilter f : conditions){
 				if (f instanceof EqualsFilter && ResourceObjectShadowType.F_OBJECT_CLASS.equals(((EqualsFilter) f).getDefinition().getName())){
-					List<PrismValue> values = ((EqualsFilter) f).getValues();
+					List<? extends PrismValue> values = ((EqualsFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one object class defined in the search query.");
 					}

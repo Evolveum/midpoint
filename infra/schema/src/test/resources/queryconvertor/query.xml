@@ -25,14 +25,12 @@
 	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
 	<and>
 		<equal>
-			<value>
-				<c:failedOperationType>add</c:failedOperationType>
-			</value>
+			<path>c:failedOperationType</path>
+			<value>add</value>
 		</equal>
 		<equal>
-			<value>
-				<c:name>someName</c:name>
-			</value>
+			<path>c:name</path>
+			<value>someName</value>
 		</equal>
 	</and>
 </query>

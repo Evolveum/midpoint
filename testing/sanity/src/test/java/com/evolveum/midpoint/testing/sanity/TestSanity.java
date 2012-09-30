@@ -1034,8 +1034,8 @@ public class TestSanity extends AbstractIntegrationTest {
         RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
-        QueryType query = QueryUtil.createResourceAndAccountQuery(resourceTypeOpenDjrepo, objectClass, null);
-        ObjectQuery q = QueryConvertor.createObjectQuery(AccountShadowType.class, query, prismContext);
+        ObjectQuery q = ObjectQueryUtil.createResourceAndAccountQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);
+//        ObjectQuery q = QueryConvertor.createObjectQuery(AccountShadowType.class, query, prismContext);
 
         final Collection<ObjectType> objects = new HashSet<ObjectType>();
 
@@ -3253,14 +3253,16 @@ public class TestSanity extends AbstractIntegrationTest {
     }
 
     private UserType searchUserByName(String name) throws Exception {
-        Document doc = DOMUtil.getDocument();
-        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
-                SchemaConstants.C_NAME.getLocalPart());
-        nameElement.setTextContent(name);
-        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
-
-        QueryType query = new QueryType();
-        query.setFilter(filter);
+//        Document doc = DOMUtil.getDocument();
+//        Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
+//                SchemaConstants.C_NAME.getLocalPart());
+//        nameElement.setTextContent(name);
+//        Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
+//
+//        QueryType query = new QueryType();
+//        query.setFilter(filter);
+    	ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
+    	QueryType query = QueryConvertor.createQueryType(q);
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();

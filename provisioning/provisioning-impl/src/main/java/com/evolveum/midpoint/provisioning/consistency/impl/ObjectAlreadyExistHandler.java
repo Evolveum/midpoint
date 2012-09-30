@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -102,7 +103,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		// TODO: error handling
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
 		EqualsFilter nameFilter = EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), nameProperty.getDefinition(), nameProperty.getValues());
-		EqualsFilter resourceRefFilter = EqualsFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
 		EqualsFilter objectClassFilter = EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter, objectClassFilter));

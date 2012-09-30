@@ -20,25 +20,23 @@
 <!--                                                         -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
-								  
+
 	<name>Embedded Test Derby</name>
 	<connectorRef type="ConnectorType">
 		<filter>
-<!-- 			<q:and> -->
-<!-- 		        <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/> -->
-		        <q:equal>
-		          <q:value>
-		              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
-		          </q:value>
-		        </q:equal>
-<!-- 		    </q:and> -->
-	    </filter>
+			<!-- <q:and> -->
+			<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/> -->
+			<q:equal>
+				<q:path>c:connectorType</q:path>
+				<q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
+			</q:equal>
+			<!-- </q:and> -->
+		</filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"

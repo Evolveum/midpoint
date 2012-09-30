@@ -853,11 +853,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// QueryUtil.createEqualFilter(doc,
 		// null, SchemaConstants.C_NAME, "will")));
 
-		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(EqualsFilter.createReferenceEqual(
-				ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext,
-				RESOURCE_DUMMY_OID), EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext,
-				ResourceObjectShadowType.F_OBJECT_CLASS, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))));
+		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
+//				ObjectQuery.createObjectQuery(AndFilter.createAnd(EqualsFilter.createReferenceEqual(
+//				ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext,
+//				RESOURCE_DUMMY_OID), EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext,
+//				ResourceObjectShadowType.F_OBJECT_CLASS, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+//						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))));
 		//, EqualsFilter.createEqual(
 			//	ResourceObjectShadowType.class, prismContext, new QName(resource.asObjectable().getNamespace(), "uid"), "will")));
 

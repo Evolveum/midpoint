@@ -76,6 +76,13 @@ public class PrismConstants {
 	public static final String A_NAMESPACE_PREFIX = "prefix";
 	public static final String A_NAMESPACE_URL = "url";
 	
+	//Query constants
+	public static final QName Q_OID = new QName(NS_QUERY, "oid");
+	public static final QName Q_TYPE = new QName(NS_QUERY, "type");
+	public static final QName Q_RELATION = new QName(NS_QUERY, "relation");
+	public static final QName Q_VALUE = new QName(NS_QUERY, "value");
+
+	
 	// Misc
 	
 	public static final Class DEFAULT_VALUE_CLASS = String.class;

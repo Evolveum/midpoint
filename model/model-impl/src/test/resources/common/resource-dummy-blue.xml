@@ -27,15 +27,15 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-								  
+
 	<name>Dummy Resource Blue</name>
-	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
+	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004"
+		type="c:ConnectorType">
 		<filter>
 			<and>
 				<equal>
-					<value>
-						<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
-					</value>
+					<path>connectorType</path>
+					<value>com.evolveum.icf.dummy.connector.DummyConnector</value>
 				</equal>
 			</and>
 		</filter>

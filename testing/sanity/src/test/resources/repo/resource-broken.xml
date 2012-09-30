@@ -36,9 +36,8 @@
 	<connectorRef type="ConnectorType">
 		<filter>
 	        <q:equal>
-	          <q:value>
-	              <connectorType>this.connector.type.does.not.Exist</connectorType>
-	          </q:value>
+	        <q:path>c:connectorType</q:path>
+	          <q:value>this.connector.type.does.not.Exist</q:value>
 	        </q:equal>
 	    </filter>
 	</connectorRef>

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -60,7 +61,7 @@ import java.util.List;
 public class SimpleOp extends Op {
 
 	private static enum Operation {
-		EQUAL, SUBSTRING
+		EQUAL, SUBSTRING, REF
 	}
 
 	private static final Trace LOGGER = TraceManager.getTrace(SimpleOp.class);
@@ -74,6 +75,8 @@ public class SimpleOp extends Op {
 			return Operation.EQUAL;
 		} else if (filterPart instanceof SubstringFilter) {
 			return Operation.SUBSTRING;
+		} else if (filterPart instanceof RefFilter) {
+			return Operation.REF;
 		}
 
 		throw new QueryException("Unknown filter type '" + filterPart.getClass().getSimpleName() + "'.");
@@ -127,12 +130,16 @@ public class SimpleOp extends Op {
 			case EQUAL:
 				EqualsFilter equalFilter = (EqualsFilter) valueFilter;
 				PrismValue val = equalFilter.getValues().get(0);
-				if (val instanceof PrismReferenceValue) {
-					filterValue = ((PrismReferenceValue) val).getOid();
-				} else {
+//				if (val instanceof PrismReferenceValue) {
+//					filterValue = ((PrismReferenceValue) val).getOid();
+//				} else {
 					filterValue = ((PrismPropertyValue) val).getValue();
-				}
+//				}
 				break;
+//			case REF:
+//				RefFilter refFilter = (RefFilter) valueFilter;
+//				filterValue = (PrismReferenceValue) refFilter.getValues().get(0); 
+//				break;
 			case SUBSTRING:
 				SubstringFilter substringFilter = (SubstringFilter) valueFilter;
 				filterValue = substringFilter.getValue();
@@ -176,7 +183,7 @@ public class SimpleOp extends Op {
 		if (conditionItem.isAny) {
 			criterion = interpretAny(valueFilter.getDefinition(), conditionItem, criterion);
 		} else if (conditionItem.isReference) {
-			criterion = interpretReference((PrismReferenceValue) ((EqualsFilter) valueFilter).getValues().get(0),
+			criterion = interpretReference((PrismReferenceValue) ((RefFilter) valueFilter).getValues().get(0),
 					conditionItem, filter, pushNot);
 		}
 
@@ -189,6 +196,7 @@ public class SimpleOp extends Op {
 		String name = item.getQueryableItem();
 		Operation operation = getOperationType(filter);
 		switch (operation) {
+		case REF:
 		case EQUAL:
 			if (pushNot) {
 				if (testedValue == null){
