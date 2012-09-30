@@ -20,6 +20,7 @@
 <!--                                                         -->
 
 <c:userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111" 
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -34,17 +35,27 @@
              Defines how properties of user object are set up.
              This specific definition sets a full name as a concatenation
              of givenName and familyName. -->
-		<c:propertyConstruction>
-			<c:property>c:fullName</c:property>
-			<c:valueConstruction>
-				<c:initial>true</c:initial>
-				<c:expression>
-					<c:code>
-						concat($c:user/c:givenName,' ',$c:user/c:familyName)
-					</c:code>
-                </c:expression>
-			</c:valueConstruction>
-		</c:propertyConstruction>
+		 <!-- Property construction.
+             Defines how properties of user object are set up.
+             This specific definition sets a full name as a concatenation
+	         of givenName and familyName. -->
+		<c:mapping>
+			<initial>true</initial>
+			<source>
+				<path>$user/givenName</path>
+			</source>
+			<source>
+				<path>$user/familyName</path>
+			</source>
+			<expression>
+				<script>
+					<code>givenName + ' ' + familyName</code>
+				</script>
+			</expression>
+			<target>
+				<path>fullName</path>
+			</target>
+		</c:mapping>
 
         <!-- Account construction.
              Defines what accounts should be assigned to a user when it is
