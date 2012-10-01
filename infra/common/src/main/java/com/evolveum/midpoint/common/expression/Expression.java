@@ -117,17 +117,19 @@ public class Expression<V extends PrismValue> {
 		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription);
 	}
 	
-	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluate(
-			Collection<Source<?>> sources, Map<QName, Object> variables, 
-			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters parameters) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		try {
 		
-			variables = processInnerVariables(variables, contextDescription, result);
+			Map<QName, Object> processedVariables = processInnerVariables(parameters.getVariables(), parameters.getContextDescription(),
+					parameters.getResult());
+			
+			ExpressionEvaluationParameters processedParameters = parameters.shallowClone();
+			processedParameters.setVariables(processedVariables);
 			
 			for (ExpressionEvaluator<?> evaluator: evaluators) {
-				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(sources, variables, regress, contextDescription, result);
+				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(processedParameters);
 				if (outputTriple != null) {
 					return outputTriple;
 				}

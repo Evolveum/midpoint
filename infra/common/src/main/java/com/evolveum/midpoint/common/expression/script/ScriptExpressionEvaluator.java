@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
@@ -83,24 +84,24 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(Collection<Source<? extends PrismValue>> sources, Map<QName, Object> variables,
-			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
         PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
     
         if (scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.ABSOLUTE) {
         	
-        	outputTriple = evaluateAbsoluteExpression(sources, variables, contextDescription, result);
+        	outputTriple = evaluateAbsoluteExpression(params.getSources(), params.getVariables(), params.getContextDescription(), params.getResult());
         
         } else if (scriptType.getRelativityMode() == null || scriptType.getRelativityMode() == ScriptExpressionRelativityModeType.RELATIVE) {
         	
-        	if (sources == null || sources.isEmpty()) {
+        	if (params.getSources() == null || params.getSources().isEmpty()) {
         		// Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
-        		outputTriple = evaluateAbsoluteExpression(null, variables, contextDescription, result);
+        		outputTriple = evaluateAbsoluteExpression(null, params.getVariables(), params.getContextDescription(), params.getResult());
         	} else {
-        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(sources);
-        		outputTriple = evaluateRelativeExpression(sourceTriples, variables, regress, contextDescription, result);
+        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(params.getSources());
+        		outputTriple = evaluateRelativeExpression(sourceTriples, params.getVariables(), params.isRegress(), 
+        				params.getContextDescription(), params.getResult());
         	}
         	
         } else {

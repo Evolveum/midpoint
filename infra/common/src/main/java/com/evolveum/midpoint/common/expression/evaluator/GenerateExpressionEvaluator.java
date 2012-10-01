@@ -30,8 +30,10 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 
 /**
  * @author semancik
@@ -77,14 +80,21 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(Collection<Source<?>> sources, Map<QName, Object> variables,
-			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 				
         QName outputType = outputDefinition.getTypeName();
         if (!outputType.equals(DOMUtil.XSD_STRING) && !outputType.equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
         	throw new IllegalArgumentException("Generate value constructor cannot generate values for properties of type " + outputType);
         }
+        
+        StringPolicyResolver stringPolicyResolver = params.getStringPolicyResolver();
+        StringPolicyType stringPolicyType = null;
+        if (stringPolicyResolver!=null) {
+        	stringPolicyType = stringPolicyResolver.resolve();
+        }
+        
+        // TODO: generate value based on stringPolicyType (if not null)
         
     	int length = DEFAULT_LENGTH;
     	if (generateEvaluatorType.getLength() != null) {

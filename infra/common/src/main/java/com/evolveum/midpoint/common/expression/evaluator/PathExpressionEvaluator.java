@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
@@ -83,14 +84,13 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(Collection<Source<?>> sources, Map<QName, Object> variables,
-			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
 		ItemDeltaItem<?> resolveContext = null;
 		
-		if (sources.size() == 1) {
-			Source<?> source = sources.iterator().next();
+		if (params.getSources().size() == 1) {
+			Source<?> source = params.getSources().iterator().next();
 			if (path.isEmpty()) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple();
 				return outputTriple.clone();
@@ -100,13 +100,13 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 		        
         Map<QName, Object> variablesAndSources = new HashMap<QName, Object>();
         
-        if (variables != null) {
-	        for (Entry<QName, Object> entry: variables.entrySet()) {
+        if (params.getVariables() != null) {
+	        for (Entry<QName, Object> entry: params.getVariables().entrySet()) {
 	        	variablesAndSources.put(entry.getKey(), entry.getValue());
 	        }
         }
 	        
-        for (Source<?> source: sources) {
+        for (Source<?> source: params.getSources()) {
         	variablesAndSources.put(source.getName(), source);
         }
         
@@ -114,9 +114,10 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         if (path.first().isVariable()) {
         	QName variableName = path.first().getName();
         	if (variablesAndSources.containsKey(variableName)) {
-        		resolveContext = ExpressionUtil.toItemDeltaItem(variablesAndSources.get(variableName), objectResolver, "path expression in "+contextDescription, result);
+        		resolveContext = ExpressionUtil.toItemDeltaItem(variablesAndSources.get(variableName), objectResolver, 
+        				"path expression in "+params.getContextDescription(), params.getResult());
 			} else {
-				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+contextDescription);
+				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+params.getContextDescription());
 			}
         	resolvePath = path.rest();
         }
@@ -126,14 +127,14 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         		resolveContext = resolveContext.findIdi(resolvePath.head());
         		resolvePath = resolvePath.tail();
         		if (resolveContext == null) {
-        			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+contextDescription);
+        			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+params.getContextDescription());
         		}
         	} else if (resolveContext.isStructuredProperty()) {
         		// The output path does not really matter. The delta will be converted to triple anyway
         		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition, null);
         		break;
         	} else {
-        		throw new ExpressionEvaluationException("Cannot resolve path "+resolvePath+" on "+resolveContext+" in "+contextDescription);
+        		throw new ExpressionEvaluationException("Cannot resolve path "+resolvePath+" on "+resolveContext+" in "+params.getContextDescription());
         	}
         }
                 

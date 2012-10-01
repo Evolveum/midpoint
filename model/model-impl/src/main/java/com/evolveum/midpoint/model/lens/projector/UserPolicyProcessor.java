@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
@@ -68,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -141,7 +143,7 @@ public class UserPolicyProcessor {
 		ObjectDelta<UserType> userPrimaryDelta = focusContext.getWavePrimaryDelta();
 		ObjectDeltaObject<UserType> userOdo = focusContext.getObjectDeltaObject();
 		for (MappingType mappingType : userTemplate.getMapping()) {
-			ItemDelta<PrismValue> itemDelta = evaluateMapping(mappingType, userTemplate, userOdo, result);
+			ItemDelta<PrismValue> itemDelta = evaluateMapping(context, mappingType, userTemplate, userOdo, result);
 			
 			if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
 				if (itemDelta != null && !itemDelta.isEmpty()) {
@@ -156,7 +158,7 @@ public class UserPolicyProcessor {
 
 	}
 
-	private <V extends PrismValue> ItemDelta<V> evaluateMapping(MappingType mappingType, UserTemplateType userTemplate, 
+	private <V extends PrismValue> ItemDelta<V> evaluateMapping(final LensContext<UserType, AccountShadowType> context, MappingType mappingType, UserTemplateType userTemplate, 
 			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate
@@ -178,6 +180,33 @@ public class UserPolicyProcessor {
 
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		// TODO: more variables?
+		
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private PropertyPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(PropertyPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				if (!outputDefinition.getName().equals(CredentialsType.F_PASSWORD)) {
+					return null;
+				}
+				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+				if (passwordPolicy == null) {
+					return null;
+				}
+				return passwordPolicy.getStringPolicy();
+			}
+		};
+		mapping.setStringPolicyResolver(stringPolicyResolver);
 
 		mapping.evaluate(result);
 

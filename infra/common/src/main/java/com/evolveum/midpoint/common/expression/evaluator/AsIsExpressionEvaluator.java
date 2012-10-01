@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
@@ -66,17 +67,17 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(Collection<Source<?>> sources, Map<QName, Object> variables,
-			boolean regress, String contextDescription, OperationResult result) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
         
-    	if (sources.isEmpty()) {
-    		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+contextDescription);
+    	if (params.getSources().isEmpty()) {
+    		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+params.getContextDescription());
     	}
-    	if (sources.size() > 1) {
-    		throw new ExpressionEvaluationException("asIs evaluator cannot work more than one source ("+sources.size()+" sources specified) in "+contextDescription);
+    	if (params.getSources().size() > 1) {
+    		throw new ExpressionEvaluationException("asIs evaluator cannot work more than one source ("+params.getSources().size()
+    				+" sources specified) in "+params.getContextDescription());
     	}
-    	Source source = sources.iterator().next();
+    	Source<V> source = (Source<V>) params.getSources().iterator().next();
         PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
         
         if (outputTriple == null) {

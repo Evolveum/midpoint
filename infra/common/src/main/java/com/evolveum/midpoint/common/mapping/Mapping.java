@@ -33,11 +33,13 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.Expression;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.common.filter.Filter;
@@ -83,6 +85,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueFilterType;
 
 /**
+ * 
+ * Mapping is non-recyclable single-use object. Once evaluated it should not be evaluated again. It will retain its original
+ * inputs and outputs that can be read again and again. But these should not be changed after evaluation.
+ * 
  * @author Radovan Semancik
  *
  */
@@ -109,6 +115,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private SourceType originType = null;
 	private ObjectType originObject = null;
 	private FilterManager<Filter> filterManager;
+	private StringPolicyResolver stringPolicyResolver;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Mapping.class);
 	
@@ -326,6 +333,14 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	public void setFilterManager(FilterManager<Filter> filterManager) {
 		this.filterManager = filterManager;
 	}
+	
+	public StringPolicyResolver getStringPolicyResolver() {
+		return stringPolicyResolver;
+	}
+
+	public void setStringPolicyResolver(StringPolicyResolver stringPolicyResolver) {
+		this.stringPolicyResolver = stringPolicyResolver;
+	}
 
 	public void evaluate(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {		
 		sources = parseSources(result);
@@ -447,6 +462,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				outputPath = path;
 			}
 		}
+		if (stringPolicyResolver != null) {
+			stringPolicyResolver.setOutputDefinition(outputDefinition);
+			stringPolicyResolver.setOutputPath(outputPath);
+		}
 	}
 	
 	public ItemDefinition getOutputDefinition() throws SchemaException {
@@ -511,8 +530,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			return;
 		}
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, null, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, conditionOutput, "condition in "+contextDescription);		
-		conditionOutputTriple = expression.evaluate(sources, variables, false, "condition in "+contextDescription, result);
+		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, conditionOutput, "condition in "+contextDescription);
+		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "condition in "+contextDescription, result);
+		params.setStringPolicyResolver(stringPolicyResolver);
+		conditionOutputTriple = expression.evaluate(params);
 	}
 
 	
@@ -521,8 +542,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
-		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, "expression in "+contextDescription);		
-		outputTriple = expression.evaluate(sources, variables, !conditionResultNew, "expression in "+contextDescription, result);
+		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, "expression in "+contextDescription);
+		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "expression in "+contextDescription, result);
+		params.setRegress(!conditionResultNew);
+		params.setStringPolicyResolver(stringPolicyResolver);
+		outputTriple = expression.evaluate(params);
 		
 		if (outputTriple == null) {
 			return;

@@ -21,6 +21,7 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -93,7 +96,7 @@ public class CredentialsProcessor {
     }
     
     
-    public void processCredentialsUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) 
+    public void processCredentialsUser(LensContext<UserType,AccountShadowType> context, final LensProjectionContext<AccountShadowType> accCtx, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userDelta = focusContext.getDelta();
@@ -172,7 +175,33 @@ public class CredentialsProcessor {
         ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
         Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
 		passwordMapping.setDefaultSource(source);
+		
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private PropertyPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(PropertyPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				PasswordPolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
+				if (passwordPolicy == null) {
+					return null;
+				}
+				return passwordPolicy.getStringPolicy();
+			}
+		};
+		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
+		
         passwordMapping.evaluate(result);
+        
         PrismProperty accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
         if (accountPasswordNew == null) {
             LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);

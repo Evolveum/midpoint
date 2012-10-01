@@ -86,11 +86,7 @@ public class PasswordPolicyProcessor {
 	<F extends ObjectType, P extends ObjectType> void processPasswordPolicy(LensProjectionContext<AccountShadowType> projectionContext, LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException{
 		PrismProperty<PasswordType> password = getPassword(projectionContext);
 		
-		PasswordPolicyType passwordPolicy = projectionContext.getAccountPasswordPolicy();
-		
-		if (passwordPolicy == null){
-			passwordPolicy = context.getGlobalPasswordPolicy();
-		}
+		PasswordPolicyType passwordPolicy = projectionContext.getEffectivePasswordPolicy();
 		
 		processPasswordPolicy(passwordPolicy, password, result);
 	}

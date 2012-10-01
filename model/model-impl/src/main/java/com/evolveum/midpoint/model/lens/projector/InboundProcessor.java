@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.Source;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.mapping.Mapping;
@@ -179,7 +180,7 @@ public class InboundProcessor {
                 PropertyDelta<?> userPropertyDelta = null;
                 if (aPrioriDelta != null) {
                     LOGGER.debug("Processing inbound from a priori delta.");
-                    userPropertyDelta = evaluateInboundExpression(inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
+                    userPropertyDelta = evaluateInboundExpression(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 } else if (accountOld != null) {
                 	if (!accContext.isFullShadow()) {
@@ -187,7 +188,7 @@ public class InboundProcessor {
                 	}
                     LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = accountOld.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
-                    userPropertyDelta = evaluateInboundExpression(inboundMappingType, accountAttributeName, oldAccountProperty, null, 
+                    userPropertyDelta = evaluateInboundExpression(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 }
 
@@ -234,7 +235,8 @@ public class InboundProcessor {
         return false;
     }
     
-    private <A,U> PropertyDelta<U> evaluateInboundExpression(MappingType inboundMappingType, 
+    private <A,U> PropertyDelta<U> evaluateInboundExpression(final LensContext<UserType,AccountShadowType> context, 
+    		MappingType inboundMappingType, 
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
             PrismObject<UserType> newUser, PrismObject<AccountShadowType> account, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
@@ -251,6 +253,33 @@ public class InboundProcessor {
 		mapping.setTargetContext(getUserDefinition());
     	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
     	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account);
+    	
+    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private PropertyPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(PropertyPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				if (!outputDefinition.getName().equals(CredentialsType.F_PASSWORD)) {
+					return null;
+				}
+				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+				if (passwordPolicy == null) {
+					return null;
+				}
+				return passwordPolicy.getStringPolicy();
+			}
+		};
+		mapping.setStringPolicyResolver(stringPolicyResolver);
     	
     	if (checkInitialSkip(mapping, newUser)) {
             LOGGER.debug("Skipping because of initial flag.");

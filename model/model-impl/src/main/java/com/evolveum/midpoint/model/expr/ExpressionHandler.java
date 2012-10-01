@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.expression.Expression;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
@@ -111,7 +112,8 @@ public class ExpressionHandler {
 				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, shortDesc);
 
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(null, variables, false, shortDesc, result);
+		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
 		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 			return null;
@@ -137,7 +139,8 @@ public class ExpressionHandler {
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, shortDesc);
 
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(null, variables, false, shortDesc, result);
+		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(params);
 		Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 			throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);

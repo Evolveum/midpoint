@@ -322,6 +322,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public void setAccountPasswordPolicy(PasswordPolicyType accountPasswordPolicy) {
 		this.accountPasswordPolicy = accountPasswordPolicy;
 	}
+	
+	public PasswordPolicyType getEffectivePasswordPolicy() {
+		if (accountPasswordPolicy != null) {
+			return accountPasswordPolicy;
+		}
+		return getLensContext().getGlobalPasswordPolicy();
+	}
 
 	/**
      * Recomputes the new state of account (accountNew). It is computed by applying deltas to the old state (accountOld).
