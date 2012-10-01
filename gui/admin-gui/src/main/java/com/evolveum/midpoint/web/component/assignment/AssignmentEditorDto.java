@@ -21,13 +21,16 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * //todo consolidate [lazyman]
@@ -128,7 +131,33 @@ public class AssignmentEditorDto extends SelectableBean {
     }
 
     public PrismContainerValue getNewValue() {
-        return newAssignment.asPrismContainerValue();
+        PrismContainerValue value = newAssignment.asPrismContainerValue();
+        PrismContainerValue newValue = value.clone();
+        //remove empty/null values, which are placeholders in form
+        List<Item> items = newValue.getItems();
+        Iterator<Item> iterator = items.iterator();
+        while (iterator.hasNext()) {
+            Item item = iterator.next();
+            List<PrismValue> values = item.getValues();
+            if (values != null) {
+                Iterator<PrismValue> valueIterator = values.iterator();
+                while (valueIterator.hasNext()) {
+                    PrismValue prismValue = valueIterator.next();
+                    if (prismValue instanceof PrismPropertyValue) {
+                        PrismPropertyValue propertyValue = (PrismPropertyValue) prismValue;
+                        if (propertyValue.getValue() == null) {
+                            valueIterator.remove();
+                        }
+                    }
+                }
+            }
+
+            if (item.isEmpty()) {
+                iterator.remove();
+            }
+        }
+
+        return newValue;
     }
 
     public String getDescription() {

@@ -780,9 +780,17 @@ public class PageUser extends PageAdminUsers {
             }
 
             AssignmentType assignment = new AssignmentType();
-            assignment.setupContainerValue(assDto.getNewValue());
-            userType.getAssignment().add(assignment);
             PrismContainerValue value = assDto.getNewValue();
+            assignment.setupContainerValue(value);
+            userType.getAssignment().add(assignment);
+
+            //todo remove this block [lazyman]
+//            assignment.getAccountConstruction().setResourceRef(null);
+//            ObjectReferenceType ref = new ObjectReferenceType();
+//            ref.setOid(assignment.getAccountConstruction().getResource().getOid());
+//            ref.setType(ResourceType.COMPLEX_TYPE);
+//            assignment.getAccountConstruction().setResourceRef(ref);
+//            assignment.getAccountConstruction().setResource(null);
 
             try {
                 value.applyDefinition(assignmentDef, false);
@@ -842,27 +850,27 @@ public class PageUser extends PageAdminUsers {
 
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
+            PrismContainerValue newValue = assDto.getNewValue();
             switch (assDto.getStatus()) {
                 case ADD:
-                    PrismContainerValue value = assDto.getNewValue();
                     try {
-                        value.applyDefinition(assignmentDef, false);
+                        newValue.applyDefinition(assignmentDef, false);
                     } catch (Exception ex) {
                         //todo error handling
                         ex.printStackTrace();
                     }
                 case DELETE:
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                        assDelta.addValueToAdd(assDto.getNewValue());
+                        assDelta.addValueToAdd(newValue);
                     } else {
-                        assDelta.addValueToDelete(assDto.getNewValue());
+                        assDelta.addValueToDelete(newValue);
                     }
                     break;
                 case MODIFY:
                     if (!assDto.isModified()) {
                         continue;
                     }
-                    assDelta.addValueToAdd(assDto.getNewValue());
+                    assDelta.addValueToAdd(newValue);
                     assDelta.addValueToDelete(assDto.getOldValue());
                     break;
                 default:
