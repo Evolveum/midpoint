@@ -357,7 +357,9 @@ if (path == null){
 			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, expression);
 		}
 		
-		
+		if (path.last() == null){
+			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+		}
 		QName propertyName = path.last().getName();
 		path = path.allExceptLast();
 		if (path.isEmpty()){
@@ -387,7 +389,15 @@ if (path == null){
 	private static RefFilter createRefFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException{
 		PropertyPath path = getPath((Element) filter);
 		
+		if (path == null){
+			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+		}
+		
 		List<Element> values = DOMUtil.listChildElements(filter);
+		
+		if (path.last() == null){
+			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+		}
 		
 		QName propertyName = path.last().getName();
 		path = path.allExceptLast();
@@ -453,8 +463,14 @@ if (path == null){
 			throws SchemaException {
 
 		PropertyPath path = getPath((Element) filter);
+		if (path == null){
+			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+		}
 		List<Element> values = getValues(filter);
 
+		if (path.last() == null){
+			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+		}
 		QName propertyName = path.last().getName();
 		path = path.allExceptLast();
 		if (path.isEmpty()){
