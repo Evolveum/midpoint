@@ -48,9 +48,8 @@ connector server.
 		<connectorRef type="ConnectorType">
 			<filter>
 		        <q:equal>
-		          <q:value>
-		              <name>ICF org.forgerock.openicf.csvfile.CSVFileConnector @ICF Connector server on localhost:8759</name>
-		          </q:value>
+				<q:path>c:name</q:path>
+		          <q:value>ICF org.forgerock.openicf.csvfile.CSVFileConnector @ICF Connector server on localhost:8759</q:value>
 		        </q:equal>
 		      </filter>
 		</connectorRef>

@@ -51,9 +51,8 @@ object.
 		<connectorRef type="ConnectorType">
 			<filter>
 		        <q:equal>
-		          <q:value>
-		              <connectorType>org.identityconnectors.solaris.SolarisConnector</connectorType>
-		          </q:value>
+				<q:path>c:connectorType</q:path>
+		          <q:value>org.identityconnectors.solaris.SolarisConnector</q:value>
 		        </q:equal>
 		      </filter>
 		</connectorRef>

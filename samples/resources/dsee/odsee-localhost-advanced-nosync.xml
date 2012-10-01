@@ -52,9 +52,8 @@ object.
         <connectorRef type="ConnectorType">
             <filter>
                 <q:equal>
-                    <q:value>
-                        <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-                    </q:value>
+				<q:path>c:connectorType</q:path>
+                    <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
                 </q:equal>
             </filter>
         </connectorRef>
