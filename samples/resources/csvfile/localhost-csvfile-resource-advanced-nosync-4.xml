@@ -46,9 +46,8 @@ using an Identity Connector Framework connector.
 	<connectorRef type="ConnectorType">
 		<filter>
 	        <q:equal>
-	          <q:value>
-	              <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
-	          </q:value>
+			<q:path>c:connectorType</q:path>
+	          <q:value>org.forgerock.openicf.csvfile.CSVFileConnector</q:value>
 	        </q:equal>
 	      </filter>
 	</connectorRef>

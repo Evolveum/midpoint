@@ -345,6 +345,10 @@ public class QueryConvertor {
 		
 		PropertyPath path = getPath((Element) filter);
 
+if (path == null){
+		throw new SchemaException("Could not convert query, because query does not contain property path.");	
+		}
+		
 		List<Element> values = getValues(filter);
 		
 		if (values == null || values.isEmpty()){
@@ -352,6 +356,7 @@ public class QueryConvertor {
 			ItemDefinition itemDef = pcd.findItemDefinition(path);
 			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, expression);
 		}
+		
 		
 		QName propertyName = path.last().getName();
 		path = path.allExceptLast();

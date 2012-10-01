@@ -53,9 +53,8 @@ object.
 		<connectorRef type="ConnectorType">
 			<filter>
 		        <q:equal>
-		          <q:value>
-		              <connectorType>org.forgerock.openicf.scriptedsql.ScriptedSQLConnector</connectorType>
-		          </q:value>
+				<q:path>c:connectorType</q:path>
+		          <q:value>org.forgerock.openicf.scriptedsql.ScriptedSQLConnector</q:value>
 		        </q:equal>
 		      </filter>
 		</connectorRef>
