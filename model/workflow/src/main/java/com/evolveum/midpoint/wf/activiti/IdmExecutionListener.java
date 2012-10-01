@@ -63,11 +63,13 @@ public class IdmExecutionListener {
 		Object midpointTaskOid = execution.getVariable("midpointTaskOid");
 		if (wfAnswer == null)
 			wfAnswer = (String) execution.getVariable("wfAnswer");
-		
-		logger.info("** PROCESS EXECUTION EVENT: " + eventName + " **");
-		logger.info("Process instance id = " + pid);
-		logger.info("Description = " + description);
-		logger.info("Answer = " + wfAnswer);
+
+        if (logger.isTraceEnabled()) {
+		    logger.trace("** PROCESS EXECUTION EVENT: " + eventName + " **");
+		    logger.trace("Process instance id = " + pid);
+		    logger.trace("Description = " + description);
+		    logger.trace("Answer = " + wfAnswer);
+        }
 		
 		WfProcessInstanceEventType event;
 				
@@ -90,23 +92,31 @@ public class IdmExecutionListener {
 		
 		for (String v : execution.getVariableNames())
 		{
-			logger.info("Variable " + v + " = " + execution.getVariable(v));
+            if (logger.isTraceEnabled()) {
+			    logger.trace("Variable " + v + " = " + execution.getVariable(v));
+            }
 			WfProcessVariable pv = new WfProcessVariable();
 			pv.setName(v);
 			Object o = execution.getVariable(v);
 			pv.setValue(o != null ? o.toString() : null);
 			event.getWfProcessVariable().add(pv);
 		}
-		logger.info("(end of event data, sending camel message)");
+        if (logger.isTraceEnabled()) {
+		    logger.trace("(end of event data, sending camel message)");
+        }
 		
 		//producerToIdm.sendBody(marshal(event));
-		logger.info("(camel message sent)");
+        if (logger.isTraceEnabled()) {
+		    logger.trace("(camel message sent)");
+        }
 	}
 	
 	public void notify(WfProcessInstanceEventType event) throws Exception
 	{
 		//producerToIdm.sendBody(marshal(event));
-		logger.info("(custom camel message sent)");
+        if (logger.isTraceEnabled()) {
+		    logger.trace("(custom camel message sent)");
+        }
 	}
 
 	private String marshal(WfProcessInstanceEventType event) throws Exception

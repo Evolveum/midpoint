@@ -36,6 +36,8 @@ import java.io.Serializable;
  */
 public class ActivitiUtil implements Serializable {
 
+    private static final long serialVersionUID = 5183098710717369392L;
+
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiUtil.class);
 
     public static String DEFAULT_APPROVER = "00000000-0000-0000-0000-000000000002";
@@ -54,5 +56,10 @@ public class ActivitiUtil implements Serializable {
             LOGGER.debug("Approver for role " + r + " determined to be " + approver);
         }
         return approver;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + " object.";
     }
 }

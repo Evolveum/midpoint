@@ -62,6 +62,7 @@ public interface ProcessWrapper {
      */
     boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result);
 
+    String getProcessSpecificDetailsForTask(String instanceId, Map<String, Object> vars);
     String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks);
     String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars);
 }

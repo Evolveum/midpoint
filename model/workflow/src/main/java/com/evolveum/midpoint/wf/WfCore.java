@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -247,8 +248,7 @@ public class WfCore {
         }
 
         // record the process state
-        String details = wfTaskUtil.dumpVariables(event);
-        wfTaskUtil.recordProcessState(task, description, details, event, result);
+        wfTaskUtil.recordProcessState(task, description, null, event, result);
 
         // let us record process id (when getting "process started" event)
         if (event instanceof ProcessStartedEvent) {
@@ -262,5 +262,26 @@ public class WfCore {
 
     }
 
+
+    // todo error reporting
+    ProcessWrapper findProcessWrapper(Map<String, Object> vars, String id) {
+        String wrapperName = (String) vars.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        if (wrapperName == null) {
+            LOGGER.warn("No process wrapper found for wf process " + id);
+            return null;
+        }
+        try {
+            return (ProcessWrapper) Class.forName(wrapperName).newInstance();
+        } catch (InstantiationException e) {
+            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} due to instantiation exception", e, wrapperName);
+            return null;
+        } catch (IllegalAccessException e) {
+            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} due to illegal access exception", e, wrapperName);
+            return null;
+        } catch (ClassNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} because the class cannot be found", e, wrapperName);
+            return null;
+        }
+    }
 
 }

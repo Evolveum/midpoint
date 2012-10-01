@@ -21,11 +21,16 @@
 
 package com.evolveum.midpoint.wf.processes.addroles;
 
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -49,15 +54,43 @@ public class RecordDecision implements JavaDelegate {
         }
 
         Decision decision = new Decision();
-        decision.setUser("TODO");       // TODO
+
+        PrincipalUser user = getPrincipalUser();
+        if (user != null) {
+            decision.setUser(user.getName());
+        } else {
+            decision.setUser("?");    // todo
+        }
+
         decision.setApproved(yesOrNo == null ? false : yesOrNo);
         decision.setComment(comment);
         decision.setRole(role);
+        decision.setDate(new Date());
         DecisionList decisionList = (DecisionList) execution.getVariable("decisionList");
         decisionList.addDecision(decision);
         execution.setVariable("decisionList", decisionList);
 
-        LOGGER.info("Logged decision '" + yesOrNo + "' for role " + role);
-        LOGGER.info("Resulting decision list = " + decisionList);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Logged decision '" + yesOrNo + "' for role " + role);
+            LOGGER.trace("Resulting decision list = " + decisionList);
+        }
     }
+
+    // todo fixme: copied from web SecurityUtils
+    public com.evolveum.midpoint.model.security.api.PrincipalUser getPrincipalUser() {
+        SecurityContext ctx = SecurityContextHolder.getContext();
+        if (ctx != null && ctx.getAuthentication() != null && ctx.getAuthentication().getPrincipal() != null) {
+            Object principal = ctx.getAuthentication().getPrincipal();
+            if (!(principal instanceof com.evolveum.midpoint.model.security.api.PrincipalUser)) {
+                LOGGER.warn("Principal user in security context holder is {} but not type of {}",
+                        new Object[]{principal, com.evolveum.midpoint.model.security.api.PrincipalUser.class.getName()});
+                return null;
+            }
+            return (com.evolveum.midpoint.model.security.api.PrincipalUser) principal;
+        } else {
+            LOGGER.warn("No spring security context or authentication or principal.");
+            return null;
+        }
+    }
+
 }

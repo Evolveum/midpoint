@@ -84,7 +84,7 @@ public class WfConfiguration {
         jdbcUser = c.getString("jdbcUser", sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString("jdbcPassword", sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
-        processCheckInterval = c.getInt("processCheckInterval", 30);
+        processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
 
 //        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";

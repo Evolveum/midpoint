@@ -27,6 +27,8 @@ import java.util.List;
 
 public class DecisionList implements Serializable {
 
+    private static final long serialVersionUID = -8603661687788638920L;
+
     private List<Decision> decisionList = new ArrayList<Decision>();
 
     public List<Decision> getDecisionList() {

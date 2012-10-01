@@ -167,7 +167,9 @@ public class ActivitiInterface {
                 event.setVariablesFrom(map);
                 event.setRunning(!pi.isEnded());
 
-                LOGGER.info("Event to be sent to IDM: " + event);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Event to be sent to IDM: " + event);
+                }
                 activiti2midpoint(event);
             }
         }
@@ -182,13 +184,17 @@ public class ActivitiInterface {
 
         OperationResult result = new OperationResult("activiti2midpoint");
 
-        LOGGER.info("activiti2midpoint starting.");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("activiti2midpoint starting.");
+        }
         try {
 
             if (msg instanceof ProcessEvent) {
 
                 ProcessEvent event = (ProcessEvent) msg;
-                LOGGER.info("Received ProcessEvent: " + event);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Received ProcessEvent: " + event);
+                }
                 String taskOid = event.getTaskOid();
 
                 if (taskOid != null) {
@@ -207,7 +213,9 @@ public class ActivitiInterface {
             result.recordFatalError(message, e);
         }
         result.computeStatus();
-        LOGGER.info("activiti2midpoint ending; operation result status = " + result.getStatus());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("activiti2midpoint ending; operation result status = " + result.getStatus());
+        }
     }
 
 }

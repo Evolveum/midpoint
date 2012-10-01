@@ -24,6 +24,7 @@ package com.evolveum.midpoint.wf.processes.addroles;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,10 +34,14 @@ import java.io.Serializable;
  * To change this template use File | Settings | File Templates.
  */
 public class Decision implements Serializable {
+
+    private static final long serialVersionUID = -542549699933865819L;
+
     private String user;
     private RoleType role;
     private boolean approved;
     private String comment;
+    private Date date;
 
     public String getComment() {
         return comment;
@@ -70,8 +75,16 @@ public class Decision implements Serializable {
         this.role = role;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
     @Override
     public String toString() {
-        return "Decision: role=" + role + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser();
+        return "Decision: role=" + role + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
     }
 }

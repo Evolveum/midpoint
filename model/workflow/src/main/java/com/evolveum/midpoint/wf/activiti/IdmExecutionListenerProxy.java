@@ -58,7 +58,9 @@ public class IdmExecutionListenerProxy implements Serializable {
 			logger.error("idmExecutionListenerBean could not be found.");
 		else
 		{
-			logger.info("idmExecutionListenerBean found: " + l + ", calling notify(...)");
+            if (logger.isTraceEnabled()) {
+			    logger.trace("idmExecutionListenerBean found: " + l + ", calling notify(...)");
+            }
 			l.notify(execution, description, answer);
 		}
 	}
@@ -73,7 +75,9 @@ public class IdmExecutionListenerProxy implements Serializable {
 			logger.error("idmExecutionListenerBean could not be found.");
 		else
 		{
-			logger.info("idmExecutionListenerBean found: " + l + ", calling notify(...)");
+            if (logger.isTraceEnabled()) {
+			    logger.trace("idmExecutionListenerBean found: " + l + ", calling notify(...)");
+            }
 			l.notify(event);
 		}
 	}

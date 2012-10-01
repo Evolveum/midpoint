@@ -47,6 +47,7 @@ import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -135,10 +136,9 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             for (ItemDelta delta : change.getModifications()) {
                 if (UserType.F_ASSIGNMENT.equals(delta.getName())) {
                     for (Object o : delta.getValuesToAdd()) {
-                        //if (LOGGER.isTraceEnabled()) {
-                            LOGGER.info("Assignment to add = " + ((PrismContainerValue) o).dump());
-                        //}
-                        LOGGER.info("isTraceEnabled: " + LOGGER.isTraceEnabled());
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Assignment to add = " + ((PrismContainerValue) o).dump());
+                        }
                         PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
                         ObjectReferenceType ort = at.getValue().getTargetRef();
                         if (ort != null && RoleType.COMPLEX_TYPE.equals(ort.getType())) {
@@ -242,6 +242,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
         List<String> rolesApproved = new ArrayList<String>();
         List<String> rolesDisapproved = new ArrayList<String>();
         for (Decision decision : decisionList.getDecisionList()) {
+            // todo change to debug or trace
             LOGGER.info("Workflow result: approved=" + decision.isApproved() + " for role=" + decision.getRole());
             if (decision.isApproved()) {
                 rolesApproved.add(decision.getRole().getOid());
@@ -261,17 +262,23 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             }
 
             UserType user = (UserType) prismToAdd.asObjectable();
-            LOGGER.info("Assignments (" + user.getAssignment().size() + "): ");
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Assignments (" + user.getAssignment().size() + "): ");
+            }
             for (AssignmentType a : new ArrayList<AssignmentType>(user.getAssignment())) {      // copy, because we want to modify the list
                 ObjectReferenceType ort = a.getTargetRef();
-                LOGGER.info("ort = " + ort);
-                LOGGER.info("ort.getType = " + ort.getType());
                 if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
-                    LOGGER.info(" - role: " + ort);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace(" - role: " + ort);
+                    }
                     if (rolesApproved.contains(ort.getOid())) {
-                        LOGGER.info(" --- approved");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace(" --- approved");
+                        }
                     } else {
-                        LOGGER.info(" --- rejected; will be removed from the list");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace(" --- rejected; will be removed from the list");
+                        }
                         user.getAssignment().remove(a);
                     }
                 }
@@ -287,17 +294,23 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             for (ItemDelta delta : change.getModifications()) {
                 if (UserType.F_ASSIGNMENT.equals(delta.getName())) {
                     for (Object o : new ArrayList<Object>(delta.getValuesToAdd())) {
-                        LOGGER.info("Value to add = " + o);
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Value to add = " + o);
+                        }
                         PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
                         ObjectReferenceType ort = at.getValue().getTargetRef();
-                        LOGGER.info("ort = " + ort);
-                        LOGGER.info("ort.getType = " + ort.getType());
                         if (RoleType.COMPLEX_TYPE.equals(ort.getType())) {
-                            LOGGER.info(" - role: " + ort);
+                            if (LOGGER.isTraceEnabled()) {
+                                LOGGER.trace(" - role: " + ort);
+                            }
                             if (rolesApproved.contains(ort.getOid())) {
-                                LOGGER.info(" --- approved");
+                                if (LOGGER.isTraceEnabled()) {
+                                    LOGGER.trace(" --- approved");
+                                }
                             } else {
-                                LOGGER.info(" --- rejected; will be removed from the list");
+                                if (LOGGER.isTraceEnabled()) {
+                                    LOGGER.trace(" --- rejected; will be removed from the list");
+                                }
                                 delta.getValuesToAdd().remove(o);
                             }
                         }
@@ -312,16 +325,17 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
 
     }
 
-    // todo this is brutal hack
-    @Override
-    public String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks) {
-        StringBuffer sb = new StringBuffer();
+    private void addRolesRequested(StringBuffer sb, Map<String, Object> vars) {
         sb.append("The following roles were requested to be added:\n");
         List<RoleType> roles = (List<RoleType>) vars.get(ROLES_TO_APPROVE);
         for (RoleType role : roles) {
             sb.append(" - " + role.getName() + " [" + role.getOid() + "]\n");
         }
-        sb.append("\nDecisions done up to now: ");
+        sb.append("\n");
+    }
+
+    private void addDecisionsDone(StringBuffer sb, Map<String, Object> vars) {
+        sb.append("Decisions done: ");
         DecisionList decisionList = (DecisionList) vars.get(DECISION_LIST);
         if (decisionList == null || decisionList.getDecisionList() == null) {
             sb.append("(error - DecisionList is null)\n");        // todo
@@ -330,10 +344,41 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
         } else {
             sb.append("\n");
             for (Decision decision : decisionList.getDecisionList()) {
-                sb.append(" - role: " + decision.getRole() + ", approver: " + decision.getUser() + ", result: " + decision.isApproved() + ", comment: " + decision.getComment() + "\n");
+                sb.append(" - " + (decision.isApproved() ? "APPROVED" : "NOT APPROVED") + " role " +
+                        decision.getRole().getName() + " (" + decision.getRole().getOid() + "); by " +
+                        decision.getUser() + " on " + decision.getDate() + ", with comment: " + decision.getComment() + "\n");
             }
         }
+        sb.append("\n");
+    }
 
+    private void addDecisionsDoneBrief(StringBuffer sb, Map<String, Object> vars) {
+        sb.append("Decisions done: ");
+        DecisionList decisionList = (DecisionList) vars.get(DECISION_LIST);
+        if (decisionList == null || decisionList.getDecisionList() == null) {
+            sb.append("(error - DecisionList is null)");        // todo
+        } else if (decisionList.getDecisionList().isEmpty()) {
+            sb.append("none");
+        } else {
+            boolean first = true;
+            for (Decision decision : decisionList.getDecisionList()) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append("; ");
+                }
+                sb.append("role " + decision.getRole().getName() + " " +
+                        (decision.isApproved() ? "approved" : "NOT approved") +
+                        " by " + decision.getUser() +
+                        (!StringUtils.isEmpty(decision.getComment()) ? ", commenting: " + decision.getComment() : ""));
+            }
+        }
+    }
+
+    @Override
+    public String getProcessSpecificDetailsForTask(String instanceId, Map<String, Object> vars) {
+        StringBuffer sb = new StringBuffer();
+        addDecisionsDoneBrief(sb, vars);
         return sb.toString();
     }
 
@@ -341,29 +386,22 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
     @Override
     public String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars) {
         StringBuffer sb = new StringBuffer();
-        sb.append("The following roles were requested to be added:\n");
-        List<RoleType> roles = (List<RoleType>) vars.get(ROLES_TO_APPROVE);
-        for (RoleType role : roles) {
-            sb.append(" - " + role.getName() + " [" + role.getOid() + "]\n");
-        }
-        sb.append("\nDecisions done: ");
-        DecisionList decisionList = (DecisionList) vars.get(DECISION_LIST);
-        if (decisionList == null || decisionList.getDecisionList() == null) {
-            sb.append("(error - DecisionList is null)\n");        // todo
-        } else if (decisionList.getDecisionList().isEmpty()) {
-            sb.append("none\n");
-        } else {
-            sb.append("\n");
-            for (Decision decision : decisionList.getDecisionList()) {
-                sb.append(" - role: " + decision.getRole() + ", approver: " + decision.getUser() + ", result: " + decision.isApproved() + ", comment: " + decision.getComment() + "\n");
-            }
-        }
-        sb.append("\n");
+        addRolesRequested(sb, vars);
+        addDecisionsDone(sb, vars);
         if (instance.getDeleteReason() != null) {
             sb.append("Reason for process deletion: ");
             sb.append(instance.getDeleteReason());
             sb.append("\n");
         }
+        return sb.toString();
+    }
+
+    // todo this is brutal hack
+    @Override
+    public String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks) {
+        StringBuffer sb = new StringBuffer();
+        addRolesRequested(sb, vars);
+        addDecisionsDone(sb, vars);
         return sb.toString();
     }
 

@@ -49,7 +49,17 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <a:indexed>false</a:indexed>
-                <a:minOccurs>1</a:minOccurs>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="wfLastDetails" type="xsd:string">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>

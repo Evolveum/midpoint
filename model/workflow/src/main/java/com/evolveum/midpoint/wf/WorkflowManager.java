@@ -112,6 +112,9 @@ public class WorkflowManager implements BeanFactoryAware {
     @Autowired(required = true)
     private RepositoryService repositoryService;
 
+    @Autowired(required = true)
+    private WfCore wfCore;
+
     private WfConfiguration wfConfiguration;
 
     private WfDataAccessor wfDataAccessor;
@@ -162,5 +165,9 @@ public class WorkflowManager implements BeanFactoryAware {
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
+    }
+
+    public WfCore getWfCore() {
+        return wfCore;
     }
 }

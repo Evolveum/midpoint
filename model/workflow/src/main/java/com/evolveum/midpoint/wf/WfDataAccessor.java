@@ -65,6 +65,7 @@ public class WfDataAccessor {
     private static final char FLAG_SEPARATOR_CHAR = '#';
 
     private WorkflowManager workflowManager;
+    private WfCore wfCore;
     private static final String DOT_CLASS = WfDataAccessor.class.getName() + ".";
     private static final String OPERATION_STOP_PROCESS_INSTANCE = DOT_CLASS + "stopProcessInstance";
     private static final String OPERATION_DELETE_PROCESS_INSTANCE = DOT_CLASS + "deleteProcessInstance";
@@ -72,6 +73,7 @@ public class WfDataAccessor {
 
     public WfDataAccessor(WorkflowManager workflowManager) {
         this.workflowManager = workflowManager;
+        this.wfCore = workflowManager.getWfCore();
     }
 
     private ActivitiEngine getActivitiEngine() {
@@ -311,7 +313,7 @@ public class WfDataAccessor {
     }
 
     private String getProcessSpecificDetails(org.activiti.engine.runtime.ProcessInstance instance, Map<String, Object> vars, List<Task> tasks) {
-        ProcessWrapper wrapper = findWrapper(vars, instance.getId());
+        ProcessWrapper wrapper = wfCore.findProcessWrapper(vars, instance.getId());
         if (wrapper == null) {
             return "Error: process wrapper could not be found.";        // todo error reporting
         } else {
@@ -319,29 +321,8 @@ public class WfDataAccessor {
         }
     }
 
-    // todo error reporting
-    private ProcessWrapper findWrapper(Map<String, Object> vars, String id) {
-        String wrapperName = (String) vars.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
-        if (wrapperName == null) {
-            LOGGER.warn("No process wrapper found for wf process " + id);
-            return null;
-        }
-        try {
-            return (ProcessWrapper) Class.forName(wrapperName).newInstance();
-        } catch (InstantiationException e) {
-            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} due to instantiation exception", e, wrapperName);
-            return null;
-        } catch (IllegalAccessException e) {
-            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} due to illegal access exception", e, wrapperName);
-            return null;
-        } catch (ClassNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} because the class cannot be found", e, wrapperName);
-            return null;
-        }
-    }
-
     private String getProcessSpecificDetails(HistoricProcessInstance instance, Map<String, Object> vars) {
-        ProcessWrapper wrapper = findWrapper(vars, instance.getId());
+        ProcessWrapper wrapper = wfCore.findProcessWrapper(vars, instance.getId());
         if (wrapper == null) {
             return "Error: process wrapper could not be found.";        // todo error reporting
         } else {
@@ -491,33 +472,44 @@ public class WfDataAccessor {
 
     public void saveWorkItemPrism(PrismObject specific, PrismObject common, OperationResult result) {
 
-        LOGGER.info("WorkItem form object (process-specific) = " + specific.debugDump());
-        LOGGER.info("WorkItem form object (process-independent) = " + common.debugDump());
-
         String taskId = (String) common.getPropertyRealValue(WORK_ITEM_TASK_ID, String.class);
 
-        LOGGER.trace("Saving work item " + taskId);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Saving work item " + taskId);
+            LOGGER.trace("WorkItem form object (process-specific) = " + specific.debugDump());
+            LOGGER.trace("WorkItem form object (process-independent) = " + common.debugDump());
+        }
 
         FormService formService = getActivitiEngine().getFormService();
         Map<String,String> propertiesToSubmit = new HashMap<String,String>();
         TaskFormData data = getActivitiEngine().getFormService().getTaskFormData(taskId);
 
-        LOGGER.trace("# of form properties: " + data.getFormProperties().size());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("# of form properties: " + data.getFormProperties().size());
+        }
 
         for (FormProperty formProperty : data.getFormProperties()) {
 
-            LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Processing property " + formProperty.getId() + ":" + formProperty.getName());
+            }
 
             if (formProperty.isWritable()) {
                 QName propertyName = new QName(SchemaConstants.NS_C, formProperty.getName());
 
                 Object value = specific.getPropertyRealValue(propertyName, Object.class);
-                LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
+                }
+
                 propertiesToSubmit.put(formProperty.getId(), value == null ? "" : value.toString());
             }
         }
 
-        LOGGER.trace("Submitting " + propertiesToSubmit.size() + " properties");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Submitting " + propertiesToSubmit.size() + " properties");
+        }
 
         formService.submitTaskFormData(taskId, propertiesToSubmit);
     }
@@ -526,7 +518,9 @@ public class WfDataAccessor {
 
         Task task = getTask(taskId);
         Map<String,Object> variables = getActivitiEngine().getProcessEngine().getRuntimeService().getVariables((task.getExecutionId()));
-        LOGGER.info("Execution " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Execution " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        }
         return variables;
     }
 
@@ -550,7 +544,9 @@ public class WfDataAccessor {
         Task task = getTask(taskId);
 
         Map<String,Object> variables = getActivitiEngine().getProcessEngine().getRuntimeService().getVariables((task.getExecutionId()));
-        LOGGER.info("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
+        }
 
         // todo - use NS other than NS_C (at least for form properties)
 
@@ -595,7 +591,9 @@ public class WfDataAccessor {
             } else {
                 ptype = new QName(SchemaConstants.NS_C, propertyType);
                 ComplexTypeDefinition childCtd = workflowManager.getPrismContext().getSchemaRegistry().findComplexTypeDefinition(ptype);
-                LOGGER.info("Complex type = " + ptype + ", its definition = " + childCtd);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Complex type = " + ptype + ", its definition = " + childCtd);
+                }
                 PrismContainerDefinition pcd = new PrismContainerDefinition(pname, childCtd, workflowManager.getPrismContext());
                 ctd.add(pcd);
             }
@@ -639,7 +637,9 @@ public class WfDataAccessor {
             }
         }
 
-        LOGGER.info("Resulting prism object instance = " + instance.debugDump());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resulting prism object instance = " + instance.debugDump());
+        }
         return instance;
     }
 
@@ -685,7 +685,9 @@ public class WfDataAccessor {
 //            instance.findOrCreateProperty(WORK_ITEM_CANDIDATES).setValue(new PrismPropertyValue<Object>(candidates));
 //        }
 
-        LOGGER.info("Resulting prism object instance = " + instance.debugDump());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Resulting prism object instance = " + instance.debugDump());
+        }
         return instance;
     }
 
@@ -712,7 +714,9 @@ public class WfDataAccessor {
             }
         }
 
-        LOGGER.info("Variable " + WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA + " found to be " + d + " but that's nothing useful at this moment.");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Variable " + WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA + " found to be " + d + " but that's nothing useful at this moment.");
+        }
         return null;
     }
 

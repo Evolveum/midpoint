@@ -83,13 +83,16 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
         if (workflowManager.isEnabled()) {
 		
 		    // is this task already closed? (this flag is set by activiti2midpoint when it gets information about wf process termination)
+            // todo: fixme this is a bit weird
 		    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
 			    LOGGER.info("Task " + task.getName() + " has been flagged as closed; exiting the run() method.");
 		    }
             else {
                 String id = wfTaskUtil.getProcessId(task);
                 if (id != null) {
-                    LOGGER.info("Task " + task.getName() + ": requesting status for wf process id " + id + "...");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Task " + task.getName() + ": requesting status for wf process id " + id + "...");
+                    }
                     queryProcessInstance(id, task, null);
                 }
             }

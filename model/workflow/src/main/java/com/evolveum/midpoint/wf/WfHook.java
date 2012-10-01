@@ -81,22 +81,29 @@ public class WfHook implements ChangeHook {
 
         LensContext lensContext = (LensContext) context;
 
-        LOGGER.info("=====================================================================");
-        LOGGER.info("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getWave() + ", max " + lensContext.getMaxWave() + "):");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("=====================================================================");
+            LOGGER.trace("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getWave() + ", max " + lensContext.getMaxWave() + "):");
+        }
 
         ObjectDelta pdelta = context.getFocusContext().getPrimaryDelta();
         ObjectDelta sdelta = context.getFocusContext().getSecondaryDelta();
-        LOGGER.info("Primary delta: " + (pdelta == null ? "(null)" : pdelta.debugDump()));
-        LOGGER.info("Secondary delta: " + (sdelta == null ? "(null)" : sdelta.debugDump()));
 
-        LOGGER.info("Projection contexts: " + context.getProjectionContexts().size());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Primary delta: " + (pdelta == null ? "(null)" : pdelta.debugDump()));
+            LOGGER.trace("Secondary delta: " + (sdelta == null ? "(null)" : sdelta.debugDump()));
+            LOGGER.trace("Projection contexts: " + context.getProjectionContexts().size());
+        }
+
         for (Object o : context.getProjectionContexts()) {
             ModelProjectionContext mpc = (ModelProjectionContext) o;
             ObjectDelta ppdelta = mpc.getPrimaryDelta();
             ObjectDelta psdelta = mpc.getSecondaryDelta();
-            LOGGER.info(" - Primary delta: " + (ppdelta == null ? "(null)" : ppdelta.debugDump()));
-            LOGGER.info(" - Secondary delta: " + (psdelta == null ? "(null)" : psdelta.debugDump()));
-            LOGGER.info(" - Sync delta:" + (mpc.getSyncDelta() == null ? "(null)" : mpc.getSyncDelta().debugDump()));
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace(" - Primary delta: " + (ppdelta == null ? "(null)" : ppdelta.debugDump()));
+                LOGGER.trace(" - Secondary delta: " + (psdelta == null ? "(null)" : psdelta.debugDump()));
+                LOGGER.trace(" - Sync delta:" + (mpc.getSyncDelta() == null ? "(null)" : mpc.getSyncDelta().debugDump()));
+            }
         }
 
         return wfCore.executeProcessStart(context, task, result);
