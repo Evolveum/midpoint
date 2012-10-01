@@ -313,6 +313,9 @@ public class ChangeExecutor {
 	
     private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
+    	OperationResult result = new OperationResult("Updating situation in account (Model)");
+    	result.addParam("situation", situation);
+    	result.addParam("accountRef", accountRef);
 		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
 
 		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(accountDefinition,
@@ -331,22 +334,18 @@ public class ChangeExecutor {
 		syncSituationDeltas.add(syncSituationDelta);
 		
 		try {
-			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, parentResult);
+			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, result);
 		} catch (ObjectNotFoundException ex) {
-			// HACK: it can happen, if the account was deleted previously and
-						// now only the link should be removed..It's expected, that it
-						// should happen, but how to recognize it in provisoning that it is
-						// expected?
-			for (OperationResult subResults : parentResult.getSubresults()){
-				subResults.computeStatus();
-				subResults.muteError();
-			}
-			parentResult.computeStatus();
-			parentResult.muteError();
+			// if the object not found exception is thrown, it's ok..probably
+			// the account was deleted by previous execution of changes..just
+			// log in the trace the message for the user.. 
 			LOGGER.trace("Situation in account could not be updated. Account not found on the resource. Skipping modifying situation in account");
-			
+			return;
 		}
-		
+		// if everything is OK, add result of the situation modification to the
+		// parent result
+		result.recordSuccess();
+		parentResult.addSubresult(result);
 		
 	}
 

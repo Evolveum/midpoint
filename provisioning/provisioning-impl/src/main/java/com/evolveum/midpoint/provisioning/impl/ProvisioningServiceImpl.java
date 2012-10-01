@@ -761,7 +761,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// getting object to modify
 		PrismObject<T> object = null;
 		try{
-			object = getCacheRepositoryService().getObject(type, oid, parentResult);
+			object = getCacheRepositoryService().getObject(type, oid, result);
 		} catch (ObjectNotFoundException e) {
 			logFatalError(LOGGER, result, "Can't get object to modify with oid " + oid + ". Reason " + e.getMessage(), e);
 			throw e;
