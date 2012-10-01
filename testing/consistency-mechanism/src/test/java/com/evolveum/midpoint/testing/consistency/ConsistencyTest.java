@@ -1137,6 +1137,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertEquals("Expecting that user has one account reference, but found " + referenceList.size()
 				+ " reference", 1, referenceList.size());
 
+		assertTrue("Old shadow oid and new shadow oid should not be the same.", !ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
+		
 		PrismObject<AccountShadowType> modifiedAccount = provisioningService.getObject(
 				AccountShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);

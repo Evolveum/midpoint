@@ -42,6 +42,8 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -65,6 +67,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	private ShadowCache shadowCache;
 
 	private String oid = null;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectNotFoundHandler.class);
 
 	/**
 	 * Get the value of repositoryService.
@@ -100,17 +104,27 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			result.addParam("exception", ex.getMessage());
 		}
 
+		LOGGER.trace("Start compensationg object not found situation while execution operation: {}", op.name());
+		
 		switch (op) {
 		case DELETE:
+			LOGGER.trace("Deleting sahdow from the repostiory.");
 			cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), result);
 			result.recordStatus(
 					OperationResultStatus.HANDLED_ERROR,
 					"Account was not found on the "
 							+ ObjectTypeUtil.toShortString(shadow.getResource())
 							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
+			LOGGER.trace("Shadow deleted from the repository. Inconsistencies are now removed.");
 			return null;
 		case MODIFY:
+			LOGGER.trace("Starting discovery to find out if the account should exist or not.");
 			OperationResult handleErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
+			
+			ObjectDeltaType shadowModifications = shadow.getObjectChange();
+			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+					shadowModifications.getModification(), shadow.asPrismObject().getDefinition());
+			
 			ResourceObjectShadowChangeDescription change = createResourceObjectShadowChangeDescription(shadow,
 					result);
 
@@ -124,6 +138,10 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			handleErrorResult.computeStatus();
 			String oidVal = null;
 			foundReturnedValue(handleErrorResult, oidVal);
+			if (oid != null){
+				LOGGER.trace("Found new oid {} as a return param from model. Probably the new shadow was created.", oid);
+			}
+			
 			// try {
 			// PrismObject<AccountShadowType> repoShadow =
 			// cacheRepositoryService.getObject(AccountShadowType.class,
@@ -132,24 +150,26 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// repoShadow.asObjectable().getSynchronizationSituation();
 			// if (syncSituation != null && syncSituation ==
 			// SynchronizationSituationType.LINKED) {
-			if (oid != null) {
-				ObjectDeltaType shadowModifications = shadow.getObjectChange();
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-						shadowModifications.getModification(), shadow.asPrismObject().getDefinition());
+			
+			if (oid != null ) {
+				LOGGER.trace("Modifying re-created account according to given changes.");
 				try {
-					provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null,
+					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null,
 							result);
 				} catch (ObjectNotFoundException e) {
 					result.recordStatus(
 							OperationResultStatus.HANDLED_ERROR,
 							"Modifications were not applied, because shadow was deleted by discovery. Repository state were refreshed and unused shadow was deleted.");
 				}
-			}
-
-			if (oid != null && !shadow.getOid().equals(oid)) {
+//				return shadow;
+			} 
+			
+//			if (oid == null
+//					|| (oid != null && !shadow.getOid().equals(oid))
+//					|| (shadow.getSynchronizationSituation() == null )) {
+				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
 				try {
 					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
-
 				} catch (ObjectNotFoundException e) {
 					// delete the old shadow that was probably deleted from
 					// the
@@ -157,7 +177,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					//TODO: log this
 
 				}
-			}
+//			}
 
 			// } catch (ObjectNotFoundException e) {
 			// delete the old shadow that was probably deleted from the
