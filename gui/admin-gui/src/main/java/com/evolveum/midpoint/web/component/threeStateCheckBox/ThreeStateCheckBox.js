@@ -31,13 +31,11 @@ function getStateFromValue(theValue, highlightedState) {
 
 function getFieldId(imageId) {
 	var threeStateBoxId = imageId.substring(0, imageId.length - '.Img'.length);
-	var threeStateBoxFieldId = document.getElementById(threeStateBoxId + '.Field').value;
-	return threeStateBoxFieldId;
+	return threeStateBoxId;
 }
 
 function replaceImage(imageId, imageClass) {
 	var image = document.getElementById(imageId);
-
 	if (image.className != imageClass) {
 		image.className = imageClass;
 	}
@@ -67,30 +65,21 @@ function onThreestateImageClick(imageId) {
 		var threeStateBoxField = document.getElementById(fieldAndContainerIds);
 
 		var nextState = getNextStateFromValue(threeStateBoxField.value);
-		
 		threeStateBoxField.value = nextState;
 		var imageClass = mouseOverOutOfImage(imageId, true);
 		replaceImage(imageId, imageClass);
 	};
 }
 
-function updateStateAndImage(imageNodeId) {
-	var imageClass = mouseOverOutOfImage(imageNodeId, false);
-	replaceImage(imageNodeId, imageClass);
+function updateStateAndImage(threeStateCheckBoxId) {
+	var imageNode = document.getElementById(threeStateCheckBoxId + ".Img");
+	var imageClass = mouseOverOutOfImage(imageNode.id, false);
+	replaceImage(imageNode.id, imageClass);
 }
 
-function createThreeStateImageNode(threeStateCheckBox, imageNodeId) {
-	var parent = threeStateCheckBox.parentNode;
-	var boxElement = document.createElement("span"); 
-	parent.appendChild(boxElement);
-	boxElement.className = "threeStateCheckBoxElement";
-	boxElement.id = threeStateCheckBox.id + "Element";
-	
-	boxElement.appendChild(threeStateCheckBox);
-	var imageNode = new Image();
-	imageNode.id = imageNodeId;
-	imageNode.className = DEFAULT_CONFIG[UNCHECKED_NORM];
-	boxElement.appendChild(imageNode);
+function createThreeStateImageNode(threeStateCheckBoxId) {
+	var boxElement = document.getElementById(threeStateCheckBoxId + "Element");
+	var imageNode = document.getElementById(threeStateCheckBoxId + ".Img");
 
 	if (boxElement.addEventListener) {
 		boxElement.addEventListener('mouseover', onMouseOverImage(imageNode.id), false);
@@ -102,39 +91,8 @@ function createThreeStateImageNode(threeStateCheckBox, imageNodeId) {
 		boxElement.attachEvent('onclick', onThreestateImageClick(imageNode.id));
 	}
 }
-function createFieldNameHiddenField(threeStateCheckBox, fieldNameNodeId, threeStateCheckBoxId, labelString) {
-	var parent = threeStateCheckBox.parentNode;
-	var fieldNode = document.createElement('input');
-	fieldNode.id = fieldNameNodeId;
-	fieldNode.type = 'hidden';
-	fieldNode.value = threeStateCheckBoxId;
-	parent.appendChild(fieldNode);
 
-	if(labelString != '') {
-		var text = document.createTextNode(labelString);
-		var labelElement = document.createElement("span"); 
-		labelElement.className = "threeStateLabel";
-		labelElement.innerHTML = '';
-		parent.appendChild(labelElement);
-		labelElement.appendChild(text);
-	}
-	
-}
-
-function initThreeStateCheckBox(threeStateCheckBoxId, labelString) {
-	var threeStateCheckBox = document.getElementById(threeStateCheckBoxId);
-
-	var imageNodeId = threeStateCheckBoxId + '.Img';
-	createThreeStateImageNode(threeStateCheckBox, imageNodeId);
-
-	var fieldNameNodeId = threeStateCheckBoxId + '.Field';
-	createFieldNameHiddenField(threeStateCheckBox, fieldNameNodeId, threeStateCheckBoxId, labelString);
-
-	updateStateAndImage(imageNodeId);
-	setStyle(threeStateCheckBox);
-}
-
-function setStyle(threeStateCheckBox) {
-	var boxElement = document.getElementById(threeStateCheckBox.id + "Element");
-	$("#" + boxElement.id).css(threeStateCheckBox.style);
+function initThreeStateCheckBox(threeStateCheckBoxId) {
+	createThreeStateImageNode(threeStateCheckBoxId);
+	updateStateAndImage(threeStateCheckBoxId);
 }

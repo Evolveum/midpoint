@@ -21,45 +21,62 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeCheckState;
 import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox;
 
 /**
  * @author mserbak
  */
 public class ThreeStateCheckPanel extends InputPanel {
-
-	public ThreeStateCheckPanel(String id, IModel<Boolean> model) {
+	private ThreeStateCheckBox check;
+	private Boolean state;
+	
+	public ThreeStateCheckPanel(String id, final IModel<Boolean> model) {
 		super(id);
+		state = model.getObject();
+		
+		WebMarkupContainer inputElement = new WebMarkupContainer("inputElement");
+		add(inputElement);
+		
+		check = new ThreeStateCheckBox("input", model);
+		check.setOutputMarkupId(true);
+		inputElement.add(check);
 
-		ThreeStateCheckBox check = new ThreeStateCheckBox("input", checkThreeState(model));
-		add(check);
-	}
-
-	private IModel<String> checkThreeState(final IModel<Boolean> model) {
-		return new Model<String>() {
+		inputElement.setMarkupId(check.getMarkupId() + "Element");
+		
+		Label inputImg = new Label("inputImg");
+		inputImg.setMarkupId(check.getMarkupId() + ".Img");
+		inputElement.add(inputImg);
+		
+		inputElement.add(new AjaxEventBehavior("onMouseUp") {
+			
 			@Override
-			public String getObject() {
-				String object = "";
-				if (model.getObject() == null) {
-					object = ThreeCheckState.UNDEFINED.toString();
-				} else if (model.getObject()) {
-					object = ThreeCheckState.CHECKED.toString();
-				} else {
-					object = ThreeCheckState.UNCHECKED.toString();
-				}
-				return object;
+			protected void onEvent(AjaxRequestTarget target) {
+				updateModel(model);
 			}
-		};
+		});
+	}
+	
+	private void updateModel(IModel<Boolean> model){
+		if(state == null) {
+			state = false;
+		} else if(!state) {
+			state = true;
+		} else {
+			state = null;
+		}
+		model.setObject(state);
 	}
 
 	@Override
 	public FormComponent getBaseFormComponent() {
-		return (FormComponent) get("input");
+		return check;
 	}
 }

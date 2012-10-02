@@ -26,6 +26,7 @@
 	position: absolute;
 	background-repeat: no-repeat;
 	margin-top: 3px;
+	margin: 10px;
 }
 
 .threeStateLabel {

@@ -21,55 +21,56 @@
 
 package com.evolveum.midpoint.web.component.threeStateCheckBox;
 
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.HiddenField;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-
 /**
  * @author lazyman
  * @author mserbak
  */
 public class ThreeStateCheckBox extends HiddenField<String> {
-	private String label = "";
 
 	public ThreeStateCheckBox(String id) {
-		this(id, new Model<String>(ThreeCheckState.UNDEFINED.toString()));
+		this(id, new Model<Boolean>(null));
 	}
 
-	public ThreeStateCheckBox(String id, final IModel<String> model) {
-		super(id, model);
-		setOutputMarkupId(true);
+	public ThreeStateCheckBox(String id, IModel<Boolean> model) {
+		super(id, createStringModel(model));
 	}
+	
+	private static IModel<String> createStringModel(final IModel<Boolean> model) {
+		return new AbstractReadOnlyModel<String>() {
 
-	public ThreeStateCheckBox(String id, final IModel<String> label, final IModel<String> model) {
-		this(id, model);
-		this.label = label.getObject();
+			@Override
+			public String getObject() {
+				String object = "";
+				if (model.getObject() == null) {
+					object = ThreeCheckState.UNDEFINED.toString();
+				} else if (model.getObject()) {
+					object = ThreeCheckState.CHECKED.toString();
+				} else {
+					object = ThreeCheckState.UNCHECKED.toString();
+				}
+				return object;
+			}
+		};
 	}
 	
 	@Override
 	protected void onComponentTag(ComponentTag tag) {
 		super.onComponentTag(tag);
-
 		if (tag.isOpenClose()) {
 			tag.setType(XmlTag.TagType.OPEN);
 		}
 	}
+	
+	
 
 	@Override
 	public void renderHead(IHeaderResponse response) {
@@ -78,8 +79,6 @@ public class ThreeStateCheckBox extends HiddenField<String> {
 				"ThreeStateCheckBox.js"));
 		response.renderCSSReference(new PackageResourceReference(ThreeStateCheckBox.class,
 				"ThreeStateCheckBox.css"));
-		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "', '" + label + "')");
+		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "')");
 	}
-	
-	
 }
