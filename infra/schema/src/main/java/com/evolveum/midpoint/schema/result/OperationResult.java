@@ -911,7 +911,7 @@ public class OperationResult implements Serializable, Dumpable {
 			StringBuilder detailsb = new StringBuilder();
 
 			// Record text messages in details (if present)
-			if (opResult.details.isEmpty()) {
+			if (!opResult.details.isEmpty()) {
 				for (String line : opResult.details) {
 					detailsb.append(line);
 					detailsb.append("\n");
@@ -932,7 +932,7 @@ public class OperationResult implements Serializable, Dumpable {
 				}
 			}
 
-			result.setDetails(details.toString());
+			result.setDetails(detailsb.toString());
 		}
 
 		if (StringUtils.isNotEmpty(opResult.getLocalizationMessage())) {
