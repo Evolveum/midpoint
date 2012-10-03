@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -623,7 +625,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 //					valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
 //				}
 			Element valueExpressionElement = query.getFilter().getExpression();
-				if (valueExpressionElement != null) {
+			if (valueExpressionElement == null && (((PropertyValueFilter) query.getFilter()).getValues() == null
+					|| ((PropertyValueFilter) query.getFilter()).getValues().isEmpty())) {
+				LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
+				return null;
+			}
+//				if (valueExpressionElement != null) {
 //					equal.removeChild(valueExpressionElement);
 //					copyNamespaceDefinitions(equal, valueExpressionElement);
 
@@ -661,9 +668,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						((EqualsFilter)query.getFilter()).setValue(new PrismPropertyValue(expressionResult));
 						query.getFilter().setExpression(null);
 					}
-				} else {
-					LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
-				}
+//				} else {
+//					LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
+//				}
 //			}
 //			filter = equal;
 			if (LOGGER.isTraceEnabled()) {

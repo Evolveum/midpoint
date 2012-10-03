@@ -345,7 +345,7 @@ public class QueryConvertor {
 		
 		PropertyPath path = getPath((Element) filter);
 
-if (path == null){
+		if (path == null || path.isEmpty()){
 		throw new SchemaException("Could not convert query, because query does not contain property path.");	
 		}
 		
@@ -353,6 +353,9 @@ if (path == null){
 		
 		if (values == null || values.isEmpty()){
 			Element expression = DOMUtil.findElementRecursive((Element) filter, SchemaConstantsGenerated.C_EXPRESSION);
+			if (expression == null){
+				expression = DOMUtil.findElementRecursive((Element) filter, SchemaConstantsGenerated.C_VALUE_EXPRESSION);
+			}
 			ItemDefinition itemDef = pcd.findItemDefinition(path);
 			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, expression);
 		}
@@ -389,7 +392,7 @@ if (path == null){
 	private static RefFilter createRefFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException{
 		PropertyPath path = getPath((Element) filter);
 		
-		if (path == null){
+		if (path == null || path.isEmpty()){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		
@@ -463,7 +466,7 @@ if (path == null){
 			throws SchemaException {
 
 		PropertyPath path = getPath((Element) filter);
-		if (path == null){
+		if (path == null || path.isEmpty()){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		List<Element> values = getValues(filter);
