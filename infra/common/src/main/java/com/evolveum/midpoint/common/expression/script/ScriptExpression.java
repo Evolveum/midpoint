@@ -92,27 +92,27 @@ public class ScriptExpression {
 		this.functionLibrary = functionLibrary;
 	}
 	
-	public <T> List<PrismPropertyValue<T>> evaluate(ScriptVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, String shortDesc, OperationResult result) 
-			throws ExpressionEvaluationException,
-			ObjectNotFoundException, SchemaException {
+	public <T> List<PrismPropertyValue<T>> evaluate(ScriptVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
+			String contextDescription, OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		try {
-			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(expressionType, variables, outputDefinition, suggestedReturnType, objectResolver, functionLibrary, shortDesc, result);
+			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(expressionType, variables, outputDefinition, suggestedReturnType, objectResolver, functionLibrary, contextDescription, result);
 			
-			traceExpressionSuccess(variables, shortDesc, expressionResult);
+			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;
 
 		} catch (ExpressionEvaluationException ex) {
-			traceExpressionFailure(variables, shortDesc, ex);
+			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			traceExpressionFailure(variables, shortDesc, ex);
+			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		} catch (SchemaException ex) {
-			traceExpressionFailure(variables, shortDesc, ex);
+			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		} catch (RuntimeException ex) {
-			traceExpressionFailure(variables, shortDesc, ex);
+			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		}
 	}

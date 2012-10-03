@@ -27,9 +27,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
 
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.namespace.QName;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -78,14 +83,48 @@ public final class PrismForJAXBUtil {
             return null;
         }
 
-        PrismPropertyValue<?> value = property.getValue();
-        if (value == null) {
+        PrismPropertyValue<?> pvalue = property.getValue();
+        if (pvalue == null) {
             return null;
         }
         
-        Object propertyRealValue = value.getValue();
+        Object propertyRealValue = pvalue.getValue();
+        
+        if (propertyRealValue instanceof Element) {
+        	if (requestedType.isAssignableFrom(Element.class)) {
+        		return (T) propertyRealValue;
+        	}
+        	Field anyField = getAnyField(requestedType);
+        	if (anyField == null) {
+        		throw new IllegalArgumentException("Attempt to read raw property "+property+" while the requested class ("+requestedType+") does not have 'any' field");
+        	}
+        	anyField.setAccessible(true);
+        	Collection<?> anyElementList = property.getRealValues();
+        	T requestedTypeInstance;
+			try {
+				requestedTypeInstance = requestedType.newInstance();
+				anyField.set(requestedTypeInstance, anyElementList);
+			} catch (InstantiationException e) {
+				throw new IllegalArgumentException("Instantiate error while reading raw property "+property+", requested class ("+requestedType+"):"
+						+e.getMessage(), e);
+			} catch (IllegalAccessException e) {
+				throw new IllegalArgumentException("Illegal access error while reading raw property "+property+", requested class ("+requestedType+")"
+						+", field "+anyField+": "+e.getMessage(), e);
+			}
+			return requestedTypeInstance;
+        }
         
         return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
+    }
+    
+    private static <T> Field getAnyField(Class<T> clazz) {
+    	for (Field field: clazz.getDeclaredFields()) {
+    		XmlAnyElement xmlAnyElementAnnotation = field.getAnnotation(XmlAnyElement.class);
+    		if (xmlAnyElementAnnotation != null) {
+    			return field;
+    		}
+    	}
+    	return null;
     }
     
     public static <T> List<T> getPropertyValues(PrismContainerValue container, QName name, Class<T> clazz) {

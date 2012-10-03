@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,6 +73,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
+import org.w3c.dom.Document;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;

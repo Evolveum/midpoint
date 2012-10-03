@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -80,6 +81,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
     public LazyXPathVariableResolver(ScriptVariables variables, ObjectResolver objectResolver, String contextDescription, OperationResult result) {
     	this.variables = variables;
     	this.objectResolver = objectResolver;
+    	this.contextDescription = contextDescription;
     	this.result = result;
     }
 
@@ -127,64 +129,79 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         }
      
         try {
-        	return convertToXml(variableValue, name);
+        	return convertToXml(variableValue, name, contextDescription);
         } catch (SchemaException e) {
 			throw new TunnelException(e);
 		}
     }
         
     // May return primitive types or DOM Node
-    public static Object convertToXml(Object variableValue, QName variableName) throws SchemaException {
+    public static Object convertToXml(Object variableValue, QName variableName, String contextDescription) throws SchemaException {
     	
-        if (variableValue instanceof Objectable) {
-        	variableValue = ((Objectable)variableValue).asPrismObject();
-        }
-        
-        if (variableValue instanceof PrismObject) {
-        	PrismObject<?> prismObject = (PrismObject<?>)variableValue;
-        	PrismDomProcessor domProcessor = prismObject.getPrismContext().getPrismDomProcessor();
-			variableValue = domProcessor.serializeToDom(prismObject);
-			
-        } else if (variableValue instanceof PrismProperty<?>) {
-        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
-        	PrismDomProcessor domProcessor = prismProperty.getPrismContext().getPrismDomProcessor();
-        	final List<Element> elementList = new ArrayList<Element>();
-        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
-        		Element valueElement = domProcessor.serializeValueToDom(value, prismProperty.getName());
-        		elementList.add(valueElement);
-        	}
-        	NodeList nodeList = new NodeList() {
-				@Override
-				public Node item(int index) {
-					return elementList.get(index);
-				}
-				@Override
-				public int getLength() {
-					return elementList.size();
-				}
-			};
-			variableValue = nodeList;
-			
-        } else if (variableValue instanceof PrismValue) {
-        	PrismValue pval = (PrismValue)variableValue;
-        	PrismContext prismContext = pval.getPrismContext();
-        	PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        	variableValue = domProcessor.serializeValueToDom(pval, variableName);
-        }
-        
-        if (!((variableValue instanceof Node)||variableValue instanceof NodeList) 
-        		&& !(variableValue.getClass().getPackage().getName().startsWith("java."))) {
-        	throw new SchemaException("Unable to convert value of variable "+variableName+" to XML, still got "+variableValue.getClass().getName()+":"+variableValue+" value at the end");
-        }
-        
-        // DEBUG hack
-//        System.out.println("VAR "+variableName+" - "+variableValue.getClass().getName()+":");
-//        if (variableValue instanceof Node) {
-//        	System.out.println(DOMUtil.serializeDOMToString((Node)variableValue));
-//        } else {
-//        	System.out.println(DebugUtil.prettyPrint(variableValue));
-//        }
-        
-        return variableValue;
+    	try {
+	        if (variableValue instanceof Objectable) {
+	        	variableValue = ((Objectable)variableValue).asPrismObject();
+	        }
+	        
+	        if (variableValue instanceof PrismObject) {
+	        	PrismObject<?> prismObject = (PrismObject<?>)variableValue;
+	        	PrismDomProcessor domProcessor = prismObject.getPrismContext().getPrismDomProcessor();
+				variableValue = domProcessor.serializeToDom(prismObject);
+				
+	        } else if (variableValue instanceof PrismProperty<?>) {
+	        	PrismProperty<?> prismProperty = (PrismProperty<?>)variableValue;
+	        	PrismDomProcessor domProcessor = prismProperty.getPrismContext().getPrismDomProcessor();
+	        	final List<Element> elementList = new ArrayList<Element>();
+	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
+	        		Element valueElement = domProcessor.serializeValueToDom(value, prismProperty.getName());
+	        		elementList.add(valueElement);
+	        	}
+	        	NodeList nodeList = new NodeList() {
+					@Override
+					public Node item(int index) {
+						return elementList.get(index);
+					}
+					@Override
+					public int getLength() {
+						return elementList.size();
+					}
+				};
+				variableValue = nodeList;
+				
+	        } else if (variableValue instanceof PrismValue) {
+	        	PrismValue pval = (PrismValue)variableValue;
+	        	PrismContext prismContext = pval.getPrismContext();
+	        	PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+	        	variableValue = domProcessor.serializeValueToDom(pval, variableName);
+	        }
+	        
+	        if (!((variableValue instanceof Node)||variableValue instanceof NodeList) 
+	        		&& !(variableValue.getClass().getPackage().getName().startsWith("java."))) {
+	        	throw new SchemaException("Unable to convert value of variable "+variableName+" to XML, still got "+variableValue.getClass().getName()+":"+variableValue+" value at the end");
+	        }
+	        
+	        // DEBUG hack
+	//        System.out.println("VAR "+variableName+" - "+variableValue.getClass().getName()+":");
+	//        if (variableValue instanceof Node) {
+	//        	System.out.println(DOMUtil.serializeDOMToString((Node)variableValue));
+	//        } else {
+	//        	System.out.println(DebugUtil.prettyPrint(variableValue));
+	//        }
+	        
+	        return variableValue;
+	        
+    	} catch (SchemaException e) {
+    		if (variableValue != null && variableValue instanceof Dumpable) {
+    			LOGGER.trace("Value of variable {}:\n{}", variableName, ((Dumpable)variableValue).dump());
+    		}
+    		throw new SchemaException(e.getMessage() + " while processing variable "+variableName+" with value "+variableValue
+    				+" in "+contextDescription, e);
+    	} catch (RuntimeException e) {
+    		if (variableValue != null && variableValue instanceof Dumpable) {
+    			LOGGER.trace("Value of variable {}:\n{}", variableName, ((Dumpable)variableValue).dump());
+    		}
+    		throw new RuntimeException(e.getClass().getName()+ ": "+e.getMessage() + " while processing variable "+variableName
+    				+" with value "+variableValue+" in "+contextDescription, e);
+    	}
     }
 }
