@@ -64,11 +64,11 @@ public class SchemaProcessor implements Processor {
 
     //qname for object reference type
     private static final QName OBJECT_REFERENCE_TYPE = new QName(PrefixMapper.C.getNamespace(), "ObjectReferenceType");
-    private static final QName A_OBJECT_REFERENCE = new QName(PrefixMapper.A.getNamespace(), "objectReference");
+    public static final QName A_OBJECT_REFERENCE = new QName(PrefixMapper.A.getNamespace(), "objectReference");
 
     //annotations for schema processor
-    private static final QName A_PRISM_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
-    private static final QName A_PRISM_OBJECT = new QName(PrefixMapper.A.getNamespace(), "object");
+    public static final QName A_PRISM_CONTAINER = new QName(PrefixMapper.A.getNamespace(), "container");
+    public static final QName A_PRISM_OBJECT = new QName(PrefixMapper.A.getNamespace(), "object");
     
     //Public fields
     private static final String COMPLEX_TYPE_FIELD_NAME = "COMPLEX_TYPE";
@@ -76,14 +76,14 @@ public class SchemaProcessor implements Processor {
     // Public generated methods
     // The "as" prefix is chosen to avoid clash with usual "get" for the fields and also to indicate that
     //   the it returns the same object in a different representation and not a composed/aggregated object
-    private static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
-    private static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
+    public static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
+    public static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
     private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
     // The "setup" prefix is chosen avoid collision with regular setters for generated fields 
-    private static final String METHOD_SETUP_CONTAINER_VALUE = "setupContainerValue";
-    private static final String METHOD_SETUP_CONTAINER = "setupContainer";
-    private static final String METHOD_AS_REFERENCE_VALUE = "asReferenceValue";
-    private static final String METHOD_SETUP_REFERENCE_VALUE = "setupReferenceValue";
+    public static final String METHOD_SETUP_CONTAINER_VALUE = "setupContainerValue";
+    public static final String METHOD_SETUP_CONTAINER = "setupContainer";
+    public static final String METHOD_AS_REFERENCE_VALUE = "asReferenceValue";
+    public static final String METHOD_SETUP_REFERENCE_VALUE = "setupReferenceValue";
     
     // Internal fields and methods. Although some of these fields needs to be public (so they can be used by
     // prism classes), they are not really intended for public usage. We also want to avoid conflicts with code
@@ -899,7 +899,6 @@ public class SchemaProcessor implements Processor {
             System.out.println("Updating fields and get/set methods: " + classOutline.implClass.fullName());
 
             List<JFieldVar> fieldsToBeRemoved = new ArrayList<JFieldVar>();
-            boolean remove;
             for (String field : fields.keySet()) {
                 if ("serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD_NAME.equals(field)
                         || CONTAINER_FIELD_NAME.equals(field) || CONTAINER_VALUE_FIELD_NAME.equals(field)) {
@@ -913,7 +912,7 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
 
-                remove = false;
+                boolean remove;
                 if ("oid".equals(field) || "version".equals(field)) {
                     System.out.println("Updating simple field: " + fieldVar.name());
                     remove = updateSimpleField(fieldVar, classOutline, METHOD_AS_PRISM_CONTAINER);
@@ -1246,22 +1245,6 @@ public class SchemaProcessor implements Processor {
 
     private boolean isFieldReferenceUse(JFieldVar field, ClassOutline classOutline) {
         return getFieldReferenceUseAnnotationQName(field, classOutline) != null;
-    }
-
-    private ClassOutline findClassOutline(JDefinedClass definedClass, Outline outline) {
-        if (definedClass == null) {
-            return null;
-        }
-
-        ClassOutline classOutline = null;
-        for (ClassOutline clazz : outline.getClasses()) {
-            if (definedClass.equals(clazz.implClass)) {
-                classOutline = clazz;
-                break;
-            }
-        }
-
-        return classOutline;
     }
 
     private boolean isContainer(JDefinedClass definedClass, Outline outline) {

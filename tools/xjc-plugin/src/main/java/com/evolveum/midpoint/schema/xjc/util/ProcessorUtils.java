@@ -265,4 +265,28 @@ public final class ProcessorUtils {
 
         return hasAnnotation(xsComponent.getAnnotation(false), qname) != null;
     }
+
+    public static boolean hasParentAnnotation(ClassOutline classOutline, QName annotation) {
+        if (classOutline.getSuperClass() == null) {
+            return hasAnnotation(classOutline, annotation);
+        }
+
+        return hasAnnotation(classOutline, annotation) || hasParentAnnotation(classOutline.getSuperClass(), annotation);
+    }
+
+    public static ClassOutline findClassOutline(JDefinedClass definedClass, Outline outline) {
+        if (definedClass == null) {
+            return null;
+        }
+
+        ClassOutline classOutline = null;
+        for (ClassOutline clazz : outline.getClasses()) {
+            if (definedClass.equals(clazz.implClass)) {
+                classOutline = clazz;
+                break;
+            }
+        }
+
+        return classOutline;
+    }
 }

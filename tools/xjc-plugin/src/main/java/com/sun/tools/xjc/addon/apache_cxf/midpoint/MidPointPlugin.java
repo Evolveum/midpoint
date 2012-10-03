@@ -22,6 +22,7 @@
 package com.sun.tools.xjc.addon.apache_cxf.midpoint;
 
 import com.evolveum.midpoint.schema.xjc.Processor;
+import com.evolveum.midpoint.schema.xjc.clone.CloneProcessor;
 import com.evolveum.midpoint.schema.xjc.schema.SchemaProcessor;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -34,7 +35,7 @@ import org.xml.sax.SAXException;
  */
 public class MidPointPlugin extends Plugin {
 
-    private final Processor[] processors = {new SchemaProcessor()};
+    private final Processor[] processors = {new SchemaProcessor(), new CloneProcessor()};
 
     @Override
     public String getOptionName() {
