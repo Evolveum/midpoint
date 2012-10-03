@@ -485,14 +485,15 @@ object.
 	                </q:description>
 	                <q:equal>
 	                    <q:path>.</q:path>
-	                    <valueExpression>
+	                    <expression>
 	                        <ref>name</ref>
 							<script>
+								<language>http://www.w3.org/TR/xpath/</language>
 		                        <code>
 		                            $c:account/c:attributes/ri:uid
 		                        </code>
 	                        </script>
-	                    </valueExpression>
+	                    </expression>
 	                </q:equal>
 	            </correlation>
 	
@@ -547,7 +548,28 @@ object.
             User Template Object.
             This object is used when creating a new account, to set it up as needed.
         </description>
+        
+        <mapping>
+			<initial>true</initial>
+			<source>
+				<path>$user/givenName</path>
+			</source>
+			<source>
+				<path>$user/familyName</path>
+			</source>
+			<expression>
+				<script>
+					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+					<code>givenName + ' ' + familyName</code>
+				</script>
+			</expression>
+			<target>
+				<path>fullName</path>
+			</target>
+		</mapping>
 
+<<<<<<< .mine
+=======
         <mapping>
 			<description>
                 Property mapping.
@@ -575,6 +597,7 @@ object.
 			</target>
 		</mapping>
 
+>>>>>>> .r4253
         <accountConstruction>
             <description>
                 Account construction.
@@ -599,6 +622,26 @@ object.
             This object is used when creating a new account, to set it up as needed.
         </description>
 
+<<<<<<< .mine
+        <mapping>
+			<initial>true</initial>
+			<source>
+				<path>$user/givenName</path>
+			</source>
+			<source>
+				<path>$user/familyName</path>
+			</source>
+			<expression>
+				<script>
+					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+					<code>givenName + ' ' + familyName</code>
+				</script>
+			</expression>
+			<target>
+				<path>fullName</path>
+			</target>
+		</mapping>
+=======
 		<mapping>
 			<description>
                 Property mapping.
@@ -625,6 +668,7 @@ object.
 				<path>fullName</path>
 			</target>
 		</mapping>
+>>>>>>> .r4253
 
     </userTemplate>
 
