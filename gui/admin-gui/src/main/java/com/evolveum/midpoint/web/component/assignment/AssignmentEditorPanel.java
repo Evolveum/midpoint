@@ -105,7 +105,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                //todo do we want to update something?
+                //do we want to update something?
             }
         };
         add(selected);
@@ -307,7 +307,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                         }
 
                         ACAttributeDto dto = attrModel.getObject();
-                        return StringUtils.isNotEmpty(dto.getValue());
+                        return !dto.isEmpty();
                     }
                 });
             }
@@ -344,15 +344,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private List<ACAttributeDto> loadAttributes() {
+        AssignmentEditorDto dto = getModel().getObject();
+
         List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
         try {
-            AssignmentEditorDto dto = getModel().getObject();
-
             AssignmentType assignment = dto.getAssignment();
             AccountConstructionType construction = assignment.getAccountConstruction();
-            ResourceType resource = construction.getResource();
+            PrismObject<ResourceType> resource = construction.getResource() != null
+                    ? construction.getResource().asPrismObject() : null;
+            if (resource == null) {
+                resource = getReference(construction.getResourceRef(), new OperationResult("asdf"));//todo fix
+            }
 
-            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                     getPageBase().getPrismContext());
             PrismContainerDefinition definition = refinedSchema.getAccountDefinition(construction.getType());
 
@@ -382,7 +386,26 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             }
         });
 
+        dto.setAttributes(attributes);
+
         return attributes;
+    }
+
+    private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
+        OperationResult subResult = result.createSubresult("aaaaaaaaaa");   //todo fix
+        subResult.addParam("targetRef", ref.getOid());
+        PrismObject target = null;
+        try {
+            Task task = getPageBase().createSimpleTask("aaaaaaaaaa");    //todo fix
+            target = getPageBase().getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
+                    subResult);
+            subResult.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get account construction resource ref", ex);
+            subResult.recordFatalError("Couldn't get account construction resource ref.", ex);
+        }
+
+        return target;
     }
 
     private ResourceAttributeDefinitionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
@@ -395,6 +418,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
         construction.setRef(attrDef.getName());
+
+        //todo remove
+        attrConstructions.add(construction);
+
         return construction;
     }
 
@@ -421,7 +448,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         AssignmentEditorDto dto = getModel().getObject();
         boolean minimized = dto.isMinimized();
         if (minimized) {
-            dto.startEditing();
+//            dto.startEditing();//todo ???
         }
 
         dto.setMinimized(!minimized);

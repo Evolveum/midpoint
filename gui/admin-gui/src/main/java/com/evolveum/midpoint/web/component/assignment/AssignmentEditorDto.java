@@ -24,11 +24,13 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,10 +50,12 @@ public class AssignmentEditorDto extends SelectableBean {
     private AssignmentEditorDtoType type;
     private UserDtoStatus status;
     private AssignmentType oldAssignment;
-    private AssignmentType newAssignment;
 
     private boolean showEmpty = false;
     private boolean minimized = true;
+
+    private AssignmentType newAssignment;
+    private List<ACAttributeDto> attributes;
 
     public AssignmentEditorDto(String name, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment) {
         Validate.notNull(status, "User dto status must not be null.");
@@ -61,7 +65,30 @@ public class AssignmentEditorDto extends SelectableBean {
         this.name = name;
         this.type = type;
         this.status = status;
-        this.newAssignment = assignment;
+        this.oldAssignment = assignment;
+
+        PrismContainerValue value = oldAssignment.asPrismContainerValue();
+
+        //improve assignment clone, this doesn't look good
+        PrismContainerValue oldValue = value.clone();
+        newAssignment = new AssignmentType();
+        newAssignment.setupContainerValue(oldValue);
+        if (AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(type)
+                && oldAssignment.getAccountConstruction() != null) {
+            AccountConstructionType construction = oldAssignment.getAccountConstruction();
+            newAssignment.setAccountConstruction(construction.clone());
+        }
+    }
+
+    public List<ACAttributeDto> getAttributes() {
+        if (attributes == null) {
+            attributes = new ArrayList<ACAttributeDto>();
+        }
+        return attributes;
+    }
+
+    public void setAttributes(List<ACAttributeDto> attributes) {
+        this.attributes = attributes;
     }
 
     public boolean isMinimized() {
@@ -110,20 +137,10 @@ public class AssignmentEditorDto extends SelectableBean {
         this.status = status;
     }
 
-    public void startEditing() {
-        if (oldAssignment != null) {
-            return;
-        }
-
-        PrismContainerValue value = newAssignment.asPrismContainerValue();
-
-        PrismContainerValue oldValue = value.clone();
-        oldAssignment = new AssignmentType();
-        oldAssignment.setupContainerValue(oldValue);
-    }
-
     public boolean isModified() {
-        return oldAssignment != null && !oldAssignment.equals(newAssignment);
+        //todo reimplement
+        return false;
+//        return oldAssignment != null && !oldAssignment.equals(newAssignment);
     }
 
     public PrismContainerValue getOldValue() {
@@ -131,33 +148,34 @@ public class AssignmentEditorDto extends SelectableBean {
     }
 
     public PrismContainerValue getNewValue() {
-        PrismContainerValue value = newAssignment.asPrismContainerValue();
-        PrismContainerValue newValue = value.clone();
-        //remove empty/null values, which are placeholders in form
-        List<Item> items = newValue.getItems();
-        Iterator<Item> iterator = items.iterator();
-        while (iterator.hasNext()) {
-            Item item = iterator.next();
-            List<PrismValue> values = item.getValues();
-            if (values != null) {
-                Iterator<PrismValue> valueIterator = values.iterator();
-                while (valueIterator.hasNext()) {
-                    PrismValue prismValue = valueIterator.next();
-                    if (prismValue instanceof PrismPropertyValue) {
-                        PrismPropertyValue propertyValue = (PrismPropertyValue) prismValue;
-                        if (propertyValue.getValue() == null) {
-                            valueIterator.remove();
-                        }
-                    }
-                }
-            }
-
-            if (item.isEmpty()) {
-                iterator.remove();
-            }
-        }
-
-        return newValue;
+        //todo reimplement
+        return newAssignment != null ? newAssignment.asPrismContainerValue() : null;
+//        PrismContainerValue value = newAssignment.asPrismContainerValue();
+//        PrismContainerValue newValue = value.clone();
+//        //remove empty/null values, which are placeholders in form
+//        List<Item> items = newValue.getItems();
+//        Iterator<Item> iterator = items.iterator();
+//        while (iterator.hasNext()) {
+//            Item item = iterator.next();
+//            List<PrismValue> values = item.getValues();
+//            if (values != null) {
+//                Iterator<PrismValue> valueIterator = values.iterator();
+//                while (valueIterator.hasNext()) {
+//                    PrismValue prismValue = valueIterator.next();
+//                    if (prismValue instanceof PrismPropertyValue) {
+//                        PrismPropertyValue propertyValue = (PrismPropertyValue) prismValue;
+//                        if (propertyValue.getValue() == null) {
+//                            valueIterator.remove();
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if (item.isEmpty()) {
+//                iterator.remove();
+//            }
+//        }
+//        return newValue;
     }
 
     public String getDescription() {

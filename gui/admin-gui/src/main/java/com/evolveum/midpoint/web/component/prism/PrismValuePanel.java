@@ -245,7 +245,7 @@ public class PrismValuePanel extends Panel {
     }
 
     private InputPanel createInputComponent(String id, IModel<String> label, Form form) {
-        InputPanel component = createTypedInputComponent(id, form);
+        InputPanel component = createTypedInputComponent(id);
 
         final List<FormComponent> formComponents = component.getFormComponents();
         for (FormComponent formComponent : formComponents) {
@@ -263,7 +263,7 @@ public class PrismValuePanel extends Panel {
         return component;
     }
 
-    private InputPanel createTypedInputComponent(String id, Form form) {
+    private InputPanel createTypedInputComponent(String id) {
         PrismProperty property = model.getObject().getProperty().getItem();
         QName valueType = property.getDefinition().getTypeName();
 
@@ -273,7 +273,7 @@ public class PrismValuePanel extends Panel {
         if (DOMUtil.XSD_DATETIME.equals(valueType)) {
             panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(model, baseExpression));
         } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-            panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"), form);
+            panel = new PasswordPanel(id, new PropertyModel<String>(model, baseExpression + ".clearValue"));
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
             panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {

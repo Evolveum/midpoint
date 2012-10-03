@@ -184,7 +184,7 @@ public abstract class PageBase extends WebPage {
         return createStringResource("page.title");
     }
 
-    protected ModelService getModelService() {
+    public ModelService getModelService() {
         return modelService;
     }
     

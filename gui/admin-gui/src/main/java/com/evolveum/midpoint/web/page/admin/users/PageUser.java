@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -73,7 +72,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
-import org.w3c.dom.Document;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -414,27 +412,30 @@ public class PageUser extends PageAdminUsers {
             String name = null;
             AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
             if (assignment.getTarget() != null) {
+                //object assignment
                 ObjectType target = assignment.getTarget();
                 name = target.getName();
                 type = AssignmentEditorDtoType.getType(target.getClass());
             } else if (assignment.getTargetRef() != null) {
+                //object assignment through reference
                 ObjectReferenceType ref = assignment.getTargetRef();
-                OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-                subResult.addParam("targetRef", ref.getOid());
-                PrismObject target = null;
-                try {
-                    Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
-                    target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
-                            subResult);
-                    subResult.recordSuccess();
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
-                    subResult.recordFatalError("Couldn't get assignment target ref.", ex);
-                }
+                PrismObject target = getReference(ref, result);
 
                 if (target != null) {
                     name = WebMiscUtil.getName(target);
                     type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
+                }
+            } else if (assignment.getAccountConstruction() != null) {
+                //account assignment through account construction
+                AccountConstructionType construction = assignment.getAccountConstruction();
+                if (construction.getResource() != null) {
+                    name = construction.getResource().getName();
+                } else if (construction.getResourceRef() != null) {
+                    ObjectReferenceType ref = construction.getResourceRef();
+                    PrismObject target = getReference(ref, result);
+                    if (target != null) {
+                        name = WebMiscUtil.getName(target);
+                    }
                 }
             }
 
@@ -442,6 +443,23 @@ public class PageUser extends PageAdminUsers {
         }
 
         return list;
+    }
+
+    private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
+        OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
+        subResult.addParam("targetRef", ref.getOid());
+        PrismObject target = null;
+        try {
+            Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
+            target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
+                    subResult);
+            subResult.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
+            subResult.recordFatalError("Couldn't get assignment target ref.", ex);
+        }
+
+        return target;
     }
 
     private void initAssignments(AccordionItem assignments) {

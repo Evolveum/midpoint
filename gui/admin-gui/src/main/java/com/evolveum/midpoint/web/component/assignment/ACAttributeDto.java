@@ -22,13 +22,20 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAttributeDefinitionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -36,10 +43,11 @@ import java.io.Serializable;
 public class ACAttributeDto implements Serializable {
 
     public static final String F_NAME = "name";
-    public static final String F_VALUE = "value";
+    public static final String F_VALUES = "values";
 
     private PrismPropertyDefinition definition;
     private ResourceAttributeDefinitionType construction;
+    private List<ACValueConstructionDto> values;
 
     public ACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction) {
         Validate.notNull(definition, "Prism property definition must not be null.");
@@ -47,6 +55,50 @@ public class ACAttributeDto implements Serializable {
 
         this.definition = definition;
         this.construction = construction;
+    }
+
+    public List<ACValueConstructionDto> getValues() {
+        if (values == null) {
+            values = createValues();
+
+            if (values.isEmpty()) {
+                values.add(new ACValueConstructionDto(this, null));
+            }
+        }
+        return values;
+    }
+
+    private List<ACValueConstructionDto> createValues() {
+        List<ACValueConstructionDto> values = new ArrayList<ACValueConstructionDto>();
+        MappingType outbound = construction.getOutbound();
+        if (outbound == null || outbound.getExpression() == null) {
+            return values;
+        }
+        ExpressionType expression = outbound.getExpression();
+        if (expression.getExpressionEvaluator() != null) {
+            JAXBElement<?> element = expression.getExpressionEvaluator();
+            values.add(new ACValueConstructionDto(this, getExpressionValue(element)));
+        }
+        if (expression.getSequence() == null) {
+            return values;
+        }
+
+        ExpressionType.Sequence sequence = expression.getSequence();
+        List<JAXBElement<?>> elements = sequence.getExpressionEvaluator();
+        for (JAXBElement element : elements) {
+            values.add(new ACValueConstructionDto(this, getExpressionValue(element)));
+        }
+
+        return values;
+    }
+
+    private Object getExpressionValue(JAXBElement element) {
+        Element expression = (Element) element.getValue();
+        if (!DOMUtil.isElementName(expression, SchemaConstants.C_VALUE)) {
+            return null;
+        }
+
+        return expression.getTextContent();
     }
 
     public PrismPropertyDefinition getDefinition() {
@@ -58,25 +110,12 @@ public class ACAttributeDto implements Serializable {
         return StringUtils.isNotEmpty(name) ? name : definition.getName().getLocalPart();
     }
 
-    public String getValue() {
-//        JAXBElement element = construction.getValueConstructor();
-//        if (element == null) {
-//            return null;
-//        }
-//        Object value = element.getValue();
-//        return value != null ? value.toString() : null;
-    	// TODO
-    	return null;
-    }
+    public boolean isEmpty() {
+        List<ACValueConstructionDto> values = getValues();
+        if (values.isEmpty()) {
+            return true;
+        }
 
-    public void setValue(String value) {
-    	// TODO
-//        if (value == null) {
-//            construction.setValueConstructor(null);
-//        } else {
-//            construction.setValueConstructor(new ObjectFactory().createValue(value));
-//        }
-//
-//        construction.getSequence().getValueConstructor().clear();
+        return values.get(0).getValue() == null;
     }
 }

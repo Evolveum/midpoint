@@ -43,13 +43,13 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
 
-    public PasswordPanel(String id, IModel<String> model, Form form) {
+    public PasswordPanel(String id, IModel<String> model) {
         super(id);
 
-        initLayout(model, form);
+        initLayout(model);
     }
 
-    private void initLayout(IModel<String> model, Form form) {
+    private void initLayout(IModel<String> model) {
         PasswordTextField password1 = new PasswordTextField(ID_PASSWORD_ONE, model);
         password1.setRequired(false);
         password1.setResetPassword(false);

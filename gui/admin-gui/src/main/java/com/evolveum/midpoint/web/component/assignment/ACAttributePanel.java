@@ -21,14 +21,14 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.BasePanel;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -36,8 +36,8 @@ import org.apache.wicket.model.PropertyModel;
 public class ACAttributePanel extends BasePanel<ACAttributeDto> {
 
     private static final String ID_ATTRIBUTE_LABEL = "attributeLabel";
-    private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
-    private static final String ID_SHOW_EXPR_EDITOR = "showExprEditor";
+    private static final String ID_VALUES = "values";
+    private static final String ID_VALUE = "value";
 
     public ACAttributePanel(String id, IModel<ACAttributeDto> model) {
         super(id, model);
@@ -48,20 +48,14 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
         Label attributeLabel = new Label(ID_ATTRIBUTE_LABEL, new PropertyModel(getModel(), ACAttributeDto.F_NAME));
         add(attributeLabel);
 
-        TextField attributeValue = new TextField(ID_ATTRIBUTE_VALUE, new PropertyModel(getModel(), ACAttributeDto.F_VALUE));
-        add(attributeValue);
+        ListView<ACValueConstructionDto> values = new ListView<ACValueConstructionDto>(ID_VALUES,
+                new PropertyModel<List<ACValueConstructionDto>>(getModel(), ACAttributeDto.F_VALUES)) {
 
-//        AjaxLink showExprEditor = new AjaxLink(ID_SHOW_EXPR_EDITOR) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                showExprEditorPerformed(target);
-//            }
-//        };
-//        add(showExprEditor);
-    }
-
-    private void showExprEditorPerformed(AjaxRequestTarget target) {
-        //todo implement
+            @Override
+            protected void populateItem(ListItem<ACValueConstructionDto> listItem) {
+                listItem.add(new ACAttributeValuePanel(ID_VALUE, listItem.getModel()));
+            }
+        };
+        add(values);
     }
 }
