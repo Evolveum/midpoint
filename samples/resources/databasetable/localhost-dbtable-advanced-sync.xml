@@ -259,7 +259,7 @@ object.
 	                    any other object type.
 	                </q:description>
 	                <q:equal>
-	                    <q:path>.</q:path>
+	                    <q:path>c:name</q:path>
 	                    <expression>
 	                        <ref>name</ref>
 	                        <script>
