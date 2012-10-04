@@ -475,6 +475,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         	
         	PrismObject<PasswordPolicyType> passPol = modelService.getObject(PasswordPolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
         	assertNotNull(passPol);
+        	        	
         } catch (Exception ex){
         	throw ex;
         }

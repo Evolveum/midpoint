@@ -86,6 +86,10 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		this.source = source;
 	}
 		
+	public ObjectType getSource() {
+		return source;
+	}
+
 	public SourceType getOriginType() {
 		return originType;
 	}

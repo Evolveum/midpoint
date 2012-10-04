@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.PropertyValueWithOrigin;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -193,7 +194,7 @@ public class ReconciliationProcessor {
         		}
         		Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();
         		if (!isInValues(shouldBeRealValue, arePValues)) {
-        			recordDelta(accCtx, attributeDefinition, ChangeType.ADD, shouldBeRealValue);
+        			recordDelta(accCtx, attributeDefinition, ChangeType.ADD, shouldBeRealValue, shouldBePvwo.getAccountConstruction().getSource());
         		}
         		
         	}
@@ -201,18 +202,18 @@ public class ReconciliationProcessor {
         	if (!attributeDefinition.isTolerant()) {
         		for (PrismPropertyValue<Object> isPValue: arePValues) {
         			if (!isInPvwoValues(isPValue.getValue(), shouldBePValues)) {
-        				recordDelta(accCtx, attributeDefinition, ChangeType.DELETE, isPValue.getValue());
+        				recordDelta(accCtx, attributeDefinition, ChangeType.DELETE, isPValue.getValue(), null);
         			}
         		}
         	}
         }
     }
 
-	private void recordDelta(LensProjectionContext<AccountShadowType> accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value) throws SchemaException {
+	private void recordDelta(LensProjectionContext<AccountShadowType> accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value, ObjectType originObject) throws SchemaException {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		
 		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);
-		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, SourceType.RECONCILIATION, null);
+		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, SourceType.RECONCILIATION, originObject);
 		if (changeType == ChangeType.ADD) {
 			attrDelta.addValueToAdd(pValue);
 		} else if (changeType == ChangeType.DELETE) {

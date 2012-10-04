@@ -253,33 +253,9 @@ public class InboundProcessor {
 		mapping.setTargetContext(getUserDefinition());
     	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
     	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account);
-    	
-    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private PropertyPath outputPath;
-			private ItemDefinition outputDefinition;
-			@Override
-			public void setOutputPath(PropertyPath outputPath) {
-				this.outputPath = outputPath;
-			}
-			
-			@Override
-			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
-			}
-			
-			@Override
-			public StringPolicyType resolve() {
-				if (!outputDefinition.getName().equals(CredentialsType.F_PASSWORD)) {
-					return null;
-				}
-				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();
-				if (passwordPolicy == null) {
-					return null;
-				}
-				return passwordPolicy.getStringPolicy();
-			}
-		};
-		mapping.setStringPolicyResolver(stringPolicyResolver);
+		mapping.setStringPolicyResolver(createStringPolicyResolver(context));
+		mapping.setOriginType(SourceType.INBOUND);
+		mapping.setOriginObject(resource);
     	
     	if (checkInitialSkip(mapping, newUser)) {
             LOGGER.debug("Skipping because of initial flag.");
@@ -366,7 +342,36 @@ public class InboundProcessor {
         return outputUserPropertydelta.isEmpty() ? null : outputUserPropertydelta;
     }
 
-    private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
+	private StringPolicyResolver createStringPolicyResolver(final LensContext<UserType, AccountShadowType> context) {
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private PropertyPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(PropertyPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				if (!outputDefinition.getName().equals(PasswordType.F_PROTECTED_STRING)) {
+					return null;
+				}
+				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+				if (passwordPolicy == null) {
+					return null;
+				}
+				return passwordPolicy.getStringPolicy();
+			}
+		};
+		return stringPolicyResolver;
+	}
+
+	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
         PrismPropertyValue<T> filteredValue = propertyValue.clone();
         filteredValue.setOriginType(SourceType.INBOUND);
 
@@ -440,7 +445,9 @@ public class InboundProcessor {
         		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
 		mapping.setDefaultSource(source);
     	mapping.setDefaultTargetDefinition(property.getDefinition());
-
+    	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
+    	mapping.setOriginType(SourceType.INBOUND);
+    	mapping.setOriginObject(accContext.getResource());
     	
         PrismProperty result;
         try {

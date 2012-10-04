@@ -196,7 +196,7 @@ public class UserPolicyProcessor {
 			
 			@Override
 			public StringPolicyType resolve() {
-				if (!outputDefinition.getName().equals(CredentialsType.F_PASSWORD)) {
+				if (!outputDefinition.getName().equals(PasswordType.F_PROTECTED_STRING)) {
 					return null;
 				}
 				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();

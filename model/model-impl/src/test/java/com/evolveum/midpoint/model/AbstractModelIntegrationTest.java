@@ -140,7 +140,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String DEFAULT_ACCOUNT_TYPE = "default";
 	
 	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
-	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
+	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
 	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
