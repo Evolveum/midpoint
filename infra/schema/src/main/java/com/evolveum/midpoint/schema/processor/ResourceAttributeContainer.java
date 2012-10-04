@@ -362,14 +362,14 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		return (ResourceAttribute<X>) getValue().findOrCreateProperty(attributeName);
 	}
 	
-	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> container,
+	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> origAttrContainer,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		if (container == null) {
+		if (origAttrContainer == null) {
 			return null;
 		}
-		QName elementName = container.getName();
+		QName elementName = origAttrContainer.getName();
 		ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, objectClassDefinition);
-		for (Item item: container.getValue().getItems()) {
+		for (Item item: origAttrContainer.getValue().getItems()) {
 			if (item instanceof PrismProperty) {
 				PrismProperty<?> property = (PrismProperty)item;
 				QName attributeName = property.getName();

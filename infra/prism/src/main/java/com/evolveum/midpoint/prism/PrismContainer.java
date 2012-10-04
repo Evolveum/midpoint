@@ -560,6 +560,18 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 		
 	@Override
+	public void checkConsistenceInternal(Itemable rootItem, PropertyPath path, boolean requireDefinitions,
+			boolean prohibitRaw) {
+		// Containers that are from run-time schema cannot have compile-time class.
+		if (getDefinition() != null && !getDefinition().isRuntimeSchema) {
+			if (getCompileTimeClass() == null) {
+				throw new IllegalStateException("No compile-time class in "+this+" ("+path+" in "+rootItem+")");
+			}
+		}
+		super.checkConsistenceInternal(rootItem, path, requireDefinitions, prohibitRaw);
+	}
+
+	@Override
 	public void assertDefinitions(boolean tolarateRaw, String sourceDescription) throws SchemaException {
 		super.assertDefinitions(tolarateRaw, sourceDescription);
 		for (PrismContainerValue<V> val: getValues()) {
@@ -576,6 +588,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 
     protected void copyValues(PrismContainer<V> clone) {
         super.copyValues(clone);
+        clone.compileTimeClass = this.compileTimeClass;
         for (PrismContainerValue<V> pval : getValues()) {
             try {
 				clone.add(pval.clone());

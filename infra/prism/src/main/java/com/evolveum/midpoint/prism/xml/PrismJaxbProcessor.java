@@ -590,7 +590,14 @@ public class PrismJaxbProcessor {
 			PrismReferenceValue rval = (PrismReferenceValue)value;
 			xmlValue =  getPrismDomProcessor().serializeValueToDom(rval, elementName, document);
 		} else if (value instanceof PrismContainerValue<?>) {
-			xmlValue = ((PrismContainerValue)value).asContainerable();
+			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
+			if (pval.getParent().getCompileTimeClass() == null) {
+				// This has to be runtime schema without a compile-time representation.
+				// We need to convert it to DOM
+				xmlValue =  getPrismDomProcessor().serializeValueToDom(pval, elementName, document);
+			} else {
+				xmlValue = pval.asContainerable();
+			}
 		} else {
 			throw new IllegalArgumentException("Unknown type "+value);
 		}

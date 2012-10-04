@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -42,15 +43,18 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
@@ -61,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
@@ -190,9 +195,9 @@ public class TestRefinedSchema {
         System.out.println("Parsed account:");
         System.out.println(accObject.dump());
 
+        QName objectClassQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, "jack");
-        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, 
-        		new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"));
+        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, objectClassQName);
         PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, DEFAULT_INTENT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
@@ -201,17 +206,37 @@ public class TestRefinedSchema {
         assertAttributeDefs(attrDef, resourceType, true);
 
         PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
-        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), "Jack Sparrow");
-        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName"), "Jack");
-        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "sn"), "Sparrow");
-        PrismAsserts.assertPropertyValue(attributes, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "uid"), "jack");
+        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "cn"), "Jack Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "givenName"), "Jack");
+        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "sn"), "Sparrow");
+        PrismAsserts.assertPropertyValue(attributes, getAttrQName(resource, "uid"), "jack");
 
         assertEquals("JAXB class name doesn't match (1)", AccountShadowType.class, accObject.getCompileTimeClass());
+        
+        accObject.checkConsistence();
 
-
+        AccountShadowType accObjectType = accObject.asObjectable();
+        assertEquals("Wrong JAXB name", "jack", accObjectType.getName());
+        assertEquals("Wrong JAXB objectClass", objectClassQName, accObjectType.getObjectClass());
+        ResourceObjectShadowAttributesType attributesType = accObjectType.getAttributes();
+        assertNotNull("null ResourceObjectShadowAttributesType (JAXB)", attributesType);
+        List<Object> attributeElements = attributesType.getAny();
+        TestUtil.assertElement(attributeElements, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
+        TestUtil.assertElement(attributeElements, getAttrQName(resource, "cn"), "Jack Sparrow");
+        TestUtil.assertElement(attributeElements, getAttrQName(resource, "givenName"), "Jack");
+        TestUtil.assertElement(attributeElements, getAttrQName(resource, "sn"), "Sparrow");
+        TestUtil.assertElement(attributeElements, getAttrQName(resource, "uid"), "jack");
+        
+        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        Element accDomElement = jaxbProcessor.marshalObjectToDom(accObjectType, new QName(SchemaConstants.NS_C, "account"), DOMUtil.getDocument());
+        System.out.println("Result of JAXB marshalling:\n"+DOMUtil.serializeDOMToString(accDomElement));
     }
     
-    @Test
+	private QName getAttrQName(PrismObject<ResourceType> resource, String localPart) {
+		return new QName(ResourceTypeUtil.getResourceNamespace(resource), localPart);
+	}
+
+	@Test
     public void testCreateShadow() throws JAXBException, SchemaException, SAXException, IOException {
     	System.out.println("\n===[ testCreateShadow ]===\n");
 

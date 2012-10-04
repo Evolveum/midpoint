@@ -1122,7 +1122,7 @@ public class PageUser extends PageAdminUsers {
         AccountConstructionType construction = new AccountConstructionType();
         assignment.setAccountConstruction(construction);
         construction.setResource(resource);
-
+        
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         AssignmentEditorDto dto = new AssignmentEditorDto(resource.getName(), AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
                 UserDtoStatus.ADD, assignment);

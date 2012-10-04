@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesTy
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
@@ -309,7 +310,7 @@ public class ResourceTypeManager {
 			throws SchemaException, ObjectNotFoundException {
 		
 		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);
-		PrismContainerDefinition<?> configurationContainerDefintion = ConnectorTypeUtil
+		PrismContainerDefinition<ResourceConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
 				.findConfigurationContainerDefintion(connectorType, prismContext);
 		if (configurationContainerDefintion == null) {
 			throw new SchemaException("No configuration container definition in " + connectorType);
@@ -980,9 +981,7 @@ public class ResourceTypeManager {
 		return prismResource;
 	}
 
-	public void applyDefinition(PrismObject<ResourceType> object, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ResourceType completedResource = completeResource(object.asObjectable(), null, parentResult);
-		object = completedResource.asPrismObject().clone();
-		
+	public void applyDefinition(PrismObject<ResourceType> resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		completeResource(resource.asObjectable(), null, parentResult);
 	}
 }

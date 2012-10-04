@@ -29,17 +29,21 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.testng.AssertJUnit;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -94,6 +98,25 @@ public class TestUtil {
 		ResourceAttribute attribute = attrDef.instantiate();
 		attribute.setRealValue(value);
 		attributesContainer.add(attribute);
+	}
+
+	public static void assertElement(List<Object> elements, QName elementQName, String value) {
+		for (Object element: elements) {
+			QName thisElementQName = JAXBUtil.getElementQName(element);
+			if (elementQName.equals(thisElementQName)) {
+				if (element instanceof Element) {
+					String thisElementContent = ((Element)element).getTextContent();
+					if (value.equals(thisElementContent)) {
+						return;
+					} else {
+						AssertJUnit.fail("Wrong value for element with name "+elementQName+"; expected "+value+"; was "+thisElementContent);
+					}
+				} else {
+					throw new IllegalArgumentException("Unexpected type of element "+elementQName+": "+element.getClass());
+				}
+			}
+		}
+		AssertJUnit.fail("No element with name "+elementQName);
 	}
 
 }

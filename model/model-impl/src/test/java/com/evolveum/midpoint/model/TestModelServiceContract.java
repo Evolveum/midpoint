@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -43,6 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -89,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -116,6 +119,68 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	public TestModelServiceContract() throws JAXBException {
 		super();
 	}
+	
+	@Test
+    public void test040GetResource() throws Exception {
+        displayTestTile(this, "test040GetResource");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test040GetResource");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+		// WHEN
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
+		
+		assertResource(resource);
+		
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
+	}
+	
+	@Test
+    public void test041SearchResources() throws Exception {
+        displayTestTile(this, "test041SearchResources");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test041SearchResources");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+		// WHEN
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
+        
+		// THEN
+        assertNotNull("null rearch return", resources);
+        assertFalse("Empty rearch return", resources.isEmpty());
+        assertEquals("Unexpected number of resources found", 5, resources.size());
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("searchObjects result", result);
+
+        for (PrismObject<ResourceType> resource: resources) {
+        	assertResource(resource);
+        }
+	}
+	
+	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {
+		display("Resource", resource);
+		display("Resource def", resource.getDefinition());
+		PrismContainer<ResourceConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		assertNotNull("No Resource connector configuration def", configurationContainer);
+		display("Resource connector configuration def", configurationContainer.getDefinition());
+		display("Resource connector configuration def complex type def", configurationContainer.getDefinition().getComplexTypeDefinition());
+		assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
+		assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ResourceConfigurationType.class, 
+				configurationContainer.getCompileTimeClass());
+		
+		resource.checkConsistence(true, true);
+		
+		// Try to marshal using pure JAXB as a rough test that it is OK JAXB-wise
+		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
+				DOMUtil.getDocument());
+		display("Resouce DOM element after JAXB marshall", resourceDomElement);
+	}
 		
 	@Test
     public void test050GetUser() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
@@ -135,6 +200,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        userJack.checkConsistence(true, true);
 	}
 	
 	@Test
@@ -211,6 +278,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        account.checkConsistence(true, true);
 	}
 
 	@Test
@@ -237,6 +306,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        account.checkConsistence(true, true);
 	}
 	
 	@Test
@@ -263,6 +334,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        account.checkConsistence(true, true);
 	}
 
 	@Test
@@ -299,6 +372,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        userJack.checkConsistence(true, true);
 	}
 
 
@@ -341,6 +416,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        userJack.checkConsistence(true, true);
 	}
 
 	@Test
@@ -377,6 +454,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        userJack.checkConsistence(true, true);
 	}
 
 	
