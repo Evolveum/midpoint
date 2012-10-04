@@ -21,9 +21,11 @@
 package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -68,19 +70,33 @@ public class WfConfiguration {
         }
 
         // activiti properties related to database connection will be taken from SQL repository
-        SqlRepositoryConfiguration sqlConfig;
+        SqlRepositoryConfiguration sqlConfig = null;
+        String defaultJdbcUrlPrefix = null;
         try {
             SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
             sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+            if (sqlConfig.isEmbedded()) {
+                defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+            }
         } catch(NoSuchBeanDefinitionException e) {
             LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");
             LOGGER.trace("Reason is", e);
-            sqlConfig = null;
+        } catch (RepositoryServiceFactoryException e) {
+            LoggingUtils.logException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
         }
 
-        activitiSchemaUpdate = c.getBoolean("activitiSchemaUpdate", false);
+        jdbcUrl = c.getString("jdbcUrl", null);
+        if (jdbcUrl == null) {
+            if (sqlConfig.isEmbedded()) {
+                jdbcUrl = defaultJdbcUrlPrefix + "-activiti;DB_CLOSE_ON_EXIT=FALSE";
+            } else {
+                jdbcUrl = sqlConfig.getJdbcUrl();
+            }
+        }
+        LOGGER.info("Activiti database is at " + jdbcUrl);
+
+        activitiSchemaUpdate = c.getBoolean("activitiSchemaUpdate", true);
         jdbcDriver = c.getString("jdbcDriver", sqlConfig != null ? sqlConfig.getDriverClassName() : null);
-        jdbcUrl = c.getString("jdbcUrl", sqlConfig != null ? sqlConfig.getJdbcUrl() : null);
         jdbcUser = c.getString("jdbcUser", sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString("jdbcPassword", sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 

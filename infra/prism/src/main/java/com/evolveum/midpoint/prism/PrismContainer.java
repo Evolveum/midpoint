@@ -351,11 +351,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     <I extends Item<?>> I findCreateItem(QName itemQName, Class<I> type, boolean create) throws SchemaException {
-        // brutal hack - to be removed later
-        if (getValues().size() == 0 && !create && getDefinition() != null && !getDefinition().isDynamic() && !getDefinition().isSingleValue()) {
-            LOGGER.warn("findCreateItem called on potentially multi-value container with 0 values; item = " + itemQName + "; container: " + dump());
-            return null;
-        }
         return getValue().findCreateItem(itemQName, type, null, create);
     }
         

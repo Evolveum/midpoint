@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
+import com.evolveum.midpoint.wf.WorkflowException;
 
 import java.util.Iterator;
 import java.util.List;
@@ -77,12 +78,15 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 //            }
 
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            List<WorkItem> items = assigned ?
-                    wfm.listWorkItemsAssignedToUser(currentUser(), first, count, result) :
-                    wfm.listWorkItemsAssignableToUser(currentUser(), first, count, result);
+            List<WorkItem> items = wfm.listWorkItemsRelatedToUser(currentUser(), assigned, first, count, result);
 
             for (WorkItem item : items) {
-                getAvailableData().add(new WorkItemDto(item));
+                try {
+                    getAvailableData().add(new WorkItemDto(item));
+                } catch (Exception e) {
+                    LoggingUtils.logException(LOGGER, "Unhandled exception when listing work item {}", e, item);
+                    result.recordFatalError("Couldn't list work item.", e);
+                }
             }
 
         } catch (Exception ex) {
@@ -103,11 +107,9 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
             WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-            count = assigned ?
-                    wfDataAccessor.countWorkItemsAssignedToUser(currentUser(), result) :
-                    wfDataAccessor.countWorkItemsAssignableToUser(currentUser(), result);
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't count work items assigned to user.", ex);
+            count = wfDataAccessor.countWorkItemsRelatedToUser(currentUser(), assigned, result);
+        } catch (WorkflowException ex) {
+            result.recordFatalError("Couldn't count work items assigned/assignable to user.", ex);
         }
 
         if (result.isUnknown()) {

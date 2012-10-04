@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.task.quartzimpl.execution.TaskSynchronizer;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -66,19 +68,25 @@ public class Initializer {
 
         if (configuration.isJdbcJobStore()) {
 
-            SqlRepositoryConfiguration sqlConfig;
+
 
             // quartz properties related to database connection will be taken from SQL repository
+            String defaultJdbcUrlPrefix = null;
+            SqlRepositoryConfiguration sqlConfig = null;
             try {
                 SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) taskManager.getBeanFactory().getBean("sqlRepositoryFactory");
                 sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+                if (sqlConfig.isEmbedded()) {
+                    defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+                }
             } catch(NoSuchBeanDefinitionException e) {
                 LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
-                sqlConfig = null;
+            } catch (RepositoryServiceFactoryException e) {
+                LoggingUtils.logException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
             }
 
-            configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig);
+            configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig, defaultJdbcUrlPrefix);
             configuration.validateJdbcJobStoreInformation();
         }
 

@@ -30,11 +30,13 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
@@ -52,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -78,6 +81,8 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
     public static final String ROLES_TO_APPROVE = "rolesToApprove";
     public static final String DECISION_LIST = "decisionList";
     private static final String ADD_ROLE_PROCESS = "AddRoles";
+
+    //private static final QName ADDITIONAL_INFO = new QName(SchemaConstants.NS_C, "AdditionalInfo");       // todo: change namespace
 
     @PostConstruct
     public void register() {
@@ -122,7 +127,9 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace(" - role: " + role);
                     }
-                    rolesToAdd.add(role);
+                    if (shouldRoleBeAuthorized(role)) {
+                        rolesToAdd.add(role);
+                    }
                 }
             }
         } else if (change.getChangeType() == ChangeType.MODIFY) {
@@ -146,7 +153,9 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
                             if (LOGGER.isTraceEnabled()) {
                                 LOGGER.trace(" - role: " + role);
                             }
-                            rolesToAdd.add(role);
+                            if (shouldRoleBeAuthorized(role)) {
+                                rolesToAdd.add(role);
+                            }
                         }
                     }
                 }
@@ -177,17 +186,48 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             } else if (fc.getObjectOld() != null && fc.getObjectOld().getOid() != null) {
                 objectOid = fc.getObjectOld().getOid();
             }
+
+            // let's get fresh data (not the ones read on user login)
+            PrismObject<UserType> requester = null;
+            try {
+                requester = ((PrismObject<UserType>) repositoryService.getObject(UserType.class, task.getOwner().getOid(), result));
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), because it does not exist in repository anymore. Using cached data.", e);
+                requester = task.getOwner();
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't get data about task requester (" + task.getOwner() + "), due to schema exception. Using cached data.", e);
+                requester = task.getOwner();
+            }
+//            LOGGER.info("+++ requester = " + task.getOwner().dump());
+//            LOGGER.info("+++ object old = " + fc.getObjectOld().dump());
+
+            if (fc.getObjectOld() != null) {
+                resolveRolesAndOrgUnits(fc.getObjectOld(), result);
+            }
+
+            if (fc.getObjectNew() != null) {
+                resolveRolesAndOrgUnits(fc.getObjectNew(), result);
+            }
+
+            if (requester != null) {
+                resolveRolesAndOrgUnits(requester, result);
+            }
+
             spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
             spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD, fc.getObjectOld());
             spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW, fc.getObjectNew());
             //spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_DELTA, change);
-            spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER, task.getOwner());   // todo - is this ok?
+            spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER, requester);
             spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
             spi.addProcessVariable(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
             spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, "@role");
             return spi;
         }
         return null;
+    }
+
+    private boolean shouldRoleBeAuthorized(RoleType role) {
+        return !role.getApproverRef().isEmpty();
     }
 
     private String formatAsRoleList(List<RoleType> rolesToAdd) {
@@ -403,6 +443,26 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
         addRolesRequested(sb, vars);
         addDecisionsDone(sb, vars);
         return sb.toString();
+    }
+
+    private void resolveRolesAndOrgUnits(PrismObject<UserType> user, OperationResult result) {
+        for (AssignmentType assignmentType : user.asObjectable().getAssignment()) {
+            if (assignmentType.getTargetRef() != null && assignmentType.getTarget() == null) {
+                QName type = assignmentType.getTargetRef().getType();
+                if (RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type)) {
+                    String oid = assignmentType.getTargetRef().getOid();
+                    try {
+                        PrismObject<ObjectType> o = repositoryService.getObject(ObjectType.class, oid, result);
+                        assignmentType.setTarget(o.asObjectable());
+                        LOGGER.info("Resolved {} to {} in {}", new Object[]{oid, o, user});
+                    } catch (ObjectNotFoundException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
+                    } catch (SchemaException e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't resolve reference to {} in {}", e, oid, user);
+                    }
+                }
+            }
+        }
     }
 
 }

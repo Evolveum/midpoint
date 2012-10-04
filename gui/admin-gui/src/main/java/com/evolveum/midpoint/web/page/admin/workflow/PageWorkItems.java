@@ -33,14 +33,20 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -115,6 +121,29 @@ public class PageWorkItems extends PageAdminWorkItems {
             }
         };
         columns.add(column);
+
+        columns.add(new AbstractColumn<WorkItemDto>(createStringResource("pageWorkItems.item.created")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,
+                                     final IModel<WorkItemDto> rowModel) {
+                item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+
+                    @Override
+                    public Object getObject() {
+                        WorkItemDto pi = rowModel.getObject();
+                        Date started = pi.getWorkItem().getCreateTime();
+                        if (started == null) {
+                            return "?";
+                        } else {
+                            // todo i18n
+                            return started.toString();
+                        }
+                    }
+                }));
+            }
+        });
+
 
         return columns;
     }
@@ -213,68 +242,68 @@ public class PageWorkItems extends PageAdminWorkItems {
         setResponsePage(PageWorkItem.class, parameters);
     }
 
-    private void claimWorkItemsPerformed(AjaxRequestTarget target) {
-        List<WorkItemDto> workItemDtoList = getSelectedUnassignedItems();
-        if (!isSomeItemSelected(workItemDtoList, target)) {
-            return;
-        }
-
-        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
-        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-        for (WorkItemDto workItemDto : workItemDtoList) {
-            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
-            try {
-                wfDataAccessor.claimWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), result);
-            } catch (Exception e) {
-                result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
-            }
-        }
-        if (mainResult.isUnknown()) {
-            mainResult.recomputeStatus();
-        }
-
-        if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully claimed.");
-        }
-
-        showResult(mainResult);
-
-        //refresh feedback and table
-        target.add(getFeedbackPanel());
-        target.add(getUnassignedItemTable());
-        target.add(getAssignedItemTable());
-    }
-
-    private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
-        List<WorkItemDto> workItemDtoList = getSelectedAssignedItems();
-        if (!isSomeItemSelected(workItemDtoList, target)) {
-            return;
-        }
-
-        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
-        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-        for (WorkItemDto workItemDto : workItemDtoList) {
-            OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
-            try {
-                wfDataAccessor.releaseWorkItem(workItemDto.getWorkItem(), result);
-            } catch (Exception e) {
-                result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
-            }
-        }
-        if (mainResult.isUnknown()) {
-            mainResult.recomputeStatus();
-        }
-
-        if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully released.");
-        }
-
-        showResult(mainResult);
-
-        //refresh feedback and table
-        target.add(getFeedbackPanel());
-        target.add(getUnassignedItemTable());
-        target.add(getAssignedItemTable());
-    }
+//    private void claimWorkItemsPerformed(AjaxRequestTarget target) {
+//        List<WorkItemDto> workItemDtoList = getSelectedUnassignedItems();
+//        if (!isSomeItemSelected(workItemDtoList, target)) {
+//            return;
+//        }
+//
+//        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
+//        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+//        for (WorkItemDto workItemDto : workItemDtoList) {
+//            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
+//            try {
+//                wfDataAccessor.claimWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), result);
+//            } catch (Exception e) {
+//                result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
+//            }
+//        }
+//        if (mainResult.isUnknown()) {
+//            mainResult.recomputeStatus();
+//        }
+//
+//        if (mainResult.isSuccess()) {
+//            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully claimed.");
+//        }
+//
+//        showResult(mainResult);
+//
+//        //refresh feedback and table
+//        target.add(getFeedbackPanel());
+//        target.add(getUnassignedItemTable());
+//        target.add(getAssignedItemTable());
+//    }
+//
+//    private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
+//        List<WorkItemDto> workItemDtoList = getSelectedAssignedItems();
+//        if (!isSomeItemSelected(workItemDtoList, target)) {
+//            return;
+//        }
+//
+//        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
+//        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+//        for (WorkItemDto workItemDto : workItemDtoList) {
+//            OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
+//            try {
+//                wfDataAccessor.releaseWorkItem(workItemDto.getWorkItem(), result);
+//            } catch (Exception e) {
+//                result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
+//            }
+//        }
+//        if (mainResult.isUnknown()) {
+//            mainResult.recomputeStatus();
+//        }
+//
+//        if (mainResult.isSuccess()) {
+//            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully released.");
+//        }
+//
+//        showResult(mainResult);
+//
+//        //refresh feedback and table
+//        target.add(getFeedbackPanel());
+//        target.add(getUnassignedItemTable());
+//        target.add(getAssignedItemTable());
+//    }
 
 }

@@ -35,10 +35,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 
 import org.apache.commons.lang.Validate;
@@ -64,6 +61,8 @@ public class ObjectWrapper implements Serializable {
 	private boolean minimalized;
 	private boolean selectable;
 	private boolean selected;
+
+    private boolean showAssignments = false;
 
 	public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
@@ -216,6 +215,7 @@ public class ObjectWrapper implements Serializable {
 	}
 
 	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, PropertyPath path) {
+
 		PrismContainerDefinition definition = parent.getDefinition();
 		List<ContainerWrapper> wrappers = new ArrayList<ContainerWrapper>();
 
@@ -231,7 +231,7 @@ public class ObjectWrapper implements Serializable {
 			}
 
 			PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
-			if (AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
+			if (!showAssignments && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
 				continue;
 			}
 
@@ -244,7 +244,9 @@ public class ObjectWrapper implements Serializable {
 				wrappers.add(new ContainerWrapper(this, prismContainer, ContainerStatus.ADDING, newPath));
 			}
 
-			wrappers.addAll(createContainerWrapper(prismContainer, newPath));
+            if (!AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {      // do not show internals of Assignments (e.g. activation)
+			    wrappers.addAll(createContainerWrapper(prismContainer, newPath));
+            }
 		}
 
 		return wrappers;
@@ -480,4 +482,12 @@ public class ObjectWrapper implements Serializable {
 			return size1 - size2;
 		}
 	}
+
+    public boolean isShowAssignments() {
+        return showAssignments;
+    }
+
+    public void setShowAssignments(boolean showAssignments) {
+        this.showAssignments = showAssignments;
+    }
 }

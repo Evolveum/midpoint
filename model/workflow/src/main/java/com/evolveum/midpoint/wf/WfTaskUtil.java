@@ -326,7 +326,7 @@ public class WfTaskUtil {
             String details = "";
 
             if (event != null && pid != null) {
-                ProcessWrapper wrapper = wfCore.findProcessWrapper(variables, pid);
+                ProcessWrapper wrapper = wfCore.findProcessWrapper(variables, pid, parentResult);
                 if (wrapper != null) {
                     details = wrapper.getProcessSpecificDetailsForTask(pid, variables);
 

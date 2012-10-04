@@ -143,6 +143,36 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             return;
         }
 
+        StringBuilder jdbcUrl = new StringBuilder(prepareJdbcUrlPrefix(config));
+
+        //disable database closing on exit. By default, a database is closed when the last connection is closed.
+        jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
+        //Both read locks and write locks are kept until the transaction commits.
+        jdbcUrl.append(";LOCK_MODE=1");
+        //fix for "Timeout trying to lock table [50200-XXX]" in H2 database. Default value is 1000ms.
+        jdbcUrl.append(";LOCK_TIMEOUT=10000");
+
+        config.setJdbcUrl(jdbcUrl.toString());
+        LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});
+
+        config.setJdbcUsername("sa");
+        config.setJdbcPassword("");
+
+        config.setDriverClassName("org.h2.Driver");
+        config.setHibernateDialect("org.hibernate.dialect.H2Dialect");
+        config.setHibernateHbm2ddl("update");
+    }
+
+
+    /**
+     * Prepares a prefix (first part) of JDBC URL for embedded database. Used also by configurator of tasks (quartz)
+     * and workflow (activiti) modules; they add their own db names and parameters to this string.
+     *
+     * @param config
+     * @return prefix of JDBC URL like jdbc:h2:file:d:\midpoint\midpoint
+     */
+    public String prepareJdbcUrlPrefix(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
+
         if (StringUtils.isEmpty(config.getFileName())) {
             config.setFileName("midpoint");
         }
@@ -170,7 +200,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         File baseDir = new File(config.getBaseDir());
         if (!baseDir.exists() || !baseDir.isDirectory()) {
             throw new RepositoryServiceFactoryException("File '" + config.getBaseDir()
-                    + "' defined as baseDir doesn't exist or is not directory.");
+                    + "' defined as baseDir doesn't exist or is not a directory.");
         }
 
         StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
@@ -187,22 +217,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             File databaseFile = new File(config.getBaseDir(), config.getFileName());
             jdbcUrl.append(databaseFile.getAbsolutePath());
         }
-        //disable database closing on exit. By default, a database is closed when the last connection is closed.
-        jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
-        //Both read locks and write locks are kept until the transaction commits.
-        jdbcUrl.append(";LOCK_MODE=1");
-        //fix for "Timeout trying to lock table [50200-XXX]" in H2 database. Default value is 1000ms.
-        jdbcUrl.append(";LOCK_TIMEOUT=10000");
+        return jdbcUrl.toString();
 
-        config.setJdbcUrl(jdbcUrl.toString());
-        LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});
-
-        config.setJdbcUsername("sa");
-        config.setJdbcPassword("");
-
-        config.setDriverClassName("org.h2.Driver");
-        config.setHibernateDialect("org.hibernate.dialect.H2Dialect");
-        config.setHibernateHbm2ddl("update");
     }
 
     private String getRelativeBaseDirPath(String baseDir) {

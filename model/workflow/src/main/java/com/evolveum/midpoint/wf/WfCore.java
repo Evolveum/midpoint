@@ -263,25 +263,26 @@ public class WfCore {
     }
 
 
-    // todo error reporting
-    ProcessWrapper findProcessWrapper(Map<String, Object> vars, String id) {
+    ProcessWrapper findProcessWrapper(Map<String, Object> vars, String id, OperationResult result) throws WorkflowException {
         String wrapperName = (String) vars.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
         if (wrapperName == null) {
-            LOGGER.warn("No process wrapper found for wf process " + id);
-            return null;
+            String m = "No process wrapper name found for wf process " + id;
+            result.recordFatalError(m);
+            throw new WorkflowException(m);
         }
+        Exception e1;
         try {
             return (ProcessWrapper) Class.forName(wrapperName).newInstance();
         } catch (InstantiationException e) {
-            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} due to instantiation exception", e, wrapperName);
-            return null;
+            e1 = e;
         } catch (IllegalAccessException e) {
-            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} due to illegal access exception", e, wrapperName);
-            return null;
+            e1 = e;
         } catch (ClassNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Cannot instantiate workflow process wrapper {} because the class cannot be found", e, wrapperName);
-            return null;
+            e1 = e;
         }
+        String m = "Cannot instantiate workflow process wrapper " + wrapperName;
+        result.recordFatalError(m, e1);
+        throw new WorkflowException(m, e1);
     }
 
 }

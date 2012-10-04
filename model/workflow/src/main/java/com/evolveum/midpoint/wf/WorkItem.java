@@ -21,6 +21,10 @@
 
 package com.evolveum.midpoint.wf;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -41,6 +45,14 @@ public class WorkItem implements Serializable {
     private String assigneeName;
     private String candidates;
     private Date createTime;
+
+    private PrismObject<UserType> requester;
+    private PrismObject<UserType> objectOld;
+    private PrismObject<UserType> objectNew;
+    private PrismObject<ObjectType> requestSpecificData;
+    private PrismObject<ObjectType> requestCommonData;
+    private PrismObject<ObjectType> trackingData;
+    private PrismObject<ObjectType> additionalData;
 
     public String getAssignee() {
         return assignee;
@@ -104,5 +116,61 @@ public class WorkItem implements Serializable {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public PrismObject<UserType> getObjectNew() {
+        return objectNew;
+    }
+
+    public void setObjectNew(PrismObject<UserType> objectNew) {
+        this.objectNew = objectNew;
+    }
+
+    public PrismObject<UserType> getObjectOld() {
+        return objectOld;
+    }
+
+    public void setObjectOld(PrismObject<UserType> objectOld) {
+        this.objectOld = objectOld;
+    }
+
+    public PrismObject<ObjectType> getRequestCommonData() {
+        return requestCommonData;
+    }
+
+    public void setRequestCommonData(PrismObject<ObjectType> requestCommonData) {
+        this.requestCommonData = requestCommonData;
+    }
+
+    public PrismObject<UserType> getRequester() {
+        return requester;
+    }
+
+    public void setRequester(PrismObject<UserType> requester) {
+        this.requester = requester;
+    }
+
+    public PrismObject<ObjectType> getRequestSpecificData() {
+        return requestSpecificData;
+    }
+
+    public void setRequestSpecificData(PrismObject<ObjectType> requestSpecificData) {
+        this.requestSpecificData = requestSpecificData;
+    }
+
+    public void setTrackingData(PrismObject<ObjectType> trackingData) {
+        this.trackingData = trackingData;
+    }
+
+    public PrismObject<ObjectType> getTrackingData() {
+        return trackingData;
+    }
+
+    public void setAdditionalData(PrismObject<ObjectType> additionalData) {
+        this.additionalData = additionalData;
+    }
+
+    public PrismObject<ObjectType> getAdditionalData() {
+        return additionalData;
     }
 }

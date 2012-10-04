@@ -208,12 +208,22 @@ public class TaskManagerConfiguration {
         addDbInfo("org.hibernate.dialect.SQLServerDialect", "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
     }
 
-    void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig) {
+    void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig, String defaultJdbcUrlPrefix) {
 
         Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
 
         jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
-        jdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUrl() : null);
+
+        jdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
+        if (jdbcUrl == null) {
+            if (sqlConfig.isEmbedded()) {
+                jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
+            } else {
+                jdbcUrl = sqlConfig.getJdbcUrl();
+            }
+        }
+        LOGGER.info("Quartz database is at " + jdbcUrl);
+
         jdbcUser = c.getString(JDBC_USER_CONFIG, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 

@@ -21,28 +21,44 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
-import com.evolveum.midpoint.wf.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+import java.text.SimpleDateFormat;
+
 /**
+ *
+ * TODO: make this more efficient e.g. by loading WorkItem or ProcessInstance once, and derive all models from that.
+ *
  * @author mederly
  */
 public class PageWorkItem extends PageAdminWorkItems {
@@ -50,6 +66,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     public static final String PARAM_TASK_ID = "taskId";
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
+    private static final String OPERATION_LOAD_PROCESS_INSTANCE = DOT_CLASS + "loadProcessInstance";
     private static final String OPERATION_LOAD_REQUESTER = DOT_CLASS + "loadRequester";
     private static final String OPERATION_LOAD_OBJECT_OLD = DOT_CLASS + "loadObjectOld";
     private static final String OPERATION_LOAD_OBJECT_NEW = DOT_CLASS + "loadObjectNew";
@@ -57,9 +74,11 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String OPERATION_LOAD_REQUEST_COMMON = DOT_CLASS + "loadRequestCommon";
     private static final String OPERATION_LOAD_REQUEST_SPECIFIC = DOT_CLASS + "loadRequestSpecific";
     private static final String OPERATION_LOAD_ADDITIONAL_DATA = DOT_CLASS + "loadAdditionalData";
+    private static final String OPERATION_LOAD_TRACKING_DATA = DOT_CLASS + "loadTrackingData";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
-//    private IModel<ObjectWrapper> workItemModel;
+
+    private IModel<WorkItemDto> workItemDtoModel;
 
     private IModel<ObjectWrapper> requesterModel;
     private IModel<ObjectWrapper> objectOldModel;
@@ -67,208 +86,260 @@ public class PageWorkItem extends PageAdminWorkItems {
     private IModel<ObjectWrapper> requestCommonModel;
     private IModel<ObjectWrapper> requestSpecificModel;
     private IModel<ObjectWrapper> additionalDataModel;
+    private IModel<ObjectWrapper> trackingDataModel;
+    private IModel<ProcessInstanceDto> processInstanceDtoModel;
 
     public PageWorkItem() {
         requesterModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                return loadRequesterWrapper();
+                loadWorkItemDtoIfNecessary();
+                return getRequesterWrapper();
             }
         };
         objectOldModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                return loadObjectOldWrapper();
+                loadWorkItemDtoIfNecessary();
+                return getObjectOldWrapper();
             }
         };
         objectNewModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                return loadObjectNewWrapper();
+                loadWorkItemDtoIfNecessary();
+                return getObjectNewWrapper();
             }
         };
         requestCommonModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                return loadRequestCommonWrapper();
+                loadWorkItemDtoIfNecessary();
+                return getRequestCommonWrapper();
             }
         };
         requestSpecificModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                return loadRequestSpecificWrapper();
+                loadWorkItemDtoIfNecessary();
+                return getRequestSpecificWrapper();
             }
         };
         additionalDataModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                return loadAdditionalDataWrapper();
+                loadWorkItemDtoIfNecessary();
+                return getAdditionalDataWrapper();
+            }
+        };
+        trackingDataModel = new LoadableModel<ObjectWrapper>(false) {
+            @Override
+            protected ObjectWrapper load() {
+                loadWorkItemDtoIfNecessary();
+                return getTrackingDataWrapper();
+            }
+        };
+        workItemDtoModel = new LoadableModel<WorkItemDto>(false) {
+            @Override
+            protected WorkItemDto load() {
+                return loadWorkItemDtoIfNecessary();
+            }
+        };
+        processInstanceDtoModel = new LoadableModel<ProcessInstanceDto>(false) {
+            @Override
+            protected ProcessInstanceDto load() {
+                return loadProcessInstanceDto();
             }
         };
 
         initLayout();
     }
 
-    private ObjectWrapper loadRequesterWrapper() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_REQUESTER);
-        PrismObject<UserType> requester = null;
+    private ObjectWrapper getRequesterWrapper() {
+        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getRequester();
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(false);
+        wrapper.setMinimalized(true);
+        wrapper.setShowAssignments(true);
+
+        return wrapper;
+    }
+
+    private ObjectWrapper getObjectOldWrapper() {
+        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getObjectOld();
+
+        if (prism == null) {
+            prism = createEmptyUserObject();
+        }
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(false);
+        wrapper.setMinimalized(true);
+        wrapper.setShowAssignments(true);
+
+        return wrapper;
+    }
+
+    private ObjectWrapper getObjectNewWrapper() {
+        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getObjectNew();
+
+        if (prism == null) {
+            prism = createEmptyUserObject();
+        }
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(false);
+        wrapper.setMinimalized(true);
+        wrapper.setShowAssignments(true);
+
+        return wrapper;
+    }
+
+
+    private PrismObject<UserType> createEmptyUserObject() {
+        PrismObject<UserType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
+        try {
+            getWorkflowManager().getPrismContext().adopt(p);
+        } catch (SchemaException e) {   // safe to convert; this should not occur
+            throw new SystemException("Got schema exception when creating empty user object.", e);
+        }
+        return p;
+    }
+
+    private ObjectWrapper getRequestCommonWrapper() {
+        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getRequestCommonData();
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(false);
+        wrapper.setMinimalized(false);
+
+        return wrapper;
+    }
+
+    private ObjectWrapper getRequestSpecificWrapper() {
+        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData();
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(true);
+        wrapper.setMinimalized(false);
+
+        return wrapper;
+    }
+
+
+    private ObjectWrapper getAdditionalDataWrapper() {
+        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getAdditionalData();
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(false);
+        wrapper.setMinimalized(true);
+
+        return wrapper;
+    }
+
+    private ObjectWrapper getTrackingDataWrapper() {
+        PrismObject<ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData();
+
+        ContainerStatus status = ContainerStatus.MODIFYING;
+        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        wrapper.setShowEmpty(false);
+        wrapper.setMinimalized(true);
+
+        return wrapper;
+    }
+
+    private WorkItemDto loadWorkItemDtoIfNecessary() {
+
+        if (((LoadableModel) workItemDtoModel).isLoaded()) {
+            return workItemDtoModel.getObject();
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEM);
+        WorkItem workItem = null;
         try {
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            requester = wfm.getRequester(getPageParameters().get(PARAM_TASK_ID).toString());
-            if (requester == null) {
-                requester = createEmptyUserObject();
-            }
-            result.recordSuccess();
+            workItem = wfm.getWorkItemByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
+            result.recordSuccessIfUnknown();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't get requester for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get requester for work item.", ex);
+            result.recordFatalError("Couldn't get work item.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
         }
 
         if (!result.isSuccess()) {
+            showResultInSession(result);
+            throw new RestartResponseException(PageWorkItems.class);
+        }
+
+        return new WorkItemDto(workItem);
+    }
+
+    private ProcessInstanceDto loadProcessInstanceDto() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_PROCESS_INSTANCE);
+        ProcessInstance processInstance;
+        try {
+            WfDataAccessor wfm = getWorkflowDataAccessor();
+            processInstance = wfm.getProcessInstanceByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
+            result.recordSuccess();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get process instance for work item.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item.", ex);
             showResult(result);
             return null;
         }
 
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, requester, status);
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-
-        return wrapper;
+        return new ProcessInstanceDto(processInstance);
     }
 
-    private ObjectWrapper loadObjectOldWrapper() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_OLD);
-        PrismObject<? extends ObjectType> objectOld = null;
-        try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
-            objectOld = wfm.getObjectOld(getPageParameters().get(PARAM_TASK_ID).toString());
-            if (objectOld == null) {
-                objectOld = createEmptyUserObject();
-            }
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get original object for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get original object for work item.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, objectOld, status);
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-
-        return wrapper;
-    }
-
-    private PrismObject<UserType> createEmptyUserObject() throws SchemaException {
-        PrismObject<UserType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
-        getWorkflowManager().getPrismContext().adopt(p);
-        return p;
-    }
-
-    private ObjectWrapper loadObjectNewWrapper() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_NEW);
-        PrismObject<? extends ObjectType> objectNew = null;
-        try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
-            objectNew = wfm.getObjectNew(getPageParameters().get(PARAM_TASK_ID).toString());
-            if (objectNew == null) {
-                objectNew = createEmptyUserObject();
-            }
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get changed (target) form of object for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get changed (target) form of object for work item.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, objectNew, status);
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-
-        return wrapper;
-    }
-
-    private ObjectWrapper loadRequestCommonWrapper() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_REQUEST_COMMON);
-        PrismObject<? extends ObjectType> requestCommon = null;
-        try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
-            requestCommon = wfm.getRequestCommon(getPageParameters().get(PARAM_TASK_ID).toString());
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get request common data for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get request common data for work item.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, requestCommon, status);
-        wrapper.setShowEmpty(false);
-
-        return wrapper;
-    }
-
-    private ObjectWrapper loadRequestSpecificWrapper() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_REQUEST_SPECIFIC);
-        PrismObject<? extends ObjectType> requestSpecific = null;
-        try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
-            requestSpecific = wfm.getRequestSpecific(getPageParameters().get(PARAM_TASK_ID).toString());
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get request common data for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get request common data for work item.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, requestSpecific, status);
-        wrapper.setShowEmpty(true);
-
-        return wrapper;
-    }
-
-    private ObjectWrapper loadAdditionalDataWrapper() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_ADDITIONAL_DATA);
-        PrismObject<? extends ObjectType> additionalData = null;
-        try {
-            WfDataAccessor wfm = getWorkflowDataAccessor();
-            additionalData = wfm.getAdditionalData(getPageParameters().get(PARAM_TASK_ID).toString());
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get additional data for work item.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't get additional data for work item.", ex);
-        }
-
-        if (!result.isSuccess()) {
-            showResult(result);
-        }
-
-        ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, additionalData, status);
-        wrapper.setShowEmpty(false);
-
-        return wrapper;
-    }
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
+
+        Label title = new Label("title", new PropertyModel(workItemDtoModel, "name"));
+        mainForm.add(title);
+
+        Label requestedBy = new Label("requestedBy", new PropertyModel(requesterModel, "object.asObjectable.name"));
+        mainForm.add(requestedBy);
+
+        Label requestedByFullName = new Label("requestedByFullName", new PropertyModel(requesterModel, "object.asObjectable.fullName"));
+        mainForm.add(requestedByFullName);
+
+        Label requestedOn = new Label("requestedOn", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                ProcessInstanceDto dto = processInstanceDtoModel.getObject();
+                if (dto.getProcessInstance().getStartTime() == null) {
+                    return "";
+                }
+                SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+                return dateFormat.format(dto.getProcessInstance().getStartTime());
+            }
+
+        });
+        mainForm.add(requestedOn);
+
+        Label workItemCreatedOn = new Label("workItemCreatedOn", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                WorkItemDto dto = workItemDtoModel.getObject();
+                if (dto.getWorkItem().getCreateTime() == null) {
+                    return "";
+                }
+                SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+                return dateFormat.format(dto.getWorkItem().getCreateTime());
+            }
+
+        });
+        mainForm.add(workItemCreatedOn);
 
         PrismObjectPanel requesterForm = new PrismObjectPanel("requesterForm", requesterModel,
                 new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
@@ -278,6 +349,12 @@ public class PageWorkItem extends PageAdminWorkItems {
                 return createStringResource("pageWorkItem.requester.description");
             }
         };
+        requesterForm.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return requesterModel != null && !requesterModel.getObject().getObject().isEmpty();
+            }
+        });
         mainForm.add(requesterForm);
 
         PrismObjectPanel objectOldForm = new PrismObjectPanel("objectOldForm", objectOldModel,
@@ -300,22 +377,17 @@ public class PageWorkItem extends PageAdminWorkItems {
         };
         mainForm.add(objectNewForm);
 
-        PrismObjectPanel requestCommonForm = new PrismObjectPanel("requestCommonForm", requestCommonModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
-
-            @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return createStringResource("pageWorkItem.requestCommon.description");
-            }
-        };
-        mainForm.add(requestCommonForm);
-
         PrismObjectPanel requestSpecificForm = new PrismObjectPanel("requestSpecificForm", requestSpecificModel,
                 new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
 
             @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+            protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
                 return createStringResource("pageWorkItem.requestSpecific.description");
+            }
+
+            @Override
+            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+                return new Model("");
             }
         };
         mainForm.add(requestSpecificForm);
@@ -329,6 +401,21 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
         };
         mainForm.add(additionalDataForm);
+
+        PrismObjectPanel trackingDataForm = new PrismObjectPanel("trackingDataForm", trackingDataModel,
+                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
+
+            @Override
+            protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
+                return createStringResource("pageWorkItem.trackingData.description");
+            }
+
+            @Override
+            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+                return new Model("");
+            }
+        };
+        mainForm.add(trackingDataForm);
 
         initButtons(mainForm);
     }

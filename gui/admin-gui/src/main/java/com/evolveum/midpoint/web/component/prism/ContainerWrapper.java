@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -129,18 +130,66 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             LOGGER.error("Couldn't get property list from null definition {}", new Object[]{container.getName()});
             return properties;
         }
-        
-        Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
-        for (PrismPropertyDefinition def : propertyDefinitions) {
-            if (def.isIgnored() || skipProperty(def)) {
-                continue;
+
+        // assignments are treated in a special way -- we display names of org.units and roles
+        // (but only if ObjectWrapper.isShowAssignments() is true; otherwise they are filtered out by ObjectWrapper)
+        if (container.getCompileTimeClass() != null && container.getCompileTimeClass().isAssignableFrom(AssignmentType.class)) {
+
+            for (Object o : container.getValues()) {
+                PrismContainerValue<AssignmentType> pcv = (PrismContainerValue<AssignmentType>) o;
+
+                AssignmentType assignmentType = pcv.asContainerable();
+
+                if (assignmentType.getTargetRef() == null) {
+                    continue;
+                }
+
+                // hack... we want to create a definition for Name
+                //PrismPropertyDefinition def = ((PrismContainerValue) pcv.getContainer().getParent()).getContainer().findProperty(ObjectType.F_NAME).getDefinition();
+                PrismPropertyDefinition def = new PrismPropertyDefinition(ObjectType.F_NAME, ObjectType.F_NAME, DOMUtil.XSD_STRING, pcv.getPrismContext());
+
+                if (OrgType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) {
+                    def.setDisplayName("Org.Unit");
+                    def.setDisplayOrder(100);
+                } else if (RoleType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) {
+                    def.setDisplayName("Role");
+                    def.setDisplayOrder(200);
+                } else {
+                    continue;
+                }
+
+                PrismProperty<Object> temp = def.instantiate();
+
+                if (assignmentType.getTarget() != null) {
+                    temp.setValue(new PrismPropertyValue<Object>(assignmentType.getTarget().getName()));
+                } else {
+                    PrismReference targetRef = pcv.findReference(AssignmentType.F_TARGET_REF);
+                    temp.setValue(new PrismPropertyValue<Object>(targetRef.getValue().getOid()));
+                }
+
+                properties.add(new PropertyWrapper(this, temp, ValueStatus.NOT_CHANGED));
             }
 
-            PrismProperty property = container.findProperty(def.getName());
-            if (property == null) {
-                properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));
-            } else {
-                properties.add(new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED));
+        } else {            // if not an assignment
+
+            if (container.getValues().size() == 1) {
+
+                // there's no point in showing properties for non-single-valued parent containers,
+                // so we continue only if the parent is single-valued
+
+                Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
+                for (PrismPropertyDefinition def : propertyDefinitions) {
+                    if (def.isIgnored() || skipProperty(def)) {
+                        continue;
+                    }
+
+                    PrismProperty property = container.findProperty(def.getName());
+                    if (property == null) {
+                        properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));
+                    } else {
+                        properties.add(new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED));
+                    }
+                }
             }
         }
 

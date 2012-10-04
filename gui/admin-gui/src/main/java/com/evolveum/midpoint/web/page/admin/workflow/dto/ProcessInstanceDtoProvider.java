@@ -86,10 +86,15 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //            }
 
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            List<ProcessInstance> items = wfm.listProcessInstances(requestedBy, finished, currentUser(), first, count, result);
+            List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy, finished, first, count, result);
 
             for (ProcessInstance item : items) {
-                getAvailableData().add(new ProcessInstanceDto(item));
+                try {
+                    getAvailableData().add(new ProcessInstanceDto(item));
+                } catch (Exception e) {
+                    LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instance ", e, item);
+                    result.recordPartialError("Couldn't list process instance.", e);
+                }
             }
 
         } catch (Exception ex) {
@@ -101,6 +106,10 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
             result.computeStatus();
         }
 
+        if (!result.isSuccess()) {
+            getPage().showResult(result);
+        }
+
         return getAvailableData().iterator();
     }
 
@@ -110,7 +119,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
             WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-            count = wfDataAccessor.countProcessInstances(requestedBy, finished, currentUser(), result);
+            count = wfDataAccessor.countProcessInstancesRelatedToUser(currentUser(), requestedBy, finished, result);
         } catch (Exception ex) {
             String msg = "Couldn't list process instances requested " + (requestedBy ? "by":"for") + " a user.";
             LoggingUtils.logException(LOGGER, msg, ex);
