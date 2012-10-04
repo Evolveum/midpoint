@@ -191,7 +191,23 @@
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
+			<credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<initial>true</initial>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
 		</accountType>
+		
 	</schemaHandling>
 	
 	<synchronization>

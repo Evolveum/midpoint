@@ -31,13 +31,13 @@
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>
 
-    <credentials>
-        <password>
-        	<protectedString>
-	            <clearValue>xM4rksTh3Sp0t</clearValue>
-            </protectedString>
-        </password>
-    </credentials>
+<!--     <credentials> -->
+<!--         <password> -->
+<!--         	<protectedString> -->
+<!-- 	            <clearValue>xM4rksTh3Sp0t</clearValue> -->
+<!--             </protectedString> -->
+<!--         </password> -->
+<!--     </credentials> -->
     
     <accountRef oid="22226666-2200-6666-6666-444400004444" type="c:AccountShadowType"/>
 </user>

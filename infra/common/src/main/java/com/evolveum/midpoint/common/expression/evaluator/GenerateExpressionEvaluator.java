@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.common.password.PasswordGenerator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
@@ -89,20 +91,32 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         }
         
         StringPolicyResolver stringPolicyResolver = params.getStringPolicyResolver();
+       
         StringPolicyType stringPolicyType = null;
         if (stringPolicyResolver!=null) {
         	stringPolicyType = stringPolicyResolver.resolve();
         }
         
-        // TODO: generate value based on stringPolicyType (if not null)
+		// TODO: generate value based on stringPolicyType (if not null)
+		String stringValue = null;
+		if (stringPolicyType != null) {
+			if (stringPolicyType.getLimitations().getMinLength() != null) {
+				stringValue = PasswordGenerator.generate(stringPolicyType, true, params.getResult());
+			}
+			stringValue = PasswordGenerator.generate(stringPolicyType, false, params.getResult());
+		}
         
-    	int length = DEFAULT_LENGTH;
-    	if (generateEvaluatorType.getLength() != null) {
-    		length = generateEvaluatorType.getLength().intValue();
-    	}
-		RandomString randomString = new RandomString(length);
-		String stringValue= randomString.nextString();
+        if (stringValue == null){
+        	int length = DEFAULT_LENGTH;
+        	if (generateEvaluatorType.getLength() != null) {
+        		length = generateEvaluatorType.getLength().intValue();
+        	}
+    		RandomString randomString = new RandomString(length);
+    		stringValue= randomString.nextString();	
+        }
+        
         Object value  = stringValue;
+    	
         
         if (outputType.equals(SchemaConstants.R_PROTECTED_STRING_TYPE)) {
         	try {

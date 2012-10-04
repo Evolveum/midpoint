@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -126,7 +127,7 @@ public class PasswordPolicyValidatorTest {
 		String psswd;
 		// generate minimal size passwd
 		for (int i = 0; i < 100; i++) {
-			psswd = PasswordGenerator.generate(pp, true, op);
+			psswd = PasswordGenerator.generate(pp.getStringPolicy(), true, op);
 			LOGGER.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
@@ -134,13 +135,16 @@ public class PasswordPolicyValidatorTest {
 			}
 			AssertJUnit.assertTrue(op.isSuccess());
 			assertNotNull(psswd);
-
+			ProtectedStringType ps = new ProtectedStringType();
+			ps.setClearValue(psswd);
+			boolean result = PasswordPolicyUtils.validatePassword(ps, pp);
+			assertTrue(result);
 		}
 		// genereata to meet as possible
 		LOGGER.error("-------------------------");
 		// Generate up to possible
 		for (int i = 0; i < 100; i++) {
-			psswd = PasswordGenerator.generate(pp, false, op);
+			psswd = PasswordGenerator.generate(pp.getStringPolicy(), false, op);
 			LOGGER.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
@@ -154,7 +158,7 @@ public class PasswordPolicyValidatorTest {
 		// Make switch some cosistency
 		pp.getStringPolicy().getLimitations().setMinLength(2);
 		pp.getStringPolicy().getLimitations().setMinUniqueChars(5);
-		psswd = PasswordGenerator.generate(pp, op);
+		psswd = PasswordGenerator.generate(pp.getStringPolicy(), op);
 		op.computeStatus();
 		assertNotNull(psswd);
 		AssertJUnit.assertTrue(op.isAcceptable());
@@ -164,7 +168,7 @@ public class PasswordPolicyValidatorTest {
 			l.setMustBeFirst(true);
 		}
 		LOGGER.error("Negative testing: passwordGeneratorComplexTest");
-		psswd = PasswordGenerator.generate(pp, op);
+		psswd = PasswordGenerator.generate(pp.getStringPolicy(), op);
 		assertNull(psswd);
 		op.computeStatus();
 		AssertJUnit.assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);

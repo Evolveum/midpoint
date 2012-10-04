@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 
 public class PasswordGenerator {
 
@@ -52,14 +53,14 @@ public class PasswordGenerator {
 
 	private static final Random rand = new Random(System.currentTimeMillis());
 
-	public static String generate(PasswordPolicyType pp, OperationResult inputResult) {
-		return generate(pp, false, inputResult);
+	public static String generate(StringPolicyType policy, OperationResult inputResult) {
+		return generate(policy, false, inputResult);
 	}
 
-	public static String generate(PasswordPolicyType pp, boolean generateMinimalSize,
+	public static String generate(StringPolicyType policy, boolean generateMinimalSize,
 			OperationResult inputResult) {
 
-		if (null == pp) {
+		if (null == policy) {
 			throw new IllegalArgumentException("Provided password policy can not be null.");
 		}
 
@@ -68,28 +69,30 @@ public class PasswordGenerator {
 		}
 		// Define result from generator
 		OperationResult generatorResult = new OperationResult("Password generator running policy :"
-				+ pp.getName());
+				+ policy.getDescription());
 		inputResult.addSubresult(generatorResult);
 
 		// setup default values where missing
-		PasswordPolicyUtils.normalize(pp);
+//		PasswordPolicyUtils.normalize(pp);
 
 		// Optimize usage of limits ass hashmap of limitas and key is set of
 		// valid chars for each limitation
 		HashMap<StringLimitType, ArrayList<String>> lims = new HashMap<StringLimitType, ArrayList<String>>();
-		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
+		for (StringLimitType l : policy.getLimitations().getLimit()) {
 			if (null != l.getCharacterClass().getValue()) {
 				lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
 			} else {
-				lims.put(l, StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(pp
-						.getStringPolicy().getCharacterClass(), l.getCharacterClass().getRef())));
+				lims.put(
+						l,
+						StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(
+								policy.getCharacterClass(), l.getCharacterClass().getRef())));
 			}
 		}
 
 		// Get global limitations
-		int minLen = pp.getStringPolicy().getLimitations().getMinLength();
-		int maxLen = pp.getStringPolicy().getLimitations().getMaxLength();
-		int unique = pp.getStringPolicy().getLimitations().getMinUniqueChars();
+		int minLen = policy.getLimitations().getMinLength();
+		int maxLen = policy.getLimitations().getMaxLength();
+		int unique = policy.getLimitations().getMinUniqueChars();
 
 		// test correctness of definition
 		if (unique > minLen) {
@@ -122,11 +125,11 @@ public class PasswordGenerator {
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
 				generatorResult
 						.recordFatalError("No intersection for required first character sets in password policy:"
-								+ pp.getName());
+								+ policy.getDescription());
 				// Log error
 				if (LOGGER.isErrorEnabled()) {
 					LOGGER.error("Unable to generate password: No intersection for required first character sets in password policy: ["
-							+ pp.getName() + "] following character limitation and sets are used:");
+							+ policy.getDescription() + "] following character limitation and sets are used:");
 					for (StringLimitType l : mustBeFirst.keySet()) {
 						StrBuilder tmp = new StrBuilder();
 						tmp.appendSeparator(", ");

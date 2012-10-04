@@ -31,6 +31,7 @@ import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
@@ -56,10 +57,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -77,6 +81,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -446,11 +453,33 @@ public class TestProjector extends AbstractModelIntegrationTest {
 	@Test
     public void test251GuybrushInboundFromAbsolute() throws Exception {
         displayTestTile(this, "test251GuybrushInboundFromAbsolute");
-
-        // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test251GuybrushInboundFromAbsolute");
         OperationResult result = task.getResult();
+        
+        try{
+        	PrismObject<PasswordPolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
+        	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
+        	Collection<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+        	deltas.add(refDelta);
+        	modelService.executeChanges(deltas, null, task, result);
+        	
+        	PrismObject<SystemConfigurationType> sysConfig = modelService.getObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, null, task, result);
+        	assertNotNull(sysConfig.asObjectable().getGlobalPasswordPolicyRef());
+        	assertEquals(PASSWORD_POLICY_GLOBAL_OID, sysConfig.asObjectable().getGlobalPasswordPolicyRef().getOid());
+        	
+        	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
+        	deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        	deltas.add(delta);
+        	modelService.executeChanges(deltas, null, task, result);
+        	
+        	PrismObject<PasswordPolicyType> passPol = modelService.getObject(PasswordPolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
+        	assertNotNull(passPol);
+        } catch (Exception ex){
+        	throw ex;
+        }
 
+        // GIVEN
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILENAME, result);
