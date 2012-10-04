@@ -32,14 +32,14 @@ import com.evolveum.midpoint.util.Dumpable;
 public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 	
 	private PrismPropertyValue<?> propertyValue;
-	private Mapping<?> valueConstruction;
+	private Mapping<?> mapping;
 	private AccountConstruction accountConstruction;
 	
 	public PropertyValueWithOrigin(PrismPropertyValue<?> propertyValue,
-			Mapping<?> valueConstruction, AccountConstruction accountConstruction) {
+			Mapping<?> mapping, AccountConstruction accountConstruction) {
 		super();
 		this.propertyValue = propertyValue;
-		this.valueConstruction = valueConstruction;
+		this.mapping = mapping;
 		this.accountConstruction = accountConstruction;
 	}
 	
@@ -47,8 +47,8 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		return propertyValue;
 	}
 	
-	public Mapping<?> getValueConstruction() {
-		return valueConstruction;
+	public Mapping<?> getMapping() {
+		return mapping;
 	}
 	
 	public AccountConstruction getAccountConstruction() {
@@ -63,7 +63,7 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 	}
 	
 	public PropertyValueWithOrigin clone() {
-		PropertyValueWithOrigin clone = new PropertyValueWithOrigin(propertyValue, valueConstruction, accountConstruction);
+		PropertyValueWithOrigin clone = new PropertyValueWithOrigin(propertyValue, mapping, accountConstruction);
 		copyValues(clone);
 		return clone;
 	}
@@ -72,8 +72,8 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		if (this.propertyValue != null) {
 			clone.propertyValue = this.propertyValue.clone();
 		}
-		if (this.valueConstruction != null) {
-			clone.valueConstruction = this.valueConstruction.clone();
+		if (this.mapping != null) {
+			clone.mapping = this.mapping.clone();
 		}
 		clone.accountConstruction = this.accountConstruction;
 	}
@@ -90,7 +90,7 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		sb.append("PropertyValueWithOrigin:\n");
 		DebugUtil.debugDumpWithLabel(sb, "propertyValue", propertyValue, indent +1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelToString(sb, "valueConstruction", valueConstruction, indent +1);
+		DebugUtil.debugDumpWithLabelToString(sb, "mapping", mapping, indent +1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToString(sb, "accountConstruction", accountConstruction, indent +1);
 		return sb.toString();
@@ -103,8 +103,8 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "PropertyValueWithOrigin(" + propertyValue + ", VC="
-				+ valueConstruction + ", AC=" + accountConstruction + ")";
+		return "PropertyValueWithOrigin(" + propertyValue + ", M="
+				+ mapping + ", AC=" + accountConstruction + ")";
 	}
 
 }

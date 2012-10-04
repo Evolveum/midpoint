@@ -194,7 +194,7 @@ public class ConsolidationProcessor {
 
                 if (!pvwosToAdd.isEmpty()) {
                     for (PropertyValueWithOrigin pvwoToAdd : pvwosToAdd) {
-                        Mapping<?> vc = pvwoToAdd.getValueConstruction();
+                        Mapping<?> vc = pvwoToAdd.getMapping();
                         if (!vc.isInitial()) {
                             initialOnly = false;
                         }

@@ -172,6 +172,14 @@ public class ReconciliationProcessor {
         		shouldBePValues = pvwoTriple.getNonNegativeValues();
         	}
         	
+        	boolean hasNonInitialShouldBePValue = false;
+        	for (PropertyValueWithOrigin shouldBePValue: shouldBePValues) {
+        		if (shouldBePValue.getMapping() != null && !shouldBePValue.getMapping().isInitial()) {
+        			hasNonInitialShouldBePValue = true;
+        			break;
+        		}
+        	}
+        	
         	PrismProperty attribute = attributesContainer.findProperty(attrName);
         	Collection<PrismPropertyValue<Object>> arePValues = null;
         	if (attribute != null) {
@@ -184,11 +192,11 @@ public class ReconciliationProcessor {
         	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
         	for (PropertyValueWithOrigin shouldBePvwo: shouldBePValues) {
-        		Mapping<?> shouldBeVc = shouldBePvwo.getValueConstruction();
-        		if (shouldBeVc == null) {
+        		Mapping<?> shouldBeMapping = shouldBePvwo.getMapping();
+        		if (shouldBeMapping == null) {
         			continue;
         		}
-        		if (shouldBeVc.isInitial() && !arePValues.isEmpty()) {
+        		if (shouldBeMapping.isInitial() && (!arePValues.isEmpty() || hasNonInitialShouldBePValue)) {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
         		}
