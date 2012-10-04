@@ -49,6 +49,7 @@ import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluat
 import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -75,8 +76,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsExpressionEvalua
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -93,6 +96,7 @@ public class MappingTestEvaluator {
     public static final String KEYSTORE_PATH = "src/test/resources/crypto/test-keystore.jceks";
     public static final File USER_OLD_FILE = new File(TEST_DIR, "user-jack.xml");
 	public static final String USER_OLD_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";
+	private static final File PASSWORD_POLICY_FILE = new File(TEST_DIR, "password-policy.xml");
     
     private PrismContext prismContext;
     private MappingFactory mappingFactory;
@@ -245,175 +249,10 @@ public class MappingTestEvaluator {
 		PrismPropertyValue<T> propertyValue = set.iterator().next();
 		return propertyValue.getValue();
 	}
-	
-	
-	
-	
 
-
-	// TODO
-	
-//	public PrismPropertyDefinition getPropertyDefinition(String propertyName) {
-//		return getPropertyDefinition(toPath(propertyName));
-//	}
-//	
-//	public PrismPropertyDefinition getPropertyDefinition(PropertyPath propertyPath) {
-//		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-//        return userDef.findPropertyDefinition(propertyPath);
-//	}
-//	
-//    public <T> Mapping<PrismPropertyValue<T>> createMapping(Class<T> type, String filename, String outputPropertyName, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//    	return createMapping(type, filename, toPath(outputPropertyName), inputPropertyValue, extraVariables, testName);
-//    }
-//    
-//    // Assumes the same definition for input and output
-//    public <T> Mapping<PrismPropertyValue<T>> createMapping(Class<T> type, String filename, PropertyPath outputPropertyPath, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//            
-//        Mapping<PrismPropertyValue<T>> mapping = createMapping(type, filename, outputPropertyPath, testName);
-//    
-//        if (inputPropertyValue != null) {
-//            PrismPropertyDefinition outputPropDef = getPropertyDefinition(outputPropertyPath);
-//        	PrismProperty inputProperty = outputPropDef.instantiate();
-//        	PrismPropertyValue<T> pval = new PrismPropertyValue<T>(inputPropertyValue);
-//        	inputProperty.add(pval);
-//        	inputProperty.setValue(pval);
-//        	mapping.setInput(inputProperty);
-//        }
-//        if (extraVariables != null) {
-//        	mapping.addVariableDefinitions(extraVariables);
-//        }
-//        return mapping;
-//    }
-//    
-//    public <T> Mapping<PrismPropertyValue<T>> createMapping(Class<T> type, String filename, 
-//    		PropertyPath outputPropertyPath, String testName) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//    
-//        JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
-//                new File(TEST_DIR, filename), MappingType.class);
-//        MappingType valueConstructionType = mappingTypeElement.getValue();
-//
-//        PrismPropertyDefinition outputPropDef = getPropertyDefinition(outputPropertyPath);
-//        
-//        Mapping<PrismPropertyValue<T>> construction = mappingFactory.createMapping(valueConstructionType, outputPropDef, testName);
-//        return construction;
-//    }
-//    
-//    
-//    public <T> PrismProperty<T> evaluateConstructionStatic(Class<T> type, String filename, String propertyName, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//
-//    	return evaluateConstructionStatic(type, filename, toPath(propertyName), inputPropertyValue, extraVariables, testName);
-//    }
-//    
-//	public <T> PrismProperty<T> evaluateConstructionStatic(Class<T> type, String filename, PropertyPath propertyPath, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//    	
-//    	Mapping<PrismPropertyValue<T>> construction = createMapping(type, filename, propertyPath, inputPropertyValue, extraVariables, testName);    	
-//        OperationResult opResult = new OperationResult(testName);
-//
-//        construction.evaluate(opResult);
-//        PrismProperty<T> result = (PrismProperty<T>) construction.getOutput();        
-//
-//        return result;
-//    }
-//	
-//	public <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(Class<T> type, String filename, String propertyName, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName, T... valuesToAdd) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//		return evaluateMappingDynamicAdd(type, filename, toPath(propertyName), inputPropertyValue, extraVariables, testName, valuesToAdd);
-//	}
-//	
-//	public <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(Class<T> type, String filename, PropertyPath propertyPath, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName, T... inputValuesToAdd) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//        PropertyDelta<T> inputDelta = createAddDelta(type, propertyPath, inputValuesToAdd);
-//        return evaluateMappingDynamic(type, filename, propertyPath, inputPropertyValue, inputDelta, extraVariables, testName);
-//	}
-//	
-//	public <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateConstructionDynamicDelete(Class<T> type, String filename, String propertyName, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName, T... valuesToDelete) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//		return evaluateConstructionDynamicDelete(type, filename, toPath(propertyName), inputPropertyValue, extraVariables, testName, valuesToDelete);
-//	}
-//
-//	public <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateConstructionDynamicDelete(Class<T> type, String filename, PropertyPath propertyPath, 
-//    		T inputPropertyValue, Map<QName, Object> extraVariables, String testName, T... inputValuesToDelete) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//		PropertyDelta<T> inputDelta = createDeleteDelta(type, propertyPath, inputValuesToDelete);
-//        return evaluateMappingDynamic(type, filename, propertyPath, inputPropertyValue, inputDelta, extraVariables, testName);
-//	}
-//	
-//	public <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamic(Class<T> type, String filename, PropertyPath propertyPath, 
-//    		T inputPropertyValue, PropertyDelta<T> inputDelta, Map<QName, Object> extraVariables, String testName) 
-//    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
-//    	
-//    	Mapping<PrismPropertyValue<T>> mapping = createMapping(type, filename, propertyPath, inputPropertyValue, extraVariables, testName);
-//    	mapping.setInputDelta(inputDelta);
-//        OperationResult opResult = new OperationResult(testName);
-//
-//        mapping.evaluate(opResult);
-//        PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();        
-//
-//        return outputTriple;
-//    }
-//	
-//	public <T> PropertyDelta<T> createAddDelta(Class<T> type, String propertyName, T... valuesToAdd) {
-//		return createAddDelta(type, toPath(propertyName), valuesToAdd);
-//	}
-//
-//	public <T> PropertyDelta<T> createAddDelta(Class<T> type, PropertyPath propertyPath, T... valuesToAdd) {
-//		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-//        PrismPropertyDefinition propDef = userDef.findPropertyDefinition(propertyPath);
-//        PropertyDelta<T> delta = new PropertyDelta<T>(propertyPath, propDef);
-//        delta.addValuesToAdd(PrismPropertyValue.createCollection(valuesToAdd));
-//        return delta;
-//	}
-//	
-//	public <T> PropertyDelta<T> createDeleteDelta(Class<T> type, String propertyName, T... valuesToAdd) {
-//		return createDeleteDelta(type, toPath(propertyName), valuesToAdd);
-//	}
-//	
-//	public <T> PropertyDelta<T> createDeleteDelta(Class<T> type, PropertyPath propertyPath, T... valuesToDelete) {
-//		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-//		PrismPropertyDefinition propDef = userDef.findPropertyDefinition(propertyPath);
-//		PropertyDelta<T> delta = new PropertyDelta<T>(propertyPath, propDef);
-//		delta.addValuesToDelete(PrismPropertyValue.createCollection(valuesToDelete));
-//		return delta;
-//	}
-//	
-//	public <T> PropertyDelta<T> createReplaceDelta(Class<T> type, String propertyName, T... valuesToAdd) {
-//		return createReplaceDelta(type, toPath(propertyName), valuesToAdd);
-//	}
-//	
-//	public <T> PropertyDelta<T> createReplaceDelta(Class<T> type, PropertyPath propertyPath, T... valuesToReplace) {
-//		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-//		PrismPropertyDefinition propDef = userDef.findPropertyDefinition(propertyPath);
-//		PropertyDelta<T> delta = new PropertyDelta<T>(propertyPath, propDef);
-//		delta.setValuesToReplace(PrismPropertyValue.createCollection(valuesToReplace));
-//		return delta;
-//	}
-//
-//	public ProtectedStringType createProtectedString(String clearString) throws EncryptionException {
-//		ProtectedStringType ps = new ProtectedStringType();
-//		ps.setClearValue(clearString);
-//		protector.encrypt(ps);
-//		return ps;
-//	}
-//
-//
-//
-//	public static <T> T getSingleValue(String setName, Collection<PrismPropertyValue<T>> set) {
-//		assertEquals("Expected single value in "+setName+" but found "+set.size()+" values: "+set, 1, set.size());
-//		PrismPropertyValue<T> propertyValue = set.iterator().next();
-//		return propertyValue.getValue();
-//	}
-
+	public StringPolicyType getStringPolicy() throws SchemaException {
+		PrismObject<PasswordPolicyType> passwordPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_FILE);
+		return passwordPolicy.asObjectable().getStringPolicy();
+	}
 
 }

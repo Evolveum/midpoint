@@ -30,7 +30,9 @@ import static com.evolveum.midpoint.common.mapping.MappingTestEvaluator.*;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -55,6 +58,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -78,7 +82,7 @@ import static org.testng.AssertJUnit.assertEquals;
  * @author Radovan Semancik
  */
 public class TestMappingDynamic {
-
+	
 	private MappingTestEvaluator evaluator;
 	    
     @BeforeClass
@@ -741,7 +745,33 @@ public class TestMappingDynamic {
     	final String TEST_NAME = "testGenerate";
     	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-generate.xml", 
     			TEST_NAME, "employeeNumber", null);
-    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	
+    	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
+    	
+    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private PropertyPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(PropertyPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				// No path. The the path is default
+//				assertNotNull("Null outputPath", outputPath);
+				assertNotNull("Null outputDefinition", outputDefinition);
+				return stringPolicy;
+			}
+		};
+		mapping.setStringPolicyResolver(stringPolicyResolver);
+    	
+		OperationResult opResult = new OperationResult(TEST_NAME);
     	
 		// WHEN (1)
     	mapping.evaluate(opResult);
@@ -753,7 +783,7 @@ public class TestMappingDynamic {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		System.out.println("Generated value (1): " + value1);
-		assertEquals(10, value1.length());
+		assertGeneratedValue(value1, stringPolicy);
 
 		// WHEN (2)
 		mapping.evaluate(opResult);
@@ -762,14 +792,21 @@ public class TestMappingDynamic {
 		outputTriple = mapping.getOutputTriple();
 		String value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
 		System.out.println("Generated value (2): " + value2);
-		assertEquals(10, value2.length());
+		assertGeneratedValue(value2, stringPolicy);
 		PrismAsserts.assertTripleNoPlus(outputTriple);
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		assertFalse("Generated the same value", value1.equals(value2));
     }
     
-    @Test
+	private void assertGeneratedValue(String value, StringPolicyType stringPolicy) {
+		assertTrue("Value too short", value.length() >= stringPolicy.getLimitations().getMinLength());
+		assertTrue("Value too long", value.length() <= stringPolicy.getLimitations().getMaxLength());
+		// TODO: better validation
+	}
+
+
+	@Test
     public void testGenerateProtectedString() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testGenerateProtectedString";
