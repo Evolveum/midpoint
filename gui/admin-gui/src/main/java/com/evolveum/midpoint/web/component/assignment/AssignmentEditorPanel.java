@@ -296,6 +296,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 ACAttributePanel acAttribute = new ACAttributePanel(ID_AC_ATTRIBUTE, attrModel);
                 acAttribute.setRenderBodyOnly(true);
                 listItem.add(acAttribute);
+                listItem.setOutputMarkupId(true);
 
                 listItem.add(new VisibleEnableBehaviour() {
 
@@ -348,8 +349,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
         try {
-            AssignmentType assignment = dto.getAssignment();
-            AccountConstructionType construction = assignment.getAccountConstruction();
+            AccountConstructionType construction = WebMiscUtil.getValue(dto.getOldValue(),
+                    AssignmentType.F_ACCOUNT_CONSTRUCTION, AccountConstructionType.class);
             PrismObject<ResourceType> resource = construction.getResource() != null
                     ? construction.getResource().asPrismObject() : null;
             if (resource == null) {
@@ -462,7 +463,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             protected String load() {
                 AssignmentEditorDto dto = getModel().getObject();
-                PrismContainerValue assignment = dto.getAssignment().asPrismContainerValue();
+                PrismContainerValue assignment = dto.getOldValue();
 
                 PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
                 if (targetRef == null) {

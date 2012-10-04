@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -39,7 +38,7 @@ import java.util.List;
  *
  * @author lazyman
  */
-public class AssignmentEditorDto extends SelectableBean {
+public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {
 
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";
@@ -69,7 +68,7 @@ public class AssignmentEditorDto extends SelectableBean {
 
         PrismContainerValue value = oldAssignment.asPrismContainerValue();
 
-        //improve assignment clone, this doesn't look good
+        //todo improve assignment clone, this doesn't look good
         PrismContainerValue oldValue = value.clone();
         newAssignment = new AssignmentType();
         newAssignment.setupContainerValue(oldValue);
@@ -150,32 +149,6 @@ public class AssignmentEditorDto extends SelectableBean {
     public PrismContainerValue getNewValue() {
         //todo reimplement
         return newAssignment != null ? newAssignment.asPrismContainerValue() : null;
-//        PrismContainerValue value = newAssignment.asPrismContainerValue();
-//        PrismContainerValue newValue = value.clone();
-//        //remove empty/null values, which are placeholders in form
-//        List<Item> items = newValue.getItems();
-//        Iterator<Item> iterator = items.iterator();
-//        while (iterator.hasNext()) {
-//            Item item = iterator.next();
-//            List<PrismValue> values = item.getValues();
-//            if (values != null) {
-//                Iterator<PrismValue> valueIterator = values.iterator();
-//                while (valueIterator.hasNext()) {
-//                    PrismValue prismValue = valueIterator.next();
-//                    if (prismValue instanceof PrismPropertyValue) {
-//                        PrismPropertyValue propertyValue = (PrismPropertyValue) prismValue;
-//                        if (propertyValue.getValue() == null) {
-//                            valueIterator.remove();
-//                        }
-//                    }
-//                }
-//            }
-//
-//            if (item.isEmpty()) {
-//                iterator.remove();
-//            }
-//        }
-//        return newValue;
     }
 
     public String getDescription() {
@@ -186,7 +159,28 @@ public class AssignmentEditorDto extends SelectableBean {
         newAssignment.setDescription(description);
     }
 
-    public AssignmentType getAssignment() {
-        return newAssignment;
+    @Override
+    public int compareTo(AssignmentEditorDto other) {
+        int value = getIndexOfType(getType()) - getIndexOfType(other.getType());
+        if (value != 0) {
+            return value;
+        }
+
+        return String.CASE_INSENSITIVE_ORDER.compare(getName(), other.getName());
+    }
+
+    private int getIndexOfType(AssignmentEditorDtoType type) {
+        if (type == null) {
+            return 0;
+        }
+
+        AssignmentEditorDtoType[] values = AssignmentEditorDtoType.values();
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(type)) {
+                return i;
+            }
+        }
+
+        return 0;
     }
 }

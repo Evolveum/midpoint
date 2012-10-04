@@ -76,6 +76,7 @@ import org.apache.wicket.util.string.StringValue;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -441,6 +442,8 @@ public class PageUser extends PageAdminUsers {
 
             list.add(new AssignmentEditorDto(name, type, UserDtoStatus.MODIFY, assignment));
         }
+
+        Collections.sort(list);
 
         return list;
     }

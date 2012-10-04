@@ -84,7 +84,7 @@ public final class WebMiscUtil {
         return getValue(object, ObjectType.F_NAME, String.class);
     }
 
-    public static <T> T getValue(PrismObject object, QName propertyName, Class<T> type) {
+    public static <T> T getValue(PrismContainerValue object, QName propertyName, Class<T> type) {
         if (object == null) {
             return null;
         }
@@ -95,6 +95,14 @@ public final class WebMiscUtil {
         }
 
         return (T) property.getRealValue(type);
+    }
+
+    public static <T> T getValue(PrismContainer object, QName propertyName, Class<T> type) {
+        if (object == null) {
+            return null;
+        }
+
+        return getValue(object.getValue(), propertyName, type);
     }
 
     public static Locale getLocaleFromString(String localeString) {

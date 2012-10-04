@@ -32,15 +32,18 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -53,33 +56,48 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
 
     public ACAttributeValuePanel(String id, IModel<ACValueConstructionDto> iModel) {
         super(id, iModel);
+
+        initPanel();
     }
 
-    @Override
-    protected void initLayout() {
+    private void initPanel() {
         ACValueConstructionDto dto = getModel().getObject();
         PrismPropertyDefinition definition = dto.getAttribute().getDefinition();
 
         InputPanel input = createTypedInputComponent(ID_INPUT, definition);
         add(input);
 
-        AjaxLink add = new AjaxLink(ID_ADD) {
+        AjaxLink addLink = new AjaxLink(ID_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addPerformed(target);
             }
         };
-        add(add);
+        add(addLink);
+        addLink.add(new VisibleEnableBehaviour() {
 
-        AjaxLink remove = new AjaxLink(ID_REMOVE) {
+            @Override
+            public boolean isVisible() {
+                return isAddVisible();
+            }
+        });
+
+        AjaxLink removeLink = new AjaxLink(ID_REMOVE) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 removePerformed(target);
             }
         };
-        add(remove);
+        add(removeLink);
+        removeLink.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isRemoveVisible();
+            }
+        });
     }
 
     private InputPanel createTypedInputComponent(String id, PrismPropertyDefinition definition) {
@@ -112,11 +130,57 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
         return panel;
     }
 
+    private boolean isAddVisible() {
+        ACValueConstructionDto dto = getModel().getObject();
+        ACAttributeDto attributeDto = dto.getAttribute();
+        PrismPropertyDefinition def = attributeDto.getDefinition();
+
+        List<ACValueConstructionDto> values = attributeDto.getValues();
+        if (def.getMaxOccurs() != -1 && values.size() >= def.getMaxOccurs()) {
+            return false;
+        }
+
+        //we want to show add on last item only
+        if (values.indexOf(dto) + 1 != values.size()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isRemoveVisible() {
+        ACValueConstructionDto dto = getModel().getObject();
+        ACAttributeDto attributeDto = dto.getAttribute();
+        PrismPropertyDefinition def = attributeDto.getDefinition();
+
+        List<ACValueConstructionDto> values = attributeDto.getValues();
+        if (values.size() <= 1) {
+            return false;
+        }
+
+        if (values.size() <= def.getMinOccurs()) {
+            return false;
+        }
+
+        return true;
+    }
+
     private void addPerformed(AjaxRequestTarget target) {
-        //todo implement
+        ACValueConstructionDto dto = getModel().getObject();
+        ACAttributeDto attributeDto = dto.getAttribute();
+        attributeDto.getValues().add(new ACValueConstructionDto(attributeDto, null));
+
+        target.add(findParent(ACAttributePanel.class).getParent());
+
+        //todo implement add to account construction
     }
 
     private void removePerformed(AjaxRequestTarget target) {
-        //todo implement
+        ACValueConstructionDto dto = getModel().getObject();
+        ACAttributeDto attributeDto = dto.getAttribute();
+        attributeDto.getValues().remove(dto);
+        //todo implement remove from acctount construction
+
+        target.add(findParent(ACAttributePanel.class).getParent());
     }
 }

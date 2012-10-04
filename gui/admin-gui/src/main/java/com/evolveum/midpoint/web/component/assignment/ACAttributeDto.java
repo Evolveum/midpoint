@@ -116,6 +116,28 @@ public class ACAttributeDto implements Serializable {
             return true;
         }
 
-        return values.get(0).getValue() == null;
+        for (ACValueConstructionDto dto : values) {
+            if (dto.getValue() != null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public ResourceAttributeDefinitionType getConstruction() {
+        if (isEmpty()) {
+            return null;
+        }
+
+        ResourceAttributeDefinitionType attrConstruction = new ResourceAttributeDefinitionType();
+        attrConstruction.setRef(definition.getName());
+        MappingType outbound = new MappingType();
+        attrConstruction.setOutbound(outbound);
+
+        ObjectFactory of = new ObjectFactory();
+
+
+        return attrConstruction;
     }
 }
