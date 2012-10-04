@@ -107,7 +107,7 @@ public class PropertiesGenerator {
                 try {
                     File targetPropertiesFile = createTargetFile(file, target, locale);
                     actualTargetFiles.add(targetPropertiesFile);
-                    if (!FileUtils.isFileNewer(file, targetPropertiesFile)) {
+                    if (targetPropertiesFile.exists() && !FileUtils.isFileNewer(file, targetPropertiesFile)) {
                         System.out.println("File was not modified: " + targetPropertiesFile.getName());
                         continue;
                     }
@@ -190,6 +190,8 @@ public class PropertiesGenerator {
                 FileUtils.copyFile(target, backupFile);
             }
             target.delete();
+        } else {
+            System.out.println("Creating new file: " + target.getName());
         }
 
         File parent = target.getParentFile();
