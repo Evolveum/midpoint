@@ -36,7 +36,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 
@@ -125,7 +124,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		};
 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, new PagingType(), handler,
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler,
 				parentResult);
 
 		return foundAccount;

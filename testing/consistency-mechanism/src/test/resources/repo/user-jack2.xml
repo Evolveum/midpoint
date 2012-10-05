@@ -36,9 +36,9 @@
     
     <i:credentials>
         <i:password>
-        	<i:protectedString>
+        	<i:value>
 	            <i:clearValue>iamjack</i:clearValue>
-            </i:protectedString>
+            </i:value>
         </i:password>
     </i:credentials>
 </i:user>

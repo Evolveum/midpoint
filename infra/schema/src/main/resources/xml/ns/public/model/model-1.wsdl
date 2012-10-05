@@ -104,7 +104,7 @@
                 Object type to list.
             </documentation>
         </part>
-        <part name="paging" type="apit:PagingType">
+        <part name="paging" type="q:PagingType">
             <documentation>
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
@@ -122,11 +122,11 @@
                 Search criteria
             </documentation>
         </part>
-        <part name="paging" type="apit:PagingType">
-            <documentation>
-                Parameters limiting the number of returned entries, offset, etc.
-            </documentation>
-        </part>
+<!--         <part name="paging" type="q:PagingType"> -->
+<!--             <documentation> -->
+<!--                 Parameters limiting the number of returned entries, offset, etc. -->
+<!--             </documentation> -->
+<!--         </part> -->
     </message>
     <message name="searchObjectsResponse">
         <part name="objectList" type="apit:ObjectListType"/>
@@ -181,7 +181,7 @@
                 resource schema encoded in the URL form.
             </documentation>
         </part>
-        <part name="paging" type="apit:PagingType">
+        <part name="paging" type="q:PagingType">
             <documentation>
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>

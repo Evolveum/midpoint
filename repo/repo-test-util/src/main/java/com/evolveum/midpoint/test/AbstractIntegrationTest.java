@@ -236,8 +236,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 //		query.setFilter(filter);
 
 //		System.out.println("Query:\n"+DOMUtil.serializeDOMToString(query.getFilter())+"\n--");
-		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
-				result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
 		if (connectors.size() != 1) {
 			throw new IllegalStateException("Cannot find connector type " + connectorType + ", got "
 					+ connectors);

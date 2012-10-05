@@ -20,6 +20,18 @@
  */
 package com.evolveum.midpoint.model;
 
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
 import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,25 +51,23 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * 
@@ -128,8 +139,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			Task task = createTaskInstance(LIST_OBJECTS);
 			setTaskOwner(task);
 			operationResult = task.getResult();
+			ObjectQuery query = ObjectQuery.createObjectQuery(PagingConvertor.createObjectPaging(paging));
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
-					.getClassDefinition(), null, paging, task, operationResult);
+					.getClassDefinition(), query, task, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ObjectListType listType = new ObjectListType();
@@ -145,8 +157,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void searchObjects(String objectTypeUri, QueryType query, PagingType paging,
-			Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
+	public void searchObjects(String objectTypeUri, QueryType query, Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
 
 		OperationResult operationResult = null;
@@ -156,8 +167,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			operationResult = task.getResult();
 			ObjectQuery q = QueryConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
-					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q, paging,
-					task, operationResult);
+					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q, task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : list) {
@@ -277,7 +287,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			setTaskOwner(task);
 			operationResult = task.getResult();
 			List<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(
-					resourceOid, objectType, paging, task, operationResult);
+					resourceOid, objectType, PagingConvertor.createObjectPaging(paging), task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ResourceObjectShadowType> o : list) {

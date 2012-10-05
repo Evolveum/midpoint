@@ -19,6 +19,13 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -30,19 +37,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.Validate;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -218,10 +216,9 @@ public class RepositoryCache implements RepositoryService {
 
 	
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			PagingType paging, OperationResult parentResult) throws SchemaException {
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException {
 		// Cannot satisfy from cache, pass down to repository
-		List<PrismObject<T>> objects = repository.searchObjects(type, query, paging, parentResult);
+		List<PrismObject<T>> objects = repository.searchObjects(type, query, parentResult);
 		Map<String, PrismObject<ObjectType>> cache = getCache();
 		if (cache != null) {
 			for (PrismObject<T> object : objects) {

@@ -21,10 +21,20 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,23 +50,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.model.IModel;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -87,7 +85,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         try {
-            PagingType paging = createPaging(first, count);
+            ObjectPaging paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_LOAD_ACCOUNTS);
 
             ObjectQuery baseQuery = ObjectQueryUtil.createResourceAndAccountQuery(resourceOid.getObject(),
@@ -104,8 +102,9 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
                 query = baseQuery;
             }
 
+            query.setPaging(paging);
             List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class,
-                    query, paging, task, result);
+                    query, task, result);
 
             AccountContentDto dto;
             for (PrismObject<AccountShadowType> object : list) {

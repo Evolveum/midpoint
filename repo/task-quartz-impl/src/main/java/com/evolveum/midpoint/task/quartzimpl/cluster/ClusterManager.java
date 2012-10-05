@@ -20,9 +20,9 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import java.util.List;
+
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
-import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -37,16 +37,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -213,7 +206,7 @@ public class ClusterManager {
 
     public List<PrismObject<NodeType>> getAllNodes(OperationResult result) {
         try {
-            return getRepositoryService().searchObjects(NodeType.class, null, new PagingType(), result);
+            return getRepositoryService().searchObjects(NodeType.class, null, result);
         } catch (SchemaException e) {       // should not occur
             throw new SystemException("Cannot get the list of nodes from the repository", e);
         }
@@ -223,7 +216,7 @@ public class ClusterManager {
         try {
 //            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
         	ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
-            List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, new PagingType(), result);
+            List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, result);
             if (nodes.isEmpty()) {
 //                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");
                 throw new ObjectNotFoundException("A node with identifier " + nodeIdentifier + " does not exist.");

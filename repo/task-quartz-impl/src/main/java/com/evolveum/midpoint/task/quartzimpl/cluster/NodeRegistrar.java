@@ -21,7 +21,18 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -41,19 +52,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
 
 /**
  * Takes care about node registration in repository.
@@ -368,7 +367,7 @@ public class NodeRegistrar {
 
 //        QueryType q = QueryUtil.createNameQuery(name);
     	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.class, getPrismContext(), NodeType.F_NAME, name));
-        return getRepositoryService().searchObjects(NodeType.class, q, new PagingType(), result);
+        return getRepositoryService().searchObjects(NodeType.class, q, result);
     }
 
 

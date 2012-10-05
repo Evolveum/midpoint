@@ -17,10 +17,13 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,19 +58,20 @@ public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTest
 		Mockito.reset(repository, provisioning);
 	}
 
-	//TODO: after removing old search method, set all params to null
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullQuery() throws Exception {
-		controller.searchObjects(null, new ObjectQuery(), null, null, null);
+		controller.searchObjects(null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(null, new ObjectQuery(), null, null, null);
+		controller.searchObjects(null, new ObjectQuery(), null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.searchObjects(null, new ObjectQuery(), PagingTypeFactory.createListAllPaging(), null, null);
+		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, ObjectType.F_NAME, OrderDirection.ASCENDING);
+		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
+		controller.searchObjects(null, query, null, null);
 	}
 }

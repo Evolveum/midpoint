@@ -105,10 +105,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			} else {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
-					PropertyDelta attemptDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
-							.getDefinition(), ResourceObjectShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));
-					Collection<PropertyDelta> delta = new ArrayList<PropertyDelta>();
-					delta.add(attemptDelta);
+					Collection<? extends ItemDelta> delta = createAttemptModification(shadow, null);
 					cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), delta,
 							operationResult);
 			
@@ -130,7 +127,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			if (shadow.getFailedOperationType() == null) {
 
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
-				List<PropertyDelta> modifications = createShadowModification(shadow);
+				Collection<ItemDelta> modifications = createShadowModification(shadow);
 
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						operationResult);
@@ -159,7 +156,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			return shadow;
 		case DELETE:
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
-			List<PropertyDelta> modifications = createShadowModification(shadow);
+			Collection<ItemDelta> modifications = createShadowModification(shadow);
 
 			getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 					operationResult);
@@ -200,8 +197,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		}
 	}
 	
-	private List<PropertyDelta> createShadowModification(ResourceObjectShadowType shadow) {
-		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+	private <T extends ResourceObjectShadowType> Collection<ItemDelta> createShadowModification(T shadow) {
+		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 
 		PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
 				.getDefinition(), ResourceObjectShadowType.F_RESULT, shadow.getResult());
@@ -216,15 +213,17 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			modifications.add(propertyDelta);
 		}
 	
-		propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-				ResourceObjectShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));
-		modifications.add(propertyDelta);
+//		propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
+//				ResourceObjectShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));
+//		modifications.add(propertyDelta);
 
+		modifications = createAttemptModification(shadow, modifications);
+		
 		return modifications;
 	}
 
-	private Integer getAttemptNumber(ResourceObjectShadowType shadow) {
-		Integer attemptNumber = (shadow.getAttemptNumber() == null ? 0 : shadow.getAttemptNumber()+1);
-		return attemptNumber;
-	}
+//	private Integer getAttemptNumber(ResourceObjectShadowType shadow) {
+//		Integer attemptNumber = (shadow.getAttemptNumber() == null ? 0 : shadow.getAttemptNumber()+1);
+//		return attemptNumber;
+//	}
 }

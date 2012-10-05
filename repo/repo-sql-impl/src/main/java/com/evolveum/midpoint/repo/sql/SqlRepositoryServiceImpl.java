@@ -21,32 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.query.*;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -54,20 +33,55 @@ import org.hibernate.FetchMode;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.common.RContainerId;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
+import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadow;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
+import com.evolveum.midpoint.repo.sql.data.common.RTaskExclusivityStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.query.Definition;
+import com.evolveum.midpoint.repo.sql.query.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.QueryRegistry;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConcurrencyException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author lazyman
@@ -146,7 +160,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw ex;
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
-				result.recordFatalError("Schema error while getting object with oid: "+ oid +". Reason: "+ ex.getMessage(), ex);
+				result.recordFatalError(
+						"Schema error while getting object with oid: " + oid + ". Reason: " + ex.getMessage(), ex);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);
@@ -305,8 +320,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			RContainerId containerId = (RContainerId) session.save(rObject);
 			oid = containerId.getOid();
 
-			
-			
 			if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
 				objectType.setOid(oid);
 				fillHierarchy(objectType, session);
@@ -336,7 +349,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			// ObjectAlreadyExistsException
 			// revert to the original oid and prevent of unexpected behaviour
 			// (e.g. by import with overwrite option)
-			if (StringUtils.isEmpty(originalOid)){
+			if (StringUtils.isEmpty(originalOid)) {
 				object.setOid(null);
 			}
 			throw new ObjectAlreadyExistsException(ex);
@@ -573,29 +586,30 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			PagingType paging, OperationResult result) throws SchemaException {
+			OperationResult result) throws SchemaException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
-				type.getSimpleName(), (paging == null ? "undefined" : paging.getOffset()),
-				(paging == null ? "undefined" : paging.getMaxSize()) });
+				type.getSimpleName(),
+				((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().getOffset()),
+				((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().getMaxSize()) });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[] {
 					(query == null ? "undefined" : query.dump()),
-					(paging == null ? "undefined" : getPrismContext().silentMarshalObject(paging, LOGGER)) });
+					((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().dump()) });
 		}
 
 		OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
 		subResult.addParam("type", type.getName());
 		subResult.addParam("query", query);
-		subResult.addParam("paging", paging);
+		// subResult.addParam("paging", paging);
 
 		final String operation = "searching";
 		int attempt = 1;
 		while (true) {
 			try {
-				return searchObjectsAttempt(type, query, paging, subResult);
+				return searchObjectsAttempt(type, query, subResult);
 			} catch (RuntimeException ex) {
 				attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
 			}
@@ -604,7 +618,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 
 	private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
-			PagingType paging, OperationResult result) throws SchemaException {
+			OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		Session session = null;
@@ -619,7 +633,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
 			}
 
-			criteria = updatePagingAndSorting(criteria, type, paging);
+			if (query != null && query.getPaging() != null) {
+				criteria = updatePagingAndSorting(criteria, type, query.getPaging());
+			}
 
 			List<RObject> objects = criteria.list();
 			LOGGER.debug("Found {} objects, translating to JAXB.",
@@ -858,50 +874,54 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	}
 
-	private void deleteHierarchy(RObject objectToDelete, Session session) throws DtoTranslationException{
+	private void deleteHierarchy(RObject objectToDelete, Session session) throws DtoTranslationException {
 		Criteria criteria = session.createCriteria(ROrgClosure.class).add(
 				Restrictions.or(Restrictions.eq("ancestor", objectToDelete),
 						Restrictions.eq("descendant", objectToDelete)));
 
 		List<ROrgClosure> orgClosure = criteria.list();
 		for (ROrgClosure o : orgClosure) {
-			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+			LOGGER.trace(
+					"deleting from hierarchy: A: {} D:{} depth:{}",
 					new Object[] { o.getAncestor().toJAXB(getPrismContext()),
-					o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
+							o.getDescendant().toJAXB(getPrismContext()), o.getDepth() });
 			session.delete(o);
 		}
 
 	}
 
-//	private List<RObject> deleteFromHierarchy(RObject object, Session session) throws SchemaException,
-//			DtoTranslationException {
-//
-//		LOGGER.trace("Deleting records from organization closure table.");
-//
-//		Criteria criteria = session.createCriteria(ROrgClosure.class);
-//		List<RObject> descendants = criteria.setProjection(Projections.property("descendant"))
-//				.add(Restrictions.eq("ancestor", object)).list();
-//
-//		for (RObject desc : descendants) {
-//			List<ROrgClosure> orgClosure = session.createCriteria(ROrgClosure.class)
-//					.add(Restrictions.eq("descendant", desc)).list();
-//			for (ROrgClosure o : orgClosure) {
-//				session.delete(o);
-//			}
-//			// fillHierarchy(desc.toJAXB(getPrismContext()), session);
-//		}
-//
-//		criteria = session.createCriteria(ROrgClosure.class).add(
-//				Restrictions.or(Restrictions.eq("ancestor", object), Restrictions.eq("descendant", object)));
-//
-//		List<ROrgClosure> orgClosure = criteria.list();
-//		for (ROrgClosure o : orgClosure) {
-//			LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-//					new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
-//			session.delete(o);
-//		}
-//		return descendants;
-//	}
+	// private List<RObject> deleteFromHierarchy(RObject object, Session
+	// session) throws SchemaException,
+	// DtoTranslationException {
+	//
+	// LOGGER.trace("Deleting records from organization closure table.");
+	//
+	// Criteria criteria = session.createCriteria(ROrgClosure.class);
+	// List<RObject> descendants =
+	// criteria.setProjection(Projections.property("descendant"))
+	// .add(Restrictions.eq("ancestor", object)).list();
+	//
+	// for (RObject desc : descendants) {
+	// List<ROrgClosure> orgClosure = session.createCriteria(ROrgClosure.class)
+	// .add(Restrictions.eq("descendant", desc)).list();
+	// for (ROrgClosure o : orgClosure) {
+	// session.delete(o);
+	// }
+	// // fillHierarchy(desc.toJAXB(getPrismContext()), session);
+	// }
+	//
+	// criteria = session.createCriteria(ROrgClosure.class).add(
+	// Restrictions.or(Restrictions.eq("ancestor", object),
+	// Restrictions.eq("descendant", object)));
+	//
+	// List<ROrgClosure> orgClosure = criteria.list();
+	// for (ROrgClosure o : orgClosure) {
+	// LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+	// new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
+	// session.delete(o);
+	// }
+	// return descendants;
+	// }
 
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
@@ -1034,7 +1054,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return rObject;
 	}
 
-	private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, PagingType paging) {
+	private <T extends ObjectType> Criteria updatePagingAndSorting(Criteria query, Class<T> type, ObjectPaging paging) {
 		if (paging == null) {
 			return query;
 		}
@@ -1045,26 +1065,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			query = query.setMaxResults(paging.getMaxSize());
 		}
 
-		if (paging.getOrderDirection() == null && paging.getOrderBy() == null) {
+		if (paging.getDirection() == null && paging.getOrderBy() == null) {
 			return query;
 		}
 
 		try {
 			QueryRegistry registry = QueryRegistry.getInstance();
-			PropertyPath path = new XPathHolder(paging.getOrderBy()).toPropertyPath();
-			if (path == null || path.size() != 1) {
-				LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + path + "'.");
+			// PropertyPath path = new
+			// XPathHolder(paging.getOrderBy()).toPropertyPath();
+			if (paging.getOrderBy() == null) {
+				LOGGER.warn("Ordering by property path with size not equal 1 is not supported '" + paging.getOrderBy()
+						+ "'.");
 				return query;
 			}
 			EntityDefinition definition = registry.findDefinition(ObjectTypes.getObjectType(type).getQName());
-			Definition def = definition.findDefinition(path.first().getName());
+			Definition def = definition.findDefinition(paging.getOrderBy());
 			if (def == null) {
-				LOGGER.warn("Unknown path '" + path + "', couldn't find definition for it, "
+				LOGGER.warn("Unknown path '" + paging.getOrderBy() + "', couldn't find definition for it, "
 						+ "list will not be ordered by it.");
 				return query;
 			}
 
-			switch (paging.getOrderDirection()) {
+			switch (paging.getDirection()) {
 			case ASCENDING:
 				query = query.addOrder(Order.asc(def.getRealName()));
 				break;

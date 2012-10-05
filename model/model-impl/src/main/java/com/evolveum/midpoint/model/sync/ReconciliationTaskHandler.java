@@ -23,11 +23,14 @@ package com.evolveum.midpoint.model.sync;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.ChangeExecutor;
-import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -42,9 +45,12 @@ import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -53,19 +59,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.List;
 
 /**
  * The task hander for reconciliation.
@@ -226,7 +223,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, opResult);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, opResult);
 
 		// TODO: process result
 	}
@@ -242,7 +239,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.addParam("reconciled", true);
 		LOGGER.debug("Start repository reconciliation");
 		List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(
-				AccountShadowType.class, new ObjectQuery(), new PagingType(), opResult);
+				AccountShadowType.class, new ObjectQuery(), opResult);
 
 		LOGGER.debug("Found {} accounts that were not successfully proccessed.", shadows.size());
 		for (PrismObject<AccountShadowType> shadow : shadows) {

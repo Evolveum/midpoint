@@ -60,7 +60,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
@@ -767,12 +766,12 @@ public class ResourceTypeManager {
 			LOGGER.trace("Searching for shadow using filter:\n{}",
 					query.dump());
 		}
-		PagingType paging = new PagingType();
+//		PagingType paging = new PagingType();
 
 		// TODO: check for errors
 		List<PrismObject<T>> results;
 
-		results = getRepositoryService().searchObjects(type, query, paging, parentResult);
+		results = getRepositoryService().searchObjects(type, query, parentResult);
 
 		LOGGER.trace("lookupShadow found {} objects", results.size());
 

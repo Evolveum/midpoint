@@ -23,7 +23,6 @@ package com.evolveum.midpoint.model.controller;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -44,21 +43,20 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
+import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 
 /**
  * 
@@ -89,20 +87,20 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadOffsetAttribute() {
-		ModelUtils.validatePaging(PagingTypeFactory
-				.createPaging(-5, 10, OrderDirectionType.ASCENDING, "name"));
+		ModelUtils.validatePaging(ObjectPaging.createPaging(-5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadMaxAttribute() {
-		ModelUtils.validatePaging(PagingTypeFactory
-				.createPaging(5, -10, OrderDirectionType.ASCENDING, "name"));
+		ModelUtils.validatePaging(ObjectPaging
+				.createPaging(5, -10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test
 	public void validatePagingGood() {
 		ModelUtils
-				.validatePaging(PagingTypeFactory.createPaging(5, 10, OrderDirectionType.ASCENDING, "name"));
+				.validatePaging(ObjectPaging
+						.createPaging(5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)

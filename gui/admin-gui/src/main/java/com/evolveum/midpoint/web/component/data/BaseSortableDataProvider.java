@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.wf.WfDataAccessor;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -36,17 +35,18 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 
 /**
  * @author lazyman
@@ -135,16 +135,17 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return true;
     }
 
-    protected PagingType createPaging(int first, int count) {
+    protected ObjectPaging createPaging(int first, int count) {
         SortParam sortParam = getSort();
-        OrderDirectionType order;
+        OrderDirection order;
         if (sortParam.isAscending()) {
-            order = OrderDirectionType.ASCENDING;
+            order = OrderDirection.ASCENDING;
         } else {
-            order = OrderDirectionType.DESCENDING;
+            order = OrderDirection.DESCENDING;
         }
 
-        return PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+        return ObjectPaging.createPaging(first, count, sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
+//        return PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
     }
 
     public void clearCache() {

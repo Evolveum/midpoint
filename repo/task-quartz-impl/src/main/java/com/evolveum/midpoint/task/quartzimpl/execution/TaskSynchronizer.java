@@ -20,7 +20,19 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import static org.quartz.impl.matchers.GroupMatcher.jobGroupEquals;
+
+import java.text.ParseException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerKey;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -36,16 +48,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
-import org.quartz.*;
-
-import java.text.ParseException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.quartz.impl.matchers.GroupMatcher.jobGroupEquals;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 /**
  * Synchronizes midPoint repository with Quartz job store.
@@ -97,7 +101,7 @@ public class TaskSynchronizer {
         PagingType paging = new PagingType();
         List<PrismObject<TaskType>> tasks;
         try {
-            tasks = getRepositoryService().searchObjects(TaskType.class, new ObjectQuery(), paging, result);
+            tasks = getRepositoryService().searchObjects(TaskType.class, new ObjectQuery(), result);
         } catch(Exception e) {
             LoggingUtils.logException(LOGGER, "Synchronization cannot be done, because tasks cannot be listed from the repository.", e);
             return false;

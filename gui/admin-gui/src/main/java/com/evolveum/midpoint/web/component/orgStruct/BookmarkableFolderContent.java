@@ -229,7 +229,7 @@ public class BookmarkableFolderContent extends Content {
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
 
 		try {
-			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
+			orgUnitList = getModelService().searchObjects(ObjectType.class, query, task, result);
 			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent);
 			result.recordSuccess();
 		} catch (Exception ex) {

@@ -21,7 +21,16 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -29,14 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import org.apache.commons.lang.Validate;
-
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author lazyman
@@ -64,10 +66,16 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
         try {
-            PagingType paging = createPaging(first, count);
+            ObjectPaging paging = createPaging(first, count);
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+            
+            ObjectQuery query = getQuery();
+            if (query == null){
+            	query = new ObjectQuery();
+            }
+            query.setPaging(paging);
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, getQuery(), paging, task, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, task, result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }

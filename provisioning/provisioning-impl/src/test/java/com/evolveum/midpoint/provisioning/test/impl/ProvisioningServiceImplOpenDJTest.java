@@ -19,14 +19,42 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.opends.server.types.SearchResultEntry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -56,34 +84,19 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.opends.server.types.SearchResultEntry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.Assert;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Test for provisioning service implementation.
@@ -853,7 +866,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         // WHEN
 
       
-        provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+        provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
         
         display("Count", objects.size());
         } catch(Exception ex){
@@ -951,8 +964,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 					"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
 			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
 			
-			provisioningService.searchObjectsIterative(AccountShadowType.class, query, new PagingType(), 
-					new ResultHandler<AccountShadowType>() {
+			provisioningService.searchObjectsIterative(AccountShadowType.class, query, new ResultHandler<AccountShadowType>() {
 
 				@Override
 				public boolean handle(PrismObject<AccountShadowType> object, OperationResult parentResult) {
@@ -1009,7 +1021,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
 
 			List<PrismObject<AccountShadowType>> objListType = 
-				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
+				provisioningService.searchObjects(AccountShadowType.class, query, result);
 			
 			for (PrismObject<AccountShadowType> objType : objListType) {
 				if (objType == null) {
@@ -1057,7 +1069,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
 
 			List<PrismObject<AccountShadowType>> objListType = 
-				provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
+				provisioningService.searchObjects(AccountShadowType.class, query, result);
 			
 			for (PrismObject<AccountShadowType> objType : objListType) {
 				if (objType == null) {

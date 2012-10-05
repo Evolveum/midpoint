@@ -20,27 +20,18 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import groovy.util.MapEntry;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -51,10 +42,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.text.ParseException;
-import java.util.*;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.ClusterStatusInformation;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Node;
+import com.evolveum.midpoint.task.api.NodeErrorStatus;
+import com.evolveum.midpoint.task.api.NodeExecutionStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
+import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
 
 /**
  * Task Manager implementation using Quartz scheduler.
@@ -615,11 +635,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public List<Node> searchNodes(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
+    public List<Node> searchNodes(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "searchNodes");
         result.addParam("query", query);
-        result.addParam("paging", paging);
+//        result.addParam("paging", paging);
         result.addParam("clusterStatusInformation", clusterStatusInformation);
 
         if (clusterStatusInformation == null) {
@@ -628,7 +648,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         List<PrismObject<NodeType>> nodesInRepository;
         try {
-            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, paging, result);
+            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, result);
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't get nodes from repository: " + e.getMessage());
             throw e;
@@ -659,11 +679,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 
     @Override
-    public List<Task> searchTasks(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
+    public List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "searchTasks");
         result.addParam("query", query);
-        result.addParam("paging", paging);
+//        result.addParam("paging", paging);
         result.addParam("clusterStatusInformation", clusterStatusInformation);
 
         if (clusterStatusInformation == null) {
@@ -672,7 +692,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         List<PrismObject<TaskType>> tasksInRepository;
         try {
-            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, paging, result);
+            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, result);
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't get tasks from repository: " + e.getMessage());
             throw e;

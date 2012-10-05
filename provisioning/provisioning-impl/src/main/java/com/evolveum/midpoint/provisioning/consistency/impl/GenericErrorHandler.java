@@ -137,11 +137,17 @@ public class GenericErrorHandler extends ErrorHandler{
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);
 			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
 		default:
+			if (shadow.getOid() == null){
+				throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+			}
+			
+			Collection<ItemDelta> modification = createAttemptModification(shadow, null);
+			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
+			
 			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
 					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
-
-		}
-		
+		}		
 	}
 
 }

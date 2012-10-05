@@ -17,8 +17,6 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import javax.xml.namespace.QName;
 
 import org.mockito.Mockito;
@@ -26,12 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
  * 
@@ -81,6 +84,7 @@ public class ControllerListResourceObjectsTest extends AbstractTestNGSpringConte
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.listResourceObjects("1", new QName("local name"), PagingTypeFactory.createListAllPaging(), null, null);
+		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, ObjectType.F_NAME, OrderDirection.ASCENDING);
+		controller.listResourceObjects("1", new QName("local name"), paging, null, null);
 	}
 }

@@ -34,9 +34,9 @@
     <i:telephoneNumber>+1 408 555 1234</i:telephoneNumber>
    <i:credentials>
         <i:password>
-        	<i:protectedString>
+        	<i:value>
 	            <i:clearValue>supersecret</i:clearValue>
-            </i:protectedString>
+            </i:value>
         </i:password>
     </i:credentials>
 </i:user>

@@ -21,36 +21,28 @@
 
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
-import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Pavol Mederly
@@ -97,7 +89,7 @@ public class WaitForSubtasksTaskHandler implements TaskHandler {
         
         List<PrismObject<TaskType>> subtasks = null;
         try {
-            subtasks = taskManagerImpl.getRepositoryService().searchObjects(TaskType.class, query, new PagingType(), opResult);
+            subtasks = taskManagerImpl.getRepositoryService().searchObjects(TaskType.class, query, opResult);
         } catch (SchemaException e) {
             throw new SystemException("Cannot search for subtasks due to schema exception", e);
         }

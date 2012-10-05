@@ -268,7 +268,7 @@ public class ObjectImporter {
 					prismContext, ObjectType.F_NAME, object.asObjectable().getName()));
 			
             List<PrismObject<? extends ObjectType>> objects = (List) repository.searchObjects(object.getCompileTimeClass(),
-            		query, null, objectResult);
+            		query, objectResult);
             if (objects.size() != 1) {
                 // too few or too much results, not safe to delete
                 return null;
@@ -557,7 +557,7 @@ public class ObjectImporter {
         }
         try {
         	ObjectQuery query = ObjectQuery.createObjectQuery(objFilter);
-            objects = (List)repository.searchObjects(type, query, null, result);
+            objects = (List)repository.searchObjects(type, query, result);
 
         } catch (SchemaException e) {
             // This is unexpected, but may happen. Record fatal error

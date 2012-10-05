@@ -20,13 +20,65 @@
  */
 package com.evolveum.midpoint.testing.consistency;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.util.EmbeddedUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,12 +87,9 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -49,17 +98,17 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -69,61 +118,34 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
-
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.Uid;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.*;
-import org.opends.server.types.ModificationType;
-import org.opends.server.util.ChangeRecordEntry;
-import org.opends.server.util.EmbeddedUtils;
-import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.ModifyChangeRecordEntry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.testng.AssertJUnit.*;
 
 /**
  * Sanity test suite.
@@ -639,7 +661,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		PrismAsserts.assertParentConsistency(user);
 
 		// Encrypt Jack's password
-		protector.encrypt(userType.getCredentials().getPassword().getProtectedString());
+		protector.encrypt(userType.getCredentials().getPassword().getValue());
 		PrismAsserts.assertParentConsistency(user);
 
 		OperationResult result = new OperationResult("add user");
@@ -1589,7 +1611,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
 		assertCache();
 
-		modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, listHolder, resultHolder);
+		modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, listHolder, resultHolder);
 
 		assertCache();
 		ObjectListType objects = listHolder.value;

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -51,12 +52,15 @@ public class QueryConvertor {
 	public static ObjectQuery createObjectQuery(Class clazz, QueryType queryType, PrismContext prismContext)
 			throws SchemaException {
 
-		Element criteria = queryType.getFilter();
-
-		if (criteria == null) {
+		if (queryType == null){
 			return null;
 		}
-
+		
+		Element criteria = queryType.getFilter();
+		
+		if (criteria == null && queryType.getPaging() == null){
+			return null;
+		}
 		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
 
 		if (objDef == null) {
@@ -64,9 +68,16 @@ public class QueryConvertor {
 		}
 
 		try {
-			ObjectFilter filter = parseFilter(objDef, criteria);
 			ObjectQuery query = new ObjectQuery();
-			query.setFilter(filter);
+			if (criteria != null) {
+				ObjectFilter filter = parseFilter(objDef, criteria);
+				query.setFilter(filter);
+			}
+
+			if (queryType.getPaging() != null) {
+				ObjectPaging paging = PagingConvertor.createObjectPaging(queryType.getPaging());
+				query.setPaging(paging);
+			}
 			return query;
 		} catch (SchemaException ex) {
 			throw new SchemaException("Failed to convert query. Reason: " + ex.getMessage(), ex);

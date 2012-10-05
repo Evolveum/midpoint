@@ -132,7 +132,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 //		QueryType query = new QueryType();
 //		query.setFilter(filter);
 
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());

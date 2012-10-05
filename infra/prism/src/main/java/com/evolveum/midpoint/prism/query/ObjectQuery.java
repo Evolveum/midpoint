@@ -6,6 +6,7 @@ import com.evolveum.midpoint.util.Dumpable;
 public class ObjectQuery implements Dumpable, Serializable{
 	
 	private ObjectFilter filter;
+	private ObjectPaging paging;
 	
 	
 	public ObjectFilter getFilter() {
@@ -16,9 +17,30 @@ public class ObjectQuery implements Dumpable, Serializable{
 		this.filter = filter;
 	}
 	
+	public void setPaging(ObjectPaging paging) {
+		this.paging = paging;
+	}
+	
+	public ObjectPaging getPaging() {
+		return paging;
+	}
+	
 	public static ObjectQuery createObjectQuery(ObjectFilter filter){
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
+		return query;
+	}
+	
+	public static ObjectQuery createObjectQuery(ObjectPaging paging){
+		ObjectQuery query = new ObjectQuery();
+		query.setPaging(paging);
+		return query;
+	}
+	
+	public static ObjectQuery createObjectQuery(ObjectFilter filter, ObjectPaging paging){
+		ObjectQuery query = new ObjectQuery();
+		query.setFilter(filter);
+		query.setPaging(paging);
 		return query;
 	}
 
@@ -26,13 +48,19 @@ public class ObjectQuery implements Dumpable, Serializable{
 	@Override
 	public String dump() {
 		StringBuilder sb = new StringBuilder();
-		
-		if (filter == null){
-			return "filter is null";
+
+		if (filter == null) {
+			sb.append("filter is null");
+		} else {
+			sb.append("Appending filter: ");
+			sb.append("\n");
+			sb.append(filter.dump());
 		}
-		sb.append("Appending filter: ");
-		sb.append("\n");
-		sb.append(filter.dump());
+		if (paging == null) {
+			sb.append("paging is null");
+		} else {
+			sb.append(paging.dump());
+		}
 		return sb.toString();
 	}
 

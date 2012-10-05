@@ -149,7 +149,7 @@ public class ShadowConstraintsChecker {
 						RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
 						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifier.getValues())));
 		
-		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, null, result);
+		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.dump()});
 		if (foundObjects.isEmpty()) {

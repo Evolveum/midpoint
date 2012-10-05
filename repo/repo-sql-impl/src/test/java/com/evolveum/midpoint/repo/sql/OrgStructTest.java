@@ -92,7 +92,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject((PrismObject<ObjectType>)o, opResult);
 		}
 
-		List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), null, opResult);
+		List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), opResult);
 		AssertJUnit.assertNotNull(orgTypes);
 		AssertJUnit.assertEquals(9, orgTypes.size());
 
@@ -120,7 +120,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		query.setFilter(EqualsFilter.createEqual(null, userObjectDef, UserType.F_NAME, ELAINE_NAME));
 
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, opResult);
 
 		AssertJUnit.assertNotNull(users);
 		AssertJUnit.assertEquals(1, users.size());
@@ -344,8 +344,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001"));
 		
-		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, null,
-				parentResult);
+		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
 		for (PrismObject<ObjectType> u : resultss) {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
@@ -375,7 +374,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, "1"));
 //		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		// List<>
-		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
+		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
 		for (PrismObject<ObjectType> u : resultss) {
 
 			LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
@@ -406,7 +405,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, null));
 //		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		// List<>
-		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, objectQuery, null, parentResult);
+		List<PrismObject<OrgType>> resultss = repositoryService.searchObjects(OrgType.class, objectQuery, parentResult);
 		for (PrismObject<OrgType> u : resultss) {
 
 			LOGGER.info("ROOT ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));

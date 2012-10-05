@@ -24,7 +24,6 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.task.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,10 +34,17 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -50,7 +56,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -189,13 +194,15 @@ public class RecomputeTaskHandler implements TaskHandler {
 			ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, ConfigurationException, 
 			PolicyViolationException, SecurityViolationException {
 		
-		PagingType paging = new PagingType();
+//		PagingType paging = new PagingType();
 		
 		int offset = 0;
 		while (true) {
-			paging.setOffset(offset);
-			paging.setMaxSize(SEARCH_MAX_SIZE);
-			List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, null, paging, result);
+			ObjectPaging paging = ObjectPaging.createPaging(offset, SEARCH_MAX_SIZE);
+			ObjectQuery q = ObjectQuery.createObjectQuery(paging);
+//			paging.setOffset(offset);
+//			paging.setMaxSize(SEARCH_MAX_SIZE);
+			List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, q, result);
 			if (users == null || users.isEmpty()) {
 				break;
 			}

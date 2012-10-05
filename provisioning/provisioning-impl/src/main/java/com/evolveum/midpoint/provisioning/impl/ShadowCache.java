@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -52,8 +51,8 @@ import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
@@ -61,12 +60,9 @@ import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -79,22 +75,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
@@ -735,8 +726,7 @@ public class ShadowCache {
 
 		List<PrismObject<AccountShadowType>> accountList = null;
 		try {
-			accountList = getRepositoryService().searchObjects(AccountShadowType.class, query, new PagingType(),
-					parentResult);
+			accountList = getRepositoryService().searchObjects(AccountShadowType.class, query, parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
 					"Failed to search account according to the identifiers: " + change.getIdentifiers() + ". Reason: "

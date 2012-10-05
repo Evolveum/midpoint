@@ -1070,7 +1070,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // WHEN
 
-        provisioningService.searchObjectsIterative(AccountShadowType.class, q, null, handler, result);
+        provisioningService.searchObjectsIterative(AccountShadowType.class, q, handler, result);
 
         // THEN
 
@@ -2244,7 +2244,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final OperationResult result = task.getResult();
 
         // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), task, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);
@@ -2723,8 +2723,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Listing of shadows is not supported by the provisioning. So we need
         // to look directly into repository
-        List<PrismObject<AccountShadowType>> sobjects = repositoryService.searchObjects(AccountShadowType.class, null, null,
-                result);
+        List<PrismObject<AccountShadowType>> sobjects = repositoryService.searchObjects(AccountShadowType.class, null, result);
         result.computeStatus();
         assertSuccess("listObjects has failed", result);
         AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
@@ -3124,7 +3123,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 //        QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
         ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, ELAINE_NAME));
-        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, repoResult);
         assertEquals("Wrong number of Elaines", 1, users.size());
         repoUser = users.get(0).asObjectable();
 
@@ -3268,8 +3267,7 @@ public class TestSanity extends AbstractIntegrationTest {
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
         assertCache();
 
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
-                listHolder, resultHolder);
+        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, listHolder, resultHolder);
 
         assertCache();
         ObjectListType objects = listHolder.value;

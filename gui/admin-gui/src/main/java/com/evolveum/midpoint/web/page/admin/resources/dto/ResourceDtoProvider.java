@@ -21,8 +21,14 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -30,17 +36,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.resources.PageResource;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -61,18 +59,23 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
 
         OperationResult result = new OperationResult(OPERATION_LIST_RESOURCES);
         try {
-            SortParam sortParam = getSort();
-            OrderDirectionType order;
-            if (sortParam.isAscending()) {
-                order = OrderDirectionType.ASCENDING;
-            } else {
-                order = OrderDirectionType.DESCENDING;
+//            SortParam sortParam = getSort();
+//            OrderDirectionType order;
+//            if (sortParam.isAscending()) {
+//                order = OrderDirectionType.ASCENDING;
+//            } else {
+//                order = OrderDirectionType.DESCENDING;
+//            }
+//
+//            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+        	ObjectPaging paging = createPaging(first, count);
+            ObjectQuery query = getQuery();
+            if (query == null){
+            	query = new ObjectQuery();
             }
-
-            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+            query.setPaging(paging);
             Task task = getPage().createSimpleTask(OPERATION_LIST_RESOURCES);
-            List<PrismObject<ResourceType>> resources = getModel().searchObjects(ResourceType.class, getQuery(),
-                    paging, task, result);
+            List<PrismObject<ResourceType>> resources = getModel().searchObjects(ResourceType.class, query, task, result);
 
             for (PrismObject<ResourceType> resource : resources) {
                 ResourceType resourceType = resource.asObjectable();

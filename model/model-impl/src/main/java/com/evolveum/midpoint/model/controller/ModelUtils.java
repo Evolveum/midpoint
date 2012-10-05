@@ -23,30 +23,22 @@ package com.evolveum.midpoint.model.controller;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.xml.namespace.QName;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
 
 /**
  * 
@@ -57,7 +49,7 @@ public class ModelUtils {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelUtils.class);
 
-	public static void validatePaging(PagingType paging) {
+	public static void validatePaging(ObjectPaging paging) {
 		if (paging == null) {
 			return;
 		}

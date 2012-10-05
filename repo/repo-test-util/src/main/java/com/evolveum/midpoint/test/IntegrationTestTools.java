@@ -486,7 +486,7 @@ public class IntegrationTestTools {
 		
 		ObjectQuery query = createAllShadowsQuery(resourceType, prismContext);
 		
-		List<PrismObject<AccountShadowType>> allShadows = repositoryService.searchObjects(AccountShadowType.class, query, null , result);
+		List<PrismObject<AccountShadowType>> allShadows = repositoryService.searchObjects(AccountShadowType.class, query, result);
 		LOGGER.trace("Checking {} shadows, query:\n{}", allShadows.size(), query.dump());
 
 		for (PrismObject<AccountShadowType> shadow: allShadows) {
@@ -575,7 +575,7 @@ public class IntegrationTestTools {
 			PrismContext prismContext, OperationResult parentResult) {
 		try {
 			ObjectQuery query = createShadowQuery(resourceShadow, prismContext);
-			List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, null, parentResult);
+			List<PrismObject<AccountShadowType>> results = repositoryService.searchObjects(AccountShadowType.class, query, parentResult);
 			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", query.dump(), results.size());
 			if (results.size() == 0) {
 				AssertJUnit.fail("No shadow found with query:\n"+query.dump());

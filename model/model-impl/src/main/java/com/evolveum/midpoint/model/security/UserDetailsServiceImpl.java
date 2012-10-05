@@ -21,18 +21,11 @@
 
 package com.evolveum.midpoint.model.security;
 
-import java.util.GregorianCalendar;
 import java.util.List;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,18 +35,12 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * @author lazyman
@@ -96,7 +83,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     	ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, username));
         LOGGER.trace("Looking for user, query:\n" + query.dump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, 
                 new OperationResult("Find by username"));
         if (list == null) {
             return null;

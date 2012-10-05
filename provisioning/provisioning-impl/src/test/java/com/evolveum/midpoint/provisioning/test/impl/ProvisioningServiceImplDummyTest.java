@@ -3,18 +3,52 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -29,56 +63,46 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnectionCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.StringUtils;
-import org.opends.server.types.SearchResultEntry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.testng.AssertJUnit.*;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy
@@ -212,7 +236,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		// WHEN
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class,
-				new ObjectQuery(), null, result);
+				new ObjectQuery(), result);
 
 		// THEN
 		assertFalse("No connector found", connectors.isEmpty());
@@ -881,7 +905,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		};
 
 		// WHEN
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
 
 		// THEN
 
@@ -894,7 +918,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		foundObjects.clear();
 
 		// WHEN
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, null, handler, result);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
 
 		// THEN
 
@@ -913,7 +937,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("All shadows query", query);
 
 		List<PrismObject<AccountShadowType>> allShadows = repositoryService.searchObjects(AccountShadowType.class,
-				query, null, result);
+				query, result);
 		display("Found " + allShadows.size() + " shadows");
 
 		assertFalse("No shadows found", allShadows.isEmpty());
@@ -930,7 +954,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("All shadows query", query);
 
 		List<PrismObject<AccountShadowType>> allShadows = provisioningService.searchObjects(AccountShadowType.class,
-				query, null, result);
+				query, result);
 		display("Found " + allShadows.size() + " shadows");
 
 		assertFalse("No shadows found", allShadows.isEmpty());
@@ -961,7 +985,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				+ ".test116SearchNullQueryResource");
 
 		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
-				new ObjectQuery(), null, result);
+				new ObjectQuery(), result);
 		display("Found " + allResources.size() + " resources");
 
 		assertFalse("No resources found", allResources.isEmpty());
@@ -1546,7 +1570,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		
 		List<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query,
-				null, result);
+				result);
 
 		
 		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_WILL_ICF_UID + "\"", 1, objects.size());

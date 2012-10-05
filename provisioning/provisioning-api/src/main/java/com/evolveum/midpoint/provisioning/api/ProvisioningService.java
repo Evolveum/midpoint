@@ -19,25 +19,32 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 
 /**
  * <p>Provisioning Service Interface.</p>
@@ -213,7 +220,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 
@@ -249,7 +256,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, PagingType paging, 
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,  
 			final ResultHandler<T> handler, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
@@ -380,7 +387,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
-	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**

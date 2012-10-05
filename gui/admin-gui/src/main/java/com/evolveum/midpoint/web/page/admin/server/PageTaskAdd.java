@@ -376,7 +376,7 @@ public class PageTaskAdd extends PageAdminTasks {
 		List<TaskAddResourcesDto> resourceList = new ArrayList<TaskAddResourcesDto>();
 
 		try {
-			resources = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
+			resources = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), task, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get resource list.", ex);

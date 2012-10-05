@@ -19,7 +19,20 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -34,21 +47,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static org.testng.AssertJUnit.*;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 /** 
  * @author Radovan Semancik
@@ -90,7 +90,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".test001Connectors");
 		
-		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, result);
 		
 		assertFalse("No connector found",connectors.isEmpty());
 		display("Found "+connectors.size()+" discovered connector");
@@ -114,7 +114,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
 		
-		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, new PagingType(), result);
+		List<PrismObject<ConnectorType>> connectors = provisioningService.searchObjects(ConnectorType.class, null, result);
 		assertNotNull(connectors);
 		
 		for (PrismObject<ConnectorType> connector : connectors){
@@ -163,8 +163,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		
 		System.out.println("Query:\n"+query.dump());
 
-		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null,
-				result);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
 		
 		assertEquals("Unexpected number of results", 1, connectors.size());
 		PrismObject<ConnectorType> ldapConnector = connectors.get(0);

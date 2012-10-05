@@ -24,21 +24,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.text.html.HTML.Attribute;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -54,9 +49,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -69,20 +64,18 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -95,15 +88,12 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptsType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
@@ -538,18 +528,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 	
 	@Override
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, PagingType paging,
+	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjects");
 		result.addParam("objectType", type);
-		result.addParam("paging", paging);
+//		result.addParam("paging", paging);
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
-			List<PrismObject<T>> objects = searchRepoObjects(type, query, paging, result);
+			List<PrismObject<T>> objects = searchRepoObjects(type, query, result);
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
 			return objects;
@@ -566,21 +556,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		searchObjectsIterative(type, query, paging, handler, result);
+		searchObjectsIterative(type, query, handler, result);
 		// TODO: better error handling
 		result.computeStatus();
 		return objListType;
 	}
 
 
-	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
-			PagingType paging, OperationResult result) throws SchemaException {
+	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
 
 		List<PrismObject<T>> objListType = null;
 
 		// TODO: should searching connectors trigger rediscovery?
 
-		objListType = getCacheRepositoryService().searchObjects(type, query, paging, result);
+		objListType = getCacheRepositoryService().searchObjects(type, query, result);
 
 		if (ResourceType.class.equals(type)) {
 			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
@@ -724,7 +713,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		searchObjectsIterative(type, query, null, handler, result);
+		searchObjectsIterative(type, query, handler, result);
 		// TODO: better error handling
 		result.computeStatus();
 		return countHolder.getValue();
@@ -910,7 +899,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
-			QName objectClass, PagingType paging, OperationResult parentResult) throws SchemaException,
+			QName objectClass, ObjectPaging paging, OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -961,8 +950,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 
 	@Override
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, PagingType paging,
-			final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, final ResultHandler<T> handler, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -975,7 +963,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjectsIterative");
 		result.addParam("query", query);
-		result.addParam("paging", paging);
+//		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		ObjectFilter filter = null;

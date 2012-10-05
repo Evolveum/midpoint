@@ -366,7 +366,7 @@ public class ConnectorTypeManager {
 		
 		List<PrismObject<ConnectorType>> foundConnectors;
 		try {
-			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
+			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, result);
 		} catch (SchemaException e) {
 			// If there is a schema error it must be a bug. Convert to runtime exception
 			LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);

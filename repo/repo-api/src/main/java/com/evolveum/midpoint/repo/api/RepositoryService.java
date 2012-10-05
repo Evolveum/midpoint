@@ -31,12 +31,9 @@ import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * <p>Identity Repository Interface.</p>
@@ -225,7 +222,7 @@ public interface RepositoryService {
 	 *             unknown property used in search query
 	 */
 	
-	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
 
 	

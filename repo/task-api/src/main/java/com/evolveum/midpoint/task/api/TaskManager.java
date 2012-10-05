@@ -33,10 +33,8 @@ import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -344,7 +342,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-	public List<Task> searchTasks(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+	public List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
 	int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
 
@@ -359,7 +357,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-	List<Node> searchNodes(ObjectQuery query, PagingType paging, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+	List<Node> searchNodes(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
 	
 	int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;

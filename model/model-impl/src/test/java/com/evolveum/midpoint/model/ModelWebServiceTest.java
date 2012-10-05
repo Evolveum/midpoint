@@ -21,29 +21,20 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.model.test.util.ModelTUtil;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,18 +50,33 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 
 /**
  * @author lazyman
@@ -297,7 +303,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryType() throws FaultMessage {
         try {
-            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, new PagingType(),
+            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -309,7 +315,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryTypeAndPaging() throws FaultMessage {
         try {
-            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, null,
+            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -328,7 +334,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
-            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), new QueryType(), paging,
+        	QueryType queryType = new QueryType();
+        	queryType.setPaging(paging);
+            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), queryType,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {

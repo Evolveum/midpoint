@@ -21,11 +21,26 @@
 
 package com.evolveum.midpoint.model.sync;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -38,7 +53,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -53,7 +67,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -62,21 +75,18 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectSynchronizationType.Reaction;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.w3c.dom.*;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -553,7 +563,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 			PagingType paging = new PagingType();
 //			ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
-			users = repositoryService.searchObjects(UserType.class, q, paging, result);
+			users = repositoryService.searchObjects(UserType.class, q, result);
 
 			if (users == null) {
 				users = new ArrayList<PrismObject<UserType>>();

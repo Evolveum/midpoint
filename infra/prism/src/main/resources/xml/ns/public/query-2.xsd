@@ -78,7 +78,85 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:complexType>
+    
+    <xsd:complexType name="PagingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Parameters limiting the number of returned
+                entries, offset, etc.
+                Used in the web service operations
+                such as list or search
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="orderBy" type="t:XPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Property by which the results should be sorted.
+                        Reference to a property (XPath).
+                        Just one property for now.
+                        Maybe we will change this to a list later.
+                        If not specified, the ordering is arbitrary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orderDirection" type="tns:OrderDirectionType" minOccurs="0" default="ascending">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Direction of ordering (ascending or descending).
+                        Only valid if "orderBy" element is specified.
+                        If not specified, the ordering order is ascending.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="offset" type="xsd:int" default="0" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The index of the first returned entry, starting
+                        with zero. Therefore if 0 is specified, the resulting list
+                        will start with first entry. If 1 is specified, the resulting set will
+                        start with second entry. If not specified, value of zero (0) is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxSize" type="xsd:int" default="2147483647" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The maximum number of entries returned. The
+                        operation may return specified number of number of
+                        entries or less. If not specified, unlimited maximum 
+                        size is assumed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
+    <xsd:simpleType name="OrderDirectionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of an operation (change). It defines operations to change          
+                object, it is not limited to object modifications.
+                TODO: How to handle renames?
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ascending">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASCENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="descending">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DESCENDING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:element name="query" type="tns:QueryType"/>
 
@@ -91,6 +169,7 @@
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:filter"/> 
+            <xsd:element name="paging" type="tns:PagingType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -254,8 +333,6 @@
     <xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
     <xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType"/>
-    
-    
 
 </xsd:schema>
 

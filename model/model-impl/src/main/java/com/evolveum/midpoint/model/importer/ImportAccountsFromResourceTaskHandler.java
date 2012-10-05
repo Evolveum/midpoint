@@ -268,7 +268,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         try {
 
             provisioning.searchObjectsIterative(AccountShadowType.class,
-            		ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectclass, prismContext), null, handler, opResult);
+            		ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectclass, prismContext), handler, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: Object not found: {}", ex.getMessage(), ex);

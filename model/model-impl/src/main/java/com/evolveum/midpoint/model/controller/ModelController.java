@@ -44,9 +44,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -61,7 +59,6 @@ import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.model.util.Utils;
@@ -70,10 +67,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -82,6 +77,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -114,7 +110,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
@@ -123,11 +118,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -575,36 +569,38 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			PagingType paging, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		ModelUtils.validatePaging(paging);
-
+		if (query != null) {
+			ModelUtils.validatePaging(query.getPaging());
+		}
 		RepositoryCache.enter();
 
 		List<PrismObject<T>> list = null;
 
 		try {
-			if (paging == null) {
+			if (query != null){
+			if (query.getPaging() == null) {
 				LOGGER.trace("Searching objects with null paging (query in TRACE).");
 			} else {
 				LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
-						new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
-								paging.getOrderBy() });
+						new Object[] { query.getPaging().getOffset(), query.getPaging().getMaxSize(), query.getPaging().getDirection(),
+								query.getPaging().getOrderBy() });
 			}
-
+			}
 			boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
 			String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
 					: SEARCH_OBJECTS_IN_REPOSITORY;
 			OperationResult subResult = result.createSubresult(operationName);
-			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
+			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, (query != null ? query.getPaging() : "undefined"),
 					searchInProvisioning);
 
 			try {
 				if (searchInProvisioning) {
-					list = provisioning.searchObjects(type, query, paging, subResult);
+					list = provisioning.searchObjects(type, query, subResult);
 				} else {
-					list = cacheRepositoryService.searchObjects(type, query, paging, subResult);
+					list = cacheRepositoryService.searchObjects(type, query, subResult);
 				}
 				subResult.recordSuccess();
 			} catch (Exception ex) {
@@ -1114,7 +1110,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
-			QName objectClass, PagingType paging, Task task, OperationResult result) throws SchemaException,
+			QName objectClass, ObjectPaging paging, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
@@ -1130,7 +1126,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			LOGGER.trace(
 					"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
 					new Object[] { objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
-							paging.getOrderDirection(), paging.getOrderDirection() });
+							paging.getOrderBy(), paging.getDirection() });
 
 			OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECTS);
 			subResult.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid,

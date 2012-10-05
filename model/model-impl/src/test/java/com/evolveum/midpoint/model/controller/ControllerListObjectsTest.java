@@ -17,8 +17,30 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.util.List;
+
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -31,24 +53,9 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.List;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static org.testng.AssertJUnit.*;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 /**
  * 
@@ -82,17 +89,20 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullClassType() throws Exception {
-		controller.searchObjects(null, null, null, null, null);
+		controller.searchObjects(null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(UserType.class, null, null, null, null);
+		controller.searchObjects(UserType.class, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.searchObjects(UserType.class, null, PagingTypeFactory.createListAllPaging(), null, null);
+		//original was PagingTypeFactory.createListAllPaging()
+		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, ObjectType.F_NAME, OrderDirection.ASCENDING);
+		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
+		controller.searchObjects(UserType.class, query, null, null);
 	}
 
 	@Test
@@ -101,16 +111,14 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 		final List<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toList(UserType.class,
 				PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
 
-		when(repository.searchObjects(eq(UserType.class), any(ObjectQuery.class), any(PagingType.class), any(OperationResult.class)))
+		when(repository.searchObjects(eq(UserType.class), any(ObjectQuery.class), any(OperationResult.class)))
 				.thenReturn(expectedUserList);
 
 		Task task = taskManager.createTaskInstance("List Users");
 		try {
-			final List<PrismObject<UserType>> returnedUserList = controller.searchObjects(UserType.class, new ObjectQuery(), new PagingType(),
-					task, task.getResult());
+			final List<PrismObject<UserType>> returnedUserList = controller.searchObjects(UserType.class, new ObjectQuery(), task, task.getResult());
 
-			verify(repository, times(1)).searchObjects(eq(ObjectTypes.USER.getClassDefinition()), any(ObjectQuery.class),
-					any(PagingType.class), any(OperationResult.class));
+			verify(repository, times(1)).searchObjects(eq(ObjectTypes.USER.getClassDefinition()), any(ObjectQuery.class), any(OperationResult.class));
 			testObjectList((List)expectedUserList, (List)returnedUserList);
 		} finally {
 			LOGGER.debug(task.getResult().dump());

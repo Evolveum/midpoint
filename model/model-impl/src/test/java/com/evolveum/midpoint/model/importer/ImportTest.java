@@ -239,7 +239,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
 
 		assertNotNull(users);
 		assertEquals("Search retuned unexpected results", 1, users.size());
@@ -301,7 +301,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
@@ -359,7 +359,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
