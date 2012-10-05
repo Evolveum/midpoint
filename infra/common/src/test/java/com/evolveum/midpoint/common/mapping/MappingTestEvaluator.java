@@ -195,6 +195,16 @@ public class MappingTestEvaluator {
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
+			PropertyPath defaultTargetPropertyPath) 
+			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, null);
+		OperationResult opResult = new OperationResult(testName);
+		mapping.evaluate(opResult);
+		// TODO: Assert result success
+		return mapping.getOutputTriple();
+	}
+	
+	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
 			String defaultTargetPropertyName) 
 			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);

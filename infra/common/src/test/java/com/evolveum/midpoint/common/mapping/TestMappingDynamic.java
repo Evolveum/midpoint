@@ -91,12 +91,11 @@ public class TestMappingDynamic {
     	evaluator.init();
     }
     
-    
     @Test
-    public void testValue() throws Exception {
+    public void testValueSingleDeep() throws Exception {
         // WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-value.xml",
+    			"mapping-value-single-deep.xml",
     			"testValue",
     			"costCenter",				// target
     			"employeeType",				// changed property
@@ -107,12 +106,28 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
-    
+
     @Test
-    public void testValueMulti() throws Exception {
+    public void testValueSingleShallow() throws Exception {
+        // WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-value-single-shallow.xml",
+    			"testValue",
+    			"costCenter",				// target
+    			"employeeType",				// changed property
+    			"CAPTAIN");					// changed values
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "foobar");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    @Test
+    public void testValueMultiDeep() throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-value-multi.xml",
+    			"mapping-value-multi-deep.xml",
     			"testValueMulti",
     			"employeeType",				// target
     			"employeeType",				// changed property
@@ -123,7 +138,23 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
-     
+
+    @Test
+    public void testValueMultiShallow() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-value-multi-shallow.xml",
+    			"testValueMulti",
+    			"employeeType",				// target
+    			"employeeType",				// changed property
+    			"CAPTAIN");					// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "12345", "67890");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+
     @Test
     public void testAsIsAdd() throws Exception {
     	// WHEN
