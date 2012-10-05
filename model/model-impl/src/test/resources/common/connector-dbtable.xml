@@ -229,7 +229,7 @@
 	            </xsd:element>
 	          </xsd:sequence>
 	        </xsd:complexType>
-	        <xsd:element name="configuration" type="tns:ConfigurationType">
+	        <xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
 	          <xsd:annotation>
 	            <xsd:appinfo>
 	              <a:container/>

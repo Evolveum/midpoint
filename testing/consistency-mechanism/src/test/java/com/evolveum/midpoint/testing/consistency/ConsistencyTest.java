@@ -579,7 +579,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource,
 			String connectorNamespace, String credentialsPropertyName, int numConfigProps, String source) {
 		PrismContainer<Containerable> configurationContainer = resource
-				.findContainer(ResourceType.F_CONFIGURATION);
+				.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No configuration container in " + resource + " from " + source, configurationContainer);
 		PrismContainer<Containerable> configPropsContainer = configurationContainer
 				.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);

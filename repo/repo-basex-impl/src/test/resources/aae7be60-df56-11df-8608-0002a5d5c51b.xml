@@ -71,7 +71,7 @@
 				<icfc:schema>-1</icfc:schema>
 		</icfc:timeouts>
 
-	</c:configuration>
+	</c:connectorConfiguration>
     <c:schema>
     	<c:definition>
         <xsd:schema elementFormDefault="qualified"

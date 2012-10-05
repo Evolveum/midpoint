@@ -62,7 +62,7 @@ object.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration
+		<c:connectorConfiguration
 		xmlns:icfcsolaris="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.unix.solaris/org.identityconnectors.solaris.SolarisConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 	
@@ -113,7 +113,7 @@ object.
 			<icfc:producerBufferSize>100</icfc:producerBufferSize>
 
 
-		</c:configuration>
+		</c:connectorConfiguration>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by

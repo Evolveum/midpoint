@@ -26,7 +26,7 @@ xsi:type="c:ResourceType"
 oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
     <c:name>Localhost OpenDJ v3</c:name>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
-    <c:configuration>
+    <c:connectorConfiguration>
         <ns2:ConnectorConfiguration xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd">
             <ns2:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5531" connectorName="org.identityconnectors.ldap.LdapConnector">
                 <ns2:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</ns2:ConnectorHostRef>
@@ -65,7 +65,7 @@ oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
                 <ns2:OperationTimeout name="schema" timeout="-1"/>
             </ns2:OperationTimeouts>
         </ns2:ConnectorConfiguration>
-    </c:configuration>
+    </c:connectorConfiguration>
     <c:schema>
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
 targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"

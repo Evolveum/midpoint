@@ -56,7 +56,7 @@ See the content of the SQL files in this directory to see the table strucutre.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-	<configuration>
+	<connectorConfiguration>
 
 	    <!-- Configuration specific for the DBTable connector -->
 		<icfc:configurationProperties
@@ -80,6 +80,6 @@ See the content of the SQL files in this directory to see the table strucutre.
 			<icscdbtable:datasource></icscdbtable:datasource>
 		</icfc:configurationProperties>
 
-	</configuration>
+	</connectorConfiguration>
 
 </resource>

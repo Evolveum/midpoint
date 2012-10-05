@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
@@ -321,8 +321,8 @@ public class TestParseResource {
     	Element filter = connectorRefVal.getFilter();
     	assertNotNull("No filter in connectorRef value", filter);
 				
-		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
-		assertContainerDefinition(configurationContainer, "configuration", ResourceConfigurationType.COMPLEX_TYPE, 1, 1);
+		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
 		List<Item<?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", 4, configItems.size());

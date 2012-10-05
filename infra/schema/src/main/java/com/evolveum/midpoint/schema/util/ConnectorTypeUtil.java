@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 
@@ -94,18 +94,18 @@ public class ConnectorTypeUtil {
 		Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connectorType);
 		PrismSchema connectorSchema = PrismSchema.parse(connectorSchemaElement, "schema for " + connectorType, prismContext);
 		// Make sure that the config container definition has a correct compile-time class name
-		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
-		PrismContainerDefinition<ResourceConfigurationType> configurationContainerDefintion = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-		configurationContainerDefintion.setCompileTimeClass(ResourceConfigurationType.class);
+		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+		configurationContainerDefintion.setCompileTimeClass(ConnectorConfigurationType.class);
 		return connectorSchema;
 	}
 	
-	public static PrismContainerDefinition<ResourceConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismSchema connectorSchema) {
-		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
+	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismSchema connectorSchema) {
+		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		return connectorSchema.findContainerDefinitionByElementName(configContainerQName);
 	}
 	
-	public static PrismContainerDefinition<ResourceConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
+	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
 		PrismSchema connectorSchema = getConnectorSchema(connectorType, prismContext);
 		return findConfigurationContainerDefintion(connectorType, connectorSchema);
 	}

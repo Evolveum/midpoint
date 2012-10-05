@@ -201,7 +201,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			generateConnectorSchema();
 		}
 		QName configContainerQName = new QName(connectorType.getNamespace(),
-				ResourceType.F_CONFIGURATION.getLocalPart());
+				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		PrismContainerDefinition configContainerDef = connectorSchema
 				.findContainerDefinitionByElementName(configContainerQName);
 		if (configContainerDef == null) {
@@ -233,7 +233,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Create configuration type - the type used by the "configuration"
 		// element
 		PrismContainerDefinition configurationContainerDef = mpSchema.createPropertyContainerDefinition(
-				ResourceType.F_CONFIGURATION.getLocalPart(),
+				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// element with "ConfigurationPropertiesType" - the dynamic part of

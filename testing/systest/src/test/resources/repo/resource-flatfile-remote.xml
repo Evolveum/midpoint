@@ -51,7 +51,7 @@
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-aaeeffeeffaa</namespace>
 	
 	<!-- Resource configuration section -->
-	<configuration
+	<connectorConfiguration
 		xmlns:icfb="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.flatfile/org.identityconnectors.flatfile.FlatFileConnector"
 	    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
@@ -60,7 +60,7 @@
 			<icfb:file>/tmp/flatfile-connector</icfb:file>
 		</icfb:configurationProperties>
 		
-	</configuration>
+	</connectorConfiguration>
 	
 	<!-- No schema. It will be generated from the resource. -->
 	

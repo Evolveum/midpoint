@@ -91,7 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -166,12 +166,12 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {
 		display("Resource", resource);
 		display("Resource def", resource.getDefinition());
-		PrismContainer<ResourceConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No Resource connector configuration def", configurationContainer);
 		display("Resource connector configuration def", configurationContainer.getDefinition());
 		display("Resource connector configuration def complex type def", configurationContainer.getDefinition().getComplexTypeDefinition());
 		assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
-		assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ResourceConfigurationType.class, 
+		assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ConnectorConfigurationType.class, 
 				configurationContainer.getCompileTimeClass());
 		
 		resource.checkConsistence(true, true);

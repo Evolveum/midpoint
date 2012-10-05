@@ -2248,7 +2248,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="configuration" type="tns:ResourceConfigurationType"/>
+                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType"/>
                     <xsd:element ref="tns:schema" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3040,7 +3040,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="ResourceConfigurationType">
+    <xsd:complexType name="ConnectorConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Resource configuration (hostname, port, ...).

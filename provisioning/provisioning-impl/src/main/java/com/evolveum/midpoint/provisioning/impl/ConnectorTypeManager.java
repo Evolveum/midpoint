@@ -88,7 +88,7 @@ public class ConnectorTypeManager {
 
 			if (!forceFresh && configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
 					&& configuredConnectorInstanceEntry.configuration.equivalent(resource.asPrismObject()
-							.findContainer(ResourceType.F_CONFIGURATION))) {
+							.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION))) {
 
 				// We found entry that matches
 				LOGGER.trace(
@@ -118,7 +118,7 @@ public class ConnectorTypeManager {
 		// .. and cache it
 		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
 		cacheEntry.connectorOid = connectorOid;
-		cacheEntry.configuration = resource.asPrismObject().findContainer(ResourceType.F_CONFIGURATION);
+		cacheEntry.configuration = resource.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		cacheEntry.connectorInstance = configuredConnectorInstance;
 		connectorInstanceCache.put(resourceOid, cacheEntry);
 
@@ -143,7 +143,7 @@ public class ConnectorTypeManager {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 		try {
-			connector.configure(resource.getConfiguration().asPrismContainerValue(), result);
+			connector.configure(resource.getConnectorConfiguration().asPrismContainerValue(), result);
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);

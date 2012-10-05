@@ -9,7 +9,7 @@
 		<connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector" />
 		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
 		</namespace>
-		<configuration>
+		<connectorConfiguration>
 			<icfcldap:configurationProperties xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd"
 				xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -62,7 +62,7 @@
 				<icfc:operation name="sync">-1</icfc:operation>
 				<icfc:operation name="schema">-1</icfc:operation>
 			</icfc:timeout>
-		</configuration>
+		</connectorConfiguration>
 		<schema>
 			<xsd:schema elementFormDefault="qualified"
 				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"

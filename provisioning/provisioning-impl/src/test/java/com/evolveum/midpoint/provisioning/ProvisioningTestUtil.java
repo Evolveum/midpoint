@@ -97,7 +97,7 @@ public class ProvisioningTestUtil {
 		
 		// Local schema namespace is used here.
 		PrismContainerDefinition configurationDefinition = 
-			schema.findItemDefinition("configuration",PrismContainerDefinition.class);
+			schema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(), PrismContainerDefinition.class);
 		assertNotNull("Definition of <configuration> property container not found in connector schema of "+connectorDescription,
 				configurationDefinition);
 		assertFalse("Empty definition of <configuration> property container in connector schema of "+connectorDescription,

@@ -213,8 +213,8 @@ public class RResource extends RObject {
         }
 
         try {
-            jaxb.setConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONFIGURATION), repo.getConfiguration(),
-                    ResourceConfigurationType.class, prismContext));
+            jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(),
+                    ConnectorConfigurationType.class, prismContext));
             jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA), repo.getXmlSchema(),
                     XmlSchemaType.class, prismContext));
             jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING), repo.getSchemaHandling(),
@@ -248,7 +248,7 @@ public class RResource extends RObject {
         }
 
         try {
-            repo.setConfiguration(RUtil.toRepo(jaxb.getConfiguration(), prismContext));
+            repo.setConfiguration(RUtil.toRepo(jaxb.getConnectorConfiguration(), prismContext));
             repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
             repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
             repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));

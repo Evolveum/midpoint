@@ -48,7 +48,7 @@ This resource definition contains also definition to enable synchronization.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <c:configuration>
+        <c:connectorConfiguration>
 
             <!-- Configuration of ICF connector -->
             <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
@@ -89,7 +89,7 @@ This resource definition contains also definition to enable synchronization.
                     <idc:OperationTimeout name="schema" timeout="50000"/>
                 </idc:OperationTimeouts>
             </idc:ConnectorConfiguration>
-        </c:configuration>
+        </c:connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

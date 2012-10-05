@@ -44,7 +44,7 @@
 		</and>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
-	<configuration>
+	<connectorConfiguration>
 		<icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
@@ -70,7 +70,7 @@
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 		</icfcldap:configurationProperties>
-	</configuration>
+	</connectorConfiguration>
 	<schema>
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"

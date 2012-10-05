@@ -46,8 +46,8 @@
                 <c:name>Default Account</c:name>
             </accountType>
         </schemaHandling>
-        <configuration>
-        </configuration>
+        <connectorConfiguration>
+        </connectorConfiguration>
     </resource>
 
 </objects>

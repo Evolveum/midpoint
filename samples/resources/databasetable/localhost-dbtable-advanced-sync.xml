@@ -63,7 +63,7 @@ object.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration>
+		<c:connectorConfiguration>
 
             <!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
@@ -90,7 +90,7 @@ object.
 			<!-- Generic ICF configuration -->
 
 
-		</c:configuration>
+		</c:connectorConfiguration>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by

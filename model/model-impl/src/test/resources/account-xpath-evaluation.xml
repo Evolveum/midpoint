@@ -25,7 +25,7 @@
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="2">
 		<name>Localhost OpenDJ</name>
 		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-		<configuration>
+		<connectorConfiguration>
 			<idc:ConnectorConfiguration
 				xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
 				xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
@@ -59,7 +59,7 @@
 					<idc:OperationTimeout name="schema" timeout="50000" />
 				</idc:OperationTimeouts>
 			</idc:ConnectorConfiguration>
-		</configuration>
+		</connectorConfiguration>
 		<schema>
 		  
         	<definition>

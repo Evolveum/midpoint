@@ -403,7 +403,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("DB Connector: ", dbConnector);
 
         // Check if password was encrypted during import
-        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConfiguration().getAny(),
+        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConnectorConfiguration().getAny(),
                 new QName(dbConnector.asObjectable().getNamespace(), "configurationProperties"));
         Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
                 new QName(dbConnector.asObjectable().getNamespace(), "password"));
@@ -500,7 +500,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("Resource from " + source + " has null description in connectorRef", connectorRefType.getDescription());
         assertNotNull("Resource from " + source + " has null filter in connectorRef", connectorRefType.getFilter());
         assertNotNull("Resource from " + source + " has null filter element in connectorRef", connectorRefType.getFilter().getFilter());
-        assertNotNull("Resource from " + source + " has null configuration", resource.getConfiguration());
+        assertNotNull("Resource from " + source + " has null configuration", resource.getConnectorConfiguration());
         assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
         checkOpenDjSchema(resource, source);
         assertNotNull("Resource from " + source + " has null schemahandling", resource.getSchemaHandling());
@@ -555,7 +555,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource, String connectorNamespace, String credentialsPropertyName,
 			int numConfigProps, String source) {
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No configuration container in "+resource+" from "+source, configurationContainer);
 		PrismContainer<Containerable> configPropsContainer = configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No configuration properties container in "+resource+" from "+source, configPropsContainer);

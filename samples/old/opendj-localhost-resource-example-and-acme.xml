@@ -48,7 +48,7 @@ This resource definition contains also definition to enable synchronization.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <c:configuration>
+        <c:connectorConfiguration>
 
             <!-- Configuration of ICF connector -->
             <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
@@ -89,7 +89,7 @@ This resource definition contains also definition to enable synchronization.
                     <idc:OperationTimeout name="schema" timeout="50000"/>
                 </idc:OperationTimeouts>
             </idc:ConnectorConfiguration>
-        </c:configuration>
+        </c:connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint
@@ -533,7 +533,7 @@ This resource definition contains also definition to enable synchronization.
         <c:name>Localhost OpenDJ ACME</c:name>
         <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
         <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4</c:namespace>
-        <c:configuration>
+        <c:connectorConfiguration>
             <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                                         xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">
                 <idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5754openidm" connectorName="org.identityconnectors.ldap.LdapConnector"/>
@@ -562,7 +562,7 @@ This resource definition contains also definition to enable synchronization.
                     <idc:OperationTimeout name="schema" timeout="50000"/>
                 </idc:OperationTimeouts>
             </idc:ConnectorConfiguration>
-        </c:configuration>
+        </c:connectorConfiguration>
         <c:schema>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4"

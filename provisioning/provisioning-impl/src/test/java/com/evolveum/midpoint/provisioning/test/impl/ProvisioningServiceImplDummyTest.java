@@ -234,11 +234,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 			display("Parsed connector schema " + conn, schema);
 
-			QName configurationElementQname = new QName(conn.getNamespace(), "configuration");
+			QName configurationElementQname = new QName(conn.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 			PrismContainerDefinition configurationContainer = schema
 					.findContainerDefinitionByElementName(configurationElementQname);
 			assertNotNull("No " + configurationElementQname + " element in schema of " + conn, configurationContainer);
-			PrismContainerDefinition definition = schema.findItemDefinition("configuration",
+			PrismContainerDefinition definition = schema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
 					PrismContainerDefinition.class);
 			assertNotNull("Definition of <configuration> property container not found", definition);
 			PrismContainerDefinition pcd = (PrismContainerDefinition) definition;
@@ -335,7 +335,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		resourceType = resource.asObjectable();
 
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No configuration container", configurationContainer);
 		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
 		assertNotNull("No configuration container definition", confContDef);
@@ -522,9 +522,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
 
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		PrismContainer<Containerable> configurationContainerAgain = resourceAgain
-				.findContainer(ResourceType.F_CONFIGURATION);
+				.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
 		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
@@ -576,9 +576,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
 
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		PrismContainer<Containerable> configurationContainerAgain = resourceAgain
-				.findContainer(ResourceType.F_CONFIGURATION);
+				.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
 		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);

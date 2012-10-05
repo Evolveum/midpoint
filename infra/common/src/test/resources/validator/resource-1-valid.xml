@@ -57,7 +57,7 @@
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>
@@ -71,7 +71,7 @@
 			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 		</icfcldap:configurationProperties>
 
-	</configuration>
+	</connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

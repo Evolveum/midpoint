@@ -49,8 +49,8 @@
 			</filter>
 		</connectorRef>
 		<namespace>http://foo.bar.com/</namespace>
-		<configuration>
-		</configuration>
+		<connectorConfiguration>
+		</connectorConfiguration>
 		<schema>
 		</schema>
 	</resource>

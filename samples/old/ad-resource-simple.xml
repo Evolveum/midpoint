@@ -42,7 +42,7 @@ replaced with real values.
         <c:name>AD-test</c:name>
         <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
         <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66</c:namespace>
-        <c:configuration>
+        <c:connectorConfiguration>
             <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                                         xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">
                 <idc:ConnectorRef bundleName="ActiveDirectory.Connector" bundleVersion="1.0.0.5143" connectorName="Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector" connectorHost="???.???.???.???" connectorPort="8759" connectorSecret="password"/>
@@ -72,7 +72,7 @@ replaced with real values.
                     <idc:OperationTimeout name="schema" timeout="-1"/>
                 </idc:OperationTimeouts>
             </idc:ConnectorConfiguration>
-        </c:configuration>
+        </c:connectorConfiguration>
         <c:schema>
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/6e842d90-0cf2-11e0-81e0-0800200c9a66"

@@ -219,7 +219,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 		resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result);
 		resourceType = resource.asObjectable();
 
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No configuration container", configurationContainer);
 		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
 		assertNotNull("No configuration container definition", confContDef);

@@ -33,13 +33,13 @@
 	<name>Localhost OpenDJ</name>
 	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType"/>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
-	<configuration>
+	<connectorConfiguration>
 		<icfc:configurationProperties>
 			<icfcldap:port>1389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 		</icfc:configurationProperties>
-	</configuration>
+	</connectorConfiguration>
 	<schema>
 		<!-- Storing schema here and don't letting midpoint to generate it. Some tests work without running resource,
 			generating a schema would fail. -->

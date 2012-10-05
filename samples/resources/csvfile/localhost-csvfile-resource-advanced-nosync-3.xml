@@ -54,7 +54,7 @@ using an Identity Connector Framework connector.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-	<configuration>
+	<connectorConfiguration>
 	
             <!-- Configuration specific for the CSVfile connector -->
 		<icfc:configurationProperties
@@ -73,7 +73,7 @@ using an Identity Connector Framework connector.
 		
 			<!-- Generic ICF configuration -->
 
-	</configuration>
+	</connectorConfiguration>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by

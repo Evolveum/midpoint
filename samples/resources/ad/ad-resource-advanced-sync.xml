@@ -61,7 +61,7 @@ This resource definition contains only the very basic definitions for midPoint t
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <configuration>
+        <connectorConfiguration>
 
             <!-- Configuration specific for the Active Directory connector -->
             <icfcad:configurationProperties
@@ -78,7 +78,7 @@ This resource definition contains only the very basic definitions for midPoint t
 		<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
             </icfcad:configurationProperties>
 
-        </configuration>
+        </connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

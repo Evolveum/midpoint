@@ -93,7 +93,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 
@@ -189,8 +189,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertPropertyValue(resource, "name", "Dummy Resource");
 		assertPropertyDefinition(resource, "name", DOMUtil.XSD_STRING, 0, 1);		
 				
-		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
-		assertContainerDefinition(configurationContainer, "configuration", ResourceConfigurationType.COMPLEX_TYPE, 1, 1);
+		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
 		List<Item<?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", 1, configItems.size());
@@ -261,7 +261,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
-		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();
+		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		
 		// WHEN
@@ -282,7 +282,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertNotNull("Failed to instantiate connector", cc);
 		
-		PrismContainerValue configContainer = resourceType.getConfiguration().asPrismContainerValue();
+		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
 		cc.configure(configContainer, result);
 		

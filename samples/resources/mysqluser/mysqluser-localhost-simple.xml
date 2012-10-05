@@ -59,7 +59,7 @@ This resource definition contains only the very basic definitions for midPoint t
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<configuration
+		<connectorConfiguration
 			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.mysqluser/org.identityconnectors.mysqluser.MySQLUserConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
@@ -73,7 +73,7 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfi:usermodel>prototypeuser</icfi:usermodel>
 			</icfc:configurationProperties>
 		
-		</configuration>
+		</connectorConfiguration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

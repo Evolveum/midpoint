@@ -377,8 +377,8 @@
                 <assignmentProperty ref="group"/>
             </assignableType>
         </c:schemaHandling>
-        <c:configuration>
-        </c:configuration>
+        <c:connectorConfiguration>
+        </c:connectorConfiguration>
     </c:resource>
 
     <c:resource oid="444">
@@ -476,8 +476,8 @@
         <c:schemaHandling> -->
             <!-- No accountType definition here needed. It is defined by schema annotation above -->
 <!--        </c:schemaHandling>
-        <c:configuration>
-        </c:configuration>
+        <c:connectorConfiguration>
+        </c:connectorConfiguration>
     </c:resource> -->
 
 </i:objects>

@@ -24,7 +24,7 @@
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourceType" oid="eced6f20-df52-11df-9e9a-0002a5d5c51b">
     <c:name>FlatFile</c:name>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/eced6f20-df52-11df-9e9a-0002a5d5c51b</c:namespace>
-    <c:configuration>
+    <c:connectorConfiguration>
         <ns2:ConnectorConfiguration xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd">
             <ns2:ConnectorRef bundleName="org.identityconnectors.flatfile" bundleVersion="1.0.2838" connectorName="org.identityconnectors.flatfile.FlatFileConnector">
                 <ns2:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</ns2:ConnectorHostRef>
@@ -49,7 +49,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourceType" 
                 <ns2:OperationTimeout name="schema" timeout="50000"/>
             </ns2:OperationTimeouts>
         </ns2:ConnectorConfiguration>        
-    </c:configuration>
+    </c:connectorConfiguration>
     <c:schema>
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/eced6f20-df52-11df-9e9a-0002a5d5c51b"

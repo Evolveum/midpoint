@@ -338,7 +338,7 @@ public class TestParseDiffPatch {
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
-        		new PropertyPath(ResourceType.F_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
+        		new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
         		100);
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
@@ -359,12 +359,12 @@ public class TestParseDiffPatch {
 	}
 
 	private PropertyPath pathConfigProperties(String propName) {
-		return new PropertyPath(ResourceType.F_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+		return new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
 				new QName(SchemaTestConstants.NS_ICFC_LDAP, propName));
 	}
 
 	private PropertyPath pathTimeouts(String last) {
-		return new PropertyPath(ResourceType.F_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "timeouts"),
+		return new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "timeouts"),
 				new QName(SchemaTestConstants.NS_ICFC, last));
 	}
 

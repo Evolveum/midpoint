@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -219,11 +219,11 @@ public class TestSchemaSanity {
 		PrismAsserts.assertPropertyDefinition(resourceDefinition, ResourceType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
 		assertFalse("Resource definition is marked as runtime", resourceDefinition.isRuntimeSchema());
 
-		PrismContainerDefinition<ResourceConfigurationType> connectorConfContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_CONFIGURATION);
-		PrismAsserts.assertDefinition(connectorConfContainerDef, ResourceType.F_CONFIGURATION, ResourceConfigurationType.COMPLEX_TYPE, 1, 1);
+		PrismContainerDefinition<ConnectorConfigurationType> connectorConfContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION);
+		PrismAsserts.assertDefinition(connectorConfContainerDef, ResourceType.F_CONNECTOR_CONFIGURATION, ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		assertTrue("<connectorConfiguration> is NOT dynamic", connectorConfContainerDef.isDynamic());
 //		assertFalse("<connectorConfiguration> is runtime", connectorConfContainerDef.isRuntimeSchema());
-		assertEquals("Wrong compile-time class for <connectorConfiguration> in resource definition", ResourceConfigurationType.class, connectorConfContainerDef.getCompileTimeClass());
+		assertEquals("Wrong compile-time class for <connectorConfiguration> in resource definition", ConnectorConfigurationType.class, connectorConfContainerDef.getCompileTimeClass());
 		
 		PrismContainerDefinition<XmlSchemaType> schemaContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_SCHEMA);
 		PrismAsserts.assertDefinition(schemaContainerDef, ResourceType.F_SCHEMA, XmlSchemaType.COMPLEX_TYPE, 0, 1);

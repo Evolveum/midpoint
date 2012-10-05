@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceAccountTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationType;
@@ -255,7 +255,7 @@ public class ResourceTypeUtil {
 	}
 	
 	public static PrismContainer<Containerable> getConfigurationContainer(PrismObject<ResourceType> resource) {
-		return resource.findContainer(ResourceType.F_CONFIGURATION);
+		return resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 	}
 	
 	public static String getResourceNamespace(PrismObject<ResourceType> resource) {

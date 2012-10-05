@@ -28,8 +28,8 @@
         <name>Localhost OpenDJ</name>
         <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-        <configuration>
-        </configuration>
+        <connectorConfiguration>
+        </connectorConfiguration>
         <schema>
             <xsd:schema elementFormDefault="qualified" 
             		targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" 

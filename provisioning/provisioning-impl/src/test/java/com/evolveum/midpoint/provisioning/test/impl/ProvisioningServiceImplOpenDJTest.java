@@ -283,8 +283,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertNotNull("No connector ref",resourceTypeAgain.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeAgain.getConnectorRef().getOid());
 		
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
-		PrismContainer<Containerable> configurationContainerAgain = resourceAgain.findContainer(ResourceType.F_CONFIGURATION);		
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainerAgain = resourceAgain.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);		
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 		assertTrue("Configurations not equals", configurationContainer.equals(configurationContainerAgain));
 

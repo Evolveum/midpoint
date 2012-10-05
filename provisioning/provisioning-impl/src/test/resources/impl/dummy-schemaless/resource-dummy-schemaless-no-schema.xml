@@ -28,7 +28,7 @@
 								  
 	<name>Dummy Schemaless Resource</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
-	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
@@ -36,7 +36,7 @@
 			<icfi:supportSchema>false</icfi:supportSchema> <!-- Disable schema support -->
 		</icfc:configurationProperties>
 
-	</configuration>
+	</connectorConfiguration>
 	<!-- No schema. And it will NOT be generated. See what happens. -->
 	<!-- ... and no schemaHandling as well. -->
 </resource>

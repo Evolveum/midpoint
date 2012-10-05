@@ -43,12 +43,12 @@
 	    </filter>
 	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-ffff-ffffffffffff</namespace>
-	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/non.existent.connector.bundle"
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/non.existent.connector.bundle"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
 		<icfi:configurationProperties>
 			<!-- no configuration -->
 		</icfi:configurationProperties>
 
-	</configuration>
+	</connectorConfiguration>
 </resource>

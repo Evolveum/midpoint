@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesTy
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
@@ -310,7 +310,7 @@ public class ResourceTypeManager {
 			throws SchemaException, ObjectNotFoundException {
 		
 		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);
-		PrismContainerDefinition<ResourceConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
 				.findConfigurationContainerDefintion(connectorType, prismContext);
 		if (configurationContainerDefintion == null) {
 			throw new SchemaException("No configuration container definition in " + connectorType);
@@ -361,7 +361,7 @@ public class ResourceTypeManager {
 				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
 
 		try {
-			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION)
+			connector.configure(resourceType.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION)
 					.getValue(), configResult);
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
@@ -939,7 +939,7 @@ public class ResourceTypeManager {
 			objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 			return;
 		}
-        QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONFIGURATION.getLocalPart());
+        QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
 		if (configContainerDef == null) {
 			objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
@@ -953,7 +953,7 @@ public class ResourceTypeManager {
             return;
 		}
      
-        resourceType.asPrismObject().findContainer(ResourceType.F_CONFIGURATION).applyDefinition(configContainerDef);
+        resourceType.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION).applyDefinition(configContainerDef);
  
         for (ItemDelta itemDelta : delta.getModifications()){
         	if (itemDelta.getParentPath() == null){
@@ -967,7 +967,7 @@ public class ResourceTypeManager {
         		continue;
         	}
         	
-        	if (itemDelta.getDefinition() == null && (ResourceType.F_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
+        	if (itemDelta.getDefinition() == null && (ResourceType.F_CONNECTOR_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
         		PropertyPath path = itemDelta.getPath().rest();
         		ItemDefinition itemDef = configContainerDef.findItemDefinition(path);
 				itemDelta.applyDefinition(itemDef);

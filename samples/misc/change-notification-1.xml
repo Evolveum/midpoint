@@ -52,8 +52,8 @@
         <name>OpenDJ LDAP directory</name>
         <connectorRef oid="c0c010c0-d34d-b33f-f00d-777788881121"/>
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-        <configuration>
+        <connectorConfiguration>
         	<!-- .... -->
-        </configuration>
+        </connectorConfiguration>
     </resource>
 </change>

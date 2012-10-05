@@ -242,8 +242,8 @@ public class TestJaxbSanity {
 		
 		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
 		
-		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1Type.getConfiguration());
-		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<Object>(resource2Type.getConfiguration());
+		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1Type.getConnectorConfiguration());
+		PrismPropertyValue<Object> pv2 = new PrismPropertyValue<Object>(resource2Type.getConnectorConfiguration());
 		
 		assertTrue("Real property values not equal",pv1.equalsRealValue(pv2));
 	}

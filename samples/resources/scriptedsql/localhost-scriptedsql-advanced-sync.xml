@@ -64,7 +64,7 @@ object.
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration>
+		<c:connectorConfiguration>
 
             <!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
@@ -109,7 +109,7 @@ object.
 			<!-- Generic ICF configuration -->
 
 
-		</c:configuration>
+		</c:connectorConfiguration>
 
       <schema>
 		<!-- Storing schema here and don't letting midpoint to generate it. ScriptedSQL does not support getting schema... -->

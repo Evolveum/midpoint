@@ -181,7 +181,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertEquals(CONNECOTR_LDAP_OID,resourceType.getConnectorRef().getOid());
 		
 		// The password in the resource configuration should be encrypted after import
-		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONFIGURATION);
+		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		PrismContainer<Containerable> configurationPropertiesContainer = 
 			configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No configurationProperties in resource", configurationPropertiesContainer);
