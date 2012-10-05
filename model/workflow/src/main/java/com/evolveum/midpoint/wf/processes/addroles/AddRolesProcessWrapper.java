@@ -97,7 +97,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
         }
 
         ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
-        if (change != null) {
+        if (change == null) {
             return null;
         }
 
