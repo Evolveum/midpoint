@@ -584,6 +584,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 result.recordWarning("Deleting a task that seems to be currently executing on node " + task.getNode());
             }
             repositoryService.deleteObject(TaskType.class, oid, result);
+            executionManager.removeTaskFromQuartz(oid, result);
             result.recordSuccessIfUnknown();
         } catch (ObjectNotFoundException e) {
             result.recordFatalError("Cannot delete the task because it does not exist.", e);

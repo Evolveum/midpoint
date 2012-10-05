@@ -48,9 +48,9 @@ import java.lang.reflect.Field;
 public class SqlBaseService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlBaseService.class);
-    // how many times we want to repeat operation after lock aquisition,
+    // how many times we want to repeat operation after lock acquisition,
     // pessimistic, optimistic exception
-    private static final int LOCKING_MAX_ATTEMPTS = 10;
+    private static final int LOCKING_MAX_ATTEMPTS = 20;
     // time in ms to wait before next operation attempt. it seems that 0
     // works best here (i.e. it is best to repeat operation immediately)
     private static final long LOCKING_TIMEOUT = 0;
@@ -134,7 +134,7 @@ public class SqlBaseService {
             if (ex != null && result != null) {
                 result.recordFatalError("A locking-related problem occurred.", ex);
             }
-            throw new SystemException(ex.getMessage(), ex);
+            throw new SystemException(ex.getMessage() + " [attempts: " + attempt + "]", ex);
         }
 
         if (LOCKING_TIMEOUT > 0) {
