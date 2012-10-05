@@ -474,7 +474,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			builder.addAttribute(name, values);
 		}
 		
-		if (account.getPassword() != null) {
+		if (account.getPassword() != null && configuration.getReadablePassword()) {
 			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
 			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 		}

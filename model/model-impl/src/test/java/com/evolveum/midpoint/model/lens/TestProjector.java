@@ -83,6 +83,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -536,7 +537,13 @@ public class TestProjector extends AbstractModelIntegrationTest {
         display("Output context", context);
         
         assertNull("User primary delta sneaked in", context.getFocusContext().getPrimaryDelta());
-        assertNull("User secondary delta sneaked in", context.getFocusContext().getSecondaryDelta());
+        
+        // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
+        assertEquals("Unexpected number of modifications in secondary delta", 1, userSecondaryDelta.getModifications().size());
+        ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
+        assertEquals("Unexpected modification", PasswordType.F_PROTECTED_STRING, modification.getName());
         
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 

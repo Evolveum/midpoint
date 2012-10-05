@@ -38,6 +38,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     private String instanceId;
     private boolean supportSchema = true;
+    private boolean readablePassword = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -67,6 +68,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setSupportSchema(boolean supportSchema) {
 		this.supportSchema = supportSchema;
+	}
+	
+	/**
+     * If set to true then the password can be read from the resource.
+     */
+	@ConfigurationProperty(displayMessageKey = "UI_INSTANCE_READABLE_PASSWORD",
+    		helpMessageKey = "UI_INSTANCE_READABLE_PASSWORD_HELP")
+	public boolean getReadablePassword() {
+		return readablePassword;
+	}
+
+	public void setReadablePassword(boolean readablePassword) {
+		this.readablePassword = readablePassword;
 	}
     		
     /**
