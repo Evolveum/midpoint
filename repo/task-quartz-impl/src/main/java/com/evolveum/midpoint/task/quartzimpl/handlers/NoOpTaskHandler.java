@@ -26,12 +26,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -125,6 +127,27 @@ public class NoOpTaskHandler implements TaskHandler {
 				LOGGER.info("NoOpTaskHandler: got a shutdown request, finishing task " + task.getName());
 				break;
 			}
+        }
+
+        final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd";
+        final QName WFLASTVARIABLES_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastVariables");
+        PrismPropertyDefinition wfLastVariablesPropertyDefinition = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
+
+        PrismProperty testProp = wfLastVariablesPropertyDefinition.instantiate();
+        testProp.setValue(new PrismPropertyValue<String>("Hi"));
+        try {
+            task.setExtensionProperty(testProp);
+            task.savePendingModifications(opResult);
+        } catch(Exception e) {
+            throw new SystemException("Set property has thrown an exception", e);
+        }
+
+        testProp.setValue(new PrismPropertyValue<String>("Hi2"));
+        try {
+            task.setExtensionProperty(testProp);
+            task.savePendingModifications(opResult);
+        } catch(Exception e) {
+            throw new SystemException("Set property (2) has thrown an exception", e);
         }
 		
 		opResult.recordSuccess();

@@ -191,12 +191,15 @@ public class TaskQuartzImpl implements Task {
 	public void savePendingModifications(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (pendingModifications != null) {
-			synchronized (pendingModifications) {		// perhaps we should put something like this at more places here...
+			synchronized (pendingModifications) {		// todo perhaps we should put something like this at more places here...
 				if (!pendingModifications.isEmpty()) {
 
-					repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
-					synchronizeWithQuartzIfNeeded(pendingModifications, parentResult);
-					pendingModifications.clear();
+                    try {
+					    repositoryService.modifyObject(TaskType.class, getOid(), pendingModifications, parentResult);
+                    } finally {     // todo reconsider this (it's not ideal but we need at least to reset pendingModifications to stop repeating applying this change)
+					    synchronizeWithQuartzIfNeeded(pendingModifications, parentResult);
+					    pendingModifications.clear();
+                    }
 				}
 			}
 		}

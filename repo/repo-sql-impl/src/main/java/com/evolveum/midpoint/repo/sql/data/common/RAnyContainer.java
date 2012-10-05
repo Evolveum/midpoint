@@ -33,6 +33,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -62,8 +63,8 @@ public class RAnyContainer implements Serializable {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "owner_id", referencedColumnName = "id")
+            @JoinColumn(name = "owner_id", referencedColumnName = "id"),
+            @JoinColumn(name = "owner_oid", referencedColumnName = "oid")
     })
     public RContainer getOwner() {
         return owner;
@@ -98,7 +99,7 @@ public class RAnyContainer implements Serializable {
     @ElementCollection
     @ForeignKey(name = "fk_any_long")
     @CollectionTable(name = "m_any_long", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
+            {@JoinColumn(name = "owner_id"), @JoinColumn(name = "owner_oid"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RLongValue> getLongs() {
         return longs;
@@ -107,7 +108,7 @@ public class RAnyContainer implements Serializable {
     @ElementCollection
     @ForeignKey(name = "fk_any_string")
     @CollectionTable(name = "m_any_string", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
+            {@JoinColumn(name = "owner_id"), @JoinColumn(name = "owner_oid"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RStringValue> getStrings() {
         return strings;
@@ -116,8 +117,11 @@ public class RAnyContainer implements Serializable {
     @ElementCollection
     @ForeignKey(name = "fk_any_clob")
     @CollectionTable(name = "m_any_clob", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
+            {@JoinColumn(name = "owner_id"), @JoinColumn(name = "owner_oid"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    does not help...
+//    @Lob
+//    @Type(type = "org.hibernate.type.TextType")
     public Set<RClobValue> getClobs() {
         return clobs;
     }
@@ -125,7 +129,7 @@ public class RAnyContainer implements Serializable {
     @ElementCollection
     @ForeignKey(name = "fk_any_date")
     @CollectionTable(name = "m_any_date", joinColumns =
-            {@JoinColumn(name = "owner_oid"), @JoinColumn(name = "owner_id"), @JoinColumn(name = "ownerType")})
+            {@JoinColumn(name = "owner_id"), @JoinColumn(name = "owner_oid"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RDateValue> getDates() {
         return dates;
