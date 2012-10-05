@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
+import java.util.Collection;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -51,8 +53,13 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.ItemDefinition)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(JAXBElement<?> evaluatorElement,
+	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
 			ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+		
+		if (evaluatorElements.size() > 1) {
+			throw new SchemaException("More than one evaluator specified in "+contextDescription);
+		}
+		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
 		
 		Object evaluatorElementObject = evaluatorElement.getValue();
         if (!(evaluatorElementObject instanceof ScriptExpressionEvaluatorType)) {

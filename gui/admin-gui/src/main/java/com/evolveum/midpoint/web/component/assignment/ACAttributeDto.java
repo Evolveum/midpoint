@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -76,29 +77,37 @@ public class ACAttributeDto implements Serializable {
         }
         ExpressionType expression = outbound.getExpression();
         if (expression.getExpressionEvaluator() != null) {
-            JAXBElement<?> element = expression.getExpressionEvaluator();
-            values.add(new ACValueConstructionDto(this, getExpressionValue(element)));
+            List<JAXBElement<?>> elements = expression.getExpressionEvaluator();
+            values.add(new ACValueConstructionDto(this, getExpressionValue(elements)));
         }
         if (expression.getSequence() == null) {
             return values;
         }
 
-        ExpressionType.Sequence sequence = expression.getSequence();
-        List<JAXBElement<?>> elements = sequence.getExpressionEvaluator();
-        for (JAXBElement element : elements) {
-            values.add(new ACValueConstructionDto(this, getExpressionValue(element)));
-        }
+// TODO: we dont support sequence yet
+//        ExpressionType.Sequence sequence = expression.getSequence();
+//        List<JAXBElement<?>> elements = sequence.getExpressionEvaluator();
+//        for (JAXBElement element : elements) {
+//            values.add(new ACValueConstructionDto(this, getExpressionValue(element)));
+//        }
 
         return values;
     }
 
-    private Object getExpressionValue(JAXBElement element) {
-        Element expression = (Element) element.getValue();
-        if (!DOMUtil.isElementName(expression, SchemaConstants.C_VALUE)) {
+    private Object getExpressionValue(List<JAXBElement<?>> elements) {
+    	if (elements == null || elements.isEmpty()) {
+    		return null;
+    	}
+    	JAXBElement<?> fistElement = elements.iterator().next();
+        Element firstDomElement = (Element) fistElement.getValue();
+        if (!DOMUtil.isElementName(firstDomElement, SchemaConstants.C_VALUE)) {
             return null;
         }
 
-        return expression.getTextContent();
+        // TODO: use this instead
+        //return LiteralExpressionEvaluatorFactory.parseValueElements(elements, outputDefinition, contextDescription, prismContext);
+        
+        return firstDomElement.getTextContent();
     }
 
     public PrismPropertyDefinition getDefinition() {

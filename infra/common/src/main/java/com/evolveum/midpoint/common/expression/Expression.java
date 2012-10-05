@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -90,23 +91,41 @@ public class Expression<V extends PrismValue> {
 			ExpressionEvaluator evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory, contextDescription);
 			evaluators.add(evaluator);
 		} else if (expressionType.getSequence() != null) {
-			for (JAXBElement<?> expresionEvaluatorElement : expressionType.getSequence().getExpressionEvaluator()) {
-				ExpressionEvaluator evaluator = createEvaluator(expresionEvaluatorElement, factory, contextDescription);
-				evaluators.add(evaluator);
+			if (expressionType.getSequence().getExpressionEvaluator().isEmpty()) {
+				throw new SchemaException("Empty sequence in "+contextDescription);
 			}
+			QName lastElementName = null;
+			Collection<JAXBElement<?>> elements = new ArrayList<JAXBElement<?>>();
+			for (JAXBElement<?> expresionEvaluatorElement : expressionType.getSequence().getExpressionEvaluator()) {
+				if (lastElementName == null || lastElementName.equals(JAXBUtil.getElementQName(expresionEvaluatorElement))) {
+					elements.add(expresionEvaluatorElement);
+				} else {
+					ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription);
+					evaluators.add(evaluator);
+					elements = new ArrayList<JAXBElement<?>>();
+					elements.add(expresionEvaluatorElement);
+				}
+				lastElementName = JAXBUtil.getElementQName(expresionEvaluatorElement);
+			}
+			ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription);
+			evaluators.add(evaluator);
 		}
 		if (evaluators.isEmpty()) {
 			evaluators.add(createDefaultEvaluator(factory, contextDescription));
 		}
 	}
 
-	private ExpressionEvaluator<V> createEvaluator(JAXBElement<?> expressionEvaluatorElement, ExpressionFactory factory, String contextDescription) 
+	private ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory, String contextDescription) 
 			throws SchemaException {
-		ExpressionEvaluatorFactory evaluatorFactory = factory.getEvaluatorFactory(expressionEvaluatorElement.getName());
-		if (evaluatorFactory == null) {
-			throw new SchemaException("Unknown expression evaluator element "+expressionEvaluatorElement.getName()+" in "+contextDescription);
+		if (evaluatorElements.isEmpty()) {
+			throw new SchemaException("Empty evaluator list in "+contextDescription);
 		}
-		return evaluatorFactory.createEvaluator(expressionEvaluatorElement, outputDefinition, contextDescription);
+		JAXBElement<?> fistEvaluatorElement = evaluatorElements.iterator().next();
+		ExpressionEvaluatorFactory evaluatorFactory = factory.getEvaluatorFactory(fistEvaluatorElement.getName());
+		if (evaluatorFactory == null) {
+			throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
+		}
+		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription);
 	}
 
 	private ExpressionEvaluator<V> createDefaultEvaluator(ExpressionFactory factory, String contextDescription) throws SchemaException {

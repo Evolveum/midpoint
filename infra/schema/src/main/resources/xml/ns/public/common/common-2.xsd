@@ -3219,7 +3219,18 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:choice>
-                <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="1"/>
+                <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
+                	<xsd:annotation>
+                		<xsd:documentation>
+                			A single expression evaluator.
+                			Although this element is formally multi-value it may be used only for multiple
+                			instances of the same evaluator that in fact form a single group.
+                			E.g. it may be used to define several "value" elements of literal evaluator that
+                			define multiple values. But it must not be used to define multiple scripts or any
+                			other combination of evaluators.
+                		</xsd:documentation>
+                	</xsd:annotation>
+                </xsd:element>
                 <xsd:element name="sequence">
                     <xsd:complexType>
                         <xsd:sequence>

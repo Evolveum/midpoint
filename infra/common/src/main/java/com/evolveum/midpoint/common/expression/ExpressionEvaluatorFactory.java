@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import java.util.Collection;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -36,6 +38,6 @@ public interface ExpressionEvaluatorFactory {
 	
 	QName getElementName();
 	
-	<V extends PrismValue> ExpressionEvaluator<V> createEvaluator(JAXBElement<?> evaluatorElement, ItemDefinition outputDefinition, String contextDescription) throws SchemaException;
+	<V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, String contextDescription) throws SchemaException;
 
 }

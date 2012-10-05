@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.expression.evaluator;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
@@ -64,38 +66,68 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(JAXBElement<?> evaluatorElement, ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, 
+			String contextDescription) throws SchemaException {
 		
-		if (!evaluatorElement.getName().equals(SchemaConstants.C_VALUE)) {
-			throw new SchemaException("Literal expression cannot handle elements "+evaluatorElement.getName() + " in "+ contextDescription);
-		}
-		Object evaluatorElementValue = evaluatorElement.getValue();
-		if (!(evaluatorElementValue instanceof Element)) {
-			throw new SchemaException("Literal expression can only handle DOM elements, but got "+evaluatorElementValue.getClass().getName()+" in "+contextDescription);
-		}
-		
-		Element valueElement = (Element)evaluatorElementValue;
-		Item<V> output = null;
-		List<Element> valueSubelements = DOMUtil.listChildElements(valueElement);
-		if (valueSubelements == null || valueSubelements.isEmpty()) {
-			if (StringUtils.isBlank(valueElement.getTextContent())) {
-				// This is OK. Empty element means empty value
-				output = outputDefinition.instantiate();
-			} else if (outputDefinition instanceof PrismPropertyDefinition) {
-				// No sub-elements. In case of property try to parse the value is directly in the body of <value> element.
-				output = (Item<V>) prismContext.getPrismDomProcessor().parsePropertyFromValueElement(valueElement, 
-						(PrismPropertyDefinition) outputDefinition);
-			} else {
-				throw new SchemaException("Tense expression forms can only be used to evalueate properties, not "+
-						output.getClass().getSimpleName()+", try to enclose the value with proper elements");
-			}
-		} else { 
-			output = (Item<V>) prismContext.getPrismDomProcessor().parseItem(valueSubelements, outputDefinition.getName(), outputDefinition);
-		}
+		Item<V> output = parseValueElements(evaluatorElements, outputDefinition, contextDescription, prismContext);
 		
 		PrismValueDeltaSetTriple<V> deltaSetTriple = ItemDelta.toDeltaSetTriple(output, null);
 		
 		return new LiteralExpressionEvaluator<V>(deltaSetTriple);
+	}
+	
+	public static <V extends PrismValue> Item<V> parseValueElements(Collection<?> valueElements, ItemDefinition outputDefinition, 
+			String contextDescription, PrismContext prismContext) throws SchemaException {
+		
+		Item<V> output = null;
+		
+		for (Object valueElement: valueElements) {
+			QName valueElementName = JAXBUtil.getElementQName(valueElement);
+			if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
+				throw new SchemaException("Literal expression cannot handle elements "+valueElementName + " in "+ contextDescription);
+			}
+			
+			if (valueElement instanceof JAXBElement<?>) {
+				valueElement = ((JAXBElement<?>)valueElement).getValue();
+			}
+			
+			if (!(valueElement instanceof Element)) {
+				throw new SchemaException("Literal expression can only handle DOM elements, but got "+valueElement.getClass().getName()+" in "
+						+contextDescription);
+			}
+			Element valueDomElement = (Element)valueElement;
+			
+			List<Element> valueSubelements = DOMUtil.listChildElements(valueDomElement);
+			if (valueSubelements == null || valueSubelements.isEmpty()) {
+				if (StringUtils.isBlank(valueDomElement.getTextContent())) {
+					// This is OK. Empty element means empty value
+					if (output == null) {
+						output = outputDefinition.instantiate();
+					}
+				} else if (outputDefinition instanceof PrismPropertyDefinition) {
+					// No sub-elements. In case of property try to parse the value is directly in the body of <value> element.
+					Item<V> valueOutput = (Item<V>) prismContext.getPrismDomProcessor().parsePropertyFromValueElement(valueDomElement, 
+							(PrismPropertyDefinition) outputDefinition);
+					if (output == null) {
+						output = valueOutput;
+					} else {
+						output.addAll(valueOutput.getClonedValues());
+					}
+				} else {
+					throw new SchemaException("Tense expression forms can only be used to evalueate properties, not "+
+							output.getClass().getSimpleName()+", try to enclose the value with proper elements");
+				}
+			} else { 
+				Item<V> valueOutput = (Item<V>) prismContext.getPrismDomProcessor().parseItem(valueSubelements, 
+						outputDefinition.getName(), outputDefinition);
+				if (output == null) {
+					output = valueOutput;
+				} else {
+					output.addAll(valueOutput.getClonedValues());
+				}
+			}
+		}
+		return output;
 	}
 
 }

@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.common.expression.evaluator;
 
+import java.util.Collection;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -61,8 +63,13 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.ItemDefinition, com.evolveum.midpoint.prism.PrismContext)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(JAXBElement<?> evaluatorElement,
+	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
 			ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+		
+		if (evaluatorElements.size() > 1) {
+			throw new SchemaException("More than one evaluator specified in "+contextDescription);
+		}
+		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
 		
 		Object evaluatorElementObject = evaluatorElement.getValue();
         if (!(evaluatorElementObject instanceof Element)) {

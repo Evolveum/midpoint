@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -65,6 +68,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -131,6 +135,7 @@ public class ShadowCache {
 	// private ResourceTypeManager resourceTypeManager;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
+	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
 	public ShadowCache() {
 		repositoryService = null;
@@ -271,7 +276,7 @@ public class ShadowCache {
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 
-		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, parentResult);
+		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource, parentResult);
 
 //		OperationResult shadowConverterResult = parentResult.createSubresult(ShadowConverter.class.getName()
 //				+ ".addShadow");
@@ -338,7 +343,7 @@ public class ShadowCache {
 
 			Set<Operation> additionalOperations = new HashSet<Operation>();
 
-			addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, parentResult);
+			addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, resource, parentResult);
 
 			try {
 				shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
@@ -395,7 +400,7 @@ public class ShadowCache {
 			}
 
 			Set<Operation> changes = new HashSet<Operation>();
-			addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, parentResult);
+			addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
@@ -618,7 +623,7 @@ public class ShadowCache {
 	}
 
 	private void addExecuteScriptOperation(Set<Operation> operations, ProvisioningOperationTypeType type, ProvisioningScriptsType scripts,
-			OperationResult result) throws SchemaException {
+			ResourceType resource, OperationResult result) throws SchemaException {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			// result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
@@ -626,6 +631,8 @@ public class ShadowCache {
 			return;
 		}
 
+		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
 		for (ProvisioningScriptType script : scripts.getScript()) {
 			for (ProvisioningOperationTypeType operationType : script.getOperation()) {
 				if (type.equals(operationType)) {
@@ -633,7 +640,7 @@ public class ShadowCache {
 
 					for (ProvisioningScriptArgumentType argument : script.getArgument()) {
 						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
-								Mapping.getStaticValueList(argument));
+								Mapping.getPropertyStaticRealValues(argument, scriptArgumentDefinition, "script value for "+operationType+" in "+resource, prismContext));
 						scriptOperation.getArgument().add(arg);
 					}
 

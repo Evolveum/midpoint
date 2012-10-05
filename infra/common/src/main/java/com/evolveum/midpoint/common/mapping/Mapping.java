@@ -40,6 +40,7 @@ import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.common.filter.Filter;
@@ -584,16 +585,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return outputDefinition.createEmptyDelta(path);
 	}
 	
-	public static List<Object> getStaticValueList(ExpressionType valueConstruction) throws SchemaException {
-		JAXBElement<?> expressionEvaluatorElement = valueConstruction.getExpressionEvaluator();
-		if (expressionEvaluatorElement == null) {
-			return null;
-		}
-		if (!expressionEvaluatorElement.getName().equals(SchemaConstants.C_VALUE)) {
-			throw new IllegalArgumentException("Expected static value constructor but found "+expressionEvaluatorElement.getName()+" in value construction");
-		}
-		Element element = (Element)expressionEvaluatorElement.getValue();
-		return XmlTypeConverter.convertValueElementAsList(element);
+	public static <X> Collection<X> getPropertyStaticRealValues(ExpressionType valueConstruction, PrismPropertyDefinition outputDefinition, 
+			String contextDescription, PrismContext prismContext) throws SchemaException {
+		Collection<JAXBElement<?>> expressionEvaluatorElement = valueConstruction.getExpressionEvaluator();
+		PrismProperty<X> output = (PrismProperty) LiteralExpressionEvaluatorFactory.parseValueElements(expressionEvaluatorElement, outputDefinition, contextDescription, prismContext);
+		return output.getRealValues();
 	}
 	
 	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {

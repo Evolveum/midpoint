@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.expression.evaluator;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -69,7 +70,13 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(JAXBElement<?> evaluatorElement, ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+		
+		if (evaluatorElements.size() > 1) {
+			throw new SchemaException("More than one evaluator specified in "+contextDescription);
+		}
+		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
+		
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
