@@ -58,7 +58,7 @@
                   <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8</enc:CipherValue>
                </enc:CipherData>
             </enc:EncryptedData>
-            </c:protectedString>
+            </c:value>
         </c:password>
         <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
     </c:credentials>

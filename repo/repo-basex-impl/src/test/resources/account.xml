@@ -38,7 +38,7 @@
 						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue>
 					</enc:CipherData>
 				</enc:EncryptedData>
-			</c:protectedString>
+			</c:value>
         </c:password>
     </c:credentials>
     <c:attributes>

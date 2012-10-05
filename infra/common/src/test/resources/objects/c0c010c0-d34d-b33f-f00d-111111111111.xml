@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
+<!-- Copyright (c) 2012 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
 <!-- of the Common Development and Distribution License      -->
@@ -16,39 +16,38 @@
 <!-- with the fields enclosed by brackets [] replaced by     -->
 <!-- your own identifying information:                       -->
 <!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
-<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <c:name>jack</c:name>
-    <c:extension>
+    <name>jack</name>
+    <extension>
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
-    </c:extension>
-    <i:fullName>Jack Sparrow</i:fullName>
-    <i:givenName>Jack</i:givenName>
-    <i:familyName>Sparrow</i:familyName>
-    <i:additionalName>Jackie</i:additionalName>
-    <i:honorificPrefix>Cpt.</i:honorificPrefix>
+    </extension>
+    <fullName>Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <additionalName>Jackie</additionalName>
+    <honorificPrefix>Cpt.</honorificPrefix>
     
-    <i:honorificSuffix>PhD.</i:honorificSuffix>
-    <i:emailAddress>jack.sparrow@evolveum.com</i:emailAddress>
-    <i:telephoneNumber>555-1234</i:telephoneNumber>
-    <i:employeeNumber>emp1234</i:employeeNumber>
-    <i:employeeType>CAPTAIN</i:employeeType>
-    <i:organizationalUnit>Leaders</i:organizationalUnit>
-    <i:organizationalUnit>Followers</i:organizationalUnit>
-    <i:locality>Black Pearl</i:locality>
+    <honorificSuffix>PhD.</honorificSuffix>
+    <emailAddress>jack.sparrow@evolveum.com</emailAddress>
+    <telephoneNumber>555-1234</telephoneNumber>
+    <employeeNumber>emp1234</employeeNumber>
+    <employeeType>CAPTAIN</employeeType>
+    <organizationalUnit>Leaders</organizationalUnit>
+    <organizationalUnit>Followers</organizationalUnit>
+    <locality>Black Pearl</locality>
 
-    <i:credentials>
-        <i:password>
-        	<i:protectedString>
-	            <i:clearValue>deadmentellnotales</i:clearValue>
-            </i:protectedString>
-        </i:password>
-    </i:credentials>
-</i:user>
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>deadmentellnotales</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

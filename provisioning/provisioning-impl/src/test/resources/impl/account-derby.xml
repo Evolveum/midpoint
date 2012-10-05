@@ -34,9 +34,9 @@
 	</c:attributes>
 	<c:credentials>
 		<c:password>
-			<c:protectedString>
+			<c:value>
 				<c:clearValue>3lizab3th</c:clearValue>
-			</c:protectedString>
+			</c:value>
 		</c:password>
 	</c:credentials>
 </c:account>

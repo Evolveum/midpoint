@@ -58,7 +58,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         PropertyPath passwordPath = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
         if (passwordPath.equals(container.getPath())
-                && PasswordType.F_PROTECTED_STRING.equals(property.getName())) {
+                && PasswordType.F_VALUE.equals(property.getName())) {
             displayName = "prismPropertyPanel.name.credentials.password";
         }
     }

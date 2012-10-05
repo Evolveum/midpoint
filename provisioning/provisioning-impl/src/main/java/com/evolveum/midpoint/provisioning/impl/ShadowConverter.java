@@ -626,7 +626,7 @@ public class ShadowConverter {
 
 		PropertyModificationOperation passwordChangeOp = null;
 		if (newPasswordStructure != null) {
-			ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
+			ProtectedStringType newPasswordPS = newPasswordStructure.getValue();
 			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
 				throw new IllegalArgumentException(
 						"ProtectedString is empty in an attempt to change password of "

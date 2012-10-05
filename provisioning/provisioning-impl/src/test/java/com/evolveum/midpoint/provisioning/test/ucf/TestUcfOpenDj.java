@@ -674,7 +674,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		PrismObject<AccountShadowType> shadow = wrapInShadow(AccountShadowType.class, resourceObject);
 		CredentialsType credentials = new CredentialsType();
 		PasswordType pass = new PasswordType();
-		pass.setProtectedString(ps);
+		pass.setValue(ps);
 		credentials.setPassword(pass);
 		shadow.asObjectable().setCredentials(credentials);
 		
@@ -740,7 +740,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 		//set the replace value
 		ItemDeltaType.Value value = new ItemDeltaType.Value();
-		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_PROTECTED_STRING, doc);
+		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_VALUE, doc);
 		value.getAny().add(valueElement);
 		propMod.setValue(value);
 		

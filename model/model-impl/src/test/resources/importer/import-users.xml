@@ -39,9 +39,9 @@
         <costCenter>&lt;No &apos;cost&apos; &amp; no &quot;center&quot;&gt;</costCenter>
         <credentials>
         	<password>
-        		<protectedString>
+        		<value>
         			<clearValue>dead men tell no tales</clearValue>
-        		</protectedString>
+        		</value>
         	</password>
         </credentials>
     </user>

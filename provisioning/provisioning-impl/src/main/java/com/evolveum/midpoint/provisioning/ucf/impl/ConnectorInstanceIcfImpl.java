@@ -800,7 +800,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				AccountShadowType account = (AccountShadowType) object.asObjectable();
 				if (account.getCredentials() != null && account.getCredentials().getPassword() != null) {
 					PasswordType password = account.getCredentials().getPassword();
-					ProtectedStringType protectedString = password.getProtectedString();
+					ProtectedStringType protectedString = password.getValue();
 					GuardedString guardedPassword = toGuardedString(protectedString, "new password");
 					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
 							guardedPassword));
@@ -1862,7 +1862,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("No password was provided");
 		}
 
-		if (passwordDelta.getName().equals(PasswordType.F_PROTECTED_STRING)) {
+		if (passwordDelta.getName().equals(PasswordType.F_VALUE)) {
 			GuardedString guardedPassword = toGuardedString(passwordDelta
 					.getPropertyNew().getValue().getValue(), "new password");
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));

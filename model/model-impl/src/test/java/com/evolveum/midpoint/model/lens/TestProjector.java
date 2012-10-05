@@ -543,7 +543,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
         assertEquals("Unexpected number of modifications in secondary delta", 1, userSecondaryDelta.getModifications().size());
         ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
-        assertEquals("Unexpected modification", PasswordType.F_PROTECTED_STRING, modification.getName());
+        assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getName());
         
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 

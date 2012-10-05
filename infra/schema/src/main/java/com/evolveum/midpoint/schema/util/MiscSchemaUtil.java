@@ -112,7 +112,7 @@ public class MiscSchemaUtil {
 			credPass = new PasswordType();
 			credentials.setPassword(credPass);
 		}
-		credPass.setProtectedString(password);
+		credPass.setValue(password);
 	}
 
 	public static Collection<String> toCollection(String entry) {

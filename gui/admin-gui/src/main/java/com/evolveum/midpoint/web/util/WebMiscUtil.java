@@ -146,7 +146,7 @@ public final class WebMiscUtil {
 
         PropertyDelta propertyDelta = delta.findPropertyDelta(new PropertyPath(
                 SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD,
-                PasswordType.F_PROTECTED_STRING));
+                PasswordType.F_VALUE));
         if (propertyDelta == null) {
             return;
         }
@@ -165,7 +165,7 @@ public final class WebMiscUtil {
         if (password == null) {
             return;
         }
-        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_PROTECTED_STRING);
+        PrismProperty protectedStringProperty = password.findProperty(PasswordType.F_VALUE);
         if (protectedStringProperty == null
                 || protectedStringProperty.getRealValue(ProtectedStringType.class) == null) {
             return;

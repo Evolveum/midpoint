@@ -517,6 +517,12 @@ public class PrismDomProcessor {
 		QName typeName = propertyDefinition.getTypeName();
 		PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
 		Object realValue = null;
+		if (valueElement instanceof JAXBElement<?>) {
+			Object jaxbElementValue = ((JAXBElement<?>)valueElement).getValue();
+			if (jaxbElementValue instanceof Element) {
+				valueElement = jaxbElementValue;
+			}
+		}
 		if (valueElement instanceof Element) {
 			// Need to convert the DOM representation to something more
 			// java-like

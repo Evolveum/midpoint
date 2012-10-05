@@ -32,9 +32,9 @@
 	</attributes>
 	<credentials>
 		<password>
-			<protectedString>
+			<value>
 				<clearValue>sh1verM3T1mb3rs</clearValue>
-			</protectedString>
+			</value>
 		</password>
 	</credentials>
 </account>

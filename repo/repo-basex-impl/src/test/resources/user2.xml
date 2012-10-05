@@ -45,9 +45,9 @@
 
     <i:credentials>
         <i:password>
-            <c:protectedString>
+            <c:value>
             	<c:clearValue>deadmentellnotales</c:clearValue>
-            </c:protectedString>
+            </c:value>
         </i:password>
     </i:credentials>
 </i:user>

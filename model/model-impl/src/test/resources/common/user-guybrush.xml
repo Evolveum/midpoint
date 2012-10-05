@@ -33,9 +33,9 @@
 
 <!--     <credentials> -->
 <!--         <password> -->
-<!--         	<protectedString> -->
+<!--         	<value> -->
 <!-- 	            <clearValue>xM4rksTh3Sp0t</clearValue> -->
-<!--             </protectedString> -->
+<!--             </value> -->
 <!--         </password> -->
 <!--     </credentials> -->
     

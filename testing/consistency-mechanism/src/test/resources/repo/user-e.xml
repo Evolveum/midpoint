@@ -30,9 +30,9 @@
     <c:locality>e</c:locality>
     <c:credentials>
         <c:password>
-        	<c:protectedString>
+        	<c:value>
 	            <c:clearValue>deadmentellnotales</c:clearValue>
-            </c:protectedString>
+            </c:value>
         </c:password>
     </c:credentials>
 </c:user>

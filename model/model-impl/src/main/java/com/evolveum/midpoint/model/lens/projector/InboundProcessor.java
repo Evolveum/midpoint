@@ -358,7 +358,7 @@ public class InboundProcessor {
 			
 			@Override
 			public StringPolicyType resolve() {
-				if (!outputDefinition.getName().equals(PasswordType.F_PROTECTED_STRING)) {
+				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
 					return null;
 				}
 				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();

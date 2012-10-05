@@ -44,7 +44,7 @@
     <employeeNumber>en1234</employeeNumber>
     <credentials>
         <password>
-            <protectedString>
+            <value>
                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
                                    xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
@@ -56,7 +56,7 @@
                         </enc:CipherValue>
                     </enc:CipherData>
                 </enc:EncryptedData>
-            </protectedString>
+            </value>
         </password>
         <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>

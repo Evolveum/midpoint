@@ -188,7 +188,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				CredentialsType.F_PASSWORD);
 
 		if (passwordPath.equals(modifyDelta.getParentPath())
-				&& PasswordType.F_PROTECTED_STRING.equals(def.getName())) {
+				&& PasswordType.F_VALUE.equals(def.getName())) {
 			attribute = "Password";
 		}
 		List<String> oldValues = new ArrayList<String>();

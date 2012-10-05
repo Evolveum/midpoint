@@ -30,9 +30,9 @@
     <locality>Area 0001</locality>
     <credentials>
         <password>
-		<protectedString>
+		<value>
 			<clearValue>secret</clearValue>
-		</protectedString>
+		</value>
         </password>
         <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
@@ -50,9 +50,9 @@
     <locality>Area 0002</locality>
     <credentials>
         <password>
-		<protectedString>
+		<value>
 			<clearValue>secret</clearValue>
-		</protectedString>
+		</value>
         </password>
         <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
@@ -70,9 +70,9 @@
     <locality>Area 0003</locality>
     <credentials>
         <password>
-		<protectedString>
+		<value>
 			<clearValue>secret</clearValue>
-		</protectedString>
+		</value>
         </password>
         <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
@@ -90,9 +90,9 @@
     <locality>Area 0004</locality>
     <credentials>
         <password>
-		<protectedString>
+		<value>
 			<clearValue>secret</clearValue>
-		</protectedString>
+		</value>
         </password>
         <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
@@ -110,9 +110,9 @@
     <locality>Area 0005</locality>
     <credentials>
         <password>
-		<protectedString>
+		<value>
 			<clearValue>secret</clearValue>
-		</protectedString>
+		</value>
         </password>
         <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>

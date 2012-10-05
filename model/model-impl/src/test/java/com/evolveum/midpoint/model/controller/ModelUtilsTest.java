@@ -140,10 +140,10 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 
 		PasswordType password = ModelUtils.getPassword(account);
 		assertNotNull(password);
-		assertNotNull(password.getProtectedString());
-		assertNotNull(password.getProtectedString().getEncryptedData());
+		assertNotNull(password.getValue());
+		assertNotNull(password.getValue().getEncryptedData());
 
-		String decrypted = protector.decryptString(password.getProtectedString());
+		String decrypted = protector.decryptString(password.getValue());
 		assertEquals(length, decrypted.length());
 	}
 

@@ -30,7 +30,7 @@
     <c:credentials xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
         <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
         <c:password>
-            <c:protectedString
+            <c:value
                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
@@ -46,7 +46,7 @@
                         </enc:CipherValue>
                     </enc:CipherData>
                 </enc:EncryptedData>
-            </c:protectedString>
+            </c:value>
         </c:password>
     </c:credentials>
 

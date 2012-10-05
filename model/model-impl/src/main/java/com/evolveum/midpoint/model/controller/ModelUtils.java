@@ -82,7 +82,7 @@ public class ModelUtils {
 		}
 
 		PasswordType password = getPassword(account);
-		password.setProtectedString(protector.encryptString(pwd));
+		password.setValue(protector.encryptString(pwd));
 	}
 
 	public static PasswordType getPassword(AccountShadowType account) {

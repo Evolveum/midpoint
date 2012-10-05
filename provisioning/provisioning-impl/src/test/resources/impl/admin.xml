@@ -35,7 +35,7 @@
 						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue>
 					</enc:CipherData>
 				</enc:EncryptedData>
-			</protectedString>
+			</value>
 		</password>
 		<allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
 	</credentials>

@@ -225,7 +225,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		PrismAsserts.assertEqualsPolyString("wrong fullName", "Cpt. Jack Sparrow", jack.getFullName());
 		PrismAsserts.assertEquals("wrong costCenter", "<No 'cost' & no \"center\">", jack.getCostCenter());
 		// Jack has a password. Check if it was encrypted
-		ProtectedStringType protectedString = jack.getCredentials().getPassword().getProtectedString();
+		ProtectedStringType protectedString = jack.getCredentials().getPassword().getValue();
 		assertNull("Arrgh! Pirate sectrets were revealed!",protectedString.getClearValue());
 		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
 

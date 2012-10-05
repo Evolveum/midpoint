@@ -38,6 +38,8 @@ import org.apache.xml.resolver.tools.CatalogResolver;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 
 /**
  * @author Vilo Repan
@@ -143,8 +145,8 @@ public abstract class SchemaConstants {
 	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings"); 
 
-	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, I_PASSWORD);
-	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, I_PASSWORD, new QName(NS_C,"protectedString"));
+	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, CredentialsType.F_PASSWORD);
+	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 	public static final PropertyPath PATH_ACTIVATION = new PropertyPath(C_ACTIVATION);
 	public static final PropertyPath PATH_ACTIVATION_ENABLE = new PropertyPath(C_ACTIVATION, C_ACTIVATION_ENABLED);
 	public static final PropertyPath PATH_ATTRIBUTES = new PropertyPath(I_ATTRIBUTES);

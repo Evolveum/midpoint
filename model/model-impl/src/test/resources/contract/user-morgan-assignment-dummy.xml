@@ -33,9 +33,9 @@
 
     <credentials>
         <password>
-        	<protectedString>
+        	<value>
 	            <clearValue>rum</clearValue>
-            </protectedString>
+            </value>
         </password>
     </credentials>
     

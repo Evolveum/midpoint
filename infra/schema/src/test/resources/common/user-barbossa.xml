@@ -54,9 +54,9 @@
     
     <credentials>
         <password>
-        	<protectedString>
+        	<value>
 	            <clearValue>deadjacktellnotales</clearValue>
-            </protectedString>
+            </value>
         </password>
     </credentials>
     

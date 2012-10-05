@@ -184,7 +184,7 @@ public class ResourceObjectShadowUtil {
 			passwordType = new PasswordType();
 			credentialsType.setPassword(passwordType);
 		}
-		passwordType.setProtectedString(password);
+		passwordType.setValue(password);
 	}
 
 	public static ActivationType getOrCreateActivation(ResourceObjectShadowType shadowType) {

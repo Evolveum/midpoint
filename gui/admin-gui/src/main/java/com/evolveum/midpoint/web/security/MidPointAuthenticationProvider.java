@@ -186,7 +186,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			}
 		}
 
-		ProtectedStringType protectedString = passwordType.getProtectedString();
+		ProtectedStringType protectedString = passwordType.getValue();
 		if (protectedString == null) {
 			throw new BadCredentialsException("web.security.provider.password.bad");
 		}

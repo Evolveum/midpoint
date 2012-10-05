@@ -33,9 +33,9 @@
 	</attributes>
 	<credentials>
 		<password>
-			<protectedString>
+			<value>
 				<clearValue>3lizab3th</clearValue>
-			</protectedString>
+			</value>
 		</password>
 	</credentials>
 </account>

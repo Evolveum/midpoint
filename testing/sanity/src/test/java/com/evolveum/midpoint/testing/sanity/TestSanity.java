@@ -722,7 +722,7 @@ public class TestSanity extends AbstractIntegrationTest {
         PrismAsserts.assertParentConsistency(user);
         
         // Encrypt Jack's password
-        protector.encrypt(userType.getCredentials().getPassword().getProtectedString());
+        protector.encrypt(userType.getCredentials().getPassword().getValue());
         PrismAsserts.assertParentConsistency(user);
 
         OperationResultType result = new OperationResultType();
@@ -1636,7 +1636,7 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType userType = user.asObjectable();
 
         // Encrypt the password
-        protector.encrypt(userType.getCredentials().getPassword().getProtectedString());
+        protector.encrypt(userType.getCredentials().getPassword().getValue());
 
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
@@ -2448,7 +2448,7 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType userType = user.asObjectable();
         final String userOid = userType.getOid();
         // Encrypt e's password
-        protector.encrypt(userType.getCredentials().getPassword().getProtectedString());
+        protector.encrypt(userType.getCredentials().getPassword().getValue());
         // create user in repository
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);

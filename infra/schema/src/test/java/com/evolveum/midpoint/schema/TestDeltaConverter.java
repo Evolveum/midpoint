@@ -83,8 +83,8 @@ public class TestDeltaConverter {
 	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
 	private static final File COMMON_TEST_DIR = new File("src/test/resources/common");
 	
-	private static final PropertyPath CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH = 
-		new PropertyPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_PROTECTED_STRING);
+	private static final PropertyPath CREDENTIALS_PASSWORD_VALUE_PATH = 
+		new PropertyPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -130,7 +130,7 @@ public class TestDeltaConverter {
     	assertNotNull("No object delta", objectDelta);
     	objectDelta.checkConsistence();
     	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
-    	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
+    	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(CREDENTIALS_PASSWORD_VALUE_PATH);
     	assertNotNull("No protectedString delta", protectedStringDelta);
     	Collection<PrismPropertyValue<ProtectedStringType>> valuesToReplace = protectedStringDelta.getValuesToReplace();
     	assertEquals("Wrong number of values to add", 1, valuesToReplace.size());
@@ -141,7 +141,7 @@ public class TestDeltaConverter {
     	// apply to user
     	objectDelta.applyTo(user);
     	
-    	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_PROTECTED_STRING_PATH);
+    	PrismProperty<ProtectedStringType> protectedStringProperty = user.findProperty(CREDENTIALS_PASSWORD_VALUE_PATH);
     	PrismPropertyValue<ProtectedStringType> protectedStringPropertyValue = protectedStringProperty.getValue();
     	assertTrue("protectedString not equivalent", protectedStringPropertyValue.equalsRealValue(protectedStringVal));
     	
@@ -227,7 +227,7 @@ public class TestDeltaConverter {
     	System.out.println("===[ testProtectedStringObjectDelta ]====");
 
     	// GIVEN
-    	PropertyPath path = new PropertyPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_PROTECTED_STRING);
+    	PropertyPath path = CREDENTIALS_PASSWORD_VALUE_PATH;
     	ProtectedStringType protectedString = new ProtectedStringType();
     	protectedString.setClearValue("abrakadabra");
     	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, "12345",
@@ -255,7 +255,7 @@ public class TestDeltaConverter {
     	List<Object> valueElements = mod1.getValue().getAny();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
-    	assertEquals("Wrong element name", PasswordType.F_PROTECTED_STRING, valueElement.getName());
+    	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
     	assertEquals("Wrong element value", protectedString, valueElement.getValue());
     }
 }

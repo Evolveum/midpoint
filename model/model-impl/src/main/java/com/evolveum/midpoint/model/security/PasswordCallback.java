@@ -55,10 +55,10 @@ public class PasswordCallback implements CallbackHandler {
         UserType userType = user.getUser();
         CredentialsType credentials = userType.getCredentials();
         if (user != null && credentials != null && credentials.getPassword() != null 
-        		&& credentials.getPassword().getProtectedString() != null) {
+        		&& credentials.getPassword().getValue() != null) {
             try {
             	PasswordType password = credentials.getPassword();
-                pc.setPassword(protector.decryptString(password.getProtectedString()));
+                pc.setPassword(protector.decryptString(password.getValue()));
             } catch (EncryptionException e) {
                 throw new IOException(e);
             }

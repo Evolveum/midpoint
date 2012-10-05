@@ -31,9 +31,9 @@
 
     <credentials>
         <password>
-        	<protectedString>
+        	<value>
 	            <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
-            </protectedString>
+            </value>
         </password>
     </credentials>
 
