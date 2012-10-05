@@ -75,7 +75,7 @@ public class WfCore {
     @Autowired(required = true)
     private ActivitiInterface activitiInterface;
 
-    HookOperationMode executeProcessStart(ModelContext context, Task task, OperationResult result) {
+    HookOperationMode executeProcessStartIfNeeded(ModelContext context, Task task, OperationResult result) {
 
         for (ProcessWrapper wrapper : wfHook.getWrappers()) {
             LOGGER.debug("Trying wrapper: " + wrapper.getClass().getName());

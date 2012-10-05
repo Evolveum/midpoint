@@ -106,7 +106,7 @@ public class WfHook implements ChangeHook {
             }
         }
 
-        return wfCore.executeProcessStart(context, task, result);
+        return wfCore.executeProcessStartIfNeeded(context, task, result);
     }
 
     public void registerWfProcessWrapper(ProcessWrapper starter) {

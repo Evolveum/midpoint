@@ -97,6 +97,9 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
         }
 
         ObjectDelta<? extends ObjectType> change = context.getFocusContext().getPrimaryDelta();
+        if (change != null) {
+            return null;
+        }
 
         /*
         * We either add a user; then the list of roles to be added is given by the assignment property,
