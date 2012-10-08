@@ -2323,10 +2323,14 @@
                 E.g. if resource is up or down, when it was last checked, etc.
                 It should not contain configuration, just the operational state.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
     
     <xsd:simpleType name="AvailabilityStatusType">
@@ -2502,10 +2506,14 @@
                 Configuration of consistency mechanisms. This may include configurqation of high-level
                 operation retries and similar technical condifiguration.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <!-- TODO -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
     
     <xsd:complexType name="ResourceBusinessConfigurationType">
@@ -2514,6 +2522,9 @@
                 Configuration of resource "business" aspects such as workflow parameters, notifications,
                 approvers, owners, etc.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="administrativeState" type="tns:ResourceAdministrativeStateType" minOccurs="0"/>
@@ -2528,6 +2539,7 @@
                         </xsd:annotation>
                     </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>
     
     <xsd:simpleType name="ResourceAdministrativeStateType">
