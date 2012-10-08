@@ -880,3 +880,48 @@ div.tabPanel div.tab-row a:hover {
     position: absolute;
     width: 960px;
 }
+
+/* asddddddssadasd */
+
+.assignmentItem {
+	/*border-bottom: 1px solid #F2F2F2;*/
+}
+
+.assignmentItem:hover {
+	/*background: #F2F2F2;*/
+}
+
+.assignmentHeader {
+	padding: 5px 10px;
+	border-bottom: 1px solid #8FA6AB;
+	background: #F2F2F2;
+}
+
+.assignmentBody {
+	padding: 10px 10px 5px 10px;
+	background: #C1D9DE;
+	border: 1px solid #8FA6AB;
+	border-top: 1px solid #DBF2F7;
+	color: #333333;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: left;
+    text-shadow: 0 1px 0 #DBF2F7;
+}
+
+.assignmentBody h4 {
+	color: #164FA4;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: left;
+    text-shadow: 0 1px 0 #FFFFFF;
+    border-bottom: 1px solid #8FA6AB;
+    margin-bottom: 0;
+    padding-bottom: 3px;
+}
+
+.assignmentContent {
+	padding-top: 3px;
+	border-top: 1px solid #DBF2F7;
+}
+

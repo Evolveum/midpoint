@@ -22,47 +22,53 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <div>
+        <div class="assignmentHeader">
             <input type="checkbox" wicket:id="selected"/>
             <img wicket:id="typeImage"/>
             <a wicket:id="name"><span wicket:id="nameLabel"/></a>
             <span wicket:id="activation"/>
         </div>
         <div wicket:id="main">
-            <div wicket:id="body">
+            <div wicket:id="body" class="assignmentBody">
                 <!--body-->
-                <div>
+                <div class="assignmentDescription">
                     <span><wicket:message key="AssignmentEditorPanel.description"/></span>
                     <input type="text" wicket:id="description"/>
                 </div>
-
-                <h4>
-                    <wicket:message key="ActivationType.title"/>
-                </h4>
-                <div>
-                    <span><wicket:message key="ActivationType.enabled"/></span>
-                    <input type="checkbox" wicket:id="enabled"/>
-
-                    <span><wicket:message key="ActivationType.validFrom"/></span>
-                    <input wicket:id="validFrom" type="text"/>
-
-                    <span><wicket:message key="ActivationType.validTo"/></span>
-                    <input wicket:id="validTo" type="text"/>
+                
+                <div class="assignmentBlock">
+                	<h4>
+	                    <wicket:message key="ActivationType.title"/>
+	                </h4>
+	                <div class="assignmentContent">
+	                    <span><wicket:message key="ActivationType.enabled"/></span>
+	                    <input type="checkbox" wicket:id="enabled"/>
+	
+	                    <span><wicket:message key="ActivationType.validFrom"/></span>
+	                    <input wicket:id="validFrom" type="text"/>
+	
+	                    <span><wicket:message key="ActivationType.validTo"/></span>
+	                    <input wicket:id="validTo" type="text"/>
+                    </div>
                 </div>
 
-                <div wicket:id="targetContainer">
+                <div wicket:id="targetContainer" class="assignmentBlock">
                     <h4>
                         <wicket:message key="AssignmentEditorPanel.target"/>
                     </h4>
-                    <span wicket:id="target"/>
+                    <div class="assignmentContent">
+                    	<span wicket:id="target"/>
+                    </div>
+                    
                 </div>
 
-                <div wicket:id="constructionContainer">
+                <div wicket:id="constructionContainer" class="assignmentBlock">
                     <h4>
                         <wicket:message key="AssignmentEditorPanel.attributes"/>
                     </h4>
-                    <a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
+                    <div class="assignmentContent">
+                    	<a wicket:id="showEmpty"><span wicket:id="showEmptyLabel"/></a>
+                    </div>
 
                     <div wicket:id="attributes">
                         <div wicket:id="attribute">
@@ -74,6 +80,5 @@
                 <!--todo implement extension-->
             </div>
         </div>
-    </div>
 </wicket:panel>
 </html>
