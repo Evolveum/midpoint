@@ -194,8 +194,14 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 			modifications.add(statusDelta);
 			statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
-			resource.getOperationalState().setLastAvailabilityStatus(status);
 			cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+		}
+		if (resource.getOperationalState() == null){
+			OperationalStateType operationalState = new OperationalStateType();
+			operationalState.setLastAvailabilityStatus(status);
+			resource.setOperationalState(operationalState);
+		} else{
+			resource.getOperationalState().setLastAvailabilityStatus(status);
 		}
 	}
 	

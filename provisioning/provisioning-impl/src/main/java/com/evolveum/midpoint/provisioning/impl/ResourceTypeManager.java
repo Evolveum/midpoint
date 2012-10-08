@@ -474,7 +474,7 @@ public class ResourceTypeManager {
 				PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 				modifications.add(statusDelta);
 				statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
-				resource.getOperationalState().setLastAvailabilityStatus(status);
+				
 				try{
 				repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 				} catch(SchemaException ex){
@@ -484,6 +484,13 @@ public class ResourceTypeManager {
 				} catch(ObjectNotFoundException ex){
 					throw new SystemException(ex);
 				}
+			}
+			if (resource.getOperationalState() == null){
+				OperationalStateType operationalState = new OperationalStateType();
+				operationalState.setLastAvailabilityStatus(status);
+				resource.setOperationalState(operationalState);
+			} else{
+				resource.getOperationalState().setLastAvailabilityStatus(status);
 			}
 		}
 //		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(ResourceType.F_LAST_AVAILABILITY_STATUS, getResourceTypeDefinition(), status);
