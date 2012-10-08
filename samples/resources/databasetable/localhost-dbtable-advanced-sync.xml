@@ -17,36 +17,33 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 
 <!--
 
-This file is an example of Resource definition. It defines an Solaris resource
-using an Identity Connector Framework Solaris connector.
+This file is an example of Resource definition. It defines an DB Table resource
+using an Identity Connector Framework DBTable connector.
 
-This resource definition contains also definition to enable synchronization and
-especially an expression that is using a lookup of value from an configuration
-object.
+This resource definition contains also definition to enable synchronization.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
 
-	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
+	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
-		<c:name>Localhost DBTable</c:name>
+		<name>Localhost DBTable</name>
      
      	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
@@ -58,12 +55,9 @@ object.
 		      </filter>
 		</connectorRef>
 
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee</c:namespace>
-
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:connectorConfiguration>
+		<connectorConfiguration>
 
             <!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
@@ -90,7 +84,7 @@ object.
 			<!-- Generic ICF configuration -->
 
 
-		</c:connectorConfiguration>
+		</connectorConfiguration>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
@@ -306,7 +300,7 @@ object.
 			</objectSynchronization>
         </synchronization>
 
-	</c:resource>
+	</resource>
 
     <task oid="91919191-76e0-59e2-8787-3d4f02d3ffff">
         <name>Synchronization: DBTable</name>
@@ -326,4 +320,4 @@ object.
         </schedule>
     </task>
 
-</c:objects>
+</objects>

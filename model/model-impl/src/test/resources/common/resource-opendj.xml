@@ -43,7 +43,6 @@
 			</and>
 		</filter>
 	</connectorRef>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
 	<connectorConfiguration>
 		<icfc:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
@@ -108,6 +107,7 @@
 			<icfc:schema>-1</icfc:schema>
 		</icfc:timeouts>
 	</connectorConfiguration>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003</namespace>
 	<schema>
 		<!-- Storing schema here and don't letting midpoint to generate it. Some tests work without running resource,
 			generating a schema would fail. -->

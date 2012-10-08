@@ -54,8 +54,6 @@ This resource definition contains also definition to enable synchronization.
                 </q:equal>
             </filter>
         </connectorRef>
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
@@ -85,6 +83,9 @@ This resource definition contains also definition to enable synchronization.
             </icfc:configurationProperties>
 
         </connectorConfiguration>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by

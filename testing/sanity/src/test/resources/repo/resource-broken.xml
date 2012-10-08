@@ -41,7 +41,6 @@
 	        </q:equal>
 	    </filter>
 	</connectorRef>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-ffff-ffffffffffff</namespace>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/non.existent.connector.bundle"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
@@ -50,4 +49,5 @@
 		</icfi:configurationProperties>
 
 	</connectorConfiguration>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-ffff-ffffffffffff</namespace>
 </resource>

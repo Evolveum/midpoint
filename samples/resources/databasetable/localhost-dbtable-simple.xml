@@ -26,7 +26,7 @@ This file is an example of Resource definition. It defines an database table
 resource. The users are stored as rows in simple database table. The definition
 is using MySQL database driver.
 
-See the content of the SQL files in this directory to see the table strucutre.
+See the content of the SQL files in this directory to see the table structure.
 
 -->
 
