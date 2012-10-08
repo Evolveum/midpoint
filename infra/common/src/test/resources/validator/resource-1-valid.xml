@@ -52,9 +52,6 @@
 		</filter>
 	</connectorRef>
 
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
 	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
@@ -72,6 +69,9 @@
 		</icfcldap:configurationProperties>
 
 	</connectorConfiguration>
+	
+	    <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint

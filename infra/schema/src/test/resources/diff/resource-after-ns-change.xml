@@ -34,7 +34,6 @@
 	
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
 	
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
@@ -75,6 +74,8 @@
 			</icfc:timeouts>
 
 	</connectorConfiguration>
+	
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 	<schema>
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"

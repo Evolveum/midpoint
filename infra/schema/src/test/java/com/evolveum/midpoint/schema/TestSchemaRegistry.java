@@ -67,7 +67,7 @@ public class TestSchemaRegistry {
 		Document document = DOMUtil.parseFile("src/test/resources/common/user-jack.xml");
 		Validator validator = javaxSchema.newValidator();
 		DOMResult validationResult = new DOMResult();
-		validator.validate(new DOMSource(document),validationResult);
+		validator.validate(new DOMSource(document), validationResult);
 //		System.out.println("Validation result:");
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}

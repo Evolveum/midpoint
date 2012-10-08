@@ -17,7 +17,6 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.validator.test;
@@ -62,7 +61,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
- *
+ * Test few basic cases of validation.
+ * 
  * @author Radovan Semancik
  */
 public class BasicValidatorTest {
@@ -178,7 +178,7 @@ public class BasicValidatorTest {
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("48"));
+        AssertJUnit.assertTrue("Line number not found in error message", result.getMessage().contains("39"));
 
     }
 
@@ -194,7 +194,7 @@ public class BasicValidatorTest {
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Undeclared namespace prefix"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("42"));
+        AssertJUnit.assertTrue("Line number not found in error message", result.getMessage().contains("41"));
 
     }
 
@@ -208,9 +208,9 @@ public class BasicValidatorTest {
         
         System.out.println(result.dump());
         assertFalse(result.isSuccess());
-        assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'i:foo'"));
-        assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'i:givenName'"));
-        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'i:familyName'"));
+        assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'foo'"));
+        assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'givenName'"));
+        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'familyName'"));
     }
 
     /**
