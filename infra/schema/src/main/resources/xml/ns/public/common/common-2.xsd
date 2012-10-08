@@ -2212,6 +2212,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
+                	<xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
                     <xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2237,6 +2238,7 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType"/>
                     <xsd:element name="namespace" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2248,7 +2250,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType"/>
                     <xsd:element ref="tns:schema" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2306,14 +2307,55 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="scripts" type="tns:ProvisioningScriptsType" minOccurs="0"/>
+                    <xsd:element name="consistency" type="tns:ResourceConsistencyType" minOccurs="0"/>
                     <xsd:element ref="tns:synchronization" minOccurs="0"/>
-                    <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="resource" type="tns:ResourceType"/>
-
+    
+    <xsd:complexType name="OperationalStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Structure containing metada about operational state of the resource.
+                E.g. if resource is up or down, when it was last checked, etc.
+                It should not contain configuration, just the operational state.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="AvailabilityStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enum describes the availability of the resource, if it is down, unreachable or ok. 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="down">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="up">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
+    
     <xsd:complexType name="XmlSchemaType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2453,6 +2495,68 @@
          	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="ResourceConsistencyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of consistency mechanisms. This may include configurqation of high-level
+                operation retries and similar technical condifiguration.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- TODO -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResourceBusinessConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of resource "business" aspects such as workflow parameters, notifications,
+                approvers, owners, etc.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="administrativeState" type="tns:ResourceAdministrativeStateType" minOccurs="0"/>
+            <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the resource approver(s).
+                                It may point to user or organization.
+                                If more than one approver is specified they are considered equivalent. Any
+                                of the specified approvers may approve the request.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="ResourceAdministrativeStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The state of the resource how the administrator want it to be. Overrides the real
+                availability status.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="enabled">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="disabled">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="ResourceShadowDiscriminatorType">
     	<xsd:annotation>
@@ -5452,33 +5556,6 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
-    </xsd:simpleType>
-    
-     <xsd:simpleType name="AvailabilityStatusType">
-        <xsd:annotation>
-            <xsd:documentation>
-                The enum describes the availability of the resource, if it is down, unreachable or ok. 
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="down">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DOWN"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="up">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UP"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-             </xsd:restriction>
     </xsd:simpleType>
             
 </xsd:schema>
