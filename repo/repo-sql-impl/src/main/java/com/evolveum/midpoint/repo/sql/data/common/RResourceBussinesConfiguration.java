@@ -91,6 +91,11 @@ public class RResourceBussinesConfiguration {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        if (repo.getAdministrativeState() == null && (repo.getApproverRef() == null || repo.getApproverRef().isEmpty())){
+        	jaxb = null;
+        	return;
+        }
+        
 		try {
 			if (repo.getAdministrativeState() != null) {
 				jaxb.setAdministrativeState(repo.getAdministrativeState().getAdministrativeState());
@@ -102,15 +107,24 @@ public class RResourceBussinesConfiguration {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
+    
+    public boolean empty(){
+    	return (administrativeState == null && (approverRef == null || approverRef.isEmpty()));
+    }
 
     public static void copyFromJAXB(ResourceBusinessConfigurationType jaxb, RResourceBussinesConfiguration repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        if (jaxb.getAdministrativeState() == null && (jaxb.getApproverRef() == null || jaxb.getApproverRef().isEmpty())){
+        	repo = null;
+        	return;
+        }
+        
         try {
             if (jaxb.getAdministrativeState() != null){
-        	repo.setAdministrativeState(RResourceAdministrativeState.toRepoType(jaxb.getAdministrativeState()));
+            	repo.setAdministrativeState(RResourceAdministrativeState.toRepoType(jaxb.getAdministrativeState()));
             }
             if (jaxb.getApproverRef() != null){
             	Set<REmbeddedReference> approverRefs = new HashSet<REmbeddedReference>();

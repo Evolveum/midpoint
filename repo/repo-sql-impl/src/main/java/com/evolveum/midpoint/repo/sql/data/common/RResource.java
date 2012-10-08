@@ -260,7 +260,7 @@ public class RResource extends RObject {
 					prismContext));
 			jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS),
 					repo.getScripts(), ProvisioningScriptsType.class, prismContext));
-			if (repo.getBusiness() != null) {
+			if (repo.getBusiness() != null && !repo.getBusiness().empty()) {
 				jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new PropertyPath(ResourceType.F_BUSINESS),
 						prismContext));
 			}
