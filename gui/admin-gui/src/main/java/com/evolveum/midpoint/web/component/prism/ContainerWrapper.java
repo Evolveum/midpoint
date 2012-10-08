@@ -172,7 +172,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         } else {            // if not an assignment
 
-            if (container.getValues().size() == 1) {
+            if (container.getValues().size() <= 1) {
 
                 // there's no point in showing properties for non-single-valued parent containers,
                 // so we continue only if the parent is single-valued
