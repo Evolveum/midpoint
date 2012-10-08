@@ -1396,7 +1396,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ResourceObjectShadowType> void search(Class<T> type,
-			ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+			ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
 			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException {
 
@@ -1422,11 +1422,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
 
+
 		ResultsHandler icfHandler = new ResultsHandler() {
+			int count = 0;
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connector object to a generic
 				// ResourceObject
+				if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
+						&& query.getPaging().getMaxSize() != null) {
+					if (!(count >= query.getPaging().getOffset() && count < (query.getPaging().getOffset() + query.getPaging().getMaxSize()))) {
+						count++;
+						return true;
+					}
+
+				}
 				PrismObject<T> resourceObject;
 				try {
 					resourceObject = convertToResourceObject(connectorObject, objectDefinition, true);
@@ -1438,7 +1448,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
 					result.recordPartialError("Stopped on request from the handler");
+
 				}
+				count++;
 				return cont;
 			}
 		};
@@ -1498,6 +1510,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		LOGGER.trace("attr xsd name: {}", attrXsdName);
 		return attrXsdName;
+	}
+	
+	private void increase(int count){
+		count++;
 	}
 
 //	private String convertAttributeNameToIcf(QName attrQName, OperationResult parentResult)

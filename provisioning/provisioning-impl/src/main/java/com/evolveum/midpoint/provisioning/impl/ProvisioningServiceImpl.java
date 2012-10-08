@@ -963,21 +963,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjectsIterative");
 		result.addParam("query", query);
-//		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		ObjectFilter filter = null;
 		if (query != null) {
 			filter = query.getFilter();
 		}
-//		 NodeList list = null;
-//		 if (filter != null) {
-//		 list = filter.getChildNodes();
-//		 }
+		
 		String resourceOid = null;
 		QName objectClass = null;
 		List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
-//		List<NodeList> attributeFilter = new ArrayList<NodeList>();
 
 		ObjectQuery attributeQuery = null;
 		
@@ -999,7 +994,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				attributeQuery = ObjectQuery.createObjectQuery(attributeFilter.get(0));
 			}
 			
-			
+		}
+		
+		if (query != null && query.getPaging() != null){
+			if (attributeQuery == null){
+				attributeQuery = new ObjectQuery();
+			}
+			attributeQuery.setPaging(query.getPaging());
 		}
 		LOGGER.trace("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
 		
