@@ -72,7 +72,7 @@ public class ResourceDto extends Selectable {
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
-        lastAvailabilityStatus = resource.asObjectable().getLastAvailabilityStatus();
+        lastAvailabilityStatus = resource.asObjectable().getOperationalState() != null ? resource.asObjectable().getOperationalState().getLastAvailabilityStatus() : null;
     }
 
     public ResourceDto(PrismObject<ResourceType> resource, PrismContext prismContext, ConnectorType connector, List<String> capabilities) {

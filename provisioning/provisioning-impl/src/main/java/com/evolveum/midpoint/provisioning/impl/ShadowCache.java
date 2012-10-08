@@ -79,6 +79,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProvisioningScriptHostType;
@@ -303,16 +304,27 @@ public class ShadowCache {
 	}
 
 	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		if (resource.getLastAvailabilityStatus() != null && status == resource.getLastAvailabilityStatus()){
-			return;
+		
+		if (resource.getOperationalState() == null || resource.getOperationalState().getLastAvailabilityStatus() == null || resource.getOperationalState().getLastAvailabilityStatus() != status) {
+			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+			modifications.add(statusDelta);
+			statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
+			resource.getOperationalState().setLastAvailabilityStatus(status);
+			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 		}
-		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(
-				ResourceType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
-		modifications.add(statusDelta);
-		resource.setLastAvailabilityStatus(status);
-		repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 	}
+//	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+//		if (resource.getLastAvailabilityStatus() != null && status == resource.getLastAvailabilityStatus()){
+//			return;
+//		}
+//		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+//		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(
+//				ResourceType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+//		modifications.add(statusDelta);
+//		resource.setLastAvailabilityStatus(status);
+//		repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+//	}
 
 	public void deleteShadow(ObjectType objectType, ProvisioningScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,

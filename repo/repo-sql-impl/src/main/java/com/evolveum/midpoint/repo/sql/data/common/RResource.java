@@ -35,6 +35,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
@@ -57,7 +58,10 @@ public class RResource extends RObject {
     private String capabilities;
     private String scripts;
     private String synchronization;
+    private String consistency;
+    private RResourceBussinesConfiguration business;
     private RAvailabilityStatusType lastAvailabilityStatus;
+    private ROperationalState operationalState;
 
     @Type(type = "org.hibernate.type.TextType")
     public String getScripts() {
@@ -107,6 +111,21 @@ public class RResource extends RObject {
     public RAvailabilityStatusType getLastAvailabilityStatus() {
 		return lastAvailabilityStatus;
 	}
+    
+    @Type(type = "org.hibernate.type.TextType")
+    public String getConsistency() {
+		return consistency;
+	}
+    
+    @Embedded
+    public ROperationalState getOperationalState() {
+		return operationalState;
+	}
+    
+    @Embedded
+    public RResourceBussinesConfiguration getBusiness() {
+		return business;
+	}
 
     @Index(name = "iResourceName")
     @Column(name = "objectName", unique = true)
@@ -118,6 +137,18 @@ public class RResource extends RObject {
         this.name = name;
     }
 
+    public void setBusiness(RResourceBussinesConfiguration business) {
+		this.business = business;
+	}
+    
+    public void setOperationalState(ROperationalState operationalState) {
+		this.operationalState = operationalState;
+	}
+    
+    public void setConsistency(String consistency) {
+		this.consistency = consistency;
+	}
+    
     public void setLastAvailabilityStatus(RAvailabilityStatusType lastAvailabilityStatus) {
 		this.lastAvailabilityStatus = lastAvailabilityStatus;
 	}
@@ -212,27 +243,36 @@ public class RResource extends RObject {
             jaxb.setConnectorRef(repo.getConnectorRef().toJAXB(prismContext));
         }
 
-        try {
-            jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(),
-                    ConnectorConfigurationType.class, prismContext));
-            jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA), repo.getXmlSchema(),
-                    XmlSchemaType.class, prismContext));
-            jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING), repo.getSchemaHandling(),
-                    SchemaHandlingType.class, prismContext));
-            jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION), repo.getSynchronization(),
-                    SynchronizationType.class, prismContext));
-            jaxb.setCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CAPABILITIES), repo.getCapabilities(),
-                    CapabilitiesType.class, prismContext));
-            jaxb.setNativeCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_NATIVE_CAPABILITIES),
-                    repo.getNativeCapabilities(), CachedCapabilitiesType.class, prismContext));
-            jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS), repo.getScripts(),
-                    ProvisioningScriptsType.class, prismContext));
-			if (repo.getLastAvailabilityStatus() != null) {
-				jaxb.setLastAvailabilityStatus(repo.getLastAvailabilityStatus().getStatus());
+		try {
+			jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(
+					ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class,
+					prismContext));
+			jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA),
+					repo.getXmlSchema(), XmlSchemaType.class, prismContext));
+			jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING),
+					repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
+			jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION),
+					repo.getSynchronization(), SynchronizationType.class, prismContext));
+			jaxb.setCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CAPABILITIES),
+					repo.getCapabilities(), CapabilitiesType.class, prismContext));
+			jaxb.setNativeCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(
+					ResourceType.F_NATIVE_CAPABILITIES), repo.getNativeCapabilities(), CachedCapabilitiesType.class,
+					prismContext));
+			jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS),
+					repo.getScripts(), ProvisioningScriptsType.class, prismContext));
+			if (repo.getBusiness() != null) {
+				jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new PropertyPath(ResourceType.F_BUSINESS),
+						prismContext));
 			}
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
+			if (repo.getOperationalState() != null) {
+				jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
+						new PropertyPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
+			}
+			jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONSISTENCY),
+					repo.getConsistency(), ResourceConsistencyType.class, prismContext));
+		} catch (Exception ex) {
+			throw new DtoTranslationException(ex.getMessage(), ex);
+		}
     }
 
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext) throws
@@ -247,20 +287,29 @@ public class RResource extends RObject {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
         }
 
-        try {
-            repo.setConfiguration(RUtil.toRepo(jaxb.getConnectorConfiguration(), prismContext));
-            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
-            repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
-            repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));
-            repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(), prismContext));
-            repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(), prismContext));
-            repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
-            if (jaxb.getLastAvailabilityStatus() != null){
-            	repo.setLastAvailabilityStatus(RAvailabilityStatusType.toRepoType(jaxb.getLastAvailabilityStatus()));
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
+		try {
+			repo.setConfiguration(RUtil.toRepo(jaxb.getConnectorConfiguration(), prismContext));
+			repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
+			repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
+			repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));
+			repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(), prismContext));
+			repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(), prismContext));
+			repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
+			repo.setConsistency(RUtil.toRepo(jaxb.getConsistency(), prismContext));
+			if (jaxb.getBusiness() != null) {
+				RResourceBussinesConfiguration repoBusiness = new RResourceBussinesConfiguration();
+				RResourceBussinesConfiguration.copyFromJAXB(jaxb.getBusiness(), repoBusiness, prismContext);
+				repo.setBusiness(repoBusiness);
+			}
+			if (jaxb.getOperationalState() != null) {
+				ROperationalState repoOpState = new ROperationalState();
+				ROperationalState.copyFromJAXB(jaxb.getOperationalState(), repoOpState, prismContext);
+				repo.setOperationalState(repoOpState);
+			}
+
+		} catch (Exception ex) {
+			throw new DtoTranslationException(ex.getMessage(), ex);
+		}
     }
 
     @Override

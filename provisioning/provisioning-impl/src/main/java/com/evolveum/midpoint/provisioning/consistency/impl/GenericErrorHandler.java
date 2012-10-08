@@ -56,7 +56,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		
 		switch (op) {
 		case GET:
-			if (AvailabilityStatusType.DOWN == shadow.getResource().getLastAvailabilityStatus()){
+			if (shadow.getResource().getOperationalState() != null && AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus()){
 				parentResult.computeStatus("Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				parentResult.muteError();
 				shadow.setFetchResult(parentResult.createOperationResultType());

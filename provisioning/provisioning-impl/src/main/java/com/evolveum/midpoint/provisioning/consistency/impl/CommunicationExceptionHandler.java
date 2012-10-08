@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
@@ -187,12 +189,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		
-		if (resource.getLastAvailabilityStatus() == null || resource.getLastAvailabilityStatus() != status) {
+		if (resource.getOperationalState() == null || resource.getOperationalState().getLastAvailabilityStatus() == null || resource.getOperationalState().getLastAvailabilityStatus() != status) {
 			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(
-					ResourceType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 			modifications.add(statusDelta);
-			resource.setLastAvailabilityStatus(status);
+			statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
+			resource.getOperationalState().setLastAvailabilityStatus(status);
 			cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 		}
 	}

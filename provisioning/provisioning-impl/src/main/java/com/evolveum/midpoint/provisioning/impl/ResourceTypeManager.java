@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
@@ -387,13 +388,13 @@ public class ResourceTypeManager {
 
 		parentResult.computeStatus();
 		if (!parentResult.isAcceptable()) {
-			modifyResourceAvailabilityStatus(AvailabilityStatusType.DOWN, resourceType, parentResult);
+			modifyResourceAvailabilityStatus(resourceType, AvailabilityStatusType.DOWN, parentResult);
 			// No point in going on. Following tests will fail anyway, they will
 			// just produce misleading
 			// messages.
 			return;
 		} else {
-			modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, resourceType, parentResult);
+			modifyResourceAvailabilityStatus(resourceType, AvailabilityStatusType.UP, parentResult);
 		}
 
 		// === test SCHEMA ===
@@ -465,20 +466,39 @@ public class ResourceTypeManager {
 
 	}
 	
-	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, ResourceType resourceType, OperationResult parentResult){
-		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(ResourceType.F_LAST_AVAILABILITY_STATUS, getResourceTypeDefinition(), status);
-		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-		modifications.add(statusDelta);
-		try {
-			repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, parentResult);
-		} catch (SchemaException ex) {
-			throw new SystemException(ex);
-		} catch (ObjectAlreadyExistsException ex) {
-			throw new SystemException(ex);
-		} catch (ObjectNotFoundException ex) {
-			throw new SystemException(ex);
+//	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, ResourceType resourceType, OperationResult parentResult){
+		private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result){
+			
+			if (resource.getOperationalState() == null || resource.getOperationalState().getLastAvailabilityStatus() == null || resource.getOperationalState().getLastAvailabilityStatus() != status) {
+				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+				PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+				modifications.add(statusDelta);
+				statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
+				resource.getOperationalState().setLastAvailabilityStatus(status);
+				try{
+				repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+				} catch(SchemaException ex){
+					throw new SystemException(ex);
+				} catch(ObjectAlreadyExistsException ex){
+					throw new SystemException(ex);
+				} catch(ObjectNotFoundException ex){
+					throw new SystemException(ex);
+				}
+			}
 		}
-	}
+//		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(ResourceType.F_LAST_AVAILABILITY_STATUS, getResourceTypeDefinition(), status);
+//		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+//		modifications.add(statusDelta);
+//		try {
+//			repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, parentResult);
+//		} catch (SchemaException ex) {
+//			throw new SystemException(ex);
+//		} catch (ObjectAlreadyExistsException ex) {
+//			throw new SystemException(ex);
+//		} catch (ObjectNotFoundException ex) {
+//			throw new SystemException(ex);
+//		}
+//	}
 
 	/**
 	 * Adjust scheme with respect to capabilities. E.g. disable attributes that
