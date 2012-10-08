@@ -48,9 +48,9 @@
 				<!-- </q:and> -->
 			</filter>
 		</connectorRef>
-		<namespace>http://foo.bar.com/</namespace>
 		<connectorConfiguration>
 		</connectorConfiguration>
+		<namespace>http://foo.bar.com/</namespace>
 		<schema>
 		</schema>
 	</resource>
