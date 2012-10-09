@@ -177,8 +177,7 @@ public class TestRefinedSchema {
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         RefinedAccountDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
 
-        JAXBElement<AccountShadowType> accJaxbElement = PrismTestUtil.unmarshalElement(new File(TEST_DIR_NAME, "account-jack.xml"), AccountShadowType.class);
-        AccountShadowType accType = accJaxbElement.getValue();
+        PrismObject<AccountShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
         // WHEN
 
@@ -187,7 +186,6 @@ public class TestRefinedSchema {
         System.out.println("Refined account definition:");
         System.out.println(objectDefinition.dump());
 
-        PrismObject<AccountShadowType> accObject = accType.asPrismObject();
         accObject.applyDefinition(objectDefinition);
 
         // THEN
@@ -196,7 +194,7 @@ public class TestRefinedSchema {
         System.out.println(accObject.dump());
 
         QName objectClassQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
-        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, "jack");
+        PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, objectClassQName);
         PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, DEFAULT_INTENT);
 
@@ -216,7 +214,7 @@ public class TestRefinedSchema {
         accObject.checkConsistence();
 
         AccountShadowType accObjectType = accObject.asObjectable();
-        assertEquals("Wrong JAXB name", "jack", accObjectType.getName());
+        assertEquals("Wrong JAXB name", PrismTestUtil.createPolyStringType("jack"), accObjectType.getName());
         assertEquals("Wrong JAXB objectClass", objectClassQName, accObjectType.getObjectClass());
         ResourceObjectShadowAttributesType attributesType = accObjectType.getAttributes();
         assertNotNull("null ResourceObjectShadowAttributesType (JAXB)", attributesType);

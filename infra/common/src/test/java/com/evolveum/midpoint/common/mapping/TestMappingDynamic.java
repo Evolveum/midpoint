@@ -618,7 +618,7 @@ public class TestMappingDynamic {
     	final String TEST_NAME = "testScriptSystemVariablesConditionTrueToTrueXPath";
     	
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
-    			evaluator.toPath("name"), evaluator.getPrismContext(), "Jack");
+    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
 		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
 				filename, 
@@ -655,7 +655,7 @@ public class TestMappingDynamic {
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToFalse";
     	
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
-    			evaluator.toPath("name"), evaluator.getPrismContext(), "Jack");
+    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	
 		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
 				filename, 
@@ -686,7 +686,7 @@ public class TestMappingDynamic {
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToTrue";
     	
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
-    			evaluator.toPath("name"), evaluator.getPrismContext(), "Jack");
+    			evaluator.toPath("name"), evaluator.getPrismContext(), PrismTestUtil.createPolyString("Jack"));
     	delta.addModificationAddProperty(evaluator.toPath("employeeType"), "CAPTAIN");
     	
 		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(

@@ -485,6 +485,7 @@ public class Validator {
 		// TODO: check for bad characters
 		if (value == null) {
 			error("Null property", object, propertyName, subResult);
+			return;
 		}
 		String orig = value.getOrig();
 		if (orig == null || orig.isEmpty()) {

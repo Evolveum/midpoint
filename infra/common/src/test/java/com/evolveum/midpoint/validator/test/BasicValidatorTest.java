@@ -243,7 +243,7 @@ public class BasicValidatorTest {
 
         System.out.println(result.dump());
         AssertJUnit.assertFalse(result.isSuccess());
-        AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(1).getMessage().contains("Empty property"));
+        AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(1).getMessage().contains("Null property"));
         AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(1).getMessage().contains("name"));
 
     }

@@ -40,7 +40,7 @@
 			<language>http://www.w3.org/TR/xpath/</language>
 			<returnType>scalar</returnType>
 			<code xmlns:x="http://example.com/xxx">
-				concat($x:foo,' ',$y:sailor/c:name)
+				concat($x:foo,' ',$y:sailor/c:description)
 			</code>
 		</script>
 	</expression>

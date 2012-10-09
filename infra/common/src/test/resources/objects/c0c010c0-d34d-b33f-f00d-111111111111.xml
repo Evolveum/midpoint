@@ -25,6 +25,9 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>jack</name>
+    <!-- Description is a string as opposed to name which is PolyString. We use description instead of
+         name in tests where we need string. -->
+    <description>jack</description>
     <extension>
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
     </extension>
