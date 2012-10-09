@@ -30,15 +30,14 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_user_template")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user_template",
         indexes = {@Index(name = "iUserTemplateName", columnNames = "name_norm")})
 public class RUserTemplate extends RObject {
@@ -61,7 +60,6 @@ public class RUserTemplate extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

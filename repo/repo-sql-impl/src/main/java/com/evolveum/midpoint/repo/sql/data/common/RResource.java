@@ -34,16 +34,14 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_resource")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_resource",
         indexes = {@Index(name = "iResourceName", columnNames = "name_norm")})
 public class RResource extends RObject {
@@ -130,7 +128,6 @@ public class RResource extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

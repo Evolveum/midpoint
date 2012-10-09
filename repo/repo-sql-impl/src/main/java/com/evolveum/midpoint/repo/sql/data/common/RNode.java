@@ -28,9 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
@@ -38,6 +36,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 @Entity
 @ForeignKey(name = "fk_node")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_node",
         indexes = {@Index(name = "iNodeName", columnNames = "name_norm")})
 public class RNode extends RObject {
@@ -84,7 +83,6 @@ public class RNode extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

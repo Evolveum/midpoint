@@ -32,15 +32,14 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_password_policy")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_password_policy",
         indexes = {@Index(name = "iPasswordPolicyName", columnNames = "name_norm")})
 public class RPasswordPolicy extends RObject {
@@ -65,7 +64,6 @@ public class RPasswordPolicy extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

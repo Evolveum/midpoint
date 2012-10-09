@@ -37,19 +37,14 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_system_configuration")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
         indexes = {@Index(name = "iSystemConfigurationName", columnNames = "name_norm")})
 public class RSystemConfiguration extends RObject {
@@ -112,7 +107,6 @@ public class RSystemConfiguration extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

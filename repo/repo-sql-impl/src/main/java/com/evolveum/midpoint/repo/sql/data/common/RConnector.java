@@ -42,6 +42,7 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_connector")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_connector",
         indexes = {@Index(name = "iConnectorName", columnNames = "name_norm")})
 public class RConnector extends RObject {
@@ -106,7 +107,6 @@ public class RConnector extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

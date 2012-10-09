@@ -42,6 +42,7 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
         indexes = {@Index(name = "iUserEnabled", columnNames = "enabled"),
                 @Index(name = "iFullName", columnNames = "fullName_norm"),
@@ -200,7 +201,6 @@ public class RUser extends RObject {
     }
 
     @Embedded
-    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }
