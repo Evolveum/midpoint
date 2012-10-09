@@ -33,7 +33,7 @@
     top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + (document.documentElement.clientHeight || document.body.clientHeight) - this.offsetHeight) + "px");
 }
 
-div.objectForm .tableForm input[type='text'], div.objectForm .tableForm input[type='password'], div.objectForm .tableForm input[type='checkbox'] {
+div.objectForm .tableForm input[type='text'], div.objectForm .tableForm input[type='password'], div.objectForm .tableForm input[type='checkbox'], .assignmentBody input[type="text"], .assignmentBody input[type="password"] {
 	outline: none;
 	margin: 8px 0px 4px 10px;
 	font-size: 15px;

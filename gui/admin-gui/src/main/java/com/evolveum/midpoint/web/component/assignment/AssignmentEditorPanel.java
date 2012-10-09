@@ -41,9 +41,11 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -74,6 +76,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
 
     private static final String ID_MAIN = "main";
+    private static final String ID_HEADER = "headerPanel";
     private static final String ID_SELECTED = "selected";
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
@@ -100,6 +103,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     @Override
     protected void initLayout() {
+    	final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER);
+    	headerPanel.setOutputMarkupId(true);
+    	add(headerPanel);
+    	
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
 
@@ -108,11 +115,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 //do we want to update something?
             }
         };
-        add(selected);
+        headerPanel.add(selected);
 
         Image typeImage = new Image(ID_TYPE_IMAGE,
                 createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE)));
-        add(typeImage);
+        headerPanel.add(typeImage);
 
         AjaxLink name = new AjaxLink(ID_NAME) {
 
@@ -121,13 +128,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 nameClickPerformed(target);
             }
         };
-        add(name);
+        headerPanel.add(name);
 
         Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_NAME));
         name.add(nameLabel);
 
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
-        add(activation);
+        headerPanel.add(activation);
 
         WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
         main.setOutputMarkupId(true);
@@ -139,6 +146,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
+                if(editorDto.isMinimized()) {
+                	headerPanel.add(new AttributeModifier("class", "assignmentHeader"));
+                } else {
+                	headerPanel.add(new AttributeModifier("class", "assignmentHeader selectedAssignment"));
+                }
                 return !editorDto.isMinimized();
             }
         });
@@ -455,6 +467,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         dto.setMinimized(!minimized);
 
         target.add(get(ID_MAIN));
+        target.add(get(ID_HEADER));
     }
 
     private IModel<String> createTargetModel() {

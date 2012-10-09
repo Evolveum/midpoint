@@ -881,19 +881,16 @@ div.tabPanel div.tab-row a:hover {
     width: 960px;
 }
 
-/* asddddddssadasd */
-
-.assignmentItem {
-	/*border-bottom: 1px solid #F2F2F2;*/
-}
-
 .assignmentItem:hover {
-	/*background: #F2F2F2;*/
+	background: #F2F2F2;
 }
 
 .assignmentHeader {
 	padding: 5px 10px;
 	border-bottom: 1px solid #8FA6AB;
+}
+
+.assignmentHeader.selectedAssignment {
 	background: #F2F2F2;
 }
 
@@ -907,6 +904,7 @@ div.tabPanel div.tab-row a:hover {
     font-weight: bold;
     text-align: left;
     text-shadow: 0 1px 0 #DBF2F7;
+    margin-bottom: 15px;
 }
 
 .assignmentBody h4 {
@@ -925,3 +923,32 @@ div.tabPanel div.tab-row a:hover {
 	border-top: 1px solid #DBF2F7;
 }
 
+.assignmentBody input[type="text"], .assignmentBody input[type="password"] {
+    display: inline-block;
+    height: 20px;
+    position: relative;
+    width: 200px;
+}
+
+.assignmentBody input[type="text"]:focus, .assignmentBody input[type="password"]:focus , .assignmentBody input:focus {
+	border: 1px solid #8D9095;
+	-webkit-box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
+	-moz-box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
+	box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
+}
+
+.assignmentBlock .assignmentAttrLabel {
+	margin-top: 12px;
+    position: absolute;
+}
+
+.assignmentBlock .operationIcon {
+	color: #333333;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+.assignmentBlock .assignmentAttrValue a:hover {
+	text-decoration: none;
+}

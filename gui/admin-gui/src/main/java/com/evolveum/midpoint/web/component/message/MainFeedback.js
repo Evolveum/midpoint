@@ -31,10 +31,10 @@ function initMessages() {
 	//$(".messages-details-bold").disableTextSelection();
 	//$(".messages-topPanel").disableTextSelection();
 	
-	/*$("a").click(function(){
+	$("a").click(function(){
 		$(".messagesTop").remove();
 		$(".tempMessagesTop").remove();
-	});*/
+	});
 	
 	$(".messagesTop").find(".messages-topPanel").each(function(index){
 		var arrow;

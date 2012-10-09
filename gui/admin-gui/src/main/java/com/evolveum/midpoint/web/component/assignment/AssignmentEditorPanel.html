@@ -22,7 +22,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-        <div class="assignmentHeader">
+        <div wicket:id="headerPanel">
             <input type="checkbox" wicket:id="selected"/>
             <img wicket:id="typeImage"/>
             <a wicket:id="name"><span wicket:id="nameLabel"/></a>
@@ -42,7 +42,7 @@
 	                </h4>
 	                <div class="assignmentContent">
 	                    <span><wicket:message key="ActivationType.enabled"/></span>
-	                    <input type="checkbox" wicket:id="enabled"/>
+	                    <input type="checkbox" wicket:id="enabled"/> <br /><br />
 	
 	                    <span><wicket:message key="ActivationType.validFrom"/></span>
 	                    <input wicket:id="validFrom" type="text"/>
