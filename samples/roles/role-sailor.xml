@@ -25,8 +25,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     <name>Sailor</name>
     <description>
-     A basic role for an example hierarchy of roles that also contains
-     roles "Pirate" and "Captain". It specifies account on OpenDJ resource
+     A basic role, that specifies account on OpenDJ resource
      and also sets "employeeType" attribute to a fixed value and it sets "destinationIndicator"
      as a copy of a user property.
     </description>
