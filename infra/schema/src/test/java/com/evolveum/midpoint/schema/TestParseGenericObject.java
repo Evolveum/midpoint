@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -241,8 +242,8 @@ public class TestParseGenericObject {
 		GenericObjectType genericType = generic.asObjectable();
 		assertNotNull("asObjectable resulted in null", genericType);
 
-		assertPropertyValue(generic, "name", "My Sample Config Object");
-		assertPropertyDefinition(generic, "name", DOMUtil.XSD_STRING, 0, 1);		
+		assertPropertyValue(generic, "name", PrismTestUtil.createPolyString("My Sample Config Object"));
+		assertPropertyDefinition(generic, "name", PolyStringType.COMPLEX_TYPE, 0, 1);		
 		assertPropertyValue(generic, "objectType", QNameUtil.qNameToUri(
 				new QName(SchemaTestConstants.NS_EXTENSION, "SampleConfigType")));
 		assertPropertyDefinition(generic, "objectType", DOMUtil.XSD_ANYURI, 1, 1);

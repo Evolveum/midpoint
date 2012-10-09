@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType.Definition;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -308,8 +309,8 @@ public class TestParseResource {
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull("asObjectable resulted in null", resourceType);
 
-		assertPropertyValue(resource, "name", "Embedded Test OpenDJ");
-		assertPropertyDefinition(resource, "name", DOMUtil.XSD_STRING, 0, 1);		
+		assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Embedded Test OpenDJ"));
+		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);		
 		assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
 		assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
 		
@@ -338,7 +339,7 @@ public class TestParseResource {
 	
 	private void assertResourceJaxb(ResourceType resourceType) {
 		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
-		assertEquals("Wrong name (JAXB)", "Embedded Test OpenDJ", resourceType.getName());
+		assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType("Embedded Test OpenDJ"), resourceType.getName());
 		assertEquals("Wrong namespace (JAXB)", RESOURCE_NAMESPACE, ResourceTypeUtil.getResourceNamespace(resourceType));
 		
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();

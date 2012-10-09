@@ -38,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -208,16 +210,16 @@ public class TestParseUser {
 		UserType userType = user.asObjectable();
 		assertNotNull("asObjectable resulted in null", userType);
 		
-		assertPropertyValue(user, "name", "jack");
-		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
+		assertPropertyValue(user, "name", PrismTestUtil.createPolyString("jack"));
+		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
-		assertPropertyDefinition(user, "fullName", SchemaConstants.T_POLY_STRING_TYPE, 1, 1);
+		assertPropertyDefinition(user, "fullName", PolyStringType.COMPLEX_TYPE, 1, 1);
 		assertPropertyValue(user, "givenName", new PolyString("Jack", "jack"));
-		assertPropertyDefinition(user, "givenName", SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
+		assertPropertyDefinition(user, "givenName", PolyStringType.COMPLEX_TYPE, 0, 1);
 		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
-		assertPropertyDefinition(user, "familyName", SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
+		assertPropertyDefinition(user, "familyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 	
-		assertPropertyDefinition(user, "organizationalUnit", SchemaConstants.T_POLY_STRING_TYPE, 0, -1);
+		assertPropertyDefinition(user, "organizationalUnit", PolyStringType.COMPLEX_TYPE, 0, -1);
 		assertPropertyValues(user, "organizationalUnit", 
 				new PolyString("Brethren of the Coast", "brethren of the coast"),
 				new PolyString("Davie Jones' Locker", "davie jones locker"));
@@ -281,7 +283,7 @@ public class TestParseUser {
 	}
 
 	private void assertUserJaxb(UserType userType) {
-		assertEquals("Wrong name", "jack", userType.getName());
+		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("jack"), userType.getName());
 		assertEquals("Wrong fullName (orig)", "Jack Sparrow", userType.getFullName().getOrig());
         assertEquals("Wrong fullName (norm)", "jack sparrow", userType.getFullName().getNorm());
 		assertEquals("Wrong givenName (orig)", "Jack", userType.getGivenName().getOrig());

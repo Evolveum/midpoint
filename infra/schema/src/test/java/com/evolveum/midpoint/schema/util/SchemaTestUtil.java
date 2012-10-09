@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -58,7 +59,7 @@ public class SchemaTestUtil {
 	public static void assertUserDefinition(PrismObjectDefinition<UserType> userDefinition) {
 		assertNotNull("No user definition", userDefinition);
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, ObjectType.F_NAME, "Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, ObjectType.F_NAME, 0);
 		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);

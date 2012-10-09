@@ -32,6 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -198,8 +200,8 @@ public class TestParseTask {
 		TaskType taskType = task.asObjectable();
 		assertNotNull("asObjectable resulted in null", taskType);
 
-		assertPropertyValue(task, "name", "Example Task");
-		assertPropertyDefinition(task, "name", DOMUtil.XSD_STRING, 0, 1);
+		assertPropertyValue(task, "name", PrismTestUtil.createPolyString("Example Task"));
+		assertPropertyDefinition(task, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		
 		assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
 		assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);

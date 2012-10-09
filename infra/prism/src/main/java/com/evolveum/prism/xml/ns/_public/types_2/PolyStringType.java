@@ -482,4 +482,43 @@ public class PolyStringType implements Dumpable, DebugDumpable, Serializable, Cl
         }
         return null;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((any == null) ? 0 : any.hashCode());
+		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
+		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PolyStringType other = (PolyStringType) obj;
+		if (any == null) {
+			if (other.any != null)
+				return false;
+		} else if (!any.equals(other.any))
+			return false;
+		if (norm == null) {
+			if (other.norm != null)
+				return false;
+		} else if (!norm.equals(other.norm))
+			return false;
+		if (orig == null) {
+			if (other.orig != null)
+				return false;
+		} else if (!orig.equals(other.orig))
+			return false;
+		return true;
+	}
+    
+    
 }

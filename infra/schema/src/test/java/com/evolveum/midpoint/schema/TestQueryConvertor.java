@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class TestQueryConvertor {
 
@@ -152,9 +153,9 @@ public class TestQueryConvertor {
 			List<? extends PrismValue> values = ((EqualsFilter) first).getValues();
 			AssertJUnit.assertEquals(1, values.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, values.get(0).getClass());
-			AssertJUnit.assertEquals("generic object", ((PrismPropertyValue) values.get(0)).getValue());
+			AssertJUnit.assertEquals(PrismTestUtil.createPolyString("generic object"), ((PrismPropertyValue) values.get(0)).getValue());
 			AssertJUnit.assertEquals(GenericObjectType.F_NAME, ((EqualsFilter)first).getDefinition().getName());
-			AssertJUnit.assertEquals(DOMUtil.XSD_STRING, ((EqualsFilter)first).getDefinition().getTypeName());
+			AssertJUnit.assertEquals(PolyStringType.COMPLEX_TYPE, ((EqualsFilter)first).getDefinition().getTypeName());
 			//check second condition
 			ObjectFilter second = ((AndFilter) query.getFilter()).getCondition().get(1);
 			AssertJUnit.assertEquals(EqualsFilter.class, second.getClass());

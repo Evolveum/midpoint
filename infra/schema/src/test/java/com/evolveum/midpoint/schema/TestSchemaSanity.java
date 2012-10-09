@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -184,7 +185,7 @@ public class TestSchemaSanity {
 		assertTrue("Different account def", accountDefinition == accountDefinitionByClass);
 
 		assertEquals("Wrong compile-time class in account definition", AccountShadowType.class, accountDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertPropertyDefinition(accountDefinition, AccountShadowType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
 		assertFalse("Account definition is marked as runtime", accountDefinition.isRuntimeSchema());
 		
@@ -215,7 +216,7 @@ public class TestSchemaSanity {
 		assertTrue("Different user def", resourceDefinition == resourceDefinitionByClass);
 
 		assertEquals("Wrong compile-time class in resource definition", ResourceType.class, resourceDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(resourceDefinition, ResourceType.F_NAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(resourceDefinition, ResourceType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertPropertyDefinition(resourceDefinition, ResourceType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
 		assertFalse("Resource definition is marked as runtime", resourceDefinition.isRuntimeSchema());
 

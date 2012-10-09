@@ -101,7 +101,7 @@ public class TestJaxbParsing {
         System.out.println(user.dump());
 
         user.checkConsistence();
-        assertPropertyValue(user, SchemaConstants.C_NAME, "jack");
+        assertPropertyValue(user, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "fullName"), new PolyString("Jack Sparrow", "jack sparrow"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "givenName"), new PolyString("Jack", "jack"));
         assertPropertyValue(user, new QName(SchemaConstants.NS_C, "familyName"), new PolyString("Sparrow", "sparrow"));
@@ -144,8 +144,10 @@ public class TestJaxbParsing {
         System.out.println("Parsed account:");
         System.out.println(account.dump());
 
-        account.checkConsistence();
-        assertPropertyValue(account, SchemaConstants.C_NAME, "jack");
+        account.checkConsistence(); 
+        assertPropertyValue(account, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
+        assertPropertyValue(account, AccountShadowType.F_OBJECT_CLASS, 
+        		new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
         assertPropertyValue(account, AccountShadowType.F_INTENT, "default");
 
         // TODO: more asserts
@@ -163,8 +165,8 @@ public class TestJaxbParsing {
         PrismObject<GenericObjectType> prism = object.asPrismObject();
         prism.revive(prismContext);
 
-        prism.checkConsistence();
-        assertPropertyValue(prism, GenericObjectType.F_NAME, "My Sample Config Object");
+        prism.checkConsistence(); 
+        assertPropertyValue(prism, GenericObjectType.F_NAME, PrismTestUtil.createPolyString("My Sample Config Object"));
         assertPropertyValue(prism, GenericObjectType.F_DESCRIPTION, "Sample description");
         assertPropertyValue(prism, GenericObjectType.F_OBJECT_TYPE, "http://midpoint.evolveum.com/xml/ns/test/extension#SampleConfigType");
         //assert extension

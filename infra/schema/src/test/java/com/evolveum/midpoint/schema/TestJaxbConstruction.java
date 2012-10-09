@@ -273,7 +273,7 @@ public class TestJaxbConstruction {
 		
 		// THEN (prism)
 		account.checkConsistence();
-		PrismAsserts.assertPropertyValue(account, AccountShadowType.F_NAME, ACCOUNT_NAME);
+		PrismAsserts.assertPropertyValue(account, AccountShadowType.F_NAME, PrismTestUtil.createPolyString(ACCOUNT_NAME));
 		PrismReference resourceRef = account.findReference(AccountShadowType.F_RESOURCE_REF);
 		assertNotNull("No resourceRef", resourceRef);
     	PrismReferenceValue resourceRefVal = resourceRef.getValue();
@@ -284,7 +284,7 @@ public class TestJaxbConstruction {
 //    	assertNotNull("No filter in resourceRef value", filter);
 		
 		// THEN (JAXB)
-		assertEquals("Wrong name (JAXB)", ACCOUNT_NAME, accountType.getName());
+		assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType(ACCOUNT_NAME), accountType.getName());
 		resourceRefType = accountType.getResourceRef();
 		assertNotNull("No resourceRef (JAXB)", resourceRefType);
 		assertEquals("Wrong OID in resourceRef (JAXB)", FAUX_RESOURCE_OID, resourceRefType.getOid());

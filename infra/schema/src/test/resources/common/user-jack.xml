@@ -32,7 +32,10 @@
         xmlns:foo="http://www.example.com/foo"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
-    <name>jack</name>
+    <name>
+    	<t:orig>jack</t:orig>
+    	<t:norm>jack</t:norm>
+    </name>
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
 		<foo:num xsi:type="xsd:int">42</foo:num>

@@ -37,7 +37,10 @@
           xmlns:my="http://myself.me/schemas/whatever">
 
     <!-- Resource printable name -->
-    <name>Embedded Test OpenDJ</name>
+    <name>
+    	<t:orig>Embedded Test OpenDJ</t:orig>
+    	<t:norm>embedded test opendj</t:norm>
+    </name>
 
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
