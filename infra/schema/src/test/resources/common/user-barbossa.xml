@@ -28,7 +28,10 @@
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:foo="http://www.example.com/foo">
-    <name>barbossa</name>
+    <name>
+    	<t:orig>barbossa</t:orig>
+    	<t:norm>barbossa</t:norm>
+    </name>
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
 		<foo:num xsi:type="xsd:int">42</foo:num>
