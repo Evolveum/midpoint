@@ -413,13 +413,20 @@ public class PageContentAccounts extends PageAdminResources {
 //                }
 //                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(SubstringFilter.createSubstring(new PropertyPath(AccountShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 
-            if (dto.isName()) {
-                conditions.add(SubstringFilter.createSubstring(ObjectType.class, getPrismContext(), ObjectType.F_NAME, dto.getSearchText()));
-            }
+			if (dto.isName()) {
+				List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>();
+				if (def.getSecondaryIdentifiers() != null) {
+					secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
+				}
+				for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
+					conditions.add(SubstringFilter.createSubstring(new PropertyPath(AccountShadowType.F_ATTRIBUTES),
+							attrDef, dto.getSearchText()));
+				}
+			}
 
             if (!conditions.isEmpty()) {
                 if (conditions.size() > 1) {

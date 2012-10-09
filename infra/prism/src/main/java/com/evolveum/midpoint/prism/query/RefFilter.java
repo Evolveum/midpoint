@@ -115,5 +115,29 @@ public class RefFilter extends PropertyValueFilter{
 		return sb.toString();
 
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("EQUALS: ");
+		if (getPath() != null){
+			sb.append(getPath().toString());
+			sb.append(", ");
+		}
+		if (getDefinition() != null){
+			sb.append(getDefinition().getName().getLocalPart());
+			sb.append(", ");
+		}
+		if (getValues() != null){
+			for (int i = 0; i< getValues().size() -1 ; i++){
+				sb.append(getValues().get(i).toString());
+				if ( i != getValues().size() -1){
+					sb.append(", ");
+				}
+			}
+		}
+		return sb.toString();
+	}
+
 
 }

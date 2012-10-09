@@ -48,4 +48,17 @@ public class OrFilter extends NaryLogicalFilter {
 		}
 		return sb.toString();
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("OR: ");
+		for (int i = 0; i < getCondition().size() -1; i++){
+			sb.append(getCondition().get(i));
+			if (i != getCondition().size() -1){
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
+	}
 }

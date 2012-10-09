@@ -23,6 +23,9 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -774,6 +777,29 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		sb.append(")");
 	}
 
+	private static void prettyPrintFilter(StringBuilder sb, ObjectFilter filter) {
+
+		if (filter == null) {
+			sb.append("null");
+			return;
+		}
+		sb.append("(");
+		sb.append(filter.toString());
+		sb.append(")");
+	}
+	
+	private static void prettyPrintPaging(StringBuilder sb, ObjectPaging paging) {
+
+		if (paging == null) {
+			sb.append("null");
+			return;
+		}
+
+		sb.append("(");
+		sb.append(paging.toString());
+		sb.append(")");
+	}
+	
 	public static String prettyPrint(PagingType paging) {
 
 		if (paging == null) {
@@ -881,6 +907,9 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		if (value instanceof Collection) {
 			return prettyPrint((Collection<?>)value);
 		}
+		if (value instanceof ObjectQuery){
+			return prettyPrint((ObjectQuery) value);
+		}
 		if (value instanceof ObjectType) {
 			// ObjectType has many subtypes, difficult to sort out using reflection
 			// therefore we special-case it
@@ -911,6 +940,24 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return null;
 	}
 
+	public static String prettyPrint(ObjectQuery query){
+		if (query == null) {
+			return "null";
+		}
+
+		ObjectFilter filter = query.getFilter();
+
+		StringBuilder sb = new StringBuilder("Query(");
+
+		prettyPrintFilter(sb, filter);
+		ObjectPaging paging = query.getPaging();
+		prettyPrintPaging(sb, paging);
+
+		sb.append(")");
+
+		return sb.toString();
+	}
+	
 	@Override
 	public String format(Object o) {
 		try {

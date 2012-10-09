@@ -2,6 +2,7 @@ package com.evolveum.midpoint.prism.query;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -86,5 +87,24 @@ public class OrgFilter extends ObjectFilter {
 		}
 		return sb.toString();
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("ORG: ");
+		if (getOrgRef() != null){
+			sb.append(getOrgRef().toString());
+			sb.append(", ");
+		}
+		if (getMinDepth() != null){
+			sb.append(getMinDepth());
+			sb.append(", ");
+		}
+		if (getMaxDepth() != null){
+			sb.append(getMaxDepth());
+		}
+		return sb.toString();
+	}
+
 
 }

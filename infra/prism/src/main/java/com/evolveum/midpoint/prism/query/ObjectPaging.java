@@ -1,12 +1,14 @@
 package com.evolveum.midpoint.prism.query;
 
+import java.io.Serializable;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
-public class ObjectPaging implements Dumpable, DebugDumpable{
+public class ObjectPaging implements Dumpable, DebugDumpable, Serializable{
 	
 	private Integer offset;
 	private Integer maxSize;
@@ -102,4 +104,36 @@ public class ObjectPaging implements Dumpable, DebugDumpable{
 	public String dump() {
 		return debugDump(0);
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("PAGING: ");
+		if (this == null){
+			sb.append("null");
+			return sb.toString();
+		}
+		if (getOffset() != null){
+			sb.append("O: ");
+			sb.append(getOffset());
+			sb.append(",");
+		}
+		if (getMaxSize() != null){
+			sb.append("M: ");
+			sb.append(getMaxSize());
+			sb.append(",");
+		}
+		if (getOrderBy() != null){
+			sb.append("BY: ");
+			sb.append(getOrderBy().getLocalPart());
+			sb.append(", ");
+		}
+		if (getDirection() != null){
+			sb.append("D:");
+			sb.append(getDirection());
+		}
+		
+		return sb.toString();
+	}
+
 }

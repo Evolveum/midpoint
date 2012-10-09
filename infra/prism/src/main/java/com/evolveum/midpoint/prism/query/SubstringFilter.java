@@ -69,4 +69,22 @@ public class SubstringFilter extends StringValueFilter {
 		return sb.toString();
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("EQUALS: ");
+		if (getPath() != null){
+			sb.append(getPath().toString());
+			sb.append(", ");
+		}
+		if (getDefinition() != null){
+			sb.append(getDefinition().getName().getLocalPart());
+			sb.append(", ");
+		}
+		if (getValue() != null){
+			sb.append(getValue());
+		}
+		return sb.toString();
+	}
+
 }
