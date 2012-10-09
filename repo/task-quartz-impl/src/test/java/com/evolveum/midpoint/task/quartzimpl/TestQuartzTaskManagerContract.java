@@ -383,7 +383,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         
         // other properties will be set in batched mode
         String newname = "Test task, name changed";
-        task.setName(newname);
+        task.setName(PrismTestUtil.createPolyStringType(newname));
         task.setProgress(10);
         long currentTime = System.currentTimeMillis();
         long currentTime1 = currentTime + 10000;
