@@ -1213,7 +1213,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
 		AccountShadowType shadowType = new AccountShadowType();
 		PrismTestUtil.getPrismContext().adopt(shadowType);
-		shadowType.setName(ACCOUNT_DAVIEJONES_USERNAME);
+		shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_DAVIEJONES_USERNAME));
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		shadowType.setResourceRef(resourceRef);

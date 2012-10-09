@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -211,6 +212,10 @@ public class PrismTestUtil {
 		PolyString polyString = new PolyString(orig);
 		polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
 		return polyString;
+	}
+
+	public static PolyStringType createPolyStringType(String string) {
+		return new PolyStringType(createPolyString(string));
 	}
 
 }

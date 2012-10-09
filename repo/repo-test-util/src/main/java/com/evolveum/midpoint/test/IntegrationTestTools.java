@@ -29,12 +29,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -61,6 +63,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
@@ -205,6 +209,26 @@ public class IntegrationTestTools {
 	public static void assertNotEmpty(String message, String s) {
 		assertNotNull(message, s);
 		assertFalse(message, s.isEmpty());
+	}
+	
+	public static void assertNotEmpty(PolyString ps) {
+		assertNotNull(ps);
+		assertFalse(ps.isEmpty());
+	}
+	
+	public static void assertNotEmpty(PolyStringType ps) {
+		assertNotNull(ps);
+		assertFalse(PrismUtil.isEmpty(ps));
+	}
+	
+	public static void assertNotEmpty(String message, PolyString ps) {
+		assertNotNull(message, ps);
+		assertFalse(message, ps.isEmpty());
+	}
+	
+	public static void assertNotEmpty(String message, PolyStringType ps) {
+		assertNotNull(message, ps);
+		assertFalse(message, PrismUtil.isEmpty(ps));
 	}
 
 	public static void assertNotEmpty(String s) {

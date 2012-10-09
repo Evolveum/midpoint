@@ -79,6 +79,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismValidate;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -437,7 +438,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		// FIXME??
 		prismContext.adopt(objectType);
 		if (!(objectType instanceof ResourceObjectShadowType)) {
-			Validate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
+			PrismValidate.notEmpty(objectType.getName(), "Object name must not be null or empty.");
 		}
 
 		OperationResult result = parentResult.createSubresult(ADD_OBJECT);

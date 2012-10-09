@@ -146,7 +146,7 @@ public class TestResourceSchema {
 		Document xsd = schema.serializeToXsd();
 
 		ResourceType resource = new ResourceType();
-		resource.setName("JAXB With Dynamic Schemas Test");
+		resource.setName(PrismTestUtil.createPolyStringType("JAXB With Dynamic Schemas Test"));
 		ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
 		
 		// WHEN
@@ -189,7 +189,7 @@ public class TestResourceSchema {
 		PrismObjectDefinition<ResourceType> resourceDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		PrismObject<ResourceType> resource = resourceDefinition.instantiate();
 		ResourceType resourceType = resource.asObjectable();
-		resourceType.setName("Prism With Dynamic Schemas Test");
+		resourceType.setName(PrismTestUtil.createPolyStringType("Prism With Dynamic Schemas Test"));
 		ResourceTypeUtil.setResourceXsdSchema(resource, DOMUtil.getFirstChildElement(xsd));
 		
 		// WHEN

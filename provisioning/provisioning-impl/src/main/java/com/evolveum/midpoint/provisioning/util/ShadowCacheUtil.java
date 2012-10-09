@@ -52,6 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -367,8 +369,16 @@ public class ShadowCacheUtil {
 		}
 		return false;
 	}
+	
+	public static PolyStringType determineShadowName(ResourceObjectShadowType shadow) throws SchemaException {
+		String stringName = determineShadowStringName(shadow);
+		if (stringName == null) {
+			return null;
+		}
+		return new PolyStringType(stringName);
+	}
 
-	public static String determineShadowName(ResourceObjectShadowType shadow) throws SchemaException {
+	public static String determineShadowStringName(ResourceObjectShadowType shadow) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 		if (attributesContainer.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.

@@ -316,7 +316,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
 		AccountShadowType shadowType = new AccountShadowType();
 		PrismTestUtil.getPrismContext().adopt(shadowType);
-		shadowType.setName(ACCOUNT_JACK_USERNAME);
+		shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		shadowType.setResourceRef(resourceRef);

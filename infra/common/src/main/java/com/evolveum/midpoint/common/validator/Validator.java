@@ -65,6 +65,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * 
@@ -479,10 +480,14 @@ public class Validator {
 
 	// Small checks - checks that don't create subresults
 
-	void checkName(Objectable object, String value, String propertyName, OperationResult subResult) {
+	void checkName(Objectable object, PolyStringType value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
-		if (value == null || value.isEmpty()) {
+		if (value == null) {
+			error("Null property", object, propertyName, subResult);
+		}
+		String orig = value.getOrig();
+		if (orig == null || orig.isEmpty()) {
 			error("Empty property", object, propertyName, subResult);
 		}
 	}

@@ -85,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Currently the only implementation of the UCF Connector Manager API interface.
@@ -336,7 +337,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			connectorName.append(" @");
 			connectorName.append(hostType.getName());
 		}
-		connectorType.setName(connectorName.toString());
+		connectorType.setName(new PolyStringType(connectorName.toString()));
 		connectorType.setFramework(ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);

@@ -819,7 +819,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertNotNull("Shadow stored in repository has no name", repoShadowType.getName());
         // Check the "name" property, it should be set to DN, not entryUUID
-        assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName().toLowerCase());
+        assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName().getOrig().toLowerCase());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
         String uid = checkRepoShadow(repoShadow);

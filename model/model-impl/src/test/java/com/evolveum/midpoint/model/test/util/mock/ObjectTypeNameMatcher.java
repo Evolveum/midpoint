@@ -27,6 +27,7 @@ import org.hamcrest.Description;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * 
@@ -36,6 +37,10 @@ public class ObjectTypeNameMatcher extends BaseMatcher<PrismObject<ObjectType>> 
 
 	private String name;
 
+	public ObjectTypeNameMatcher(PolyStringType name) {
+		this.name = name.getOrig();
+	}
+	
 	public ObjectTypeNameMatcher(String name) {
 		this.name = name;
 	}
@@ -44,7 +49,7 @@ public class ObjectTypeNameMatcher extends BaseMatcher<PrismObject<ObjectType>> 
 	public boolean matches(Object item) {
 		PrismObject<ObjectType> object = (PrismObject<ObjectType>) item;
 
-		return object.asObjectable().getName().equals(name);
+		return object.asObjectable().getName().getOrig().equals(name);
 	}
 
 	@Override

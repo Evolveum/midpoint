@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 /**
  * @author semancik
  *
@@ -33,9 +35,9 @@ public interface Objectable extends Containerable {
 	
 	public void setVersion(String version);
 	
-	public String getName();
+	public PolyStringType getName();
 	
-	public void setName(String name);
+	public void setName(PolyStringType name);
 	
 	public String getDescription();
 	

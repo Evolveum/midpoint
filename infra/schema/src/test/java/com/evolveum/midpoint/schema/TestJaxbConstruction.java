@@ -265,7 +265,7 @@ public class TestJaxbConstruction {
 		assertNotNull("No object definition after adopt", account.getDefinition());
 		
 		// WHEN
-		accountType.setName(ACCOUNT_NAME);
+		accountType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_NAME));
 		ObjectReferenceType resourceRefType = new ObjectReferenceType();
 		resourceRefType.setOid(FAUX_RESOURCE_OID);
 		resourceRefType.setType(ResourceType.COMPLEX_TYPE);

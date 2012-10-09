@@ -26,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -33,6 +34,7 @@ import org.w3c.dom.NamedNodeMap;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -97,6 +99,19 @@ public class PrismUtil {
 						"namespace '"+namespace+"' is now used for namespace '"+declaredNamespace+"', cannot unfortify.");
 			}
 		}
+	}
+
+	public static boolean isEmpty(PolyStringType value) {
+		if (value == null) {
+			return true;
+		}
+		if (StringUtils.isNotEmpty(value.getOrig())) {
+			return false;
+		}
+		if (StringUtils.isNotEmpty(value.getNorm())) {
+			return false;
+		}
+		return true;
 	}
 
 }

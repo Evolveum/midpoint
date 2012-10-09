@@ -835,21 +835,6 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}	
 		
-	public static String resourceFromShadow(ResourceObjectShadowType shadow) {
-		if (shadow == null) {
-			return null;
-		}
-		ResourceType resource = shadow.getResource();
-		if (resource != null) {
-			return resource.getName();
-		}
-		ObjectReferenceType resourceRef = shadow.getResourceRef();
-		if (resourceRef != null) {
-			return resourceRef.getOid();
-		}
-		return ("ERROR:noResource");
-	}
-
 	public static String prettyPrint(JAXBElement<?> element) {
 		return "JAXBElement("+DebugUtil.prettyPrint(element.getName())+"): "+element.getValue();
 	}

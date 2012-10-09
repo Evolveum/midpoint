@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlType;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 
 /**
@@ -50,7 +51,7 @@ public abstract class ObjectType
 {
 
     private final static long serialVersionUID = 201202081233L;
-    protected String name;
+    protected PolyStringType name;
     protected String description;
     protected Extension extension;
     @XmlAttribute(name = "oid")
@@ -66,7 +67,7 @@ public abstract class ObjectType
      *     {@link String }
      *     
      */
-    public String getName() {
+    public PolyStringType getName() {
         return name;
     }
 
@@ -78,7 +79,7 @@ public abstract class ObjectType
      *     {@link String }
      *     
      */
-    public void setName(String value) {
+    public void setName(PolyStringType value) {
         this.name = value;
     }
 

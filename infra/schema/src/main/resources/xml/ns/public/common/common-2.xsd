@@ -111,24 +111,6 @@
 
     <!-- See https://wiki.evolveum.com/display/midPoint/Common+Schema -->
 
-    <xsd:element name="name" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation>
-                Human-readable name for object, property, attribute or whatever. The "name" should be readable
-                for system administrator, not necessarily for the end user. Therefore it may contain "ugly" names
-                and identifier such as LDAP DN or UUID. The "name" may also be used by the system logic, e.g. for
-                purpose of login name or for referring to objects by name.
-
-                Name is mutable. It can change any time. However, a special handling may be needed in some cases
-                (e.g. "rename" provisioning flow).
-
-                The use of national characters in the "name" is possible, however it is discouraged.
-
-                Name is reused in several location, but the meaning is still the same.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
     <xsd:element name="displayName" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -333,7 +315,7 @@
         </xsd:annotation>
 
         <xsd:sequence>
-            <xsd:element ref="tns:name" minOccurs="0">
+            <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Human-readable, mutable name of the object. It
@@ -353,6 +335,9 @@
                         Therefore it can be changed by invoking usual modifyObject
                         operations. However, change of the name may have side
                         effects (rename process).
+                        
+                		Name is mutable. It can change any time. However, a special
+                		handling may be needed in some cases (e.g. "rename" provisioning flow).
 
                         Although name is specified as optional by this schema, it
                         is in fact mandatory for most object types. The reason for
@@ -2465,7 +2450,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:name"/>
+            <xsd:element name="name" type="xsd:string"/>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">

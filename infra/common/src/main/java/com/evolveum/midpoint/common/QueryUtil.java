@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -250,10 +252,14 @@ public class QueryUtil {
 //        and.appendChild(el3);
 //        return and;
 //    }
+    
+    public static QueryType createNameQuery(PolyStringType name) throws SchemaException {
+    	return createNameQuery(name.getOrig());
+    }
 
 	public static QueryType createNameQuery(String name) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
-        Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstantsGenerated.C_NAME, name);
+        Element filter = QueryUtil.createEqualFilter(doc, null, ObjectType.F_NAME, name);
         QueryType query = new QueryType();
         query.setFilter(filter);
         return query;
@@ -267,7 +273,7 @@ public class QueryUtil {
     public static <T extends ObjectType> Element createNameAndClassFilter(Class<T> type, String name) throws
             SchemaException {
         Document doc = DOMUtil.getDocument();
-        return QueryUtil.createEqualFilter(doc, null, SchemaConstantsGenerated.C_NAME, name);
+        return QueryUtil.createEqualFilter(doc, null, ObjectType.F_NAME, name);
     }
 
     public static QueryType createQuery(Element filter) {
