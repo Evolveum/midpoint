@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model.security.api;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
@@ -110,7 +111,7 @@ public class PrincipalUser implements Serializable {//   } UserDetails {
         return user;
     }
 
-    public String getName() {
+    public PolyStringType getName() {
         return getUser().getName();
     }
 

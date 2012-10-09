@@ -32,6 +32,8 @@ import com.evolveum.midpoint.wf.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,12 +79,12 @@ public class AddUserProcessWrapper { //implements ProcessWrapper {
 
                     if (isUser) {
 
-                        String user = prismToAdd.asObjectable().getName();
-                        if (user.startsWith("testwf")) {
+                        PolyStringType user = prismToAdd.asObjectable().getName();
+                        if (user.getOrig().startsWith("testwf")) {
                             StartProcessInstruction startCommand = new StartProcessInstruction();
                             startCommand.setProcessName("AddUser");
                             startCommand.addProcessVariable("user", user);
-                            startCommand.setTaskName("Workflow for creating user " + user);
+                            startCommand.setTaskName(new PolyStringType("Workflow for creating user " + user));
                             startCommand.setSimple(true);
                             return startCommand;
                         }

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -42,6 +44,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -84,6 +88,9 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
     
     @Autowired(required = true)
     private PrismContext prismContext;
+    
+    @Autowired(required = true)
+    private PolyStringNormalizer normalizer;
 
     private Map<Task, SynchronizeAccountResultHandler> handlers;
     private PrismPropertyDefinition objectclassPropertyDefinition;
@@ -123,7 +130,10 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         task.setHandlerUri(HANDLER_URI);
 
         // Readable task name
-        task.setName("Import from resource " + resource.getName());
+        PolyString polyString = new PolyString("Import from resource " + resource.getName());
+        polyString.recompute(normalizer);
+        task.setName(new PolyStringType(polyString));
+        
 
         // Set reference to the resource
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));

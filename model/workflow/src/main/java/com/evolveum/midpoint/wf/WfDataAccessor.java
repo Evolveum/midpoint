@@ -472,7 +472,7 @@ public class WfDataAccessor {
     private String getUserNameByOid(String oid, OperationResult result) {
         try {
             PrismObject<UserType> user = workflowManager.getRepositoryService().getObject(UserType.class, oid, result);
-            return user.asObjectable().getName();
+            return user.asObjectable().getName().getOrig();
         } catch (ObjectNotFoundException e) {
             // there should be a note in result by now
             LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);

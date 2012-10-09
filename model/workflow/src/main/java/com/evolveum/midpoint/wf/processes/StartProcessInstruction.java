@@ -24,6 +24,8 @@ package com.evolveum.midpoint.wf.processes;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 /**
  * Created with IntelliJ IDEA.
  * User: mederly
@@ -35,7 +37,7 @@ public class StartProcessInstruction {
 
     private Map<String,Object> processVariables = new HashMap<String,Object>();
     private String processName;
-    private String taskName;
+    private PolyStringType taskName;
     private boolean simple;
 
     public boolean isSimple() {
@@ -62,11 +64,11 @@ public class StartProcessInstruction {
         processVariables.put(name, value);
     }
 
-    public String getTaskName() {
+    public PolyStringType getTaskName() {
         return taskName;
     }
 
-    public void setTaskName(String taskName) {
+    public void setTaskName(PolyStringType taskName) {
         this.taskName = taskName;
     }
 

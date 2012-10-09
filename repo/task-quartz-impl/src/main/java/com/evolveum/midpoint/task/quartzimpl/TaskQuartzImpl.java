@@ -32,10 +32,13 @@ import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1164,26 +1167,26 @@ public class TaskQuartzImpl implements Task {
 	 */
 
 	@Override
-	public String getName() {
+	public PolyStringType getName() {
 		return taskPrism.asObjectable().getName();
 	}
 
 	@Override
-	public void setName(String value) {
+	public void setName(PolyStringType value) {
 		processModificationBatched(setNameAndPrepareDelta(value));
 	}
 	
 	@Override
-	public void setNameImmediate(String value, OperationResult parentResult)
+	public void setNameImmediate(PolyStringType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         processModificationNow(setNameAndPrepareDelta(value), parentResult);
 	}
 	
-	public void setNameTransient(String name) {
+	public void setNameTransient(PolyStringType name) {
 		taskPrism.asObjectable().setName(name);
 	}
 	
-	private PropertyDelta<?> setNameAndPrepareDelta(String value) {
+	private PropertyDelta<?> setNameAndPrepareDelta(PolyStringType value) {
 		setNameTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value) : null;

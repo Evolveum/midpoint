@@ -23,6 +23,8 @@ package com.evolveum.midpoint.model.importer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +72,9 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     
     @Autowired(required = true)
     private PrismContext prismContext;
+    
+    @Autowired(required = true)
+    private PolyStringNormalizer normalizer;
 
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
     private PrismPropertyDefinition filenamePropertyDefinition;
@@ -107,7 +113,9 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         task.setHandlerUri(HANDLER_URI);
 
         // Readable task name
-        task.setName("Import from file " + input);
+        PolyString polyString = new PolyString("Import from file " + input);
+        polyString.recompute(normalizer);
+        task.setName(new PolyStringType(polyString));
 
         // TODO: bind task to this node
 

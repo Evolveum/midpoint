@@ -57,7 +57,7 @@ public class RecordDecision implements JavaDelegate {
 
         PrincipalUser user = getPrincipalUser();
         if (user != null) {
-            decision.setUser(user.getName());
+            decision.setUser(user.getName().getOrig());  //TODO: probably not correct setting
         } else {
             decision.setUser("?");    // todo
         }

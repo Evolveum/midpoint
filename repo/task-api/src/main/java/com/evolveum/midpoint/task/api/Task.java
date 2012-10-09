@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
@@ -331,16 +332,16 @@ public interface Task extends Dumpable {
 	 * 
 	 * @return human-readable name of the task.
 	 */
-	public String getName();
+	public PolyStringType getName();
 	
 	/**
 	 * Sets the human-readable name of the task.
 	 * 
 	 * @param value new human-readable name of the task.
 	 */
-	public void setName(String value);
+	public void setName(PolyStringType value);
 	
-	public void setNameImmediate(String value, OperationResult parentResult)
+	public void setNameImmediate(PolyStringType value, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
 	/**

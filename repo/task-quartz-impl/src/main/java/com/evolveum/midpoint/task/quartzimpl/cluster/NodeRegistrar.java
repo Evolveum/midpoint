@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Takes care about node registration in repository.
@@ -129,7 +131,9 @@ public class NodeRegistrar {
         NodeType node = nodePrism.asObjectable();
 
         node.setNodeIdentifier(configuration.getNodeId());
-        node.setName(configuration.getNodeId());
+        PolyString polyString = new PolyString(configuration.getNodeId());
+        polyString.recompute(taskManager.getNormalizer());
+        node.setName(new PolyStringType(polyString));
         node.setHostname(getMyAddress());
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
@@ -269,7 +273,7 @@ public class NodeRegistrar {
         PrismObject<NodeType> nodeInRepo;
 
         String oid = nodePrism.getOid();
-        String myName = nodePrism.asObjectable().getName();
+        PolyStringType myName = nodePrism.asObjectable().getName();
         LOGGER.trace("Verifying node record with OID = " + oid);
 
         // first, let us check the record of this node - whether it exists and whether the internalNodeIdentifier is OK
@@ -353,7 +357,7 @@ public class NodeRegistrar {
     }
 
 
-    private boolean doesNodeExist(OperationResult result, String myName) {
+    private boolean doesNodeExist(OperationResult result, PolyStringType myName) {
         try {
             List<PrismObject<NodeType>> nodes = findNodesWithGivenName(result, myName);
             return nodes != null && !nodes.isEmpty();
@@ -363,7 +367,7 @@ public class NodeRegistrar {
         }
     }
 
-    private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, String name) throws SchemaException {
+    private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, PolyStringType name) throws SchemaException {
 
 //        QueryType q = QueryUtil.createNameQuery(name);
     	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.class, getPrismContext(), NodeType.F_NAME, name));

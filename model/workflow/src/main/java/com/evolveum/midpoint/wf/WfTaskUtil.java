@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -53,6 +54,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessVariable;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.springframework.stereotype.Component;
 
 /**
@@ -145,12 +148,12 @@ public class WfTaskUtil {
 	/**
 	 * Makes a task active, i.e. a task that actively queries wf process instance about its status.
 	 */
-	void prepareActiveTask(Task t, String taskName, OperationResult parentResult)
+	void prepareActiveTask(Task t, PolyStringType taskName, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 //		// shutdown the task if it is already running (i.e. a run from previous phase)
 //		t.shutdown();
 
-        if (StringUtils.isEmpty(t.getName())) {
+        if (t.getName().toPolyString().isEmpty()) {
 		    t.setName(taskName);
         }
 
@@ -178,12 +181,12 @@ public class WfTaskUtil {
 	 * @return
 	 */
 	
-	void preparePassiveTask(Task t, String taskName, OperationResult parentResult)
+	void preparePassiveTask(Task t, PolyStringType taskName, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 //		// shutdown the task if it is already running (i.e. a run from previous phase)
 //		t.shutdown();
 
-        if (StringUtils.isEmpty(t.getName())) {
+        if (t.getName().toPolyString().isEmpty()) {
             t.setName(taskName);
         }
         t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, new ScheduleType(), null);		// note that this handler will not be used (at least for now)

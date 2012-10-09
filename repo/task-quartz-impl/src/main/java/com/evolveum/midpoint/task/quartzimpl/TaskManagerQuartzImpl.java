@@ -47,6 +47,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -75,6 +77,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Task Manager implementation using Quartz scheduler.
@@ -110,7 +113,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
-
+    
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 
@@ -133,6 +136,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	@Autowired
+	private PolyStringNormalizer normalizer;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
@@ -520,7 +526,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         TaskQuartzImpl taskImpl = (TaskQuartzImpl) task;
 
         if (task.getName() == null) {
-            taskImpl.setNameTransient("Task " + task.getTaskIdentifier());
+        	PolyString polyString = new PolyString("Task " + task.getTaskIdentifier());
+        	polyString.recompute(normalizer);
+        	PolyStringType polyStringName = new PolyStringType(polyString);
+            taskImpl.setNameTransient(polyStringName);
         }
 
         if (taskImpl.getOid() != null) {
@@ -874,6 +883,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public RepositoryService getRepositoryService() {
         return repositoryService;
     }
+    
+    public PolyStringNormalizer getNormalizer() {
+		return normalizer;
+	}
 
     public void setConfiguration(TaskManagerConfiguration configuration) {
         this.configuration = configuration;

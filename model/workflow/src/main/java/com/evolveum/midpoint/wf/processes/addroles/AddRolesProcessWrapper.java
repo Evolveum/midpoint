@@ -47,6 +47,8 @@ import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.apache.commons.lang.StringUtils;
@@ -177,7 +179,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             spi.setProcessName(ADD_ROLE_PROCESS);
             spi.setSimple(true);
             String rolesAsList = formatAsRoleList(rolesToAdd);
-            spi.setTaskName("Workflow for approving adding " + rolesAsList + " to " + newUser.getName());
+            spi.setTaskName(new PolyStringType("Workflow for approving adding " + rolesAsList + " to " + newUser.getName()));
             spi.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Adding " + rolesAsList + " to " + newUser.getName());
             spi.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
             spi.addProcessVariable(USER_NAME, newUser.getName());
