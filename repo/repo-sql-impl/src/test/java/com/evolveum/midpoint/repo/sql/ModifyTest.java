@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +125,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         File userFile = new File(TEST_DIR, "modify-user.xml");
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
         user.setOid(null);
-        user.asObjectable().setName("non-existing-account-user");
+        user.asObjectable().setName(new PolyStringType("non-existing-account-user"));
 
         String oid = repositoryService.addObject(user, result);
 
