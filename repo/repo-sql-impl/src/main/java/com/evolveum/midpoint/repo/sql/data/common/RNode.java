@@ -29,6 +29,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -38,7 +39,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Entity
 @ForeignKey(name = "fk_node")
 @org.hibernate.annotations.Table(appliesTo = "m_node",
-        indexes = {@Index(name = "iNodeName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iNodeName", columnNames = "name_norm")})
 public class RNode extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -82,7 +83,8 @@ public class RNode extends RObject {
         return nodeIdentifier;
     }
 
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

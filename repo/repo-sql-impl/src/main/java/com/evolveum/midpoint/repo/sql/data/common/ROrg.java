@@ -17,7 +17,7 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_org")
 @org.hibernate.annotations.Table(appliesTo = "m_org",
-        indexes = {@Index(name = "iOrgName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iOrgName", columnNames = "name_norm")})
 public class ROrg extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -34,7 +34,8 @@ public class ROrg extends RObject {
         return costCenter;
     }
 
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

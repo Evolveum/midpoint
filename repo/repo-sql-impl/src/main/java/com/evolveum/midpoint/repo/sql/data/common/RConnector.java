@@ -43,7 +43,7 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_connector")
 @org.hibernate.annotations.Table(appliesTo = "m_connector",
-        indexes = {@Index(name = "iConnectorName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iConnectorName", columnNames = "name_norm")})
 public class RConnector extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
@@ -105,7 +105,8 @@ public class RConnector extends RObject {
         return framework;
     }
 
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

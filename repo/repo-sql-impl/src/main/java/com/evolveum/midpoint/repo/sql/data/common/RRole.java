@@ -34,6 +34,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_role")
 @org.hibernate.annotations.Table(appliesTo = "m_role",
-        indexes = {@Index(name = "iRoleName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iRoleName", columnNames = "name_norm")})
 public class RRole extends RObject {
 
 	@QueryAttribute(polyString = true)
@@ -74,7 +75,8 @@ public class RRole extends RObject {
 		return exclusions;
 	}
 
-	@Column(name = "objectName", unique = true)
+    @Embedded
+	@Column(unique = true)
 	public RPolyString getName() {
 		return name;
 	}

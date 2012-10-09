@@ -45,7 +45,7 @@ import javax.persistence.OneToOne;
 @Entity
 @ForeignKey(name = "fk_resource")
 @org.hibernate.annotations.Table(appliesTo = "m_resource",
-        indexes = {@Index(name = "iResourceName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iResourceName", columnNames = "name_norm")})
 public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
@@ -129,7 +129,8 @@ public class RResource extends RObject {
         return business;
     }
 
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

@@ -33,6 +33,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 
 /**
@@ -40,6 +41,8 @@ import javax.persistence.Entity;
  */
 @Entity
 @ForeignKey(name = "fk_password_policy")
+@org.hibernate.annotations.Table(appliesTo = "m_password_policy",
+        indexes = {@Index(name = "iPasswordPolicyName", columnNames = "name_norm")})
 public class RPasswordPolicy extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -61,8 +64,8 @@ public class RPasswordPolicy extends RObject {
         return stringPolicy;
     }
 
-    @Index(name = "iPasswordPolicyName")
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

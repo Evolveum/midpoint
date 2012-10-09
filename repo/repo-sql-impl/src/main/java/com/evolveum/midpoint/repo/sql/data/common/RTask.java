@@ -43,7 +43,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Entity
 @ForeignKey(name = "fk_task")
 @org.hibernate.annotations.Table(appliesTo = "m_task",
-        indexes = {@Index(name = "iTaskName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iTaskName", columnNames = "name_norm")})
 public class RTask extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -157,7 +157,7 @@ public class RTask extends RObject {
         return result;
     }
 
-    @Column(name = "objectName")
+    @Embedded
     public RPolyString getName() {
         return name;
     }

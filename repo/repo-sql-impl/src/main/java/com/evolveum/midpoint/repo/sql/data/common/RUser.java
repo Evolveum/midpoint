@@ -51,7 +51,7 @@ import java.util.Set;
                 @Index(name = "iAdditionalName", columnNames = "additionalName_norm"),
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_norm"),
                 @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm"),
-                @Index(name = "iUserName", columnNames = "objectName_norm")})
+                @Index(name = "iUserName", columnNames = "name_norm")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
@@ -199,7 +199,8 @@ public class RUser extends RObject {
         return honorificSuffix;
     }
 
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }

@@ -51,7 +51,7 @@ import javax.persistence.OneToOne;
 @Entity
 @ForeignKey(name = "fk_system_configuration")
 @org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
-        indexes = {@Index(name = "iSystemConfigurationName", columnNames = "objectName_norm")})
+        indexes = {@Index(name = "iSystemConfigurationName", columnNames = "name_norm")})
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
@@ -111,7 +111,8 @@ public class RSystemConfiguration extends RObject {
         return modelHooks;
     }
 
-    @Column(name = "objectName", unique = true)
+    @Embedded
+    @Column(unique = true)
     public RPolyString getName() {
         return name;
     }
