@@ -41,8 +41,8 @@ import javax.persistence.Entity;
 @ForeignKey(name = "fk_connector_host")
 public class RConnectorHost extends RObject {
 
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private String hostname;
     private String port;
     private String sharedSecret;
@@ -77,11 +77,11 @@ public class RConnectorHost extends RObject {
 
     @Index(name = "iConnectorHostName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -137,7 +137,7 @@ public class RConnectorHost extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setHostname(repo.getHostname());
         jaxb.setPort(repo.getPort());
         jaxb.setProtectConnection(repo.isProtectConnection());
@@ -155,7 +155,7 @@ public class RConnectorHost extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
         repo.setTimeout(jaxb.getTimeout());

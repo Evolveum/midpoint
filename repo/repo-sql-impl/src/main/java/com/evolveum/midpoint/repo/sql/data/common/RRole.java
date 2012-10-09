@@ -46,8 +46,8 @@ import java.util.Set;
 @ForeignKey(name = "fk_role")
 public class RRole extends RObject {
 
-	@QueryAttribute
-	private String name;
+	@QueryAttribute(polyString = true)
+	private RPolyString name;
 	private Set<RAssignment> assignments;
 	private Set<RExclusion> exclusions;
 	private Set<RObjectReference> approverRefs;
@@ -74,7 +74,7 @@ public class RRole extends RObject {
 
 	@Index(name = "iRoleName")
 	@Column(name = "objectName", unique = true)
-	public String getName() {
+	public RPolyString getName() {
 		return name;
 	}
 
@@ -92,7 +92,7 @@ public class RRole extends RObject {
 		this.approverRefs = approverRefs;
 	}
 
-	public void setName(String name) {
+	public void setName(RPolyString name) {
 		this.name = name;
 	}
 
@@ -137,7 +137,7 @@ public class RRole extends RObject {
 	public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext) throws DtoTranslationException {
 		RObject.copyToJAXB(repo, jaxb, prismContext);
 
-		jaxb.setName(repo.getName());
+		jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
 		if (repo.getAssignments() != null) {
 			for (RAssignment rAssignment : repo.getAssignments()) {
 				jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
@@ -160,7 +160,7 @@ public class RRole extends RObject {
 			throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-		repo.setName(jaxb.getName());
+		repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 		if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
 			repo.setAssignments(new HashSet<RAssignment>());
 		}

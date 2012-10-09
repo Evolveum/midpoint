@@ -54,8 +54,8 @@ import java.util.Set;
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     @QueryAttribute(polyString = true)
     private RPolyString fullName;
     @QueryAttribute(polyString = true)
@@ -200,7 +200,7 @@ public class RUser extends RObject {
 
     @Index(name = "iUserName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
@@ -254,7 +254,7 @@ public class RUser extends RObject {
         this.title = title;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -392,7 +392,7 @@ public class RUser extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
         repo.setGivenName(RPolyString.copyFromJAXB(jaxb.getGivenName()));
         repo.setFamilyName(RPolyString.copyFromJAXB(jaxb.getFamilyName()));
@@ -450,7 +450,7 @@ public class RUser extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
         jaxb.setGivenName(RPolyString.copyToJAXB(repo.getGivenName()));
         jaxb.setFamilyName(RPolyString.copyToJAXB(repo.getFamilyName()));

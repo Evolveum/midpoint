@@ -24,7 +24,8 @@ public class ROrg extends RObject {
     private String costCenter;
     @QueryAttribute(polyString = true)
     private RPolyString locality;
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
 
     public String getCostCenter() {
         return costCenter;
@@ -75,11 +76,11 @@ public class ROrg extends RObject {
         this.orgType = orgType;
     }
     
-    public void setName(String name) {
+    public void setName(RPolyString name) {
 		this.name = name;
 	}
     
-    public String getName() {
+    public RPolyString getName() {
 		return name;
 	}
 
@@ -115,7 +116,7 @@ public class ROrg extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setCostCenter(jaxb.getCostCenter());
         repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
         repo.setIdentifier(jaxb.getIdentifier());
@@ -127,7 +128,7 @@ public class ROrg extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setCostCenter(repo.getCostCenter());
         jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
         jaxb.setIdentifier(repo.getIdentifier());

@@ -39,8 +39,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @ForeignKey(name = "fk_node")
 public class RNode extends RObject {
 
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private String nodeIdentifier;
     private String hostname;
     private Integer jmxPort;
@@ -82,11 +82,11 @@ public class RNode extends RObject {
 
     @Index(name = "iNodeName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -159,7 +159,7 @@ public class RNode extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setHostname(repo.getHostname());
         jaxb.setNodeIdentifier(repo.getNodeIdentifier());
         jaxb.setJmxPort(repo.getJmxPort());
@@ -173,7 +173,7 @@ public class RNode extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
         repo.setNodeIdentifier(jaxb.getNodeIdentifier());
         repo.setJmxPort(jaxb.getJmxPort());

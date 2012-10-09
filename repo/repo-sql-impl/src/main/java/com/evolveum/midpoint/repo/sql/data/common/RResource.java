@@ -47,8 +47,8 @@ import javax.persistence.OneToOne;
 public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private RObjectReference connectorRef;
     private String namespace;
     private String configuration;
@@ -129,11 +129,11 @@ public class RResource extends RObject {
 
     @Index(name = "iResourceName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -236,7 +236,7 @@ public class RResource extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setNamespace(repo.getNamespace());
 
         if (repo.getConnectorRef() != null) {
@@ -279,7 +279,7 @@ public class RResource extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setNamespace(ResourceTypeUtil.getResourceNamespace(jaxb));
         repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), repo, prismContext));
 

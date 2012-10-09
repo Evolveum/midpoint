@@ -42,8 +42,8 @@ import javax.persistence.Entity;
 @ForeignKey(name = "fk_password_policy")
 public class RPasswordPolicy extends RObject {
 
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private String lifetime;
     private String stringPolicy;
 
@@ -63,11 +63,11 @@ public class RPasswordPolicy extends RObject {
 
     @Index(name = "iPasswordPolicyName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -103,7 +103,7 @@ public class RPasswordPolicy extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         try {
             jaxb.setLifetime(RUtil.toJAXB(PasswordPolicyType.class, new PropertyPath(PasswordPolicyType.F_LIFETIME), repo.getLifetime(),
                     PasswordLifeTimeType.class, prismContext));
@@ -118,7 +118,7 @@ public class RPasswordPolicy extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         try {
             repo.setLifetime(RUtil.toRepo(jaxb.getLifetime(), prismContext));
             repo.setStringPolicy(RUtil.toRepo(jaxb.getStringPolicy(), prismContext));

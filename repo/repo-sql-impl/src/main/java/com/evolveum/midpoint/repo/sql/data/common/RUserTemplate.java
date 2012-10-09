@@ -40,8 +40,8 @@ import javax.persistence.Entity;
 @ForeignKey(name = "fk_user_template")
 public class RUserTemplate extends RObject {
 
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private String propertyConstruction;
     private String accountConstruction;
 
@@ -59,11 +59,11 @@ public class RUserTemplate extends RObject {
 
     @Index(name = "iUserTemplateName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -105,7 +105,7 @@ public class RUserTemplate extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         try {
             if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
                 UserTemplateType holder = RUtil.toJAXB(repo.getAccountConstruction(), UserTemplateType.class, prismContext);
@@ -125,7 +125,7 @@ public class RUserTemplate extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         try {
             if (!jaxb.getAccountConstruction().isEmpty()) {
                 UserTemplateType template = new UserTemplateType();

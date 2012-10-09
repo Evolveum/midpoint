@@ -53,8 +53,8 @@ import javax.persistence.OneToOne;
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private String globalAccountSynchronizationSettings;
     private REmbeddedReference globalPasswordPolicyRef;
     private Set<REmbeddedReference> orgRootRef;
@@ -111,11 +111,11 @@ public class RSystemConfiguration extends RObject {
 
     @Index(name = "iSystemConfigurationName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -189,7 +189,7 @@ public class RSystemConfiguration extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         if (repo.getDefaultUserTemplateRef() != null) {
             jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
         }
@@ -224,7 +224,7 @@ public class RSystemConfiguration extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         if (jaxb.getDefaultUserTemplate() != null) {
             LOGGER.warn("Default user template from system configuration type won't be saved. It should be " +
                     "translated to user template reference.");

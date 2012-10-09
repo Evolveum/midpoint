@@ -38,8 +38,8 @@ import javax.persistence.Entity;
 @ForeignKey(name = "fk_generic_object")
 public class RGenericObject extends RObject {
 
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private String objectType;
 
     public String getObjectType() {
@@ -48,11 +48,11 @@ public class RGenericObject extends RObject {
 
     @Index(name = "iGenericObjectName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -86,7 +86,7 @@ public class RGenericObject extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setObjectType(repo.getObjectType());
     }
 
@@ -94,7 +94,7 @@ public class RGenericObject extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectType(jaxb.getObjectType());
     }
 

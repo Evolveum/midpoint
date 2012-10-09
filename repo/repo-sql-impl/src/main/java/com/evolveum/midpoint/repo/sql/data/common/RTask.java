@@ -47,8 +47,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class RTask extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RTask.class);
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     @QueryAttribute
     private String taskIdentifier;
     @QueryAttribute(enumerated = true)
@@ -160,11 +160,11 @@ public class RTask extends RObject {
 
     @Index(name = "iTaskName")
     @Column(name = "objectName")
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -374,7 +374,7 @@ public class RTask extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
         jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
         if (repo.getExclusivityStatus() != null) {
@@ -432,7 +432,7 @@ public class RTask extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());
         repo.setExclusivityStatus(RTaskExclusivityStatusType.toRepoType(jaxb.getExclusivityStatus()));

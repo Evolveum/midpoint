@@ -45,8 +45,8 @@ import java.util.Set;
 public class RConnector extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     @QueryAttribute
     private String framework;
     private RObjectReference connectorHostRef;
@@ -105,11 +105,11 @@ public class RConnector extends RObject {
 
     @Index(name = "iConnectorName")
     @Column(name = "objectName", unique = true)
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -188,7 +188,7 @@ public class RConnector extends RObject {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setConnectorBundle(repo.getConnectorBundle());
         jaxb.setConnectorType(repo.getConnectorType());
         jaxb.setConnectorVersion(repo.getConnectorVersion());
@@ -213,7 +213,7 @@ public class RConnector extends RObject {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());

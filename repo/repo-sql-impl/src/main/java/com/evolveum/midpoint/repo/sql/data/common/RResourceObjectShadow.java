@@ -54,8 +54,8 @@ import javax.xml.namespace.QName;
 public class RResourceObjectShadow extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadow.class);
-    @QueryAttribute
-    private String name;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     private QName objectClass;
     private RActivation activation;
     private ROperationResult result;
@@ -128,7 +128,7 @@ public class RResourceObjectShadow extends RObject {
 
     @Index(name = "iResourceShadowName")
     @Column(name = "objectName")
-    public String getName() {
+    public RPolyString getName() {
         return name;
     }
     
@@ -152,7 +152,7 @@ public class RResourceObjectShadow extends RObject {
 		return intent;
 	}
 
-    public void setName(String name) {
+    public void setName(RPolyString name) {
         this.name = name;
     }
 
@@ -248,7 +248,7 @@ public class RResourceObjectShadow extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(repo.getName());
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setObjectClass(repo.getObjectClass());
         jaxb.setIntent(repo.getIntent());
         if (repo.getActivation() != null) {
@@ -291,7 +291,7 @@ public class RResourceObjectShadow extends RObject {
             PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(jaxb.getName());
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(jaxb.getObjectClass());
         repo.setIntent(jaxb.getIntent());
         if (jaxb.getActivation() != null) {
