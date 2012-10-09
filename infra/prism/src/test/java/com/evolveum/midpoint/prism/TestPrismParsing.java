@@ -60,6 +60,7 @@ import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -290,11 +291,11 @@ public class TestPrismParsing {
 		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "familyName", "Sparrow");
 		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
-		assertPropertyValue(user, "name", "jack");
-		assertPropertyDefinition(user, "name", DOMUtil.XSD_STRING, 0, 1);
+		assertPropertyValue(user, "name", new PolyString("jack", "jack"));
+		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		
 		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
-		assertPropertyDefinition(user, "polyName", PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
+		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 		
 		PropertyPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);

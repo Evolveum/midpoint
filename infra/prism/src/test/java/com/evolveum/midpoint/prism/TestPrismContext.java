@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -162,7 +163,7 @@ public class TestPrismContext {
 	private void assertUserDefinition(PrismObjectDefinition<UserType> userDefinition) {
 
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(userDefinition, USER_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(userDefinition, USER_NAME_QNAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, USER_NAME_QNAME, "Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, USER_NAME_QNAME, 0);
 		PrismAsserts.assertItemDefinitionHelp(userDefinition, USER_NAME_QNAME, "Short unique name of the object");
@@ -207,7 +208,7 @@ public class TestPrismContext {
 	private void assertAccountDefinition(PrismObjectDefinition<AccountType> accountDefinition) {
 		
 		assertEquals("Wrong compile-time class in account definition", AccountType.class, accountDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(accountDefinition, ACCOUNT_NAME_QNAME, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertPropertyDefinition(accountDefinition, ACCOUNT_NAME_QNAME, PolyStringType.COMPLEX_TYPE, 0, 1);
 		PrismAsserts.assertPropertyDefinition(accountDefinition, ACCOUNT_DESCRIPTION_QNAME, DOMUtil.XSD_STRING, 0, 1);
 		assertFalse("Account definition is marked as runtime", accountDefinition.isRuntimeSchema());
 		

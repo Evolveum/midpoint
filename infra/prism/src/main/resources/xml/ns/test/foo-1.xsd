@@ -72,7 +72,7 @@
         </xsd:annotation>
     </xsd:import>
     
-    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element name="name" type="t:PolyStringType"/>
     <xsd:element name="displayName" type="xsd:string"/>
     <xsd:element name="description" type="xsd:string"/>
     <xsd:element name="extension">

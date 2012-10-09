@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -356,21 +357,25 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	 * system administrator).
 	 */
 	public String toDebugName() {
-		return toDebugType()+":"+getOid()+"("+getNamePropertyValue()+")";
+		return toDebugType()+":"+getOid()+"("+getNamePropertyStringValue()+")";
 	}
 	
-	private PrismProperty<String> getNameProperty() {
+	private PrismProperty<PolyString> getNameProperty() {
 		QName elementName = getName();
 		String myNamespace = elementName.getNamespaceURI();
 		return findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
 	}
 	
-	private String getNamePropertyValue() {
-		PrismProperty<String> nameProperty = getNameProperty();
+	private String getNamePropertyStringValue() {
+		PrismProperty<PolyString> nameProperty = getNameProperty();
 		if (nameProperty == null) {
 			return null;
 		}
-		return nameProperty.getRealValue();
+		PolyString realValue = nameProperty.getRealValue();
+		if (realValue == null) {
+			return null;
+		}
+		return realValue.getOrig();
 	}
 
 	/**
