@@ -31,12 +31,14 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -45,7 +47,6 @@ import org.apache.wicket.model.IModel;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -80,8 +81,36 @@ public final class WebMiscUtil {
         };
     }
 
+    public static String getName(ObjectType object) {
+        if (object == null) {
+            return null;
+        }
+
+        return getName(object.asPrismObject());
+    }
+
     public static String getName(PrismObject object) {
-        return getValue(object, ObjectType.F_NAME, String.class);
+        if (object == null) {
+            return null;
+        }
+        PolyStringType name = getValue(object, ObjectType.F_NAME, PolyStringType.class);
+
+        return name != null ? name.getOrig() : null;
+    }
+
+    public static PolyStringType createPolyFromOrigString(String str) {
+        if (str == null) {
+            return null;
+        }
+
+        PolyStringType poly = new PolyStringType();
+        poly.setOrig(str);
+
+        return poly;
+    }
+
+    public static String getOrigStringFromPoly(PolyStringType str) {
+        return str != null ? str.getOrig() : null;
     }
 
     public static <T> T getValue(PrismContainerValue object, QName propertyName, Class<T> type) {
@@ -201,7 +230,7 @@ public final class WebMiscUtil {
 
     public static <T extends Selectable> List<T> getSelectedData(TablePanel panel) {
         DataTable table = panel.getDataTable();
-        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>)table.getDataProvider();
+        BaseSortableDataProvider<T> provider = (BaseSortableDataProvider<T>) table.getDataProvider();
 
         List<T> selected = new ArrayList<T>();
         for (T bean : provider.getAvailableData()) {

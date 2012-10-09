@@ -49,7 +49,8 @@ import javax.xml.namespace.QName;
 @Entity
 @Table(name = "m_resource_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_resource_shadow",
-        indexes = {@Index(name = "iResourceObjectShadowEnabled", columnNames = "enabled")})
+        indexes = {@Index(name = "iResourceObjectShadowEnabled", columnNames = "enabled"),
+        @Index(name = "iResourceShadowName", columnNames = "objectName_norm")})
 @ForeignKey(name = "fk_resource_object_shadow")
 public class RResourceObjectShadow extends RObject {
 
@@ -126,7 +127,6 @@ public class RResourceObjectShadow extends RObject {
         return objectChange;
     }
 
-    @Index(name = "iResourceShadowName")
     @Column(name = "objectName")
     public RPolyString getName() {
         return name;

@@ -50,6 +50,8 @@ import javax.persistence.OneToOne;
  */
 @Entity
 @ForeignKey(name = "fk_system_configuration")
+@org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
+        indexes = {@Index(name = "iSystemConfigurationName", columnNames = "objectName_norm")})
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
@@ -71,9 +73,9 @@ public class RSystemConfiguration extends RObject {
     @Embedded
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public REmbeddedReference getGlobalPasswordPolicyRef() {
-		return globalPasswordPolicyRef;
-	}
-    
+        return globalPasswordPolicyRef;
+    }
+
     @ElementCollection
     @ForeignKey(name = "fk_org_unit")
     @CollectionTable(name = "m_org_sys_config", joinColumns = {
@@ -82,12 +84,12 @@ public class RSystemConfiguration extends RObject {
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<REmbeddedReference> getOrgRootRef() {
-		if (orgRootRef == null){
-			orgRootRef = new HashSet<REmbeddedReference>();
-		}
-    	return orgRootRef;
-	}
-    
+        if (orgRootRef == null) {
+            orgRootRef = new HashSet<REmbeddedReference>();
+        }
+        return orgRootRef;
+    }
+
     @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RObjectReference getDefaultUserTemplateRef() {
@@ -109,7 +111,6 @@ public class RSystemConfiguration extends RObject {
         return modelHooks;
     }
 
-    @Index(name = "iSystemConfigurationName")
     @Column(name = "objectName", unique = true)
     public RPolyString getName() {
         return name;
@@ -132,13 +133,13 @@ public class RSystemConfiguration extends RObject {
     }
 
     public void setGlobalPasswordPolicyRef(REmbeddedReference globalPasswordPolicyRef) {
-		this.globalPasswordPolicyRef = globalPasswordPolicyRef;
-	}
-    
+        this.globalPasswordPolicyRef = globalPasswordPolicyRef;
+    }
+
     public void setOrgRootRef(Set<REmbeddedReference> orgRootRef) {
-		this.orgRootRef = orgRootRef;
-	}
-    
+        this.orgRootRef = orgRootRef;
+    }
+
     public void setLogging(String logging) {
         this.logging = logging;
     }
@@ -186,21 +187,21 @@ public class RSystemConfiguration extends RObject {
     }
 
     public static void copyToJAXB(RSystemConfiguration repo, SystemConfigurationType jaxb,
-            PrismContext prismContext) throws DtoTranslationException {
+                                  PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         if (repo.getDefaultUserTemplateRef() != null) {
             jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
         }
-        
+
         if (repo.getGlobalPasswordPolicyRef() != null) {
             jaxb.setGlobalPasswordPolicyRef(repo.getGlobalPasswordPolicyRef().toJAXB(prismContext));
         }
-        
+
         if (repo.getOrgRootRef() != null) {
-            for (REmbeddedReference ref : repo.getOrgRootRef()){
-            	jaxb.getOrgRootRef().add(ref.toJAXB(prismContext));
+            for (REmbeddedReference ref : repo.getOrgRootRef()) {
+                jaxb.getOrgRootRef().add(ref.toJAXB(prismContext));
             }
         }
 
@@ -221,7 +222,7 @@ public class RSystemConfiguration extends RObject {
     }
 
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfiguration repo,
-            PrismContext prismContext) throws DtoTranslationException {
+                                    PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
@@ -231,23 +232,23 @@ public class RSystemConfiguration extends RObject {
         }
 
         repo.setDefaultUserTemplateRef(RUtil.jaxbRefToRepo(jaxb.getDefaultUserTemplateRef(), repo, prismContext));
-        
+
         if (jaxb.getGlobalPasswordPolicy() != null) {
             LOGGER.warn("Global password policy from system configuration type won't be saved. It should be " +
                     "translated to global password policy reference.");
         }
-        
+
         repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getGlobalPasswordPolicyRef(), prismContext));
 
         if (jaxb.getOrgRoot() != null) {
             LOGGER.warn("Root organization from system configuration type won't be saved. It should be " +
                     "translated to root organization reference.");
         }
-		if (jaxb.getOrgRootRef() != null) {
-			for (ObjectReferenceType ref : jaxb.getOrgRootRef()) {
-				repo.getOrgRootRef().add(RUtil.jaxbRefToEmbeddedRepoRef(ref, prismContext));
-			}
-		}
+        if (jaxb.getOrgRootRef() != null) {
+            for (ObjectReferenceType ref : jaxb.getOrgRootRef()) {
+                repo.getOrgRootRef().add(RUtil.jaxbRefToEmbeddedRepoRef(ref, prismContext));
+            }
+        }
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));
             repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings(), prismContext));

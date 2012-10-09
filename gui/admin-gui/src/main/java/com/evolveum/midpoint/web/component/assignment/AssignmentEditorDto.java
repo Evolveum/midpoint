@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
@@ -69,9 +70,9 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         PrismContainerValue value = oldAssignment.asPrismContainerValue();
 
         //todo improve assignment clone, this doesn't look good
-        PrismContainerValue oldValue = value.clone();
+        PrismContainerValue newValue = value.clone();
         newAssignment = new AssignmentType();
-        newAssignment.setupContainerValue(oldValue);
+        newAssignment.setupContainerValue(newValue);
         if (AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION.equals(type)
                 && oldAssignment.getAccountConstruction() != null) {
             AccountConstructionType construction = oldAssignment.getAccountConstruction();
@@ -114,7 +115,6 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         ActivationType type = newAssignment.getActivation();
         if (type == null) {
             type = new ActivationType();
-            newAssignment.setActivation(type);
         }
 
         return type;
@@ -137,18 +137,31 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     }
 
     public boolean isModified() {
-        //todo reimplement
         return false;
-//        return oldAssignment != null && !oldAssignment.equals(newAssignment);
+//        return !getOldValue().equivalent(getNewValue());
     }
 
     public PrismContainerValue getOldValue() {
-        return oldAssignment != null ? oldAssignment.asPrismContainerValue() : null;
+        return oldAssignment.asPrismContainerValue();
     }
 
     public PrismContainerValue getNewValue() {
-        //todo reimplement
-        return newAssignment != null ? newAssignment.asPrismContainerValue() : null;
+        AccountConstructionType construction = newAssignment.getAccountConstruction();
+        if (construction == null) {
+            return newAssignment.asPrismContainerValue();
+        }
+
+        construction.getAttribute().clear();
+
+        for (ACAttributeDto attribute : getAttributes()) {
+            if (attribute.isEmpty()) {
+                continue;
+            }
+
+            construction.getAttribute().add(attribute.getConstruction());
+        }
+
+        return newAssignment.asPrismContainerValue();
     }
 
     public String getDescription() {

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -122,7 +123,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
             panel = new TextPanel<String>(id, new PropertyModel<String>(getModel(), baseExpression),
                     type);
 
-            if (SchemaConstantsGenerated.C_NAME.equals(definition.getName())) {
+            if (ObjectType.F_NAME.equals(definition.getName())) {
                 panel.getBaseFormComponent().setRequired(true);
             }
         }

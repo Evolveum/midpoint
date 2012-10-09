@@ -6,6 +6,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -15,6 +16,8 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_org")
+@org.hibernate.annotations.Table(appliesTo = "m_org",
+        indexes = {@Index(name = "iOrgName", columnNames = "objectName_norm")})
 public class ROrg extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -29,6 +32,11 @@ public class ROrg extends RObject {
 
     public String getCostCenter() {
         return costCenter;
+    }
+
+    @Column(name = "objectName", unique = true)
+    public RPolyString getName() {
+        return name;
     }
 
     @Embedded
@@ -78,10 +86,6 @@ public class ROrg extends RObject {
     
     public void setName(RPolyString name) {
 		this.name = name;
-	}
-    
-    public RPolyString getName() {
-		return name;
 	}
 
     @Override

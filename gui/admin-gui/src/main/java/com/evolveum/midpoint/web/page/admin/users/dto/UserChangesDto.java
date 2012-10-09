@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
 /**
  * @author mserbak
@@ -75,7 +76,7 @@ public class UserChangesDto implements Serializable {
 				for (Object item : items.getItems()) {
 					Item prismItem = (Item) item;
 					if (prismItem instanceof PrismProperty
-							&& prismItem.getDefinition().getName().equals(SchemaConstantsGenerated.C_NAME)) {
+							&& prismItem.getDefinition().getName().equals(ObjectType.F_NAME)) {
 
 						PrismProperty property = (PrismProperty) prismItem;
 						PropertyDelta propertyDelta = new PropertyDelta(property.getDefinition());

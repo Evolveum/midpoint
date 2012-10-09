@@ -374,13 +374,11 @@ public class PageUser extends PageAdminUsers {
                     showResult(OperationResult.createOperationResult(fetchResult));
                 }
 
-                String resourceName = null;
                 ResourceType resource = accountType.getResource();
-                if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
-                    resourceName = resource.getName();
-                }
-                ObjectWrapper wrapper = new ObjectWrapper(resourceName, accountType.getName(), account,
-                        ContainerStatus.MODIFYING);
+                String resourceName = WebMiscUtil.getName(resource);
+
+                ObjectWrapper wrapper = new ObjectWrapper(resourceName,
+                        WebMiscUtil.getOrigStringFromPoly(accountType.getName()), account, ContainerStatus.MODIFYING);
                 wrapper.setSelectable(true);
                 wrapper.setMinimalized(true);
                 list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
@@ -415,7 +413,7 @@ public class PageUser extends PageAdminUsers {
             if (assignment.getTarget() != null) {
                 //object assignment
                 ObjectType target = assignment.getTarget();
-                name = target.getName();
+                name = WebMiscUtil.getOrigStringFromPoly(target.getName());
                 type = AssignmentEditorDtoType.getType(target.getClass());
             } else if (assignment.getTargetRef() != null) {
                 //object assignment through reference
@@ -430,7 +428,7 @@ public class PageUser extends PageAdminUsers {
                 //account assignment through account construction
                 AccountConstructionType construction = assignment.getAccountConstruction();
                 if (construction.getResource() != null) {
-                    name = construction.getResource().getName();
+                    name = WebMiscUtil.getOrigStringFromPoly(construction.getResource().getName());
                 } else if (construction.getResourceRef() != null) {
                     ObjectReferenceType ref = construction.getResourceRef();
                     PrismObject target = getReference(ref, result);
@@ -1098,8 +1096,8 @@ public class PageUser extends PageAdminUsers {
 
                 getPrismContext().adopt(shadow);
 
-                ObjectWrapper wrapper = new ObjectWrapper(resource.getName(), null, shadow.asPrismObject(),
-                        ContainerStatus.ADDING);
+                ObjectWrapper wrapper = new ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
+                        shadow.asPrismObject(), ContainerStatus.ADDING);
                 wrapper.setShowEmpty(true);
                 wrapper.setMinimalized(false);
                 accountsModel.getObject().add(new UserAccountDto(wrapper, UserDtoStatus.ADD));
@@ -1124,8 +1122,8 @@ public class PageUser extends PageAdminUsers {
         construction.setResource(resource);
         
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-        AssignmentEditorDto dto = new AssignmentEditorDto(resource.getName(), AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
-                UserDtoStatus.ADD, assignment);
+        AssignmentEditorDto dto = new AssignmentEditorDto(WebMiscUtil.getOrigStringFromPoly(resource.getName()),
+                AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, UserDtoStatus.ADD, assignment);
         assignments.add(dto);
 
         dto.setMinimized(false);
@@ -1157,7 +1155,8 @@ public class PageUser extends PageAdminUsers {
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                AssignmentEditorDto dto = new AssignmentEditorDto(object.getName(), aType, UserDtoStatus.ADD, assignment);
+                AssignmentEditorDto dto = new AssignmentEditorDto(WebMiscUtil.getOrigStringFromPoly(object.getName()),
+                        aType, UserDtoStatus.ADD, assignment);
                 dto.setMinimized(false);
                 dto.setShowEmpty(true);
 

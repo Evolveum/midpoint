@@ -44,6 +44,8 @@ import javax.persistence.OneToOne;
  */
 @Entity
 @ForeignKey(name = "fk_resource")
+@org.hibernate.annotations.Table(appliesTo = "m_resource",
+        indexes = {@Index(name = "iResourceName", columnNames = "objectName_norm")})
 public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
@@ -107,27 +109,26 @@ public class RResource extends RObject {
     public String getNamespace() {
         return namespace;
     }
-    
+
     public RAvailabilityStatusType getLastAvailabilityStatus() {
-		return lastAvailabilityStatus;
-	}
-    
+        return lastAvailabilityStatus;
+    }
+
     @Type(type = "org.hibernate.type.TextType")
     public String getConsistency() {
-		return consistency;
-	}
-    
+        return consistency;
+    }
+
     @Embedded
     public ROperationalState getOperationalState() {
-		return operationalState;
-	}
-    
+        return operationalState;
+    }
+
     @Embedded
     public RResourceBussinesConfiguration getBusiness() {
-		return business;
-	}
+        return business;
+    }
 
-    @Index(name = "iResourceName")
     @Column(name = "objectName", unique = true)
     public RPolyString getName() {
         return name;
@@ -138,21 +139,21 @@ public class RResource extends RObject {
     }
 
     public void setBusiness(RResourceBussinesConfiguration business) {
-		this.business = business;
-	}
-    
+        this.business = business;
+    }
+
     public void setOperationalState(ROperationalState operationalState) {
-		this.operationalState = operationalState;
-	}
-    
+        this.operationalState = operationalState;
+    }
+
     public void setConsistency(String consistency) {
-		this.consistency = consistency;
-	}
-    
+        this.consistency = consistency;
+    }
+
     public void setLastAvailabilityStatus(RAvailabilityStatusType lastAvailabilityStatus) {
-		this.lastAvailabilityStatus = lastAvailabilityStatus;
-	}
-    
+        this.lastAvailabilityStatus = lastAvailabilityStatus;
+    }
+
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
@@ -243,36 +244,36 @@ public class RResource extends RObject {
             jaxb.setConnectorRef(repo.getConnectorRef().toJAXB(prismContext));
         }
 
-		try {
-			jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(
-					ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class,
-					prismContext));
-			jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA),
-					repo.getXmlSchema(), XmlSchemaType.class, prismContext));
-			jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING),
-					repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
-			jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION),
-					repo.getSynchronization(), SynchronizationType.class, prismContext));
-			jaxb.setCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CAPABILITIES),
-					repo.getCapabilities(), CapabilitiesType.class, prismContext));
-			jaxb.setNativeCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(
-					ResourceType.F_NATIVE_CAPABILITIES), repo.getNativeCapabilities(), CachedCapabilitiesType.class,
-					prismContext));
-			jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS),
-					repo.getScripts(), ProvisioningScriptsType.class, prismContext));
-			if (repo.getBusiness() != null && !repo.getBusiness().empty()) {
-				jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new PropertyPath(ResourceType.F_BUSINESS),
-						prismContext));
-			}
-			if (repo.getOperationalState() != null) {
-				jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
-						new PropertyPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
-			}
-			jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONSISTENCY),
-					repo.getConsistency(), ResourceConsistencyType.class, prismContext));
-		} catch (Exception ex) {
-			throw new DtoTranslationException(ex.getMessage(), ex);
-		}
+        try {
+            jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(
+                    ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class,
+                    prismContext));
+            jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA),
+                    repo.getXmlSchema(), XmlSchemaType.class, prismContext));
+            jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING),
+                    repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
+            jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION),
+                    repo.getSynchronization(), SynchronizationType.class, prismContext));
+            jaxb.setCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CAPABILITIES),
+                    repo.getCapabilities(), CapabilitiesType.class, prismContext));
+            jaxb.setNativeCapabilities(RUtil.toJAXB(ResourceType.class, new PropertyPath(
+                    ResourceType.F_NATIVE_CAPABILITIES), repo.getNativeCapabilities(), CachedCapabilitiesType.class,
+                    prismContext));
+            jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS),
+                    repo.getScripts(), ProvisioningScriptsType.class, prismContext));
+            if (repo.getBusiness() != null && !repo.getBusiness().empty()) {
+                jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new PropertyPath(ResourceType.F_BUSINESS),
+                        prismContext));
+            }
+            if (repo.getOperationalState() != null) {
+                jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
+                        new PropertyPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
+            }
+            jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONSISTENCY),
+                    repo.getConsistency(), ResourceConsistencyType.class, prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext) throws
@@ -287,29 +288,29 @@ public class RResource extends RObject {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
         }
 
-		try {
-			repo.setConfiguration(RUtil.toRepo(jaxb.getConnectorConfiguration(), prismContext));
-			repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
-			repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
-			repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));
-			repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(), prismContext));
-			repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(), prismContext));
-			repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
-			repo.setConsistency(RUtil.toRepo(jaxb.getConsistency(), prismContext));
-			if (jaxb.getBusiness() != null) {
-				RResourceBussinesConfiguration repoBusiness = new RResourceBussinesConfiguration();
-				RResourceBussinesConfiguration.copyFromJAXB(jaxb.getBusiness(), repoBusiness, prismContext);
-				repo.setBusiness(repoBusiness);
-			}
-			if (jaxb.getOperationalState() != null) {
-				ROperationalState repoOpState = new ROperationalState();
-				ROperationalState.copyFromJAXB(jaxb.getOperationalState(), repoOpState, prismContext);
-				repo.setOperationalState(repoOpState);
-			}
+        try {
+            repo.setConfiguration(RUtil.toRepo(jaxb.getConnectorConfiguration(), prismContext));
+            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
+            repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
+            repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));
+            repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(), prismContext));
+            repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(), prismContext));
+            repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
+            repo.setConsistency(RUtil.toRepo(jaxb.getConsistency(), prismContext));
+            if (jaxb.getBusiness() != null) {
+                RResourceBussinesConfiguration repoBusiness = new RResourceBussinesConfiguration();
+                RResourceBussinesConfiguration.copyFromJAXB(jaxb.getBusiness(), repoBusiness, prismContext);
+                repo.setBusiness(repoBusiness);
+            }
+            if (jaxb.getOperationalState() != null) {
+                ROperationalState repoOpState = new ROperationalState();
+                ROperationalState.copyFromJAXB(jaxb.getOperationalState(), repoOpState, prismContext);
+                repo.setOperationalState(repoOpState);
+            }
 
-		} catch (Exception ex) {
-			throw new DtoTranslationException(ex.getMessage(), ex);
-		}
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     @Override

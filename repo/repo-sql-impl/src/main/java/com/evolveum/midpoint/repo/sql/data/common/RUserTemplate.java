@@ -38,6 +38,8 @@ import javax.persistence.Entity;
  */
 @Entity
 @ForeignKey(name = "fk_user_template")
+@org.hibernate.annotations.Table(appliesTo = "m_user_template",
+        indexes = {@Index(name = "iUserTemplateName", columnNames = "objectName_orig")})
 public class RUserTemplate extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -57,7 +59,6 @@ public class RUserTemplate extends RObject {
         return propertyConstruction;
     }
 
-    @Index(name = "iUserTemplateName")
     @Column(name = "objectName", unique = true)
     public RPolyString getName() {
         return name;

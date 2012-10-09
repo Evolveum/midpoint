@@ -166,11 +166,8 @@ public class PageAccount extends PageAdminResources {
             protected String load() {
                 PrismObject<AccountShadowType> account = accountModel.getObject().getObject();
 
-                String resourceName = null;
                 ResourceType resource = account.asObjectable().getResource();
-                if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
-                    resourceName = resource.getName();
-                }
+                String resourceName = WebMiscUtil.getName(resource);
 
                 return createStringResource("pageAccount.subtitle", resourceName).getString();
             }

@@ -268,7 +268,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
-                wfDataAccessor.stopProcessInstance(processInstanceDto.getInstanceId(), user.getName(), result);
+                wfDataAccessor.stopProcessInstance(processInstanceDto.getInstanceId(),
+                        WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
             }

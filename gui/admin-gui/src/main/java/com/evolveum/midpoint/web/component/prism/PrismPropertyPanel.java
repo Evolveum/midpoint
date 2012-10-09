@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -77,7 +78,7 @@ public class PrismPropertyPanel extends Panel {
                 PrismProperty property = wrapper.getItem();
                 PrismPropertyDefinition def = property.getDefinition();
 
-                if (SchemaConstantsGenerated.C_NAME.equals(def.getName())) {
+                if (ObjectType.F_NAME.equals(def.getName())) {
                     //fix for "name as required" MID-789
                     return true;
                 }

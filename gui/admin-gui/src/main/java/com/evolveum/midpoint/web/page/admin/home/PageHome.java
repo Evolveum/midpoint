@@ -199,12 +199,10 @@ public class PageHome extends PageAdmin {
 					showResult(OperationResult.createOperationResult(fetchResult));
 				}
 
-				String resourceName = null;
+
 				ResourceType resource = accountType.getResource();
-				if (resource != null && StringUtils.isNotEmpty(resource.getName())) {
-					resourceName = resource.getName();
-				}
-				list.add(new SimpleAccountDto(accountType.getName(), resourceName));
+                String resourceName = WebMiscUtil.getName(resource);
+				list.add(new SimpleAccountDto(WebMiscUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
 
 				subResult.recomputeStatus();
 			} catch (Exception ex) {
@@ -235,7 +233,7 @@ public class PageHome extends PageAdmin {
 			}
 			if (accountConstruction.getResource() != null) {
 				ResourceType resource = accountConstruction.getResource();
-				name = resource.getName();
+				name = WebMiscUtil.getOrigStringFromPoly(resource.getName());
 			} else if (accountConstruction.getResourceRef() != null) {
 				ObjectReferenceType ref = accountConstruction.getResourceRef();
 				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
@@ -274,7 +272,7 @@ public class PageHome extends PageAdmin {
 			AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
 			if (assignment.getTarget() != null) {
 				ObjectType target = assignment.getTarget();
-				name = target.getName();
+				name = WebMiscUtil.getOrigStringFromPoly(target.getName());
                 type = AssignmentEditorDtoType.getType(target.getClass());
 			} else if (assignment.getTargetRef() != null) {
 				ObjectReferenceType ref = assignment.getTargetRef();

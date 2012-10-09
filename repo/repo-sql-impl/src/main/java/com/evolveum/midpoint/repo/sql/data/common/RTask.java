@@ -25,8 +25,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
@@ -44,9 +42,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 @Entity
 @ForeignKey(name = "fk_task")
+@org.hibernate.annotations.Table(appliesTo = "m_task",
+        indexes = {@Index(name = "iTaskName", columnNames = "objectName_norm")})
 public class RTask extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RTask.class);
     @QueryAttribute(polyString = true)
     private RPolyString name;
     @QueryAttribute
@@ -158,7 +157,6 @@ public class RTask extends RObject {
         return result;
     }
 
-    @Index(name = "iTaskName")
     @Column(name = "objectName")
     public RPolyString getName() {
         return name;

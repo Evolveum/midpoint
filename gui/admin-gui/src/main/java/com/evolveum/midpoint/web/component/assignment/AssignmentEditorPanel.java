@@ -369,8 +369,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 resource = getReference(construction.getResourceRef(), new OperationResult("asdf"));//todo fix
             }
 
-            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                    getPageBase().getPrismContext());
+            PrismContext prismContext = getPageBase().getPrismContext();
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
             PrismContainerDefinition definition = refinedSchema.getAccountDefinition(construction.getType());
 
             List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();
@@ -383,8 +383,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 }
 
                 PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) attrDef;
-                attributes.add(new ACAttributeDto(propertyDef,
-                        findOrCreateValueConstruction(propertyDef, attrConstructions)));
+                attributes.add(ACAttributeDto.createACAttributeDto(propertyDef,
+                        findOrCreateValueConstruction(propertyDef, attrConstructions), prismContext));
             }
         } catch (Exception ex) {
             //todo error handling
@@ -431,9 +431,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
         construction.setRef(attrDef.getName());
-
-        //todo remove
-        attrConstructions.add(construction);
 
         return construction;
     }

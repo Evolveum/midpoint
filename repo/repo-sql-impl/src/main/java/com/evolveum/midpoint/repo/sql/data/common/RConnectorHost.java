@@ -39,6 +39,8 @@ import javax.persistence.Entity;
  */
 @Entity
 @ForeignKey(name = "fk_connector_host")
+@org.hibernate.annotations.Table(appliesTo = "m_connector_host",
+        indexes = {@Index(name = "iConnectorHostName", columnNames = "objectName_norm")})
 public class RConnectorHost extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -75,7 +77,6 @@ public class RConnectorHost extends RObject {
         return protectConnection;
     }
 
-    @Index(name = "iConnectorHostName")
     @Column(name = "objectName", unique = true)
     public RPolyString getName() {
         return name;

@@ -94,7 +94,7 @@ public class TaskDto extends Selectable {
         OperationResult thisOpResult = new OperationResult(OPERATION_NEW);
 
         oid = task.getOid();
-        name = task.getName();
+        name = WebMiscUtil.getOrigStringFromPoly(task.getName());
         category = task.getCategory();
         uri = task.getHandlerUri();
         recurring = task.isCycle();
@@ -142,7 +142,7 @@ public class TaskDto extends Selectable {
         if (this.objectRef != null) {
             try {
                 PrismObject<? extends ObjectType> o = task.getObject(ObjectType.class, thisOpResult);
-                this.objectRefName = o.getValue().getValue().getName();
+                this.objectRefName = WebMiscUtil.getName(o);
             } catch (ObjectNotFoundException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't retrieve task's object because it does not exist; oid = " + task.getObjectOid(), e);
             } catch (SchemaException e) {

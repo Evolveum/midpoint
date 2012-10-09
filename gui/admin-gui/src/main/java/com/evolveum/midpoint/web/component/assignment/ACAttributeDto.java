@@ -22,9 +22,10 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
@@ -50,7 +51,7 @@ public class ACAttributeDto implements Serializable {
     private ResourceAttributeDefinitionType construction;
     private List<ACValueConstructionDto> values;
 
-    public ACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction) {
+    private ACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction) {
         Validate.notNull(definition, "Prism property definition must not be null.");
         Validate.notNull(construction, "Value construction must not be null.");
 
@@ -58,18 +59,22 @@ public class ACAttributeDto implements Serializable {
         this.construction = construction;
     }
 
-    public List<ACValueConstructionDto> getValues() {
-        if (values == null) {
-            values = createValues();
+    public static ACAttributeDto createACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction,
+                                                      PrismContext context) throws SchemaException {
+        ACAttributeDto dto = new ACAttributeDto(definition, construction);
+        dto.createValues(context);
 
-            if (values.isEmpty()) {
-                values.add(new ACValueConstructionDto(this, null));
-            }
+        return dto;
+    }
+
+    public List<ACValueConstructionDto> getValues() {
+        if (values.isEmpty()) {
+            values.add(new ACValueConstructionDto(this, null));
         }
         return values;
     }
 
-    private List<ACValueConstructionDto> createValues() {
+    private List<ACValueConstructionDto> createValues(PrismContext context) throws SchemaException {
         List<ACValueConstructionDto> values = new ArrayList<ACValueConstructionDto>();
         MappingType outbound = construction.getOutbound();
         if (outbound == null || outbound.getExpression() == null) {
@@ -78,36 +83,34 @@ public class ACAttributeDto implements Serializable {
         ExpressionType expression = outbound.getExpression();
         if (expression.getExpressionEvaluator() != null) {
             List<JAXBElement<?>> elements = expression.getExpressionEvaluator();
-            values.add(new ACValueConstructionDto(this, getExpressionValue(elements)));
+            List<PrismValue> valueList = getExpressionValues(elements, context);
+            for (PrismValue value : valueList) {
+                if (!(value instanceof PrismPropertyValue)) {
+                    //todo ignoring other values for now
+                    continue;
+                }
+                values.add(new ACValueConstructionDto(this, ((PrismPropertyValue) value).getValue()));
+            }
         }
         if (expression.getSequence() == null) {
             return values;
         }
 
-// TODO: we dont support sequence yet
-//        ExpressionType.Sequence sequence = expression.getSequence();
-//        List<JAXBElement<?>> elements = sequence.getExpressionEvaluator();
-//        for (JAXBElement element : elements) {
-//            values.add(new ACValueConstructionDto(this, getExpressionValue(element)));
-//        }
-
         return values;
     }
 
-    private Object getExpressionValue(List<JAXBElement<?>> elements) {
-    	if (elements == null || elements.isEmpty()) {
-    		return null;
-    	}
-    	JAXBElement<?> fistElement = elements.iterator().next();
+    private List<PrismValue> getExpressionValues(List<JAXBElement<?>> elements, PrismContext context) throws SchemaException {
+        if (elements == null || elements.isEmpty()) {
+            return null;
+        }
+        JAXBElement<?> fistElement = elements.iterator().next();
         Element firstDomElement = (Element) fistElement.getValue();
         if (!DOMUtil.isElementName(firstDomElement, SchemaConstants.C_VALUE)) {
             return null;
         }
 
-        // TODO: use this instead
-        //return LiteralExpressionEvaluatorFactory.parseValueElements(elements, outputDefinition, contextDescription, prismContext);
-        
-        return firstDomElement.getTextContent();
+        Item item = LiteralExpressionEvaluatorFactory.parseValueElements(elements, definition, "gui", context);
+        return item.getValues();
     }
 
     public PrismPropertyDefinition getDefinition() {
@@ -146,6 +149,8 @@ public class ACAttributeDto implements Serializable {
 
         ObjectFactory of = new ObjectFactory();
 
+
+        //todo implement
 
         return attrConstruction;
     }

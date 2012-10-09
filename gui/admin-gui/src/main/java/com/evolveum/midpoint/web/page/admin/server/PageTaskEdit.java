@@ -541,7 +541,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	private Task updateTask(TaskDto dto, Task loadedTask) {
 
         if (!loadedTask.getName().equals(dto.getName())) {
-		    loadedTask.setName(dto.getName());
+		    loadedTask.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
         }   // if they are equal, modifyObject complains ... it's probably a bug in repo; we'll fix it later?
 
 		if (!dto.getRecurring()) {

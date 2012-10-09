@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -86,7 +87,7 @@ public class LoginPanel extends Panel {
         }
 
         if (principal instanceof PrincipalUser) {
-            return ((PrincipalUser) principal).getName();
+            return WebMiscUtil.getOrigStringFromPoly(((PrincipalUser) principal).getName());
         }
 
         return principal.toString();

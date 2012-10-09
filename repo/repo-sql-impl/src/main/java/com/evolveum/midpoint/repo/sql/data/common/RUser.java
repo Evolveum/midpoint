@@ -50,7 +50,8 @@ import java.util.Set;
                 @Index(name = "iLocality", columnNames = "locality_norm"),
                 @Index(name = "iAdditionalName", columnNames = "additionalName_norm"),
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_norm"),
-                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm")})
+                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm"),
+                @Index(name = "iUserName", columnNames = "objectName_norm")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 
@@ -198,7 +199,6 @@ public class RUser extends RObject {
         return honorificSuffix;
     }
 
-    @Index(name = "iUserName")
     @Column(name = "objectName", unique = true)
     public RPolyString getName() {
         return name;
@@ -321,7 +321,7 @@ public class RUser extends RObject {
     public void setFullName(RPolyString fullName) {
         this.fullName = fullName;
     }
-   
+
 
     @Override
     public boolean equals(Object o) {
@@ -440,7 +440,7 @@ public class RUser extends RObject {
             rAssignment.setOwner(repo);
 
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
-            rAssignment.setId((Long)gen.generate(null, rAssignment));
+            rAssignment.setId((Long) gen.generate(null, rAssignment));
 
             repo.getAssignments().add(rAssignment);
         }

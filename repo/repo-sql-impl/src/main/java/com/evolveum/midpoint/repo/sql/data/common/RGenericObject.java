@@ -36,6 +36,8 @@ import javax.persistence.Entity;
  */
 @Entity
 @ForeignKey(name = "fk_generic_object")
+@org.hibernate.annotations.Table(appliesTo = "m_generic_object",
+        indexes = {@Index(name = "iGenericObjectName", columnNames = "objectName_norm")})
 public class RGenericObject extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -46,7 +48,6 @@ public class RGenericObject extends RObject {
         return objectType;
     }
 
-    @Index(name = "iGenericObjectName")
     @Column(name = "objectName", unique = true)
     public RPolyString getName() {
         return name;

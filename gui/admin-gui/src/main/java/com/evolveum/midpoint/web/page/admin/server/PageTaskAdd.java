@@ -29,6 +29,7 @@ import java.util.List;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -391,7 +392,7 @@ public class PageTaskAdd extends PageAdminTasks {
 			ResourceType item = null;
 			for (PrismObject<ResourceType> resource : resources) {
 				item = resource.asObjectable();
-				resourceList.add(new TaskAddResourcesDto(item.getOid(), item.getName()));
+				resourceList.add(new TaskAddResourcesDto(item.getOid(), WebMiscUtil.getOrigStringFromPoly(item.getName())));
 			}
 		}
 		return resourceList;
@@ -444,7 +445,7 @@ public class PageTaskAdd extends PageAdminTasks {
             // todo set also object ref type
 		}
 
-		task.setName(dto.getName());
+		task.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
 
 		task.setRecurrence(dto.getReccuring() ? TaskRecurrenceType.RECURRING : TaskRecurrenceType.SINGLE);
 		task.setBinding(dto.getBound() ? TaskBindingType.TIGHT : TaskBindingType.LOOSE);

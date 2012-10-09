@@ -44,6 +44,8 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_role")
+@org.hibernate.annotations.Table(appliesTo = "m_role",
+        indexes = {@Index(name = "iRoleName", columnNames = "objectName_norm")})
 public class RRole extends RObject {
 
 	@QueryAttribute(polyString = true)
@@ -72,7 +74,6 @@ public class RRole extends RObject {
 		return exclusions;
 	}
 
-	@Index(name = "iRoleName")
 	@Column(name = "objectName", unique = true)
 	public RPolyString getName() {
 		return name;

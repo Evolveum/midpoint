@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
@@ -287,7 +288,7 @@ public class PrismValuePanel extends Panel {
                     type);
 
             PrismPropertyDefinition def = property.getDefinition();
-            if (SchemaConstantsGenerated.C_NAME.equals(def.getName())) {
+            if (ObjectType.F_NAME.equals(def.getName())) {
                 panel.getBaseFormComponent().setRequired(true);
             }
         }
