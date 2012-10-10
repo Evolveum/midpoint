@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -692,12 +693,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, result)
 				.asObjectable();
-		assertEquals("will", accountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
+//		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
-		assertEquals("will", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+//		assertEquals("will", provisioningAccountType.getName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ResourceObjectShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
@@ -743,13 +746,16 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		AccountShadowType accountType = repositoryService
 				.getObject(AccountShadowType.class, ACCOUNT_MORGAN_OID, result).asObjectable();
-		assertEquals("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
+		PrismAsserts.assertEqualsPolyString("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
+//		assertEquals("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_MORGAN_OID, null, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
-		assertEquals("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME,
+		PrismAsserts.assertEqualsPolyString("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME,
 				provisioningAccountType.getName());
+//		assertEquals("Account name was not generated (provisioning)", ACCOUNT_MORGAN_NAME,
+//				provisioningAccountType.getName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ResourceObjectShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
@@ -1028,7 +1034,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
 						SchemaTestConstants.ICFS_NAME);
 				assertNotNull("No ICF NAME", icfName);
-				assertEquals("Wrong shadow name", shadow.getName(), icfName);
+				PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
+//				assertEquals("Wrong shadow name", shadow.getName(), icfName);
 				if (fullShadow) {
 					assertNotNull(
 							"Missing fullname attribute",
@@ -1170,11 +1177,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_SCRIPT_OID,
 				result).asObjectable();
-		assertEquals("william", accountType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong name", "william", accountType.getName());
+//		assertEquals("william", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_SCRIPT_OID, null, result).asObjectable();
-		assertEquals("william", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong name", "william", provisioningAccountType.getName());
+//		assertEquals("william", provisioningAccountType.getName());
 
 		// Check if the account was created in the dummy resource
 

@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -135,10 +136,12 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, result).asObjectable();
-		assertEquals("will", accountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
+//		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, null, result).asObjectable();
-		assertEquals("will", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+//		assertEquals("will", provisioningAccountType.getName());
 		
 		// Check database content
 		

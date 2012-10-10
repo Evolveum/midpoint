@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -392,7 +393,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(acct));
 			System.out.println(acct.asPrismObject().dump());
 			
-			assertEquals("jbond", acct.getName());
+			PrismAsserts.assertEqualsPolyString("Name not equals.", "jbond", acct.getName());
+//			assertEquals("jbond", acct.getName());
 			
 		} finally {
 			try {
@@ -508,11 +510,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 					result).asObjectable();
-			assertEquals("will", accountType.getName());
+			PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
+//			assertEquals("will", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 					null, result).asObjectable();
-			assertEquals("will", provisioningAccountType.getName());
+//			assertEquals("will", provisioningAccountType.getName());
+			PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
 		} finally {
 			try {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
@@ -773,11 +777,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
 					result).asObjectable();
-			assertEquals("lechuck", accountType.getName());
+//			assertEquals("lechuck", accountType.getName());
+			PrismAsserts.assertEqualsPolyString("Name not equal.", "lechuck", accountType.getName());
 
 			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
 					null, result).asObjectable();
-			assertEquals("lechuck", provisioningAccountType.getName());
+			PrismAsserts.assertEqualsPolyString("Name not equal.", "lechuck", provisioningAccountType.getName());
+//			assertEquals("lechuck", provisioningAccountType.getName());
 			
 			String uid = null;
 			for (Object e : accountType.getAttributes().getAny()) {
@@ -852,7 +858,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
                 assertNotNull("No ICF UID", icfUid);
                 String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
                 assertNotNull("No ICF NAME", icfName);
-                assertEquals("Wrong shadow name", shadow.getName(), icfName);
+                PrismAsserts.assertEqualsPolyString("Wrong shadow name.", icfName, shadow.getName());
+//                assertEquals("Wrong shadow name", shadow.getName(), icfName);
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));

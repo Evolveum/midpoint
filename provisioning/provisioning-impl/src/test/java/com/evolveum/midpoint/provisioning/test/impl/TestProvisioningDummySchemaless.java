@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -427,12 +428,14 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, result)
 				.asObjectable();
-		assertEquals("will", accountType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong name", "will", accountType.getName());
+//		assertEquals("will", accountType.getName());
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
 		display("account from provisioning", provisioningAccountType);
-		assertEquals("will", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong name", "will", provisioningAccountType.getName());
+//		assertEquals("will", provisioningAccountType.getName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ResourceObjectShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
