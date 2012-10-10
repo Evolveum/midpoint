@@ -89,9 +89,6 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
     @Autowired(required = true)
     private PrismContext prismContext;
     
-    @Autowired(required = true)
-    private PolyStringNormalizer normalizer;
-
     private Map<Task, SynchronizeAccountResultHandler> handlers;
     private PrismPropertyDefinition objectclassPropertyDefinition;
 
@@ -130,9 +127,8 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         task.setHandlerUri(HANDLER_URI);
 
         // Readable task name
-        PolyString polyString = new PolyString("Import from resource " + resource.getName());
-        polyString.recompute(normalizer);
-        task.setName(new PolyStringType(polyString));
+        PolyStringType polyString = new PolyStringType("Import from resource " + resource.getName());
+        task.setName(polyString);
         
 
         // Set reference to the resource

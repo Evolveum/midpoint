@@ -300,6 +300,11 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		RepositoryCache.enter();
 		
+		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		for (ObjectDelta delta : deltas){
+			clonedDeltas.add(delta.clone());
+		}
+		
 		try {
 		
 			if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
@@ -335,7 +340,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 		} catch (ObjectAlreadyExistsException e) {
 			try {
 				//TODO: log reset operation
-				executeChanges(deltas, options, task, parentResult);
+				LensContext<?, ?> context = LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, result);
+				clockwork.run(context, task, result);
 			} catch (SystemException ex){
 				throw e;
 			}

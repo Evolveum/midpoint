@@ -73,9 +73,6 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     @Autowired(required = true)
     private PrismContext prismContext;
     
-    @Autowired(required = true)
-    private PolyStringNormalizer normalizer;
-
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
     private PrismPropertyDefinition filenamePropertyDefinition;
 
@@ -113,9 +110,8 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         task.setHandlerUri(HANDLER_URI);
 
         // Readable task name
-        PolyString polyString = new PolyString("Import from file " + input);
-        polyString.recompute(normalizer);
-        task.setName(new PolyStringType(polyString));
+        PolyStringType polyString = new PolyStringType("Import from file " + input);
+        task.setName(polyString);
 
         // TODO: bind task to this node
 

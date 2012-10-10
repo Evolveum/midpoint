@@ -634,7 +634,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals("Wrong jack OID (prism)", USER_JACK_OID, user.getOid());
 		UserType userType = user.asObjectable();
 		assertEquals("Wrong jack OID (jaxb)", USER_JACK_OID, userType.getOid());
-		assertEquals("Wrong jack name", "jack", userType.getName());
+//		assertEquals("Wrong jack name", "jack", userType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong jack name", "jack", userType.getName());
 		PrismAsserts.assertEqualsPolyString("Wrong jack fullName", fullName, userType.getFullName());
 		PrismAsserts.assertEqualsPolyString("Wrong jack givenName", givenName, userType.getGivenName());
 		PrismAsserts.assertEqualsPolyString("Wrong jack familyName", familyName, userType.getFamilyName());

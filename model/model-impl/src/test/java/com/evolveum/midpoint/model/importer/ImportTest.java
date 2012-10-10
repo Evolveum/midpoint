@@ -149,7 +149,8 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		// Check import with fixed OID
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, result).asObjectable();
 		assertNotNull(connector);
-		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong connector name.", "ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
+//		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
 		assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
 		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
 	}
@@ -175,7 +176,8 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull(resourceType);
 		display("Imported resource",resourceType);
-		assertEquals("Embedded Test Derby", resourceType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong resource name", "Embedded Test Derby", resourceType.getName());
+//		assertEquals("Embedded Test Derby", resourceType.getName());
 		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", 
 				ResourceTypeUtil.getResourceNamespace(resourceType));
 		assertEquals(CONNECOTR_LDAP_OID,resourceType.getConnectorRef().getOid());
@@ -416,7 +418,8 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		PrismObject<TaskType> task1AsPrism = repositoryService.getObject(TaskType.class, TASK1_OID, result);
 		TaskType task1AsType = task1AsPrism.asObjectable();
 		assertNotNull(task1AsType);
-		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 3x60 sec)", task1AsType.getName());
+		PrismAsserts.assertEqualsPolyString("Task name not imported correctly", "Task1: basic single-run task (takes 3x60 sec)", task1AsType.getName());
+//		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 3x60 sec)", task1AsType.getName());
 		
 		Task task1 = taskManager.createTaskInstance(task1AsPrism, result);
         PrismProperty<Integer> delayProp = (PrismProperty<Integer>) task1.getExtension(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
