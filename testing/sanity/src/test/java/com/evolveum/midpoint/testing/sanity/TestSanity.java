@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -3132,7 +3133,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayJaxb("User Elaine (repository)", repoUser, new QName("user"));
 
         assertNotNull(repoUser.getOid());
-        assertEquals(ELAINE_NAME, repoUser.getName());
+        assertEquals(PrismTestUtil.createPolyStringType(ELAINE_NAME), repoUser.getName());
         PrismAsserts.assertEqualsPolyString("wrong repo givenName", "Elaine", repoUser.getGivenName());
         PrismAsserts.assertEqualsPolyString("wrong repo familyName", "Marley", repoUser.getFamilyName());
         PrismAsserts.assertEqualsPolyString("wrong repo fullName", "Elaine Marley", repoUser.getFullName());
@@ -3276,7 +3277,7 @@ public class TestSanity extends AbstractIntegrationTest {
         AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
         UserType user = (UserType) objects.getObject().get(0);
 
-        AssertJUnit.assertEquals(user.getName(), name);
+        AssertJUnit.assertEquals(user.getName(), PrismTestUtil.createPolyStringType(name));
 
         return user;
     }

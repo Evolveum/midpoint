@@ -5,6 +5,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -29,7 +30,9 @@ public class ObjectQueryUtil {
 	}
 	
 	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException{
-		EqualsFilter equal = EqualsFilter.createEqual(clazz, prismContext, ObjectType.F_NAME, name);
+		PolyString namePolyString = new PolyString(name);
+		namePolyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+		EqualsFilter equal = EqualsFilter.createEqual(clazz, prismContext, ObjectType.F_NAME, namePolyString);
 		return ObjectQuery.createObjectQuery(equal);
 	}
 	
