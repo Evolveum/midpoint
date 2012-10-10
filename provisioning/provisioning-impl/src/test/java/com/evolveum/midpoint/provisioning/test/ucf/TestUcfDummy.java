@@ -96,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Simple UCF tests. No real resource, just basic setup and sanity.
@@ -186,8 +187,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		ResourceType resourceType = resource.asObjectable();
 		assertNotNull("asObjectable resulted in null", resourceType);
 
-		assertPropertyValue(resource, "name", "Dummy Resource");
-		assertPropertyDefinition(resource, "name", DOMUtil.XSD_STRING, 0, 1);		
+		assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Dummy Resource"));
+		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);		
 				
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
