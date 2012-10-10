@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class QueryConvertor {
 
@@ -164,7 +166,7 @@ public class QueryConvertor {
 
 		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
 		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
-		equal.appendChild(value);
+//		equal.appendChild(value);
 
 		Element path = createPathElement(filter, doc);
 		equal.appendChild(path);
@@ -175,9 +177,16 @@ public class QueryConvertor {
 			if (val instanceof PrismReferenceValue) {
 				throw new SchemaException("Prism refenrence value not allowed in the equal element");
 			} else {
-				propValue.setTextContent(String.valueOf(((PrismPropertyValue) val).getValue()));
+				Object propVal = val.getPrismContext().getPrismJaxbProcessor().toAny(val, doc);
+				if (propVal instanceof Element){
+					value.setTextContent(((Element) propVal).getTextContent());
+//					System.out.println(((Element) propVal).getTextContent());
+				}
+//				value.setTextContent();
+				equal.appendChild(value);
+//				propValue.setTextContent(String.valueOf(((PrismPropertyValue) val).getValue()));
 			}
-			value.appendChild(propValue);
+//			value.appendChild(propValue);
 		}
 		return equal;
 	}

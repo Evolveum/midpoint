@@ -140,6 +140,8 @@ public class SimpleOp extends Op {
 				if (conditionItem.isPolyString) {
 					if (filterValue instanceof PolyStringType) {
 						filterValue = ((PolyStringType) filterValue).getNorm();
+					} else if (filterValue instanceof PolyString){
+						filterValue = ((PolyString) filterValue).getNorm();
 					}
 				}
 				// }
