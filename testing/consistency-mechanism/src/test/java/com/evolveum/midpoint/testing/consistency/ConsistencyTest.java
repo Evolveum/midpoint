@@ -532,7 +532,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	 */
 	private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
 		assertNotNull("Resource from " + source + " is null", resource);
-		assertNotNull("Resource from " + source + " has null configuration", resource.getConfiguration());
+		assertNotNull("Resource from " + source + " has null configuration", resource.getConnectorConfiguration());
 		assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
 		checkOpenDjSchema(resource, source);
 		assertNotNull("Resource from " + source + " has null schemahandling", resource.getSchemaHandling());
@@ -816,7 +816,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull("Shadow stored in repository has no name", repoShadowType.getName());
 		// Check the "name" property, it should be set to DN, not entryUUID
 		assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName()
-				.toLowerCase());
+				.getOrig().toLowerCase());
 
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = checkRepoShadow(repoShadow);
