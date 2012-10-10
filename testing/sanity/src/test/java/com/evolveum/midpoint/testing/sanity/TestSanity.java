@@ -944,7 +944,8 @@ public class TestSanity extends AbstractIntegrationTest {
         assertEquals(RESOURCE_DERBY_OID, repoShadowType.getResourceRef().getOid());
 
         // Check the "name" property, it should be set to DN, not entryUUID
-        assertEquals("Wrong name property", USER_JACK_DERBY_LOGIN, repoShadowType.getName());
+        assertEquals("Wrong name property", PrismTestUtil.createPolyStringType(USER_JACK_DERBY_LOGIN),
+        		repoShadowType.getName());
 
         // check attributes in the shadow: should be only identifiers (ICF UID)
         String uid = checkRepoShadow(repoShadow);
@@ -1058,7 +1059,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 assertNotNull("No ICF UID", icfUid);
                 String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
                 assertNotNull("No ICF NAME", icfName);
-                assertEquals("Wrong shadow name", shadow.getName(), icfName);
+                assertEquals("Wrong shadow name", shadow.getName().getOrig(), icfName);
                 assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "uid")));
                 assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "cn")));
                 assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "sn")));
