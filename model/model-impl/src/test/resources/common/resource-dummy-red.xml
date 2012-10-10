@@ -22,6 +22,7 @@
 <resource oid="10000000-0000-0000-0000-000000000104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
@@ -121,7 +122,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								concat($c:name, $c:iterationToken)
+								concat($c:name/t:orig, $c:iterationToken)
 							</code>
 						</script>
 					</expression>
