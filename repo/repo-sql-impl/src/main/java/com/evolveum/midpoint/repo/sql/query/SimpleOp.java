@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Conjunction;
@@ -130,11 +133,16 @@ public class SimpleOp extends Op {
 			case EQUAL:
 				EqualsFilter equalFilter = (EqualsFilter) valueFilter;
 				PrismValue val = equalFilter.getValues().get(0);
-//				if (val instanceof PrismReferenceValue) {
-//					filterValue = ((PrismReferenceValue) val).getOid();
-//				} else {
-					filterValue = ((PrismPropertyValue) val).getValue();
-//				}
+				// if (val instanceof PrismReferenceValue) {
+				// filterValue = ((PrismReferenceValue) val).getOid();
+				// } else {
+				filterValue = ((PrismPropertyValue) val).getValue();
+				if (conditionItem.isPolyString) {
+					if (filterValue instanceof PolyStringType) {
+						filterValue = ((PolyStringType) filterValue).getNorm();
+					}
+				}
+				// }
 				break;
 //			case REF:
 //				RefFilter refFilter = (RefFilter) valueFilter;
@@ -173,6 +181,7 @@ public class SimpleOp extends Op {
 					}
 				}
 			}
+			
 			LOGGER.trace("Value updated to type '{}'", new Object[] { (testedValue == null ? null : testedValue
 					.getClass().getName()) });
 

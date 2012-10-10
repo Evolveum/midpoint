@@ -60,6 +60,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -421,7 +422,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task001 = taskManager.getTask(taskOid(test), result);
         logger.trace("Task from repo: " + task001.dump());
         AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
-        AssertJUnit.assertEquals(newname, task001.getName());
+        PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
+//        AssertJUnit.assertEquals(newname, task001.getName());
         AssertJUnit.assertTrue(10 == task001.getProgress());
         AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
         AssertJUnit.assertTrue(currentTime == task001.getLastRunStartTimestamp());
