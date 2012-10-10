@@ -131,9 +131,7 @@ public class NodeRegistrar {
         NodeType node = nodePrism.asObjectable();
 
         node.setNodeIdentifier(configuration.getNodeId());
-        PolyString polyString = new PolyString(configuration.getNodeId());
-        polyString.recompute(taskManager.getNormalizer());
-        node.setName(new PolyStringType(polyString));
+        node.setName(new PolyStringType(configuration.getNodeId()));
         node.setHostname(getMyAddress());
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());

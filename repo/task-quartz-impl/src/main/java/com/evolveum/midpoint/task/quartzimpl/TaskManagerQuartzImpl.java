@@ -137,9 +137,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired(required=true)
 	private PrismContext prismContext;
 	
-	@Autowired
-	private PolyStringNormalizer normalizer;
-
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
     // how long to wait after TaskManager shutdown, if using JDBC Job Store (in order to give the jdbc thread pool a chance
@@ -526,9 +523,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         TaskQuartzImpl taskImpl = (TaskQuartzImpl) task;
 
         if (task.getName() == null) {
-        	PolyString polyString = new PolyString("Task " + task.getTaskIdentifier());
-        	polyString.recompute(normalizer);
-        	PolyStringType polyStringName = new PolyStringType(polyString);
+        	PolyStringType polyStringName = new PolyStringType("Task " + task.getTaskIdentifier());
             taskImpl.setNameTransient(polyStringName);
         }
 
@@ -884,10 +879,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return repositoryService;
     }
     
-    public PolyStringNormalizer getNormalizer() {
-		return normalizer;
-	}
-
     public void setConfiguration(TaskManagerConfiguration configuration) {
         this.configuration = configuration;
     }
