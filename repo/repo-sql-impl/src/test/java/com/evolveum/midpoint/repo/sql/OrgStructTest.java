@@ -98,7 +98,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 
 		OrgType orgF001 = repositoryService.getObject(OrgType.class, ORG_F001_OID, opResult).asObjectable();
 		AssertJUnit.assertNotNull(orgF001);
-		AssertJUnit.assertEquals("F0001", orgF001.getName());
+		AssertJUnit.assertEquals("F0001", orgF001.getName().getOrig());
 		AssertJUnit.assertEquals("The office of the most respectful Governor.", orgF001.getDescription());
 
 //		PrismAsserts.assertEqualsPolyString("Governor Office", "Governor Office", orgF001.getDisplayName());
@@ -109,7 +109,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		PrismAsserts.assertEqualsPolyString("The Governor's Mansion", "The Governor's Mansion", orgF001.getLocality());
 
 		OrgType pRoot = repositoryService.getObject(OrgType.class, ORG_PROJECT_ROOT_OID, opResult).asObjectable();
-		AssertJUnit.assertEquals("PRoot", pRoot.getName());
+		AssertJUnit.assertEquals("PRoot", pRoot.getName().getOrig());
 		AssertJUnit.assertEquals("Project organizational structure root", pRoot.getDescription());
 //		PrismAsserts.assertEqualsPolyString("Projects", "Projects", pRoot.getDisplayName());
 		AssertJUnit.assertEquals(1, pRoot.getOrgType().size());
@@ -127,7 +127,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		UserType elaine = users.get(0).asObjectable();
 		LOGGER.info("--->elaine<----");
 		LOGGER.info(prismContext.silentMarshalObject(elaine, LOGGER));
-		AssertJUnit.assertEquals("Expected name elaine, but got "+ elaine.getName(), "elaine", elaine.getName());
+		AssertJUnit.assertEquals("Expected name elaine, but got "+ elaine.getName().getOrig(), "elaine", elaine.getName().getOrig());
 		AssertJUnit.assertEquals("Expected elaine has one org ref, but got "+ elaine.getParentOrgRef().size(), 2, elaine.getParentOrgRef().size());
 		AssertJUnit.assertEquals("Parent org ref oid not equal.","00000000-8888-6666-0000-100000000001", elaine.getParentOrgRef().get(0).getOid());
 //		AssertJUnit.assertEquals("Elaine is not manager, but: "

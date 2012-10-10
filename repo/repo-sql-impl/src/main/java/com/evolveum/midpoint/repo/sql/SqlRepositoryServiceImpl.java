@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -246,7 +247,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private void validateName(PrismObject object) throws SchemaException {
 		PrismProperty name = object.findProperty(ObjectType.F_NAME);
-		if (name == null || StringUtils.isEmpty((String) name.getRealValue())) {
+		if (name == null || ((PolyString) name.getRealValue()).isEmpty()) {
 			throw new SchemaException("Attempt to add object without name.");
 		}
 	}

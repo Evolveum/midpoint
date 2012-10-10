@@ -84,7 +84,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Criteria stringExt = extension.createCriteria("longs", "l");
 
         //and
-        Criterion c1 = Restrictions.eq("name", "generic object");
+        Criterion c1 = Restrictions.eq("name.norm", "generic object");
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("l.value", 123L));
@@ -194,7 +194,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
-        main.add(Restrictions.eq("name", "some name identificator"));
+        main.add(Restrictions.eq("name.norm", "some name identificator"));
         String expected = HibernateToSqlTranslator.toSql(main);
 
         String real = getInterpretedQuery(session, UserType.class,

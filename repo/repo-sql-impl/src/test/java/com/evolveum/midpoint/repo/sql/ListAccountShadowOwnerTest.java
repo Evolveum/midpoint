@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -87,7 +88,7 @@ public class ListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests
         assertNotNull("No owner for account 1234", user);
         PrismProperty name = user.findProperty(ObjectType.F_NAME);
         AssertJUnit.assertNotNull(name);
-        AssertJUnit.assertEquals("atestuserX00003", name.getRealValue());
+        AssertJUnit.assertEquals("atestuserX00003", ((PolyString)name.getRealValue()).getOrig());
     }
 
     @Test//(expectedExceptions = ObjectNotFoundException.class)
