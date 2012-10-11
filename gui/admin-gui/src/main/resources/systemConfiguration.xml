@@ -25,7 +25,7 @@
     <name>SystemConfiguration</name>
     <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:PasswordPolicyType"/>
     <logging>
-        <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG"
+        <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <fileName>${catalina.base}/logs/idm.log</fileName>
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
