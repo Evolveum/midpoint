@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -93,7 +94,7 @@ public final class WebMiscUtil {
         if (object == null) {
             return null;
         }
-        PolyStringType name = getValue(object, ObjectType.F_NAME, PolyStringType.class);
+        PolyString name = getValue(object, ObjectType.F_NAME, PolyString.class);
 
         return name != null ? name.getOrig() : null;
     }
