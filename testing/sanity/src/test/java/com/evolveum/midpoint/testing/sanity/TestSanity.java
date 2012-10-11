@@ -2401,7 +2401,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Search for the user that should be created now
         UserType user = searchUserByName(WILL_NAME);
 
-        AssertJUnit.assertEquals(user.getName(), WILL_NAME);
+        PrismAsserts.assertEqualsPolyString("Wrong name.",  WILL_NAME, user.getName());
+//        AssertJUnit.assertEquals(user.getName(), WILL_NAME);
 
         // TODO: more checks
         
@@ -2433,7 +2434,8 @@ public class TestSanity extends AbstractIntegrationTest {
         // Search for the user that should be created now
         UserType user = searchUserByName (WILL_NAME);
 
-        AssertJUnit.assertEquals(WILL_NAME, user.getName());
+//        AssertJUnit.assertEquals(WILL_NAME, user.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong name.",  WILL_NAME, user.getName());
         PrismAsserts.assertEqualsPolyString("wrong givenName", "asdf", user.getGivenName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 1);
@@ -2490,7 +2492,8 @@ public class TestSanity extends AbstractIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         AccountShadowType account = searchAccountByOid(accountOid);
 
-        assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
+        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=People,dc=example,dc=com", account.getName());
+//        assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 3);
         checkAllShadows();
@@ -2533,7 +2536,8 @@ public class TestSanity extends AbstractIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         AccountShadowType account = searchAccountByOid(accountOid);
 
-        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
+        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
+//        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
         Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull("null value list for attribute 'l'", localities);
         assertEquals("unexpected number of values of attribute 'l'", 1, localities.size());

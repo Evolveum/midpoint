@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -177,10 +178,11 @@ public class QueryConvertor {
 			if (val instanceof PrismReferenceValue) {
 				throw new SchemaException("Prism refenrence value not allowed in the equal element");
 			} else {
-				Object propVal = val.getPrismContext().getPrismJaxbProcessor().toAny(val, doc);
-				if (propVal instanceof Element){
-					value.setTextContent(((Element) propVal).getTextContent());
-//					System.out.println(((Element) propVal).getTextContent());
+				if (XmlTypeConverter.canConvert(val.getClass())){
+					Element propVal = val.asDomElement();
+					value.setTextContent(propVal.getTextContent());
+				} else {
+					value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
 				}
 //				value.setTextContent();
 				equal.appendChild(value);

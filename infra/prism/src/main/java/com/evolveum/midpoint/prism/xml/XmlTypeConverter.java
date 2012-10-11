@@ -28,6 +28,8 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -253,6 +255,8 @@ public class XmlTypeConverter {
         }
         if (type.equals(String.class)) {
             return (String) val;
+        } if (type.equals(PolyString.class)){
+        	return ((PolyString) val).getNorm();
         } else if (type.equals(char.class) || type.equals(Character.class)) {
             return ((Character) val).toString();
         } else if (type.equals(File.class)) {
