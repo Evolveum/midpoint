@@ -22,10 +22,7 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
-    <name>
-    	<t:orig>SystemConfiguration</t:orig>
-        <t:norm>systemconfiguration</t:norm>
-    </name>
+    <name>SystemConfiguration</name>
     <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:PasswordPolicyType"/>
     <logging>
         <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG"

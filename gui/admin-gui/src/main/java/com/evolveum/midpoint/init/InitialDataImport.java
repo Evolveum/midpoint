@@ -23,8 +23,10 @@ package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,7 +42,10 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.JAXBElement;
+
+import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * @author lazyman
@@ -77,24 +82,22 @@ public class InitialDataImport {
         for (String file : FILES_FOR_IMPORT) {
             OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
-            InputStream stream = null;
             try {
-                stream = getResource(file);
-                PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
-                JAXBElement<ObjectType> element = jaxbProcessor.unmarshalElement(stream, ObjectType.class);
-                ObjectType object = element.getValue();
+            	File resource = getResource(file);
+                PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+                PrismObject prismObj = domProcessor.parseObject(resource);
 
                 boolean importObject = true;
                 try {
-                    model.getObject(object.getClass(), object.getOid(), null, task, result);
+                    model.getObject(prismObj.getCompileTimeClass(), prismObj.getOid(), null, task, result);
                     importObject = false;
                     result.recordSuccess();
                 } catch (ObjectNotFoundException ex) {
                     importObject = true;
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
-                            object.getOid());
-                    result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
+                            prismObj.getOid());
+                    result.recordWarning("Couldn't get object with oid '" + prismObj.getOid() + "' from model",
                             ex);
                 }
 
@@ -102,16 +105,16 @@ public class InitialDataImport {
                     continue;
                 }
 
-                ObjectDelta delta = ObjectDelta.createAddDelta(object.asPrismObject());
+                ObjectDelta delta = ObjectDelta.createAddDelta(prismObj);
                 model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
                 result.recordSuccess();
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file);
                 result.recordFatalError("Couldn't import file '" + file + "'", ex);
             } finally {
-                if (stream != null) {
-                    IOUtils.closeQuietly(stream);
-                }
+//                if (stream != null) {
+//                    IOUtils.closeQuietly(stream);
+//                }
                 result.computeStatus("Couldn't import objects.");
             }
         }
@@ -120,7 +123,8 @@ public class InitialDataImport {
         LOGGER.info("Initialization status:\n" + mainResult.dump());
     }
 
-    private InputStream getResource(String name) {
-        return InitialDataImport.class.getClassLoader().getResourceAsStream(name);
+    private File getResource(String name) {
+        String path = InitialDataImport.class.getClassLoader().getResource(name).getPath();
+        return new File(path);
     }
 }
