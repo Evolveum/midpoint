@@ -59,6 +59,12 @@ public class WfConfiguration {
     private int processCheckInterval;
     private String autoDeploymentFrom;
 
+    private String mailServerHost;
+    private Integer mailServerPort;
+    private String mailServerDefaultFrom;
+    private String mailServerUsername;
+    private String mailServerPassword;
+    private Boolean mailServerUseTLS;
 
     void initialize(MidpointConfiguration masterConfig, BeanFactory beanFactory) {
 
@@ -99,6 +105,14 @@ public class WfConfiguration {
         jdbcDriver = c.getString("jdbcDriver", sqlConfig != null ? sqlConfig.getDriverClassName() : null);
         jdbcUser = c.getString("jdbcUser", sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString("jdbcPassword", sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
+
+        mailServerHost = c.getString("mailServerHost");
+        mailServerPort = c.getInteger("mailServerPort", 25);
+        mailServerDefaultFrom = c.getString("mailServerDefaultFrom", "nobody@nowhere.org");
+        mailServerUsername = c.getString("mailServerUsername");
+        mailServerPassword = c.getString("mailServerPassword");
+        mailServerUseTLS = c.getBoolean("mailServerUseTLS", false);
+
 
         processCheckInterval = c.getInt("processCheckInterval", 10);    // todo set to bigger default for production use
         autoDeploymentFrom = c.getString("autoDeploymentFrom", AUTO_DEPLOYMENT_FROM_DEFAULT);
@@ -170,5 +184,29 @@ public class WfConfiguration {
 
     public String getAutoDeploymentFrom() {
         return autoDeploymentFrom;
+    }
+
+    public String getMailServerDefaultFrom() {
+        return mailServerDefaultFrom;
+    }
+
+    public String getMailServerHost() {
+        return mailServerHost;
+    }
+
+    public String getMailServerPassword() {
+        return mailServerPassword;
+    }
+
+    public Integer getMailServerPort() {
+        return mailServerPort;
+    }
+
+    public String getMailServerUsername() {
+        return mailServerUsername;
+    }
+
+    public Boolean getMailServerUseTLS() {
+        return mailServerUseTLS;
     }
 }

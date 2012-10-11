@@ -24,11 +24,13 @@ package com.evolveum.midpoint.wf.activiti;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 /**
  * Currently unused. Necessary for "smart" workflow tasks.
  */
 
+@Component
 public class SpringApplicationContextHolder implements ApplicationContextAware {
 
 	private static ApplicationContext context;
@@ -38,6 +40,9 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
     }  
 
 	public static ApplicationContext getApplicationContext() {
+        if (context == null) {
+            throw new IllegalStateException("Spring application context could not be determined.");
+        }
 		return context;
 	}
 

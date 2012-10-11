@@ -24,7 +24,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<user oid="00000000-d34d-b33f-f00d-111111111111">
+	<user oid="00000000-d34d-b33f-f00d-111111111110">
         <name>jack</name>
         <fullName>Cpt. Jack Sparrow</fullName>
         <givenName>Jack</givenName>
@@ -32,11 +32,19 @@
         <honorificPrefix>Cpt.</honorificPrefix>
     </user>
 
+    <user oid="00000000-d34d-b33f-f00d-111111111111">
+        <name>r1boss</name>
+        <fullName>Role1 Boss</fullName>
+        <givenName>Role1</givenName>
+        <familyName>Boss</familyName>
+    </user>
+
     <user oid="00000000-d34d-b33f-f00d-111111111112">
         <name>r2boss</name>
         <fullName>Role2 Boss</fullName>
         <givenName>Role2</givenName>
         <familyName>Boss</familyName>
+        <emailAddress>john@127.0.0.1</emailAddress>
     </user>
 
     <user oid="00000000-d34d-b33f-f00d-111111111113">
@@ -44,10 +52,12 @@
         <fullName>Role3 Boss</fullName>
         <givenName>Role3</givenName>
         <familyName>Boss</familyName>
+        <emailAddress>john@127.0.0.1</emailAddress>
     </user>
 
     <role oid="00000001-d34d-b33f-f00d-000000000001">
         <name>Role1</name>
+        <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000002">

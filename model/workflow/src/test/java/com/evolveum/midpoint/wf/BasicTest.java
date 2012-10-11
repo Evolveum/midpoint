@@ -58,6 +58,7 @@ import static org.testng.AssertJUnit.*;
  *
  */
 @ContextConfiguration(locations = {"classpath:application-context-model.xml",
+        "classpath:application-context-workflow.xml",
         "classpath:application-context-repository.xml",
         "classpath:application-context-repo-cache.xml",
         "classpath:application-context-configuration-test.xml",
@@ -70,10 +71,11 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
     private static final String TEST_FILE_DIRECTORY = "src/test/resources/repo/";
     private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
     private static final File IMPORT_USERS_AND_ROLES_FILE = new File(TEST_FILE_DIRECTORY, "users-and-roles.xml");
-    private static final String USER_JACK_OID = "00000000-d34d-b33f-f00d-111111111111";
+    private static final String USER_JACK_OID = "00000000-d34d-b33f-f00d-111111111110";
     private static final String ROLES_OID = "00000001-d34d-b33f-f00d-00000000000";
     private static String getRoleOid(String roleNumber) { return ROLES_OID + roleNumber; }
 
+    private static final String R1BOSS_OID = "00000000-d34d-b33f-f00d-111111111111";
     private static final String R2BOSS_OID = "00000000-d34d-b33f-f00d-111111111112";
     private static final String R3BOSS_OID = "00000000-d34d-b33f-f00d-111111111113";
 
@@ -147,8 +149,8 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
         System.out.println("test010: id " + processInstance.getId() + " " + processInstance.getProcessDefinitionId());
 
         TaskService taskService = processEngine.getTaskService();
-        List<org.activiti.engine.task.Task> tasks1 = taskService.createTaskQuery().taskAssignee(ActivitiUtil.DEFAULT_APPROVER).list();
-        assertEquals("Number of tasks for default approver is not correct", 1, tasks1.size());
+        List<org.activiti.engine.task.Task> tasks1 = taskService.createTaskQuery().taskAssignee(R1BOSS_OID).list();
+        assertEquals("Number of tasks for R1 approver is not correct", 1, tasks1.size());
         completeTask(tasks1.get(0), "true", "Role1 OK");
 
         List<org.activiti.engine.task.Task> tasks2 = taskService.createTaskQuery().taskAssignee(R2BOSS_OID).list();
@@ -186,7 +188,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
                 break;
             }
         }
-        assertTrue("DecisionList was not tested", decisionListTested);
+        assertTrue("DecisionList was not found", decisionListTested);
     }
 
     private void completeTask(org.activiti.engine.task.Task task, String decision, String comment) {

@@ -182,7 +182,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             spi.setTaskName(new PolyStringType("Workflow for approving adding " + rolesAsList + " to " + newUser.getName()));
             spi.addProcessVariable(WfConstants.VARIABLE_PROCESS_NAME, "Adding " + rolesAsList + " to " + newUser.getName());
             spi.addProcessVariable(WfConstants.VARIABLE_START_TIME, new Date());
-            spi.addProcessVariable(USER_NAME, newUser.getName());
+            spi.addProcessVariable(USER_NAME, newUser.getName().getOrig());
             spi.addProcessVariable(ROLES_TO_APPROVE, rolesToAdd);
             spi.addProcessVariable(DECISION_LIST, new DecisionList());
             String objectOid = null;

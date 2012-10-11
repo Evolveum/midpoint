@@ -84,8 +84,9 @@ public class WfCore {
                 LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
                 try {
                     startProcessInstance(startCommand, wrapper, task, context, result);
-                } catch(Exception e) { // TODO better error handling here
+                } catch (Exception e) { // TODO better error handling here
                     LoggingUtils.logException(LOGGER, "Workflow process instance couldn't be started", e);
+                    result.recordFatalError("Workflow process instance couldn't be started", e);
                     return HookOperationMode.ERROR;
                 }
                 return HookOperationMode.BACKGROUND;

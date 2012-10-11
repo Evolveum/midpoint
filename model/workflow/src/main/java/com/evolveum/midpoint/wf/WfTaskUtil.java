@@ -153,7 +153,7 @@ public class WfTaskUtil {
 //		// shutdown the task if it is already running (i.e. a run from previous phase)
 //		t.shutdown();
 
-        if (t.getName().toPolyString().isEmpty()) {
+        if (t.getName() == null || t.getName().toPolyString().isEmpty()) {
 		    t.setName(taskName);
         }
 

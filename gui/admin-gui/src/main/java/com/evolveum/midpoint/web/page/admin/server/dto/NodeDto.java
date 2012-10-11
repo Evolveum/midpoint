@@ -57,7 +57,8 @@ public class NodeDto extends Selectable {
 
         PrismObject<NodeType> prismNode = node.getNodeType();
         oid = prismNode.getOid();
-        name = prismNode.getPropertyRealValue(ObjectType.F_NAME, String.class);
+        //name = prismNode.getPropertyRealValue(ObjectType.F_NAME, String.class);
+        name = prismNode.asObjectable().getName().getOrig();
 
         XMLGregorianCalendar calendar = node.getLastCheckInTime();
         if (calendar != null) {

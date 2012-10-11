@@ -62,6 +62,9 @@ public class WfHook implements ChangeHook {
 
     private List<ProcessWrapper> wrappers = new ArrayList<ProcessWrapper>();
 
+    private static final String DOT_CLASS = WfHook.class.getName() + ".";
+    private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
+
     public void register(HookRegistry hookRegistry) {
         LOGGER.trace("Registering workflow hook");
         hookRegistry.registerChangeHook(WfHook.WORKFLOW_HOOK_URI, this);
@@ -69,15 +72,18 @@ public class WfHook implements ChangeHook {
 
 
     @Override
-    public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
+    public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult) {
 
         Validate.notNull(context);
         Validate.notNull(task);
-        Validate.notNull(result);
+        Validate.notNull(parentResult);
 
         if (context.getFocusContext() == null) {        // probably not a user-related event
             return HookOperationMode.FOREGROUND;
         }
+
+        OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
+        result.addParam("task", task.toString());
 
         LensContext lensContext = (LensContext) context;
 
@@ -106,7 +112,11 @@ public class WfHook implements ChangeHook {
             }
         }
 
-        return wfCore.executeProcessStartIfNeeded(context, task, result);
+        HookOperationMode mode = wfCore.executeProcessStartIfNeeded(context, task, result);
+
+        result.recordSuccessIfUnknown();
+
+        return mode;
     }
 
     public void registerWfProcessWrapper(ProcessWrapper starter) {

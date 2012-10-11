@@ -85,8 +85,8 @@ public class ActivitiEngine {
         List<SessionFactory> sessionFactories = new ArrayList<SessionFactory>();
         sessionFactories.add(new MidPointUserManagerFactory());
 
-        // todo fix this hack (explicit casting)
-        processEngine = ((StandaloneProcessEngineConfiguration) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration())
+        ProcessEngineConfiguration pec =
+                ((StandaloneProcessEngineConfiguration) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration())
                 .setDatabaseSchemaUpdate(configuration.isActivitiSchemaUpdate() ?
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
@@ -96,8 +96,33 @@ public class ActivitiEngine {
                 .setJdbcUsername(configuration.getJdbcUser())
                 .setJdbcPassword(configuration.getJdbcPassword())
                 .setJobExecutorActivate(false)
-                .setHistory(ProcessEngineConfiguration.HISTORY_FULL)
-                .buildProcessEngine();
+                .setHistory(ProcessEngineConfiguration.HISTORY_FULL);
+
+        if (configuration.getMailServerHost() != null) {
+            pec = pec.setMailServerHost(configuration.getMailServerHost());
+        }
+
+        if (configuration.getMailServerPort() != null) {
+            pec = pec.setMailServerPort(configuration.getMailServerPort());
+        }
+
+        if (configuration.getMailServerDefaultFrom() != null) {
+            pec = pec.setMailServerDefaultFrom(configuration.getMailServerDefaultFrom());
+        }
+
+        if (configuration.getMailServerUsername() != null) {
+            pec = pec.setMailServerUsername(configuration.getMailServerUsername());
+        }
+
+        if (configuration.getMailServerPassword() != null) {
+            pec = pec.setMailServerPassword(configuration.getMailServerPassword());
+        }
+
+        if (configuration.getMailServerUseTLS() != null) {
+            pec = pec.setMailServerUseTLS(configuration.getMailServerUseTLS());
+        }
+
+        processEngine = pec.buildProcessEngine();
 
         LOGGER.info("Activiti engine successfully created.");
 

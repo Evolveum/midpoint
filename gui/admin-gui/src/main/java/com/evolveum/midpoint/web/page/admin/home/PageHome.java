@@ -28,6 +28,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.wf.WfDataAccessor;
+import com.evolveum.midpoint.wf.WorkItem;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -85,11 +88,13 @@ public class PageHome extends PageAdmin {
 	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 	private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
 	private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+    private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageHome.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageHome.class);
 	private IModel<AdminHomeDto> model;
+    private static final int MAX_WORK_ITEMS = 1000;
 
-	public PageHome() {
+    public PageHome() {
 		model = new LoadableModel<AdminHomeDto>(true) {
 
 			@Override
@@ -119,6 +124,10 @@ public class PageHome extends PageAdmin {
 				dto.getAssignments().addAll(loadRoleAssignments(prismUser));
                 LOGGER.trace("Loading resource assignments.");
 				dto.getResources().addAll(loadResourceAssignments(prismUser));
+                if (getWorkflowManager().isEnabled()) {
+                    LOGGER.trace("Loading work items.");
+                    dto.getWorkItems().addAll(loadWorkItems(prismUser));
+                }
 
                 LOGGER.trace("Finished home page data loading.");
 				return dto;
@@ -175,6 +184,18 @@ public class PageHome extends PageAdmin {
 		accounts.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accounts);
 		initAccounts(accounts);
+
+        AccordionItem workItems = new AccordionItem("myWorkItems", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageHome.myWorkItems", model.getObject().getWorkItems().size())        // todo: show only last few work items; but count all of them
+                        .getString();
+            }
+        });
+        workItems.setOutputMarkupId(true);
+        accordion.getBodyContainer().add(workItems);
+        initWorkItems(workItems);
 	}
 
 	private List<SimpleAccountDto> loadAccounts(PrismObject<UserType> prismUser) {
@@ -262,7 +283,23 @@ public class PageHome extends PageAdmin {
 		return list;
 	}
 
-	private List<SimpleAssignmentDto> loadRoleAssignments(PrismObject<UserType> prismUser) {
+    private List<WorkItemDto> loadWorkItems(PrismObject<UserType> prismUser) {
+        List<WorkItemDto> list = new ArrayList<WorkItemDto>();
+        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
+
+        WfDataAccessor da = getWorkflowDataAccessor();
+        try {
+            for (WorkItem workItem : da.listWorkItemsRelatedToUser(prismUser.getOid(), true, 1, MAX_WORK_ITEMS, result)) {
+                list.add(new WorkItemDto(workItem));
+            }
+        } catch (Exception ex) {            // todo
+            LoggingUtils.logException(LOGGER, "Couldn't get work items for the user.", ex);
+            result.recordFatalError("Couldn't get work items for the user.", ex);
+        }
+        return list;
+    }
+
+    private List<SimpleAssignmentDto> loadRoleAssignments(PrismObject<UserType> prismUser) {
 		List<SimpleAssignmentDto> list = new ArrayList<SimpleAssignmentDto>();
 
 		OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
@@ -435,7 +472,18 @@ public class PageHome extends PageAdmin {
 		accounts.getBodyContainer().add(accountsTable);
 	}
 
-	private String getSimpleDate(Date date) {
+    private void initWorkItems(AccordionItem workItems) {
+        List<IColumn<WorkItemDto>> columns = new ArrayList<IColumn<WorkItemDto>>();
+        columns.add(new PropertyColumn(createStringResource("pageHome.workItem.name"), "name"));
+        columns.add(new PropertyColumn(createStringResource("pageHome.workItem.date"), "workItem.createTime"));
+
+        ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel(model, "workItems"));
+        TablePanel workItemsTable = new TablePanel<WorkItemDto>("workItems", provider, columns);
+        workItemsTable.setShowPaging(false);
+        workItems.getBodyContainer().add(workItemsTable);
+    }
+
+    private String getSimpleDate(Date date) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
 		return dateFormat.format(date);
 	}

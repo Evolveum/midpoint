@@ -24,7 +24,7 @@
              xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
              xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
              typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
-             targetNamespace="http://evolveum.com/midpoint">
+             targetNamespace="http://evolveum.com/midpoint" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"        >
 
     <process id="AddRoles" name="Add Roles Approval (default)">
 
@@ -50,11 +50,56 @@
                 <inputDataItem name="role"/>
             </multiInstanceLoopCharacteristics>
             <startEvent id="startSub" />
-            <sequenceFlow sourceRef="startSub" targetRef="approve" />
-            <userTask id="approve" name="Approve adding ${role.name} to ${userName}" activiti:assignee="${util.getApprover(role)}">
+            <sequenceFlow sourceRef="startSub" targetRef="mail" />
+
+            <subProcess id="mail">
+
+                <startEvent id="startMail" />
+                <sequenceFlow sourceRef="startMail" targetRef="getMailAddress" />
+                <serviceTask id="getMailAddress" activiti:class="com.evolveum.midpoint.wf.processes.addroles.GetMailAddress" />
+                <sequenceFlow sourceRef="getMailAddress" targetRef="gwHasMail" />
+
+                <exclusiveGateway id="gwHasMail" name="Has the approver a mail address?" />
+
+                <sequenceFlow sourceRef="gwHasMail" targetRef="sendMail">
+                    <conditionExpression xsi:type="tFormalExpression">${approverMailAddress != null}</conditionExpression>
+                </sequenceFlow>
+
+                <sequenceFlow sourceRef="gwHasMail" targetRef="endMail"/>
+
+                <serviceTask id="sendMail" activiti:class="com.evolveum.midpoint.wf.processes.addroles.SendMail">
+                    <extensionElements>
+                        <activiti:field name="to" expression="${approverMailAddress}" />
+                        <activiti:field name="subject" expression="Please approve adding ${role.name.orig} to ${userName}" />
+                        <activiti:field name="html">
+                            <activiti:expression>
+                                <![CDATA[
+                                <html>
+                                    <body>
+                                        Dear user,<br/><br/>
+
+                                        please approve adding ${role.name.orig} to ${userName} by clicking on appropriate work item in midPoint application.<br/><br/>
+
+                                        Kind regards,<br/>
+                                        Your midPoint.
+                                    </body>
+                                </html>
+                            ]]>
+                            </activiti:expression>
+                        </activiti:field>
+                    </extensionElements>
+                </serviceTask>
+
+                <sequenceFlow sourceRef="sendMail" targetRef="endMail"/>
+
+                <endEvent id="endMail" />
+
+            </subProcess>
+            <sequenceFlow sourceRef="mail" targetRef="approve" />
+            <userTask id="approve" name="Approve adding ${role.name.orig} to ${userName}" activiti:assignee="${util.getApprover(role)}">
                 <extensionElements>
                     <activiti:formProperty id="userName" expression="#{userName}" name="01: User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
-                    <activiti:formProperty id="role" expression="#{role.name}" name="02: Role" required="false" readable="true" writable="false"></activiti:formProperty>
+                    <activiti:formProperty id="role" expression="#{role.name.orig}" name="02: Role" required="false" readable="true" writable="false"></activiti:formProperty>
                     <activiti:formProperty id="decision#C" name="03: Add role to the user?" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
                     <activiti:formProperty id="comment#C" name="04: Comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                 </extensionElements>
