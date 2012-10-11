@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 

@@ -11,6 +11,8 @@ import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -22,8 +24,9 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.sun.tools.xjc.reader.xmlschema.parser.SchemaConstraintChecker;
 
-public class EqualsFilter extends PropertyValueFilter {
+public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
 	EqualsFilter(PropertyPath path, ItemDefinition definition, List<PrismValue> values) {
 		super(path, definition, values);
@@ -165,6 +168,23 @@ public class EqualsFilter extends PropertyValueFilter {
 			}
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public QName getName() {
+		return getDefinition().getName();
+	}
+
+	@Override
+	public PrismContext getPrismContext() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PropertyPath getPath(PropertyPath pathPrefix) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

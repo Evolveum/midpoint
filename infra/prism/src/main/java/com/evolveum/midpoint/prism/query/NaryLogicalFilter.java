@@ -3,7 +3,7 @@ package com.evolveum.midpoint.prism.query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NaryLogicalFilter extends LogicalFilter{
+public abstract class NaryLogicalFilter extends LogicalFilter{
 	
 	public NaryLogicalFilter() {
 		super();

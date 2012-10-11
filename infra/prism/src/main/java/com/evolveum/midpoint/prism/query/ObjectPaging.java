@@ -89,14 +89,22 @@ public class ObjectPaging implements Dumpable, DebugDumpable, Serializable{
 		StringBuilder sb = new StringBuilder();
 		sb.append("PAGING: \n");
 		DebugUtil.indentDebugDump(sb, indent + 1);
-		sb.append("Offset: " + getOffset());
-		sb.append("\n");
-		sb.append("Max size: " + getMaxSize());
-		sb.append("\n");
-		sb.append("Order by: " + getOrderBy().toString());
-		sb.append("\n");
-		sb.append("Order direction: " + getDirection());
-		sb.append("\n");	
+		if (getOffset() != null) {
+			sb.append("Offset: " + getOffset());
+			sb.append("\n");
+		}
+		if (getMaxSize() != null) {
+			sb.append("Max size: " + getMaxSize());
+			sb.append("\n");
+		}
+		if (getOrderBy() != null) {
+			sb.append("Order by: " + getOrderBy().toString());
+			sb.append("\n");
+		}
+		if (getDirection() != null) {
+			sb.append("Order direction: " + getDirection());
+			sb.append("\n");
+		}
 		return sb.toString();
 	}
 

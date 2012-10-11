@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -88,12 +90,12 @@ public class QueryConvertor {
 
 	}
 
-	public static QueryType createQueryType(ObjectQuery query) throws SchemaException{
+	public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException{
 
 		ObjectFilter filter = query.getFilter();
 		try{
 		Document doc = DOMUtil.getDocument();
-		Element filterType = createFilterType(filter, doc);
+		Element filterType = createFilterType(filter, doc, prismContext);
 		QueryType queryType = new QueryType();
 		queryType.setFilter(filterType);
 		return queryType;
@@ -104,66 +106,66 @@ public class QueryConvertor {
 
 	}
 
-	private static Element createFilterType(ObjectFilter filter, Document doc) throws SchemaException{
+	private static Element createFilterType(ObjectFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
 
 		if (filter instanceof AndFilter) {
-			return createAndFilterType((AndFilter) filter, doc);
+			return createAndFilterType((AndFilter) filter, doc, prismContext);
 		}
 		if (filter instanceof OrFilter) {
-			return createOrFilterType((OrFilter) filter, doc);
+			return createOrFilterType((OrFilter) filter, doc, prismContext);
 		}
 		if (filter instanceof NotFilter) {
-			return createNotFilterType((NotFilter) filter, doc);
+			return createNotFilterType((NotFilter) filter, doc, prismContext);
 		}
 		if (filter instanceof EqualsFilter) {
-			return createEqualsFilterType((EqualsFilter) filter, doc);
+			return createEqualsFilterType((EqualsFilter) filter, doc, prismContext);
 		}
 		if (filter instanceof RefFilter) {
-			return createRefFilterType((RefFilter) filter, doc);
+			return createRefFilterType((RefFilter) filter, doc, prismContext);
 		}
 
 		if (filter instanceof SubstringFilter) {
-			return createSubstringFilterType((SubstringFilter) filter, doc);
+			return createSubstringFilterType((SubstringFilter) filter, doc, prismContext);
 		}
 
 		if (filter instanceof OrgFilter) {
-			return createOrgFilterType((OrgFilter) filter, doc);
+			return createOrgFilterType((OrgFilter) filter, doc, prismContext);
 		}
 
 		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
 	}
 
-	private static Element createAndFilterType(AndFilter filter, Document doc) throws SchemaException{
+	private static Element createAndFilterType(AndFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
 
 		Element and = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_AND);
 
 		for (ObjectFilter of : filter.getCondition()) {
-			Element element = createFilterType(of, doc);
+			Element element = createFilterType(of, doc, prismContext);
 			and.appendChild(element);
 		}
 		return and;
 	}
 
-	private static Element createOrFilterType(OrFilter filter, Document doc) throws SchemaException{
+	private static Element createOrFilterType(OrFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
 
 		Element or = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_OR);
 		for (ObjectFilter of : filter.getCondition()) {
-			Element element = createFilterType(of, doc);
+			Element element = createFilterType(of, doc, prismContext);
 			or.appendChild(element);
 		}
 		return or;
 	}
 
-	private static Element createNotFilterType(NotFilter filter, Document doc) throws SchemaException{
+	private static Element createNotFilterType(NotFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
 
 		Element not = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_NOT);
 
-		Element element = createFilterType(filter.getFilter(), doc);
+		Element element = createFilterType(filter.getFilter(), doc, prismContext);
 		not.appendChild(element);
 		return not;
 	}
 
-	private static Element createEqualsFilterType(EqualsFilter filter, Document doc) throws SchemaException{
+	private static Element createEqualsFilterType(EqualsFilter filter, Document doc , PrismContext prismContext) throws SchemaException{
 
 		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
 		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
@@ -178,12 +180,23 @@ public class QueryConvertor {
 			if (val instanceof PrismReferenceValue) {
 				throw new SchemaException("Prism refenrence value not allowed in the equal element");
 			} else {
-				if (XmlTypeConverter.canConvert(val.getClass())){
-					Element propVal = val.asDomElement();
-					value.setTextContent(propVal.getTextContent());
-				} else {
-					value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
+				if (val.getParent() == null){
+					val.setParent(filter);
 				}
+				Element element = prismContext.getPrismDomProcessor().serializeValueToDom(val, propertyName, doc);
+				if (filter.getDefinition().getTypeClass().equals(PolyString.class) || filter.getDefinition().getTypeClass().equals(PolyStringType.class)){
+					for (Element e : DOMUtil.listChildElements(element)){
+						value.appendChild(e);
+					}
+				} else{
+					value.setTextContent(element.getTextContent());
+				}
+//				if (XmlTypeConverter.canConvert(val.getClass())){
+//					Element propVal = val.asDomElement();
+//					value.setTextContent(propVal.getTextContent());
+//				} else {
+//					value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
+//				}
 //				value.setTextContent();
 				equal.appendChild(value);
 //				propValue.setTextContent(String.valueOf(((PrismPropertyValue) val).getValue()));
@@ -193,7 +206,7 @@ public class QueryConvertor {
 		return equal;
 	}
 	
-	private static Element createRefFilterType(RefFilter filter, Document doc) throws SchemaException {
+	private static Element createRefFilterType(RefFilter filter, Document doc, PrismContext prismContext) throws SchemaException {
 
 		Element ref = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_REF);
 
@@ -231,7 +244,7 @@ public class QueryConvertor {
 		return ref;
 	}
 
-	private static Element createSubstringFilterType(SubstringFilter filter, Document doc) {
+	private static Element createSubstringFilterType(SubstringFilter filter, Document doc, PrismContext prismContext) {
 		Element substring = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_SUBSTRING);
 		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
 		substring.appendChild(value);
@@ -239,18 +252,16 @@ public class QueryConvertor {
 		Element path = createPathElement(filter, doc);
 		substring.appendChild(path);
 
-		QName propertyName = filter.getDefinition().getName();
+//		QName propertyName = filter.getDefinition().getName();
 		String val = filter.getValue();
 
-		Element propValue = DOMUtil.createElement(doc, propertyName);
-		propValue.setTextContent(val);
-
-		value.appendChild(propValue);
+//		Element propValue = DOMUtil.createElement(doc, propertyName);
+		value.setTextContent(val);
 
 		return substring;
 	}
 
-	private static Element createOrgFilterType(OrgFilter filter, Document doc) {
+	private static Element createOrgFilterType(OrgFilter filter, Document doc, PrismContext prismContext) {
 		Element org = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_ORG);
 
 		Element orgRef = null;
