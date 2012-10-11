@@ -2783,7 +2783,7 @@ public class TestSanity extends AbstractIntegrationTest {
             // givenName is not mandatory in LDAP, therefore givenName may not
             // be present on user
 
-            if (user.getName().equals(USER_GUYBRUSH_USERNAME)) {
+            if (user.getName().getOrig().equals(USER_GUYBRUSH_USERNAME)) {
             	// skip the rest of checks for guybrush, he does not have LDAP account now
             	continue;
             }
