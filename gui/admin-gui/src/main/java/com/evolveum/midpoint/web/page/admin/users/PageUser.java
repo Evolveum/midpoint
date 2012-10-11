@@ -805,13 +805,8 @@ public class PageUser extends PageAdminUsers {
             assignment.setupContainerValue(value);
             userType.getAssignment().add(assignment);
 
-            //todo remove this block [lazyman]
-//            assignment.getAccountConstruction().setResourceRef(null);
-//            ObjectReferenceType ref = new ObjectReferenceType();
-//            ref.setOid(assignment.getAccountConstruction().getResource().getOid());
-//            ref.setType(ResourceType.COMPLEX_TYPE);
-//            assignment.getAccountConstruction().setResourceRef(ref);
-//            assignment.getAccountConstruction().setResource(null);
+            //todo remove this block [lazyman] after model is updated - it has to remove resource from accountConstruction
+            removeResourceFromAccConstruction(assignment);
 
             try {
                 value.applyDefinition(assignmentDef, false);
@@ -819,7 +814,27 @@ public class PageUser extends PageAdminUsers {
                 //todo error handling
                 ex.printStackTrace();
             }
+
+            //todo remove [lazyman]
+            System.out.println("ASS ADD:\n" + getPrismContext().silentMarshalObject(value, LOGGER));
         }
+    }
+
+    /**
+     *  remove this method after model is updated - it has to remove resource from accountConstruction
+     */
+    @Deprecated
+    private void removeResourceFromAccConstruction(AssignmentType assignment) {
+        AccountConstructionType accConstruction = assignment.getAccountConstruction();
+        if (accConstruction == null || accConstruction.getResource() == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(assignment.getAccountConstruction().getResource().getOid());
+        ref.setType(ResourceType.COMPLEX_TYPE);
+        assignment.getAccountConstruction().setResourceRef(ref);
+        assignment.getAccountConstruction().setResource(null);
     }
 
     private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef)
@@ -877,7 +892,7 @@ public class PageUser extends PageAdminUsers {
                     try {
                         newValue.applyDefinition(assignmentDef, false);
                     } catch (Exception ex) {
-                        //todo error handling
+                        //todo error handling [lazyman]
                         ex.printStackTrace();
                     }
                 case DELETE:
@@ -891,12 +906,24 @@ public class PageUser extends PageAdminUsers {
                     if (!assDto.isModified()) {
                         continue;
                     }
+
                     assDelta.addValueToAdd(newValue);
-                    assDelta.addValueToDelete(assDto.getOldValue());
+                    assDelta.addValueToDelete(assDto.getOldValue().clone());
                     break;
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
             }
+        }
+
+        //todo remove this block [lazyman] after model is updated - it has to remove resource from accountConstruction
+        Collection<PrismContainerValue> values = assDelta.getValues(PrismContainerValue.class);
+        for (PrismContainerValue value : values) {
+            AssignmentType ass = new AssignmentType();
+            ass.setupContainerValue(value);
+            removeResourceFromAccConstruction(ass);
+
+            //todo remove [lazyman]
+            System.out.println("ASS DELTA:\n" + getPrismContext().silentMarshalObject(ass, LOGGER));
         }
 
         return assDelta;

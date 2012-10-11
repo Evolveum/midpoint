@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
@@ -136,16 +137,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         this.status = status;
     }
 
-    public boolean isModified() {
-        return false;
-//        return !getOldValue().equivalent(getNewValue());
+    public boolean isModified() throws SchemaException {
+        return !getOldValue().equivalent(getNewValue());
     }
 
     public PrismContainerValue getOldValue() {
         return oldAssignment.asPrismContainerValue();
     }
 
-    public PrismContainerValue getNewValue() {
+    public PrismContainerValue getNewValue() throws SchemaException {
         AccountConstructionType construction = newAssignment.getAccountConstruction();
         if (construction == null) {
             return newAssignment.asPrismContainerValue();

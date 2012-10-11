@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBElement;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -137,7 +138,7 @@ public class ACAttributeDto implements Serializable {
         return true;
     }
 
-    public ResourceAttributeDefinitionType getConstruction() {
+    public ResourceAttributeDefinitionType getConstruction() throws SchemaException {
         if (isEmpty()) {
             return null;
         }
@@ -147,10 +148,29 @@ public class ACAttributeDto implements Serializable {
         MappingType outbound = new MappingType();
         attrConstruction.setOutbound(outbound);
 
+        ExpressionType expression = new ExpressionType();
+        outbound.setExpression(expression);
+
+        List<ACValueConstructionDto> values = getValues();
+        PrismProperty property = definition.instantiate();
+        for (ACValueConstructionDto dto : values) {
+            if (dto.getValue() == null) {
+                continue;
+            }
+
+            property.add(new PrismPropertyValue(dto.getValue()));
+        }
+
+        List evaluators = expression.getExpressionEvaluator();
+        Collection<?> collection = LiteralExpressionEvaluatorFactory.serializeValueElements(property, null);
         ObjectFactory of = new ObjectFactory();
+        for (Object obj : collection) {
+            evaluators.add(of.createValue(obj));
+        }
 
-
-        //todo implement
+        if (evaluators.isEmpty()) {
+            return null;
+        }
 
         return attrConstruction;
     }
