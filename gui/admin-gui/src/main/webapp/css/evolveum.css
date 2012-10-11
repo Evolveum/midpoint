@@ -952,3 +952,31 @@ div.tabPanel div.tab-row a:hover {
 .assignmentBlock .assignmentAttrValue a:hover {
 	text-decoration: none;
 }
+
+/***********************/
+
+.exportData .searchPanel {
+	padding-right: 25px; 
+	border-right: 1px solid #C9C9C9;
+}
+
+.exportData .searchPanel .button {
+    margin-top: 10px;
+}
+
+.exportData .searchPanel .searchSubPanel {
+	padding-bottom: 25px;	
+}
+
+.exportData .searchTitle {
+	color: #888888;
+}
+
+.exportData input[type="text"], .exportData select {
+    border: 1px solid #BBBBBB;
+    width: 100%;
+}
+
+.exportData .resultPanel {
+	padding-left: 25px; 
+}
