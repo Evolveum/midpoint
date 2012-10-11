@@ -62,7 +62,7 @@ public class ACAttributeDto implements Serializable {
     public static ACAttributeDto createACAttributeDto(PrismPropertyDefinition definition, ResourceAttributeDefinitionType construction,
                                                       PrismContext context) throws SchemaException {
         ACAttributeDto dto = new ACAttributeDto(definition, construction);
-        dto.createValues(context);
+        dto.values = dto.createValues(context);
 
         return dto;
     }
