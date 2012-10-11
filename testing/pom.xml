@@ -55,5 +55,6 @@
     </scm>
     <modules>
         <module>sanity</module>
+        <module>consistency-mechanism</module>
     </modules>
 </project>
