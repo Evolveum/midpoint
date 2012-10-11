@@ -113,13 +113,22 @@ public class SqlBaseService {
                 && !(ex instanceof HibernateOptimisticLockingFailureException)) {
             //it's not locking exception (optimistic, pesimistic lock or simple lock acquisition)
 
+            // yet another brutal hack...
+            boolean deadlockRelated = ex.getMessage() != null && ex.getMessage().contains("deadlock");
+
             if (ex instanceof GenericJDBCException) {
                 //fix for table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
                 GenericJDBCException jdbcEx = (GenericJDBCException) ex;
                 if (jdbcEx.getErrorCode() != 50200) {
+                    if (deadlockRelated) {
+                        LOGGER.error("Deadlock-related problem was not caught correctly (jdbc branch)!", jdbcEx);
+                    }
                     throw new SystemException(ex);
                 }
             } else {
+                if (deadlockRelated) {
+                    LOGGER.error("Deadlock-related problem was not caught correctly (non-jdbc branch)!", ex);
+                }
                 throw ex;
             }
         }
