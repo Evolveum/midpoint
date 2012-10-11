@@ -312,6 +312,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return false;
     }
     
+    public int size() {
+    	return values.size();
+    }
+    
     public boolean addAll(Collection<V> newValues) throws SchemaException {
     	boolean changed = false;
     	for (V val: newValues) {

@@ -1121,6 +1121,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	@Test
 	public void test018BmodifyObjectNotFoundAssignedAccount() throws Exception {
 		displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
+		
+		// GIVEN
 		OperationResult parentResult = new OperationResult(
 				"Modify account not found => reaction: Re-create account, apply changes.");
 
@@ -1148,10 +1150,13 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(ACCOUNT_GUYBRUSH_OID, delta.getModifications(), AccountShadowType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		
+		// WHEN
 		modelService.executeChanges(deltas, null, task, parentResult);
 //		modelService.modifyObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, delta.getModifications(),
 //				task, parentResult);
 
+		// THEN
 		PrismObject<UserType> modificatedUser = repositoryService.getObject(UserType.class,
 				USER_GUYBRUSH_OID, parentResult);
 		assertNotNull(modificatedUser);
@@ -1159,7 +1164,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertEquals("Expecting that user has one account reference, but found " + referenceList.size()
 				+ " reference", 1, referenceList.size());
 
-		assertTrue("Old shadow oid and new shadow oid should not be the same.", !ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
+		assertFalse("Old shadow oid and new shadow oid should not be the same.", ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
 		
 		PrismObject<AccountShadowType> modifiedAccount = provisioningService.getObject(
 				AccountShadowType.class, referenceList.get(0).getOid(), null, parentResult);
