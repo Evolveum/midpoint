@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.expression.evaluator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -128,6 +130,18 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 			}
 		}
 		return output;
+	}
+	
+	public static <V extends PrismValue> List<?> serializeValueElements(Item<V> item, String contextDescription) throws SchemaException {
+		if (item == null) {
+			return null;
+		}
+		PrismDomProcessor domProcessor = item.getPrismContext().getPrismDomProcessor();
+		List<Object> elements = new ArrayList<Object>(1);
+		Element valueElement = DOMUtil.createElement(DOMUtil.getDocument(), SchemaConstants.C_VALUE);
+		domProcessor.serializeItemToDom(item, valueElement);
+		elements.add(valueElement);
+		return elements;
 	}
 
 }

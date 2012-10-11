@@ -45,6 +45,7 @@
 			<class name="com.evolveum.midpoint.common.expression.TestJavaScriptExpressions" />
 			<class name="com.evolveum.midpoint.common.expression.TestGroovyExpressions" />
 			<class name="com.evolveum.midpoint.common.expression.TestMidPointFunctions" />
+			<class name="com.evolveum.midpoint.common.expression.TestStaticValues" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingDynamic" />
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingStatic" />
 		</classes>
