@@ -21,11 +21,6 @@
 
 package com.evolveum.midpoint.model.security;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -41,6 +36,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -78,12 +77,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     private PrincipalUser findByUsername(String username) throws SchemaException, ObjectNotFoundException {
-//        QueryType query = new QueryType();
-//        query.setFilter(createQuery(username));
-    	ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, username));
+        ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, username));
         LOGGER.trace("Looking for user, query:\n" + query.dump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, 
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query,
                 new OperationResult("Find by username"));
         if (list == null) {
             return null;
@@ -93,41 +90,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return null;
         }
 
-        return createUser(list.get(0).asObjectable());
+        return new PrincipalUser(list.get(0).asObjectable());
     }
-
-    private PrincipalUser createUser(UserType userType) {
-    	return new PrincipalUser(userType);
-//        CredentialsType credentialsType = userType.getCredentials();
-//
-//        PrincipalUser user = new PrincipalUser(userType);
-//        if (credentialsType != null && credentialsType.getPassword() != null) {
-//            PasswordType password = credentialsType.getPassword();
-//
-//            Credentials credentials = user.getCredentials();
-//            credentials.setPassword(password.getProtectedString());
-//            if (password.getFailedLogins() == null || password.getFailedLogins() < 0) {
-//                credentials.setFailedLogins(0);
-//            } else {
-//                credentials.setFailedLogins(password.getFailedLogins());
-//            }
-//            XMLGregorianCalendar calendar = null;
-//            if (password.getLastFailedLogin() != null) {
-//                calendar = password.getLastFailedLogin().getTimestamp();
-//            }
-//            if (calendar != null) {
-//                credentials.setLastFailedLoginAttempt(calendar.toGregorianCalendar().getTimeInMillis());
-//            } else {
-//                credentials.setLastFailedLoginAttempt(0);
-//            }
-//        }
-//
-//        return user;
-    }
-
-//    private Element createQuery(String username) throws SchemaException {
-//        return QueryUtil.createEqualFilter(DOMUtil.getDocument(), null, ObjectType.F_NAME, username);
-//    }
 
     private PrincipalUser save(PrincipalUser person) throws RepositoryException {
         try {
@@ -135,8 +99,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             PrismObject<UserType> oldUser = oldUserType.asPrismObject();
 
             PrismObject<UserType> newUser = person.getUser().asPrismObject();
-
-//            updateUserType(newUserType, person);
 
             ObjectDelta<UserType> delta = oldUser.diff(newUser);
             repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
@@ -157,31 +119,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return null;
     }
-
-//    private void updateUserType(UserType userType, PrincipalUser user) {
-//        CredentialsType credentials = userType.getCredentials();
-//        if (credentials == null) {
-//            credentials = new CredentialsType();
-//            userType.setCredentials(credentials);
-//        }
-//        PasswordType password = credentials.getPassword();
-//        if (password == null) {
-//            password = new PasswordType();
-//            credentials.setPassword(password);
-//        }
-//
-//        password.setFailedLogins(user.getCredentials().getFailedLogins());
-//
-//        try {
-//            GregorianCalendar gc = new GregorianCalendar();
-//            gc.setTimeInMillis(user.getCredentials().getLastFailedLoginAttempt());
-//            XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
-//            LoginEventType loginEvent = new LoginEventType();
-//            loginEvent.setTimestamp(calendar);
-//            loginEvent.setFrom(null);   //todo implement...
-//            password.setLastFailedLogin(loginEvent);
-//        } catch (DatatypeConfigurationException ex) {
-//            LOGGER.error("Can't save last failed login timestamp, reason: " + ex.getMessage());
-//        }
-//    }
 }

@@ -38,7 +38,7 @@
         <t:orig>Administrator</t:orig>
         <t:norm>administrator</t:norm>
     </c:familyName>
-    <c:eMailAddress>administrator@example.com</c:eMailAddress>
+    <c:emailAddress>administrator@example.com</c:emailAddress>
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
         <c:password>
             <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
@@ -52,15 +52,15 @@
 <!--                         <enc:CipherValue>BsyixS6xYIIz8DQrtzdfSR6Kqe+ZEoHrkvCXPHaMxjjyvkFcYPavTDzoPT5JnjUx</enc:CipherValue> -->
 <!--                     </enc:CipherData> -->
 <!--                 </enc:EncryptedData> -->
-<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-               <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
-               <ds:KeyInfo>
-                  <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
-               </ds:KeyInfo>
-               <enc:CipherData>
-                  <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8</enc:CipherValue>
-               </enc:CipherData>
-            </enc:EncryptedData>
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                   <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                   <ds:KeyInfo>
+                      <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+                   </ds:KeyInfo>
+                   <enc:CipherData>
+                      <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8</enc:CipherValue>
+                   </enc:CipherData>
+                </enc:EncryptedData>
             </c:value>
         </c:password>
         <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
