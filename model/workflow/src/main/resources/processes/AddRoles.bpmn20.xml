@@ -100,8 +100,8 @@
                 <extensionElements>
                     <activiti:formProperty id="userName" expression="#{userName}" name="01: User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
                     <activiti:formProperty id="role" expression="#{role.name.orig}" name="02: Role" required="false" readable="true" writable="false"></activiti:formProperty>
-                    <activiti:formProperty id="decision#C" name="03: Add role to the user?" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
-                    <activiti:formProperty id="comment#C" name="04: Comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                    <activiti:formProperty id="comment#C" name="03: Comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                    <activiti:formProperty id="decision" name="decision to be filled-in automatically" type="boolean" required="false" readable="true" writable="true"></activiti:formProperty>
                 </extensionElements>
             </userTask>
             <sequenceFlow sourceRef="approve" targetRef="recordDecision" />

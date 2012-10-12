@@ -215,7 +215,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 //        }
 
         Map<String,String> outputItems = new HashMap<String,String>();
-        outputItems.put("decision#C", decision);
+        outputItems.put(WfConstants.FORM_FIELD_DECISION, decision);
         outputItems.put("comment#C", comment);
         processEngine.getFormService().submitTaskFormData(task.getId(), outputItems);
     }

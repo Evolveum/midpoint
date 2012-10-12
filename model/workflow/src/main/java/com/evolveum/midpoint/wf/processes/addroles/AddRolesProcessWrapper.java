@@ -146,7 +146,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
             }
 
             for (ItemDelta delta : change.getModifications()) {
-                if (UserType.F_ASSIGNMENT.equals(delta.getName())) {
+                if (UserType.F_ASSIGNMENT.equals(delta.getName()) && delta.getValuesToAdd() != null) {          // todo: what if assignments are modified?
                     for (Object o : delta.getValuesToAdd()) {
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("Assignment to add = " + ((PrismContainerValue) o).dump());

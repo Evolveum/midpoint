@@ -24,6 +24,7 @@ package com.evolveum.midpoint.wf.processes.addroles;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -45,7 +46,7 @@ public class RecordDecision implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
         RoleType role = (RoleType) execution.getVariableLocal("role");
-        Boolean yesOrNo = (Boolean) execution.getVariable("decision#C");
+        Boolean yesOrNo = (Boolean) execution.getVariable(WfConstants.FORM_FIELD_DECISION);
         String comment = (String) execution.getVariable("comment#C");
 
         if (comment != null && comment.startsWith("+")) {

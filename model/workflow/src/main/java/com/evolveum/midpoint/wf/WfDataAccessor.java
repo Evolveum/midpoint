@@ -593,13 +593,34 @@ public class WfDataAccessor {
         return retval.toString();
     }
 
+    public void approveOrRejectWorkItem(WorkItem workItem, String approverOid, boolean decision, OperationResult result) {
+
+        String taskId = workItem.getTaskId();
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Approving/rejecting work item " + taskId);
+            LOGGER.trace("Decision: " + decision);
+        }
+
+        FormService formService = getActivitiEngine().getFormService();
+        Map<String,String> propertiesToSubmit = new HashMap<String,String>();
+        TaskFormData data = getActivitiEngine().getFormService().getTaskFormData(taskId);
+
+        // we hope that the form has a property named "decision"
+        propertiesToSubmit.put(WfConstants.FORM_FIELD_DECISION, Boolean.toString(decision));
+        formService.submitTaskFormData(taskId, propertiesToSubmit);
+
+        result.recordSuccessIfUnknown();
+    }
+
     // todo error reporting
-    public void saveWorkItemPrism(PrismObject specific, PrismObject common, OperationResult result) {
+    public void saveWorkItemPrism(PrismObject specific, PrismObject common, boolean decision, OperationResult result) {
 
         String taskId = (String) common.getPropertyRealValue(WORK_ITEM_TASK_ID, String.class);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Saving work item " + taskId);
+            LOGGER.trace("Decision: " + decision);
             LOGGER.trace("WorkItem form object (process-specific) = " + specific.debugDump());
             LOGGER.trace("WorkItem form object (process-independent) = " + common.debugDump());
         }
@@ -619,9 +640,15 @@ public class WfDataAccessor {
             }
 
             if (formProperty.isWritable()) {
-                QName propertyName = new QName(SchemaConstants.NS_C, formProperty.getName());
 
-                Object value = specific.getPropertyRealValue(propertyName, Object.class);
+                Object value;
+
+                if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
+                    value = decision;
+                } else {
+                    QName propertyName = new QName(SchemaConstants.NS_C, formProperty.getName());
+                    value = specific.getPropertyRealValue(propertyName, Object.class);
+                }
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Writable property " + formProperty.getId() + " has a value of " + value);
@@ -654,6 +681,11 @@ public class WfDataAccessor {
         for (FormProperty formProperty : data.getFormProperties()) {
 
             LOGGER.trace("- form property: name=" + formProperty.getName() + ", value=" + formProperty.getValue() + ", type=" + formProperty.getType());
+
+            if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
+                LOGGER.trace("   - it is a decision field, concealing it.");
+                continue;
+            }
 
             String propertyName = getPropertyName(formProperty);
             String propertyType = getPropertyType(formProperty);
@@ -703,6 +735,10 @@ public class WfDataAccessor {
         PrismObject<ObjectType> instance = prismObjectDefinition.instantiate();
 
         for (FormProperty formProperty : data.getFormProperties()) {
+
+            if (WfConstants.FORM_FIELD_DECISION.equals(formProperty.getId())) {
+                continue;
+            }
 
             FormType t = formProperty.getType();
             String ts = t == null ? "string" : t.getName();

@@ -56,7 +56,8 @@ public class PageWorkItems extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);
     private static final String DOT_CLASS = PageWorkItems.class.getName() + ".";
-    private static final String OPERATION_APPROVE_ITEMS = DOT_CLASS + "approveItems";
+    private static final String OPERATION_APPROVE_OR_REJECT_ITEMS = DOT_CLASS + "approveOrRejectItems";
+    private static final String OPERATION_APPROVE_OR_REJECT_ITEM = DOT_CLASS + "approveOrRejectItem";
     private static final String OPERATION_REJECT_ITEMS = DOT_CLASS + "rejectItems";
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItems";
     private static final String OPERATION_CLAIM_ITEM = DOT_CLASS + "claimItem";
@@ -83,7 +84,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         assignedItemTable.setOutputMarkupId(true);
         mainForm.add(assignedItemTable);
 
-        //initItemButtons(mainForm);
+        initItemButtons(mainForm);
     }
 
     private List<IColumn<WorkItemDto>> initUnassignedItemColumns() {
@@ -174,7 +175,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-//                deleteTasksPerformed(target);
+                approveOrRejectWorkItemsPerformed(target, true);
             }
         };
         mainForm.add(approve);
@@ -184,7 +185,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-//                scheduleTasksPerformed(target);
+                approveOrRejectWorkItemsPerformed(target, false);
             }
         };
         mainForm.add(reject);
@@ -240,6 +241,38 @@ public class PageWorkItems extends PageAdminWorkItems {
         PageParameters parameters = new PageParameters();
         parameters.add(PageWorkItem.PARAM_TASK_ID, taskid);
         setResponsePage(PageWorkItem.class, parameters);
+    }
+
+    private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {
+        List<WorkItemDto> workItemDtoList = getSelectedAssignedItems();
+        if (!isSomeItemSelected(workItemDtoList, target)) {
+            return;
+        }
+
+        OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
+        WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
+        for (WorkItemDto workItemDto : workItemDtoList) {
+            OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
+            try {
+                wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), approve, result);
+            } catch (Exception e) {
+                result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
+            }
+        }
+        if (mainResult.isUnknown()) {
+            mainResult.recomputeStatus();
+        }
+
+        if (mainResult.isSuccess()) {
+            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully " + (approve ? "approved." : "rejected."));
+        }
+
+        showResult(mainResult);
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+//        target.add(getUnassignedItemTable());
+        target.add(getAssignedItemTable());
     }
 
 //    private void claimWorkItemsPerformed(AjaxRequestTarget target) {

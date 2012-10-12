@@ -53,4 +53,5 @@ public class WfConstants {
 
     public static final String VARIABLE_MIDPOINT_LISTENER = "midPointListener";
 
+    public static final String FORM_FIELD_DECISION = "decision";
 }

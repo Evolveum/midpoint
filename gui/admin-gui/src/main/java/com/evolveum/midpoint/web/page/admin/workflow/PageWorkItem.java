@@ -423,47 +423,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initButtons(Form mainForm) {
 
-//        AjaxSubmitLinkButton approve = new AjaxSubmitLinkButton("approve",
-//                createStringResource("pageWorkItem.button.approve")) {
-//
-//            @Override
-//            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//                // todo
-//            }
-//
-//            @Override
-//            protected void onError(AjaxRequestTarget target, Form<?> form) {
-//                target.add(getFeedbackPanel());
-//            }
-//        };
-//        mainForm.add(approve);
-//
-//        AjaxSubmitLinkButton reject = new AjaxSubmitLinkButton("reject",
-//                createStringResource("pageWorkItem.button.reject")) {
-//
-//            @Override
-//            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//                // todo
-//            }
-//
-//            @Override
-//            protected void onError(AjaxRequestTarget target, Form<?> form) {
-//                target.add(getFeedbackPanel());
-//            }
-//        };
-//        mainForm.add(reject);
-
-        AjaxSubmitLinkButton done = new AjaxSubmitLinkButton("done",
-                createStringResource("pageWorkItem.button.done")) {
+        AjaxSubmitLinkButton approve = new AjaxSubmitLinkButton("approve",
+                createStringResource("pageWorkItem.button.approve")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                try {
-                    savePerformed(target);
-                } catch(RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Exception in savePerformed", e);
-                    throw e;
-                }
+                savePerformed(target, true);
             }
 
             @Override
@@ -471,7 +436,42 @@ public class PageWorkItem extends PageAdminWorkItems {
                 target.add(getFeedbackPanel());
             }
         };
-        mainForm.add(done);
+        mainForm.add(approve);
+
+        AjaxSubmitLinkButton reject = new AjaxSubmitLinkButton("reject",
+                createStringResource("pageWorkItem.button.reject")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                savePerformed(target, false);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(reject);
+
+//        AjaxSubmitLinkButton done = new AjaxSubmitLinkButton("done",
+//                createStringResource("pageWorkItem.button.done")) {
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//                try {
+//                    savePerformed(target);
+//                } catch(RuntimeException e) {
+//                    LoggingUtils.logException(LOGGER, "Exception in savePerformed", e);
+//                    throw e;
+//                }
+//            }
+//
+//            @Override
+//            protected void onError(AjaxRequestTarget target, Form<?> form) {
+//                target.add(getFeedbackPanel());
+//            }
+//        };
+//        mainForm.add(done);
 
         AjaxLinkButton cancel = new AjaxLinkButton("cancel",
                 createStringResource("pageWorkItem.button.cancel")) {
@@ -489,7 +489,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         setResponsePage(PageWorkItems.class);
     }
 
-    private void savePerformed(AjaxRequestTarget target) {
+    private void savePerformed(AjaxRequestTarget target, boolean decision) {
         LOGGER.debug("Saving work item changes.");
 
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
@@ -501,7 +501,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowDataAccessor().saveWorkItemPrism(object, rcWrapper.getObject(), result);
+            getWorkflowDataAccessor().saveWorkItemPrism(object, rcWrapper.getObject(), decision, result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
