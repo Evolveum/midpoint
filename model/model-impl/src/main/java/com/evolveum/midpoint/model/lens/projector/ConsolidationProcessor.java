@@ -178,13 +178,16 @@ public class ConsolidationProcessor {
                     LOGGER.trace("Value {} added and removed, doing nothing", value);
                     continue;
                 }
+                RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
                 if (propDelta == null) {
-                	RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
                     propDelta = new PropertyDelta(parentPath, attributeName, attributeDefinition);
+                } else {
+                	// Make sure that the delta has refined attr def. Otherwise overrides will not work well.
+                	propDelta.setDefinition(attributeDefinition);
                 }
 
                 boolean initialOnly = true;
-                Mapping<?> exclusiveVc = null;
+                Mapping<?> exclusiveMapping = null;
                 Collection<PropertyValueWithOrigin> pvwosToAdd = null;
                 if (addUnchangedValues) {
                     pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
@@ -199,11 +202,11 @@ public class ConsolidationProcessor {
                             initialOnly = false;
                         }
                         if (vc.isExclusive()) {
-                            if (exclusiveVc == null) {
-                                exclusiveVc = vc;
+                            if (exclusiveMapping == null) {
+                                exclusiveMapping = vc;
                             } else {
                                 String message = "Exclusion conflict in account " + rat + ", attribute " + attributeName +
-                                        ", conflicting constructions: " + exclusiveVc + " and " + vc;
+                                        ", conflicting constructions: " + exclusiveMapping + " and " + vc;
                                 LOGGER.error(message);
                                 throw new ExpressionEvaluationException(message);
                             }

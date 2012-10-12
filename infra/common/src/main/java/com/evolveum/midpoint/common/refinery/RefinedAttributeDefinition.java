@@ -216,21 +216,6 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         return attributeDefinition.getMinOccurs();
     }
 
-    public boolean isMandatory() {
-        return attributeDefinition.isMandatory();
-    }
-
-    public boolean isMultiValue() {
-        return attributeDefinition.isMultiValue();
-    }
-
-    public boolean isOptional() {
-        return attributeDefinition.isOptional();
-    }
-
-    public boolean isSingleValue() {
-        return attributeDefinition.isSingleValue();
-    }
 
     public String getHelp() {
         return attributeDefinition.getHelp();

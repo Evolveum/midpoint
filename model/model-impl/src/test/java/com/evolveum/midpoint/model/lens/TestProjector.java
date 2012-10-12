@@ -278,6 +278,52 @@ public class TestProjector extends AbstractModelIntegrationTest {
                 
     }
 	
+	/**
+	 * User barbossa has a direct account assignment. This assignment has an expression for user/fullName -> opendj/cn.
+	 * cn is also overriden to be single-value.
+	 * Let's try if the "cn" gets updated if we update barbosa's fullName. Also check if delta is replace.
+	 */
+	@Test
+    public void test051ModifyUserBarbossaFullname() throws Exception {
+        displayTestTile(this, "test051ModifyUserBarbossaFullname");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test051ModifyUserBarbossaFullname");
+        OperationResult result = task.getResult();
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContextReplaceUserProperty(context, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Hector Barbossa"));
+        context.recompute();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
+        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getOpenDJAttributePath("cn") , "Captain Hector Barbossa");
+                
+    }
+	
 	@Test
     public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
