@@ -816,7 +816,7 @@ public class PageUser extends PageAdminUsers {
             }
 
             //todo remove [lazyman]
-            System.out.println("ASS ADD:\n" + getPrismContext().silentMarshalObject(value, LOGGER));
+            System.out.println("ASS ADD:\n" + getPrismContext().silentMarshalObject(assignment, LOGGER));
         }
     }
 
