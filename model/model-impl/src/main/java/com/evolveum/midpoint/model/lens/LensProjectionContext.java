@@ -576,6 +576,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         sb.append(", assigned=").append(isAssigned);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", decision=").append(policyDecision);
+        if (resourceShadowDiscriminator.isThombstone()) {
+        	sb.append(", THOMBSTONE");
+        }
         if (iteration != 0) {
         	sb.append(", iteration=").append(iteration);
         }

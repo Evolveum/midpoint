@@ -139,7 +139,7 @@ public class ContextLoader {
 				projectionContext.setResource(resource);
 			}
 			String refinedIntent = LensUtil.refineAccountType(rsd.getIntent(), resource, prismContext);
-			rsd = new ResourceShadowDiscriminator(rsd.getResourceOid(), refinedIntent);
+			rsd = new ResourceShadowDiscriminator(rsd.getResourceOid(), refinedIntent, rsd.isThombstone());
 			projectionContext.setResourceShadowDiscriminator(rsd);
 		}
 	}
