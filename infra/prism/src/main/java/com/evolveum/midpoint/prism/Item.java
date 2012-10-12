@@ -386,10 +386,14 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     public Collection<? extends ItemDelta> diff(Item<V> other) {
     	return diff(other, true, false);
     }
-    
+        
     public Collection<? extends ItemDelta> diff(Item<V> other, boolean ignoreMetadata, boolean isLiteral) {
+    	return diff(other, null, ignoreMetadata, isLiteral);
+    }
+    
+    public Collection<? extends ItemDelta> diff(Item<V> other, PropertyPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
     	Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
-		diffInternal(other, null, itemDeltas, ignoreMetadata, isLiteral);
+		diffInternal(other, pathPrefix, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
     }
         

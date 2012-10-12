@@ -503,16 +503,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	public ContainerDelta<V> createDelta(PropertyPath path) {
     	return new ContainerDelta<V>(path, getDefinition());
 	}
-
-    public Collection<? extends ItemDelta> diff(PrismContainer<V> other, PropertyPath pathPrefix) {
-    	return diff(other, pathPrefix, true, false);
-    }
-    
-    public Collection<? extends ItemDelta> diff(PrismContainer<V> other, PropertyPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
-    	Collection<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
-    	diffInternal(other, pathPrefix, deltas, ignoreMetadata, isLiteral);
-    	return deltas;
-    }
     
     @Override
 	public void revive(PrismContext prismContext) {

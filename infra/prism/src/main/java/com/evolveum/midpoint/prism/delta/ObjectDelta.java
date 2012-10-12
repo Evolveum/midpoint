@@ -314,15 +314,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     private <D extends ItemDelta> D findModification(PropertyPath propertyPath, Class<D> deltaType) {
-        if (modifications == null) {
-            return null;
-        }
-        for (ItemDelta delta : modifications) {
-            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
-                return (D) delta;
-            }
-        }
-        return null;
+    	return ItemDelta.findItemDelta(modifications, propertyPath, deltaType);
     }
     
     private  <D extends ItemDelta> D findModification(QName itemName, Class<D> deltaType) {

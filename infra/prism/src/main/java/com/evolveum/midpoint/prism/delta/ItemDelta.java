@@ -29,6 +29,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.Visitable;
@@ -392,6 +394,46 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		valuesToAdd = null;
 		valuesToDelete = null;
 	}
+	
+	public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, QName propertyName) {
+        return findPropertyDelta(deltas, new PropertyPath(propertyName));
+    }
+
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, PropertyPath parentPath, QName propertyName) {
+        return findPropertyDelta(deltas, new PropertyPath(parentPath, propertyName));
+    }
+    
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath) {
+    	return findItemDelta(deltas, propertyPath, PropertyDelta.class);
+    }
+    
+    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath) {
+    	return findItemDelta(deltas, propertyPath, ContainerDelta.class);
+    }
+
+    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, QName name) {
+    	return findContainerDelta(deltas, new PropertyPath(name));
+    }
+
+    public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath, Class<D> deltaType) {
+        if (deltas == null) {
+            return null;
+        }
+        for (ItemDelta delta : deltas) {
+            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
+                return (D) delta;
+            }
+        }
+        return null;
+    }
+    
+    public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, QName itemName, Class<D> deltaType) {
+    	return findItemDelta(deltas, new PropertyPath(itemName), deltaType);
+    }
+    
+    public static ReferenceDelta findReferenceModification(Collection<? extends ItemDelta> deltas, QName itemName) {
+    	return findItemDelta(deltas, itemName, ReferenceDelta.class);
+    }
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
 		checkConsistence(deltas, false, false);

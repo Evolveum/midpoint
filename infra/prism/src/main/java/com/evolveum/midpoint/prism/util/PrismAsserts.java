@@ -234,6 +234,24 @@ public class PrismAsserts {
 		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
 	}
 	
+	public static void assertPropertyReplace(Collection<? extends ItemDelta> modifications, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(modifications, propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToReplace(), expectedValues);
+	}
+
+	public static void assertPropertyAdd(Collection<? extends ItemDelta> modifications, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(modifications, propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToAdd(), expectedValues);
+	}
+	
+	public static void assertPropertyDelete(Collection<? extends ItemDelta> modifications, PropertyPath propertyPath, Object... expectedValues) {
+		PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(modifications, propertyPath);
+		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
+		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToDelete(), expectedValues);
+	}
+	
 	public static void assertNoItemDelta(ObjectDelta<?> userDelta, PropertyPath propertyPath) {
 		assert !userDelta.hasItemDelta(propertyPath) : "Delta for item "+propertyPath+" present while not expecting it";
 	}

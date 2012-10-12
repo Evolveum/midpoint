@@ -174,5 +174,103 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 0, modifications.size());
     	
     }
+
+    @Test
+    public void testContainerDiffDesciption() throws Exception {
+    	System.out.println("\n\n===[ testContainerDiffDesciption ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+    	PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+    	
+    	PrismContainer<AssignmentType> ass1 = assignmentContDef.instantiate();
+    	PrismContainerValue<AssignmentType> ass1cval = ass1.createNewValue();
+    	ass1cval.setId("1");
+    	ass1cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah");
+    	
+    	PrismContainer<AssignmentType> ass2 = assignmentContDef.instantiate();
+    	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
+    	ass2cval.setId("1");
+    	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+		
+		// WHEN
+    	Collection<? extends ItemDelta> modifications = ass1.diff(ass2);
+        
+        // THEN
+        assertNotNull(modifications);
+        System.out.println(DebugUtil.debugDump(modifications));
+        assertEquals("Unexpected number of midifications", 1, modifications.size());
+        PrismAsserts.assertPropertyReplace(
+        		modifications, 
+        		new PropertyPath(
+        				new PropertyPathSegment(UserType.F_ASSIGNMENT, "1"),
+        				new PropertyPathSegment(AssignmentType.F_DESCRIPTION)),
+        		"chamalalia patlama paprtala");
+    	
+    }
     
+    @Test
+    public void testContainerValueDiffDesciptionNoPath() throws Exception {
+    	System.out.println("\n\n===[ testContainerValueDiffDesciptionNoPath ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+    	PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+    	
+    	PrismContainer<AssignmentType> ass1 = assignmentContDef.instantiate();
+    	PrismContainerValue<AssignmentType> ass1cval = ass1.createNewValue();
+    	ass1cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah");
+    	
+    	PrismContainer<AssignmentType> ass2 = assignmentContDef.instantiate();
+    	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
+    	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+		
+		// WHEN
+    	Collection<? extends ItemDelta> modifications = ass1cval.diff(ass2cval);
+        
+        // THEN
+        assertNotNull(modifications);
+        System.out.println(DebugUtil.debugDump(modifications));
+        assertEquals("Unexpected number of midifications", 1, modifications.size());
+        PrismAsserts.assertPropertyReplace(
+        		modifications, 
+        		new PropertyPath(AssignmentType.F_DESCRIPTION),
+        		"chamalalia patlama paprtala");
+    	
+    }
+
+    @Test
+    public void testContainerValueDiffDesciptionPath() throws Exception {
+    	System.out.println("\n\n===[ testContainerValueDiffDesciptionPath ]===\n");
+    	
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
+    	PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+    	
+    	PrismContainer<AssignmentType> ass1 = assignmentContDef.instantiate();
+    	PrismContainerValue<AssignmentType> ass1cval = ass1.createNewValue();
+    	ass1cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah");
+    	
+    	PrismContainer<AssignmentType> ass2 = assignmentContDef.instantiate();
+    	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
+    	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
+		
+		PropertyPath pathPrefix = new PropertyPath(new PropertyPathSegment(UserType.F_ASSIGNMENT, "1"));
+		
+		// WHEN
+    	Collection<? extends ItemDelta> modifications = ass1cval.diff(ass2cval, pathPrefix, true, false);
+        
+        // THEN
+        assertNotNull(modifications);
+        System.out.println(DebugUtil.debugDump(modifications));
+        assertEquals("Unexpected number of midifications", 1, modifications.size());
+        PrismAsserts.assertPropertyReplace(
+        		modifications, 
+        		new PropertyPath(
+        				new PropertyPathSegment(UserType.F_ASSIGNMENT, "1"),
+        				new PropertyPathSegment(AssignmentType.F_DESCRIPTION)),
+        		"chamalalia patlama paprtala");
+    	
+    }
+
 }
