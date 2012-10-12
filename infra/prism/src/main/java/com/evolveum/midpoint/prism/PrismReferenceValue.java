@@ -25,8 +25,8 @@ import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
@@ -289,7 +289,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		sb.append("PRV(");
 		if (object == null) {
 			sb.append("oid=").append(oid);
-			sb.append(", targetType=").append(DebugUtil.prettyPrint(targetType));
+			sb.append(", targetType=").append(PrettyPrinter.prettyPrint(targetType));
 		} else {
 			sb.append("object=").append(object);
 		}

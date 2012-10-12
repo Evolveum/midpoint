@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -63,7 +64,7 @@ public class TestPrismContext {
 	
 	@BeforeSuite
 	public void setupDebug() {
-		DebugUtil.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
+		PrettyPrinter.setDefaultNamespacePrefix("http://midpoint.evolveum.com/xml/ns");
 	}
 
 	@Test

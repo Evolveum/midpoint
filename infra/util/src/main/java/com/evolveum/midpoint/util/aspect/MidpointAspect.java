@@ -34,6 +34,8 @@ import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
+import com.evolveum.midpoint.util.PrettyPrinter;
+
 @Aspect
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointAspect {
@@ -58,20 +60,6 @@ public class MidpointAspect {
 	
 	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
 		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_WEB, SUBSYSTEM_UCF };
-
-	// FIXME: try to switch to spring injection. Note: infra components
-	// shouldn't depend on spring
-	// Formatters are statically initialized from class common's DebugUtil
-	private static List<ObjectFormatter> formatters = new ArrayList<ObjectFormatter>();
-
-	/**
-	 * Register new formatter
-	 *
-	 * @param formatter
-	 */
-	public static void registerFormatter(ObjectFormatter formatter) {
-		formatters.add(formatter);
-	}
 
 	@Around("entriesIntoRepository()")
 	public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
@@ -295,29 +283,15 @@ public class MidpointAspect {
 		return className;
 	}
 
-	/**
-	 * Debug output formater
-	 *
-	 * @param value
-	 * @return
-	 */
-
 	private String formatVal(Object value) {
 		if (value == null) {
 			return ("null");
-		} else {
-			String out = null;
-			for (ObjectFormatter formatter : formatters) {
-				out = formatter.format(value);
-				if (out != null) {
-					break;
-				}
-			}
-			if (out == null) {
-				return (value.toString());
-			} else {
-				return out;
-			}
+		}
+		try {
+			return PrettyPrinter.prettyPrint(value);
+		} catch (Throwable t) {
+			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage();
 		}
 	}
+	
 }

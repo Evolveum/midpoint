@@ -67,7 +67,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -575,7 +575,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for OID {} returned {} users: {}", new Object[] {
-				currentShadow.getOid(), users.size(), DebugUtil.prettyPrint(users, 3) });
+				currentShadow.getOid(), users.size(), PrettyPrinter.prettyPrint(users, 3) });
 		return users;
 	}
 

@@ -33,9 +33,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -980,7 +980,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append("PCV").append(": ").append(DebugUtil.prettyPrint(getId()));
+        sb.append("PCV").append(": ").append(PrettyPrinter.prettyPrint(getId()));
         Iterator<Item<?>> i = getItems().iterator();
         if (i.hasNext()) {
             sb.append("\n");

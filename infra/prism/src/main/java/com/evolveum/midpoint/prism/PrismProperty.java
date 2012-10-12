@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -423,7 +423,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 
 	@Override
     public String toString() {
-        return getDebugDumpClassName() + "(" + DebugUtil.prettyPrint(getName()) + "):" + getValues();
+        return getDebugDumpClassName() + "(" + PrettyPrinter.prettyPrint(getName()) + "):" + getValues();
     }
 
     @Override
@@ -432,7 +432,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName())).append(" = ");
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName())).append(" = ");
         if (getValues() == null) {
             sb.append("null");
         } else {
@@ -440,7 +440,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
             Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
             while(iterator.hasNext()) {
             	PrismPropertyValue<T> value = iterator.next();
-                sb.append(DebugUtil.prettyPrint(value));
+                sb.append(PrettyPrinter.prettyPrint(value));
                 if (iterator.hasNext()) {
                 	sb.append(", ");
                 }
@@ -461,7 +461,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     
     public String getHumanReadableDump() {
     	StringBuilder sb = new StringBuilder();
-    	sb.append(DebugUtil.prettyPrint(getName())).append(" = ");
+    	sb.append(PrettyPrinter.prettyPrint(getName())).append(" = ");
     	if (getValues() == null) {
             sb.append("null");
         } else {

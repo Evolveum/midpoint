@@ -25,8 +25,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -646,12 +646,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(DebugUtil.prettyPrint(getName()));
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName()));
         sb.append(additionalDumpDescription());
         PrismContainerDefinition<V> def = getDefinition();
         if (def != null) {
             sb.append(" def(");
-            sb.append(DebugUtil.prettyPrint(def.getTypeName()));
+            sb.append(PrettyPrinter.prettyPrint(def.getTypeName()));
             if (def.isRuntimeSchema()) {
             	sb.append(",runtime");
             }

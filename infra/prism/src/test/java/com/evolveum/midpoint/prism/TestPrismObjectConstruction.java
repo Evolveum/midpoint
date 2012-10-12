@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -56,7 +56,7 @@ public class TestPrismObjectConstruction {
 	
 	@BeforeSuite
 	public void setupDebug() {
-		DebugUtil.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 
 	/**

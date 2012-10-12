@@ -44,7 +44,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -111,7 +111,7 @@ public class ExpressionUtil {
 		PropertyPathSegment first = path.first();
 		String varDesc = "default context";
 		if (first.isVariable()) {
-			varDesc = "variable "+DebugUtil.prettyPrint(first.getName());
+			varDesc = "variable "+PrettyPrinter.prettyPrint(first.getName());
 			relativePath = path.rest();
 			if (variables.containsKey(first.getName())) {
 				root = variables.get(first.getName());

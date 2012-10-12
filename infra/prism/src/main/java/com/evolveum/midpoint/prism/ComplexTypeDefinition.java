@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -262,7 +262,7 @@ public class ComplexTypeDefinition extends Definition {
 		sb.append(toString());
 		if (extensionForType != null) {
 			sb.append(",ext:");
-			sb.append(DebugUtil.prettyPrint(extensionForType));
+			sb.append(PrettyPrinter.prettyPrint(extensionForType));
 		}
 		if (ignored) {
 			sb.append(",ignored");

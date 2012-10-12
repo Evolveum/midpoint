@@ -29,11 +29,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.aspect.MidpointAspect;
-import com.evolveum.midpoint.util.aspect.ObjectFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
@@ -57,7 +55,7 @@ import java.util.Map.Entry;
  * 
  * @author semancik
  */
-public class SchemaDebugUtil implements ObjectFormatter {
+public class SchemaDebugUtil {
 
 	private static int SHOW_LIST_MEMBERS = 3;
 	
@@ -836,7 +834,7 @@ public class SchemaDebugUtil implements ObjectFormatter {
 	}	
 		
 	public static String prettyPrint(JAXBElement<?> element) {
-		return "JAXBElement("+DebugUtil.prettyPrint(element.getName())+"): "+element.getValue();
+		return "JAXBElement("+PrettyPrinter.prettyPrint(element.getName())+"): "+element.getValue();
 	}
 	
 	public static String prettyPrint(UnknownJavaObjectType xml) {
@@ -943,19 +941,8 @@ public class SchemaDebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 	
-	@Override
-	public String format(Object o) {
-		try {
-			return prettyPrint(o);
-		} catch (Throwable t) {
-			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage();
-		}
-	}
-	
-	//static initialization of LoggingAspect - formatters registration
 	static {
-		ObjectFormatter f = new SchemaDebugUtil();
-		MidpointAspect.registerFormatter(f);
+		PrettyPrinter.registerPrettyPrinter(SchemaDebugUtil.class);
 	}
 
 

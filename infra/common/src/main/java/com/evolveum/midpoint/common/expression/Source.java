@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author semancik
@@ -65,7 +65,7 @@ public class Source<V extends PrismValue> extends ItemDeltaItem<V> {
 
 	@Override
 	public String toString() {
-		return "Source(" + DebugUtil.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew
+		return "Source(" + PrettyPrinter.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew
 				+ ")";
 	}
 	

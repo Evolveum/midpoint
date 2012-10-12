@@ -40,8 +40,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -313,9 +313,9 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 	private String dumpSourceValues(Map<QName, Object> variables) {
 		StringBuilder sb = new StringBuilder();
 		for (Entry<QName, Object> entry: variables.entrySet()) {
-			sb.append(DebugUtil.prettyPrint(entry.getKey()));
+			sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
 			sb.append("=");
-			sb.append(DebugUtil.prettyPrint(entry.getValue()));
+			sb.append(PrettyPrinter.prettyPrint(entry.getValue()));
 			sb.append("; ");
 		}
 		return sb.toString();

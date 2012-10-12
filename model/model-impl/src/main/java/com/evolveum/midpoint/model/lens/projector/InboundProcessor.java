@@ -53,7 +53,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -173,7 +173,7 @@ public class InboundProcessor {
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(accountAttributeName);
             List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
             LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
-            		DebugUtil.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
+            		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
 
             for (MappingType inboundMappingType : inboundMappingTypes) {
             	

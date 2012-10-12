@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -106,7 +106,7 @@ public class OutboundProcessor {
 			// TODO: check access
 			
 			Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType, 
-			        "outbound mapping for " + DebugUtil.prettyPrint(refinedAttributeDefinition.getName())
+			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + ObjectTypeUtil.toShortString(rAccount.getResourceType()));
 			
 			mapping.setDefaultTargetDefinition(refinedAttributeDefinition);

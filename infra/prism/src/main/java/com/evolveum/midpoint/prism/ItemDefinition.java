@@ -27,7 +27,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -290,9 +290,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		StringBuilder sb = new StringBuilder();
 		sb.append(getDebugDumpClassName());
 		sb.append(":");
-		sb.append(DebugUtil.prettyPrint(getName()));
+		sb.append(PrettyPrinter.prettyPrint(getName()));
 		sb.append(" (");
-		sb.append(DebugUtil.prettyPrint(getTypeName()));
+		sb.append(PrettyPrinter.prettyPrint(getTypeName()));
 		sb.append(")");
 		debugDumpShortToString(sb);
 		return sb.toString();
@@ -303,7 +303,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * to have class as that is just too much info that is almost anytime pretty obvious anyway.
 	 */
 	void debugDumpShortToString(StringBuilder sb) {
-		sb.append(DebugUtil.prettyPrint(getTypeName()));
+		sb.append(PrettyPrinter.prettyPrint(getTypeName()));
 		sb.append("[");
 		sb.append(minOccurs);
 		sb.append(",");

@@ -38,7 +38,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -53,7 +53,7 @@ public class TestXmlConversion {
 
 	@BeforeSuite
 	public void setupDebug() {
-		DebugUtil.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 	
 	@Test

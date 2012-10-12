@@ -28,8 +28,8 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.io.Serializable;
@@ -340,7 +340,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         		sb.append("\n");
         		sb.append(((DebugDumpable)value).debugDump(indent + 1));
         	} else {
-        		sb.append(DebugUtil.prettyPrint(value));
+        		sb.append(PrettyPrinter.prettyPrint(value));
         	}
         } else {
             sb.append("null");
@@ -361,7 +361,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
         if (value != null) {
         	builder.append(value.getClass().getSimpleName()).append(":");
-        	builder.append(DebugUtil.prettyPrint(value));
+        	builder.append(PrettyPrinter.prettyPrint(value));
         } else {
             builder.append("null");
         }
@@ -380,12 +380,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         }
         if (getRawElement() != null) {
 	        builder.append(", raw element: ");
-	        builder.append(DebugUtil.prettyPrint(getRawElement()));
+	        builder.append(PrettyPrinter.prettyPrint(getRawElement()));
         }
 	}
 
 	public Object getHumanReadableDump() {
-		return DebugUtil.prettyPrint(value);
+		return PrettyPrinter.prettyPrint(value);
 	}
 
 }

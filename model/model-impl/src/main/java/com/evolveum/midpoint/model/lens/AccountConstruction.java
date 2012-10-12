@@ -40,8 +40,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -262,7 +262,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
 		Mapping<? extends PrismPropertyValue<?>> mapping = valueConstructionFactory.createMapping(outboundMappingType,
-				"for attribute " + DebugUtil.prettyPrint(attrName)  + " in "+source);
+				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.setSourceContext(userOdo);
 		mapping.setRootNode(userOdo);

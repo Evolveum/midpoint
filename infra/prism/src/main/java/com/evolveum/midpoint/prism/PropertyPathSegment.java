@@ -21,7 +21,7 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 import java.io.Serializable;
 
@@ -66,9 +66,9 @@ public class PropertyPathSegment implements Serializable {
 	@Override
 	public String toString() {
 		if (id == null) {
-			return (isVariable ? "$" : "") + DebugUtil.prettyPrint(name);
+			return (isVariable ? "$" : "") + PrettyPrinter.prettyPrint(name);
 		} else {
-			return (isVariable ? "$" : "") + DebugUtil.prettyPrint(name) + "[" + id + "]";
+			return (isVariable ? "$" : "") + PrettyPrinter.prettyPrint(name) + "[" + id + "]";
 		}
 	}
 

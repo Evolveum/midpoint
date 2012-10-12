@@ -41,9 +41,9 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -832,7 +832,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getClass().getSimpleName()).append("(");
-		sb.append(parentPath).append(" / ").append(DebugUtil.prettyPrint(name));
+		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(name));
 		if (valuesToReplace != null) {
 			sb.append(", REPLACE");
 		}
@@ -860,7 +860,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			sb.append(INDENT_STRING);
 		}
 		sb.append(getClass().getSimpleName()).append("(");
-		sb.append(parentPath).append(" / ").append(DebugUtil.prettyPrint(name)).append(")");
+		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(name)).append(")");
 		
 		if (definition != null) {
 			sb.append(" def");
