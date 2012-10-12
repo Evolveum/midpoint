@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -48,7 +49,11 @@ public class AssignmentType
     implements Serializable, Containerable
 {
 
-    private final static long serialVersionUID = 201202081233L;
+	// This is NOT GENERATED. It is supplied here manually for the testing.
+	public final static QName F_DESCRIPTION = new QName(ObjectType.NS_FOO, "description");
+	public final static QName F_ACCOUNT_CONSTRUCTION = new QName(ObjectType.NS_FOO, "accountConstruction");
+	
+	private final static long serialVersionUID = 201202081233L;
     protected String description;
     protected AccountConstructionType accountConstruction;
     @XmlAttribute(name = "id")

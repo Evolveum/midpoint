@@ -36,6 +36,7 @@
 			<class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
 			<class name="com.evolveum.midpoint.prism.TestDom"/>
 			<class name="com.evolveum.midpoint.prism.TestPolyString"/>
+			<class name="com.evolveum.midpoint.prism.TestDiff"/>
         </classes>
     </test>
 </suite>

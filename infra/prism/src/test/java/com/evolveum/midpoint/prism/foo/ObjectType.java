@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -50,6 +51,14 @@ public abstract class ObjectType
     implements Serializable, Objectable
 {
 
+	// This is NOT GENERATED. It is supplied here manually for the testing.
+	static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+
+	// This is NOT GENERATED. It is supplied here manually for the testing.
+	public final static QName F_NAME = new QName(NS_FOO, "name");
+	public final static QName F_DESCRIPTION = new QName(NS_FOO, "description");
+	public final static QName F_EXTENSION = new QName(NS_FOO, "extension");
+	
     private final static long serialVersionUID = 201202081233L;
     protected PolyStringType name;
     protected String description;

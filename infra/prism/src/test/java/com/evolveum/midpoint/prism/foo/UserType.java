@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 
 /**
@@ -57,6 +58,15 @@ public class UserType
     extends ObjectType
     implements Serializable
 {
+
+	// This is NOT GENERATED. It is supplied here manually for the testing.
+	public final static QName F_FULL_NAME = new QName(NS_FOO, "fullName");
+	public final static QName F_GIVEN_NAME = new QName(NS_FOO, "givenName");
+	public final static QName F_FAMILY_NAME = new QName(NS_FOO, "familyName");
+	public final static QName F_ADDITIONAL_NAMES = new QName(NS_FOO, "additionalNames");
+	public final static QName F_ACTIVATION = new QName(NS_FOO, "activation");
+	public final static QName F_ASSIGNMENT = new QName(NS_FOO, "assignment");
+	public final static QName F_LOCALITY = new QName(NS_FOO, "locality");
 
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)

@@ -36,8 +36,10 @@ import org.testng.AssertJUnit;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
+import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -165,6 +167,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	@Override
 	public PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
 		return constructPrismContext();
+	}
+	
+	public static PrismObjectDefinition<UserType> getUserTypeDefinition() {
+		return PrismTestUtil.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 }

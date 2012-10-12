@@ -612,6 +612,19 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         return property;
     }
     
+    public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
+    	PrismProperty<?> property = findOrCreateProperty(propertyName);
+    	property.setRealValue(realValue);
+    }
+    
+    public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
+    	PrismProperty<T> property = findProperty(propertyName);
+    	if (property == null) {          // when using sql repo, even non-existing properties do not have 'null' here
+    		return null;
+    	}
+    	return property.getRealValue(type);
+    }
+    
     @Override
 	public void recompute(PrismContext prismContext) {
 		// Nothing to do. The subitems should be already recomputed as they are added to this container.
