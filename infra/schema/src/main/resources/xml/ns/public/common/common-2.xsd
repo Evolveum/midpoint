@@ -2663,6 +2663,20 @@
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:ignore" minOccurs="0"/>
+            <xsd:element name="minOccurs" type="xsd:int" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Override of schema minOccurs specification.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:int" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Override of schema maxOccurs specification.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0" default="true">
             	<xsd:annotation>
             		<xsd:documentation>

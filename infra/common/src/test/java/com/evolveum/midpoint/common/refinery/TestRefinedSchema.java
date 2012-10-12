@@ -299,7 +299,8 @@ public class TestRefinedSchema {
 
         assertAttributeDef(attrs, SchemaTestConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1, "Distinguished Name", true, hasSchemaHandling);
         assertAttributeDef(attrs, SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING, 1, 1, "Entry UUID", false, hasSchemaHandling);
-        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), DOMUtil.XSD_STRING, 1, -1, "Common Name", true, hasSchemaHandling);
+        assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "cn"), DOMUtil.XSD_STRING, 
+        		1,  hasSchemaHandling ? 1 : -1, "Common Name", true, hasSchemaHandling);
         assertAttributeDef(attrs, new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "employeeNumber"), DOMUtil.XSD_STRING, 0, 1, null, false, hasSchemaHandling);
         // TODO: check access
     }

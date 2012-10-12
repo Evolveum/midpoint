@@ -48,6 +48,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private boolean create = true;
     private boolean read = true;
     private boolean update = true;
+    private Integer minOccurs = null;
+    private Integer maxOccurs = null;
     private ResourceAttributeDefinition attributeDefinition;
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
@@ -92,12 +94,12 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
     @Override
     public void setMinOccurs(int minOccurs) {
-        attributeDefinition.setMinOccurs(minOccurs);
+    	throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
     @Override
     public void setMaxOccurs(int maxOccurs) {
-        attributeDefinition.setMaxOccurs(maxOccurs);
+    	throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
     @Override
@@ -201,10 +203,16 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 
     public int getMaxOccurs() {
+    	if (maxOccurs != null) {
+    		return maxOccurs;
+    	}
         return attributeDefinition.getMaxOccurs();
     }
 
     public int getMinOccurs() {
+    	if (minOccurs != null) {
+    		return minOccurs;
+    	}
         return attributeDefinition.getMinOccurs();
     }
 
@@ -261,8 +269,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             if (attrDefType.getInbound() != null) {
                 rAttrDef.setInboundMappingTypes(attrDefType.getInbound());
             }
-            
+        
+            rAttrDef.minOccurs = attrDefType.getMinOccurs();
+            rAttrDef.maxOccurs = attrDefType.getMaxOccurs();
         }
+        
         
         rAttrDef.ignored = attrDef.isIgnored();
         
