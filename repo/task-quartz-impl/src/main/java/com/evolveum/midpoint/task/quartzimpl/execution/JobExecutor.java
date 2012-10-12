@@ -418,11 +418,11 @@ mainCycle:
 	}
 	
 	private void logRunStart() {
-		LOGGER.info("Task thread run STARTING "+task);
+		LOGGER.debug("Task thread run STARTING "+task);
 	}
 	
 	private void logRunFinish() {
-		LOGGER.info("Task thread run FINISHED " + task);
+		LOGGER.debug("Task thread run FINISHED " + task);
 	}
     
 	private void recordCycleRunStart(OperationResult result) {

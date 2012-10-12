@@ -289,7 +289,7 @@ public class PageHome extends PageAdmin {
 
         WfDataAccessor da = getWorkflowDataAccessor();
         try {
-            for (WorkItem workItem : da.listWorkItemsRelatedToUser(prismUser.getOid(), true, 1, MAX_WORK_ITEMS, result)) {
+            for (WorkItem workItem : da.listWorkItemsRelatedToUser(prismUser.getOid(), true, 0, MAX_WORK_ITEMS, result)) {
                 list.add(new WorkItemDto(workItem));
             }
         } catch (Exception ex) {            // todo
