@@ -48,6 +48,8 @@ import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 
 import javax.xml.namespace.QName;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
@@ -310,6 +312,7 @@ public class WfDataAccessor {
         result.addParam("instance id", instance.getProcessInstanceId());
         result.addParam("details", details);
         ProcessInstance pi = new ProcessInstance();
+        pi.setProcessId(instance.getProcessInstanceId());
 
         RuntimeService rs = getActivitiEngine().getRuntimeService();
 
@@ -317,11 +320,22 @@ public class WfDataAccessor {
         try {
             vars = rs.getVariables(instance.getProcessInstanceId());
             pi.setName((String) vars.get(WfConstants.VARIABLE_PROCESS_NAME));
-            pi.setProcessId(instance.getProcessInstanceId());
             pi.setStartTime((Date) vars.get(WfConstants.VARIABLE_START_TIME));
         } catch (ActivitiException e) {
             result.recordFatalError("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
-            throw new WorkflowException("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
+
+            pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
+            pi.setStartTime(null);
+
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            pi.setDetails("Process instance details couldn't be found because of the following problem:\n" + sw.toString());
+
+            return pi;
+
+//            if (details) {
+//                throw new WorkflowException("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
+//            }
         }
 
         if (details) {
@@ -340,14 +354,22 @@ public class WfDataAccessor {
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE_HISTORY);
 
         ProcessInstance pi = new ProcessInstance();
-
-        Map<String,Object> vars = getHistoricVariables(instance.getId(), result);
-        pi.setName((String) vars.get(WfConstants.VARIABLE_PROCESS_NAME));
         pi.setProcessId(instance.getId());
-        pi.setStartTime((Date) vars.get(WfConstants.VARIABLE_START_TIME));
+        pi.setStartTime(instance.getStartTime());
         pi.setEndTime(instance.getEndTime());
 
-        pi.setDetails(getProcessSpecificDetails(instance, vars, result));
+        try {
+            Map<String,Object> vars = getHistoricVariables(instance.getId(), result);
+            pi.setName((String) vars.get(WfConstants.VARIABLE_PROCESS_NAME));
+            pi.setDetails(getProcessSpecificDetails(instance, vars, result));
+        } catch (WorkflowException e) {
+            result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), e);
+            pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
+
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            pi.setDetails("Process instance details couldn't be found because of the following problem:\n" + sw.toString());
+        }
 
         return pi;
     }
