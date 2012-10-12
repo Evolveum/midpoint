@@ -189,7 +189,10 @@ public class ChangeExecutor {
 			result.recordFatalError(e);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			result.recordFatalError(e);
+			result.computeStatus();
+			if (!result.isHandledError()) {
+				result.recordFatalError(e);
+			}
 			throw e;
 		} catch (CommunicationException e) {
 			result.recordFatalError(e);

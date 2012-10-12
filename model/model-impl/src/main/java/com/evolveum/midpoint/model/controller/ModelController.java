@@ -339,10 +339,14 @@ public class ModelController implements ModelService, ModelInteractionService {
 			
 		} catch (ObjectAlreadyExistsException e) {
 			try {
-				//TODO: log reset operation
+				//TODO: log reset operation, maybe add new result informing about the situation
+				result.muteLastSubresultError();
+				LOGGER.trace("Reseting add operation, recomputing user and his accounts.");
 				LensContext<?, ?> context = LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, result);
 				clockwork.run(context, task, result);
+				result.computeStatus();
 			} catch (SystemException ex){
+				result.recordFatalError(e);
 				throw e;
 			}
 			//result.recordFatalError(e);

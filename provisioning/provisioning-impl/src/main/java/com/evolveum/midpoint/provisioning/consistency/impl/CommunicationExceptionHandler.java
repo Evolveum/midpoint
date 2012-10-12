@@ -118,9 +118,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			// error
 			operationResult.computeStatus();
 			parentResult
-					.recordStatus(
-							OperationResultStatus.HANDLED_ERROR,
-							"Could not create account on the resource, because "
+					.recordHandledError("Could not create account on the resource, because "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online.");
 			
@@ -150,9 +148,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			}
 			operationResult.computeStatus();
 			parentResult
-					.recordStatus(
-							OperationResultStatus.HANDLED_ERROR,
-							"Could not apply modifications to account on the "
+					.recordHandledError("Could not apply modifications to account on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", becasue resource is unreachable. Modifications will be applied when the resource goes online.");
 			return shadow;
@@ -163,9 +159,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 					operationResult);
 			parentResult
-					.recordStatus(
-							OperationResultStatus.HANDLED_ERROR,
-							"Could not delete account from the resource "
+					.recordHandledError("Could not delete account from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", becasue resource is unreachable. Account will be delete when the resource goes online.");
 //			operationResult.recordSuccess();

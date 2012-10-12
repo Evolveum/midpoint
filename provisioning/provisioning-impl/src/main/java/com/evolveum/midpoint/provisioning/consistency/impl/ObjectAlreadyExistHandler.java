@@ -59,40 +59,34 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-//		OperationResult parentResult = OperationResult.createOperationResult(shadow.getResult());
-		OperationResult handleErrorResult = parentResult.createSubresult(ObjectAlreadyExistHandler.class
-				+ ".handleError");
-
-		// shadow = ShadowCacheUtil.completeShadow(shadow, null,
-		// shadow.getResource(), parentResult);
-		//
-		// String oid = cacheRepositoryService.addObject(shadow.asPrismObject(),
-		// parentResult);
-		// shadow.setOid(oid);
-		//
-
+		OperationResult operationResult = parentResult.createSubresult("Discovery for object already exists situation. Operation: " + op.name());
+		operationResult.addParam("shadow", shadow);
+		operationResult.addParam("currentOperation", op);
+		operationResult.addParam("exception", ex.getMessage());
+		
+		
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		if (shadow instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) shadow;
 			account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(),
-					parentResult));
+					operationResult));
 		}
 		
-//		change.setObjectDelta(null);
 		change.setResource(shadow.getResource().asPrismObject());
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 		ObjectQuery query = createQueryByIcfName(shadow);
-		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, parentResult);
+		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, operationResult);
 
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
 			change.setCurrentShadow(foundAccount.get(0));
 			//TODO: task initialization
 			Task task = taskManager.createTaskInstance();
-			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
+			changeNotificationDispatcher.notifyChange(change, task, operationResult);
 		}
 
-//		parentResult.recordSuccess();
+		parentResult.recordHandledError("While creating account on the resource, it was detected that the account with the same name ("+shadow.getName()+") already exists. Disrovery run to eliminate possible inconsistencies. (For more information about executed operations see operation result or logs.)");
+		operationResult.computeStatus();
 		throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
 
 

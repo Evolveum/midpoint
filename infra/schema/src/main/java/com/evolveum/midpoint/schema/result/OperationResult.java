@@ -660,6 +660,10 @@ public class OperationResult implements Serializable, Dumpable {
 	public void recordWarning(String message, Throwable cause) {
 		recordStatus(OperationResultStatus.WARNING, message, cause);
 	}
+	
+	public void recordHandledError(String message) {
+		recordStatus(OperationResultStatus.HANDLED_ERROR, message);
+	}
 
 	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
 		this.status = status;
