@@ -170,7 +170,7 @@
 		<name>guybrush</name>
 		<!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000004" relation="org:manager"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
 		<fullName>Guybrush Threepwood</fullName>
 		<givenName>Guybrush</givenName>
 		<familyName>Threepwood</familyName>
@@ -178,7 +178,7 @@
 			<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
 		</assignment>
 		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-100000000004" relation="org:manager"/>
+			<targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
 		</assignment>
 	</user>
 
