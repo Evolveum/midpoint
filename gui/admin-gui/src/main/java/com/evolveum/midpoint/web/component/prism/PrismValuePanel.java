@@ -255,8 +255,7 @@ public class PrismValuePanel extends Panel {
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
-            //AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onKeyUp");
-            //validator.setThrottleDelay(Duration.ONE_SECOND);
+
         	AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur");
         	formComponent.add(validator);
         }

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -53,7 +54,8 @@ public class ACAttributePanel extends BasePanel<ACAttributeDto> {
 
             @Override
             protected void populateItem(ListItem<ACValueConstructionDto> listItem) {
-                listItem.add(new ACAttributeValuePanel(ID_VALUE, listItem.getModel()));
+                Form form = findParent(Form.class);
+                listItem.add(new ACAttributeValuePanel(ID_VALUE, listItem.getModel(), form));
             }
         };
         add(values);

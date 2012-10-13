@@ -37,8 +37,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -55,17 +58,21 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
 
-    public ACAttributeValuePanel(String id, IModel<ACValueConstructionDto> iModel) {
+    public ACAttributeValuePanel(String id, IModel<ACValueConstructionDto> iModel, Form form) {
         super(id, iModel);
 
-        initPanel();
+        initPanel(form);
     }
 
-    private void initPanel() {
+    private void initPanel(Form form) {
         ACValueConstructionDto dto = getModel().getObject();
         PrismPropertyDefinition definition = dto.getAttribute().getDefinition();
 
         InputPanel input = createTypedInputComponent(ID_INPUT, definition);
+        for (FormComponent comp: input.getFormComponents()) {
+            comp.add(new AjaxFormValidatingBehavior(form, "onBlur"));
+        }
+
         add(input);
 
         AjaxLink addLink = new AjaxLink(ID_ADD) {
