@@ -338,6 +338,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		}
 		clone.description = this.description;
 		clone.filter = this.filter;
+        clone.relation = this.relation;
 	}
     
 }
