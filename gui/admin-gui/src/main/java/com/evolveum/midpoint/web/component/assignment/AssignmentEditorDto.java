@@ -36,8 +36,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * //todo consolidate [lazyman]
- *
  * @author lazyman
  */
 public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {

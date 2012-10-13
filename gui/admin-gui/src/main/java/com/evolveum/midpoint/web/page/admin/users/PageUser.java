@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -102,7 +103,6 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ACCOUNT_BUTTONS = "accountsButtons";
     private static final String ID_ACCORDION = "accordion";
-    private static final String ID_ASSIGNMENT_EDITOR_WRAPPER = "assignmentEditorWrapper";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
     private static final String ID_ASSIGNMENT_LIST = "assignmentList";
     private static final String ID_ASSIGNMENTS = "assignments";
@@ -805,23 +805,14 @@ public class PageUser extends PageAdminUsers {
             assignment.setupContainerValue(value);
             userType.getAssignment().add(assignment);
 
+            value.applyDefinition(assignmentDef, false);
             //todo remove this block [lazyman] after model is updated - it has to remove resource from accountConstruction
             removeResourceFromAccConstruction(assignment);
-
-            try {
-                value.applyDefinition(assignmentDef, false);
-            } catch (Exception ex) {
-                //todo error handling
-                ex.printStackTrace();
-            }
-
-            //todo remove [lazyman]
-            System.out.println("ASS ADD:\n" + getPrismContext().silentMarshalObject(assignment, LOGGER));
         }
     }
 
     /**
-     *  remove this method after model is updated - it has to remove resource from accountConstruction
+     * remove this method after model is updated - it has to remove resource from accountConstruction
      */
     @Deprecated
     private void removeResourceFromAccConstruction(AssignmentType assignment) {
@@ -876,7 +867,7 @@ public class PageUser extends PageAdminUsers {
         return refDelta;
     }
 
-    private ContainerDelta prepareUserAssignmentsDeltaForModify(PrismContainerDefinition def)
+    private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> userDelta, PrismContainerDefinition def)
             throws SchemaException {
         ContainerDelta assDelta = new ContainerDelta(new PropertyPath(), UserType.F_ASSIGNMENT, def);
 
@@ -889,12 +880,7 @@ public class PageUser extends PageAdminUsers {
             PrismContainerValue newValue = assDto.getNewValue();
             switch (assDto.getStatus()) {
                 case ADD:
-                    try {
-                        newValue.applyDefinition(assignmentDef, false);
-                    } catch (Exception ex) {
-                        //todo error handling [lazyman]
-                        ex.printStackTrace();
-                    }
+                    newValue.applyDefinition(assignmentDef, false);
                 case DELETE:
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
                         assDelta.addValueToAdd(newValue);
@@ -904,15 +890,19 @@ public class PageUser extends PageAdminUsers {
                     break;
                 case MODIFY:
                     if (!assDto.isModified()) {
+                        LOGGER.trace("Assignment '{}' not modified.", new Object[]{assDto.getName()});
                         continue;
                     }
 
-                    assDelta.addValueToAdd(newValue);
-                    assDelta.addValueToDelete(assDto.getOldValue().clone());
+                    handleModifyAssignmentDelta(assDto, assignmentDef, newValue, userDelta);
                     break;
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
             }
+        }
+
+        if (!assDelta.isEmpty()) {
+            userDelta.addModification(assDelta);
         }
 
         //todo remove this block [lazyman] after model is updated - it has to remove resource from accountConstruction
@@ -921,12 +911,32 @@ public class PageUser extends PageAdminUsers {
             AssignmentType ass = new AssignmentType();
             ass.setupContainerValue(value);
             removeResourceFromAccConstruction(ass);
-
-            //todo remove [lazyman]
-            System.out.println("ASS DELTA:\n" + getPrismContext().silentMarshalObject(ass, LOGGER));
         }
 
         return assDelta;
+    }
+
+    private void handleModifyAssignmentDelta(AssignmentEditorDto assDto, PrismContainerDefinition assignmentDef,
+                                             PrismContainerValue newValue, ObjectDelta<UserType> userDelta) throws SchemaException {
+        LOGGER.debug("Handling modified assignment '{}', computing delta.", new Object[]{assDto.getName()});
+
+        PrismValue oldValue = assDto.getOldValue();
+        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
+        List<PropertyPathSegment> pathSegments = oldValue.getPath(null).getSegments();
+
+        for (ItemDelta delta : deltas) {
+            PropertyPath deltaPath = delta.getPath();
+            ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
+            //replace relative path - add "assignment" path prefix
+            List<PropertyPathSegment> newPath = new ArrayList<PropertyPathSegment>();
+            newPath.addAll(pathSegments);
+            newPath.addAll(delta.getParentPath().getSegments());
+            //add definition to item delta
+            delta.setParentPath(new PropertyPath(newPath));
+            delta.applyDefinition(deltaDef);
+
+            userDelta.addModification(delta);
+        }
     }
 
     private void prepareUserDeltaForModify(ObjectDelta<UserType> userDelta) throws SchemaException {
@@ -942,10 +952,7 @@ public class PageUser extends PageAdminUsers {
 
         // handle assignments
         PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
-        ContainerDelta assDelta = prepareUserAssignmentsDeltaForModify(def);
-        if (!assDelta.isEmpty()) {
-            userDelta.addModification(assDelta);
-        }
+        handleAssignmentDeltas(userDelta, def);
     }
 
     private void savePerformed(AjaxRequestTarget target) {
@@ -955,7 +962,6 @@ public class PageUser extends PageAdminUsers {
         modifyAccounts(result);
 
         ObjectWrapper userWrapper = userModel.getObject();
-        ModelContext changes = null;
         try {
             ObjectDelta delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
@@ -973,12 +979,6 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-                    // deltaComponent = new ObjectDeltaComponent(user,
-                    // userWrapper.getObject().clone(), delta);
-                    // changes =
-                    // getModelInteractionService().previewChanges(delta,
-                    // result);
-                    // result.recordSuccess();
                     break;
                 case MODIFYING:
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
@@ -1147,7 +1147,7 @@ public class PageUser extends PageAdminUsers {
         AccountConstructionType construction = new AccountConstructionType();
         assignment.setAccountConstruction(construction);
         construction.setResource(resource);
-        
+
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         AssignmentEditorDto dto = new AssignmentEditorDto(WebMiscUtil.getOrigStringFromPoly(resource.getName()),
                 AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, UserDtoStatus.ADD, assignment);
