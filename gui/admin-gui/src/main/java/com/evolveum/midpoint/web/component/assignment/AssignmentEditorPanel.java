@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -223,7 +224,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
 
-        CheckBox enabled = new CheckBox(ID_ENABLED,
+        ThreeStateCheckPanel enabled = new ThreeStateCheckPanel(ID_ENABLED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_ACTIVATION + ".enabled"));
         body.add(enabled);
 
