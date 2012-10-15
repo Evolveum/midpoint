@@ -537,15 +537,16 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		checkOpenDjSchema(resource, source);
 		assertNotNull("Resource from " + source + " has null schemahandling", resource.getSchemaHandling());
 		checkOpenDjSchemaHandling(resource, source);
+		assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
 		if (!source.equals("repository")) {
 			// This is generated on the fly in provisioning
-			assertNotNull("Resource from " + source + " has null nativeCapabilities",
-					resource.getNativeCapabilities());
-			assertFalse("Resource from " + source + " has empty nativeCapabilities", resource
-					.getNativeCapabilities().getCapabilities().getAny().isEmpty());
+			assertNotNull("Resource from " + source + " has null native capabilities",
+					resource.getCapabilities().getNative());
+			assertFalse("Resource from " + source + " has empty native capabilities", resource
+					.getCapabilities().getNative().getAny().isEmpty());
 		}
-		assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
-		assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities()
+		assertNotNull("Resource from " + source + " has null configured capabilities", resource.getCapabilities().getConfigured());
+		assertFalse("Resource from " + source + " has empty configured capabilities", resource.getCapabilities().getConfigured()
 				.getAny().isEmpty());
 		assertNotNull("Resource from " + source + " has null synchronization", resource.getSynchronization());
 		checkOpenDjConfiguration(resource.asPrismObject(), source);
