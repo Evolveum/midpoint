@@ -342,7 +342,7 @@ public class DOMUtil {
 		return null;
 	}
 	
-	public static List<Element> getElement(Element element, QName elementName){
+	public static List<Element> getChildElements(Element element, QName elementName){
 		Validate.notNull(elementName, "Element name to get must not be null");
 		List<Element> elements = new ArrayList<Element>();
 		NodeList childNodes = element.getChildNodes();

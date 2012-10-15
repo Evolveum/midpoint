@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -51,7 +53,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -138,30 +142,125 @@ public class ResourceTypeUtil {
 	}
 
 	/**
-	 * Assumes that native capabilities are cached. 
+	 * Assumes that native capabilities are already cached. 
 	 */
-	public static <T> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
-		if (resource.getCapabilities() != null) {
-			return getCapability(resource.getCapabilities().getAny(), capabilityClass);
-		} else if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
-			return getCapability(resource.getNativeCapabilities().getCapabilities().getAny(), capabilityClass);
-		} else {
-			// No capabilities at all
+	public static <T extends CapabilityType> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
+		if (resource.getCapabilities() == null) {
 			return null;
 		}
+		if (resource.getCapabilities().getConfigured() != null) {
+			T configuredCapability = getCapability(resource.getCapabilities().getConfigured().getAny(), capabilityClass);
+			if (configuredCapability != null) {
+				if (isCapabilityEnabled(configuredCapability)) {
+					return configuredCapability;
+				} else {
+					// Disabled capability, pretend that it is not there
+					return null;
+				}
+			}
+			// No configured capability entry, fallback to native capability
+		}
+		if (resource.getCapabilities().getNative() != null) {
+			T nativeCapability = getCapability(resource.getCapabilities().getNative().getAny(), capabilityClass);
+			if (nativeCapability == null) {
+				return null;
+			}
+			if (isCapabilityEnabled(nativeCapability)) {
+				return nativeCapability;
+			} else {
+				// Disabled capability, pretend that it is not there
+				return null;
+			}
+		}
+		return null;
+	}
+	
+	public static boolean isCapabilityEnabled(Object capability) throws SchemaException {
+		if (capability == null) {
+			return false;
+		}
+		if (capability instanceof JAXBElement<?>) {
+			capability = ((JAXBElement<?>)capability).getValue();
+		}
+		
+		if (capability instanceof CapabilityType) {
+			return isCapabilityEnabled((CapabilityType)capability);
+		} else if (capability instanceof Element) {
+			return isCapabilityEnabled((Element)capability);
+		} else {
+			throw new IllegalArgumentException("Unexpected capability type "+capability.getClass());
+		}
+	}
+	
+	public static boolean isCapabilityEnabled(Element capability) throws SchemaException {
+		if (capability == null) {
+			return false;
+		}
+		ObjectFactory capabilitiesObjectFactory = new ObjectFactory();
+		QName enabledElementName = capabilitiesObjectFactory.createEnabled(true).getName();
+		Element enabledElement = DOMUtil.getChildElement(capability, enabledElementName);
+		if (enabledElement == null) {
+			return true;
+		}
+		Boolean enabled = XmlTypeConverter.convertValueElementAsScalar(enabledElement, Boolean.class);
+		if (enabled == null) {
+			return true;
+		}
+		return enabled;
+	}
+	
+	public static <T extends CapabilityType> boolean isCapabilityEnabled(T capability) {
+		if (capability == null) {
+			return false;
+		}
+		if (capability.isEnabled() == null) {
+			return true;
+		}
+		return capability.isEnabled();
 	}
 
 	/**
-	 * Assumes that native capabilities are cached. 
+	 * Assumes that native capabilities are already cached. 
 	 */
-	public static List<Object> listEffectiveCapabilities(ResourceType resource) {
-		if (resource.getCapabilities() != null) {
-			return resource.getCapabilities().getAny();
-		} else if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
-			return resource.getNativeCapabilities().getCapabilities().getAny();
-		} else {
+	public static List<Object> getEffectiveCapabilities(ResourceType resource) throws SchemaException {
+		if (resource.getCapabilities() == null) {
 			return new ArrayList<Object>();
 		}
+		if (resource.getCapabilities().getConfigured() != null) {
+			List<Object> effectiveCapabilities = new ArrayList<Object>();
+			for (Object configuredCapability: resource.getCapabilities().getConfigured().getAny()) {
+				if (isCapabilityEnabled(configuredCapability)) {
+					effectiveCapabilities.add(configuredCapability);
+				}
+			}
+			if (resource.getCapabilities().getNative() != null) {
+				for (Object nativeCapability: resource.getCapabilities().getNative().getAny()) {
+					if (isCapabilityEnabled(nativeCapability) && 
+							!containsCapabilityWithSameElementName(resource.getCapabilities().getConfigured().getAny(), nativeCapability)) {
+						effectiveCapabilities.add(nativeCapability);
+					}
+				}
+			}
+			return effectiveCapabilities;
+		} else if (resource.getCapabilities().getNative() != null) {
+			return resource.getCapabilities().getNative().getAny();
+		} else {
+			return new ArrayList<Object>();
+		}		
+	}
+
+	private static boolean containsCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
+		if (capabilities == null) {
+			return false;
+		}
+		QName capabilityElementName = JAXBUtil.getElementQName(capability);
+		for (Object cap: capabilities) {
+			QName capElementName = JAXBUtil.getElementQName(cap);
+			if (capabilityElementName.equals(capElementName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static String getCapabilityDisplayName(Object capability) {
@@ -178,17 +277,6 @@ public class ResourceTypeUtil {
 		return className;
 	}
 
-	public static CapabilitiesType getEffectiveCapabilities(ResourceType resource) {
-		if (resource.getCapabilities() != null) {
-			return resource.getCapabilities();
-		}
-		if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
-			return resource.getNativeCapabilities().getCapabilities();
-		}
-		
-		return new CapabilitiesType();
-	}
-
 	public static boolean hasActivationCapability(ResourceType resource) {
 		return (getEffectiveCapability(resource, ActivationCapabilityType.class)!=null);
 	}
@@ -201,8 +289,8 @@ public class ResourceTypeUtil {
 		ActivationCapabilityType activationCapability = null;
 		// check resource native capabilities. if resource cannot do
 		// activation, it sholud be null..
-		if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
-			activationCapability = ResourceTypeUtil.getCapability(resource.getNativeCapabilities().getCapabilities().getAny(),
+		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
+			activationCapability = ResourceTypeUtil.getCapability(resource.getCapabilities().getNative().getAny(),
 					ActivationCapabilityType.class);
 		}
 		if (activationCapability == null) {

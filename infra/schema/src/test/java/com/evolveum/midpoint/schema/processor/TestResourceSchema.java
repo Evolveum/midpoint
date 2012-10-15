@@ -55,6 +55,9 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterMethod;
@@ -340,132 +343,65 @@ public class TestResourceSchema {
 	private void assertPrefix(String expectedPrefix, Element element) {
 		assertEquals("Wrong prefix on element "+DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
 	}	
-
-//    @Test
-//    public void instantiationTest() throws SchemaException, JAXBException {
-//        System.out.println("===[ instantiationTest ]===");
-//        // GIVEN
-//
-//        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
-//        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), PrismTestUtil.getPrismContext());
-//        assertNotNull(schema);
-//        System.out.println("Parsed schema:");
-//        System.out.println(schema.dump());
-//        ObjectClassComplexTypeDefinition accDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-//        assertNotNull("No AccountObjectClass definition",accDef);
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
-//        PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
-//        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
-//        
-//        // WHEN
-//
-//        // Instantiate PropertyContainer (XSD type)
-//        PrismContainer accInst = accDef.instantiate(FIRST_QNAME);
-//        assertNotNull(accInst);
-//        assertNotNull(accInst.getDefinition());
-//        // as the definition is ResourceObjectDefinition, the instance should be of ResoureceObject type
-//        assertTrue(accInst instanceof ResourceAttributeContainer);
-//
-//        // Instantiate Property (XSD element)
-//        PrismProperty loginInst = loginDef.instantiate();
-//        assertNotNull(loginInst);
-//        assertNotNull(loginInst.getDefinition());
-//        assertTrue("login is not an attribute", loginInst instanceof ResourceAttribute);
-//
-//        // Set some value
-//        loginInst.setValue(new PrismPropertyValue("FOOBAR"));
-//        accInst.getValue().getItems().add(loginInst);
-//
-//        // Same thing with the prop2 property (type int)
-//        PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
-//        PrismProperty groupInst = groupDef.instantiate();
-//        groupInst.setValue(new PrismPropertyValue(321));
-//        accInst.getValue().getItems().add(groupInst);
-//
-//
-//        System.out.println("AccountObjectClass INST");
-//        System.out.println(accInst.dump());
-//
-//        // Serialize to DOM - TODO
-        
-//        Document doc = DOMUtil.getDocument();
-//        accInst.serializeToDom(doc);
-//
-//        // TODO: Serialize to XML and check
-//
-//        System.out.println("Serialized: ");
-//        System.out.println(DOMUtil.serializeDOMToString(doc));
-//    }
     
 	@Test
-	public void testUnmarshallResource() throws JAXBException, SchemaException, FileNotFoundException {
-		System.out.println("===[ testUnmarshallResource ]===");
+	public void testParseResource() throws Exception {
+		System.out.println("===[ testParseResource ]===");
 		// WHEN
-		ResourceType resource = PrismTestUtil.unmarshalObject(new File("src/test/resources/common/resource-opendj.xml"), ResourceType.class);
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/resource-opendj.xml"));
 		
 		// THEN
+		assertCapabilities(resource.asObjectable());
+	}
+	
+	@Test
+	public void testUnmarshallResource() throws Exception {
+		System.out.println("===[ testUnmarshallResource ]===");
+		// WHEN
+		ResourceType resourceType = PrismTestUtil.unmarshalObject(new File("src/test/resources/common/resource-opendj.xml"), ResourceType.class);
 		
-		if (resource.getNativeCapabilities() != null && resource.getNativeCapabilities().getCapabilities() != null) {
-			for (Object capability : resource.getNativeCapabilities().getCapabilities().getAny()) {
-	        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+		// THEN
+		assertCapabilities(resourceType);
+	}
+
+	
+	private void assertCapabilities(ResourceType resourceType) throws SchemaException {
+		if (resourceType.getCapabilities() != null) { 
+			if (resourceType.getCapabilities().getNative() != null) {
+				for (Object capability : resourceType.getCapabilities().getNative().getAny()) {
+		        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+		        }
+			}
+	
+	        if (resourceType.getCapabilities().getConfigured() != null) {
+		        for (Object capability : resourceType.getCapabilities().getConfigured().getAny()) {
+		        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+		        }
 	        }
 		}
-
-        if (resource.getCapabilities() != null) {
-	        for (Object capability : resource.getCapabilities().getAny()) {
-	        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
-	        }
-        }
         
-        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
         for (Object capability : effectiveCapabilities) {
         	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
         }
 
-        assertNotNull(resource.getCapabilities());
-        assertFalse(resource.getCapabilities().getAny().isEmpty());
+        assertNotNull("null native capabilities", resourceType.getCapabilities().getNative());
+        assertFalse("empty native capabilities", resourceType.getCapabilities().getNative().getAny().isEmpty());
+        assertEquals("Unexepected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
+        
+        assertNotNull("null configured capabilities", resourceType.getCapabilities().getConfigured());
+        assertFalse("empty configured capabilities", resourceType.getCapabilities().getConfigured().getAny().isEmpty());
+        assertEquals("Unexepected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
+        
+        assertEquals("Unexepected number of effective capabilities", 3,effectiveCapabilities.size());
+        assertNotNull("No credentials effective capability", 
+        		ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class));
+        assertNotNull("No activation effective capability", 
+        		ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class));
+        assertNull("Unexpected liveSync effective capability", 
+        		ResourceTypeUtil.getEffectiveCapability(resourceType, LiveSyncCapabilityType.class));
         
 	}
-
-//    @Test
-//    public void valueParseTest() throws SchemaException, SchemaException {
-//        System.out.println("===[ valueParseTest ]===");
-//        // GIVEN
-//
-//        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
-//        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom));
-//        AssertJUnit.assertNotNull(schema);
-//        PrismContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-//        AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), type1Def.getTypeName());
-//        PrismPropertyDefinition prop1Def = type1Def.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
-//        AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE, "login"), prop1Def.getName());
-//
-//        // WHEN
-//
-//        Document dataDom = DOMUtil.parseFile(RESOURCE_OBJECT_SIMPLE_FILENAME);
-//        PrismContainer container = type1Def.parseItem(DOMUtil.getFirstChildElement(dataDom));
-//
-//        // THEN
-//
-//        System.out.println("container: " + container);
-//
-//        assertEquals(3, container.getItems().size());
-//
-//        for (Item item : container.getItems()) {
-//            ResourceAttribute prop = (ResourceAttribute) item;
-//            if (prop.getName().getLocalPart().equals("login")) {
-//                AssertJUnit.assertEquals("barbar", prop.getValue(String.class).getValue());
-//            }
-//            if (prop.getName().getLocalPart().equals("group")) {
-//                PrismPropertyValue<Integer> val = prop.getValue(Integer.class);
-//                AssertJUnit.assertEquals(Integer.valueOf(123456), val.getValue());
-//            }
-//            if (prop.getName().getLocalPart().equals("ufo")) {
-//                AssertJUnit.assertEquals("Mars attacks!", prop.getValue(String.class).getValue());
-//            }
-//        }
-//    }
-//
 
 
 }

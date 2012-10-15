@@ -2262,23 +2262,11 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element ref="tns:schemaHandling" minOccurs="0"/>
-                    <xsd:element name="nativeCapabilities" type="tns:CachedCapabilitiesType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The capabilities nativelly supported by the connector without any simulation or any
-                                other workaround. It is stored in the repository as a cache of the real capabilities
-                                (connector can always produce the capabilities if the resource is online).
-                                If this element is not present then the data were not yet retrieved from the resource.
-                                If it is present, but the inner capability list is empty then the connector provides
-                                no capabilities.
-                                
-                                The value of this element indicates what the connector can do.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="capabilities" type="tns:CapabilitiesType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                            	TODO: update
+                            	
                                 The capabilities supported by the resource, including both native capabilities of
                                 the connector and simulated capabilities.
                                 If this element is not present at all, the value of nativeCapabilities element is
@@ -2892,8 +2880,64 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
+    
     <xsd:complexType name="CapabilitiesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Collection of resource capabilities. Each element in this collection defines a specific resource
+                capability. Stardard midpoint capabilities are defined in a separate namespace. But that is not
+                a closed set. Resource may also specify additional capabilities. If the code that is processing
+                capabilities encounters unknown capability it must ignore it.
+                
+                Each capability should have boolean propery "enabled" whith true default value. This is used in
+                the configured capabilities section to disable individual capabilities.
+                
+                This part defines native and configured capabilities. The effective capabilities of the resource
+                are determined by application of configured capabilities to native capabilities.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:cachingMetadata" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Metadata defining the "freshness" of the cached copy of native capabilities.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+            <xsd:element name="native" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			The capabilities nativelly supported by the connector without any simulation or any
+                        other workaround. It is stored in the repository as a cache of the real capabilities
+                        (connector can always produce the capabilities if the resource is online).
+                        If this element is not present then the data were not yet retrieved from the resource.
+                        If it is present, but the inner capability list is empty then the connector provides
+                        no capabilities.
+                        
+                        The value of this element indicates what the connector can do.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="configured" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			The configured capabilities of the resource. This part contains "tweaks" of the native capabilities.
+            			Some of the native capabilities may be turned off, other capabilities may be simulated. 
+            			
+                        If this element is not present at all then the native capabilities in the unchanged form are assumed.
+                        
+                        The value of this element is not generated, it should be set by the administrator.
+                        The value of this element indicates administrator decisions what connector capabilities
+                        to use, what capabilities to simulate and how to simulate them.
+                        
+                        The value of this element indicates what the connector is allowed to do.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="CapabilityCollectionType">
         <xsd:annotation>
             <xsd:documentation>
                 Collection of resource capabilities. Each element in this collection defines a specific resource
@@ -2910,30 +2954,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:any>
-        </xsd:sequence>
-    </xsd:complexType>
-    
-    <xsd:complexType name="CachedCapabilitiesType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Capabilities retrieved from the source (resource, connector) and cached for later use.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-        	<xsd:element ref="tns:cachingMetadata" minOccurs="0">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				Metadata defining the "freshness" of the cached copy.
-        			</xsd:documentation>
-        		</xsd:annotation>
-        	</xsd:element>
-            <xsd:element name="capabilities" type="c:CapabilitiesType" minOccurs="0" maxOccurs="1">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			Cached copy of the capabilities.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -491,7 +491,7 @@ public class QueryConvertor {
 	}
 
 	private static List<Element> getValues(Node filter) {
-		return DOMUtil.getElement((Element) filter, SchemaConstantsGenerated.Q_VALUE);
+		return DOMUtil.getChildElements((Element) filter, SchemaConstantsGenerated.Q_VALUE);
 //		return DOMUtil.listChildElements(value);
 	}
 
