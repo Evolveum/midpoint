@@ -237,7 +237,7 @@ public class PageResource extends PageAdminResources {
         OperationResult result = new OperationResult("Load resource capabilities");
         List<String> capabilitiesName = new ArrayList<String>();
         try {
-            List<Object> capabilitiesList = ResourceTypeUtil.listEffectiveCapabilities(resource);
+            List<Object> capabilitiesList = ResourceTypeUtil.getEffectiveCapabilities(resource);
 
             if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
                 for (int i = 0; i < capabilitiesList.size(); i++) {
