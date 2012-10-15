@@ -25,17 +25,6 @@
     <name>SystemConfiguration</name>
     <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:PasswordPolicyType"/>
     <logging>
-        <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
-                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <fileName>${catalina.base}/logs/idm.log</fileName>
-            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
-            <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <maxHistory>10</maxHistory>
-            <append>true</append>
-        </appender>
-        <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
-        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
             <!-- disabled because of MID-744, helper insert messages on ERROR
             level which should not be there (probably should be on TRACE) -->
@@ -48,5 +37,16 @@
             <level>WARN</level>
             <package>org.apache.wicket.resource.PropertiesFactory</package>
         </classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+            <fileName>${catalina.base}/logs/idm.log</fileName>
+            <filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</filePattern>
+            <maxHistory>10</maxHistory>
+            <maxFileSize>100MB</maxFileSize>
+            <append>true</append>
+        </appender>
+        <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
     </logging>
 </systemConfiguration>
