@@ -264,7 +264,9 @@ public class RResource extends RObject {
 					repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
 			jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION),
 					repo.getSynchronization(), SynchronizationType.class, prismContext));
-			jaxb.setCapabilities(repo.getCapabilities().toJAXB(prismContext));
+			if (repo.getCapabilities() != null) {
+				jaxb.setCapabilities(repo.getCapabilities().toJAXB(prismContext));
+			}
 			jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS),
 					repo.getScripts(), ProvisioningScriptsType.class, prismContext));
 			if (repo.getBusiness() != null && !repo.getBusiness().empty()) {
