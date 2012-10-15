@@ -42,5 +42,11 @@
             <level>OFF</level>
             <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
         </classLogger>
+        <classLogger>
+            <!-- disabled because we don't need to see every property file
+            loading message (unnecessary log pollution) -->
+            <level>WARN</level>
+            <package>org.apache.wicket.resource.PropertiesFactory</package>
+        </classLogger>
     </logging>
 </systemConfiguration>
