@@ -286,8 +286,8 @@ object.
 				</activation>
 			</accountType>
 		</schemaHandling>
-	<nativeCapabilities>
-		<capabilities>
+	<capabilities>
+		<native>
 	        <cap:script>
 	            <cap:host>
 	                <cap:type>resource</cap:type>
@@ -304,8 +304,8 @@ object.
 <!--	        <cap:activation>
 	            <cap:enableDisable/>
 	        </cap:activation>-->
-    	</capabilities>
-	</nativeCapabilities>
+    	</native>
+	</capabilities>
         <synchronization>
         	<objectSynchronization>
 	            <!--

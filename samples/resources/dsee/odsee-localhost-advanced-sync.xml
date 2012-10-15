@@ -300,18 +300,15 @@ object.
         </schemaHandling>
         
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-            <cap:activation>
-                <cap:enableDisable>
-                    <cap:attribute>ri:nsAccountLock</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:enableDisable>
-            </cap:activation>
-            <cap:credentials>
-                <cap:password/>
-            </cap:credentials>
-            <cap:liveSync/>
-            <cap:testConnection/>
+        	<configured>
+	            <cap:activation>
+	                <cap:enableDisable>
+	                    <cap:attribute>ri:nsAccountLock</cap:attribute>
+	                    <cap:enableValue/>
+	                    <cap:disableValue>true</cap:disableValue>
+	                </cap:enableDisable>
+	            </cap:activation>
+            </configured>
         </capabilities>
         <!--
             Synchronization section describes the synchronization policy, timing,

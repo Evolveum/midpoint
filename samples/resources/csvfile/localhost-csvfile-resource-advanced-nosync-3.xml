@@ -183,17 +183,15 @@ using an Identity Connector Framework connector.
 
 		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-			<cap:activation>
-				<cap:enableDisable>
-					<cap:attribute>ri:disabled</cap:attribute>
-					<cap:enableValue>false</cap:enableValue>
-					<cap:disableValue>true</cap:disableValue>
-				</cap:enableDisable>
-			</cap:activation>
-			<cap:credentials>
-				<cap:password/>
-			</cap:credentials>
-			<cap:testConnection/>
+			<configured>
+				<cap:activation>
+					<cap:enableDisable>
+						<cap:attribute>ri:disabled</cap:attribute>
+						<cap:enableValue>false</cap:enableValue>
+						<cap:disableValue>true</cap:disableValue>
+					</cap:enableDisable>
+				</cap:activation>
+			</configured>
 		</capabilities>
 </resource>
 
