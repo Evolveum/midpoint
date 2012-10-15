@@ -60,7 +60,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType.EnableDisable;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.apache.commons.lang.Validate;
@@ -696,7 +696,7 @@ public class ShadowConverter {
 					+ " does not have native or simulated activation capability");
 		}
 
-		EnableDisable enableDisable = activationCapability.getEnableDisable();
+		ActivationEnableDisableCapabilityType enableDisable = activationCapability.getEnableDisable();
 		if (enableDisable == null) {
 			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ " does not have native or simulated activation/enableDisable capability");

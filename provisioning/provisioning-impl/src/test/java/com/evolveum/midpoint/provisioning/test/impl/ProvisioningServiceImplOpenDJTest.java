@@ -89,6 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
@@ -329,7 +330,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		display("Resource from provisioninig", resource);
 		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
 		
-		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities().getCapabilities();
+		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
         CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
@@ -339,7 +340,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it",capAct);
         
-        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
         	System.out.println("Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
         }

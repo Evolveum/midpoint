@@ -91,8 +91,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -487,10 +487,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// THEN
 
 		// Check native capabilities
-		CachedCapabilitiesType nativeCapabilities = resourceType.getNativeCapabilities();
+		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
 		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().dump());
-		List<Object> nativeCapabilitiesList = nativeCapabilities.getCapabilities().getAny();
+		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
@@ -518,7 +518,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		capAct = ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class);
 		assertNotNull("activation capability not found", capCred.getPassword());
 
-		List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resourceType);
+		List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
 		for (Object capability : effectiveCapabilities) {
 			System.out.println("Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);

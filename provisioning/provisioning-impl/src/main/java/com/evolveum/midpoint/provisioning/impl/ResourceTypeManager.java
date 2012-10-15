@@ -61,9 +61,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CachedCapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationalStateType;
@@ -512,11 +512,11 @@ public class ResourceTypeManager {
 	 * are used for special purpose (such as account activation simulation).
 	 */
 	private void adjustSchemaForCapabilities(ResourceType resource, ResourceSchema resourceSchema) {
-		if (resource.getCapabilities() == null) {
+		if (resource.getCapabilities() == null || resource.getCapabilities().getConfigured() == null) {
 			return;
 		}
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getCapability(resource
-				.getCapabilities().getAny(), ActivationCapabilityType.class);
+				.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
 		if (activationCapability != null && activationCapability.getEnableDisable() != null) {
 			QName attributeName = activationCapability.getEnableDisable().getAttribute();
 			if (attributeName != null) {
@@ -855,7 +855,7 @@ public class ResourceTypeManager {
 		// This is not really clean now. We need to add caching metadata and
 		// things like that
 		// FIXME
-		if (resource.getNativeCapabilities() != null) {
+		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
 			return;
 		}
 
@@ -877,16 +877,20 @@ public class ResourceTypeManager {
 			throw new GenericConnectorException("Configuration error in connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		}
-
-		CapabilitiesType capType = new CapabilitiesType();
-		if (capabilities != null) {
-			capType.getAny().addAll(capabilities);
+		
+		CapabilitiesType capType = resource.getCapabilities();
+		if (capType == null) {
+			capType = new CapabilitiesType();
+			resource.setCapabilities(capType);
 		}
-		CachedCapabilitiesType cachedCapType = new CachedCapabilitiesType();
-		cachedCapType.setCapabilities(capType);
+		
+		if (capabilities != null) {
+			CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
+			capType.setNative(nativeCapType);
+			nativeCapType.getAny().addAll(capabilities);
+		}
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-		cachedCapType.setCachingMetadata(cachingMetadata);
-		resource.setNativeCapabilities(cachedCapType);
+		capType.setCachingMetadata(cachingMetadata);
 		
 	}
 

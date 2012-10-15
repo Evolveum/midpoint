@@ -90,8 +90,8 @@
 	</schema>
 	<!-- No schemaHandling as well. -->
 	<!-- We need to specify nativeCapabilities as well as these are usually schema-derived -->
-	<nativeCapabilities>
-		<capabilities>
+	<capabilities>
+		<native>
 	        <cap:script>
 	            <cap:host>
 	                <cap:type>resource</cap:type>
@@ -108,6 +108,6 @@
 	        <cap:activation>
 	            <cap:enableDisable/>
 	        </cap:activation>
-    	</capabilities>
-	</nativeCapabilities>
+    	</native>
+	</capabilities>
 </resource>

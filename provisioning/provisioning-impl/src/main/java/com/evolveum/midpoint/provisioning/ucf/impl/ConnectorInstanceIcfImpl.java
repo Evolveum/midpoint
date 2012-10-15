@@ -51,7 +51,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType.EnableDisable;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -561,7 +560,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (capEnable) {
 			ActivationCapabilityType capAct = new ActivationCapabilityType();
-			EnableDisable capEnableDisable = new EnableDisable();
+			ActivationEnableDisableCapabilityType capEnableDisable = new ActivationEnableDisableCapabilityType();
 			capAct.setEnableDisable(capEnableDisable);
 
 			capabilities.add(capabilityObjectFactory.createActivation(capAct));

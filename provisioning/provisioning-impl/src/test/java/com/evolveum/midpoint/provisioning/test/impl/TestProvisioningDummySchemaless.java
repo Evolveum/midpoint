@@ -362,10 +362,10 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 		// THEN
 
 		// Check native capabilities
-		CachedCapabilitiesType nativeCapabilities = resourceType.getNativeCapabilities();
+		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
 		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().dump());
-		List<Object> nativeCapabilitiesList = nativeCapabilities.getCapabilities().getAny();
+		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
@@ -393,7 +393,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 		capAct = ResourceTypeUtil.getEffectiveCapability(resourceType, ActivationCapabilityType.class);
 		assertNotNull("activation capability not found", capCred.getPassword());
 
-		List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resourceType);
+		List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
 		for (Object capability : effectiveCapabilities) {
 			System.out.println("Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);
