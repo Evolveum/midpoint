@@ -508,12 +508,12 @@ public class TestSanity extends AbstractIntegrationTest {
         checkOpenDjSchemaHandling(resource, source);
         if (!source.equals("repository")) {
             // This is generated on the fly in provisioning
-            assertNotNull("Resource from " + source + " has null nativeCapabilities", resource.getNativeCapabilities());
+            assertNotNull("Resource from " + source + " has null nativeCapabilities", resource.getCapabilities().getNative());
             assertFalse("Resource from " + source + " has empty nativeCapabilities", 
-            		resource.getNativeCapabilities().getCapabilities().getAny().isEmpty());
+            		resource.getCapabilities().getNative().getAny().isEmpty());
         }
-        assertNotNull("Resource from " + source + " has null capabilities", resource.getCapabilities());
-        assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities().getAny().isEmpty());
+        assertNotNull("Resource from " + source + " has null configured capabilities", resource.getCapabilities().getConfigured());
+        assertFalse("Resource from " + source + " has empty capabilities", resource.getCapabilities().getConfigured().getAny().isEmpty());
         assertNotNull("Resource from " + source + " has null synchronization", resource.getSynchronization());
         checkOpenDjConfiguration(resource.asPrismObject(), source);
     }
@@ -671,7 +671,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         assertCache();
 
-        CapabilitiesType nativeCapabilities = resource.getNativeCapabilities().getCapabilities();
+        CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> capabilities = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned", capabilities.isEmpty());
 
@@ -680,12 +680,12 @@ public class TestSanity extends AbstractIntegrationTest {
         }
 
         if (resource.getCapabilities() != null) {
-            for (Object capability : resource.getCapabilities().getAny()) {
+            for (Object capability : resource.getCapabilities().getConfigured().getAny()) {
                 System.out.println("Configured Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " + capability);
             }
         }
 
-        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
             System.out.println("Efective Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
