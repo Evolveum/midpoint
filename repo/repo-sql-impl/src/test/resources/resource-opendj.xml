@@ -157,17 +157,19 @@
 
 	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
 		Some tests work without running resource, generating fetching capabilities would fail. -->	
-	<nativeCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-      <cap:credentials>
-         <cap:password/>
-      </cap:credentials>
-      <cap:liveSync/>
-      <cap:testConnection/>
-      <cap:script>
-         <cap:host>
-            <cap:type>connector</cap:type>
-         </cap:host>
-      </cap:script>
-   </nativeCapabilities>
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+		<native>
+		      <cap:credentials>
+		         <cap:password/>
+		      </cap:credentials>
+		      <cap:liveSync/>
+		      <cap:testConnection/>
+		      <cap:script>
+		         <cap:host>
+		            <cap:type>connector</cap:type>
+		         </cap:host>
+		      </cap:script>
+      </native>
+   </capabilities>
 	
 </resource>
