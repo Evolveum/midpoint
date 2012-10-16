@@ -198,6 +198,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 	SystemConfigurationHandler systemConfigurationHandler;
 	
 	@Autowired(required = true)
+	private AuditService auditService;
+	
+	@Autowired(required = true)
 	Projector projector;
 	
 	@Autowired(required = true)
