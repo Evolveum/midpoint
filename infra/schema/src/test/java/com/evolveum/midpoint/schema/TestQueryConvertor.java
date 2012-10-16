@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -63,7 +64,8 @@ public class TestQueryConvertor {
 	public void testAccountQuery() throws Exception {
 		LOGGER.info("===[ testAccountQuery ]===");
 		File[] queriesToTest = new File[] { new File(TEST_DIR + "/query.xml"),
-				new File(TEST_DIR + "/query-account-by-attributes-and-resource-ref.xml"), new File(TEST_DIR + "/query-or-composite.xml")};
+				new File(TEST_DIR + "/query-account-by-attributes-and-resource-ref.xml"),
+				new File(TEST_DIR + "/query-or-composite.xml") };
 
 		for (File file : queriesToTest) {
 			LOGGER.info("Start to convert query {} ", file.getName());
@@ -71,15 +73,17 @@ public class TestQueryConvertor {
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
 			try {
-				query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType,
-						prismContext);
+				query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
 				LOGGER.info("QUERY DUMP: {}", query.dump());
-				
+				LOGGER.info("QUERY Pretty print: {}", query.toString());
+				System.out.println("QUERY Pretty print: " + query.toString());
+
+				System.out.println("debug util: " + SchemaDebugUtil.prettyPrint(query));
 				QueryType convertedQueryType = QueryConvertor.createQueryType(query, prismContext);
 				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
-				
+
 			} catch (SchemaException ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			} catch (RuntimeException ex) {
@@ -88,13 +92,12 @@ public class TestQueryConvertor {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			}
 
-		
 		}
-		//TODO: add some asserts
+		// TODO: add some asserts
 	}
-	
+
 	@Test
-	public void testConnectorQuery() throws Exception{
+	public void testConnectorQuery() throws Exception {
 		LOGGER.info("===[ testConnectorQuery ]===");
 		File connectorQueryToTest = new File(TEST_DIR + "/query-connector-by-type.xml");
 		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(connectorQueryToTest,
@@ -106,15 +109,21 @@ public class TestQueryConvertor {
 			LOGGER.info("query converted: ");
 
 			LOGGER.info("QUERY DUMP: {}", query.dump());
+			LOGGER.info("QUERY Pretty print: {}", query.toString());
+			System.out.println("QUERY Pretty print: " + query.toString());
+
 			AssertJUnit.assertNotNull(query);
 			AssertJUnit.assertEquals(EqualsFilter.class, query.getFilter().getClass());
 			List<? extends PrismValue> values = ((EqualsFilter) query.getFilter()).getValues();
 			AssertJUnit.assertEquals(1, values.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, values.get(0).getClass());
-			AssertJUnit.assertEquals("org.identityconnectors.ldap.LdapConnector", ((PrismPropertyValue) values.get(0)).getValue());
-			AssertJUnit.assertEquals(ConnectorType.F_CONNECTOR_TYPE, ((EqualsFilter)query.getFilter()).getDefinition().getName());
-			AssertJUnit.assertEquals(DOMUtil.XSD_STRING, ((EqualsFilter)query.getFilter()).getDefinition().getTypeName());
-			
+			AssertJUnit.assertEquals("org.identityconnectors.ldap.LdapConnector",
+					((PrismPropertyValue) values.get(0)).getValue());
+			AssertJUnit.assertEquals(ConnectorType.F_CONNECTOR_TYPE, ((EqualsFilter) query.getFilter()).getDefinition()
+					.getName());
+			AssertJUnit.assertEquals(DOMUtil.XSD_STRING, ((EqualsFilter) query.getFilter()).getDefinition()
+					.getTypeName());
+
 			QueryType convertedQueryType = QueryConvertor.createQueryType(query, prismContext);
 			LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 		} catch (SchemaException ex) {
@@ -127,45 +136,50 @@ public class TestQueryConvertor {
 			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 			throw ex;
 		}
-		
+
 	}
-	
+
 	@Test
-	public void testGenericQuery() throws Exception{
+	public void testGenericQuery() throws Exception {
 		LOGGER.info("===[ testGenericQuery ]===");
 		File genericsQueryToTest = new File(TEST_DIR + "/query-and-generic.xml");
-		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(genericsQueryToTest, QueryType.class);
+		QueryType queryType = prismContext.getPrismJaxbProcessor()
+				.unmarshalObject(genericsQueryToTest, QueryType.class);
 		LOGGER.info("===[ query type parsed ]===");
 		ObjectQuery query = null;
 		try {
-			query = QueryConvertor.createObjectQuery(GenericObjectType.class, queryType,
-					prismContext);
+			query = QueryConvertor.createObjectQuery(GenericObjectType.class, queryType, prismContext);
 			LOGGER.info("query converted: ");
 
 			LOGGER.info("QUERY DUMP: {}", query.dump());
-			//check parent filter
+			LOGGER.info("QUERY Pretty print: {}", query.toString());
+			System.out.println("QUERY Pretty print: " + query.toString());
+
+			// check parent filter
 			AssertJUnit.assertNotNull(query);
 			AssertJUnit.assertEquals(AndFilter.class, query.getFilter().getClass());
-			AssertJUnit.assertEquals(2, ((AndFilter)query.getFilter()).getCondition().size());
-			//check first condition
+			AssertJUnit.assertEquals(2, ((AndFilter) query.getFilter()).getCondition().size());
+			// check first condition
 			ObjectFilter first = ((AndFilter) query.getFilter()).getCondition().get(0);
 			AssertJUnit.assertEquals(EqualsFilter.class, first.getClass());
 			List<? extends PrismValue> values = ((EqualsFilter) first).getValues();
 			AssertJUnit.assertEquals(1, values.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, values.get(0).getClass());
-//			AssertJUnit.assertEquals(PrismTestUtil.createPolyString("generic object"), ((PrismPropertyValue) values.get(0)).getValue());
-			AssertJUnit.assertEquals(GenericObjectType.F_NAME, ((EqualsFilter)first).getDefinition().getName());
-			AssertJUnit.assertEquals(PolyStringType.COMPLEX_TYPE, ((EqualsFilter)first).getDefinition().getTypeName());
-			//check second condition
+			// AssertJUnit.assertEquals(PrismTestUtil.createPolyString("generic object"),
+			// ((PrismPropertyValue) values.get(0)).getValue());
+			AssertJUnit.assertEquals(GenericObjectType.F_NAME, ((EqualsFilter) first).getDefinition().getName());
+			AssertJUnit.assertEquals(PolyStringType.COMPLEX_TYPE, ((EqualsFilter) first).getDefinition().getTypeName());
+			// check second condition
 			ObjectFilter second = ((AndFilter) query.getFilter()).getCondition().get(1);
 			AssertJUnit.assertEquals(EqualsFilter.class, second.getClass());
 			List<? extends PrismValue> secValues = ((EqualsFilter) second).getValues();
 			AssertJUnit.assertEquals(1, secValues.size());
 			AssertJUnit.assertEquals(PrismPropertyValue.class, secValues.get(0).getClass());
 			AssertJUnit.assertEquals(123, ((PrismPropertyValue) secValues.get(0)).getValue());
-			AssertJUnit.assertEquals(new QName("http://midpoint.evolveum.com/xml/ns/test/extension", "intType"), ((EqualsFilter)second).getDefinition().getName());
-			AssertJUnit.assertEquals(DOMUtil.XSD_INT, ((EqualsFilter)second).getDefinition().getTypeName());
-			
+			AssertJUnit.assertEquals(new QName("http://midpoint.evolveum.com/xml/ns/test/extension", "intType"),
+					((EqualsFilter) second).getDefinition().getName());
+			AssertJUnit.assertEquals(DOMUtil.XSD_INT, ((EqualsFilter) second).getDefinition().getTypeName());
+
 			QueryType convertedQueryType = QueryConvertor.createQueryType(query, prismContext);
 			LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 		} catch (SchemaException ex) {
@@ -179,9 +193,9 @@ public class TestQueryConvertor {
 			throw ex;
 		}
 	}
-	
+
 	@Test
-	public void testUserQuery() throws Exception{
+	public void testUserQuery() throws Exception {
 		LOGGER.info("===[ testUserQuery ]===");
 		File[] userQueriesToTest = new File[] { new File(TEST_DIR + "/query-user-by-fullName.xml"),
 				new File(TEST_DIR + "/query-user-by-name.xml"),
@@ -196,7 +210,10 @@ public class TestQueryConvertor {
 				LOGGER.info("query converted: ");
 
 				LOGGER.info("QUERY DUMP: {}", query.dump());
-				
+				LOGGER.info("QUERY Pretty print: {}", query.toString());
+				System.out.println("QUERY Pretty print: " + query.toString());
+
+
 				QueryType convertedQueryType = QueryConvertor.createQueryType(query, prismContext);
 				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 			} catch (SchemaException ex) {

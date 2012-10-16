@@ -119,7 +119,7 @@ public class RefFilter extends PropertyValueFilter{
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("EQUALS: ");
+		sb.append("REF: ");
 		if (getPath() != null){
 			sb.append(getPath().toString());
 			sb.append(", ");
@@ -129,7 +129,7 @@ public class RefFilter extends PropertyValueFilter{
 			sb.append(", ");
 		}
 		if (getValues() != null){
-			for (int i = 0; i< getValues().size() -1 ; i++){
+			for (int i = 0; i< getValues().size(); i++){
 				sb.append(getValues().get(i).toString());
 				if ( i != getValues().size() -1){
 					sb.append(", ");

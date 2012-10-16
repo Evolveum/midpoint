@@ -72,7 +72,7 @@ public class SubstringFilter extends StringValueFilter {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("EQUALS: ");
+		sb.append("SUBSTRING: ");
 		if (getPath() != null){
 			sb.append(getPath().toString());
 			sb.append(", ");

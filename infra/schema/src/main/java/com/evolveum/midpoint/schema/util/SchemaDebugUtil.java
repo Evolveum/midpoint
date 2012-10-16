@@ -924,21 +924,8 @@ public class SchemaDebugUtil {
 	}
 
 	public static String prettyPrint(ObjectQuery query){
-		if (query == null) {
-			return "null";
-		}
-
-		ObjectFilter filter = query.getFilter();
-
-		StringBuilder sb = new StringBuilder("Query(");
-
-		prettyPrintFilter(sb, filter);
-		ObjectPaging paging = query.getPaging();
-		prettyPrintPaging(sb, paging);
-
-		sb.append(")");
-
-		return sb.toString();
+		
+		return query.toString();
 	}
 	
 	static {

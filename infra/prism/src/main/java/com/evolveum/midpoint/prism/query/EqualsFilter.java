@@ -160,7 +160,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 			sb.append(", ");
 		}
 		if (getValues() != null){
-			for (int i = 0; i< getValues().size() -1 ; i++){
+			for (int i = 0; i< getValues().size() ; i++){
 				sb.append(getValues().get(i).toString());
 				if ( i != getValues().size() -1){
 					sb.append(", ");
