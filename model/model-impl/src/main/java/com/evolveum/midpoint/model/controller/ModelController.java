@@ -93,6 +93,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -192,9 +193,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
-
-	@Autowired(required = true)
-	private AuditService auditService;
 
 	@Autowired(required = true)
 	SystemConfigurationHandler systemConfigurationHandler;
@@ -458,54 +456,18 @@ public class ModelController implements ModelService, ModelInteractionService {
 		// Task task = taskManager.createTaskInstance(); // in the future, this
 		// task instance will come from GUI
 
-		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT,
-				AuditEventStage.REQUEST);
-
 		RepositoryCache.enter();
 		try {
-
-			auditRecord.setTarget(object);
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(object.getCompileTimeClass(), ChangeType.ADD, prismContext);
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Entering addObject with {}", object);
 				LOGGER.trace(object.dump());
 			}
-
-			if (objectType instanceof UserType) {
-				UserType userType = (UserType) objectType;
-
-				LensContext<UserType, AccountShadowType> syncContext = userTypeAddToContext(userType.asPrismObject(), result);
-
-				auditRecord.addDeltas(syncContext.getAllChanges());
-				auditService.audit(auditRecord, task);
-
-				objectDelta = (ObjectDelta<T>) syncContext.getFocusContext().getPrimaryDelta();
-
-				if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND) {
-                    return null;
-                }
-
-				auditRecord.clearDeltas();
-				auditRecord.addDeltas(syncContext.getAllChanges());
-
-			} else {
-
-				auditRecord.addDelta(objectDelta);
-				auditService.audit(auditRecord, task);
-
-				objectDelta.setObjectToAdd(object);
-
-//				if (executePreChangePrimary(objectDelta, task, result) != HookOperationMode.FOREGROUND)
-//					return null;
-
-				LOGGER.trace("Executing GENERIC change " + objectDelta);
-				Collection<ObjectDelta<T>> changes = MiscUtil.createCollection(objectDelta);
-				changeExecutor.executeChanges((Collection)changes, task, result);
-
-				executePostChange(objectDelta, task, result);
-			}
-
+			
+			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
+			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+			executeChanges(deltas, null, task, result);
+			
 			oid = objectDelta.getOid();
 
 			result.computeStatus();
@@ -540,10 +502,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
-			auditRecord.setEventStage(AuditEventStage.EXECUTION);
-			auditRecord.setResult(result);
-			auditRecord.clearTimestamp();
-			auditService.audit(auditRecord, task);
 		}
 
 		return oid;
@@ -690,149 +648,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		RepositoryCache.enter();
 
-		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.MODIFY_OBJECT,
-				AuditEventStage.REQUEST);
-		PrismObject<T> object = null;
-		try {
-			object = cacheRepositoryService.getObject(type, oid, result);
-		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			RepositoryCache.exit();
-			throw e;
-		} catch (SchemaException e) {
-			result.recordFatalError(e);
-			RepositoryCache.exit();
-			throw e;
-		} catch (RuntimeException e) {
-			result.recordFatalError(e);
-			RepositoryCache.exit();
-			throw e;
-		}
-
 		try {
 
-			auditRecord.setTarget(object);
+			ObjectDelta<T> objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
+			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+			executeChanges(deltas, null, task, result);
 
-			ObjectDelta<T> objectDelta = null;
-
-			if (UserType.class.isAssignableFrom(type)) {
-
-				LensContext<UserType, AccountShadowType> syncContext = userTypeModifyToContext(oid, modifications, result);
-				
-				Collection<ObjectDelta<? extends ObjectType>> allChanges = syncContext.getAllChanges();
-
-				auditRecord.addDeltas(syncContext.getAllChanges());
-				auditService.audit(auditRecord, task);
-
-                if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND) {
-                    return;
-                }
-
-				// Deltas after sync will be different
-				auditRecord.clearDeltas();
-				allChanges = syncContext.getAllChanges();
-				auditRecord.addDeltas(allChanges);
-
-                result.computeStatus();
-
-			} else {
-				RefinedAccountDefinition accountDefinition = null;
-				if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
-					Collection<? extends ResourceAttributeDefinition> attributeDefinitions = null;
-					ResourceObjectShadowType shadow = (ResourceObjectShadowType) cacheRepositoryService.getObject(type,
-							oid, result).asObjectable();
-					String resourceOid = ResourceObjectShadowUtil.getResourceOid(shadow);
-					ResourceType resource = provisioning.getObject(ResourceType.class, resourceOid, null,
-							result).asObjectable();
-					
-					
-					if (AccountShadowType.class.isAssignableFrom(type)) {
-						// Need to read the shadow to get reference to resource and
-						// account type
-						RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-								prismContext);
-//						PrismObjectDefinition<AccountShadowType> accountDefinition = refinedSchema
-//								.getObjectDefinition(shadow);
-						accountDefinition = refinedSchema.getAccountDefinition((AccountShadowType)shadow);
-						attributeDefinitions = accountDefinition.getAttributeDefinitions();
-					} else {
-						ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-						ObjectClassComplexTypeDefinition objectClassDefinition = resourceSchema.findObjectClassDefinition(shadow);
-						attributeDefinitions = objectClassDefinition.getAttributeDefinitions();
-					}
-					for (ItemDelta itemDelta: modifications) {
-						ItemDefinition definition = itemDelta.getDefinition();
-						if (definition == null) {
-							if (itemDelta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
-								applyAttributeDefinition(itemDelta, attributeDefinitions);
-							} else {
-								throw new SchemaException("Missing definition of "+itemDelta);
-							}
-						}
-					}
-				}
-				
-				objectDelta = (ObjectDelta<T>) ObjectDelta.createModifyDelta(oid, modifications, type, prismContext);
-				objectDelta.checkConsistence();
-				
-				if (objectDelta.hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE) && accountDefinition != null
-						&& accountDefinition.getPasswordPolicy() != null
-						&& accountDefinition.getPasswordPolicy().getOid() != null) {
-
-					PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(
-							PasswordPolicyType.class, accountDefinition.getPasswordPolicy().getOid(), parentResult);
-					
-					if (passwordPolicy != null) {
-						PropertyDelta passwordDelta = objectDelta
-								.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-						PrismProperty<PasswordType> password = null;
-						if (passwordDelta.isReplace()) {
-							password = passwordDelta.getPropertyNew();
-						}
-
-						if (password != null) {
-							ProtectedStringType protectedPass = password.getValue(ProtectedStringType.class).getValue();
-							String passValue = protectedPass.getClearValue();
-							if (passValue == null) {
-								try{
-								passValue = protector.decryptString(protectedPass);
-								} catch(EncryptionException ex){
-									LOGGER.error("Failed to process decsyption of password value.");
-									throw new SchemaException("Failed to process decsyption of password value.");
-								}
-							}
-							if (!PasswordPolicyUtils.validatePassword(passValue, passwordPolicy.asObjectable(), result)){
-								throw new PolicyViolationException("Provided password does not satisfy specified password policies.");
-							}
-
-						}
-					}
-
-				}
-
-				auditRecord.addDelta(objectDelta);
-				auditService.audit(auditRecord, task);
-
-				Collection<ObjectDelta<? extends ObjectType>> changes = new HashSet<ObjectDelta<? extends ObjectType>>();
-				changes.add(objectDelta);
-
-				try {
-					changeExecutor.executeChanges(changes, task, parentResult);
-
-                    // todo: is objectDelta the correct holder of the modifications?
-                    executePostChange(objectDelta, task, result);
-
-                    result.recordSuccessIfUnknown();
-				} catch (ObjectAlreadyExistsException e) {
-					// This should not happen
-					// TODO Better handling
-					throw new SystemException(e.getMessage(), e);
-				}
-				// catch (ObjectNotFoundException ex) {
-				// cacheRepositoryService.listAccountShadowOwner(oid,
-				// parentResult);
-				// }
-            }
+            result.computeStatus();
 			
         } catch (ExpressionEvaluationException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
@@ -869,10 +691,6 @@ public class ModelController implements ModelService, ModelInteractionService {
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
-			auditRecord.setEventStage(AuditEventStage.EXECUTION);
-			auditRecord.setResult(result);
-			auditRecord.clearTimestamp();
-			auditService.audit(auditRecord, task);
 		}
 	}
 
@@ -924,81 +742,14 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		RepositoryCache.enter();
 
-		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.DELETE_OBJECT,
-				AuditEventStage.REQUEST);
-		PrismObject<T> object = null;
 		try {
-			object = cacheRepositoryService.getObject(clazz, oid, result);
-		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			RepositoryCache.exit();
-			throw e;
-		} catch (SchemaException e) {
-			result.recordFatalError(e);
-			RepositoryCache.exit();
-			throw e;
-		} catch (RuntimeException e) {
-			result.recordFatalError(e);
-			RepositoryCache.exit();
-			throw e;
-		}
-
-		try {
-			auditRecord.setTarget(object);
 			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE, prismContext);
 			objectDelta.setOid(oid);
-			auditRecord.addDelta(objectDelta);
-			auditService.audit(auditRecord, task);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-
-			Collection<ObjectDelta<? extends ObjectType>> changes = null;
-
-			if (UserType.class.isAssignableFrom(clazz)) {
-				LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
-				LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
-				focusContext.setObjectOld(null);
-				focusContext.setObjectNew(null);
-				focusContext.setPrimaryDelta((ObjectDelta<UserType>) objectDelta);
-
-				try {
-					if (clockwork.run(syncContext, task, result) != HookOperationMode.FOREGROUND) {
-                        return;
-                    }
-				} catch (SchemaException e) {
-					// TODO Better handling
-					throw new SystemException(e.getMessage(), e);
-				} catch (ExpressionEvaluationException e) {
-					// TODO Better handling
-					throw new SystemException(e.getMessage(), e);
-				} catch (ConfigurationException e) {
-					// TODO Better handling
-					throw e;
-				} catch (ObjectAlreadyExistsException e) {
-					// TODO Better handling
-					throw new SystemException(e.getMessage(), e);
-				}
-
-				changes = syncContext.getAllChanges();
-			} else {
-				changes = new HashSet<ObjectDelta<? extends ObjectType>>();
-				changes.add(objectDelta);
-    			try {
-    				changeExecutor.executeChanges(changes, task, result);
-                    executePostChange(changes, task, result);
-
-    				auditRecord.clearDeltas();
-    				auditRecord.addDeltas(changes);
-
-    			} catch (ObjectAlreadyExistsException e) {
-    				// TODO Better handling
-    				throw new SystemException(e.getMessage(), e);
-    			} catch (SchemaException e) {
-    				// TODO Better handling
-    				throw new SystemException(e.getMessage(), e);
-    			}
-
-			}
+			
+			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+			executeChanges(deltas, null, task, result);
 
 			result.recordSuccess();
 
@@ -1018,12 +769,16 @@ public class ModelController implements ModelService, ModelInteractionService {
 			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
 			throw ex;
+		} catch (ObjectAlreadyExistsException ex) {
+			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw new SystemException(ex.getMessage(), ex);
+		} catch (ExpressionEvaluationException ex) {
+			LOGGER.error("model.deleteObject failed: {}", ex.getMessage(), ex);
+			result.recordFatalError(ex);
+			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			RepositoryCache.exit();
-			auditRecord.setEventStage(AuditEventStage.EXECUTION);
-			auditRecord.setResult(result);
-			auditRecord.clearTimestamp();
-			auditService.audit(auditRecord, task);
 		}
 	}
 

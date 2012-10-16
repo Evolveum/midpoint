@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -101,7 +102,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test001AddConfiguration");
 		OperationResult result = task.getResult();
 		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDelta.createAddDelta(systemConfiguration);		
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(systemConfigurationAddDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigurationAddDelta);
 		
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -207,7 +208,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
 				AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
 				logging);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(systemConfigDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 		
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -266,7 +267,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
 				AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
 				logging);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(systemConfigDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 		
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -279,7 +280,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		
 		// try do execute some change (add user object), it should be audited
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.USER_JACK_FILENAME));
-		deltas = (Collection) MiscUtil.createCollection(ObjectDelta.createAddDelta(user));
+		deltas = MiscSchemaUtil.createCollection(ObjectDelta.createAddDelta(user));
 		modelService.executeChanges(deltas, null, task, result);
 
 		// This message will appear in the log and will help diagnose problems

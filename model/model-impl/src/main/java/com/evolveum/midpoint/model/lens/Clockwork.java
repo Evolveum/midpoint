@@ -151,7 +151,9 @@ public class Clockwork {
 		}
 		
 		AuditEventType eventType = null;
-		if (primaryDelta.isAdd()) {
+		if (primaryDelta == null) {
+			eventType = AuditEventType.SYNCHRONIZATION;
+		} else if (primaryDelta.isAdd()) {
 			eventType = AuditEventType.ADD_OBJECT;
 		} else if (primaryDelta.isModify()) {
 			eventType = AuditEventType.MODIFY_OBJECT;
@@ -162,6 +164,7 @@ public class Clockwork {
 		}
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
 		auditRecord.setTarget(primaryObject);
+		auditRecord.setChannel(context.getChannel());
 		auditRecord.addDeltas(context.getAllChanges());
 		if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setResult(result);
