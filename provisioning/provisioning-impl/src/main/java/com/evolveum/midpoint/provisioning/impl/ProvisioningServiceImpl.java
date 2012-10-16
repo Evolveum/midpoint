@@ -340,8 +340,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw new SchemaException("Couldn't add object. Reason: " + ex.getMessage(), ex);
 			} catch (ObjectAlreadyExistsException ex) {
 				result.computeStatus();
-				if (!result.isHandledError()) {
+				if (!result.isSuccess() && !result.isHandledError()) {
 					logFatalError(LOGGER, result, "Couldn't add object. Object already exist, " + ex.getMessage(), ex);
+				} else {
+					result.recordSuccess();
 				}
 				throw new ObjectAlreadyExistsException("Could't add object. Object already exist, " + ex.getMessage(),
 						ex);

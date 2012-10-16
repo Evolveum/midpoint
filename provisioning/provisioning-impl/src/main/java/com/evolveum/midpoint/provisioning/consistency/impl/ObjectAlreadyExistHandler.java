@@ -55,58 +55,69 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private TaskManager taskManager;
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException,
-			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex,
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		OperationResult operationResult = parentResult.createSubresult("Discovery for object already exists situation. Operation: " + op.name());
+		OperationResult operationResult = parentResult
+				.createSubresult("Discovery for object already exists situation. Operation: " + op.name());
 		operationResult.addParam("shadow", shadow);
 		operationResult.addParam("currentOperation", op);
 		operationResult.addParam("exception", ex.getMessage());
-		
-		
+
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		if (shadow instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) shadow;
-			account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(),
-					operationResult));
+			account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(), operationResult));
 		}
-		
+
 		change.setResource(shadow.getResource().asPrismObject());
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 		ObjectQuery query = createQueryByIcfName(shadow);
 		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, operationResult);
 
+		PrismObject<AccountShadowType> resourceAccount = null;
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
-			change.setCurrentShadow(foundAccount.get(0));
-			//TODO: task initialization
+			resourceAccount = foundAccount.get(0);
+		}
+
+		if (resourceAccount != null) {
+			change.setCurrentShadow(resourceAccount);
+			// TODO: task initialization
 			Task task = taskManager.createTaskInstance();
 			changeNotificationDispatcher.notifyChange(change, task, operationResult);
 		}
 
-		parentResult.recordHandledError("While creating account on the resource, it was detected that the account with the same name ("+shadow.getName()+") already exists. Disrovery run to eliminate possible inconsistencies. (For more information about executed operations see operation result or logs.)");
 		operationResult.computeStatus();
-		throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
 
+		if (operationResult.isSuccess()) {
+			parentResult.recordSuccess();
+		}
+		throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
 
 	}
 
 	private ObjectQuery createQueryByIcfName(ResourceObjectShadowType shadow) throws SchemaException {
 		// TODO: error handling
-		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue().findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualsFilter nameFilter = EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), nameProperty.getDefinition(), nameProperty.getValues());
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
-		EqualsFilter objectClassFilter = EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
-		
-		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter, objectClassFilter));
-		
+		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
+				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		EqualsFilter nameFilter = EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES),
+				nameProperty.getDefinition(), nameProperty.getValues());
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(AccountShadowType.class,
+				AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
+		EqualsFilter objectClassFilter = EqualsFilter.createEqual(AccountShadowType.class, prismContext,
+				AccountShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
+
+		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter,
+				objectClassFilter));
+
 		return query;
 	}
 
-	private List<PrismObject<AccountShadowType>> getExistingAccount(ObjectQuery query,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			ConfigurationException, SchemaException, SecurityViolationException {
+	private List<PrismObject<AccountShadowType>> getExistingAccount(ObjectQuery query, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
+			SecurityViolationException {
 		final List<PrismObject<AccountShadowType>> foundAccount = new ArrayList<PrismObject<AccountShadowType>>();
 		ResultHandler<AccountShadowType> handler = new ResultHandler() {
 
@@ -118,8 +129,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		};
 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler,
-				parentResult);
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, parentResult);
 
 		return foundAccount;
 	}

@@ -190,7 +190,7 @@ public class ChangeExecutor {
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
 			result.computeStatus();
-			if (!result.isHandledError()) {
+			if (!result.isSuccess()) {
 				result.recordFatalError(e);
 			}
 			throw e;

@@ -206,7 +206,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			handleGetErrorResult.computeStatus();
 			foundReturnedValue(handleGetErrorResult, null);
 			
-			if (oid != null && !shadow.getOid().equals(oid)){
+//			if (oid != null && !shadow.getOid().equals(oid)){
 				try {
 					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), result);
 
@@ -217,7 +217,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					//TODO: log this
 
 				}
-			}
+//			}
 			
 			if (oid != null) {
 				shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
