@@ -10,6 +10,7 @@ import java.sql.SQLSyntaxErrorException;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
+import javax.naming.NoPermissionException;
 import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.SchemaViolationException;
 
@@ -17,6 +18,7 @@ import org.identityconnectors.framework.common.exceptions.AlreadyExistsException
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -173,7 +176,7 @@ class IcfUtil {
 			// lookForKnownCause(..) before
 			
 			// Maybe we need special exception for security?
-			Exception newEx =  new SystemException(createMessageFromAllExceptions("Security violation",icfException));
+			Exception newEx =  new SecurityViolationException(createMessageFromAllExceptions("Security violation",icfException));
 			parentResult.recordFatalError(
 					"Security violation: " + icfException.getMessage(), newEx);
 			return newEx;
@@ -238,6 +241,10 @@ class IcfUtil {
 		} else if (ex instanceof UnknownUidException) {
 			// Object not found
 			Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null,ex));
+			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
+			return newEx;
+		} else if (ex instanceof NoPermissionException){
+			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null,ex));
 			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
 			return newEx;
 		}

@@ -743,22 +743,6 @@ public class ResourceTypeManager {
 		ConnectorInstance connector = getConnectorInstance(resourceType, false, parentResult);
 
 		try {
-			// TODO: refactor
-//			QueryType query = null;
-//			if (resourceAttributesFilter != null) {
-//				if (resourceAttributesFilter.size() > 1) {
-//					throw new UnsupportedOperationException(
-//							"Now it is only supported to search accounts according to only one shadow attribute.");
-//				}
-//
-//				if (!resourceAttributesFilter.isEmpty()) {
-//					Element filter = QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
-//							resourceAttributesFilter.get(0).getName(),
-//							(String) resourceAttributesFilter.get(0).getRealValue());
-//					query = QueryUtil.createQuery(filter);
-//				}
-//			}
-
 			connector.search(type, objectClassDef, query, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);

@@ -643,7 +643,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
 			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
-			SchemaException {
+			SchemaException, SecurityViolationException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -726,7 +726,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private ConnectorObject fetchConnectorObject(ObjectClass icfObjectClass, Uid uid,
 			boolean returnDefaultAttributes,
 			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
+			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SecurityViolationException {
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
@@ -755,9 +755,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
 				throw (GenericFrameworkException) midpointEx;
-			}  else if (midpointEx instanceof RuntimeException) {
+			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
-			} else {
+			} else if (midpointEx instanceof SecurityViolationException){
+				throw (SecurityViolationException) midpointEx;
+			} else{
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		
@@ -918,7 +920,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass,
 			Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException, SchemaException {
+			GenericFrameworkException, SchemaException, SecurityViolationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".modifyObject");
@@ -1055,7 +1057,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SchemaException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
-			} else {
+			} else if (midpointEx instanceof SecurityViolationException){
+				throw (SecurityViolationException) midpointEx;
+			}else{
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}

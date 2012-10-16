@@ -155,7 +155,7 @@ public interface ConnectorInstance {
 			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
 			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
-		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
 	/**
 	 * Schema aware-version of the fetchObject.
@@ -239,7 +239,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
 	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
