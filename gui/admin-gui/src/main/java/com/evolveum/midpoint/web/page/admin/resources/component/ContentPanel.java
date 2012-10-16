@@ -45,14 +45,14 @@ public class ContentPanel extends Panel {
         };
         add(accounts);
 
-        AjaxLink entitlements = new AjaxLink("entitlements") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                entitlementsPerformed(target);
-            }
-        };
-        add(entitlements);
+//        AjaxLink entitlements = new AjaxLink("entitlements") {
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                entitlementsPerformed(target);
+//            }
+//        };
+//        add(entitlements);
     }
 
     public void accountsPerformed(AjaxRequestTarget target) {
