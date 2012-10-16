@@ -297,16 +297,14 @@ public class ModelController implements ModelService, ModelInteractionService {
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 
 		RepositoryCache.enter();
-		
-		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-		for (ObjectDelta delta : deltas){
-			clonedDeltas.add(delta.clone());
-		}
-		
+		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = null;
 		try {
 		
 			if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
 				// Go directly to repository
+				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
+				auditRecord.addDeltas(deltas);
+				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
 					if (ObjectOperationOption.hasOption(options, ObjectOperationOption.CRYPT)) {
 						encryptValues(delta, result);
@@ -325,7 +323,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 				}
 				
 			} else {
-				
+				clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
+				for (ObjectDelta delta : deltas){
+					clonedDeltas.add(delta.clone());
+				}
 				// Normal processing
 				LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
 				clockwork.run(context, task, result);
@@ -419,15 +420,22 @@ public class ModelController implements ModelService, ModelInteractionService {
 	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		
+		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
+		for (ObjectDelta delta : deltas){
+			clonedDeltas.add(delta.clone());
+		}
+		
+		//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
+		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, result);
 		
 		projector.project(context, "preview", result);
 		context.distributeResource();
 		
 		// TODO: ERROR HANDLING
 		result.computeStatus();
-		
+
 		return context;
 	}
 

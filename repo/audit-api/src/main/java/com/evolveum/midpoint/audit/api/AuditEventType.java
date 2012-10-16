@@ -35,6 +35,7 @@ public enum AuditEventType {
 	
 	SYNCHRONIZATION,
 	
+	EXECUTE_CHANGES_RAW,
 	//  ....
 		
 	/**
