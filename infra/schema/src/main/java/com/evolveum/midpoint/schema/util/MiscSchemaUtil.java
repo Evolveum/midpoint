@@ -185,6 +185,18 @@ public class MiscSchemaUtil {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
 
+	public static Collection<ObjectDelta<? extends ObjectType>> cloneCollection(
+			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
+		if (origCollection == null) {
+			return null;
+		}
+		Collection<ObjectDelta<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDelta<? extends ObjectType>>(origCollection.size());
+		for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
+			clonedCollection.add(origDelta.clone());
+		}
+		return clonedCollection;
+	}
+
     public static ObjectReferenceType createObjectReference(String oid, QName type) {
     	ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(oid);

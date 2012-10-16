@@ -39,6 +39,7 @@ import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -98,7 +99,8 @@ public class Clockwork {
                 return mode;
             }
 		}
-        return HookOperationMode.FOREGROUND;
+		// One last click in FINAL state
+        return click(context, task, result);
 	}
 	
 	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -110,6 +112,8 @@ public class Clockwork {
 		ModelState state = context.getState();
 		
 		LensUtil.traceContext(LOGGER, "synchronization", state.toString(), context, true);
+		
+//		LOGGER.info("CLOCKWORK: {}: {}", state, context);
 		
 		switch (state) {
 			case INITIAL:
@@ -163,9 +167,11 @@ public class Clockwork {
 			throw new IllegalStateException("Unknown state of delta "+primaryDelta);
 		}
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
-		auditRecord.setTarget(primaryObject);
+		if (primaryObject != null) {
+			auditRecord.setTarget(primaryObject.clone());
+		}
 		auditRecord.setChannel(context.getChannel());
-		auditRecord.addDeltas(context.getAllChanges());
+		auditRecord.addDeltas(MiscSchemaUtil.cloneCollection(context.getAllChanges()));
 		if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setResult(result);
 		}

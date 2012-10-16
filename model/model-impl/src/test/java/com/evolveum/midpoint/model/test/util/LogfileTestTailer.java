@@ -83,6 +83,8 @@ public class LogfileTestTailer {
 	public void reset() {
 		seenMarker = false;
 		loggedMarkers = new HashSet<String>();
+		auditMessages = new ArrayList<String>();
+		expectedMessageLine = null;
 	}
 
 	public boolean isSeenMarker() {
@@ -162,6 +164,34 @@ public class LogfileTestTailer {
 
 	public void assertAudit(String message) {
 		assert auditMessages.contains(message) : "No audit message: "+message;
+	}
+	
+	public void assertAuditRequest() {
+		for (String message: auditMessages) {
+			if (message.contains("stage REQUEST")) {
+				return;
+			}
+			if (message.contains("es=REQUEST")) {
+				return;
+			}
+		}
+		assert false: "No request audit message";
+	}
+
+	public void assertAuditExecution() {
+		for (String message: auditMessages) {
+			if (message.contains("stage EXECUTION")) {
+				return;
+			}
+			if (message.contains("es=EXECUTION")) {
+				return;
+			}
+		}
+		assert false: "No execution audit message";
+	}
+
+	public void assertAudit(int messageCount) {
+		assert auditMessages.size() == messageCount : "Wrong number of audit messages, expected "+messageCount+", was "+auditMessages.size();
 	}
 
 	/**

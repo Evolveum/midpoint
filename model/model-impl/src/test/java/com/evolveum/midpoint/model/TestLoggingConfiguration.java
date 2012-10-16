@@ -131,6 +131,8 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
+		applyTestLoggingConfig(logging);
+		
 		SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
 		modelSubSystemLogger.setComponent(LoggingComponentType.PROVISIONING);
 		modelSubSystemLogger.setLevel(LoggingLevelType.TRACE);
@@ -165,6 +167,19 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		
 	}
 
+	private void applyTestLoggingConfig(LoggingConfigurationType logging) {
+		// Make sure that this class has a special entry in the config so we will see the messages from this test code
+		ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
+		testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
+		testClassLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getClassLogger().add(testClassLogger);
+		
+		ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
+		integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
+		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getClassLogger().add(integrationTestToolsLogger);
+	}
+
 	@Test
 	public void test003AddModelSubsystemLogger() throws Exception {
 		displayTestTile("test003AddModelSubsystemLogger");
@@ -188,17 +203,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
-		
-		// Make sure that this class has a special entry in the config so we will see the messages from this test code
-		ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
-		testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
-		testClassLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getClassLogger().add(testClassLogger);
-		
-		ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
-		integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
-		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
-		logging.getClassLogger().add(integrationTestToolsLogger);
+		applyTestLoggingConfig(logging);
 		
 		SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
 		modelSubSystemLogger.setComponent(LoggingComponentType.MODEL);
@@ -256,6 +261,8 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
+		applyTestLoggingConfig(logging);
+		
 		AuditingConfigurationType auditingConfigurationType = logging.getAuditing();
 		if (auditingConfigurationType == null) {
 			auditingConfigurationType = new AuditingConfigurationType();
@@ -274,6 +281,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		
 		// Make sure that the (optional) audit message from the above change will not get into the way
 		tailer.tail();
+		tailer.reset();
 		
 		// This message will appear in the log and will help diagnose problems
 		display("TEST: Applied audit config, going to execute test change");
@@ -281,6 +289,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		// try do execute some change (add user object), it should be audited
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.USER_JACK_FILENAME));
 		deltas = MiscSchemaUtil.createCollection(ObjectDelta.createAddDelta(user));
+		
 		modelService.executeChanges(deltas, null, task, result);
 
 		// This message will appear in the log and will help diagnose problems
@@ -289,7 +298,9 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		// THEN
 		
 		tailer.tail();
-		tailer.assertAudit();
+		tailer.assertAudit(2);
+		tailer.assertAuditRequest();
+		tailer.assertAuditExecution();
 		
 		tailer.close();
 		
