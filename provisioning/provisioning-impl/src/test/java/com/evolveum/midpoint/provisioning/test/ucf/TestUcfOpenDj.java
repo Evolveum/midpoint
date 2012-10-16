@@ -52,10 +52,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
@@ -697,8 +694,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testChangePassword() throws DirectoryException, CommunicationException,
-			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
-			ObjectNotFoundException, EncryptionException, JAXBException {
+            GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ObjectNotFoundException, EncryptionException, JAXBException, SecurityViolationException {
 		displayTestTile("testChangePassword");
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
