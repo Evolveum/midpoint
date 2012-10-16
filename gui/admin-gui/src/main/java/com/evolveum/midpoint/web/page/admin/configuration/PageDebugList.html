@@ -39,7 +39,16 @@
             <div wicket:id="table"/>
         </div>
         <div class="operatingFormButtons">
-            <a wicket:id="deleteSelected"/>
+            <div class="operatingFormBlock">
+	            <a wicket:id="deleteSelected"/>
+            </div>
+
+            <div class="operatingFormBlock">
+	            <span class="operatingFormText"><wicket:message key="pageDebugList.button.label.export"/></span>
+	            <a wicket:id="exportAll"/>
+	            <input class="operatingFormCheck" type="checkbox" wicket:id="zipCheck" />
+	            <span class="operatingFormText margLeft"><wicket:message key="pageTasks.zipCheck" /></span>
+            </div>
         </div>
     </form>
 </wicket:extend>

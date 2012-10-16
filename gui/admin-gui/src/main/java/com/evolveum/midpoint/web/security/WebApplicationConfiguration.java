@@ -33,20 +33,35 @@ public class WebApplicationConfiguration implements Serializable {
 
     private static final String MIDPOINT_HOME = "midpoint.home"; //todo move somewhere
     private String importFolder;
+    private String exportFolder;
 
     public WebApplicationConfiguration(Configuration config) {
         importFolder = config.getString("importFolder");
+        exportFolder = config.getString("exportFolder");
+        String midpointHome = System.getProperty(MIDPOINT_HOME);
+
         if (importFolder == null) {
-            String midpointHome = System.getProperty(MIDPOINT_HOME);
             if (StringUtils.isNotEmpty(midpointHome)) {
                 importFolder = midpointHome + "/tmp";
             } else {
                 importFolder = ".";
             }
         }
+        
+        if (exportFolder == null) {
+            if (StringUtils.isNotEmpty(midpointHome)) {
+            	exportFolder = midpointHome + "/tmp";
+            } else {
+            	exportFolder = ".";
+            }
+        }
     }
 
     public String getImportFolder() {
         return importFolder;
+    }
+    
+    public String getExportFolder() {
+        return exportFolder;
     }
 }
