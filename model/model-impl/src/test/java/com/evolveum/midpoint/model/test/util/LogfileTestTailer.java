@@ -25,11 +25,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,14 +53,19 @@ public class LogfileTestTailer {
 	public static final String LEVEL_DEBUG = "DEBUG";
 	public static final String LEVEL_TRACE = "TRACE";
 	
-	private static final Pattern pattern = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+"+MARKER+"\\s+(\\w+).*");
+	private static final Pattern markerPattern = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+"+MARKER+"\\s+(\\w+).*");
+	public static final Pattern auditPattern = 
+			Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\("+LoggingConfigurationManager.AUDIT_LOGGER_NAME+"\\):\\s*(.*)");
 	
 	final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
 	
 	private FileReader fileReader;
 	private BufferedReader reader;
 	private boolean seenMarker;
-	private Set<String> logMessages;
+	private Set<String> loggedMarkers;
+	private List<String> auditMessages = new ArrayList<String>();
+	private String expectedMessage;
+	private String expectedMessageLine;
 	
 	public LogfileTestTailer() throws IOException {
 		reset();
@@ -73,7 +82,7 @@ public class LogfileTestTailer {
 	
 	public void reset() {
 		seenMarker = false;
-		logMessages = new HashSet<String>();
+		loggedMarkers = new HashSet<String>();
 	}
 
 	public boolean isSeenMarker() {
@@ -95,30 +104,64 @@ public class LogfileTestTailer {
 	}
 
 	private void processLogLine(String line) {
-		Matcher matcher = pattern.matcher(line);
+		Matcher matcher = markerPattern.matcher(line);
 		while (matcher.find()) {
 			seenMarker = true;
 			String level = matcher.group(1);
 			String subsystemName = matcher.group(2);
-			recordLogMessage(level,subsystemName);
+			recordMarker(level,subsystemName);
+		}
+		matcher = auditPattern.matcher(line);
+		while (matcher.find()) {
+			String level = matcher.group(1);
+			String message = matcher.group(2);
+			recordAuditMessage(level,message);
+		}
+		if (expectedMessage != null && line.contains(expectedMessage)) {
+			expectedMessageLine = line;
 		}
 	}
 	
-	private void recordLogMessage(String level, String subsystemName) {
+	private void recordMarker(String level, String subsystemName) {
 		String key = constructKey(level, subsystemName);
-		logMessages.add(key);
+		loggedMarkers.add(key);
+	}
+	
+	private void recordAuditMessage(String level, String message) {
+		auditMessages.add(message);
 	}
 
 	private String constructKey(String level, String subsystemName) {
 		return level+":"+subsystemName;
 	}
 	
-	public void assertLogged(String level, String subsystemName) {
-		assert logMessages.contains(constructKey(level, subsystemName)) : level + " in " + subsystemName + " was not logged";
+	public void assertMarkerLogged(String level, String subsystemName) {
+		assert loggedMarkers.contains(constructKey(level, subsystemName)) : level + " in " + subsystemName + " was not logged";
 	}
 	
-	public void assertNotLogged(String level, String subsystemName) {
-		assert !logMessages.contains(constructKey(level, subsystemName)) : level + " in " + subsystemName + " was logged (while not expecting it)";
+	public void assertMarkerNotLogged(String level, String subsystemName) {
+		assert !loggedMarkers.contains(constructKey(level, subsystemName)) : level + " in " + subsystemName + " was logged (while not expecting it)";
+	}
+	
+	public void setExpecteMessage(String expectedMessage) {
+		this.expectedMessage = expectedMessage;
+		this.expectedMessageLine = null;
+	}
+	
+	public void assertExpectedMessage() {
+		assert expectedMessageLine != null : "The expected message was not seen";
+	}
+	
+	public void assertNoAudit() {
+		assert auditMessages.isEmpty() : "Audit messages not empty: "+auditMessages;
+	}
+	
+	public void assertAudit() {
+		assert !auditMessages.isEmpty() : "No audit message";
+	}
+
+	public void assertAudit(String message) {
+		assert auditMessages.contains(message) : "No audit message: "+message;
 	}
 
 	/**

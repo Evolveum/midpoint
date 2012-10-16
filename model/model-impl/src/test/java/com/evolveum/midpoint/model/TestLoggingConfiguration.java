@@ -45,6 +45,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -53,11 +55,15 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author semancik
@@ -84,8 +90,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test001CreateSystemConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
+	public void test001CreateSystemConfiguration() throws Exception {
 		displayTestTile("test001CreateSystemConfiguration");
 		
 		// GIVEN
@@ -95,9 +100,11 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test001AddConfiguration");
 		OperationResult result = task.getResult();
+		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDelta.createAddDelta(systemConfiguration);		
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(systemConfigurationAddDelta);
 		
-		// WHNE
-		modelService.addObject(systemConfiguration, task, result);
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		tailer.logAndTail();
@@ -110,8 +117,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test002InitialConfiguration() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
+	public void test002InitialConfiguration() throws Exception {
 		displayTestTile("test002InitialConfiguration");
 		
 		// GIVEN
@@ -142,7 +148,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		// precondition
 		tailer.logAndTail();		
 		assertBasicLogging(tailer);
-		tailer.assertNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
 		
 		// WHEN
 		modelService.postInit(result);
@@ -152,15 +158,14 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		
 		assertBasicLogging(tailer);
 
-		tailer.assertLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_PROVISIONING);
 		
 		tailer.close();
 		
 	}
 
 	@Test
-	public void test003AddModelSubsystemLogger() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, 
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, IOException, PolicyViolationException, SecurityViolationException {
+	public void test003AddModelSubsystemLogger() throws Exception {
 		displayTestTile("test003AddModelSubsystemLogger");
 		
 		// GIVEN
@@ -174,45 +179,125 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		
 		assertBasicLogging(tailer);
 
-		tailer.assertNotLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
-		tailer.assertNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
 
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
 			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
+		
+		// Make sure that this class has a special entry in the config so we will see the messages from this test code
+		ClassLoggerConfigurationType testClassLogger = new ClassLoggerConfigurationType();
+		testClassLogger.setPackage(TestLoggingConfiguration.class.getName());
+		testClassLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getClassLogger().add(testClassLogger);
+		
+		ClassLoggerConfigurationType integrationTestToolsLogger = new ClassLoggerConfigurationType();
+		integrationTestToolsLogger.setPackage(IntegrationTestTools.class.getName());
+		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
+		logging.getClassLogger().add(integrationTestToolsLogger);
+		
 		SubSystemLoggerConfigurationType modelSubSystemLogger = new SubSystemLoggerConfigurationType();
 		modelSubSystemLogger.setComponent(LoggingComponentType.MODEL);
 		modelSubSystemLogger.setLevel(LoggingLevelType.DEBUG);
 		logging.getSubSystemLogger().add(modelSubSystemLogger);
 		
-		PrismObjectDefinition<SystemConfigurationType> systemConfigurationTypeDefinition =
-			prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-		Collection<? extends ItemDelta> modifications = 
-			PropertyDelta.createModificationReplacePropertyCollection(SystemConfigurationType.F_LOGGING, 
-					systemConfigurationTypeDefinition, logging);
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
+				AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
+				logging);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(systemConfigDelta);
 		
 		// WHEN
-		modelService.modifyObject(SystemConfigurationType.class, AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
-				modifications, task, result);
+		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
 		tailer.logAndTail();
 		
 		assertBasicLogging(tailer);
 
-		tailer.assertLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
-		tailer.assertNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_MODEL);
+		
+		// Test that the class logger for this test messages works
+		// GIVEN
+		tailer.setExpecteMessage("This is THE MESSage");
+		
+		// WHEN
+		display("This is THE MESSage");
+		
+		// THEN
+		tailer.tail();
+		tailer.assertExpectedMessage();
 		
 		tailer.close();
 		
 	}
 
 
+	@Test
+	public void test101EnableBasicAudit() throws Exception {
+		displayTestTile("test101EnableBasicAudit");
+		
+		// GIVEN
+		LogfileTestTailer tailer = new LogfileTestTailer();
+		
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test101EnableBasicAudit");
+		OperationResult result = task.getResult();
+		
+		// Precondition
+		tailer.tail();
+		tailer.assertNoAudit();
+
+		// Setup
+		PrismObject<SystemConfigurationType> systemConfiguration = 
+			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+		
+		AuditingConfigurationType auditingConfigurationType = logging.getAuditing();
+		if (auditingConfigurationType == null) {
+			auditingConfigurationType = new AuditingConfigurationType();
+			logging.setAuditing(auditingConfigurationType);
+		}
+		auditingConfigurationType.setEnabled(true);
+		auditingConfigurationType.setDetails(false);
+		
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
+				AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
+				logging);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(systemConfigDelta);
+		
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// Make sure that the (optional) audit message from the above change will not get into the way
+		tailer.tail();
+		
+		// This message will appear in the log and will help diagnose problems
+		display("TEST: Applied audit config, going to execute test change");
+		
+		// try do execute some change (add user object), it should be audited
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.USER_JACK_FILENAME));
+		deltas = (Collection) MiscUtil.createCollection(ObjectDelta.createAddDelta(user));
+		modelService.executeChanges(deltas, null, task, result);
+
+		// This message will appear in the log and will help diagnose problems
+		display("TEST: Executed test change");
+		
+		// THEN
+		
+		tailer.tail();
+		tailer.assertAudit();
+		
+		tailer.close();
+		
+	}
+
+	
 	private void assertBasicLogging(LogfileTestTailer tailer) {
-		tailer.assertLogged(LogfileTestTailer.LEVEL_ERROR, MidpointAspect.SUBSYSTEM_MODEL);
-		tailer.assertNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_REPOSITORY);
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, MidpointAspect.SUBSYSTEM_MODEL);
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, MidpointAspect.SUBSYSTEM_REPOSITORY);
 	}
 
 }
