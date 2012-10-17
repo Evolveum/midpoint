@@ -92,6 +92,7 @@ import org.w3c.dom.Element;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -221,14 +222,8 @@ public class PageDebugList extends PageAdminConfiguration {
 					folder.mkdir();
 				}
 				
-				String suffix = choice.getObject().getClassDefinition().getSimpleName();
-
-				if (objects.size() == 1) {
-					if (objects.get(0) instanceof PrismObject) {
-						PrismObject object = (PrismObject) objects.get(0);
-						suffix += "_" + WebMiscUtil.getName(object);
-					}
-				}
+				String suffix = choice.getObject().getClassDefinition().getSimpleName() + "_"
+						+ System.currentTimeMillis();
 				File file = new File(folder, "ExportedData_" + suffix + ".xml");
 				
 				try {
@@ -515,7 +510,22 @@ public class PageDebugList extends PageAdminConfiguration {
     	OutputStreamWriter stream = null;
 		try {
 			stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-			stream.write(parseObjectsToString());
+			if (objects != null) {
+				String stringObject;
+				stream.write(createHeaderForXml());
+				for (Object object : objects) {
+					if (!(object instanceof PrismObject)) {
+						continue;
+					}
+					try {
+						stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
+								(PrismObject) object);
+						stream.write(stringObject + "\n");
+					} catch (Exception ex) {
+						LOGGER.error("Failed to parse objects to string for xml. Reason:", ex);
+					}
+				}
+			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't create file", ex);
 		}
@@ -527,6 +537,7 @@ public class PageDebugList extends PageAdminConfiguration {
     
     private File createZipForDownload(File file, File folder, String suffix) {
 		File zipFile = new File(folder, "ExportedData_" + suffix + ".zip");
+		OutputStreamWriter stream = null;
 		ZipOutputStream out = null;
 		try {
 			if (LOGGER.isDebugEnabled()) {
@@ -534,14 +545,25 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 			out = new ZipOutputStream(new FileOutputStream(zipFile));
 			final ZipEntry entry = new ZipEntry(file.getName());
-
-			String stringObject = parseObjectsToString();
-			if (stringObject != null && StringUtils.isNotEmpty(stringObject)) {
-				entry.setSize(stringObject.length());
-
+			
+			if (objects != null) {
+				String stringObject;
+				//entry.setSize(stringObject.length());
 				out.putNextEntry(entry);
-				out.write(stringObject.getBytes());
-
+				out.write(createHeaderForXml().getBytes());
+				for (Object object : objects) {
+					if (!(object instanceof PrismObject)) {
+						continue;
+					}
+					try {
+						stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
+								(PrismObject) object);
+						out.write((stringObject + "\n").getBytes());
+					} catch (Exception ex) {
+						LOGGER.error("Failed to parse objects to string for zip. Reason:", ex);
+					}
+				}
+				stream = new OutputStreamWriter(out, "utf-8");
 			} else {
 				entry.setSize(0);
 				out.putNextEntry(entry);
@@ -550,12 +572,14 @@ public class PageDebugList extends PageAdminConfiguration {
 				LOGGER.debug("added file " + file.getName() + " to zip archive");
 			}
 		} catch (final IOException ex) {
+			LOGGER.error("Failed to write to stream.", ex);
 		} finally {
-			if (null != out) {
+			if (null != stream) {
 				try {
 					out.finish();
 					out.closeEntry();
 					out.close();
+					stream.close();
 				} catch (final IOException ex) {
 					LOGGER.error("Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
 				}
@@ -564,7 +588,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		return zipFile;
 	}
     
-    private String parseObjectsToString() {
+    private String parseObjectsToString(OutputStream stream) {
     	String result = createHeaderForXml();
     	if(objects != null) {
 			for (Object object : objects) {
@@ -585,27 +609,6 @@ public class PageDebugList extends PageAdminConfiguration {
     }
     
     private String createHeaderForXml() {
-		String out = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-		out += "<!--\n";
-		out += "  ~ Copyright (c) 2012 Evolveum\n";
-		out += "  ~\n";
-		out += "  ~ The contents of this file are subject to the terms\n";
-		out += "  ~ of the Common Development and Distribution License\n";
-		out += "  ~ (the License). You may not use this file except in\n";
-		out += "  ~ compliance with the License.\n";
-		out += "  ~\n";
-		out += "  ~ You can obtain a copy of the License at\n";
-		out += "  ~ http://www.opensource.org/licenses/cddl1 or\n";
-		out += "  ~ CDDLv1.0.txt file in the source code distribution.\n";
-		out += "  ~ See the License for the specific language governing\n";
-		out += "  ~ permission and limitations under the License.\n";
-		out += "  ~\n";
-		out += "  ~ If applicable, add the following below the CDDL Header,\n";
-		out += "  ~ with the fields enclosed by brackets [] replaced by\n";
-		out += "  ~ your own identifying information:\n";
-		out += "  ~\n";
-		out += "  ~ Portions Copyrighted 2012 [name of copyright owner]\n";
-		out += "  -->\n\n";
-		return out;
+    	return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n";
 	}
 }
