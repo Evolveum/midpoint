@@ -116,7 +116,7 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Initialize system configuration
      */
     public void init() {
-        welcome();
+        welcome();    
         if (System.getProperty(MIDPOINT_HOME) == null || System.getProperty(MIDPOINT_HOME).isEmpty()) {
             LOGGER.warn("*****************************************************************************************");
             LOGGER.warn(MIDPOINT_HOME
@@ -128,15 +128,21 @@ public class StartupConfiguration implements MidpointConfiguration {
             System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
             System.out.println("*******************************************************************************");
 
-            String userHome = System.getProperty(USER_HOME);
-            if (!userHome.endsWith("/")) {
-                userHome += "/";
-            }
-            userHome += "midpoint";
-            System.setProperty(MIDPOINT_HOME, userHome);
-            LOGGER.warn("Setting {} to '{}'.", new Object[]{MIDPOINT_HOME, userHome});
-            System.out.println("Setting " + MIDPOINT_HOME + " to '" + userHome + "'.");
-        }
+			if (getConfigFilename().startsWith("test")) {
+				String midpointHome = "./target/midpoint-home";
+				System.setProperty(MIDPOINT_HOME, midpointHome);
+			} else {
+
+				String userHome = System.getProperty(USER_HOME);
+				if (!userHome.endsWith("/")) {
+					userHome += "/";
+				}
+				userHome += "midpoint";
+				System.setProperty(MIDPOINT_HOME, userHome);
+				LOGGER.warn("Setting {} to '{}'.", new Object[] { MIDPOINT_HOME, userHome });
+				System.out.println("Setting " + MIDPOINT_HOME + " to '" + userHome + "'.");
+			}
+		}
 
         loadConfiguration();
     }
