@@ -465,11 +465,17 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	    return userDelta;
 	}
 	
-	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, QName propertyName,
-			Object... propertyValues) throws SchemaException {
+	
+	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, 
+			QName propertyName, Object... propertyValues) throws SchemaException {
+		return addModificationToContextReplaceUserProperty(context, new PropertyPath(propertyName), propertyValues);
+	}
+	
+	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, 
+			PropertyPath propertyPath, Object... propertyValues) throws SchemaException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, focusContext.getObjectOld().getOid(), 
-				propertyName, prismContext, propertyValues);
+				propertyPath, prismContext, propertyValues);
 		focusContext.addPrimaryDelta(userDelta);
 	    return userDelta;
 	}

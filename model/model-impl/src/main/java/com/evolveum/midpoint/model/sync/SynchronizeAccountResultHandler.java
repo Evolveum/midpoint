@@ -166,6 +166,8 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 				shadowDelta.setObjectToAdd(shadowToAdd);
 				shadowDelta.setOid(newShadowType.getOid());
 				change.setObjectDelta(shadowDelta);
+				// Need to also set current shadow. This will get reflected in "old" object in lens context
+				change.setCurrentShadow(accountShadow);
 				
 			} else {
 				// No change, therefore the delta stays null. But we will set the current

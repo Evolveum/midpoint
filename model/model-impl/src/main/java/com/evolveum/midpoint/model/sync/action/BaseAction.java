@@ -323,6 +323,9 @@ public abstract class BaseAction implements Action {
 
             clockwork.run(context, task, result);
         } catch (Exception ex) {
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Synchronization error: {}\n{})", ex.getMessage(), context.dump());
+        	}
             throw new SynchronizationException("Couldn't synchronize user, reason: " + ex.getMessage(), ex);
         }
     }

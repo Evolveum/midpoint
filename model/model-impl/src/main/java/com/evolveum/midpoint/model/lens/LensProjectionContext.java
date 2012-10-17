@@ -453,6 +453,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     }
     
 	@Override
+	public void cleanup() {
+		super.cleanup();
+	}
+
+	@Override
 	public void adopt(PrismContext prismContext) throws SchemaException {
 		super.adopt(prismContext);
 		if (syncDelta != null) {

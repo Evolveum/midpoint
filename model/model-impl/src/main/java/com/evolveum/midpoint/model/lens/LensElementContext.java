@@ -268,6 +268,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	}
     }
 	
+	/**
+	 * Cleans up the contexts by removing secondary deltas and other working state. The context after cleanup
+	 * should be the same as originally requested.
+	 */
+	public void cleanup() {
+		secondaryDelta = null;
+	}
+	
 	public void adopt(PrismContext prismContext) throws SchemaException {
 		if (objectNew != null) {
 			prismContext.adopt(objectNew);

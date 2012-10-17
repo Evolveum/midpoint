@@ -134,13 +134,6 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         // Set reference to the resource
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
 
-        // Set objectclass
-//        Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
-//        PropertyDelta objectClassDelta = new PropertyDelta<Object>(
-//        		new PropertyPath(TaskType.F_EXTENSION, objectclassPropertyDefinition.getName()),
-//        		objectclassPropertyDefinition);
-//        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(objectclass));
-//        ((Collection)modifications).add(objectClassDelta);
         try {
         	PrismProperty<?> objectclassProp = objectclassPropertyDefinition.instantiate();
         	objectclassProp.setRealValue(objectclass);

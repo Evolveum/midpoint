@@ -376,6 +376,21 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     	getResourceCache().put(resourceType.getOid(), resourceType);
     }
     
+	/**
+	 * Cleans up the contexts by removing secondary deltas and other working state. The context after cleanup
+	 * should be the same as originally requested.
+	 * However, the current wave number is retained. Otherwise it ends up in endless loop. 
+	 */
+	public void cleanup() throws SchemaException {
+		if (focusContext != null) {
+			focusContext.cleanup();
+		}
+		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+			projectionContext.cleanup();
+		}
+		recompute();
+	}
+    
     public void adopt(PrismContext prismContext) throws SchemaException {
     	this.prismContext = prismContext;
     	

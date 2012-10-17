@@ -105,19 +105,24 @@ public class Clockwork {
 	
 	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
+		ModelState state = context.getState();
+		if (state == ModelState.INITIAL) {
+			// We need to do this BEFORE projection. If we would do that after projection
+			// there will be secondary changes that are not part of the request.
+			audit(context, AuditEventStage.REQUEST, task, result);
+		}
+		
 		if (!context.isFresh()) {
+			context.cleanup();
 			projector.project(context, "synchronization projection", result);
 		}
 		
-		ModelState state = context.getState();
-		
-		LensUtil.traceContext(LOGGER, "synchronization", state.toString(), context, true);
+		LensUtil.traceContext(LOGGER, "synchronization", state.toString(), context, false);
 		
 //		LOGGER.info("CLOCKWORK: {}: {}", state, context);
 		
 		switch (state) {
 			case INITIAL:
-				audit(context, AuditEventStage.REQUEST, task, result);
 				processInitialToPrimary(context, task, result);
 				break;
 			case PRIMARY:

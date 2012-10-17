@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -80,6 +81,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
@@ -170,6 +172,55 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         	unassignJackAccount();
         }
 	}
+	
+	/**
+	 * User barbossa has a direct account assignment. This assignment has an expression for enabledisable flag.
+	 * Let's disable user, the account should be disabled as well.
+	 */
+	@Test
+    public void test053ModifyUserBarbossaDisable() throws Exception {
+        displayTestTile(this, "test053ModifyUserBarbossaDisable");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test053ModifyUserBarbossaDisable");
+        OperationResult result = task.getResult();
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContextReplaceUserProperty(context,
+        		new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED),
+        		false);
+        context.recompute();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        clockwork.run(context, task, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
+        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
+        		new PropertyPath(AccountShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
+        		false);
+                
+    }
 	
 	private void assignAccountToJackAsync(String testName, boolean serialize) throws SchemaException, ObjectNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ClassNotFoundException {
 		displayTestTile(this, testName);

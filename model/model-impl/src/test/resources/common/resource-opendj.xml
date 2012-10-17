@@ -389,6 +389,11 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<activation>
+				<enabled>
+					<outbound/>
+				</enabled>
+			</activation>
 		</accountType>
 	</schemaHandling>
 	<synchronization>
