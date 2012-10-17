@@ -84,6 +84,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.file.File;
+import org.apache.wicket.util.file.Files;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.resource.PackageResourceStream;
@@ -246,6 +247,7 @@ public class PageDebugList extends PageAdminConfiguration {
 				if(!result.isSuccess()) {
 					showResultInSession(result);
 					getSession().error(getString("pageDebugList.message.createFileException"));
+					Files.remove(file);
 					throw new RestartResponseException(PageDebugList.class);
 				}
 				return file;
