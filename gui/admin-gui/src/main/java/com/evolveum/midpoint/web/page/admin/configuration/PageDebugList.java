@@ -64,6 +64,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -112,7 +113,9 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugList.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
-    private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "searchObjects";
+    private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "loadObjects";
+	private static final String OPERATION_CREATE_DOWNLOAD_FILE = PageDebugList.class.getName()
+			+ "- create file for download";
     private boolean deleteSelected;
     private boolean downloadZip;
     private IModel<ObjectTypes> choice = null;
@@ -215,6 +218,7 @@ public class PageDebugList extends PageAdminConfiguration {
         final AjaxDownloadBehavior ajaxDownloadBehavior = new AjaxDownloadBehavior(true) {
             @Override
             protected File initFile() {
+            	OperationResult result = new OperationResult(OPERATION_CREATE_DOWNLOAD_FILE);
             	MidPointApplication application = getMidpointApplication();
 				WebApplicationConfiguration config = application.getWebApplicationConfiguration();
 				File folder = new File(config.getExportFolder());
@@ -227,16 +231,24 @@ public class PageDebugList extends PageAdminConfiguration {
 				File file = new File(folder, "ExportedData_" + suffix + ".xml");
 				
 				try {
+					result.recordSuccess();
 					if(downloadZip) {
-						file = createZipForDownload(file, folder, suffix);
+						file = createZipForDownload(file, folder, suffix, result);
 					} else {
 						file.createNewFile();
-						createXmlForDownload(file);
+						createXmlForDownload(file, result);
 					}
+					result.recomputeStatus();
 				} catch (Exception ex) {
 					LoggingUtils.logException(LOGGER, "Couldn't init download link", ex);
+					result.recordFatalError("Couldn't init download link", ex);
 				}
-                return file;
+				if(!result.isSuccess()) {
+					showResultInSession(result);
+					getSession().error(getString("pageDebugList.message.createFileException"));
+					throw new RestartResponseException(PageDebugList.class);
+				}
+				return file;
             }
         };
         main.add(ajaxDownloadBehavior);
@@ -506,9 +518,10 @@ public class PageDebugList extends PageAdminConfiguration {
         dialog.show(target);
     }
     
-    private void createXmlForDownload(File file) {
+    private void createXmlForDownload(File file, OperationResult result) {
     	OutputStreamWriter stream = null;
 		try {
+			LOGGER.trace("creating xml file {}", file.getName());
 			stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
 			if (objects != null) {
 				String stringObject;
@@ -520,14 +533,18 @@ public class PageDebugList extends PageAdminConfiguration {
 					try {
 						stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
 								(PrismObject) object);
-						stream.write(stringObject + "\n");
+						stream.write("\t" + stringObject + "\n");
 					} catch (Exception ex) {
-						LOGGER.error("Failed to parse objects to string for xml. Reason:", ex);
+						LoggingUtils.logException(LOGGER, "Failed to parse objects to string for xml. Reason:", ex);
+						result.recordFatalError("Failed to parse objects to string for xml. Reason:", ex);
 					}
 				}
+				stream.write("</objects>");
 			}
+			LOGGER.debug("created xml file {}", file.getName());
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't create file", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't create xml file", ex);
+			result.recordFatalError("Couldn't create xml file", ex);
 		}
 		
 		if (stream != null) {
@@ -535,19 +552,18 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
     }
     
-    private File createZipForDownload(File file, File folder, String suffix) {
+    private File createZipForDownload(File file, File folder, String suffix, OperationResult result) {
 		File zipFile = new File(folder, "ExportedData_" + suffix + ".zip");
 		OutputStreamWriter stream = null;
 		ZipOutputStream out = null;
 		try {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("adding file " + file.getName() + " to zip archive");
-			}
+			LOGGER.trace("adding file {} to zip archive", file.getName());
 			out = new ZipOutputStream(new FileOutputStream(zipFile));
 			final ZipEntry entry = new ZipEntry(file.getName());
 			
 			if (objects != null) {
 				String stringObject;
+				//FIXME: could cause problem with unzip in java when size is not set, however it is not our case
 				//entry.setSize(stringObject.length());
 				out.putNextEntry(entry);
 				out.write(createHeaderForXml().getBytes());
@@ -558,21 +574,26 @@ public class PageDebugList extends PageAdminConfiguration {
 					try {
 						stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
 								(PrismObject) object);
-						out.write((stringObject + "\n").getBytes());
+						out.write(("\t" + stringObject + "\n").getBytes());
 					} catch (Exception ex) {
-						LOGGER.error("Failed to parse objects to string for zip. Reason:", ex);
+						LoggingUtils.logException(LOGGER,
+								"Failed to parse object " + WebMiscUtil.getName((PrismObject) object)
+										+ " to string for zip. Reason:", ex);
+						result.recordFatalError(
+								"Failed to parse object " + WebMiscUtil.getName((PrismObject) object)
+										+ " to string for zip. Reason:", ex);
 					}
 				}
+				out.write("</objects>".getBytes());
 				stream = new OutputStreamWriter(out, "utf-8");
 			} else {
 				entry.setSize(0);
 				out.putNextEntry(entry);
 			}
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("added file " + file.getName() + " to zip archive");
-			}
+			LOGGER.debug("added file {} to zip archive", file.getName());
 		} catch (final IOException ex) {
-			LOGGER.error("Failed to write to stream.", ex);
+			LoggingUtils.logException(LOGGER, "Failed to write to stream.", ex);
+			result.recordFatalError("Failed to write to stream.", ex);
 		} finally {
 			if (null != stream) {
 				try {
@@ -581,34 +602,20 @@ public class PageDebugList extends PageAdminConfiguration {
 					out.close();
 					stream.close();
 				} catch (final IOException ex) {
-					LOGGER.error("Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
+					LoggingUtils.logException(LOGGER, "Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
+					result.recordFatalError("Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
 				}
 			}
 		}
 		return zipFile;
 	}
     
-    private String parseObjectsToString(OutputStream stream) {
-    	String result = createHeaderForXml();
-    	if(objects != null) {
-			for (Object object : objects) {
-				if (!(object instanceof PrismObject)) {
-					continue;
-				}
-				String stringObject = "";
-				try {
-					stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
-							(PrismObject) object);
-				} catch (Exception ex) {
-					LOGGER.error("Failed to parse objects to string. Reason:", ex);
-				}
-				result += stringObject + "\n";
-			}
-		}
-    	return result;
-    }
-    
     private String createHeaderForXml() {
-    	return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\n";
+    	String out = "";
+    	out += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    	out += "<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'\n";
+    	out += "         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'\n";
+    	out += "         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>\n";
+    	return out;
 	}
 }
