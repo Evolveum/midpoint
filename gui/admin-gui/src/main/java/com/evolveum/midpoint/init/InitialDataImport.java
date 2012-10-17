@@ -45,6 +45,8 @@ import javax.xml.bind.JAXBElement;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
@@ -124,7 +126,12 @@ public class InitialDataImport {
     }
 
     private File getResource(String name) {
-        String path = InitialDataImport.class.getClassLoader().getResource(name).getPath();
+        URI path = null;
+		try {
+			path = InitialDataImport.class.getClassLoader().getResource(name).toURI();
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException("parameter name = " + name, e);
+		}        
         return new File(path);
     }
 }
