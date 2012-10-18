@@ -125,6 +125,7 @@ public class Projector {
 		        checkContextSanity(context, "inbound and user policy", result);
 		
 		        assignmentProcessor.processAssignmentsProjections(context, result);
+		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
 		        context.recompute();
 		        sortAccountsToWaves(context);

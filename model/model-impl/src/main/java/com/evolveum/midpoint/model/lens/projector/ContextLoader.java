@@ -102,6 +102,8 @@ public class ContextLoader {
 		
 		if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
+		determineFocusContext(context, result);
+				
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null) {
 			loadObjectOld(context, result);
@@ -141,6 +143,43 @@ public class ContextLoader {
 			String refinedIntent = LensUtil.refineAccountType(rsd.getIntent(), resource, prismContext);
 			rsd = new ResourceShadowDiscriminator(rsd.getResourceOid(), refinedIntent, rsd.isThombstone());
 			projectionContext.setResourceShadowDiscriminator(rsd);
+		}
+	}
+	
+	/** 
+	 * try to load focus context from the projections, e.g. by determining account owners
+	 */
+	private <F extends ObjectType, P extends ObjectType> void determineFocusContext(LensContext<F,P> context, 
+			OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (context.getFocusContext() != null) {
+			// already done
+			return;
+		}
+		String focusOid = null;
+		LensProjectionContext<P> projectionContextThatYeildedFocusOid = null;
+		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			if (AccountShadowType.class.isAssignableFrom(projectionContext.getObjectTypeClass())) {
+				LensProjectionContext<AccountShadowType> accountContext = (LensProjectionContext<AccountShadowType>)projectionContext;
+				String accountOid = accountContext.getOid();
+				if (accountOid != null) {
+					PrismObject<UserType> accountOwner = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
+					if (accountOwner != null) {
+						if (focusOid == null || focusOid.equals(accountOwner.getOid())) {
+							focusOid = accountOwner.getOid();
+							projectionContextThatYeildedFocusOid = projectionContext;
+						} else {
+							throw new IllegalArgumentException("The context does not have explicit focus. Attempt to determine focus failed because two " +
+									"projections points to different foci: "+projectionContextThatYeildedFocusOid+"->"+focusOid+"; "+
+									projectionContext+"->"+accountOwner);
+						}
+					}
+				}
+			}
+		}
+		if (focusOid != null) {
+			LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
+			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, result);
+	        focusContext.setObjectOld(object);
 		}
 	}
 	

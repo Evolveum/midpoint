@@ -388,6 +388,44 @@ public class TestProjector extends AbstractModelIntegrationTest {
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
     }
 	
+	/**
+	 * User barbossa has a direct account assignment.
+	 * Let's try to delete assigned account. It should end up with a policy violation error.
+	 */
+	@Test
+    public void test055DeleteBarbossaOpenDjAccount() throws Exception {
+        displayTestTile(this, "test055DeleteBarbossaOpenDjAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test055DeleteBarbossaOpenDjAccount");
+        OperationResult result = task.getResult();
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        // Do not fill user to context. Projector should figure that out.
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContextDeleteAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID);
+        context.recompute();
+
+        display("Input context", context);
+
+        try {
+        	
+            // WHEN        	
+        	projector.project(context, "test", result);
+
+            // THEN: fail
+        	display("Output context", context);
+        	assert context.getFocusContext() != null : "The operation was successful but it should throw expcetion AND " +
+        			"there is no focus context";
+        	assert false : "The operation was successful but it should throw expcetion";
+        } catch (PolicyViolationException e) {
+        	// THEN: success
+        	// this is expected
+        	display("Expected exception",e);
+        }
+        
+    }
+	
 	@Test
     public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {

@@ -360,6 +360,22 @@ public class AssignmentProcessor {
 		
 		// TODO: zero set if reconciliation?
 	}
+	
+	public <F extends ObjectType, P extends ObjectType> void checkForAssignmentConflicts(LensContext<F,P> context, 
+			OperationResult result) throws PolicyViolationException {
+		for(LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			if (projectionContext.isAssigned()) {
+				ObjectDelta<P> projectionPrimaryDelta = projectionContext.getPrimaryDelta();
+				if (projectionPrimaryDelta != null) {
+					if (projectionPrimaryDelta.isDelete()) {
+						throw new PolicyViolationException("Attempt to delete "+projectionContext.getHumanReadableName()+" while " +
+								"it is assigned violates an assignment policy");
+					}
+				}
+			}
+		}
+	}
+	
 
 	public void processAssignmentsAccountValues(LensProjectionContext<AccountShadowType> accountContext, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, ExpressionEvaluationException {

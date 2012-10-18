@@ -420,6 +420,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, String accountOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        provisioningService.applyDefinition(account, result);
         fillContextWithAccount(context, account, result);
 	}
 
@@ -480,8 +481,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	    return userDelta;
 	}
 	
-	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename) throws JAXBException,
-	SchemaException, FileNotFoundException {
+	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename) 
+			throws JAXBException, SchemaException, FileNotFoundException {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddReference(UserType.class, focusContext.getObjectOld().getOid(),
@@ -489,7 +490,16 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}
-	
+
+	protected ObjectDelta<AccountShadowType> addModificationToContextDeleteAccount(LensContext<UserType, AccountShadowType> context, 
+			String accountOid) 
+			throws SchemaException, FileNotFoundException {
+		LensProjectionContext<AccountShadowType> accountCtx = context.findProjectionContextByOid(accountOid);
+		ObjectDelta<AccountShadowType> deleteAccountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
+		accountCtx.addPrimaryDelta(deleteAccountDelta);
+		return deleteAccountDelta;
+	}
+
 	protected <T> ObjectDelta<AccountShadowType> addModificationToContextReplaceAccountAttribute(LensContext<UserType, AccountShadowType> context, String accountOid, 
 			String attributeLocalName, T... propertyValues) throws SchemaException {
 		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContextByOid(accountOid);		
