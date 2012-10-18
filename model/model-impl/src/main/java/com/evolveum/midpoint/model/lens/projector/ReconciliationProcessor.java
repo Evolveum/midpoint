@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -221,7 +221,7 @@ public class ReconciliationProcessor {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		
 		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);
-		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, SourceType.RECONCILIATION, originObject);
+		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, OriginType.RECONCILIATION, originObject);
 		if (changeType == ChangeType.ADD) {
 			attrDelta.addValueToAdd(pValue);
 		} else if (changeType == ChangeType.DELETE) {

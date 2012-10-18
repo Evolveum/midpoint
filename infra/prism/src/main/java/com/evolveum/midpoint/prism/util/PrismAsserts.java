@@ -46,6 +46,9 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -199,9 +202,13 @@ public class PrismAsserts {
 	// DELTA asserts
 	
 	public static void assertPropertyReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
+		PropertyDelta<Object> propertyDelta = userDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
-		assertSet("delta for "+propertyName, propertyDelta.getValuesToReplace(), expectedValues);
+		assertReplace(propertyDelta, expectedValues);
+	}
+		
+	public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
+		assertSet("delta for "+propertyDelta.getName(), propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
@@ -223,9 +230,13 @@ public class PrismAsserts {
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
+		PropertyDelta<Object> propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
-		assertSet("delta for "+propertyPath.last().getName(), propertyDelta.getValuesToAdd(), expectedValues);
+		assertAdd(propertyDelta, expectedValues);
+	}
+		
+	public static <T> void assertAdd(PropertyDelta<T> propertyDelta, T... expectedValues) {
+		assertSet("delta for "+propertyDelta.getName(), propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, PropertyPath propertyPath, Object... expectedValues) {
@@ -280,6 +291,29 @@ public class PrismAsserts {
 		assert delta.getValuesToDelete() != null : "Container delta for "+propertyPath+" has null values to delete";
 		assert !delta.getValuesToDelete().isEmpty() : "Container delta for "+propertyPath+" has empty values to delete";
 		return delta;
+	}
+	
+	public static <T> void assertOrigin(Visitable visitableItem, final OriginType expectedOriginType) {
+		assertOrigin(visitableItem, expectedOriginType, null);
+	}
+	
+	public static <T> void assertOrigin(final Visitable visitableItem, final OriginType expectedOriginType, 
+			final Objectable expectedOriginObject) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable instanceof PrismValue) {
+					PrismValue pval = (PrismValue)visitable;
+					assert pval.getOriginType() == expectedOriginType : "Wrong origin type in "+visitable+" in "+visitableItem+
+							"; expected "+expectedOriginType+", was "+pval.getOriginType();
+					if (expectedOriginObject != null) {
+						assert pval.getOriginObject() == expectedOriginObject : "Wrong origin object in "+visitable+" in "+visitableItem+
+								"; expected "+expectedOriginObject+", was "+pval.getOriginObject();
+					}
+				}
+			}
+		};
+		visitableItem.accept(visitor);
 	}
 	
 	// DeltaSetTriple asserts

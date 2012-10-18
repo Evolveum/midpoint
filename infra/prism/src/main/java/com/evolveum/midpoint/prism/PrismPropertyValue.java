@@ -54,7 +54,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         this(value, null, null);
     }
 
-    public PrismPropertyValue(T value, SourceType type, Objectable source) {
+    public PrismPropertyValue(T value, OriginType type, Objectable source) {
     	super(type,source);
         if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +

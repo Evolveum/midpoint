@@ -53,7 +53,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -516,7 +516,7 @@ public class PageUsers extends PageAdminUsers {
 				PrismProperty property = object.findOrCreateProperty(path);
 				PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
 				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,
-						SourceType.USER_ACTION, null)));
+						OriginType.USER_ACTION, null)));
 
 				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 				objectDelta.addModification(delta);

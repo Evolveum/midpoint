@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.Cloner;
@@ -153,13 +153,13 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	/**
 	 * Sets specified source type for all values in all sets
 	 */
-	public void setOriginType(SourceType sourceType) {
+	public void setOriginType(OriginType sourceType) {
 		setOriginType(zeroSet, sourceType);
 		setOriginType(plusSet, sourceType);
 		setOriginType(minusSet, sourceType);
 	}
 
-	private void setOriginType(Collection<V> set, SourceType sourceType) {
+	private void setOriginType(Collection<V> set, OriginType sourceType) {
 		if (set != null) {
 			for (V val: set) {
 				val.setOriginType(sourceType);

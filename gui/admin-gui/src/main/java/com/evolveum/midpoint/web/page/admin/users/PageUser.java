@@ -836,7 +836,7 @@ public class PageUser extends PageAdminUsers {
         for (UserAccountDto accDto : accounts) {
             ObjectWrapper accountWrapper = accDto.getObject();
             ObjectDelta delta = accountWrapper.getObjectDelta();
-            PrismReferenceValue refValue = new PrismReferenceValue(null, SourceType.USER_ACTION, null);
+            PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
             PrismObject<AccountShadowType> account;
             switch (accDto.getStatus()) {

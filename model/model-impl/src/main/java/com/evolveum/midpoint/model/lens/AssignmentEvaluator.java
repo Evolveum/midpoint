@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.SimpleDelta;
@@ -170,7 +170,7 @@ public class AssignmentEvaluator {
 		accContruction.setObjectResolver(objectResolver);
 		accContruction.setPrismContext(prismContext);
 		accContruction.setValueConstructionFactory(valueConstructionFactory);
-		accContruction.setOriginType(SourceType.ASSIGNMENTS);
+		accContruction.setOriginType(OriginType.ASSIGNMENTS);
 		
 		accContruction.evaluate(result);
 		

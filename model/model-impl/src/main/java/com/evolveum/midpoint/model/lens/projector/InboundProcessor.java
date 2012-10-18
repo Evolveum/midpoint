@@ -44,7 +44,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPathSegment;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -254,7 +254,7 @@ public class InboundProcessor {
     	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
     	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account);
 		mapping.setStringPolicyResolver(createStringPolicyResolver(context));
-		mapping.setOriginType(SourceType.INBOUND);
+		mapping.setOriginType(OriginType.INBOUND);
 		mapping.setOriginObject(resource);
     	
     	if (checkInitialSkip(mapping, newUser)) {
@@ -373,7 +373,7 @@ public class InboundProcessor {
 
 	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
         PrismPropertyValue<T> filteredValue = propertyValue.clone();
-        filteredValue.setOriginType(SourceType.INBOUND);
+        filteredValue.setOriginType(OriginType.INBOUND);
 
         if (filters == null || filters.isEmpty()) {
             return filteredValue;
@@ -446,7 +446,7 @@ public class InboundProcessor {
 		mapping.setDefaultSource(source);
     	mapping.setDefaultTargetDefinition(property.getDefinition());
     	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
-    	mapping.setOriginType(SourceType.INBOUND);
+    	mapping.setOriginType(OriginType.INBOUND);
     	mapping.setOriginObject(accContext.getResource());
     	
         PrismProperty result;

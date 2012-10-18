@@ -55,7 +55,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -113,7 +113,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private boolean conditionMaskOld = true;
 	private boolean conditionMaskNew = true;
 	private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionOutputTriple;
-	private SourceType originType = null;
+	private OriginType originType = null;
 	private ObjectType originObject = null;
 	private FilterManager<Filter> filterManager;
 	private StringPolicyResolver stringPolicyResolver;
@@ -141,11 +141,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return null;
 	}
 	
-	public SourceType getOriginType() {
+	public OriginType getOriginType() {
 		return originType;
 	}
 
-	public void setOriginType(SourceType sourceType) {
+	public void setOriginType(OriginType sourceType) {
 		this.originType = sourceType;
 	}
 
@@ -594,7 +594,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	
 	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
         PrismPropertyValue<T> filteredValue = propertyValue.clone();
-        filteredValue.setOriginType(SourceType.INBOUND);
+        filteredValue.setOriginType(OriginType.INBOUND);
 
         if (filters == null || filters.isEmpty()) {
             return filteredValue;

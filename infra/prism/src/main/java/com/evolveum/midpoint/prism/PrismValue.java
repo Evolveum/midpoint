@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public abstract class PrismValue implements Visitable, Serializable, Dumpable, DebugDumpable {
 	
-	private SourceType originType;
+	private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
     protected Element domElement = null;
@@ -46,13 +46,13 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		super();
 	}
     
-    PrismValue(SourceType type, Objectable source) {
+    PrismValue(OriginType type, Objectable source) {
 		super();
 		this.originType = type;
 		this.originObject = source;
 	}
     
-    PrismValue(SourceType type, Objectable source, Itemable parent) {
+    PrismValue(OriginType type, Objectable source, Itemable parent) {
 		super();
 		this.originType = type;
 		this.originObject = source;
@@ -63,11 +63,11 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
         this.originObject = source;
     }
 
-    public void setOriginType(SourceType type) {
+    public void setOriginType(OriginType type) {
         this.originType = type;
     }
     
-    public SourceType getOriginType() {
+    public OriginType getOriginType() {
         return originType;
     }
 

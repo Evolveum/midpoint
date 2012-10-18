@@ -26,7 +26,7 @@ package com.evolveum.midpoint.prism;
  *
  * @author lazyman
  */
-public enum SourceType {
+public enum OriginType {
 
     SYNC_ACTION, RECONCILIATION, INBOUND, OUTBOUND, ASSIGNMENTS, ACTIVATIONS, CREDENTIALS, USER_ACTION;
 }

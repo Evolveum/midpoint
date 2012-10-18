@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -116,7 +116,7 @@ public class OutboundProcessor {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, accCtx.getIteration());
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
 			mapping.setRootNode(userOdo);
-			mapping.setOriginType(SourceType.OUTBOUND);
+			mapping.setOriginType(OriginType.OUTBOUND);
 			// TODO: other variables?
 			
 			// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

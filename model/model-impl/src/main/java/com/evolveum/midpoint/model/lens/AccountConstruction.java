@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -64,7 +64,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private AssignmentPath assignmentPath;
 	private AccountConstructionType accountConstructionType;
 	private ObjectType source;
-	private SourceType originType;
+	private OriginType originType;
 	private ObjectDeltaObject<UserType> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
@@ -90,11 +90,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		return source;
 	}
 
-	public SourceType getOriginType() {
+	public OriginType getOriginType() {
 		return originType;
 	}
 
-	public void setOriginType(SourceType originType) {
+	public void setOriginType(OriginType originType) {
 		this.originType = originType;
 	}
 

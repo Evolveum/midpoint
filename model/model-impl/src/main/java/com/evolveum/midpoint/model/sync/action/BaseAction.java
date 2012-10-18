@@ -38,7 +38,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.SourceType;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -353,7 +353,7 @@ public abstract class BaseAction implements Action {
         delta.clear();
 
         Boolean newValue = ActivationDecision.ENABLE.equals(activationDecision) ? Boolean.TRUE : Boolean.FALSE;
-        PrismPropertyValue value = new PrismPropertyValue<Object>(newValue, SourceType.SYNC_ACTION, null);
+        PrismPropertyValue value = new PrismPropertyValue<Object>(newValue, OriginType.SYNC_ACTION, null);
         if (oldValue == null) {
             delta.addValueToAdd(value);
         } else {

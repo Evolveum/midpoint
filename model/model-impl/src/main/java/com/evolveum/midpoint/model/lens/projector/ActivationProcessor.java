@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.PolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -145,6 +146,8 @@ public class ActivationProcessor {
         ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ENABLE);
         Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
 		enabledMapping.setDefaultSource(source);
+        enabledMapping.setOriginType(OriginType.OUTBOUND);
+        enabledMapping.setOriginObject(accCtx.getResource());
         enabledMapping.evaluate(result);
         PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
         if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
