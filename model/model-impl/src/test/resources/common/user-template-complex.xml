@@ -88,7 +88,7 @@
     	<initial>true</initial>
     	<expression>
             <generate>
-        		<length>10</length>
+        		
         	</generate>
     	</expression>
     	<target>
