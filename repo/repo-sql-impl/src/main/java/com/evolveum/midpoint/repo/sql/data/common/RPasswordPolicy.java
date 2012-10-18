@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -100,22 +100,22 @@ public class RPasswordPolicy extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RPasswordPolicy repo, PasswordPolicyType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RPasswordPolicy repo, ValuePolicyType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         try {
-            jaxb.setLifetime(RUtil.toJAXB(PasswordPolicyType.class, new PropertyPath(PasswordPolicyType.F_LIFETIME), repo.getLifetime(),
+            jaxb.setLifetime(RUtil.toJAXB(ValuePolicyType.class, new PropertyPath(ValuePolicyType.F_LIFETIME), repo.getLifetime(),
                     PasswordLifeTimeType.class, prismContext));
-            jaxb.setStringPolicy(RUtil.toJAXB(PasswordPolicyType.class, new PropertyPath(PasswordPolicyType.F_STRING_POLICY), repo.getStringPolicy(),
+            jaxb.setStringPolicy(RUtil.toJAXB(ValuePolicyType.class, new PropertyPath(ValuePolicyType.F_STRING_POLICY), repo.getStringPolicy(),
                     StringPolicyType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
-    public static void copyFromJAXB(PasswordPolicyType jaxb, RPasswordPolicy repo, PrismContext prismContext) throws
+    public static void copyFromJAXB(ValuePolicyType jaxb, RPasswordPolicy repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
@@ -129,8 +129,8 @@ public class RPasswordPolicy extends RObject {
     }
 
     @Override
-    public PasswordPolicyType toJAXB(PrismContext prismContext) throws DtoTranslationException {
-        PasswordPolicyType policy = new PasswordPolicyType();
+    public ValuePolicyType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        ValuePolicyType policy = new ValuePolicyType();
         RUtil.revive(policy, prismContext);
         RPasswordPolicy.copyToJAXB(this, policy, prismContext);
 

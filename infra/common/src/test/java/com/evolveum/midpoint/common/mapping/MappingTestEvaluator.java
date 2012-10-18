@@ -76,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsExpressionEvalua
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
@@ -261,7 +261,7 @@ public class MappingTestEvaluator {
 	}
 
 	public StringPolicyType getStringPolicy() throws SchemaException {
-		PrismObject<PasswordPolicyType> passwordPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_FILE);
+		PrismObject<ValuePolicyType> passwordPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_FILE);
 		return passwordPolicy.asObjectable().getStringPolicy();
 	}
 

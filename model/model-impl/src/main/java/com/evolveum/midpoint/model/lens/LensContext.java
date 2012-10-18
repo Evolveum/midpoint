@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
 
@@ -65,7 +65,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	transient private UserTemplateType userTemplate;
 	transient private AccountSynchronizationSettingsType accountSynchronizationSettings;
-	transient private PasswordPolicyType globalPasswordPolicy;
+	transient private ValuePolicyType globalPasswordPolicy;
 
 	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
 	
@@ -208,11 +208,11 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		this.accountSynchronizationSettings = accountSynchronizationSettings;
 	}
 	
-	public PasswordPolicyType getGlobalPasswordPolicy() {
+	public ValuePolicyType getGlobalPasswordPolicy() {
 		return globalPasswordPolicy;
 	}
 	
-	public void setGlobalPasswordPolicy(PasswordPolicyType globalPasswordPolicy) {
+	public void setGlobalPasswordPolicy(ValuePolicyType globalPasswordPolicy) {
 		this.globalPasswordPolicy = globalPasswordPolicy;
 	}
 	

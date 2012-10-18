@@ -69,8 +69,8 @@ public enum ObjectTypes {
 
     ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, false),
 
-    PASSWORD_POLICY("schema.objectTypes.passwordPolicy", PasswordPolicyType.COMPLEX_TYPE,
-            SchemaConstantsGenerated.C_PASSWORD_POLICY, PasswordPolicyType.class, false),
+    PASSWORD_POLICY("schema.objectTypes.valuePolicy", ValuePolicyType.COMPLEX_TYPE,
+            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, false),
 
     NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false),
 

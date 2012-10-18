@@ -23,7 +23,7 @@
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>SystemConfiguration</name>
-    <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:PasswordPolicyType"/>
+    <globalPasswordPolicyRef oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
     <logging>
         <classLogger>
             <!-- disabled because of MID-744, helper insert messages on ERROR

@@ -361,7 +361,7 @@ public class InboundProcessor {
 				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
 					return null;
 				}
-				PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+				ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
 				if (passwordPolicy == null) {
 					return null;
 				}

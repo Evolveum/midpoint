@@ -64,7 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
@@ -203,11 +203,11 @@ public class ContextLoader {
 		if (context.getGlobalPasswordPolicy() == null){
 			
 			
-			PasswordPolicyType globalPasswordPolicy = systemConfigurationType.getGlobalPasswordPolicy();
+			ValuePolicyType globalPasswordPolicy = systemConfigurationType.getGlobalPasswordPolicy();
 			
 			if (globalPasswordPolicy == null){
 				if (systemConfigurationType.getGlobalPasswordPolicyRef() != null){
-					PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(PasswordPolicyType.class, systemConfigurationType.getGlobalPasswordPolicyRef().getOid(), result);
+					PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(ValuePolicyType.class, systemConfigurationType.getGlobalPasswordPolicyRef().getOid(), result);
 					if (passwordPolicy != null){
 						globalPasswordPolicy = passwordPolicy.asObjectable();
 					}
@@ -630,8 +630,8 @@ public class ContextLoader {
 				if (rad != null && AccountShadowType.class.isAssignableFrom(projClass)) {
 					ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
 					if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
-						PrismObject<PasswordPolicyType> passwordPolicy = cacheRepositoryService.getObject(
-								PasswordPolicyType.class, passwordPolicyRef.getOid(), result);
+						PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(
+								ValuePolicyType.class, passwordPolicyRef.getOid(), result);
 						if (passwordPolicy != null) {
 							projContext.setAccountPasswordPolicy(passwordPolicy.asObjectable());
 						}

@@ -88,7 +88,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -572,7 +572,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         
         try{
-        	PrismObject<PasswordPolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
+        	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
         	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
         	Collection<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
@@ -588,7 +588,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         	deltas.add(delta);
         	modelService.executeChanges(deltas, null, task, result);
         	
-        	PrismObject<PasswordPolicyType> passPol = modelService.getObject(PasswordPolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
+        	PrismObject<ValuePolicyType> passPol = modelService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
         	assertNotNull(passPol);
         	        	
         } catch (Exception ex){

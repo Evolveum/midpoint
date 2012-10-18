@@ -38,7 +38,7 @@ import javax.xml.bind.JAXBException;
 import com.evolveum.midpoint.common.password.PasswordGenerator;
 import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.string.StringPolicyUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -83,7 +83,7 @@ public class PasswordPolicyValidatorTest {
 		String filename = "password-policy-minimal.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class);
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 		AssertJUnit.assertNotNull(sp.getCharacterClass());
@@ -100,14 +100,14 @@ public class PasswordPolicyValidatorTest {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = null;
+		JAXBElement<ValuePolicyType> jbe = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file, PasswordPolicyType.class);
+			jbe = PrismTestUtil.unmarshalElement(file, ValuePolicyType.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		PasswordPolicyType pp = jbe.getValue();
+		ValuePolicyType pp = jbe.getValue();
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 	}
@@ -122,7 +122,7 @@ public class PasswordPolicyValidatorTest {
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class);
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
 		String psswd;
 		// generate minimal size passwd
@@ -185,7 +185,7 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class);
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
 
 		// Test on all cases
 		AssertJUnit.assertTrue(pwdValidHelper("582a**A", pp));
@@ -194,7 +194,7 @@ public class PasswordPolicyValidatorTest {
 		AssertJUnit.assertFalse(pwdValidHelper("AAA4444", pp));
 	}
 
-	private boolean pwdValidHelper(String password, PasswordPolicyType pp) {
+	private boolean pwdValidHelper(String password, ValuePolicyType pp) {
 		OperationResult op = new OperationResult("Password Validator test with password:" + password);
 		PasswordPolicyUtils.validatePassword(password, pp, op);
 		op.computeStatus();
@@ -213,12 +213,12 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class); 
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class); 
 
 		String password = "582a**A";
 		
 		OperationResult op = new OperationResult("Password Validator with multiple policies");
-		List<PasswordPolicyType> pps = new ArrayList<PasswordPolicyType>();
+		List<ValuePolicyType> pps = new ArrayList<ValuePolicyType>();
 		pps.add(pp);
 		pps.add(pp);
 		pps.add(pp);
@@ -241,7 +241,7 @@ public class PasswordPolicyValidatorTest {
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 
-		PasswordPolicyType pp = PrismTestUtil.unmarshalObject(file, PasswordPolicyType.class); 
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class); 
 
 		OperationResult op = new OperationResult("Generator testing");
 

@@ -263,7 +263,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		String oid = repositoryService.addObject(filePasswordPolicy, result);
 		AssertJUnit.assertNotNull(oid);
 		AssertJUnit.assertEquals(pwdPolicyOid, oid);
-		PrismObject<PasswordPolicyType> repoPasswordPolicy = repositoryService.getObject(PasswordPolicyType.class, oid, result);
+		PrismObject<ValuePolicyType> repoPasswordPolicy = repositoryService.getObject(ValuePolicyType.class, oid, result);
 		AssertJUnit.assertNotNull(repoPasswordPolicy);
 		
 		String systemCongigOid = "00000000-0000-0000-0000-000000000001";

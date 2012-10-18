@@ -191,7 +191,7 @@ public class CredentialsProcessor {
 			
 			@Override
 			public StringPolicyType resolve() {
-				PasswordPolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
+				ValuePolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
 				if (passwordPolicy == null) {
 					return null;
 				}

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -38,7 +38,7 @@ public class PasswordPolicyProcessor {
 	Protector protector;
 
 	
-	void processPasswordPolicy(PasswordPolicyType passwordPolicy, PrismProperty password, OperationResult result)
+	void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismProperty password, OperationResult result)
 			throws PolicyViolationException, SchemaException {
 
 		String passwordValue = determinePasswordValue(password);
@@ -61,7 +61,7 @@ public class PasswordPolicyProcessor {
 		
 		PrismProperty<PasswordType> password = getPassword(focusContext);
 		
-		PasswordPolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+		ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
 		
 		processPasswordPolicy(passwordPolicy, password, result);
 
@@ -86,7 +86,7 @@ public class PasswordPolicyProcessor {
 	<F extends ObjectType, P extends ObjectType> void processPasswordPolicy(LensProjectionContext<AccountShadowType> projectionContext, LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException{
 		PrismProperty<PasswordType> password = getPassword(projectionContext);
 		
-		PasswordPolicyType passwordPolicy = projectionContext.getEffectivePasswordPolicy();
+		ValuePolicyType passwordPolicy = projectionContext.getEffectivePasswordPolicy();
 		
 		processPasswordPolicy(passwordPolicy, password, result);
 	}

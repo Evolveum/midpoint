@@ -4709,7 +4709,7 @@
 
     <!-- The following clauses belong to the operation support. -->
 
-    <xsd:complexType name="PasswordPolicyType">
+    <xsd:complexType name="ValuePolicyType">
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
@@ -4720,7 +4720,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-    <xsd:element name="passwordPolicy" type="tns:PasswordPolicyType"/>
+    <xsd:element name="valuePolicy" type="tns:ValuePolicyType"/>
 
     <xsd:complexType name="PasswordLifeTimeType">
         <xsd:sequence>
@@ -4997,7 +4997,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="globalPasswordPolicy" type="tns:PasswordPolicyType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="globalPasswordPolicy" type="tns:ValuePolicyType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 System-global password policy settings. These will be used if there is no specific settings 

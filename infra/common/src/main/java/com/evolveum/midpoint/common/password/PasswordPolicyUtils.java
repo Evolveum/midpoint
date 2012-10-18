@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
@@ -55,7 +55,7 @@ public class PasswordPolicyUtils {
 	 * @param pp
 	 * @return
 	 */
-	public static void normalize(PasswordPolicyType pp) {
+	public static void normalize(ValuePolicyType pp) {
 		if (null == pp) {
 			throw new IllegalArgumentException("Password policy cannot be null");
 		}
@@ -93,10 +93,10 @@ public class PasswordPolicyUtils {
 	 *         met
 	 */
 
-	public static boolean validatePassword(String password, List <PasswordPolicyType> policies, OperationResult result) {
+	public static boolean validatePassword(String password, List <ValuePolicyType> policies, OperationResult result) {
 		boolean ret=true;
 		//iterate through policies 
-		for (PasswordPolicyType pp: policies) {
+		for (ValuePolicyType pp: policies) {
 			OperationResult op = validatePassword(password, pp);
 			result.addSubresult(op);
 			//if one fail then result is failure
@@ -107,10 +107,10 @@ public class PasswordPolicyUtils {
 		return ret;
 	}
 	
-	public static boolean validatePassword(String password, List<PrismObject<PasswordPolicyType>> policies) {
+	public static boolean validatePassword(String password, List<PrismObject<ValuePolicyType>> policies) {
 		boolean ret=true;
 		//iterate through policies 
-		for (PrismObject<PasswordPolicyType> pp: policies) {
+		for (PrismObject<ValuePolicyType> pp: policies) {
 			OperationResult op = validatePassword(password, pp.asObjectable());
 //			result.addSubresult(op);
 			//if one fail then result is failure
@@ -121,10 +121,10 @@ public class PasswordPolicyUtils {
 		return ret;
 	}
 	
-	public static boolean validatePassword(ProtectedStringType password, List<PrismObject<PasswordPolicyType>> policies) {
+	public static boolean validatePassword(ProtectedStringType password, List<PrismObject<ValuePolicyType>> policies) {
 		boolean ret=true;
 		//iterate through policies 
-		for (PrismObject<PasswordPolicyType> pp: policies) {
+		for (PrismObject<ValuePolicyType> pp: policies) {
 			OperationResult op = validatePassword(password.getClearValue(), pp.asObjectable());
 //			result.addSubresult(op);
 			//if one fail then result is failure
@@ -148,13 +148,13 @@ public class PasswordPolicyUtils {
 	 *         met
 	 */
 
-	public static boolean validatePassword(String password, PasswordPolicyType pp, OperationResult result) {
+	public static boolean validatePassword(String password, ValuePolicyType pp, OperationResult result) {
 		OperationResult op = validatePassword(password, pp);
 		result.addSubresult(op);
 		return op.isSuccess();
 	}
 	
-	public static boolean validatePassword(ProtectedStringType password, PasswordPolicyType pp) {
+	public static boolean validatePassword(ProtectedStringType password, ValuePolicyType pp) {
 		
 		OperationResult op = validatePassword(password.getClearValue(), pp);
 //		result.addSubresult(op);
@@ -170,7 +170,7 @@ public class PasswordPolicyUtils {
 	 *            - Password policy used
 	 * @return - Operation result of this validation
 	 */
-	public static OperationResult validatePassword(String password, PasswordPolicyType pp) {
+	public static OperationResult validatePassword(String password, ValuePolicyType pp) {
 		// check input params
 //		if (null == pp) {
 //			throw new IllegalArgumentException("No policy provided: NULL");

@@ -90,7 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizati
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -1049,8 +1049,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<PasswordPolicyType> passwordPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
-        ObjectDelta<PasswordPolicyType> passwordPolicyDelta = ObjectDelta.createAddDelta(passwordPolicy);
+        PrismObject<ValuePolicyType> passwordPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
+        ObjectDelta<ValuePolicyType> passwordPolicyDelta = ObjectDelta.createAddDelta(passwordPolicy);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(passwordPolicyDelta);
         
 		// WHEN
@@ -1063,7 +1063,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicyDelta.getOid());
 
 		// Check object
-        PrismObject<PasswordPolicyType> accountShadow = repositoryService.getObject(PasswordPolicyType.class, PASSWORD_POLICY_GLOBAL_OID, result);
+        PrismObject<ValuePolicyType> accountShadow = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, result);
 
         // TODO: more asserts
 	}
