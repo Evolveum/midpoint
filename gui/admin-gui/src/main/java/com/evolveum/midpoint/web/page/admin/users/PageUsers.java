@@ -364,14 +364,18 @@ public class PageUsers extends PageAdminUsers {
 		try {
 			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
+			PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+			if (normalizer == null){
+				normalizer = new PrismDefaultPolyStringNormalizer();
+			}
+			
+			String normalizedString = normalizer.normalize(dto.getSearchText());
+			
 			if (dto.isName()) {
 				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_NAME, dto.getSearchText()));
+						UserType.F_NAME, normalizedString));
 			}
-
-			PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
-			String normalizedString = normalizer.normalize(dto.getSearchText());
-
+			
 			if (dto.isFamilyName()) {
 				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
 						UserType.F_FAMILY_NAME, normalizedString));
