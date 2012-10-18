@@ -90,6 +90,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      * If set to null the situation is not yet known. Null is a typical value when the context is constructed.
      */
     private boolean isAssigned;
+    
+    /**
+     * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
+     */
+    private boolean isActive;
 
     /**
      * Decision regarding the account. If set to null no decision was made yet. Null is also a typical value
@@ -217,7 +222,15 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         this.isAssigned = isAssigned;
     }
 
-    public PolicyDecision getPolicyDecision() {
+    public boolean isActive() {
+		return isActive;
+	}
+
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public PolicyDecision getPolicyDecision() {
         return policyDecision;
     }
 
@@ -579,6 +592,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         	sb.append(", shadow");
         }
         sb.append(", assigned=").append(isAssigned);
+        sb.append(", active=").append(isActive);
         sb.append(", recon=").append(doReconciliation);
         sb.append(", decision=").append(policyDecision);
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {

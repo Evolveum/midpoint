@@ -125,13 +125,14 @@ public class Projector {
 		        checkContextSanity(context, "inbound and user policy", result);
 		
 		        assignmentProcessor.processAssignmentsProjections(context, result);
-		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
 		        context.recompute();
 		        sortAccountsToWaves(context);
 		        maxWaves = context.getMaxWave() + 2;
 		        LensUtil.traceContext(LOGGER, activityDescription,"assignments", context, true);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
+		        
+		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 		        	if (projectionContext.getWave() != context.getWave()) {

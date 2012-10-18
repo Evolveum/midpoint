@@ -129,13 +129,24 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 	
 	public LensFocusContext<F> createFocusContext() {
+		return createFocusContext(null);
+	}
+	
+	public LensFocusContext<F> createFocusContext(Class<F> explicitFocusClass) {
+		if (explicitFocusClass != null) {
+			this.focusClass = explicitFocusClass;
+		}
 		focusContext = new LensFocusContext<F>(focusClass, this);
 		return focusContext;
 	}
 	
 	public LensFocusContext<F> getOrCreateFocusContext() {
+		return getOrCreateFocusContext(null);
+	}
+	
+	public LensFocusContext<F> getOrCreateFocusContext(Class<F> explicitFocusClass) {
 		if (focusContext == null) {
-			createFocusContext();
+			createFocusContext(explicitFocusClass);
 		}
 		return focusContext;
 	}

@@ -177,7 +177,8 @@ public class ContextLoader {
 			}
 		}
 		if (focusOid != null) {
-			LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
+			// FIXME: hardcoded to user right now
+			LensFocusContext<F> focusContext = context.getOrCreateFocusContext((Class<F>) UserType.class);
 			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, result);
 	        focusContext.setObjectOld(object);
 		}

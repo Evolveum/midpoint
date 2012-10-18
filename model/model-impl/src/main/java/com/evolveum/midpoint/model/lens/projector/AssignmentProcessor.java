@@ -123,9 +123,9 @@ public class AssignmentProcessor {
                 // No assignment processing
                 LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
 
-                // But mark all accounts as assigned, so they will be synchronized as expected
+                // But mark all accounts as active, so they will be synchronized as expected
                 for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
-                    accCtx.setAssigned(true);
+                    accCtx.setActive(true);
                 }
 
                 return;
@@ -241,14 +241,17 @@ public class AssignmentProcessor {
                 	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
                 	markPolicyDecision(accountSyncContext, PolicyDecision.ADD);
                 	accountSyncContext.setAssigned(true);
+                	accountSyncContext.setActive(true);
                 } else {
                 	// The account existed before the change and should still exist
 	                accountSyncContext.setAssigned(true);
+	                accountSyncContext.setActive(true);
 	                markPolicyDecision(accountSyncContext, PolicyDecision.KEEP);
                 }
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
             	context.findProjectionContext(rat).setAssigned(true);
+            	context.findProjectionContext(rat).setActive(true);
                 // Account was removed and added in the same operation, therefore keep its original state
                 // TODO
                 throw new UnsupportedOperationException("add+delete of account is not supported yet");
@@ -264,11 +267,13 @@ public class AssignmentProcessor {
             		markPolicyDecision(accountContext, PolicyDecision.ADD);
             	}
                 context.findProjectionContext(rat).setAssigned(true);
+                context.findProjectionContext(rat).setActive(true);
 
             } else if (minusAccountMap.containsKey(rat)) {
             	if (accountExists(context,rat)) {
             		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
                 	accountContext.setAssigned(false);
+                	accountContext.setActive(false);
                     // Account removed
                     markPolicyDecision(accountContext, PolicyDecision.DELETE);
             	} else {

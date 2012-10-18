@@ -457,7 +457,6 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         userJack.checkConsistence(true, true);
 	}
-
 	
 	@Test
     public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
@@ -744,9 +743,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test132ModifyAccountJackDummy() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test132ModifyAccountJackDummy() throws Exception {
         displayTestTile(this, "test132ModifyAccountJackDummy");
 
         // GIVEN
@@ -768,7 +765,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
+		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
@@ -806,7 +803,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertUserJack(userJack);
+		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
         
