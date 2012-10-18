@@ -44,6 +44,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
+import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
@@ -178,7 +179,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
         
-        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 10, userJackType.getEmployeeNumber().length());
+        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", GenerateExpressionEvaluator.DEFAULT_LENGTH, userJackType.getEmployeeNumber().length());
 	}
 	
 }
