@@ -31,6 +31,7 @@ import static com.evolveum.midpoint.common.mapping.MappingTestEvaluator.*;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -60,6 +61,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -771,9 +774,9 @@ public class TestMappingDynamic {
     }
     
     @Test
-    public void testGenerate() throws Exception {
+    public void testGenerateDefault() throws Exception {
     	// GIVEN
-    	final String TEST_NAME = "testGenerate";
+    	final String TEST_NAME = "testGenerateDefault";
     	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-generate.xml", 
     			TEST_NAME, "employeeNumber", null);
     	
@@ -829,11 +832,56 @@ public class TestMappingDynamic {
 
 		assertFalse("Generated the same value", value1.equals(value2));
     }
+
+    @Test
+    public void testGeneratePolicy() throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testGeneratePolicy";
+    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-generate-policy.xml", 
+    			TEST_NAME, "employeeNumber", null);
+    	
+    	// This is just for validation. The expression has to resolve reference of its own
+    	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
+    			new File(MappingTestEvaluator.OBJECTS_DIR,"c0c010c0-d34d-b33f-f00d-999888111111.xml"));
+    	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
+    	    	
+		OperationResult opResult = new OperationResult(TEST_NAME);
+    	
+		// WHEN (1)
+    	mapping.evaluate(opResult);
+
+		// THEN (1)
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
+		String value1 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
+		PrismAsserts.assertTripleNoPlus(outputTriple);
+		PrismAsserts.assertTripleNoMinus(outputTriple);
+
+		System.out.println("Generated value (1): " + value1);
+		assertGeneratedValue(value1, stringPolicy);
+
+		// WHEN (2)
+		mapping.evaluate(opResult);
+
+		// THEN (2)
+		outputTriple = mapping.getOutputTriple();
+		String value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
+		System.out.println("Generated value (2): " + value2);
+		assertGeneratedValue(value2, stringPolicy);
+		PrismAsserts.assertTripleNoPlus(outputTriple);
+		PrismAsserts.assertTripleNoMinus(outputTriple);
+
+		assertFalse("Generated the same value", value1.equals(value2));
+    }
+
     
 	private void assertGeneratedValue(String value, StringPolicyType stringPolicy) {
-		assertTrue("Value too short", value.length() >= stringPolicy.getLimitations().getMinLength());
-		assertTrue("Value too long", value.length() <= stringPolicy.getLimitations().getMaxLength());
-		// TODO: better validation
+		if (stringPolicy == null) {
+			assertEquals("Unexpected generated value length", GenerateExpressionEvaluator.DEFAULT_LENGTH, value.length());
+		} else {
+			assertTrue("Value too short", value.length() >= stringPolicy.getLimitations().getMinLength());
+			assertTrue("Value too long", value.length() <= stringPolicy.getLimitations().getMaxLength());
+			// TODO: better validation
+		}
 	}
 
 
@@ -858,29 +906,5 @@ public class TestMappingDynamic {
         assertNotNull(value1);
         assertNotNull(value1.getEncryptedData());
     }
-    
-    // TODO
-    
-    
-
-//    @Test
-//    public void testConstructionGenerateProtectedString() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException, EncryptionException {
-//    	ProtectedStringType addedPs = evaluator.createProtectedString("apple");
-//    	ProtectedStringType oldPs = evaluator.createProtectedString("rock");
-//		// WHEN
-//    	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMappingDynamicAdd(ProtectedStringType.class, 
-//    			"construction-generate.xml", SchemaConstants.PATH_PASSWORD_VALUE, oldPs, null, "testConstructionGenerateProtectedString",
-//    			addedPs);
-//    	
-//    	// THEN
-//    	ProtectedStringType value1 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
-//    	PrismAsserts.assertTripleNoPlus(outputTriple);
-//    	PrismAsserts.assertTripleNoMinus(outputTriple);
-//    	
-//        System.out.println("Generated excrypted value: "+value1);
-//        assertNotNull(value1);
-//        assertNotNull(value1.getEncryptedData());
-//    }
-//    
-    
+        
 }

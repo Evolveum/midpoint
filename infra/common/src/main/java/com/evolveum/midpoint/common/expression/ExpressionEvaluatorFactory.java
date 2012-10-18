@@ -27,6 +27,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 
@@ -38,6 +40,8 @@ public interface ExpressionEvaluatorFactory {
 	
 	QName getElementName();
 	
-	<V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, String contextDescription) throws SchemaException;
+	<V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
+			ItemDefinition outputDefinition, String contextDescription, OperationResult result) 
+					throws SchemaException, ObjectNotFoundException;
 
 }

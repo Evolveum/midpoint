@@ -80,6 +80,7 @@
     <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="protector"/>
+          <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
@@ -64,7 +65,7 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	 */
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-			ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 		
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);

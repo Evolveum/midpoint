@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionEvaluatorType;
@@ -54,7 +55,7 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
 	 */
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-			ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 		
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);

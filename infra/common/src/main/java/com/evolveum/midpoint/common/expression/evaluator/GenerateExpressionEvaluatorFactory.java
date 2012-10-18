@@ -39,12 +39,17 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 
 /**
  * @author semancik
@@ -54,11 +59,13 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 	
 	private Protector protector;
 	private PrismContext prismContext;
+	private ObjectResolver objectResolver;
 
-	public GenerateExpressionEvaluatorFactory(Protector protector, PrismContext prismContext) {
+	public GenerateExpressionEvaluatorFactory(Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
 		super();
 		this.protector = protector;
 		this.prismContext = prismContext;
+		this.objectResolver = objectResolver;
 	}
 
 	@Override
@@ -70,7 +77,9 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
 	 */
 	@Override
-	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
+			ItemDefinition outputDefinition, String contextDescription, OperationResult result) 
+					throws SchemaException, ObjectNotFoundException {
 		
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
@@ -87,7 +96,13 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
         
         GenerateExpressionEvaluatorType generateEvaluatorType = (GenerateExpressionEvaluatorType)evaluatorTypeObject;
         
-        return new GenerateExpressionEvaluator<V>(generateEvaluatorType, outputDefinition, protector, prismContext);
+        StringPolicyType elementStringPolicy = null;
+        if (generateEvaluatorType.getValuePolicyRef() != null) {
+        	objectResolver.resolve(generateEvaluatorType.getValuePolicyRef(), ValuePolicyType.class,
+        			"resolving value policy reference in "+contextDescription, result);
+        }
+        
+		return new GenerateExpressionEvaluator<V>(generateEvaluatorType, outputDefinition, protector, elementStringPolicy, prismContext);
 	}
 
 }

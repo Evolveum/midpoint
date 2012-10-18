@@ -134,7 +134,7 @@ public class MappingTestEvaluator {
     	expressionFactory.addEvaluatorFactory(pathFactory);
     	
     	// generate
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, prismContext);
+    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, resolver, prismContext);
     	expressionFactory.addEvaluatorFactory(generateFactory);
 
     	// script

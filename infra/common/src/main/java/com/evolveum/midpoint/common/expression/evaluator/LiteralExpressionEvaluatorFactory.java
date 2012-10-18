@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -69,7 +70,7 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 	 */
 	@Override
 	public <V extends PrismValue> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, 
-			String contextDescription) throws SchemaException {
+			String contextDescription, OperationResult result) throws SchemaException {
 		
 		Item<V> output = parseValueElements(evaluatorElements, outputDefinition, contextDescription, prismContext);
 		

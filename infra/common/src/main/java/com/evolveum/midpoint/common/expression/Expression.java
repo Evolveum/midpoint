@@ -76,9 +76,10 @@ public class Expression<V extends PrismValue> {
 		this.prismContext = prismContext;
 	}
 	
-	public void parse(ExpressionFactory factory, String contextDescription) throws SchemaException {
+	public void parse(ExpressionFactory factory, String contextDescription, OperationResult result) 
+			throws SchemaException, ObjectNotFoundException {
 		if (expressionType == null) {
-			evaluators.add(createDefaultEvaluator(factory, contextDescription));
+			evaluators.add(createDefaultEvaluator(factory, contextDescription, result));
 			return;
 		}
 		if (expressionType.getExpressionEvaluator() != null && expressionType.getSequence() != null) {
@@ -88,7 +89,8 @@ public class Expression<V extends PrismValue> {
 			throw new SchemaException("No evaluator was specified in "+contextDescription);
 		}
 		if (expressionType.getExpressionEvaluator() != null) {
-			ExpressionEvaluator evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory, contextDescription);
+			ExpressionEvaluator evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory, 
+					contextDescription, result);
 			evaluators.add(evaluator);
 		} else if (expressionType.getSequence() != null) {
 			if (expressionType.getSequence().getExpressionEvaluator().isEmpty()) {
@@ -100,23 +102,24 @@ public class Expression<V extends PrismValue> {
 				if (lastElementName == null || lastElementName.equals(JAXBUtil.getElementQName(expresionEvaluatorElement))) {
 					elements.add(expresionEvaluatorElement);
 				} else {
-					ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription);
+					ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription, result);
 					evaluators.add(evaluator);
 					elements = new ArrayList<JAXBElement<?>>();
 					elements.add(expresionEvaluatorElement);
 				}
 				lastElementName = JAXBUtil.getElementQName(expresionEvaluatorElement);
 			}
-			ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription);
+			ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription, result);
 			evaluators.add(evaluator);
 		}
 		if (evaluators.isEmpty()) {
-			evaluators.add(createDefaultEvaluator(factory, contextDescription));
+			evaluators.add(createDefaultEvaluator(factory, contextDescription, result));
 		}
 	}
 
-	private ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory, String contextDescription) 
-			throws SchemaException {
+	private ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
+			String contextDescription, OperationResult result) 
+			throws SchemaException, ObjectNotFoundException {
 		if (evaluatorElements.isEmpty()) {
 			throw new SchemaException("Empty evaluator list in "+contextDescription);
 		}
@@ -125,15 +128,16 @@ public class Expression<V extends PrismValue> {
 		if (evaluatorFactory == null) {
 			throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
 		}
-		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription);
+		return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, contextDescription, result);
 	}
 
-	private ExpressionEvaluator<V> createDefaultEvaluator(ExpressionFactory factory, String contextDescription) throws SchemaException {
+	private ExpressionEvaluator<V> createDefaultEvaluator(ExpressionFactory factory, String contextDescription, 
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		ExpressionEvaluatorFactory evaluatorFactory = factory.getDefaultEvaluatorFactory();
 		if (evaluatorFactory == null) {
 			throw new SystemException("Internal error: No default expression evaluator factory");
 		}
-		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription);
+		return evaluatorFactory.createEvaluator(null, outputDefinition, contextDescription, result);
 	}
 	
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationParameters parameters) throws SchemaException,

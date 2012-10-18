@@ -63,15 +63,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
  */
 public class GenerateExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
 
-	private static final int DEFAULT_LENGTH = 8;
+	public static final int DEFAULT_LENGTH = 8;
 
 	private GenerateExpressionEvaluatorType generateEvaluatorType;
 	private ItemDefinition outputDefinition;
 	private Protector protector;
 	private PrismContext prismContext;
+	private StringPolicyType elementStringPolicy;
 
 	GenerateExpressionEvaluator(GenerateExpressionEvaluatorType generateEvaluatorType, ItemDefinition outputDefinition,
-			Protector protector, PrismContext prismContext) {
+			Protector protector, StringPolicyType elementStringPolicy, PrismContext prismContext) {
 		this.generateEvaluatorType = generateEvaluatorType;
 		this.outputDefinition = outputDefinition;
 		this.protector = protector;
@@ -90,11 +91,15 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         	throw new IllegalArgumentException("Generate value constructor cannot generate values for properties of type " + outputType);
         }
         
-        StringPolicyResolver stringPolicyResolver = params.getStringPolicyResolver();
-       
         StringPolicyType stringPolicyType = null;
-        if (stringPolicyResolver!=null) {
-        	stringPolicyType = stringPolicyResolver.resolve();
+        
+        if (elementStringPolicy == null) {
+	        StringPolicyResolver stringPolicyResolver = params.getStringPolicyResolver();
+	        if (stringPolicyResolver!=null) {
+	        	stringPolicyType = stringPolicyResolver.resolve();
+	        }
+        } else {
+        	stringPolicyType = elementStringPolicy;
         }
         
 		// TODO: generate value based on stringPolicyType (if not null)
@@ -108,9 +113,6 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         
         if (stringValue == null){
         	int length = DEFAULT_LENGTH;
-        	if (generateEvaluatorType.getLength() != null) {
-        		length = generateEvaluatorType.getLength().intValue();
-        	}
     		RandomString randomString = new RandomString(length);
     		stringValue= randomString.nextString();	
         }

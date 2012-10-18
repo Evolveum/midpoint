@@ -110,7 +110,8 @@ public class ExpressionHandler {
 		
 		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_STRING, prismContext);
-		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, shortDesc);
+		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType,
+				outputDefinition, shortDesc, result);
 
 		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
@@ -137,7 +138,8 @@ public class ExpressionHandler {
 		
 		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, shortDesc);
+		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
+				outputDefinition, shortDesc, result);
 
 		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(params);

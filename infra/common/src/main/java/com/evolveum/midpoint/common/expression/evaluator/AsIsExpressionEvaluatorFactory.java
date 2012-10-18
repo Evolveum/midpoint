@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
@@ -57,7 +58,8 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement)
 	 */
 	@Override
-	public <V extends PrismValue> AsIsExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ItemDefinition outputDefinition, String contextDescription) throws SchemaException {
+	public <V extends PrismValue> AsIsExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, 
+			ItemDefinition outputDefinition, String contextDescription, OperationResult result) throws SchemaException {
 		
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {

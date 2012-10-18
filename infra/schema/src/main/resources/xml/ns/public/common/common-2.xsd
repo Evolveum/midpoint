@@ -3488,15 +3488,15 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="length" type="xsd:int" minOccurs="0" default="8">
+        	<xsd:element name="valuePolicyRef" type="tns:ObjectReferenceType" minOccurs="0">
         		<xsd:annotation>
-        			<xsd:documentation>
-        				Length of randomly-generated value (in characters).
-        				
-        				UNSTABLE. WILL MOST LIKELY CHANGE IN NEXT RELEASES.
-        				Optional reference to a (password/string) policy will be here. 
-        			</xsd:documentation>
-        		</xsd:annotation>
+	                <xsd:documentation>
+	                    Reference to the value policy that should be used to generate the value.
+	                </xsd:documentation>
+	                <xsd:appinfo>
+	        			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+	        		</xsd:appinfo>
+	            </xsd:annotation>
         	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>

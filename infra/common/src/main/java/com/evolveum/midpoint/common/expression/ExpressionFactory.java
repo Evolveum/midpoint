@@ -28,7 +28,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 
@@ -67,19 +69,23 @@ public class ExpressionFactory {
 		return prismContext;
 	}
 
-	public <V extends PrismValue> Expression<V> makeExpression(ExpressionType expressionType, ItemDefinition outputDefinition, String shortDesc) throws SchemaException {
+	public <V extends PrismValue> Expression<V> makeExpression(ExpressionType expressionType, 
+			ItemDefinition outputDefinition, String shortDesc, OperationResult result) 
+					throws SchemaException, ObjectNotFoundException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
 		Expression<V> expression = (Expression<V>) cache.get(eid);
 		if (expression == null) {
-			expression = createExpression(expressionType, outputDefinition, shortDesc);
+			expression = createExpression(expressionType, outputDefinition, shortDesc, result);
 			cache.put(eid, expression);
 		}
 		return expression;
 	}
 
-	private <V extends PrismValue> Expression<V> createExpression(ExpressionType expressionType, ItemDefinition outputDefinition, String shortDesc) throws SchemaException {
+	private <V extends PrismValue> Expression<V> createExpression(ExpressionType expressionType, 
+			ItemDefinition outputDefinition, String shortDesc, OperationResult result) 
+					throws SchemaException, ObjectNotFoundException {
 		Expression<V> expression = new Expression<V>(expressionType, outputDefinition, objectResolver, prismContext);
-		expression.parse(this, shortDesc);
+		expression.parse(this, shortDesc, result);
 		return expression;
 	}
 	

@@ -531,7 +531,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			return;
 		}
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, null, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
-		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, conditionOutput, "condition in "+contextDescription);
+		Expression<PrismValue> expression = expressionFactory.makeExpression(conditionExpressionType, 
+				conditionOutput, "condition in "+contextDescription, result);
 		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "condition in "+contextDescription, result);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		conditionOutputTriple = expression.evaluate(params);
@@ -543,7 +544,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
-		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, "expression in "+contextDescription);
+		Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
+				"expression in "+contextDescription, result);
 		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(sources, variables, "expression in "+contextDescription, result);
 		params.setRegress(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);

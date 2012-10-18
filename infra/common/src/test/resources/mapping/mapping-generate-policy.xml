@@ -22,6 +22,8 @@
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
 	<expression>
-		<generate/>
+		<generate>
+			<valuePolicyRef oid="c0c010c0-d34d-b33f-f00d-999888111111"/>
+		</generate>
 	</expression>
 </mapping>
