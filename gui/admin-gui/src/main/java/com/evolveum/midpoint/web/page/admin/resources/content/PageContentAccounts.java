@@ -519,32 +519,35 @@ public class PageContentAccounts extends PageAdminResources {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         try {
             Task task = createSimpleTask(OPERATION_CHANGE_OWNER);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-
-            ObjectDelta delta;
-            if (user != null) {
-                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
-                deltas.add(delta);
-                delta.setOid(user.getOid());
-                PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
-                refValue.setTargetType(dto.getAccountType());
-                delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
-                        UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
-            }
+//            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
             if (StringUtils.isNotEmpty(dto.getOldOwnerOid())) {
-                delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
-                deltas.add(delta);
+                ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
+//                deltas.add(delta);
                 delta.setOid(dto.getOldOwnerOid());
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
                 refValue.setTargetType(dto.getAccountType());
                 delta.addModification(ReferenceDelta.createModificationDelete(UserType.class,
                         UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            }
+            
+            if (user != null) {
+            	ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
+//                deltas.add(delta);
+                delta.setOid(user.getOid());
+                PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
+                refValue.setTargetType(dto.getAccountType());
+                delta.addModification(ReferenceDelta.createModificationAdd(UserType.class,
+                        UserType.F_ACCOUNT_REF, getPrismContext(), refValue));
+                
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                
             }
 
-            if (!deltas.isEmpty()) {
-                getModelService().executeChanges(deltas, null, task, result);
-            }
+//            if (!deltas.isEmpty()) {
+//                getModelService().executeChanges(deltas, null, task, result);
+//            }
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't submit user.", ex);
