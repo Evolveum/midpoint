@@ -37,10 +37,12 @@ import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox
 public class ThreeStateCheckPanel extends InputPanel {
 	private ThreeStateCheckBox check;
 	private Boolean state;
+	private Boolean firstState;
 	
 	public ThreeStateCheckPanel(String id, final IModel<Boolean> model) {
 		super(id);
 		state = model.getObject();
+		firstState = state;
 		
 		WebMarkupContainer inputElement = new WebMarkupContainer("inputElement");
 		add(inputElement);
@@ -65,13 +67,24 @@ public class ThreeStateCheckPanel extends InputPanel {
 	}
 	
 	private void updateModel(IModel<Boolean> model){
-		if(state == null) {
-			state = false;
-		} else if(!state) {
-			state = true;
+		if(firstState == false) {
+			if(state == null) {
+				state = false;
+			} else if(!state) {
+				state = true;
+			} else {
+				state = null;
+			}
 		} else {
-			state = null;
+			if(state == null) {
+				state = true;
+			} else if(state) {
+				state = false;
+			} else {
+				state = null;
+			}
 		}
+		
 		model.setObject(state);
 	}
 

@@ -1,6 +1,7 @@
-var STATE_NONE = "UNCHECKED";
-var STATE_ALL = "CHECKED";
-var STATE_SOME = "UNDEFINED";
+var STATE_UNCHECKED = "UNCHECKED";
+var STATE_CHECKED = "CHECKED";
+var STATE_UNDEFINED = "UNDEFINED";
+var checkbox = {};
 
 var UNCHECKED_NORM = 'UNCHECKED_NORM';
 var UNCHECKED_HILI = 'UNCHECKED_HILI';
@@ -18,14 +19,31 @@ var DEFAULT_CONFIG = {
 	CHECKED_HILI : 'treeStateCheckBox checked_highlighted'
 };
 
-function getNextStateFromValue(theValue) {
-	if (theValue == STATE_ALL) { return STATE_SOME; }
-	if (theValue == STATE_SOME) { return STATE_NONE; }
-	return STATE_ALL;
+function initThreeStateCheckBox(threeStateCheckBoxId) {
+	var CHECKBOX = new Object();
+	checkbox[threeStateCheckBoxId] = CHECKBOX;
+	CHECKBOX.ID = threeStateCheckBoxId;
+	CHECKBOX.FIRST_STATE = "";
+	createThreeStateImageNode(threeStateCheckBoxId);
+	updateStateAndImage(threeStateCheckBoxId);
+}
+
+function getNextStateFromValue(theValue, fieldId) {
+	if(checkbox[fieldId].FIRST_STATE == UNCHECKED_NORM) {
+		if (theValue == STATE_CHECKED) { return STATE_UNDEFINED; }
+		if (theValue == STATE_UNCHECKED) { return STATE_CHECKED; }
+		return STATE_UNCHECKED;
+	} else {
+		if (theValue == STATE_CHECKED) { return STATE_UNCHECKED; }
+		if (theValue == STATE_UNCHECKED) { return STATE_UNDEFINED; }
+		return STATE_CHECKED;
+	}
+	
+	
 }
 function getStateFromValue(theValue, highlightedState) {
-	if (theValue == STATE_SOME) { return (!highlightedState) ? INTERMEDIATE_NORM : INTERMEDIATE_HILI; }
-	if (theValue == STATE_ALL) { return (!highlightedState) ? CHECKED_NORM : CHECKED_HILI; }
+	if (theValue == STATE_UNDEFINED) { return (!highlightedState) ? INTERMEDIATE_NORM : INTERMEDIATE_HILI; }
+	if (theValue == STATE_CHECKED) { return (!highlightedState) ? CHECKED_NORM : CHECKED_HILI; }
 	return (!highlightedState) ? UNCHECKED_NORM : UNCHECKED_HILI;
 }
 
@@ -45,6 +63,9 @@ function mouseOverOutOfImage(imageId, mouseOverMode) {
 	var fieldId = getFieldId(imageId);
 	var threeStateBoxField = document.getElementById(fieldId);
 	var currentState = getStateFromValue(threeStateBoxField.value, mouseOverMode);
+	if(checkbox[fieldId].FIRST_STATE == "") {
+		checkbox[fieldId].FIRST_STATE = currentState;
+	}
 	return DEFAULT_CONFIG[currentState];
 }
 function onMouseOverImage(imageId) {
@@ -61,10 +82,9 @@ function onMouseOutImage(imageId) {
 }
 function onThreestateImageClick(imageId) {
 	return function() {
-		var fieldAndContainerIds = getFieldId(imageId);
-		var threeStateBoxField = document.getElementById(fieldAndContainerIds);
-
-		var nextState = getNextStateFromValue(threeStateBoxField.value);
+		var fieldId = getFieldId(imageId);
+		var threeStateBoxField = document.getElementById(fieldId);
+		var nextState = getNextStateFromValue(threeStateBoxField.value, fieldId);
 		threeStateBoxField.value = nextState;
 		var imageClass = mouseOverOutOfImage(imageId, true);
 		replaceImage(imageId, imageClass);
@@ -90,9 +110,4 @@ function createThreeStateImageNode(threeStateCheckBoxId) {
 		boxElement.attachEvent('onmouseout', onMouseOutImage(imageNode.id));
 		boxElement.attachEvent('onclick', onThreestateImageClick(imageNode.id));
 	}
-}
-
-function initThreeStateCheckBox(threeStateCheckBoxId) {
-	createThreeStateImageNode(threeStateCheckBoxId);
-	updateStateAndImage(threeStateCheckBoxId);
 }

@@ -1,7 +1,10 @@
 package com.evolveum.midpoint.web.component;
 
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.resource.ContentDisposition;
@@ -10,6 +13,12 @@ import org.apache.wicket.util.file.Files;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.time.Duration;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.message.OpResult;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 public abstract class AjaxDownloadBehavior extends AbstractAjaxBehavior {
 
@@ -27,7 +36,7 @@ public abstract class AjaxDownloadBehavior extends AbstractAjaxBehavior {
 	/**
 	 * Call this method to initiate the download.
 	 */
-	public void initiate(AjaxRequestTarget target) {
+	public void initiate(AjaxRequestTarget target) {	
 		String url = getCallbackUrl().toString();
 
 		if (addAntiCache) {
