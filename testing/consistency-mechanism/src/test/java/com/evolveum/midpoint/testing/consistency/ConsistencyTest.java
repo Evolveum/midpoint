@@ -90,6 +90,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -219,12 +221,18 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	private static final String USER_GUYBRUSH_NOT_FOUND_FILENAME = "src/test/resources/repo/user-guybrush-modify-not-found.xml";
 	private static final String USER_GUYBRUSH_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111111333";
+	
+	private static final String USER_HECTOR_NOT_FOUND_FILENAME = "src/test/resources/repo/user-hector.xml";
+	private static final String USER_HECTOR_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111222333";	
 
 	private static final String USER_E_FILENAME = "src/test/resources/repo/user-e.xml";
 	private static final String USER_E_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
 
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = "src/test/resources/repo/account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
+	
+	private static final String ACCOUNT_HECTOR_FILENAME = "src/test/resources/repo/account-hector-not-found.xml";
+	private static final String ACCOUNT_HECTOR_OID = "a0c010c0-d34d-b33f-f00d-111111222333";
 
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME = "src/test/resources/repo/account-guybrush-not-found.xml";
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID = "a0c010c0-d34d-b33f-f00d-111111111333";
@@ -1170,6 +1178,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		PrismObject<AccountShadowType> modifiedAccount = provisioningService.getObject(
 				AccountShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);
+		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=guybrush,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(modifiedAccount);
 		assertAttribute(modifiedAccount.asObjectable(),
@@ -1182,6 +1191,48 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// String.class), "cabin");
 		assertNotNull(attributeContainer.findProperty(new QName(ResourceTypeUtil
 				.getResourceNamespace(resourceTypeOpenDjrepo), "businessCategory")));
+
+	}
+
+	@Test
+	public void test018CgetObjectNotFoundAssignedAccount() throws Exception {
+		displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
+		
+		// GIVEN
+		OperationResult parentResult = new OperationResult(
+				"Get account not found => reaction: Re-create account, return re-created.");
+
+		addObjectFromFile(ACCOUNT_HECTOR_FILENAME, AccountShadowType.class, parentResult);
+		addObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, UserType.class, parentResult);
+
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID,
+				parentResult);
+		assertNotNull(user);
+		assertEquals("Expecting that user has one account reference, but found "
+				+ user.asObjectable().getAccountRef().size() + " reference", 1, user.asObjectable()
+				.getAccountRef().size());
+
+//		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+//		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
+//		applySyncSettings(syncSettings);
+
+		Task task = taskManager.createTaskInstance();
+
+		//WHEN
+		PrismObject<UserType> modificatedUser = modelService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID, null, task, parentResult);
+		
+		// THEN
+		assertNotNull(modificatedUser);
+		List<ObjectReferenceType> referenceList = modificatedUser.asObjectable().getAccountRef();
+		assertEquals("Expecting that user has one account reference, but found " + referenceList.size()
+				+ " reference", 1, referenceList.size());
+
+		assertFalse("Old shadow oid and new shadow oid should not be the same.", ACCOUNT_GUYBRUSH_OID.equals(referenceList.get(0).getOid()));
+		
+		PrismObject<AccountShadowType> modifiedAccount = modelService.getObject(
+				AccountShadowType.class, referenceList.get(0).getOid(), null, task, parentResult);
+		assertNotNull(modifiedAccount);
+		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=hector,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 
 	}
 

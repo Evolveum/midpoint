@@ -216,6 +216,17 @@ public abstract class BaseAction implements Action {
     }
 
 	private boolean isThombstone(ResourceObjectShadowChangeDescription change) {
+		PrismObject<? extends ResourceObjectShadowType> shadow = null;
+		if (change.getOldShadow() != null){
+			shadow = change.getOldShadow();
+		} else if (change.getCurrentShadow() != null){
+			shadow = change.getCurrentShadow();
+		}
+		if (shadow != null){
+			if (shadow.asObjectable().isDead() != null){
+				return shadow.asObjectable().isDead().booleanValue();
+			}
+		}
 		ObjectDelta<? extends ResourceObjectShadowType> objectDelta = change.getObjectDelta();
 		if (objectDelta == null) {
 			return false;

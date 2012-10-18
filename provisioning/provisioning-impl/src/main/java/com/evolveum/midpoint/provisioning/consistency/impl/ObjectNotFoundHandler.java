@@ -125,6 +125,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
 					shadowModifications.getModification(), shadow.asPrismObject().getDefinition());
 			
+			shadow.setDead(true);
+			
 			ResourceObjectShadowChangeDescription change = createResourceObjectShadowChangeDescription(shadow,
 					result);
 
@@ -142,31 +144,24 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				LOGGER.trace("Found new oid {} as a return param from model. Probably the new shadow was created.", oid);
 			}
 			
-			// try {
-			// PrismObject<AccountShadowType> repoShadow =
-			// cacheRepositoryService.getObject(AccountShadowType.class,
-			// shadow.getOid(), parentResult);
-			// SynchronizationSituationType syncSituation =
-			// repoShadow.asObjectable().getSynchronizationSituation();
-			// if (syncSituation != null && syncSituation ==
-			// SynchronizationSituationType.LINKED) {
-			
 			if (oid != null ) {
 				LOGGER.trace("Modifying re-created account according to given changes.");
 				try {
 					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null,
 							result);
+					parentResult.recordHandledError(
+							"Account was recreated and modifications were applied to newly cleated account.");
 				} catch (ObjectNotFoundException e) {
-					result.recordStatus(
-							OperationResultStatus.HANDLED_ERROR,
+					parentResult.recordHandledError(
 							"Modifications were not applied, because shadow was deleted by discovery. Repository state were refreshed and unused shadow was deleted.");
 				}
 //				return shadow;
-			} 
-			
-//			if (oid == null
-//					|| (oid != null && !shadow.getOid().equals(oid))
-//					|| (shadow.getSynchronizationSituation() == null )) {
+				
+			} else{
+				parentResult.recordHandledError(
+						"Account was deleted by discovery. Modification were not applied.");
+			}
+		
 				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
 				try {
 					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
@@ -177,21 +172,12 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					//TODO: log this
 
 				}
-//			}
-
-			// } catch (ObjectNotFoundException e) {
-			// delete the old shadow that was probably deleted from the
-			// user, or the new one was assigned
-			// parentResult.recordWarning("Cannot get shadow with oid " +
-			// shadow.getOid()
-			// +
-			// ". It was probably previously deleted by synchronization process.");
-			//
-			// }
-
+				result.computeStatus();
 			return shadow;
 		case GET:
 			OperationResult handleGetErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
+			
+			shadow.setDead(true);
 			ResourceObjectShadowChangeDescription getChange = createResourceObjectShadowChangeDescription(shadow,
 					result);
 
@@ -221,10 +207,12 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			
 			if (oid != null) {
 				shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
-				result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account was re-created by the discovery.");
+				parentResult.recordHandledError("Account was re-created by the discovery.");
+				result.computeStatus();
 				return shadow;
 			} else {
-				result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account was deleted by the discovery and the invalid link was removed from the user.");
+				parentResult.recordHandledError("Account was deleted by the discovery and the invalid link was removed from the user.");
+				result.computeStatus();
 				throw new ObjectNotFoundException(ex.getMessage(), ex);
 			}
 			

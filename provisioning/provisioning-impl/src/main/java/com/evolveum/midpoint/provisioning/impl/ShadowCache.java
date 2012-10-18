@@ -423,7 +423,7 @@ public class ShadowCache {
 						parentResult);
 				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 			} catch (Exception ex) {
-
+				parentResult.muteLastSubresultError();
 				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
 				try {
 					handleError(ex, shadow, FailedOperation.MODIFY, parentResult);

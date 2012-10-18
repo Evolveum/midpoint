@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
@@ -59,6 +60,7 @@ public class ShadowConstraintsChecker {
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 	
 	private LensProjectionContext<AccountShadowType> accountContext;
+	private LensContext<UserType, AccountShadowType> context;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
 	private boolean satisfiesConstraints;
@@ -87,11 +89,19 @@ public class ShadowConstraintsChecker {
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
-
+	
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
 
+	public LensContext<UserType, AccountShadowType> getContext() {
+		return context;
+	}
+	
+	public void setContext(LensContext<UserType, AccountShadowType> context) {
+		this.context = context;
+	}
+	
 	public boolean isSatisfiesConstraints() {
 		return satisfiesConstraints;
 	}
@@ -109,12 +119,14 @@ public class ShadowConstraintsChecker {
 			satisfiesConstraints = true;
 			return;
 		}
+		
 		PrismContainer<?> attributesContainer = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			// No attributes no constraint violations
 			satisfiesConstraints = true;
 			return;
 		}
+		
 		Collection<ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.union(accountDefinition.getIdentifiers(),
 				accountDefinition.getSecondaryIdentifiers());
 		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
@@ -125,12 +137,16 @@ public class ShadowConstraintsChecker {
 				continue;
 			}
 			boolean unique = checkAttributeUniqueness(attr, accountDefinition, accountContext.getResource(), 
-					accountContext.getOid(), result);
+					accountContext.getOid(), context, result);
 			if (!unique) {
 				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,  accountContext.getResourceShadowDiscriminator());
 				if (isInDelta(attr, accountContext.getPrimaryDelta())) {
 					throw new ObjectAlreadyExistsException("Attribute "+attr+" conflicts with existing object (and it is present in primary "+
 							"account delta therefore no iteration is performed)");
+				}
+				if (accountContext.getResourceShadowDiscriminator() != null && accountContext.getResourceShadowDiscriminator().isThombstone()){
+					satisfiesConstraints = true;
+					return;
 				}
 				satisfiesConstraints = false;
 				return;
@@ -140,7 +156,7 @@ public class ShadowConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedAccountDefinition accountDefinition,
-			ResourceType resourceType, String oid, OperationResult result) throws SchemaException {
+			ResourceType resourceType, String oid, LensContext<UserType, AccountShadowType> context, OperationResult result) throws SchemaException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
@@ -159,11 +175,28 @@ public class ShadowConstraintsChecker {
 			message("Found more than one object with attribute "+identifier.getHumanReadableDump());
 			return false;
 		}
+		
+		PrismProperty<Boolean> isDead = foundObjects.get(0).findProperty(AccountShadowType.F_DEAD);
+		if (isDead != null && !isDead.isEmpty() && isDead.getRealValue() != null && isDead.getRealValue() == true){
+			message("Found matching accounts, but one of them is signed as dead, ignoring this match.");
+			return true;
+		}
+		
 		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
 		boolean match = foundObjects.get(0).getOid().equals(oid);
 		if (!match) {
-			message("Found conflicting existing object with attribute "+identifier.getHumanReadableDump()+": "+foundObjects.get(0));
+			message("Found conflicting existing object with attribute " + identifier.getHumanReadableDump() + ": "
+					+ foundObjects.get(0));
+
+			LensProjectionContext<AccountShadowType> foundContext = context.findProjectionContextByOid(foundObjects
+					.get(0).getOid());
+			if (foundContext != null) {
+				if (foundContext.getResourceShadowDiscriminator() != null) {
+					match = foundContext.getResourceShadowDiscriminator().isThombstone();
+				}
+			}
 		}
+		
 		return match;
 	}
 	

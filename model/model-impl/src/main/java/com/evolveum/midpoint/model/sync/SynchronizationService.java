@@ -147,14 +147,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 			notifyChange(change, situation, resource, task, subResult);
 
-			// PrismObject<? extends ObjectType> object = change.getOldShadow();
-			// if (object == null) {
-			// object = change.getCurrentShadow();
-			// }
-
-			// if (object != null) {
-
-			// }
 			subResult.computeStatus();
 		} catch (Exception ex) {
 			subResult.recordFatalError(ex);

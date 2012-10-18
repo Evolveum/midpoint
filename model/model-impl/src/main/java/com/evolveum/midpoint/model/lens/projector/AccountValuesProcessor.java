@@ -138,6 +138,7 @@ public class AccountValuesProcessor {
 	        // Check constraints
 	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);
 	        checker.setPrismContext(prismContext);
+	        checker.setContext(context);
 	        checker.setRepositoryService(repositoryService);
 	        checker.check(result);
 	        if (checker.isSatisfiesConstraints()) {
