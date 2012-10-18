@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<user oid="c0c010c0-d34d-b33f-f00d-111111222333"
+   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+    <name>hector</name>
+    <fullName>Hector Hector</fullName>
+    <givenName>Hector</givenName>
+    <familyName>Hector</familyName>
+    <emailAddress>hector@evolveum.com</emailAddress>
+    <organizationalUnit>Loosers</organizationalUnit>
+    <locality>Deep in the Caribbean</locality>
+
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
+            </value>
+        </password>
+    </credentials>
+    
+     <assignment>
+		<accountConstruction>
+			<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+			This is inconsistent with the actual resource value (by purpose, so we can test reconcile)
+<!-- 			<attribute> -->
+<!-- 				<ref>ri:o</ref> -->
+<!-- 				<value>Pirate Brethren, Inc.</value> -->
+<!-- 			</attribute> -->
+<!-- 			<attribute> -->
+<!-- 				<ref>ri:l</ref> -->
+<!-- 				<value>Caribbean</value> -->
+<!-- 			</attribute> -->
+		</accountConstruction>
+	</assignment>
+    
+    <accountRef oid="a0c010c0-d34d-b33f-f00d-111111222333" type="AccountShadowType"/>
+</user>
