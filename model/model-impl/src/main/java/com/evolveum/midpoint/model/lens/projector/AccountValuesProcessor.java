@@ -21,7 +21,7 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -104,7 +104,7 @@ public class AccountValuesProcessor {
 			String activityDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		
-		SynchronizationPolicyDecision policyDecision = accountContext.getPolicyDecision();
+		SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationPolicyDecision();
 		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
 			// We will not update accounts that are being unlinked.
 			// we cannot skip deleted accounts here as the delete delta will be skipped as well

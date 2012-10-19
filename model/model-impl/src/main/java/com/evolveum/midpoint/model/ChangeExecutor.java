@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -191,7 +192,7 @@ public class ChangeExecutor {
             throw new IllegalStateException("Account has null OID, this should not happen");
         }
 
-        if (accCtx.getPolicyDecision() == SynchronizationPolicyDecision.UNLINK || accCtx.getPolicyDecision() == SynchronizationPolicyDecision.DELETE) {
+        if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK || accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE) {
             // Link should NOT exist
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
                 if (accountRef.getOid().equals(accountOid)) {

@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 
 /**
  * @author lazyman

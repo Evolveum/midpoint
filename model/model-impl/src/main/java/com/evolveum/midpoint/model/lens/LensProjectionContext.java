@@ -35,8 +35,8 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -100,7 +100,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      * Decision regarding the account. If set to null no decision was made yet. Null is also a typical value
      * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
      */
-    private SynchronizationPolicyDecision policyDecision;
+    private SynchronizationPolicyDecision synchronizationPolicyDecision;
 
     /**
      * True if we want to reconcile account in this context.
@@ -181,7 +181,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     }
     
     public boolean isAdd() {
-		if (policyDecision == SynchronizationPolicyDecision.ADD) {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
 			return true;
 		}
 		if (ObjectDelta.isAdd(getPrimaryDelta())) {
@@ -194,7 +194,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	public boolean isDelete() {
-		if (policyDecision == SynchronizationPolicyDecision.DELETE) {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
 			return true;
 		}
 		if (ObjectDelta.isDelete(getPrimaryDelta())) {
@@ -230,12 +230,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.isActive = isActive;
 	}
 
-	public SynchronizationPolicyDecision getPolicyDecision() {
-        return policyDecision;
+	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
+        return synchronizationPolicyDecision;
     }
 
-    public void setPolicyDecision(SynchronizationPolicyDecision policyDecision) {
-        this.policyDecision = policyDecision;
+    public void setSynchronizationPolicyDecision(SynchronizationPolicyDecision policyDecision) {
+        this.synchronizationPolicyDecision = policyDecision;
     }
     
     public int getIteration() {
@@ -497,7 +497,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		clone.iteration = this.iteration;
 		clone.iterationToken = this.iterationToken;
 		clone.outboundAccountConstruction = this.outboundAccountConstruction;
-		clone.policyDecision = this.policyDecision;
+		clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
 		clone.resource = this.resource;
 		clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
 		clone.squeezedAttributes = cloneSqueezedAttributes();
@@ -594,7 +594,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         sb.append(", assigned=").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", recon=").append(doReconciliation);
-        sb.append(", decision=").append(policyDecision);
+        sb.append(", decision=").append(synchronizationPolicyDecision);
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {
         	sb.append(", THOMBSTONE");
         }

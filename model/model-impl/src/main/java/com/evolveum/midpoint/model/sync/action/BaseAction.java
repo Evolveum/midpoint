@@ -26,7 +26,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ChangeExecutor;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -211,7 +211,7 @@ public abstract class BaseAction implements Action {
         //we insert account if available in change
         accountContext.setObjectOld(getAccountObject(change));
 
-        accountContext.setPolicyDecision(policyDecision);
+        accountContext.setSynchronizationPolicyDecision(policyDecision);
         if (activationDecision != null) {
             updateAccountActivation(accountContext, activationDecision);
         }

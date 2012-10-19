@@ -46,8 +46,8 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
@@ -224,7 +224,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
@@ -280,7 +280,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals(1, accountContexts.size());
         LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
-        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
@@ -329,7 +329,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals(1, accountContexts.size());
         LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
-        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
@@ -378,7 +378,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals(1, accountContexts.size());
         LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
-        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
@@ -463,7 +463,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();

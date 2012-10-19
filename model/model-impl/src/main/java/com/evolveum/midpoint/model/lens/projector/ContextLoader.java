@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -313,8 +313,8 @@ public class ContextLoader {
 				account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 			}
 			LensProjectionContext<AccountShadowType> accountSyncContext = getOrCreateAccountContext(context, account, result);
-			if (accountSyncContext.getPolicyDecision() == null) {
-				accountSyncContext.setPolicyDecision(policyDecision);
+			if (accountSyncContext.getSynchronizationPolicyDecision() == null) {
+				accountSyncContext.setSynchronizationPolicyDecision(policyDecision);
 			}
 			if (accountSyncContext.isDoReconciliation()) {
 				// Do not load old account now. It will get loaded later in the
@@ -452,9 +452,9 @@ public class ContextLoader {
 				}
 				if (accountSyncContext != null) {
 					if (refVal.getObject() == null) {
-						accountSyncContext.setPolicyDecision(SynchronizationPolicyDecision.UNLINK);
+						accountSyncContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
 					} else {
-						accountSyncContext.setPolicyDecision(SynchronizationPolicyDecision.DELETE);
+						accountSyncContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 						ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createDeleteDelta();
 						accountSyncContext.setPrimaryDelta(accountPrimaryDelta);
 					}

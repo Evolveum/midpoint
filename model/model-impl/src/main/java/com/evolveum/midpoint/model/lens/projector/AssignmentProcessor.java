@@ -24,8 +24,8 @@ package com.evolveum.midpoint.model.lens.projector;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
@@ -304,16 +304,16 @@ public class AssignmentProcessor {
 	 */
 	private void finishProplicyDecisions(LensContext<UserType,AccountShadowType> context) {
 		for (LensProjectionContext<AccountShadowType> accountContext: context.getProjectionContexts()) {
-			if (accountContext.getPolicyDecision() != null) {
+			if (accountContext.getSynchronizationPolicyDecision() != null) {
 				// already have decision
 				continue;
 			}
 			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getSyncDelta();
 			if (accountSyncDelta != null) {
 				if (accountSyncDelta.isDelete()) {
-					accountContext.setPolicyDecision(SynchronizationPolicyDecision.UNLINK);
+					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
 				} else {
-					accountContext.setPolicyDecision(SynchronizationPolicyDecision.DELETE);
+					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 				}
 			}
 			// TODO: other cases?
@@ -436,8 +436,8 @@ public class AssignmentProcessor {
     }
         
     private void markPolicyDecision(LensProjectionContext<AccountShadowType> accountSyncContext, SynchronizationPolicyDecision decision) {
-        if (accountSyncContext.getPolicyDecision() == null) {
-            accountSyncContext.setPolicyDecision(decision);
+        if (accountSyncContext.getSynchronizationPolicyDecision() == null) {
+            accountSyncContext.setSynchronizationPolicyDecision(decision);
         }
     }
 

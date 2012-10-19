@@ -24,7 +24,7 @@ import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -102,7 +102,7 @@ public class ActivationProcessor {
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
         
-        SynchronizationPolicyDecision policyDecision = accCtx.getPolicyDecision();
+        SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
         if (policyDecision != null && (policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
             LOGGER.trace("Activation processing skipped for " + rat + ", account is being deleted or unlinked");
             return;
