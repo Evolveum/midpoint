@@ -196,6 +196,13 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		}
 	}
 
+	@Override
+	public <I extends Item<?>> void removeItem(PropertyPath path, Class<I> itemType) {
+		// Objects are only a single-valued containers. The path of the object itself is "empty".
+		// Fix this special behavior here.
+		getValue().removeItem(path, itemType);
+	}
+
 	public void addReplaceExisting(Item<?> item) throws SchemaException {
 		getValue().addReplaceExisting(item);
 	}

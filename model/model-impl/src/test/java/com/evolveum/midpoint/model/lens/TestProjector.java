@@ -87,6 +87,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
@@ -142,6 +143,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test010AddAccountToJackDirect");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
@@ -158,14 +160,15 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // THEN
         display("Output context", context);
         
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertNull("Unexpected user primary changes"+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
+        assertNull("Unexpected user secondary changes"+context.getFocusContext().getSecondaryDelta(), context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
         LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
         
+        assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
         ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
         assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
         PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
@@ -198,6 +201,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test020AssignAccountToJack");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
@@ -255,6 +259,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test050ModifyUserBarbossaLocality");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
@@ -304,6 +309,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test051ModifyUserBarbossaFullname");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
@@ -351,6 +357,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test053ModifyUserBarbossaDisable");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
@@ -399,6 +406,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test055DeleteBarbossaOpenDjAccount");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         // Do not fill user to context. Projector should figure that out.
@@ -434,6 +442,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test101AssignConflictingAccountToJack");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         // Make sure there is a shadow with conflicting account
         addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
@@ -488,6 +497,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test200ImportHermanDummy");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithEmtptyAddUserDelta(context, result);
@@ -533,6 +543,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test201ImportHermanOpenDj");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithEmtptyAddUserDelta(context, result);
@@ -577,6 +588,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test250GuybrushInboundFromDelta");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
@@ -608,6 +620,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         displayTestTile(this, "test251GuybrushInboundFromAbsolute");
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test251GuybrushInboundFromAbsolute");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         try{
         	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
@@ -669,6 +682,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test300ReconcileGuybrushDummy");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         // Change the guybrush account on dummy resource directly. This creates inconsistency.
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -723,6 +737,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test400AddLargo");
         OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));

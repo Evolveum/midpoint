@@ -115,23 +115,35 @@ public class AssignmentProcessor {
     
     public void processAssignmentsAccounts(LensContext<UserType,AccountShadowType> context, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	LensFocusContext<UserType> focusContext = context.getFocusContext();
+    	
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
-        if (accountSynchronizationSettings != null) {
+        if (accountSynchronizationSettings != null) {	
             AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
             if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
                 // No assignment processing
                 LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
 
-                // But mark all accounts as active, so they will be synchronized as expected
+                // We need to fake assignment processing a bit ...
                 for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
+                	// mark all accounts as active, so they will be synchronized as expected
                     accCtx.setActive(true);
+                    // guess policy decision
+                    if (accCtx.getSynchronizationPolicyDecision() == null) {
+                    	if (accCtx.isAdd()) {
+                    		accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.ADD);
+                    	} else if (accCtx.isDelete()) {
+                    		accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+                    	} else {
+                    		accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+                    	}
+                    }
                 }
 
                 return;
             }
         }
         
+        LensFocusContext<UserType> focusContext = context.getFocusContext();
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
         if (focusContext.getObjectOld() != null) {
             PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectOld().findContainer(UserType.F_ASSIGNMENT);

@@ -419,7 +419,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
         if (deltas == null) {
             return null;
         }
-        for (ItemDelta delta : deltas) {
+        for (ItemDelta<?> delta : deltas) {
             if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
                 return (D) delta;
             }
@@ -433,6 +433,19 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
     
     public static ReferenceDelta findReferenceModification(Collection<? extends ItemDelta> deltas, QName itemName) {
     	return findItemDelta(deltas, itemName, ReferenceDelta.class);
+    }
+    
+    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath, Class<D> deltaType) {
+        if (deltas == null) {
+            return;
+        }
+        Iterator<? extends ItemDelta> deltasIterator = deltas.iterator();
+        while (deltasIterator.hasNext()) {
+        	ItemDelta<?> delta = deltasIterator.next();
+            if (deltaType.isAssignableFrom(delta.getClass()) && delta.getPath().equals(propertyPath)) {
+                deltasIterator.remove();
+            }
+        }
     }
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {

@@ -612,6 +612,29 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         return property;
     }
     
+    // Expects that "self" path is NOT present in propPath
+	<I extends Item<?>> void removeItem(PropertyPath propPath, Class<I> itemType) {
+    	PropertyPathSegment first = propPath.first();
+    	PropertyPath rest = propPath.rest();
+    	Iterator<Item<?>> itemsIterator = items.iterator();
+    	while(itemsIterator.hasNext()) {
+    		Item<?> item = itemsIterator.next();
+            if (first.getName().equals(item.getName())) {
+            	if (!rest.isEmpty() && item instanceof PrismContainer) {
+            		((PrismContainer<?>)item).removeItem(propPath, itemType);
+            		return;
+            	} else {
+            		if (itemType.isAssignableFrom(item.getClass())) {
+            			itemsIterator.remove();
+            		} else {
+           				throw new IllegalArgumentException("Attempt to remove item "+first.getName()+" from "+this+
+           						" of type "+itemType+" while the existing item is of incompatible type "+item.getClass());
+            		}
+            	}        
+            }
+        }
+    }
+    
     public void setPropertyRealValue(QName propertyName, Object realValue) throws SchemaException {
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
     	property.setRealValue(realValue);

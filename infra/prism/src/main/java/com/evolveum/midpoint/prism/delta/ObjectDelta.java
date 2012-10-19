@@ -324,6 +324,18 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public ReferenceDelta findReferenceModification(QName itemName) {
     	return findModification(itemName, ReferenceDelta.class);
     }
+    
+    private <D extends ItemDelta> void removeModification(PropertyPath propertyPath, Class<D> deltaType) {
+    	ItemDelta.removeItemDelta(modifications, propertyPath, deltaType);
+    }
+    
+    private <D extends ItemDelta> void removeModification(QName itemName, Class<D> deltaType) {
+    	removeModification(new PropertyPath(itemName), deltaType);
+    }
+    
+    public void removeReferenceModification(QName itemName) {
+    	removeModification(itemName, ReferenceDelta.class);
+    }
 
     public boolean isEmpty() {
     	if (getChangeType() == ChangeType.DELETE) {

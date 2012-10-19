@@ -221,13 +221,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	getValue().add(item);
     }
     
-    /**
-     * Convenience method. Works only on single-valued containers.
-     */
-    public void remove(Item<?> item) {
-    	getValue().remove(item);
-    }
-    
     public PrismContainerValue<V> createNewValue() {
     	PrismContainerValue<V> pValue = new PrismContainerValue<V>();
     	try {
@@ -377,10 +370,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	if (propPath == null || propPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
-    	PropertyPathSegment first = propPath.first();
-    	if (!first.getName().equals(getName())) {
-    		throw new IllegalArgumentException("Expected path with first segment name "+getName()+", but got "+first);
-    	}
     	PropertyPath rest = propPath.rest();
     	if (rest.isEmpty()) {
     		// This is the end ...
@@ -395,17 +384,32 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     			}
     		}
     	}
+
+    	PropertyPathSegment first = propPath.first();
+    	PrismContainerValue<V> cval = findValue(first);
+    	if (cval == null) {
+    		return null;
+    	}
+    	// descent to the correct value
+    	return cval.findCreateItem(rest, type, itemDefinition, create);
+    }
+    
+    // Expects that "self" path IS present in propPath
+    private PrismContainerValue<V> findValue(PropertyPathSegment pathSegment) {
+    	if (!pathSegment.getName().equals(getName())) {
+    		throw new IllegalArgumentException("Expected path with first segment name "+getName()+", but got "+pathSegment);
+    	}
     	// Otherwise descent to the correct value
-    	if (first.getId() == null) {
+    	if (pathSegment.getId() == null) {
     		if (canAssumeSingleValue()) {
-    			return getValue().findCreateItem(rest, type, itemDefinition, create);
+    			return getValue();
     		} else {
-    			throw new IllegalArgumentException("Attempt to get segment "+first+" without an ID from a multi-valued container "+getName());
+    			throw new IllegalArgumentException("Attempt to get segment "+pathSegment+" without an ID from a multi-valued container "+getName());
     		}
     	} else {
 	        for (PrismContainerValue<V> pval : getValues()) {
-	        	if (first.getId().equals(pval.getId())) {
-	        		return pval.findCreateItem(rest, type, itemDefinition, create);
+	        	if (pathSegment.getId().equals(pval.getId())) {
+	        		return pval;
 	        	}
 	        }
 	        return null;
@@ -439,7 +443,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
     	return getValue().findReferenceByCompositeObjectElementName(elementName);
     }
-    
+            
     public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) throws SchemaException {
         return findCreateItem(containerPath, type, null, true);
     }
@@ -478,6 +482,30 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     
     public PrismReference findOrCreateReference(QName propertyName) throws SchemaException {
         return findCreateItem(propertyName, PrismReference.class, true);
+    }
+    
+    /**
+     * Convenience method. Works only on single-valued containers.
+     */
+    public void remove(Item<?> item) {
+    	getValue().remove(item);
+    }
+    
+    public void removeReference(QName referenceQName) {
+    	removeItem(new PropertyPath(referenceQName), PrismReference.class);
+    }
+    
+    public void removeReference(PropertyPath path) {
+        removeItem(path, PrismReference.class);
+    }
+
+    public <I extends Item<?>> void removeItem(PropertyPath path, Class<I> itemType) {
+    	PropertyPathSegment firstPathSegment = path.first();
+    	PrismContainerValue<V> cval = findValue(firstPathSegment);
+    	if (cval == null) {
+    		return;
+    	}
+    	cval.removeItem(path.rest(), itemType);
     }
 
     // Expects that the "self" path segment is NOT included in the basePath

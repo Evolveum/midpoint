@@ -114,9 +114,17 @@ public class ContextLoader {
 		        loadFromSystemConfig(ucContext, result);
 		        context.recomputeFocus();
 		        
+		        // this also removes the accountRef deltas
 		        loadAccountRefs(ucContext, result);
 	    	}
+			
+	    	// Some cleanup
+	    	if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().isModify() && focusContext.getPrimaryDelta().isEmpty()) {
+	    		focusContext.setPrimaryDelta(null);
+	    	}
+
     	}
+    	    	
     	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
         checkProjectionContexts(context, result);
@@ -469,14 +477,16 @@ public class ContextLoader {
 		// We need to make sure this happens on the real primary user delta
 
 		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
-			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(
-					UserType.F_ACCOUNT_REF);
-			pruneOidlessReferences(accountRef.getValues());
+//			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(
+//					UserType.F_ACCOUNT_REF);
+//			pruneOidlessReferences(accountRef.getValues());
+			userPrimaryDelta.getObjectToAdd().removeReference(UserType.F_ACCOUNT_REF);
 		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
-			pruneOidlessReferences(accountRefDelta.getValuesToAdd());
-			pruneOidlessReferences(accountRefDelta.getValuesToReplace());
-			pruneOidlessReferences(accountRefDelta.getValuesToDelete());
+			userPrimaryDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
+//			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
+//			pruneOidlessReferences(accountRefDelta.getValuesToAdd());
+//			pruneOidlessReferences(accountRefDelta.getValuesToReplace());
+//			pruneOidlessReferences(accountRefDelta.getValuesToDelete());
 		}
 
 	}
