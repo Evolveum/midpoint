@@ -253,21 +253,5 @@ public final class WebMiscUtil {
         return collection;
     }
     
-    private static Object object;
-
-   	public static Object findParam(String param, String oid, OperationResult result) {
-   		
-   		for (OperationResult subResult : result.getSubresults()) {
-   			if (subResult != null && subResult.getParams() != null) {
-   				if (subResult.getParams().get(param) != null && subResult.getParams().get(OperationResult.PARAM_OID) != null
-   						&& subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
-   					return subResult.getParams().get(param);
-   				}
-   				object = findParam(param, oid, subResult);
-
-   			}
-   		}
-   		return object;
-   	}
-
+   
 }
