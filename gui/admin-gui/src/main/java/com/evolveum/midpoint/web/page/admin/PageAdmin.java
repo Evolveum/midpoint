@@ -21,29 +21,27 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.reports.PageAdminReports;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -58,7 +56,7 @@ public class PageAdmin extends PageBase {
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",
-                PageRoles.class, PageAdminRoles.class));
+                PageReports.class, PageAdminRoles.class));
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
                 PageResources.class, PageAdminResources.class));
         if (getWorkflowManager().isEnabled()) {
@@ -69,6 +67,8 @@ public class PageAdmin extends PageBase {
                 PageTasks.class, PageAdminTasks.class));
         items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
                 PageDebugList.class, PageAdminConfiguration.class));
+        items.add(new TopMenuItem("pageAdmin.reports", "pageAdmin.reports.description",
+                PageReports.class, PageAdminReports.class));
 
         return items;
     }

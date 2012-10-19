@@ -752,6 +752,17 @@ div.objectForm .tableForm tbody .objectFormValue .objectFormHelpContainer {
 	margin-bottom: 25px;
 }
 
+.optionPanel .optionComponent .headerSeparator {
+	background: none repeat scroll 0 0 #F2F2F2;
+    border-bottom: 1px solid #BBBBBB;
+    margin-bottom: 5px;
+    padding: 2px;
+}
+
+.optionPanel .optionComponent .headerSeparator .optionComponentTitle {
+    color: #6E6E6E;
+}
+
 .optionPanel .optionComponent table {
 	padding: 0px;
 	width: 100%;

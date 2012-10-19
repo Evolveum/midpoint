@@ -53,6 +53,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
 import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 import com.evolveum.midpoint.web.page.admin.help.PageSystem;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
@@ -154,6 +155,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
         mount(new MountedMapper("/admin/config/import", PageImportObject.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
+        
+        mount(new MountedMapper("/admin/reports", PageReports.class, encoder));
         
         mount(new MountedMapper("/admin/about/midPoint", PageAbout.class, encoder));
         mount(new MountedMapper("/admin/about/system", PageSystem.class, encoder));

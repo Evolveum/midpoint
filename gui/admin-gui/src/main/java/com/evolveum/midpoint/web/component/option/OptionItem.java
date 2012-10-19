@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.component.option;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.border.Border;
@@ -31,14 +32,26 @@ import org.apache.wicket.model.IModel;
  * @author lazyman
  */
 public class OptionItem extends Border {
+	
+	public OptionItem(String id, IModel<String> title){
+		this(id, title, false);
+	}
 
-    public OptionItem(String id, IModel<String> title) {
+    public OptionItem(String id, IModel<String> title, boolean isHeaderSeparator) {
         super(id);        
 
         WebMarkupContainer parent = new WebMarkupContainer("parent");
         parent.setOutputMarkupId(true);
         addToBorder(parent);
-
-        parent.add(new Label("title", title));
+        
+        WebMarkupContainer titleContainer = new WebMarkupContainer("titleContainer");
+        titleContainer.setOutputMarkupId(true);
+        parent.add(titleContainer);
+        
+        if(isHeaderSeparator) {
+        	titleContainer.add(new AttributeAppender("class", "headerSeparator"));
+        }
+        
+        titleContainer.add(new Label("title", title));
     }
 }
