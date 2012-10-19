@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 
 /**
  * @author lazyman
@@ -29,6 +29,6 @@ import com.evolveum.midpoint.model.PolicyDecision;
 public class DeleteAccountAction extends ModifyUserAction {
 
     public DeleteAccountAction() {
-        super(PolicyDecision.DELETE, ACTION_DELETE_ACCOUNT);
+        super(SynchronizationPolicyDecision.DELETE, ACTION_DELETE_ACCOUNT);
     }
 }

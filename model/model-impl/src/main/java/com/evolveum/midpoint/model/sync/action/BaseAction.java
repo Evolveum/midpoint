@@ -26,7 +26,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ChangeExecutor;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -189,9 +189,9 @@ public abstract class BaseAction implements Action {
     }
 
     protected LensProjectionContext<AccountShadowType> createAccountLensContext(LensContext<UserType, AccountShadowType> context,
-            ResourceObjectShadowChangeDescription change, PolicyDecision policyDecision,
+            ResourceObjectShadowChangeDescription change, SynchronizationPolicyDecision policyDecision,
             ActivationDecision activationDecision) throws SchemaException {
-        LOGGER.debug("Creating account context for sync change.");
+        LOGGER.trace("Creating account context for sync change.");
 
         ResourceType resource = change.getResource().asObjectable();
 
@@ -218,7 +218,7 @@ public abstract class BaseAction implements Action {
         boolean doReconciliation = determineAttributeReconciliation(change);
         accountContext.setDoReconciliation(doReconciliation);
 
-        LOGGER.debug("Setting account context policy decision ({}), activation decision ({}), do reconciliation ({})",
+        LOGGER.trace("Setting account context policy decision ({}), activation decision ({}), do reconciliation ({})",
                 new Object[]{policyDecision, activationDecision, doReconciliation});
 
         return accountContext;
@@ -246,12 +246,12 @@ public abstract class BaseAction implements Action {
 	private void updateAccountActivation(LensProjectionContext<AccountShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
         PrismObject<AccountShadowType> object = accContext.getObjectOld();
         if (object == null) {
-            LOGGER.debug("Account object is null, skipping activation property check/update.");
+            LOGGER.trace("Account object is null, skipping activation property check/update.");
             return;
         }
 
         PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
-        LOGGER.debug("Account activation defined, activation property found {}", enable);
+        LOGGER.trace("Account activation defined, activation property found {}", enable);
 
         ObjectDelta<AccountShadowType> accDelta = accContext.getSecondaryDelta();
         if (accDelta == null) {
@@ -361,7 +361,7 @@ public abstract class BaseAction implements Action {
 
     protected void createActivationPropertyDelta(ObjectDelta<?> objectDelta, ActivationDecision activationDecision,
             Boolean oldValue) {
-        LOGGER.debug("Updating activation for {}, activation decision {}, old value was {}",
+        LOGGER.trace("Updating activation for {}, activation decision {}, old value was {}",
                 new Object[]{objectDelta.getClass().getSimpleName(), activationDecision, oldValue});
 
         PropertyDelta delta = objectDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
@@ -383,7 +383,7 @@ public abstract class BaseAction implements Action {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("{} activation property delta: {}", new Object[]{objectDelta.getClass().getSimpleName(),
+            LOGGER.trace("{} activation property delta: {}", new Object[]{objectDelta.getClass().getSimpleName(),
                     delta.debugDump()});
         }
     }

@@ -136,7 +136,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[] { type.getSimpleName(), oid });
+		LOGGER.trace("Getting object '{}' with oid '{}'.", new Object[] { type.getSimpleName(), oid });
 
 		PrismObject<T> objectType = null;
 
@@ -204,7 +204,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Session session = null;
 		try {
 			session = beginTransaction();
-			LOGGER.debug("Selecting account shadow owner for account {}.", new Object[] { accountOid });
+			LOGGER.trace("Selecting account shadow owner for account {}.", new Object[] { accountOid });
 			Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
 					+ " as user left join user.accountRefs as ref where ref.targetOid = :oid");
 			query.setString("oid", accountOid);
@@ -277,7 +277,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, OperationResult result)
 			throws ObjectAlreadyExistsException, SchemaException {
-		LOGGER.debug("Adding object type '{}'", new Object[] { object.getCompileTimeClass().getSimpleName() });
+		LOGGER.trace("Adding object type '{}'", new Object[] { object.getCompileTimeClass().getSimpleName() });
 
 		String oid = null;
 		Session session = null;
@@ -424,7 +424,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
 			throws ObjectNotFoundException {
-		LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[] { type.getSimpleName(), oid });
+		LOGGER.trace("Deleting object type '{}' with oid '{}'", new Object[] { type.getSimpleName(), oid });
 
 		Session session = null;
 		try {
@@ -528,7 +528,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[] { type });
+		LOGGER.trace("Counting objects of type '{}', query (on trace level).", new Object[] { type });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Full query\n{}", new Object[] { (query == null ? "undefined" : query.dump()) });
 		}
@@ -555,7 +555,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Session session = null;
 		try {
 			session = beginTransaction();
-			LOGGER.debug("Updating query criteria.");
+			LOGGER.trace("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
 				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
@@ -565,7 +565,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 			criteria.setProjection(Projections.rowCount());
 
-			LOGGER.debug("Selecting total count.");
+			LOGGER.trace("Selecting total count.");
 			Long longCount = (Long) criteria.uniqueResult();
 			count = longCount.intValue();
 		} catch (PessimisticLockException ex) {
@@ -591,7 +591,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
+		LOGGER.trace("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
 				type.getSimpleName(),
 				((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().getOffset()),
 				((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().getMaxSize()) });
@@ -625,7 +625,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Session session = null;
 		try {
 			session = beginTransaction();
-			LOGGER.debug("Updating query criteria.");
+			LOGGER.trace("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
 				QueryInterpreter interpreter = new QueryInterpreter(session, type, getPrismContext());
@@ -639,7 +639,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 
 			List<RObject> objects = criteria.list();
-			LOGGER.debug("Found {} objects, translating to JAXB.",
+			LOGGER.trace("Found {} objects, translating to JAXB.",
 					new Object[] { (objects != null ? objects.size() : 0) });
 
 			for (RObject object : objects) {
@@ -706,7 +706,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException {
-		LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[] { type.getSimpleName(), oid });
+		LOGGER.trace("Modifying object '{}' with oid '{}'.", new Object[] { type.getSimpleName(), oid });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Modifications: {}", new Object[] { PrettyPrinter.prettyPrint(modifications) });
 		}
@@ -726,7 +726,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
 			}
 			// merge and update user
-			LOGGER.debug("Translating JAXB to data type.");
+			LOGGER.trace("Translating JAXB to data type.");
 			RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
 			// only for finest tracing
 			// if (LOGGER.isTraceEnabled()) {
@@ -840,13 +840,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		if (ancestors != null && !ancestors.isEmpty()) {
 			criteria.add(Restrictions.in("ancestor", ancestors));
 		} else {
-			LOGGER.debug("No ancestors for object: {}", rObjectToModify.getOid());
+			LOGGER.trace("No ancestors for object: {}", rObjectToModify.getOid());
 		}
 
 		if (descendants != null && !descendants.isEmpty()) {
 			criteria.add(Restrictions.in("descendant", descendants));
 		} else {
-			LOGGER.debug("No descendants for object: {}", rObjectToModify.getOid());
+			LOGGER.trace("No descendants for object: {}", rObjectToModify.getOid());
 		}
 
 		List<ROrgClosure> orgClosure = criteria.list();
@@ -931,7 +931,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
+		LOGGER.trace("Listing resource object shadows '{}' for resource '{}'.",
 				new Object[] { resourceObjectShadowType.getSimpleName(), resourceOid });
 		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
 		subResult.addParam("oid", resourceOid);
@@ -961,7 +961,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			query.setString("oid", resourceOid);
 
 			List<RResourceObjectShadow> shadows = query.list();
-			LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
+			LOGGER.trace("Query returned {} shadows, transforming to JAXB types.",
 					new Object[] { (shadows != null ? shadows.size() : 0) });
 
 			if (shadows != null) {
@@ -974,7 +974,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				}
 			}
 			session.getTransaction().commit();
-			LOGGER.debug("Done.");
+			LOGGER.trace("Done.");
 		} catch (PessimisticLockException ex) {
 			rollbackTransaction(session);
 			throw ex;
@@ -997,10 +997,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	private void updateTaskExclusivity(String oid, TaskExclusivityStatusType newStatus, OperationResult result)
 			throws ObjectNotFoundException {
 
-		LOGGER.debug("Updating task '{}' exclusivity to '{}'", new Object[] { oid, newStatus });
+		LOGGER.trace("Updating task '{}' exclusivity to '{}'", new Object[] { oid, newStatus });
 		Session session = null;
 		try {
-			LOGGER.debug("Looking for task.");
+			LOGGER.trace("Looking for task.");
 			session = beginTransaction();
 			Query query = session.createQuery("from " + ClassMapper.getHQLType(TaskType.class)
 					+ " as task where task.oid = :oid and task.id = 0");
@@ -1010,12 +1010,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (task == null) {
 				throw new ObjectNotFoundException("Task with oid '" + oid + "' was not found.");
 			}
-			LOGGER.debug("Task found, updating exclusivity status.");
+			LOGGER.trace("Task found, updating exclusivity status.");
 			task.setExclusivityStatus(RTaskExclusivityStatusType.toRepoType(newStatus));
 			session.save(task);
 
 			session.getTransaction().commit();
-			LOGGER.debug("Task status updated.");
+			LOGGER.trace("Task status updated.");
 		} catch (HibernateOptimisticLockingFailureException ex) {
 			rollbackTransaction(session, ex, result);
 			throw new SystemException(ex.getMessage(), ex);

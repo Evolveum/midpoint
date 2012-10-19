@@ -318,7 +318,7 @@ public class SimpleOp extends Op {
 
 			AttributeDefinition attrDef = (AttributeDefinition) def;
 			if (!attrDef.isIndexed()) {
-				LOGGER.debug("You're probably querying by attribute ('" + attrDef + "') which is not indexed.");
+				LOGGER.trace("You're probably querying by attribute ('" + attrDef + "') which is not indexed.");
 			}
 			
 			if (attrDef.isReference()) {
@@ -387,7 +387,7 @@ public class SimpleOp extends Op {
 	 * @throws QueryException
 	 */
 	private void updateQueryContext(PropertyPath path) throws QueryException {
-		LOGGER.debug("Updating query context based on path\n{}", new Object[] { path.toString() });
+		LOGGER.trace("Updating query context based on path\n{}", new Object[] { path.toString() });
 		Class<? extends ObjectType> type = getInterpreter().getType();
 		Definition definition = getClassTypeDefinition(type);
 

@@ -191,7 +191,7 @@ public class ChangeExecutor {
             throw new IllegalStateException("Account has null OID, this should not happen");
         }
 
-        if (accCtx.getPolicyDecision() == PolicyDecision.UNLINK || accCtx.getPolicyDecision() == PolicyDecision.DELETE) {
+        if (accCtx.getPolicyDecision() == SynchronizationPolicyDecision.UNLINK || accCtx.getPolicyDecision() == SynchronizationPolicyDecision.DELETE) {
             // Link should NOT exist
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
                 if (accountRef.getOid().equals(accountOid)) {

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -113,9 +113,9 @@ public class ReconciliationProcessor {
             	return;
             }
             
-            PolicyDecision policyDecision = accContext.getPolicyDecision();
+            SynchronizationPolicyDecision policyDecision = accContext.getPolicyDecision();
             if (policyDecision != null && 
-            		(policyDecision == PolicyDecision.DELETE || policyDecision == PolicyDecision.UNLINK)) {
+            		(policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
             	return;
             }
 

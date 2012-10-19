@@ -46,7 +46,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -211,7 +211,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         assertEquals(1, accountContexts.size());
         LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
-        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
@@ -270,7 +270,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
-        assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getPolicyDecision());
         
         assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
         PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();

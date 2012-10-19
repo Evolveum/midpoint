@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -81,7 +81,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //add account sync context for inbound processing
-                LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change, PolicyDecision.KEEP, null);
+                LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change, SynchronizationPolicyDecision.KEEP, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                     return userOid;

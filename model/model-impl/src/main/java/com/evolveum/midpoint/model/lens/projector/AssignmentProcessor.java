@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.Assignment;
@@ -239,14 +239,14 @@ public class AssignmentProcessor {
                 	// The account should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. Pretend that the assignment was just added. That should do.
                 	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
-                	markPolicyDecision(accountSyncContext, PolicyDecision.ADD);
+                	markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.ADD);
                 	accountSyncContext.setAssigned(true);
                 	accountSyncContext.setActive(true);
                 } else {
                 	// The account existed before the change and should still exist
 	                accountSyncContext.setAssigned(true);
 	                accountSyncContext.setActive(true);
-	                markPolicyDecision(accountSyncContext, PolicyDecision.KEEP);
+	                markPolicyDecision(accountSyncContext, SynchronizationPolicyDecision.KEEP);
                 }
 
             } else if (plusAccountMap.containsKey(rat) && minusAccountMap.containsKey(rat)) {
@@ -261,10 +261,10 @@ public class AssignmentProcessor {
                 // Account added
             	if (accountExists(context,rat)) {
             		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
-            		markPolicyDecision(accountContext, PolicyDecision.KEEP);
+            		markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
             	} else {
             		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
-            		markPolicyDecision(accountContext, PolicyDecision.ADD);
+            		markPolicyDecision(accountContext, SynchronizationPolicyDecision.ADD);
             	}
                 context.findProjectionContext(rat).setAssigned(true);
                 context.findProjectionContext(rat).setActive(true);
@@ -275,7 +275,7 @@ public class AssignmentProcessor {
                 	accountContext.setAssigned(false);
                 	accountContext.setActive(false);
                     // Account removed
-                    markPolicyDecision(accountContext, PolicyDecision.DELETE);
+                    markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
             	} else {
             		// We have to delete something that is not there. Nothing to do.
             	}
@@ -311,9 +311,9 @@ public class AssignmentProcessor {
 			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getSyncDelta();
 			if (accountSyncDelta != null) {
 				if (accountSyncDelta.isDelete()) {
-					accountContext.setPolicyDecision(PolicyDecision.UNLINK);
+					accountContext.setPolicyDecision(SynchronizationPolicyDecision.UNLINK);
 				} else {
-					accountContext.setPolicyDecision(PolicyDecision.DELETE);
+					accountContext.setPolicyDecision(SynchronizationPolicyDecision.DELETE);
 				}
 			}
 			// TODO: other cases?
@@ -435,7 +435,7 @@ public class AssignmentProcessor {
     	return true;
     }
         
-    private void markPolicyDecision(LensProjectionContext<AccountShadowType> accountSyncContext, PolicyDecision decision) {
+    private void markPolicyDecision(LensProjectionContext<AccountShadowType> accountSyncContext, SynchronizationPolicyDecision decision) {
         if (accountSyncContext.getPolicyDecision() == null) {
             accountSyncContext.setPolicyDecision(decision);
         }

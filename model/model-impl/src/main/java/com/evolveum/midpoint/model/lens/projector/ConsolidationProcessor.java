@@ -27,7 +27,7 @@ import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -94,16 +94,16 @@ public class ConsolidationProcessor {
             return;
         }
 
-        PolicyDecision policyDecision = accCtx.getPolicyDecision();
+        SynchronizationPolicyDecision policyDecision = accCtx.getPolicyDecision();
 
         if (CONSISTENCY_CHECKS) context.checkConsistence();
-        if (policyDecision == PolicyDecision.ADD) {
+        if (policyDecision == SynchronizationPolicyDecision.ADD) {
             consolidateValuesAddAccount(context, accCtx, result);
             if (CONSISTENCY_CHECKS) context.checkConsistence();
-        } else if (policyDecision == PolicyDecision.KEEP) {
+        } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
             consolidateValuesModifyAccount(context, accCtx, result);
             if (CONSISTENCY_CHECKS) context.checkConsistence();
-        } else if (policyDecision == PolicyDecision.DELETE) {
+        } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
             consolidateValuesDeleteAccount(context, accCtx, result);
             if (CONSISTENCY_CHECKS) context.checkConsistence();
         } else {

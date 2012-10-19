@@ -23,7 +23,7 @@ package com.evolveum.midpoint.model.lens;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -159,7 +159,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -220,7 +220,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getPolicyDecision());
         
      // TODO: Move to a different test
 //        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
@@ -277,7 +277,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(PolicyDecision.ADD,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getPolicyDecision());
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -359,7 +359,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
@@ -450,7 +450,7 @@ public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
 
-        assertEquals(PolicyDecision.KEEP,accContext.getPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getPolicyDecision());
         
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         

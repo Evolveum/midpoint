@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 
 /**
  * @author lazyman
@@ -29,6 +29,6 @@ import com.evolveum.midpoint.model.PolicyDecision;
 public class AddAccountAction extends ModifyUserAction {
 
     public AddAccountAction() {
-        super(PolicyDecision.ADD, ACTION_ADD_ACCOUNT);
+        super(SynchronizationPolicyDecision.ADD, ACTION_ADD_ACCOUNT);
     }
 }

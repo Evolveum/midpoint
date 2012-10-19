@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -265,10 +265,10 @@ public class ContextLoader {
 			// Nothing to load
 			return;
 		}
-		PolicyDecision policyDecision = null;
+		SynchronizationPolicyDecision policyDecision = null;
 		if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().isDelete()) {
 			// If user is deleted, all accounts should also be deleted
-			policyDecision = PolicyDecision.DELETE;
+			policyDecision = SynchronizationPolicyDecision.DELETE;
 		}
 
 		PrismObject<UserType> userOld = focusContext.getObjectOld();
@@ -289,7 +289,7 @@ public class ContextLoader {
 	 * Does not overwrite existing account contexts, just adds new ones.
 	 */
 	private void loadAccountRefsFromUser(LensContext<UserType,AccountShadowType> context, PrismObject<UserType> user,
-			PolicyDecision policyDecision, OperationResult result) throws ObjectNotFoundException,
+			SynchronizationPolicyDecision policyDecision, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 		if (accountRef == null) {
@@ -452,9 +452,9 @@ public class ContextLoader {
 				}
 				if (accountSyncContext != null) {
 					if (refVal.getObject() == null) {
-						accountSyncContext.setPolicyDecision(PolicyDecision.UNLINK);
+						accountSyncContext.setPolicyDecision(SynchronizationPolicyDecision.UNLINK);
 					} else {
-						accountSyncContext.setPolicyDecision(PolicyDecision.DELETE);
+						accountSyncContext.setPolicyDecision(SynchronizationPolicyDecision.DELETE);
 						ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createDeleteDelta();
 						accountSyncContext.setPrimaryDelta(accountPrimaryDelta);
 					}

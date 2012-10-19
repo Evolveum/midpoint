@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -70,15 +70,15 @@ public class ModifyUserAction extends BaseAction {
      */
     private ActivationDecision accountActivationDecision;
     /**
-     * Decision regarding account state see {@link PolicyDecision}.
+     * Decision regarding account state see {@link SynchronizationPolicyDecision}.
      */
-    private PolicyDecision accountPolicyDecision;
+    private SynchronizationPolicyDecision accountPolicyDecision;
 
     public ModifyUserAction() {
-        this(PolicyDecision.KEEP, ACTION_MODIFY_USER);
+        this(SynchronizationPolicyDecision.KEEP, ACTION_MODIFY_USER);
     }
 
-    public ModifyUserAction(PolicyDecision accountPolicyDecision, String actionName) {
+    public ModifyUserAction(SynchronizationPolicyDecision accountPolicyDecision, String actionName) {
         Validate.notEmpty(actionName, "Action name must not be null or empty.");
 
         this.accountPolicyDecision = accountPolicyDecision;
@@ -93,7 +93,7 @@ public class ModifyUserAction extends BaseAction {
         this.userActivationDecision = decision;
     }
 
-    protected PolicyDecision getAccountPolicyDecision() {
+    protected SynchronizationPolicyDecision getAccountPolicyDecision() {
         return accountPolicyDecision;
     }
 

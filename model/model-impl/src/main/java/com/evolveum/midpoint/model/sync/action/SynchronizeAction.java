@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -143,7 +143,7 @@ public class SynchronizeAction extends BaseAction {
     }
 
     private LensContext<UserType, AccountShadowType> createLensContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
-        LOGGER.debug("Creating sync context.");
+        LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);

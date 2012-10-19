@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 
 /**
  * @author lazyman
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.model.PolicyDecision;
 public class DisableUserAction extends ModifyUserAction {
 
     public DisableUserAction() {
-        super(PolicyDecision.KEEP, ACTION_DISABLE_USER);
+        super(SynchronizationPolicyDecision.KEEP, ACTION_DISABLE_USER);
         setUserActivationDecision(ActivationDecision.DISABLE);
     }
 }

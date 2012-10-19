@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.PolicyDecision;
+import com.evolveum.midpoint.model.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -100,7 +100,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
      * Decision regarding the account. If set to null no decision was made yet. Null is also a typical value
      * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
      */
-    private PolicyDecision policyDecision;
+    private SynchronizationPolicyDecision policyDecision;
 
     /**
      * True if we want to reconcile account in this context.
@@ -181,7 +181,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     }
     
     public boolean isAdd() {
-		if (policyDecision == PolicyDecision.ADD) {
+		if (policyDecision == SynchronizationPolicyDecision.ADD) {
 			return true;
 		}
 		if (ObjectDelta.isAdd(getPrimaryDelta())) {
@@ -194,7 +194,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	public boolean isDelete() {
-		if (policyDecision == PolicyDecision.DELETE) {
+		if (policyDecision == SynchronizationPolicyDecision.DELETE) {
 			return true;
 		}
 		if (ObjectDelta.isDelete(getPrimaryDelta())) {
@@ -230,11 +230,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.isActive = isActive;
 	}
 
-	public PolicyDecision getPolicyDecision() {
+	public SynchronizationPolicyDecision getPolicyDecision() {
         return policyDecision;
     }
 
-    public void setPolicyDecision(PolicyDecision policyDecision) {
+    public void setPolicyDecision(SynchronizationPolicyDecision policyDecision) {
         this.policyDecision = policyDecision;
     }
     
