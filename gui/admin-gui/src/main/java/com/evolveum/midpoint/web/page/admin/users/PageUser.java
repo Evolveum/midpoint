@@ -1005,15 +1005,31 @@ public class PageUser extends PageAdminUsers {
             result.recordFatalError("Couldn't submit user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
-
-        if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
-            showResultInSession(result);
-            setResponsePage(PageUsers.class);
+        
+        
+        
+		if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
+			showResultInSession(result);
+			PrismObject<UserType> user = userWrapper.getObject();
+			UserType userType = user.asObjectable();
+			for (ObjectReferenceType ref : userType.getAccountRef()) {
+				Object o = WebMiscUtil.findParam("shadow", ref.getOid(), result);
+				if (o != null && o instanceof AccountShadowType) {
+					AccountShadowType accountType = (AccountShadowType) o;
+					OperationResultType fetchResult = accountType.getFetchResult();
+					if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
+						showResultInSession(OperationResult.createOperationResult(fetchResult));
+					}
+				}
+			}
+			setResponsePage(PageUsers.class);
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
         }
+        
     }
+    
 
     private void submitPerformed(AjaxRequestTarget target) {
         LOGGER.debug("Submit user.");

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -251,4 +252,22 @@ public final class WebMiscUtil {
 
         return collection;
     }
+    
+    private static Object object;
+
+   	public static Object findParam(String param, String oid, OperationResult result) {
+   		
+   		for (OperationResult subResult : result.getSubresults()) {
+   			if (subResult != null && subResult.getParams() != null) {
+   				if (subResult.getParams().get(param) != null && subResult.getParams().get(OperationResult.PARAM_OID) != null
+   						&& subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
+   					return subResult.getParams().get(param);
+   				}
+   				object = findParam(param, oid, subResult);
+
+   			}
+   		}
+   		return object;
+   	}
+
 }

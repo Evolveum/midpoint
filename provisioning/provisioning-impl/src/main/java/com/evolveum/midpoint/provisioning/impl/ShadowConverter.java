@@ -329,10 +329,14 @@ public class ShadowConverter {
 		}
 
 		if (mergedDelta == null) {
-			getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition, parentResult);
+			getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition);
 		} else {
 			getAttributeChanges(mergedDelta.getModifications(), operations, resource, shadow,
-					resourceAttributeDefinition, parentResult);
+					resourceAttributeDefinition);
+		}
+		
+		if (shadow.getFetchResult() != null){
+			parentResult.addParam("shadow", shadow);
 		}
 		
 		if (operations.isEmpty()){
@@ -568,8 +572,8 @@ public class ShadowConverter {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, false, parentResult);
 	}
 
-	private Operation determineActivationChange(Collection<? extends ItemDelta> objectChange,
-			ResourceType resource, ResourceAttributeContainerDefinition objectClassDefinition, OperationResult parentResult)
+	private Operation determineActivationChange(ResourceObjectShadowType shadow, Collection<? extends ItemDelta> objectChange,
+			ResourceType resource, ResourceAttributeContainerDefinition objectClassDefinition)
 			throws SchemaException {
 
 		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
@@ -586,8 +590,8 @@ public class ShadowConverter {
 			if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
 				// if resource cannot do activation, resource should
 				// have specified policies to do that
-				PropertyModificationOperation activationAttribute = convertToActivationAttribute(resource,
-						enabled, objectClassDefinition, parentResult);
+				PropertyModificationOperation activationAttribute = convertToActivationAttribute(shadow, resource,
+						enabled, objectClassDefinition);
 				// changes.add(activationAttribute);
 				return activationAttribute;
 			} else {
@@ -625,7 +629,7 @@ public class ShadowConverter {
 	}
 
 	private void getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
-			ResourceType resource, ResourceObjectShadowType shadow, ResourceAttributeContainerDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException {
+			ResourceType resource, ResourceObjectShadowType shadow, ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 	if (changes == null) {
 			changes = new HashSet<Operation>();
 		}
@@ -657,7 +661,7 @@ public class ShadowConverter {
 //					changes.add(passwordOperation);
 //				}				
 			}else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
-				Operation activationOperation = determineActivationChange(objectChange, resource, objectClassDefinition, parentResult);
+				Operation activationOperation = determineActivationChange(shadow, objectChange, resource, objectClassDefinition);
 				LOGGER.trace("Determinig activation change");
 				if (activationOperation != null){
 					changes.add(activationOperation);
@@ -671,16 +675,16 @@ public class ShadowConverter {
 		// return changes;
 	}
 
-	private PropertyModificationOperation convertToActivationAttribute(ResourceType resource,
-			Boolean enabled, ResourceAttributeContainerDefinition objectClassDefinition, OperationResult parentResult)
+	private PropertyModificationOperation convertToActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
+			Boolean enabled, ResourceAttributeContainerDefinition objectClassDefinition)
 			throws SchemaException {
 		OperationResult result = new OperationResult("Modify activation attribute.");
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have native or simulated activation capability");
-			parentResult.addSubresult(result);
+					+ " does not have native or simulated activation capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
 			return null;
 //			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
 //					+ " does not have native or simulated activation capability");
@@ -689,8 +693,9 @@ public class ShadowConverter {
 		ActivationEnableDisableCapabilityType enableDisable = activationCapability.getEnableDisable();
 		if (enableDisable == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
-					+ " does not have native or simulated activation/enableDisable capability");
-			parentResult.addSubresult(result);
+					+ " does not have native or simulated activation/enableDisable capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+//			parentResult.addSubresult(result);
 			return null;
 //			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
 //					+ " does not have native or simulated activation/enableDisable capability");
@@ -701,8 +706,9 @@ public class ShadowConverter {
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation/enableDisable capability");
-			parentResult.addSubresult(result);
+							+ " does not have attribute specification for simulated activation/enableDisable capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+//			parentResult.addSubresult(result);
 			return null;
 //			throw new SchemaException(
 //					"Resource "
@@ -715,8 +721,9 @@ public class ShadowConverter {
 		if (enableAttributeDefinition == null) {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
-					+ " in not present in the schema for objeclass " + objectClassDefinition);
-			parentResult.addSubresult(result);
+					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
+			shadow.setFetchResult(result.createOperationResultType());
+//			parentResult.addSubresult(result);
 			return null;
 //			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
 //					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
