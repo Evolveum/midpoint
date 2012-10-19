@@ -515,15 +515,16 @@ public class PageUsers extends PageAdminUsers {
 				UserType user = bean.getValue();
 				getPrismContext().adopt(user);
 
-				PrismObject<UserType> object = user.asPrismObject();
+//				PrismObject<UserType> object = user.asPrismObject();
 				PropertyPath path = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
-				PrismProperty property = object.findOrCreateProperty(path);
-				PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
-				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,
-						OriginType.USER_ACTION, null)));
+//				PrismProperty property = object.findOrCreateProperty(path);
+//				PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
+//				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,
+//						OriginType.USER_ACTION, null)));
 
-				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
-				objectDelta.addModification(delta);
+				ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(), path, getPrismContext(), enabling);
+//				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
+//				objectDelta.addModification(delta);
 
 				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), null, task,
 						subResult);
