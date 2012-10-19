@@ -67,7 +67,7 @@ public class AddUserAction extends BaseAction {
 
         OperationResult subResult = result.createSubresult(ACTION_ADD_USER);
 
-        LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             UserType user = getUser(userOid, subResult);
@@ -81,7 +81,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //add account sync context for inbound processing
-                LensProjectionContext<AccountShadowType> accountContext = createAccountSyncContext(context, change, PolicyDecision.KEEP, null);
+                LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change, PolicyDecision.KEEP, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                     return userOid;

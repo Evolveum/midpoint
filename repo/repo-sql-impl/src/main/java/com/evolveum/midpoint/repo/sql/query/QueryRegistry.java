@@ -80,7 +80,7 @@ public class QueryRegistry {
      * via {@link QueryInterpreter}
      */
     private void init() throws QueryException {
-        LOGGER.debug("Initializing query definition registry.");
+        LOGGER.trace("Initializing query definition registry.");
         Collection<RContainerType> types = ClassMapper.getKnownTypes();
         for (RContainerType type : types) {
             Class clazz = type.getClazz();
@@ -103,7 +103,7 @@ public class QueryRegistry {
         DebugUtil.debugDumpMapMultiLine(builder, definitions, 3);
         LOGGER.trace("Registry dump\n{}", new Object[]{builder.toString()});
 
-        LOGGER.debug("Query definition registry initialization finished.");
+        LOGGER.trace("Query definition registry initialization finished.");
     }
 
     private void createDefinition(EntityDefinition parent, Field field) {

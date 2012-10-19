@@ -89,7 +89,7 @@ public class WfHook implements ChangeHook {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("=====================================================================");
-            LOGGER.trace("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getWave() + ", max " + lensContext.getMaxWave() + "):");
+            LOGGER.trace("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getProjectionWave() + ", max " + lensContext.getMaxWave() + "):");
         }
 
         ObjectDelta pdelta = context.getFocusContext().getPrimaryDelta();

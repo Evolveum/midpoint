@@ -900,7 +900,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(debugName());
-        sb.append("<").append(objectTypeClass.getSimpleName()).append(">:");
+        sb.append("<").append(objectTypeClass.getSimpleName()).append(">(");
         sb.append(debugIdentifiers()).append(",").append(changeType).append("):\n");
         if (objectToAdd == null) {
         	if (changeType == ChangeType.ADD) {

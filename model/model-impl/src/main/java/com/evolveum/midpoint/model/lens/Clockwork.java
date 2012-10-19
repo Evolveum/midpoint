@@ -114,10 +114,10 @@ public class Clockwork {
 		
 		if (!context.isFresh()) {
 			context.cleanup();
-			projector.project(context, "synchronization projection", result);
+			projector.project(context, "projection", result);
 		}
 		
-		LensUtil.traceContext(LOGGER, "synchronization", state.toString(), context, false);
+		LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", context, false);
 		
 //		LOGGER.info("CLOCKWORK: {}: {}", state, context);
 		
@@ -211,27 +211,29 @@ public class Clockwork {
     }
 
 
-    private void processInitialToPrimary(LensContext context, Task task, OperationResult result) {
+    private <F extends ObjectType, P extends ObjectType> void processInitialToPrimary(LensContext<F,P> context, Task task, OperationResult result) {
 		// Context loaded, nothing special do. Bump state to PRIMARY.
 		context.setState(ModelState.PRIMARY);		
 	}
 	
-	private void processPrimaryToSecondary(LensContext context, Task task, OperationResult result) {
+	private <F extends ObjectType, P extends ObjectType> void processPrimaryToSecondary(LensContext<F,P> context, Task task, OperationResult result) {
 		// Nothing to do now. The context is already recomputed.
 		context.setState(ModelState.SECONDARY);
 	}
 	
-	private void processSecondary(LensContext context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (context.getWave() > context.getMaxWave() + 1) {
+	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
 		}
 		// execute current wave and go to the next wave
 		changeExecutor.executeChanges(context, task, result);
 		// TODO: attempts
-		context.incrementWave();
+		context.incrementExecutionWave();
 		// Force recompute for next wave
 		context.setFresh(false);
+		
+		LensUtil.traceContext(LOGGER, "clockwork", context.getState() + " change execution", context, false);
 	}
 
 }

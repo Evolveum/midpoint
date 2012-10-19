@@ -44,8 +44,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<O>();
 	
-	private int getWave() {
-		return getLensContext().getWave();
+	private int getProjectionWave() {
+		return getLensContext().getProjectionWave();
 	}
 
 	public LensFocusContext(Class<O> objectTypeClass, LensContext<O, ? extends ObjectType> lensContext) {
@@ -58,11 +58,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		secondaryDeltas.setOid(oid);
 	}
 
-	public ObjectDelta<O> getWavePrimaryDelta() throws SchemaException {
-    	if (getWave() == 0) {
+	public ObjectDelta<O> getProjectionWavePrimaryDelta() throws SchemaException {
+    	if (getProjectionWave() == 0) {
     		return getPrimaryDelta();
     	} else {
-    		return secondaryDeltas.getMergedDeltas(getPrimaryDelta(), getWave());
+    		return secondaryDeltas.getMergedDeltas(getPrimaryDelta(), getProjectionWave());
     	}
     }
 	
@@ -80,38 +80,46 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	return secondaryDeltas.get(wave);
     }
     
-    public ObjectDelta<O> getWaveSecondaryDelta() throws SchemaException {
-        return secondaryDeltas.get(getWave());
+    public ObjectDelta<O> getProjectionWaveSecondaryDelta() throws SchemaException {
+        return getWaveSecondaryDelta(getProjectionWave());
+    }
+    
+    public ObjectDelta<O> getWaveSecondaryDelta(int wave) throws SchemaException {
+        return secondaryDeltas.get(wave);
     }
 
     public void setSecondaryDelta(ObjectDelta<O> secondaryDelta, int wave) {
         this.secondaryDeltas.set(wave, secondaryDelta);
     }
     
-    public void setWaveSecondaryDelta(ObjectDelta<O> secondaryDelta) {
-        this.secondaryDeltas.set(getWave(), secondaryDelta);
+    public void setProjectionWaveSecondaryDelta(ObjectDelta<O> secondaryDelta) {
+        this.secondaryDeltas.set(getProjectionWave(), secondaryDelta);
     }
     
-    public void swallowToWaveSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
-		ObjectDelta<O> secondaryDelta = getWaveSecondaryDelta();
+    public void swallowToProjectionWaveSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
+		ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
 		if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
             secondaryDelta.setOid(getOid());
-            setWaveSecondaryDelta(secondaryDelta);
+            setProjectionWaveSecondaryDelta(secondaryDelta);
         }
         secondaryDelta.swallow(propDelta);
 	}
-    
+        
     /**
      * Returns user delta, both primary and secondary (merged together) for a current wave.
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
-    public ObjectDelta<O> getWaveDelta() throws SchemaException {
-    	if (getWave() == 0) {
+    public ObjectDelta<O> getProjectionWaveDelta() throws SchemaException {
+    	return getWaveDelta(getProjectionWave());
+    }
+    
+    public ObjectDelta<O> getWaveDelta(int wave) throws SchemaException {
+    	if (wave == 0) {
     		// Primary delta is executed only in the first wave (wave 0)
-    		return ObjectDelta.union(getPrimaryDelta(), getWaveSecondaryDelta());
+    		return ObjectDelta.union(getPrimaryDelta(), getWaveSecondaryDelta(wave));
     	} else {
-    		return getWaveSecondaryDelta();
+    		return getWaveSecondaryDelta(wave);
     	}
     }
     

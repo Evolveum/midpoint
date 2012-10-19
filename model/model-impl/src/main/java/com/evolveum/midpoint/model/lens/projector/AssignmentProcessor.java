@@ -349,7 +349,7 @@ public class AssignmentProcessor {
 			for (PrismObject<OrgType> org: orgs) {
 				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
 				orgRefDelta.addValueToAdd(PrismReferenceValue.createFromTarget(org));
-				focusContext.swallowToWaveSecondaryDelta(orgRefDelta);
+				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
 			}
 		}
 		
@@ -359,7 +359,7 @@ public class AssignmentProcessor {
 			for (PrismObject<OrgType> org: orgs) {
 				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
 				orgRefDelta.addValueToDelete(PrismReferenceValue.createFromTarget(org));
-				focusContext.swallowToWaveSecondaryDelta(orgRefDelta);
+				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
 			}
 		}
 		

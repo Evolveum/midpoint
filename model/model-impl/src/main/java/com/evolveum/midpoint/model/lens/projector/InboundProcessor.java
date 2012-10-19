@@ -104,7 +104,7 @@ public class InboundProcessor {
     	
     	OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
 
-        ObjectDelta<UserType> userSecondaryDelta = userContext.getWaveSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = userContext.getProjectionWaveSecondaryDelta();
 
         if (userSecondaryDelta != null && ChangeType.DELETE.equals(userSecondaryDelta.getChangeType())) {
             //we don't need to do inbound if we are deleting this user
@@ -155,7 +155,7 @@ public class InboundProcessor {
             return;
         }
 
-        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getWaveSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
         
         PrismObject<AccountShadowType> accountOld = accContext.getObjectOld();
         PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
@@ -172,21 +172,21 @@ public class InboundProcessor {
 
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(accountAttributeName);
             List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
-            LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
+            LOGGER.debug("Processing inbound for {} in {}; ({} mappings)", new Object[]{
             		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
 
             for (MappingType inboundMappingType : inboundMappingTypes) {
             	
                 PropertyDelta<?> userPropertyDelta = null;
                 if (aPrioriDelta != null) {
-                    LOGGER.debug("Processing inbound from a priori delta.");
+                    LOGGER.trace("Processing inbound from a priori delta.");
                     userPropertyDelta = evaluateInboundExpression(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 } else if (accountOld != null) {
                 	if (!accContext.isFullShadow()) {
                 		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
                 	}
-                    LOGGER.debug("Processing inbound from account sync absolute state (oldAccount).");
+                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = accountOld.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
                     userPropertyDelta = evaluateInboundExpression(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
@@ -194,7 +194,7 @@ public class InboundProcessor {
 
                 if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
                     LOGGER.trace("Created delta (from inbound expression) \n{}", new Object[]{userPropertyDelta.debugDump(3)});
-                    context.getFocusContext().swallowToWaveSecondaryDelta(userPropertyDelta);
+                    context.getFocusContext().swallowToProjectionWaveSecondaryDelta(userPropertyDelta);
                     context.recomputeFocus();
                 } else {
                     LOGGER.trace("Created delta (from inbound expression) was null or empty.");
@@ -212,7 +212,7 @@ public class InboundProcessor {
 	 * wave or a sync delta (in wave 0).
 	 */
 	private <F extends ObjectType, P extends ObjectType> ObjectDelta<AccountShadowType> getAPrioriDelta(LensContext<F,P> context, LensProjectionContext<AccountShadowType> accountContext) throws SchemaException {
-		int wave = context.getWave();
+		int wave = context.getProjectionWave();
 		if (wave == 0) {
 			return accountContext.getSyncDelta();
 		}
@@ -258,7 +258,7 @@ public class InboundProcessor {
 		mapping.setOriginObject(resource);
     	
     	if (checkInitialSkip(mapping, newUser)) {
-            LOGGER.debug("Skipping because of initial flag.");
+            LOGGER.trace("Skipping because of initial flag.");
             return null;
         }
         
@@ -417,7 +417,7 @@ public class InboundProcessor {
         	}
         }
 
-        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getWaveSecondaryDelta();
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
         if (userSecondaryDelta != null) {
 	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
 	        if (delta != null) {
@@ -462,7 +462,7 @@ public class InboundProcessor {
         PropertyDelta<?> delta = property.diff(result, sourcePath);
         if (delta != null && !delta.isEmpty()) {
         	delta.setParentPath(sourcePath.allExceptLast());
-        	context.getFocusContext().swallowToWaveSecondaryDelta(delta);
+        	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
         }
     }
     

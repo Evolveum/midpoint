@@ -133,9 +133,9 @@ public class ModifyUserAction extends BaseAction {
 
         LensContext<UserType, AccountShadowType> context = null;
         try {
-            context = createSyncContext(userType, change.getResource().asObjectable());
+            context = createSyncContext(userType, change.getResource().asObjectable(), change);
 
-            LensProjectionContext<AccountShadowType> accountContext = createAccountSyncContext(context, change,
+            LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change,
                     getAccountPolicyDecision(), getAccountActivationDecision());
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
@@ -177,13 +177,13 @@ public class ModifyUserAction extends BaseAction {
         return change.getOldShadow().getCompileTimeClass();
     }
 
-    private LensContext<UserType, AccountShadowType> createSyncContext(UserType user, ResourceType resource) throws SchemaException {
+    private LensContext<UserType, AccountShadowType> createSyncContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
         LOGGER.debug("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
 
-        LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         PrismObject<UserType> oldUser = user.asPrismObject();
         focusContext.setObjectOld(oldUser);

@@ -178,8 +178,17 @@ public abstract class BaseAction implements Action {
     public void setExecutor(ChangeExecutor executor) {
         this.executor = executor;
     }
+    
+    /**
+     * Creates empty lens context, filling in only the very basic metadata (such as channel).
+     */
+    protected LensContext<UserType, AccountShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
+    	LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+    	context.setChannel(change.getSourceChannel());
+    	return context;
+    }
 
-    protected LensProjectionContext<AccountShadowType> createAccountSyncContext(LensContext<UserType, AccountShadowType> context,
+    protected LensProjectionContext<AccountShadowType> createAccountLensContext(LensContext<UserType, AccountShadowType> context,
             ResourceObjectShadowChangeDescription change, PolicyDecision policyDecision,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.debug("Creating account context for sync change.");

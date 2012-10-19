@@ -71,8 +71,8 @@ public class QueryInterpreter {
 	public Criteria interpret(ObjectFilter filter) throws QueryException {
 		Validate.notNull(filter, "Element filter must not be null.");
 
-		LOGGER.debug("Interpreting query '{}', query on trace level.", new Object[] { filter.getClass() });
 		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Interpreting query '{}', query on trace level.", new Object[] { filter.getClass() });
 			LOGGER.trace("Query filter:\n{}", new Object[] { filter.dump() });
 		}
 

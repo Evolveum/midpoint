@@ -104,7 +104,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					+ "' was not found.", null, oid);
 		}
 
-		LOGGER.debug("Transforming data to JAXB type.");
+		LOGGER.trace("Transforming data to JAXB type.");
 		PrismObject<T> objectType = object.toJAXB(getPrismContext()).asPrismObject();
 		validateObjectType(objectType, type);
 
@@ -210,7 +210,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			query.setString("oid", accountOid);
 
 			List<RUser> users = query.list();
-			LOGGER.debug("Found {} users, transforming data to JAXB types.",
+			LOGGER.trace("Found {} users, transforming data to JAXB types.",
 					new Object[] { (users != null ? users.size() : 0) });
 
 			if (users == null || users.isEmpty()) {
@@ -297,7 +297,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			// check name uniqueness (by type)
 			session = beginTransaction();
 			if (StringUtils.isNotEmpty(originalOid)) {
-				LOGGER.debug("Checking oid uniqueness.");
+				LOGGER.trace("Checking oid uniqueness.");
 				Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
 				criteria.add(Restrictions.eq("oid", object.getOid()));
 				criteria.setProjection(Projections.rowCount());
@@ -309,7 +309,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				}
 			}
 
-			LOGGER.debug("Translating JAXB to data type.");
+			LOGGER.trace("Translating JAXB to data type.");
 			RObject rObject = createDataObjectFromJAXB(objectType);
 			// only for finest tracing
 			// if (LOGGER.isTraceEnabled()) {
@@ -317,7 +317,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			// Object[]{rObject.toString()});
 			// }
 
-			LOGGER.debug("Saving object.");
+			LOGGER.trace("Saving object.");
 			RContainerId containerId = (RContainerId) session.save(rObject);
 			oid = containerId.getOid();
 
@@ -328,7 +328,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			session.getTransaction().commit();
 
-			LOGGER.debug("Saved object '{}' with oid '{}'", new Object[] {
+			LOGGER.trace("Saved object '{}' with oid '{}'", new Object[] {
 					object.getCompileTimeClass().getSimpleName(), oid });
 		} catch (PessimisticLockException ex) {
 			rollbackTransaction(session);

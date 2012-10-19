@@ -74,7 +74,7 @@ public class DeleteUserAction extends BaseAction {
             throw new SynchronizationException(message);
         }
 
-        LensContext<UserType, AccountShadowType> context = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, getPrismContext());
+        LensContext<UserType, AccountShadowType> context = createEmptyLensContext(change);
         LensFocusContext<UserType> focusContext = context.createFocusContext();
         try {
             context.rememberResource(change.getResource().asObjectable());
@@ -89,7 +89,7 @@ public class DeleteUserAction extends BaseAction {
             focusContext.setSecondaryDelta(userDelta, 0);
 
             //create account context for this change
-            LensProjectionContext<AccountShadowType> accContext = createAccountSyncContext(context, change, null, null);
+            LensProjectionContext<AccountShadowType> accContext = createAccountLensContext(context, change, null, null);
             if (accContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;

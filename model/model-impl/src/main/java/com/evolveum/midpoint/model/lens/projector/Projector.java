@@ -86,10 +86,10 @@ public class Projector {
 		
 		if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
-		int originalWave = context.getWave();
+		context.resetProjectionWave();
 		
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
-		result.addContext("wave", originalWave);
+		result.addContext("executionWave", context.getExecutionWave());
 		
 		try {
 		
@@ -106,8 +106,8 @@ public class Projector {
 	                
 	        // Start the waves ....
 	        LOGGER.trace("Staring the waves. There will be {} waves (or so we think now)", maxWaves);
-	        context.setWave(0);
-	        while (context.getWave() < maxWaves) {
+	        context.setProjectionWave(0);
+	        while (context.getProjectionWave() < maxWaves) {
 	        	
 	        	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        // Loop through the account changes, apply inbound expressions
@@ -135,7 +135,7 @@ public class Projector {
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-		        	if (projectionContext.getWave() != context.getWave()) {
+		        	if (projectionContext.getWave() != context.getProjectionWave()) {
 		        		// Let's skip accounts that do not belong into this wave.
 		        		continue;
 		        	}
@@ -173,7 +173,7 @@ public class Projector {
 		        
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        
-		        context.incrementWave();
+		        context.incrementProjectionWave();
 	        }
 	        
 	        result.recordSuccess();
@@ -208,8 +208,6 @@ public class Projector {
 			// Make sure that it is logged.
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
-		} finally {
-			context.setWave(originalWave);
 		}
 		
 	}

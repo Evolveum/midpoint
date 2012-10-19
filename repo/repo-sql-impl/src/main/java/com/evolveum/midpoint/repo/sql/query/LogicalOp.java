@@ -57,7 +57,7 @@ public class LogicalOp extends Op {
 
 	@Override
 	public Criterion interpret(ObjectFilter filterPart, boolean pushNot) throws QueryException {
-		LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[] { filterPart.getClass().getSimpleName(), pushNot });
+		LOGGER.trace("Interpreting '{}', pushNot '{}'", new Object[] { filterPart.getClass().getSimpleName(), pushNot });
 		// validate(filterPart);
 
 		Operation operation = getOperationType(filterPart);
@@ -95,7 +95,7 @@ public class LogicalOp extends Op {
 			NaryLogicalFilter nAryFilter = (NaryLogicalFilter) filterPart;
 			if (nAryFilter.getCondition().size() == 1) {
 //				throw new QueryException("Logical filter (and, or) must have specisied two conditions at least.");
-				LOGGER.debug("Logical filter (and, or) must have specisied two conditions at least. Removing logical filter and processing simple condition.");
+				LOGGER.trace("Logical filter (and, or) must have specisied two conditions at least. Removing logical filter and processing simple condition.");
 				return false;
 			}
 		}

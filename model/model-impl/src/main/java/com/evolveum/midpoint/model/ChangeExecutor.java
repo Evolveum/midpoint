@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -96,40 +97,6 @@ public class ChangeExecutor {
     	accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
     }
 
-    public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult parentResult) throws
-            ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-            SecurityViolationException {
-    	OperationResult result = parentResult.createSubresult(ChangeExecutor.class.getName() + ".executeChanges");
-    	result.addParam("changes", changes);
-    	try {
-	        for (ObjectDelta<? extends ObjectType> change : changes) {
-	            executeChange(change, task, result);
-	        }
-	        result.computeStatus();
-    	} catch (SchemaException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (CommunicationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (RuntimeException e) {
-			result.recordFatalError(e);
-			throw e;
-    	}
-    }
-
     public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
@@ -138,10 +105,10 @@ public class ChangeExecutor {
     	try {
 	    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
 	    	if (focusContext != null) {
-		        ObjectDelta<F> userDelta = focusContext.getWaveDelta();
+		        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
 		        if (userDelta != null) {
 		
-		            executeChange(userDelta, task, result);
+		            executeChange(userDelta, syncContext, task, result);
 		
 		            // userDelta is composite, mixed from primary and secondary. The OID set into
 		            // it will be lost ... unless we explicitly save it
@@ -152,7 +119,7 @@ public class ChangeExecutor {
 	    	}
 	
 	        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
-	        	if (accCtx.getWave() != syncContext.getWave()) {
+	        	if (accCtx.getWave() != syncContext.getExecutionWave()) {
 	        		continue;
 	        	}
 	            ObjectDelta<P> accDelta = accCtx.getDelta();
@@ -167,17 +134,13 @@ public class ChangeExecutor {
 	                continue;
 	            }
 	            
-	            executeChange(accDelta, task, result);
+	            executeChange(accDelta, syncContext, task, result);
 	            
 	            // To make sure that the OID is set (e.g. after ADD operation)
 	            accCtx.setOid(accDelta.getOid());
 	            if (focusContext != null) {
 	            	updateAccountLinks(focusContext.getObjectNew(), accCtx, task, result);
 	            }
-	        }
-	        
-	        if (LOGGER.isTraceEnabled()) {
-	            LOGGER.trace("Context after change execution:\n{}", syncContext.dump(false));
 	        }
 	        
 	        result.computeStatus();
@@ -351,9 +314,11 @@ public class ChangeExecutor {
 		parentResult.addSubresult(result);
 		
 	}
-
-	private <T extends ObjectType> void executeChange(ObjectDelta<T> objectDelta, Task task, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    
+	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
+    	void executeChange(ObjectDelta<T> objectDelta, LensContext<F,P> context, Task task, OperationResult result) 
+    			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
+    			ConfigurationException, SecurityViolationException {
     	
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
@@ -365,10 +330,7 @@ public class ChangeExecutor {
         }
         
     	if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("\n---[ EXECUTE delta of {} {} ]---------------------\n{}" +
-    				"\n--------------------------------------------------", new Object[]{
-    				objectDelta.getObjectTypeClass().getSimpleName(), objectDelta.getOid(),
-    				objectDelta.dump()});
+    		logDeltaExecution(objectDelta, context);
     	}
 
         if (objectDelta.getChangeType() == ChangeType.ADD) {
@@ -382,6 +344,21 @@ public class ChangeExecutor {
         }
         
     }
+	
+	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
+				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F,P> context) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("---[ EXECUTE delta of ").append(objectDelta.getObjectTypeClass().getSimpleName());
+		sb.append(" ]---------------------\n");
+		DebugUtil.debugDumpLabel(sb, "Channel", 0);
+		sb.append(" ").append(context.getChannel()).append("\n");
+		DebugUtil.debugDumpLabel(sb, "Wave", 0);
+		sb.append(" ").append(context.getExecutionWave()).append("\n");
+		sb.append(objectDelta.dump());
+		sb.append("\n--------------------------------------------------");
+		
+		LOGGER.trace("\n{}", sb);
+	}
 
     private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {

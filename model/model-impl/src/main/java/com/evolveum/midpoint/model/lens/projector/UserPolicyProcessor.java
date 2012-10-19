@@ -139,8 +139,8 @@ public class UserPolicyProcessor {
 		
 		LOGGER.trace("Applying " + userTemplate + " to " + focusContext.getObjectNew());
 
-		ObjectDelta<UserType> userSecondaryDelta = focusContext.getWaveSecondaryDelta();
-		ObjectDelta<UserType> userPrimaryDelta = focusContext.getWavePrimaryDelta();
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
+		ObjectDelta<UserType> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
 		ObjectDeltaObject<UserType> userOdo = focusContext.getObjectDeltaObject();
 		for (MappingType mappingType : userTemplate.getMapping()) {
 			ItemDelta<PrismValue> itemDelta = evaluateMapping(context, mappingType, userTemplate, userOdo, result);
@@ -149,7 +149,7 @@ public class UserPolicyProcessor {
 				if (itemDelta != null && !itemDelta.isEmpty()) {
 					if (userSecondaryDelta == null) {
 						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
-						focusContext.setWaveSecondaryDelta(userSecondaryDelta);
+						focusContext.setProjectionWaveSecondaryDelta(userSecondaryDelta);
 					}
 					userSecondaryDelta.mergeModification(itemDelta);	
 				}

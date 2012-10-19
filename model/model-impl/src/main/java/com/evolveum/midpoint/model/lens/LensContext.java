@@ -56,7 +56,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
      * Channel that is the source of primary change (GUI, live sync, import, ...)
      */
     private String channel;
-
+    
 	private LensFocusContext<F> focusContext;
 	private Collection<LensProjectionContext<P>> projectionContexts = new ArrayList<LensProjectionContext<P>>();
 
@@ -77,8 +77,13 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     /**
 	 * Current wave of computation and execution.
 	 */
-	int wave = 0;
-	
+	int projectionWave = 0;
+
+    /**
+	 * Current wave of execution.
+	 */
+	int executionWave = 0;
+
 	transient private boolean isFresh = false;
 	
 	/**
@@ -227,18 +232,34 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		this.globalPasswordPolicy = globalPasswordPolicy;
 	}
 	
-	public int getWave() {
-		return wave;
+	public int getProjectionWave() {
+		return projectionWave;
 	}
 
-	public void setWave(int wave) {
-		this.wave = wave;
+	public void setProjectionWave(int wave) {
+		this.projectionWave = wave;
 	}
 	
-	public void incrementWave() {
-		wave++;
+	public void incrementProjectionWave() {
+		projectionWave++;
 	}
 	
+	public void resetProjectionWave() {
+		projectionWave = executionWave;
+	}
+	
+	public int getExecutionWave() {
+		return executionWave;
+	}
+
+	public void setExecutionWave(int executionWave) {
+		this.executionWave = executionWave;
+	}
+
+	public void incrementExecutionWave() {
+		executionWave++;
+	}
+
 	public int getMaxWave() {
 		int maxWave = 0;
 		for (LensProjectionContext<P> projContext: projectionContexts) {
@@ -430,7 +451,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     	clone.resourceCache = cloneResourceCache();
     	// User template is de-facto immutable, OK to just pass reference here.
     	clone.userTemplate = this.userTemplate;
-    	clone.wave = this.wave;
+    	clone.projectionWave = this.projectionWave;
     	
     	if (this.focusContext != null) {
     		clone.focusContext = this.focusContext.clone(this);
@@ -480,13 +501,19 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("LensContext: state ").append(state);
-        sb.append(", wave ").append(wave).append("\n");
+        sb.append("LensContext: state=").append(state);
+        sb.append(", Wave(e=").append(executionWave);
+        sb.append(",p=").append(projectionWave);
+        sb.append(",max=").append(getMaxWave());
+        sb.append("), fresh=").append(isFresh);
+        sb.append("\n");
 
-        DebugUtil.indentDebugDump(sb, indent + 1);
-        sb.append("Settings: ");
+        DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
+        sb.append(" ").append(channel).append("\n");
+        DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
+        sb.append(" ");
         if (accountSynchronizationSettings != null) {
-            sb.append("assignments:");
+            sb.append("assignments=");
             sb.append(accountSynchronizationSettings.getAssignmentPolicyEnforcement());
         } else {
             sb.append("null");
@@ -513,7 +540,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	@Override
 	public String toString() {
-		return "LensContext(s=" + state + ", w=" + wave + ": "+focusContext+", "+projectionContexts+")";
+		return "LensContext(s=" + state + ", W(e=" + executionWave + ",p=" + projectionWave + "): "+focusContext+", "+projectionContexts+")";
 	}
 	
 }

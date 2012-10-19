@@ -98,7 +98,7 @@ public class SimpleOp extends Op {
 
 	@Override
 	public Criterion interpret(ObjectFilter filter, boolean pushNot) throws QueryException {
-		LOGGER.debug("Interpreting '{}', pushNot '{}'", new Object[] { filter.getClass().getSimpleName(), pushNot });
+		LOGGER.trace("Interpreting '{}', pushNot '{}'", new Object[] { filter.getClass().getSimpleName(), pushNot });
 		// validate(filter);
 
 		ValueFilter valueFilter = (ValueFilter) filter;
@@ -276,7 +276,7 @@ public class SimpleOp extends Op {
 	private SimpleItem updateConditionItem(ItemDefinition itemDef, PropertyPath path) throws QueryException {
 		// QName conditionItem = DOMUtil.getQNameWithoutPrefix(condition);
 		QName conditionItem = itemDef.getName();
-		LOGGER.debug("Updating condition item '{}' on property path\n{}", new Object[] { conditionItem, path });
+		LOGGER.trace("Updating condition item '{}' on property path\n{}", new Object[] { conditionItem, path });
 		SimpleItem item = new SimpleItem();
 		// fetch definition from repository schema registry (not prism schema
 		// registry)
