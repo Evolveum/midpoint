@@ -30,11 +30,17 @@ import javax.xml.namespace.QName;
  */
 public abstract class Definition {
 
+    private String jpaName;
     private QName name;
     private QName type;
 
     private String realName;
 
+    /**
+     * name based on prism/jaxb definition
+     *
+     * TODO rename
+     */
     public QName getName() {
         return name;
     }
@@ -60,6 +66,19 @@ public abstract class Definition {
 
     public void setRealName(String realName) {
         this.realName = realName;
+    }
+
+    /**
+     * real field or entity name
+     *
+     * TODO rename
+     */
+    public String getJpaName() {
+        return jpaName;
+    }
+
+    public void setJpaName(String jpaName) {
+        this.jpaName = jpaName;
     }
 
     public abstract Definition findDefinition(QName qname);

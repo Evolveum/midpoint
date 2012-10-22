@@ -116,6 +116,7 @@ public class QueryRegistry {
 
             EntityDefinition entityDef = new EntityDefinition();
             entityDef.setName(new QName(namespace, name));
+            entityDef.setJpaName(field.getName());
             entityDef.setAny(queryEntity.any());
             entityDef.setEmbedded(queryEntity.embedded());
             parent.putDefinition(entityDef.getName(), entityDef);
@@ -127,6 +128,7 @@ public class QueryRegistry {
                     queryAttribute.namespace() : SchemaConstantsGenerated.NS_COMMON;
 
             AttributeDefinition attrDef = new AttributeDefinition();
+            attrDef.setJpaName(field.getName());
             attrDef.setName(new QName(namespace, name));
             attrDef.setIndexed(isFieldIndexed(field));
             attrDef.setEnumerated(queryAttribute.enumerated());
@@ -135,11 +137,15 @@ public class QueryRegistry {
             if (queryAttribute.enumerated()) {
                 attrDef.setClassType(field.getType());
             }
-            if (RObjectReference.class.isAssignableFrom(field.getType())) {
+            if (isReference(queryAttribute, field.getType())) {
                 attrDef.setReference(true);
             }
             parent.putDefinition(attrDef.getName(), attrDef);
         }
+    }
+
+    private boolean isReference(QueryAttribute queryAttribute, Class<?> type) {
+        return RObjectReference.class.isAssignableFrom(type) || queryAttribute.reference();
     }
 
     private boolean isFieldIndexed(Field field) {

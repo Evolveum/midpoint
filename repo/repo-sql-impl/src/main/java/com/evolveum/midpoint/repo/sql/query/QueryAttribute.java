@@ -44,4 +44,6 @@ public @interface QueryAttribute {
     boolean polyString() default false;
     
     boolean multiValue() default false;
+
+    boolean reference() default false;
 }

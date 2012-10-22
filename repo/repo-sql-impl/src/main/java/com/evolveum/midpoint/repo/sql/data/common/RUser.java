@@ -96,7 +96,7 @@ public class RUser extends RObject {
     private RPolyString nickName;
     @QueryAttribute
     private String preferredLanguage;
-
+    @QueryAttribute(name = "accountRef", multiValue = true, reference = true)
     private Set<RObjectReference> accountRefs;
     private Set<RAssignment> assignments;
 

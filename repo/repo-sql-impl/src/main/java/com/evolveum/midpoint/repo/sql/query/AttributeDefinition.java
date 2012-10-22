@@ -118,6 +118,8 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
         }
         sb.append("n: ");
         sb.append(getName());
+        sb.append(",f: ");
+        sb.append(getJpaName());
         sb.append(", t: ");
         sb.append(getType());
         sb.append(", i: ");
