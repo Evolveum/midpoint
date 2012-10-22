@@ -121,19 +121,28 @@ public class AccountValuesProcessor {
 			String iterationToken = formatIterationToken(iteration);
 			accountContext.setIterationToken(iterationToken);
 			
+			LensUtil.traceContext(LOGGER, activityDescription, "values 1", context, true);
+			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
 			context.recompute();
+			
+			LensUtil.traceContext(LOGGER, activityDescription, "values 2", context, true);
+			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			outboundProcessor.processOutbound(context, accountContext, result);
 			context.recompute();
+			
+			LensUtil.traceContext(LOGGER, activityDescription, "values 3", context, true);
+			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			consolidationProcessor.consolidateValues(context, accountContext, result);
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 	        context.recompute();
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
-	 
-	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
+	
+	        // Too noisy for now
+	        LensUtil.traceContext(LOGGER, activityDescription, "values 4", context, true);
 	        
 	        // Check constraints
 	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);

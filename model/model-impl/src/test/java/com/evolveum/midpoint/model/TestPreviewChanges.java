@@ -183,133 +183,141 @@ public class TestPreviewChanges extends AbstractModelIntegrationTest {
         IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");		
 	}
 		
-//	@Test
-//    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-//    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-//    		PolicyViolationException, SecurityViolationException {
-//        displayTestTile(this, "test119ModifyUserDeleteAccount");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + ".test119ModifyUserDeleteAccount");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//
-//        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        account.setOid(accountOid);
-//        		
-//		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-//		PrismReferenceValue accountRefVal = new PrismReferenceValue();
-//		accountRefVal.setObject(account);
-//		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
-//		userDelta.addModification(accountDelta);
-//		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-//        
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//		
-//		// THEN
-//		result.computeStatus();
-//        IntegrationTestTools.assertSuccess("executeChanges result", result, 2);
-//        
-//		// Check accountRef
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
-//        
-//		// Check is shadow is gone
-//        try {
-//        	PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-//        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
-//        } catch (ObjectNotFoundException e) {
-//        	// This is OK
-//        }
-//        
-//        // Check if dummy resource account is gone
-//        assertNoDummyAccount("jack");
-//	}
-//	
-//	@Test
-//    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-//    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-//    		PolicyViolationException, SecurityViolationException {
-//        displayTestTile(this, "test120AddAccount");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + ".test120AddAccount");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//        
-//        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createAddDelta(account);
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
-//        
-//		// WHEN
-//        modelService.executeChanges(deltas, null, task, result);
-//		
-//		// THEN
-//        result.computeStatus();
-//        IntegrationTestTools.assertSuccess("executeChanges result", result);
-//        
-//        accountOid = accountDelta.getOid();
-//        assertNotNull("No account OID in resulting delta", accountOid);
-//		// Check accountRef (should be none)
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 0, userJackType.getAccountRef().size());
-//        
-//		// Check shadow
-//        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
-//        
-//        // Check account
-//        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
-//        
-//        // Check account in dummy resource
-//        assertDummyAccount("jack", "Jack Sparrow", true);
-//	}
-//	
-//	@Test
-//    public void test121ModifyUserAddAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-//    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-//    		PolicyViolationException, SecurityViolationException {
-//        displayTestTile(this, "test121ModifyUserAddAccountRef");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + ".test121ModifyUserAddAccountRef");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-//        
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-//        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
-//		userDelta.addModification(accountDelta);
-//		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-//                
-//		// WHEN
-//		modelService.executeChanges(deltas, null, task, result);
-//		
-//		// THEN
-//		result.computeStatus();
-//        IntegrationTestTools.assertSuccess("executeChanges result", result);
-//        
-//		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-//		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
-//        
-//		// Check shadow
-//        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
-//        
-//        // Check account
-//        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
-//        
-//        // Check account in dummy resource
-//        assertDummyAccount("jack", "Jack Sparrow", true);
-//	}
-//
+	@Test
+    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test119ModifyUserDeleteAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + ".test119ModifyUserDeleteAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME));
+        		
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_BARBOSSA_OID, prismContext);
+		PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+		// WHEN
+		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+		
+		// THEN
+		display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+		assertNull("Unexpected focus secondary delta"+focusContext.getSecondaryDelta(), focusContext.getSecondaryDelta());
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
+		ModelProjectionContext<AccountShadowType> accContext = projectionContexts.iterator().next();
+		assertNotNull("Null model projection context", accContext);
+		
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.DELETE, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+        assertEquals(ChangeType.DELETE, accountPrimaryDelta.getChangeType());
+
+	}
+	
+	@Test
+    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test120AddAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + ".test120AddAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createAddDelta(account);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+        
+		// WHEN
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+		
+		// THEN
+        display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNull("Unexpected model focus context", focusContext);
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
+		ModelProjectionContext<AccountShadowType> accContext = projectionContexts.iterator().next();
+		assertNotNull("Null model projection context", accContext);
+		
+		// Decision does not matter now
+//		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+        assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
+        PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
+        assertNotNull("No object in account primary add delta", accountToAddPrimary);
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
+                accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
+        PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
+        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+	}
+	
+	@Test
+    public void test121ModifyUserAddAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test121ModifyUserAddAccountRef");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + ".test121ModifyUserAddAccountRef");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
+        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), 
+        		ACCOUNT_SHADOW_GUYBRUSH_OID);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
+		// WHEN
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+		
+		// THEN
+        display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+		
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		assertNull("Unexpected focus secondary delta: "+focusContext.getSecondaryDelta(), userSecondaryDelta);
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
+		ModelProjectionContext<AccountShadowType> accContext = projectionContexts.iterator().next();
+		assertNotNull("Null model projection context", accContext);
+		
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+		assertNull("Unexpected account primary delta", accountPrimaryDelta);
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+	}
+
 //	@Test
 //    public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
 //    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 

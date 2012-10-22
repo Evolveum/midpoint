@@ -275,11 +275,12 @@ public class ConsolidationProcessor {
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, false, result);
+        if (modifyDelta == null || modifyDelta.isEmpty()) {
+        	return;
+        }
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
         if (accountSecondaryDelta != null) {
-            if (!modifyDelta.isEmpty()) {
-                accountSecondaryDelta.merge(modifyDelta);
-            }
+            accountSecondaryDelta.merge(modifyDelta);
         } else {
             accCtx.setSecondaryDelta(modifyDelta);
         }
