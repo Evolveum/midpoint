@@ -150,7 +150,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordHandledError("Could not apply modifications to account on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ ", becasue resource is unreachable. Modifications will be applied when the resource goes online.");
+									+ ", because resource is unreachable. Modifications will be applied when the resource goes online.");
 			return shadow;
 		case DELETE:
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
@@ -161,7 +161,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordHandledError("Could not delete account from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ ", becasue resource is unreachable. Account will be delete when the resource goes online.");
+									+ ", because resource is unreachable. Account will be delete when the resource goes online.");
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();
 			return shadow;
@@ -170,7 +170,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			// result..
 			parentResult.recordStatus(OperationResultStatus.HANDLED_ERROR, "Could not get account from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
-					+ ", becasue resource is unreachable. Returning shadow from the repository.");
+					+ ", because resource is unreachable. Returning shadow from the repository.");
 			shadow.setFetchResult(parentResult.createOperationResultType());
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();
