@@ -67,7 +67,7 @@ public class ThreeStateCheckPanel extends InputPanel {
 	}
 	
 	private void updateModel(IModel<Boolean> model){
-		if(firstState == false) {
+		if(firstState != null && !firstState) {
 			if(state == null) {
 				state = false;
 			} else if(!state) {
