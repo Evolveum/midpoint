@@ -21,8 +21,11 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import org.activiti.engine.impl.util.xml.Attribute;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -38,6 +41,7 @@ public class ThreeStateCheckPanel extends InputPanel {
 	private ThreeStateCheckBox check;
 	private Boolean state;
 	private Boolean firstState;
+	private Label inputImg;
 	
 	public ThreeStateCheckPanel(String id, final IModel<Boolean> model) {
 		super(id);
@@ -53,17 +57,21 @@ public class ThreeStateCheckPanel extends InputPanel {
 
 		inputElement.setMarkupId(check.getMarkupId() + "Element");
 		
-		Label inputImg = new Label("inputImg");
+		inputImg = new Label("inputImg");
 		inputImg.setMarkupId(check.getMarkupId() + ".Img");
 		inputElement.add(inputImg);
 		
-		inputElement.add(new AjaxEventBehavior("onMouseUp") {
+		inputElement.add(new AjaxEventBehavior("onClick") {
 			
 			@Override
 			protected void onEvent(AjaxRequestTarget target) {
 				updateModel(model);
 			}
 		});
+	}
+	
+	public void setStyle(String style) {
+		inputImg.add(new AttributeAppender("style", style));
 	}
 	
 	private void updateModel(IModel<Boolean> model){

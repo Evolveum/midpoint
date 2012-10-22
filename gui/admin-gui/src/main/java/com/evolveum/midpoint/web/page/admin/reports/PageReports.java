@@ -22,27 +22,32 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
@@ -50,18 +55,14 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.UserFilterDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
@@ -70,41 +71,43 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
  */
 public class PageReports extends PageAdminReports {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
-    private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
-    private LoadableModel<UsersDto> userModel;
+	private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
+	private static final String DOT_CLASS = PageReports.class.getName() + ".";
+	private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
+	private LoadableModel<UserFilterDto> userFilterModel;
 
-    public PageReports() {
-    	userModel = new LoadableModel<UsersDto>(false) {
+	public PageReports() {
+		userFilterModel = new LoadableModel<UserFilterDto>(false) {
 
 			@Override
-			protected UsersDto load() {
-				return new UsersDto();
+			protected UserFilterDto load() {
+				return new UserFilterDto();
 			}
 		};
-        initLayout();
-    }
+		initLayout();
+	}
 
-    private void initLayout() {
-        Form mainForm = new Form("mainForm");
-        add(mainForm);
-        
-        OptionPanel option = new OptionPanel("option", createStringResource("pageReports.optionsTitle"),
-        		getPage(), false);
-        mainForm.add(option);
-        
-        OptionItem diagnostics = new OptionItem("objectsType", createStringResource("pageReports.objectsType"));
-        option.getBodyContainer().add(diagnostics);
-        
-        DropDownChoice objectTypeChoice = new DropDownChoice("objectTypeChoice",
-        		new AbstractReadOnlyModel<Class>() {
+	private void initLayout() {
+		Form mainForm = new Form("mainForm");
+		add(mainForm);
+
+		OptionPanel option = new OptionPanel("option", createStringResource("pageReports.optionsTitle"),
+				getPage(), false);
+		option.setOutputMarkupId(true);
+		mainForm.add(option);
+
+		OptionItem diagnostics = new OptionItem("objectsType",
+				createStringResource("pageReports.objectsType"));
+		option.getBodyContainer().add(diagnostics);
+
+		DropDownChoice objectTypeChoice = new DropDownChoice("objectTypeChoice",
+				new AbstractReadOnlyModel<Class>() {
 
 					@Override
 					public Class getObject() {
 						return UserType.class;
 					}
-				}, createObjectListModel(),new IChoiceRenderer<Class>() {
+				}, createObjectListModel(), new IChoiceRenderer<Class>() {
 
 					@Override
 					public Object getDisplayValue(Class clazz) {
@@ -115,25 +118,26 @@ public class PageReports extends PageAdminReports {
 					public String getIdValue(Class clazz, int index) {
 						return Integer.toString(index);
 					}
-				}){
+				}) {
 
 			@Override
 			protected void onSelectionChanged(Object newSelection) {
 				super.onSelectionChanged(newSelection);
 			}
-        };
-        diagnostics.add(objectTypeChoice);
-        
-        OptionItem usersFilter = new OptionItem("usersFilter", createStringResource("pageReports.usersFilter"), true);
-        option.getBodyContainer().add(usersFilter);
-        initSearch(usersFilter);
-		
+		};
+		diagnostics.add(objectTypeChoice);
+
+		OptionItem usersFilter = new OptionItem("usersFilter",
+				createStringResource("pageReports.usersFilter"), true);
+		option.getBodyContainer().add(usersFilter);
+		initSearch(usersFilter);
+
 		OptionContent content = new OptionContent("optionContent");
 		mainForm.add(content);
 		initTable(content);
-    }
-    
-    private IModel<List<Class>> createObjectListModel() {
+	}
+
+	private IModel<List<Class>> createObjectListModel() {
 		return new AbstractReadOnlyModel<List<Class>>() {
 
 			@Override
@@ -144,52 +148,43 @@ public class PageReports extends PageAdminReports {
 			}
 		};
 	}
-    
-    private IModel<List<ResourceType>> createResourceListModel() {
-		return new AbstractReadOnlyModel<List<ResourceType>>() {
+
+	private IModel<List<PrismObject<ResourceType>>> createResourceListModel() {
+		return new AbstractReadOnlyModel<List<PrismObject<ResourceType>>>() {
 
 			@Override
-			public List<ResourceType> getObject() {
-				List<ResourceType> list = new ArrayList<ResourceType>();
+			public List<PrismObject<ResourceType>> getObject() {
+				List<PrismObject<ResourceType>> list = new ArrayList<PrismObject<ResourceType>>();
 				OperationResult result = new OperationResult(OPERATION_CREATE_RESOURCE_LIST);
 				Task task = createSimpleTask(OPERATION_CREATE_RESOURCE_LIST);
 				try {
-					List<PrismObject<ResourceType>> resources = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), task, result);
-					list.addAll(new ArrayList(resources));
+					list = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), task,
+							result);
 					result.recordSuccess();
 				} catch (Exception ex) {
 					result.recordFatalError("Couldn't list resources.", ex);
 				}
 				if (!result.isSuccess()) {
-		            showResult(result);
-		        }
+					showResult(result);
+				}
 				return list;
 			}
 		};
 	}
-    
-    private void initSearch(OptionItem item) {
-		TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(userModel,
-				"searchText"));
-		item.add(search);
-		
-		AjaxCheckBox activationEnabled = new AjaxCheckBox("activationEnabled", new Model<Boolean>(true)) {
-			
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				
-			}
-		};
-		item.add(activationEnabled);
-		
-		DropDownChoice resourceChoice = new DropDownChoice("resourceChoice",
-				new AbstractReadOnlyModel<PrismObject<ResourceType>>() {
 
-					@Override
-					public PrismObject<ResourceType> getObject() {
-						return null;
-					}
-				}, createResourceListModel(), new IChoiceRenderer<PrismObject<ResourceType>>() {
+	private void initSearch(OptionItem item) {
+		TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(
+				userFilterModel, "searchText"));
+		item.add(search);
+
+		ThreeStateCheckPanel activationCheck = new ThreeStateCheckPanel("activationEnabled",
+				new PropertyModel<Boolean>(userFilterModel, "activated"));
+		activationCheck.setStyle("margin: 1px 1px 1px 6px;");
+		item.add(activationCheck);
+
+		DropDownChoice resourceChoice = new DropDownChoice("resourceChoice",
+				new PropertyModel<PrismObject<ResourceType>>(userFilterModel, "resource"),
+				createResourceListModel(), new IChoiceRenderer<PrismObject<ResourceType>>() {
 
 					@Override
 					public Object getDisplayValue(PrismObject<ResourceType> resource) {
@@ -200,7 +195,8 @@ public class PageReports extends PageAdminReports {
 					public String getIdValue(PrismObject<ResourceType> resource, int index) {
 						return Integer.toString(index);
 					}
-		});
+				});
+		resourceChoice.setNullValid(true);
 		item.add(resourceChoice);
 
 		AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
@@ -213,7 +209,7 @@ public class PageReports extends PageAdminReports {
 
 			@Override
 			public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				//clearButtonPerformed(target);
+				clearButtonPerformed(target);
 			}
 		};
 		item.add(clearButton);
@@ -228,37 +224,100 @@ public class PageReports extends PageAdminReports {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				//searchPerformed(target);
+				searchPerformed(target);
 			}
 		};
 		item.add(searchButton);
 	}
-    
-    private void initTable(OptionContent content) {
+
+	private void initTable(OptionContent content) {
 		List<IColumn<SelectableBean>> columns = initColumns();
 		TablePanel table = new TablePanel<SelectableBean>("reportsTable", new ObjectDataProvider(
 				PageReports.this, UserType.class), columns);
 		table.setOutputMarkupId(true);
 		content.getBodyContainer().add(table);
 	}
-    
-    private List<IColumn<SelectableBean>> initColumns() {
-    	List<IColumn<SelectableBean>> columns = new ArrayList<IColumn<SelectableBean>>();
-    	
-    	IColumn column = new CheckBoxHeaderColumn();
+
+	private List<IColumn<SelectableBean>> initColumns() {
+		List<IColumn<SelectableBean>> columns = new ArrayList<IColumn<SelectableBean>>();
+
+		IColumn column = new CheckBoxHeaderColumn();
 		columns.add(column);
-		
-		column = new PropertyColumn(createStringResource("pageReports.name"), "givenName",
-				"value.givenName");
-		
 		column = new LinkColumn<SelectableBean>(createStringResource("pageReports.reportLink"), "name",
 				"value.name") {
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean> rowModel) {
-				//TODO
+				// TODO
 			}
 		};
+		columns.add(column);
 		return columns;
-    }
+	}
+
+	private ObjectQuery createQuery() {
+		UserFilterDto dto = userFilterModel.getObject();
+		ObjectQuery query = null;
+		
+		try {
+			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+
+			PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+			if (normalizer == null) {
+				normalizer = new PrismDefaultPolyStringNormalizer();
+			}
+			if(!StringUtils.isEmpty(dto.getSearchText())) {
+				String normalizedString = normalizer.normalize(dto.getSearchText());
+				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(), UserType.F_NAME,
+						normalizedString));
+			}
+			
+			if (dto.isActivated() != null) {
+				filters.add(EqualsFilter.createEqual(UserType.class, getPrismContext(),
+						UserType.F_ACTIVATION, dto.isActivated()));
+
+			}
+
+			if (dto.getResource() != null) {
+				filters.add(RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF,
+						getPrismContext(), dto.getResource().getOid()));
+			}
+
+			if (filters.size() == 1) {
+				query = ObjectQuery.createObjectQuery(filters.get(0));
+			} else if (filters.size() > 1) {
+				query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+			}
+
+		} catch (Exception ex) {
+			error(getString("pageReports.message.queryError") + " " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+		}
+
+		return query;
+	}
+
+	private TablePanel getTable() {
+		OptionContent content = (OptionContent) get("mainForm:optionContent");
+		return (TablePanel) content.getBodyContainer().get("reportsTable");
+	}
+
+	private void searchPerformed(AjaxRequestTarget target) {
+		ObjectQuery query = createQuery();
+		target.add(getFeedbackPanel());
+
+		TablePanel panel = getTable();
+		DataTable table = panel.getDataTable();
+		ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+		provider.setQuery(query);
+		table.setCurrentPage(0);
+		target.add(panel);
+	}
+
+	private void clearButtonPerformed(AjaxRequestTarget target) {
+		userFilterModel.reset();
+		target.appendJavaScript("init()");
+		target.add(get("mainForm:option"));
+		searchPerformed(target);
+	}
 }
