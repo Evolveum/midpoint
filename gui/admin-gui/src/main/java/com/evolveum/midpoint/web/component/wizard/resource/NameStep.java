@@ -28,8 +28,11 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.wizard.WizardStep;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -47,15 +50,32 @@ import java.util.List;
 public class NameStep extends WizardStep {
 
     public static final String DOT_CLASS = NameStep.class.getName() + ".";
+    public static final String OPERATION_LOAD_CONNECTORS = DOT_CLASS + "loadConnectors";
     public static final String OPERATION_LOAD_CONNECTOR_HOSTS = DOT_CLASS + "loadConnectorHosts";
 
     private static final String ID_NAME = "name";
     private static final String ID_LOCATION = "location";
-    private static final String ID_FRAMEWORK = "framework";
     private static final String ID_CONNECTOR_NAME = "connectorName";
     private static final String ID_CONNECTOR_VERSION = "connectorVersion";
 
-    public NameStep(IModel<ResourceType> model) {
+    private LoadableModel<List<ConnectorType>> connectorsModel;
+    private LoadableModel<ConnectorType> selectedConnectorModel;
+
+    public NameStep(final IModel<ResourceType> model) {
+        connectorsModel = new LoadableModel<List<ConnectorType>>(false) {
+
+            @Override
+            protected List<ConnectorType> load() {
+                return loadConnectors();
+            }
+        };
+        selectedConnectorModel = new LoadableModel<ConnectorType>() {
+
+            @Override
+            protected ConnectorType load() {
+                return loadSelectedConnector(model);
+            }
+        };
         initLayout(model);
     }
 
@@ -63,7 +83,45 @@ public class NameStep extends WizardStep {
         RequiredTextField name = new RequiredTextField(ID_NAME, createNameModel(model));
         add(name);
 
-        DropDownChoice location = new DropDownChoice(ID_LOCATION, new Model(), new LoadableModel<List<ConnectorHostType>>() {
+        DropDownChoice location = createLocationDropDown(model);
+        add(location);
+
+        DropDownChoice connectorName = createConnectorNameDropDown(model);
+        add(connectorName);
+
+        DropDownChoice connectorVersion = createConnectorVersionDropDown(model);
+        add(connectorVersion);
+    }
+
+    private DropDownChoice createConnectorVersionDropDown(IModel<ResourceType> model) {
+        DropDownChoice connectorVersion = new DropDownChoice(ID_CONNECTOR_VERSION); //todo model
+        connectorVersion.setOutputMarkupId(true);
+
+        return connectorVersion;
+    }
+
+    private DropDownChoice createConnectorNameDropDown(IModel<ResourceType> model) {
+        DropDownChoice connectorName = new DropDownChoice(ID_CONNECTOR_NAME, new Model(), new LoadableModel(false) {
+
+            @Override
+            protected Object load() {
+                return loadConnectors();
+            }
+        }); //todo model
+        connectorName.setOutputMarkupId(true);
+        connectorName.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                refreshVersionPerformed(target);
+            }
+        });
+
+        return connectorName;
+    }
+
+    private DropDownChoice createLocationDropDown(IModel<ResourceType> model) {
+        DropDownChoice location = new DropDownChoice(ID_LOCATION, new Model(), new LoadableModel<List<ConnectorHostType>>(false) {
 
             @Override
             protected List<ConnectorHostType> load() {
@@ -85,16 +143,39 @@ public class NameStep extends WizardStep {
             }
         }
         );
-        add(location);
+        location.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
-        DropDownChoice framework = new DropDownChoice(ID_FRAMEWORK); //todo model
-        add(framework);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                discoverConnectorsPerformed(target);
+            }
+        });
 
-        DropDownChoice connectorName = new DropDownChoice(ID_CONNECTOR_NAME); //todo model
-        add(connectorName);
+        return location;
+    }
 
-        DropDownChoice connectorVersion = new DropDownChoice(ID_CONNECTOR_VERSION); //todo model
-        add(connectorVersion);
+    private List<ConnectorType> loadConnectors() {
+        List<ConnectorType> connectors = new ArrayList<ConnectorType>();
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_CONNECTORS);
+        try {
+            PageBase page = (PageBase) getPage();
+            ModelService model = page.getModelService();
+
+            List<PrismObject<ConnectorType>> objects = model.searchObjects(ConnectorType.class, null,
+                    page.createSimpleTask(OPERATION_LOAD_CONNECTORS), result);
+
+            for (PrismObject<ConnectorType> connector : objects) {
+                connectors.add(connector.asObjectable());
+            }
+
+            Collections.sort(connectors, new ConnectorTypeComparator());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            //todo error handling
+        }
+
+        return connectors;
     }
 
     private IModel<String> createNameModel(final IModel<ResourceType> model) {
@@ -143,5 +224,23 @@ public class NameStep extends WizardStep {
         hosts.add(0, null);
 
         return hosts;
+    }
+
+    private void refreshVersionPerformed(AjaxRequestTarget target) {
+        //todo implement
+
+        target.add(NameStep.this.get(ID_CONNECTOR_VERSION));
+    }
+
+    private void discoverConnectorsPerformed(AjaxRequestTarget target) {
+        //todo implement
+
+        connectorsModel.reset();
+        target.add(NameStep.this.get(ID_CONNECTOR_NAME), NameStep.this.get(ID_CONNECTOR_VERSION));
+    }
+
+    private ConnectorType loadSelectedConnector(IModel<ResourceType> model) {
+        //todo implement
+        return null;
     }
 }
