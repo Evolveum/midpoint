@@ -21,10 +21,20 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.extensions.wizard.WizardModel;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 /**
@@ -33,8 +43,32 @@ import org.apache.wicket.model.StringResourceModel;
 public class PageResourceEdit extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
+    private IModel<ResourceType> model;
 
     public PageResourceEdit() {
+        model = new LoadableModel<ResourceType>(false) {
+
+            @Override
+            protected ResourceType load() {
+                try {
+                    if (!isEditingResource()) {
+                        ResourceType resource = new ResourceType();
+                        PageResourceEdit.this.getPrismContext().adopt(resource);
+
+                        return resource;
+                    }
+
+                    PrismObject<ResourceType> resource = loadResource(null);
+                    return resource.asObjectable();
+                } catch (Exception ex) {
+                    //todo error handling
+                    ex.printStackTrace();
+                }
+
+                return null;
+            }
+        };
+
         initLayout();
     }
 
@@ -48,21 +82,46 @@ public class PageResourceEdit extends PageAdminResources {
                     return PageResourceEdit.super.createPageTitleModel().getObject();
                 }
 
-                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null, null).getString();
+                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null).getString();
             }
         };
     }
 
     private void initLayout() {
-        WizardModel model = new WizardModel();
-        model.add(new NameStep());
-        model.add(new ConfigurationStep());
-        model.add(new SchemaStep());
-        model.add(new SchemaHandlingStep());
-        model.add(new CapabilityStep());
-        model.add(new SynchronizationStep());
+        WizardModel wizardModel = new WizardModel();
+        wizardModel.add(new NameStep(model));
+        wizardModel.add(new ConfigurationStep());
+        wizardModel.add(new SchemaStep());
+        wizardModel.add(new SchemaHandlingStep());
+        wizardModel.add(new CapabilityStep());
+        wizardModel.add(new SynchronizationStep());
 
-        ResourceWizard wizard = new ResourceWizard(ID_WIZARD, model);
+        ResourceWizard wizard = new ResourceWizard(ID_WIZARD, wizardModel);
         add(wizard);
+
+        //todo remove
+        final MultiLineLabel label = new MultiLineLabel("label", new AbstractReadOnlyModel<Object>() {
+
+            @Override
+            public Object getObject() {
+                try {
+                    PrismDomProcessor domProcessor = PageResourceEdit.this.getPrismContext().getPrismDomProcessor();
+                    return domProcessor.serializeObjectToString(model.getObject().asPrismObject());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                return "error";
+            }
+        });
+        label.setOutputMarkupId(true);
+        add(label);
+        AjaxLinkButton reload = new AjaxLinkButton("reload", new Model<String>("reload")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                target.add(label);
+            }
+        };
+        add(reload);
     }
 }
