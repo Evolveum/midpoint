@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxDownloadBehavior;
+import com.evolveum.midpoint.web.component.ajaxDownload.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
@@ -216,7 +216,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         main.add(delete);
         
-        final AjaxDownloadBehavior ajaxDownloadBehavior = new AjaxDownloadBehavior(true) {
+        final AjaxDownloadBehaviorFromFile ajaxDownloadBehavior = new AjaxDownloadBehaviorFromFile(true) {
             @Override
             protected File initFile() {
             	OperationResult result = new OperationResult(OPERATION_CREATE_DOWNLOAD_FILE);

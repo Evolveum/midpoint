@@ -1,10 +1,7 @@
-package com.evolveum.midpoint.web.component;
+package com.evolveum.midpoint.web.component.ajaxDownload;
 
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.resource.ContentDisposition;
@@ -14,21 +11,16 @@ import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.time.Duration;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.message.OpResult;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-
-public abstract class AjaxDownloadBehavior extends AbstractAjaxBehavior {
+public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior {
 
 	private boolean addAntiCache;
+	private String contentType = "text";
 
-	public AjaxDownloadBehavior() {
+	public AjaxDownloadBehaviorFromFile() {
 		this(true);
 	}
 
-	public AjaxDownloadBehavior(boolean addAntiCache) {
+	public AjaxDownloadBehaviorFromFile(boolean addAntiCache) {
 		super();
 		this.addAntiCache = addAntiCache;
 	}
@@ -36,7 +28,7 @@ public abstract class AjaxDownloadBehavior extends AbstractAjaxBehavior {
 	/**
 	 * Call this method to initiate the download.
 	 */
-	public void initiate(AjaxRequestTarget target) {	
+	public void initiate(AjaxRequestTarget target) {
 		String url = getCallbackUrl().toString();
 
 		if (addAntiCache) {
@@ -49,9 +41,8 @@ public abstract class AjaxDownloadBehavior extends AbstractAjaxBehavior {
 	}
 
 	public void onRequest() {
-		final File file = initFile();
+		final File file = initFile();	
 		IResourceStream resourceStream = new FileResourceStream(new File(file));
-
 		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(
 				new ResourceStreamRequestHandler(resourceStream) {
 					@Override
@@ -59,10 +50,14 @@ public abstract class AjaxDownloadBehavior extends AbstractAjaxBehavior {
 						super.respond(requestCycle);
 						Files.remove(file);
 					}
-				}.setFileName(file.getName())
-				.setContentDisposition(ContentDisposition.ATTACHMENT)
-				.setCacheDuration(Duration.ONE_SECOND));
+				}.setFileName(file.getName()).setContentDisposition(ContentDisposition.ATTACHMENT)
+						.setCacheDuration(Duration.ONE_SECOND));
 	}
+	
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
 
 	protected abstract File initFile();
 }
