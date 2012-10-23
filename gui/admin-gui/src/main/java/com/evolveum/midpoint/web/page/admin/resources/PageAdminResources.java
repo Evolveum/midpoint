@@ -27,11 +27,15 @@ import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.util.string.StringValue;
 
@@ -58,6 +62,29 @@ public class PageAdminResources extends PageAdmin {
         items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
         items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResource.class,
                 new PageVisibleDisabledBehaviour(this, PageResource.class)));
+
+//        items.add(new BottomMenuItem("pageAdminResources.newResource", PageResourceEdit.class,
+//                new PageDisabledVisibleBehaviour(this, PageResourceEdit.class) {
+//
+//                    @Override
+//                    public boolean isVisible() {
+//                        return !isEditingResource();
+//                    }
+//                }));
+//        items.add(new BottomMenuItem("pageAdminResources.editResource", PageResourceEdit.class,
+//                new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isVisible() {
+//                return isEditingResource();
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return false;
+//            }
+//        }));
+
         items.add(new BottomMenuItem("pageAdminResources.importResource", PageResourceImport.class,
                 new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
         items.add(new BottomMenuItem("pageAdminResources.contentAccounts", PageContentAccounts.class,
@@ -66,6 +93,11 @@ public class PageAdminResources extends PageAdmin {
                 new PageVisibleDisabledBehaviour(this, PageAccount.class)));
 
         return items;
+    }
+
+    private boolean isEditingResource() {
+        StringValue resourceOid = getPageParameters().get(PageResourceEdit.PARAM_RESOURCE_ID);
+        return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }
 
     protected PrismObject<ResourceType> loadResource(Collection<ObjectOperationOptions> options) {
