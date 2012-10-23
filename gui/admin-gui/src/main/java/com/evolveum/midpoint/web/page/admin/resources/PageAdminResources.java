@@ -95,7 +95,7 @@ public class PageAdminResources extends PageAdmin {
         return items;
     }
 
-    private boolean isEditingResource() {
+    protected boolean isEditingResource() {
         StringValue resourceOid = getPageParameters().get(PageResourceEdit.PARAM_RESOURCE_ID);
         return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }

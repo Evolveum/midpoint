@@ -21,10 +21,27 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
+
 /**
  * @author lazyman
  */
 public class PageResourceEdit extends PageAdminResources {
 
-    public static final String PARAM_RESOURCE_ID = "resourceOid";
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                if (!isEditingResource()) {
+                    return PageResourceEdit.super.createPageTitleModel().getObject();
+                }
+
+                return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null, null).getString();
+            }
+        };
+    }
 }

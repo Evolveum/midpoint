@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
@@ -52,13 +53,13 @@ public class PageAdmin extends PageBase {
     public List<TopMenuItem> getTopMenuItems() {
         List<TopMenuItem> items = new ArrayList<TopMenuItem>();
         items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageHome.class));
-//        items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description", PageHome.class));
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",
-                PageReports.class, PageAdminRoles.class));
+                PageRoles.class, PageAdminRoles.class));
         items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
                 PageResources.class, PageAdminResources.class));
+        //todo fix with visible behaviour [lazyman]
         if (getWorkflowManager().isEnabled()) {
             items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
                     PageWorkItems.class, PageAdminWorkItems.class));
