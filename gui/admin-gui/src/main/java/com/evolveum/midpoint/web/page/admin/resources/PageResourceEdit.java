@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.wizard.resource.*;
+import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -29,6 +31,12 @@ import org.apache.wicket.model.StringResourceModel;
  * @author lazyman
  */
 public class PageResourceEdit extends PageAdminResources {
+
+    private static final String ID_WIZARD = "wizard";
+
+    public PageResourceEdit() {
+        initLayout();
+    }
 
     @Override
     protected IModel<String> createPageTitleModel() {
@@ -43,5 +51,18 @@ public class PageResourceEdit extends PageAdminResources {
                 return new StringResourceModel("page.title.editResource", PageResourceEdit.this, null, null).getString();
             }
         };
+    }
+
+    private void initLayout() {
+        WizardModel model = new WizardModel();
+        model.add(new NameStep());
+        model.add(new ConfigurationStep());
+        model.add(new SchemaStep());
+        model.add(new SchemaHandlingStep());
+        model.add(new CapabilityStep());
+        model.add(new SynchronizationStep());
+
+        ResourceWizard wizard = new ResourceWizard(ID_WIZARD, model);
+        add(wizard);
     }
 }

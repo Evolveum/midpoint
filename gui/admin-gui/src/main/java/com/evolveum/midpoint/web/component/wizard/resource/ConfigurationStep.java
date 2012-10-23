@@ -21,8 +21,10 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import org.apache.wicket.extensions.wizard.WizardStep;
+
 /**
  * @author lazyman
  */
-public class ConfigurationStep {
+public class ConfigurationStep extends WizardStep {
 }
