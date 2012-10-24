@@ -408,37 +408,36 @@ public class PageUser extends PageAdminUsers {
         PrismObject<UserType> prismUser = user.getObject();
         List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
         for (AssignmentType assignment : assignments) {
-            String name = null;
+            ObjectType targetObject = null;
             AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
             if (assignment.getTarget() != null) {
                 //object assignment
-                ObjectType target = assignment.getTarget();
-                name = WebMiscUtil.getOrigStringFromPoly(target.getName());
-                type = AssignmentEditorDtoType.getType(target.getClass());
+                targetObject = assignment.getTarget();
+                type = AssignmentEditorDtoType.getType(targetObject.getClass());
             } else if (assignment.getTargetRef() != null) {
                 //object assignment through reference
                 ObjectReferenceType ref = assignment.getTargetRef();
                 PrismObject target = getReference(ref, result);
 
                 if (target != null) {
-                    name = WebMiscUtil.getName(target);
+                    targetObject = (ObjectType) target.asObjectable();
                     type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
                 }
             } else if (assignment.getAccountConstruction() != null) {
                 //account assignment through account construction
                 AccountConstructionType construction = assignment.getAccountConstruction();
                 if (construction.getResource() != null) {
-                    name = WebMiscUtil.getOrigStringFromPoly(construction.getResource().getName());
+                    targetObject = construction.getResource();
                 } else if (construction.getResourceRef() != null) {
                     ObjectReferenceType ref = construction.getResourceRef();
                     PrismObject target = getReference(ref, result);
                     if (target != null) {
-                        name = WebMiscUtil.getName(target);
+                        targetObject = (ObjectType) target.asObjectable();
                     }
                 }
             }
 
-            list.add(new AssignmentEditorDto(name, type, UserDtoStatus.MODIFY, assignment));
+            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment));
         }
 
         Collections.sort(list);
@@ -700,14 +699,6 @@ public class PageUser extends PageAdminUsers {
         ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
                 createStringResource("pageUser.title.selectAssignable"));
         window.setContent(new AssignablePopupContent(window.getContentId()) {
-
-            @Override
-            protected void addPerformed(AjaxRequestTarget target, ObjectType selected) {
-                if (!(selected instanceof ResourceType)) {
-                    return;
-                }
-                addSelectedResourceAssignPerformed(target, (ResourceType) selected);
-            }
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
@@ -1173,25 +1164,19 @@ public class PageUser extends PageAdminUsers {
         target.add(getAccountsAccordionItem());
     }
 
-    private void addSelectedResourceAssignPerformed(AjaxRequestTarget target, ResourceType resource) {
-        ModalWindow window = (ModalWindow) get(MODAL_ID_ASSIGNABLE);
-        window.close(target);
-
+    private void addSelectedResourceAssignPerformed(ResourceType resource) {
         AssignmentType assignment = new AssignmentType();
         AccountConstructionType construction = new AccountConstructionType();
         assignment.setAccountConstruction(construction);
         construction.setResource(resource);
 
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
-        AssignmentEditorDto dto = new AssignmentEditorDto(WebMiscUtil.getOrigStringFromPoly(resource.getName()),
-                AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, UserDtoStatus.ADD, assignment);
+        AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
+                UserDtoStatus.ADD, assignment);
         assignments.add(dto);
 
         dto.setMinimized(false);
         dto.setShowEmpty(true);
-
-        target.add(getFeedbackPanel());
-        target.add(getAssignmentAccordionItem());
     }
 
     private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignables) {
@@ -1207,6 +1192,11 @@ public class PageUser extends PageAdminUsers {
         List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
         for (ObjectType object : newAssignables) {
             try {
+                if (object instanceof ResourceType) {
+                    addSelectedResourceAssignPerformed((ResourceType) object);
+                    continue;
+                }
+
                 AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
 
                 ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -1216,8 +1206,7 @@ public class PageUser extends PageAdminUsers {
                 AssignmentType assignment = new AssignmentType();
                 assignment.setTargetRef(targetRef);
 
-                AssignmentEditorDto dto = new AssignmentEditorDto(WebMiscUtil.getOrigStringFromPoly(object.getName()),
-                        aType, UserDtoStatus.ADD, assignment);
+                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment);
                 dto.setMinimized(false);
                 dto.setShowEmpty(true);
 

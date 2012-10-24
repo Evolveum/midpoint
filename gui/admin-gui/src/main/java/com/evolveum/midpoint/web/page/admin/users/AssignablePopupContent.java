@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.apache.commons.lang.Validate;
@@ -49,7 +50,6 @@ public class AssignablePopupContent extends BasePanel {
     private static final String ID_ADD = "add";
 
     private Class<? extends ObjectType> type = RoleType.class;
-    private boolean multiselect;
 
     public AssignablePopupContent(String id) {
         super(id, null);
@@ -57,11 +57,11 @@ public class AssignablePopupContent extends BasePanel {
 
     @Override
     protected void initLayout() {
-        Form rolesForm = new Form(ID_ASSIGNABLE_FORM);
-        add(rolesForm);
+        Form assignableForm = new Form(ID_ASSIGNABLE_FORM);
+        add(assignableForm);
 
         TablePanel table = createTable();
-        rolesForm.add(table);
+        assignableForm.add(table);
 
         AjaxLinkButton addButton = new AjaxLinkButton(ID_ADD,
                 createStringResource("assignablePopupContent.button.add")) {
@@ -71,38 +71,15 @@ public class AssignablePopupContent extends BasePanel {
                 addPerformed(target, getSelectedObjects());
             }
         };
-        addButton.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return multiselect;
-            }
-        });
-        rolesForm.add(addButton);
+        assignableForm.add(addButton);
     }
 
     private TablePanel createTable() {
-        List<IColumn> columns = multiselect ? createMultiSelectColumns() : createSingleSelectColumns();
+        List<IColumn> columns = createMultiSelectColumns();
         TablePanel table = new TablePanel(ID_TABLE, new ObjectDataProvider(getPageBase(), type), columns);
         table.setOutputMarkupId(true);
 
         return table;
-    }
-
-    private List<IColumn> createSingleSelectColumns() {
-        List<IColumn> columns = new ArrayList<IColumn>();
-
-        columns.add(new LinkColumn<SelectableBean<? extends ObjectType>>(
-                createStringResource("assignablePopupContent.name"), "value.name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
-                addPerformed(target, rowModel.getObject().getValue());
-            }
-        });
-        columns.add(new PropertyColumn(createStringResource("assignablePopupContent.description"), "value.description"));
-
-        return columns;
     }
 
     private List<IColumn> createMultiSelectColumns() {
@@ -112,6 +89,9 @@ public class AssignablePopupContent extends BasePanel {
         columns.add(column);
 
         columns.add(new PropertyColumn(createStringResource("assignablePopupContent.name"), "value.name"));
+        if (OrgType.class.isAssignableFrom(type)) {
+            columns.add(new PropertyColumn(createStringResource("assignablePopupContent.displayName"), "value.displayName.orig"));
+        }
         columns.add(new PropertyColumn(createStringResource("assignablePopupContent.description"), "value.description"));
 
         return columns;
@@ -137,7 +117,6 @@ public class AssignablePopupContent extends BasePanel {
         Validate.notNull(type, "Class must not be null.");
 
         this.type = type;
-        multiselect = !ResourceType.class.isAssignableFrom(type);
 
         TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
         if (table != null) {
@@ -152,10 +131,6 @@ public class AssignablePopupContent extends BasePanel {
 
     public Class<? extends ObjectType> getType() {
         return type;
-    }
-
-    protected void addPerformed(AjaxRequestTarget target, ObjectType selected) {
-
     }
 
     protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected) {

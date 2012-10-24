@@ -26,10 +26,10 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;
@@ -56,12 +56,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     private AssignmentType newAssignment;
     private List<ACAttributeDto> attributes;
 
-    public AssignmentEditorDto(String name, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment) {
+    public AssignmentEditorDto(ObjectType targetObject, AssignmentEditorDtoType type, UserDtoStatus status, AssignmentType assignment) {
         Validate.notNull(status, "User dto status must not be null.");
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(assignment, "Assignment must not be null.");
 
-        this.name = name;
+        this.name = getNameForTargetObject(targetObject);
         this.type = type;
         this.status = status;
         this.oldAssignment = assignment;
@@ -77,6 +77,32 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             AccountConstructionType construction = oldAssignment.getAccountConstruction();
             newAssignment.setAccountConstruction(construction.clone());
         }
+    }
+
+    private String getNameForTargetObject(ObjectType object) {
+        if (object == null) {
+            return null;
+        }
+
+        String name = WebMiscUtil.getName(object);
+
+        PolyStringType display = object instanceof OrgType ? ((OrgType)object).getDisplayName() : null;
+        String displayName = WebMiscUtil.getOrigStringFromPoly(display);
+
+        StringBuilder builder = new StringBuilder();
+        if (StringUtils.isNotEmpty(name)) {
+            builder.append(name);
+        }
+
+        if (StringUtils.isNotEmpty(name) && StringUtils.isNotEmpty(displayName)) {
+            builder.append(", ");
+        }
+
+        if (StringUtils.isNotEmpty(displayName)) {
+            builder.append(displayName);
+        }
+
+        return builder.toString();
     }
 
     public List<ACAttributeDto> getAttributes() {
