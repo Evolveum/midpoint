@@ -756,8 +756,26 @@ public class PageUser extends PageAdminUsers {
                                                         Collection<ObjectDelta<? extends ObjectType>> deltas) {
         List<UserAccountDto> accounts = accountsModel.getObject();
         ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
+        OperationResult subResult = null;
+        Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
         for (UserAccountDto account : accounts) {
             prismAccounts.add(account.getObject().getObject());
+            try {
+            	ObjectWrapper accountWrapper = account.getObject();
+            	ObjectDelta delta = accountWrapper.getObjectDelta();
+            	 if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
+            		 continue;
+            	 }
+            	 WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
+            	 subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+            	 deltas.add(delta);
+            	 subResult.recordSuccess();
+            } catch (Exception ex) {
+            	if (subResult != null) {
+            		subResult.recordFatalError("Modify account failed.", ex);
+            	}
+            	LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+            }
         }
         return prismAccounts;
     }

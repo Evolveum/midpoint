@@ -129,7 +129,7 @@ public class PageSubmit extends PageAdmin {
 					@Override
 					public String getObject() {
 						ModelElementContext userDelta = previewChanges.getFocusContext();
-						if (userDelta.getPrimaryDelta().getChangeType().equals(ChangeType.ADD)) {
+						if (userDelta.getPrimaryDelta() != null && userDelta.getPrimaryDelta().getChangeType().equals(ChangeType.ADD)) {
 							return WebMiscUtil.getName(userDelta.getPrimaryDelta().getObjectToAdd());
 						}
 						return WebMiscUtil.getName(userDelta.getObjectOld());
