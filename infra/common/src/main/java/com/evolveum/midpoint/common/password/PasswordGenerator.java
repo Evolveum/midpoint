@@ -53,11 +53,11 @@ public class PasswordGenerator {
 
 	private static final Random rand = new Random(System.currentTimeMillis());
 
-	public static String generate(StringPolicyType policy, OperationResult inputResult) {
-		return generate(policy, false, inputResult);
+	public static String generate(StringPolicyType policy, int defaultLength, OperationResult inputResult) {
+		return generate(policy, defaultLength, false, inputResult);
 	}
 
-	public static String generate(StringPolicyType policy, boolean generateMinimalSize,
+	public static String generate(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
 			OperationResult inputResult) {
 
 		if (null == policy) {
@@ -90,9 +90,12 @@ public class PasswordGenerator {
 		}
 
 		// Get global limitations
-		int minLen = policy.getLimitations().getMinLength();
-		int maxLen = policy.getLimitations().getMaxLength();
-		int unique = policy.getLimitations().getMinUniqueChars();
+		int minLen = policy.getLimitations().getMinLength() == null ? 0 : policy.getLimitations().getMinLength().intValue();
+		if (minLen != 0 && minLen > defaultLength){
+			defaultLength = minLen;
+		}
+		int maxLen = (policy.getLimitations().getMaxLength() == null ? defaultLength : policy.getLimitations().getMaxLength().intValue());
+		int unique = policy.getLimitations().getMinUniqueChars() == null ? minLen : policy.getLimitations().getMinUniqueChars().intValue();
 
 		// test correctness of definition
 		if (unique > minLen) {
@@ -280,7 +283,7 @@ public class PasswordGenerator {
 				i = charIntersectionCounter(lims.get(l), password);
 			}
 			// If max is exceed then error unable to continue
-			if (i > l.getMaxOccurs()) {
+			if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
 				OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
 				o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">"
 						+ l.getMaxOccurs());
@@ -288,7 +291,7 @@ public class PasswordGenerator {
 				return null;
 				// if max is all ready reached or skip enabled for minimal skip
 				// counting
-			} else if (i == l.getMaxOccurs()) {
+			} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
 				continue;
 				// other cases minimum is not reached
 			} else if (i >= l.getMinOccurs() && !skipMatchedLims) {

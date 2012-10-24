@@ -127,7 +127,7 @@ public class PasswordPolicyValidatorTest {
 		String psswd;
 		// generate minimal size passwd
 		for (int i = 0; i < 100; i++) {
-			psswd = PasswordGenerator.generate(pp.getStringPolicy(), true, op);
+			psswd = PasswordGenerator.generate(pp.getStringPolicy(), 10, true, op);
 			LOGGER.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
@@ -144,7 +144,7 @@ public class PasswordPolicyValidatorTest {
 		LOGGER.error("-------------------------");
 		// Generate up to possible
 		for (int i = 0; i < 100; i++) {
-			psswd = PasswordGenerator.generate(pp.getStringPolicy(), false, op);
+			psswd = PasswordGenerator.generate(pp.getStringPolicy(), 10, false, op);
 			LOGGER.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
@@ -158,7 +158,7 @@ public class PasswordPolicyValidatorTest {
 		// Make switch some cosistency
 		pp.getStringPolicy().getLimitations().setMinLength(2);
 		pp.getStringPolicy().getLimitations().setMinUniqueChars(5);
-		psswd = PasswordGenerator.generate(pp.getStringPolicy(), op);
+		psswd = PasswordGenerator.generate(pp.getStringPolicy(), 10, op);
 		op.computeStatus();
 		assertNotNull(psswd);
 		AssertJUnit.assertTrue(op.isAcceptable());
@@ -168,7 +168,7 @@ public class PasswordPolicyValidatorTest {
 			l.setMustBeFirst(true);
 		}
 		LOGGER.error("Negative testing: passwordGeneratorComplexTest");
-		psswd = PasswordGenerator.generate(pp.getStringPolicy(), op);
+		psswd = PasswordGenerator.generate(pp.getStringPolicy(), 10, op);
 		assertNull(psswd);
 		op.computeStatus();
 		AssertJUnit.assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);

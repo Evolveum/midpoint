@@ -106,9 +106,9 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 		String stringValue = null;
 		if (stringPolicyType != null) {
 			if (stringPolicyType.getLimitations().getMinLength() != null) {
-				stringValue = PasswordGenerator.generate(stringPolicyType, true, params.getResult());
+				stringValue = PasswordGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
 			}
-			stringValue = PasswordGenerator.generate(stringPolicyType, false, params.getResult());
+			stringValue = PasswordGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
 		}
         
         if (stringValue == null){
