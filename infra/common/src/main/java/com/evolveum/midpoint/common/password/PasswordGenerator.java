@@ -313,13 +313,13 @@ public class PasswordGenerator {
 		if (null != password) {
 			for (StringLimitType l : lims.keySet()) {
 				int i = charIntersectionCounter(lims.get(l), password);
-				if (i > l.getMaxOccurs()) {
+				if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
 					OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
 					o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">"
 							+ l.getMaxOccurs());
 					op.addSubresult(o);
 					return null;
-				} else if (i == l.getMaxOccurs()) {
+				} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
 					// limitation matched remove all used chars
 					LOGGER.trace("Skip " + l.getDescription());
 					for (String charToRemove : lims.get(l)) {
