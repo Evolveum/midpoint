@@ -127,15 +127,22 @@ public class AssignmentProcessor {
                 for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
                 	// mark all accounts as active, so they will be synchronized as expected
                     accCtx.setActive(true);
-                    // guess policy decision
                     if (accCtx.getSynchronizationPolicyDecision() == null) {
-                    	if (accCtx.isAdd()) {
-                    		accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.ADD);
-                    	} else if (accCtx.isDelete()) {
-                    		accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-                    	} else {
-                    		accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+                    	SynchronizationPolicyDecision policyDecistion = null;
+                    	if (accCtx.getSynchronizationIntent() != null) {
+                    		policyDecistion = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
                     	}
+                    	if (policyDecistion == null) {
+	                    	// guess policy decision
+	                    	if (accCtx.isAdd()) {
+	                    		policyDecistion = SynchronizationPolicyDecision.ADD;
+	                    	} else if (accCtx.isDelete()) {
+	                    		policyDecistion = SynchronizationPolicyDecision.DELETE;
+	                    	} else {
+	                    		policyDecistion = SynchronizationPolicyDecision.KEEP;
+	                    	}
+                    	}
+                    	accCtx.setSynchronizationPolicyDecision(policyDecistion);
                     }
                 }
 
@@ -319,6 +326,13 @@ public class AssignmentProcessor {
 			if (accountContext.getSynchronizationPolicyDecision() != null) {
 				// already have decision
 				continue;
+			}
+			if (accountContext.getSynchronizationIntent() != null) {
+				SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationIntent().toSynchronizationPolicyDecision();
+				if (policyDecision != null) {
+					accountContext.setSynchronizationPolicyDecision(policyDecision);
+					continue;
+				}
 			}
 			ObjectDelta<AccountShadowType> accountSyncDelta = accountContext.getSyncDelta();
 			if (accountSyncDelta != null) {

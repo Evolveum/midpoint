@@ -49,6 +49,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private ObjectDelta<O> secondaryDelta;
 	private Class<O> objectTypeClass;
 	private String oid = null;
+	private transient boolean isFresh = false;
 	
 	private LensContext<? extends ObjectType, ? extends ObjectType> lensContext;
 	
@@ -197,7 +198,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return objectDefinition;
 	}
     
-    public void recompute() throws SchemaException {
+    public boolean isFresh() {
+		return isFresh;
+	}
+
+	public void setFresh(boolean isFresh) {
+		this.isFresh = isFresh;
+	}
+
+	public void recompute() throws SchemaException {
     	ObjectDelta<O> delta = getDelta();
         if (delta == null) {
             // No change
@@ -304,6 +313,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.oid = this.oid;
 		clone.primaryDelta = cloneDelta(this.primaryDelta);
 		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
+		clone.isFresh = this.isFresh;
 	}
 	
 	private ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {

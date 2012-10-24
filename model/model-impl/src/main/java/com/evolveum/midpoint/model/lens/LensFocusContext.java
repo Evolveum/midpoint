@@ -206,6 +206,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(getDebugDumpTitle());
+        if (!isFresh()) {
+        	sb.append(", NOT FRESH");
+        }
         
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);

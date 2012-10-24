@@ -231,7 +231,7 @@ public class Clockwork {
 		// TODO: attempts
 		context.incrementExecutionWave();
 		// Force recompute for next wave
-		context.setFresh(false);
+		context.rot();
 		
 		LensUtil.traceContext(LOGGER, "clockwork", context.getState() + " change execution", context, false);
 	}

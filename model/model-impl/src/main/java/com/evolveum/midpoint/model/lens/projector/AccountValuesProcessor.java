@@ -119,22 +119,13 @@ public class AccountValuesProcessor {
 			
 			accountContext.setIteration(iteration);
 			String iterationToken = formatIterationToken(iteration);
-			accountContext.setIterationToken(iterationToken);
-			
-			LensUtil.traceContext(LOGGER, activityDescription, "values 1", context, true);
-			
+			accountContext.setIterationToken(iterationToken);			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
 			context.recompute();
-			
-			LensUtil.traceContext(LOGGER, activityDescription, "values 2", context, true);
-			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			outboundProcessor.processOutbound(context, accountContext, result);
 			context.recompute();
-			
-			LensUtil.traceContext(LOGGER, activityDescription, "values 3", context, true);
-			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 			consolidationProcessor.consolidateValues(context, accountContext, result);
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
@@ -142,7 +133,12 @@ public class AccountValuesProcessor {
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();
 	
 	        // Too noisy for now
-	        LensUtil.traceContext(LOGGER, activityDescription, "values 4", context, true);
+//	        LensUtil.traceContext(LOGGER, activityDescription, "values", context, true);
+	        
+	        if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.DELETE) {
+	        	// No need to play the iterative game if the account is deleted
+	        	break;
+	        }
 	        
 	        // Check constraints
 	        ShadowConstraintsChecker checker = new ShadowConstraintsChecker(accountContext);

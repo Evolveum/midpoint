@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model.lens;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -160,10 +162,13 @@ public class ShadowConstraintsChecker {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
+		List<?> identifierValues = identifier.getValues();
+		Validate.notEmpty(identifierValues, "Empty identifiers while checking uniqueness of "+context);
+		
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifier.getValues())));
+						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues)));
 		
 		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",

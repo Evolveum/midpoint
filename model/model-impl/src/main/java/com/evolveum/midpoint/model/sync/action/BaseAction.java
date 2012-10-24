@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -189,7 +190,7 @@ public abstract class BaseAction implements Action {
     }
 
     protected LensProjectionContext<AccountShadowType> createAccountLensContext(LensContext<UserType, AccountShadowType> context,
-            ResourceObjectShadowChangeDescription change, SynchronizationPolicyDecision policyDecision,
+            ResourceObjectShadowChangeDescription change, SynchronizationIntent syncIntent,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.trace("Creating account context for sync change.");
 
@@ -211,15 +212,15 @@ public abstract class BaseAction implements Action {
         //we insert account if available in change
         accountContext.setObjectOld(getAccountObject(change));
 
-        accountContext.setSynchronizationPolicyDecision(policyDecision);
+        accountContext.setSynchronizationIntent(syncIntent);
         if (activationDecision != null) {
             updateAccountActivation(accountContext, activationDecision);
         }
         boolean doReconciliation = determineAttributeReconciliation(change);
         accountContext.setDoReconciliation(doReconciliation);
 
-        LOGGER.trace("Setting account context policy decision ({}), activation decision ({}), do reconciliation ({})",
-                new Object[]{policyDecision, activationDecision, doReconciliation});
+        LOGGER.trace("Setting account context sync intent ({}), activation decision ({}), do reconciliation ({})",
+                new Object[]{syncIntent, activationDecision, doReconciliation});
 
         return accountContext;
     }

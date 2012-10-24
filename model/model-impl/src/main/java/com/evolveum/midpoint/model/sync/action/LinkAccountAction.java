@@ -21,12 +21,14 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
+
 /**
  * @author lazyman
  */
 public class LinkAccountAction extends ModifyUserAction {
 
     public LinkAccountAction() {
-        super(null, ACTION_LINK_ACCOUNT);
+        super(SynchronizationIntent.KEEP, ACTION_LINK_ACCOUNT);
     }
 }

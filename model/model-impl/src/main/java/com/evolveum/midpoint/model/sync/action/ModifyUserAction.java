@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -72,16 +73,15 @@ public class ModifyUserAction extends BaseAction {
     /**
      * Decision regarding account state see {@link SynchronizationPolicyDecision}.
      */
-    private SynchronizationPolicyDecision accountPolicyDecision;
+    private SynchronizationIntent accountSynchronizationIntent;
 
     public ModifyUserAction() {
-        this(SynchronizationPolicyDecision.KEEP, ACTION_MODIFY_USER);
+        this(SynchronizationIntent.KEEP, ACTION_MODIFY_USER);
     }
 
-    public ModifyUserAction(SynchronizationPolicyDecision accountPolicyDecision, String actionName) {
+    public ModifyUserAction(SynchronizationIntent accountSyncIntent, String actionName) {
         Validate.notEmpty(actionName, "Action name must not be null or empty.");
-
-        this.accountPolicyDecision = accountPolicyDecision;
+        this.accountSynchronizationIntent = accountSyncIntent;
         this.actionName = actionName;
     }
 
@@ -93,8 +93,8 @@ public class ModifyUserAction extends BaseAction {
         this.userActivationDecision = decision;
     }
 
-    protected SynchronizationPolicyDecision getAccountPolicyDecision() {
-        return accountPolicyDecision;
+    protected SynchronizationIntent getAccountSynchronizationIntent() {
+        return accountSynchronizationIntent;
     }
 
     protected ActivationDecision getUserActivationDecision() {
@@ -136,7 +136,7 @@ public class ModifyUserAction extends BaseAction {
             context = createSyncContext(userType, change.getResource().asObjectable(), change);
 
             LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change,
-                    getAccountPolicyDecision(), getAccountActivationDecision());
+                    getAccountSynchronizationIntent(), getAccountActivationDecision());
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;

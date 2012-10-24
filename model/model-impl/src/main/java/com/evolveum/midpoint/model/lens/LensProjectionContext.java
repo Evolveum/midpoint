@@ -97,8 +97,16 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     private boolean isActive;
 
     /**
-     * Decision regarding the account. If set to null no decision was made yet. Null is also a typical value
+     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
+     * context. 
+     * If set to null then the decision is left to "the engine". Null is also a typical value
      * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+     */
+    private SynchronizationIntent synchronizationIntent;
+    
+    /**
+     * Decision regarding the account. It indicated what the engine has DECIDED TO DO with the context.
+     * If set to null no decision was made yet. Null is also a typical value when the context is created.
      */
     private SynchronizationPolicyDecision synchronizationPolicyDecision;
 
@@ -228,6 +236,14 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 
 	public void setActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+	
+	public SynchronizationIntent getSynchronizationIntent() {
+		return synchronizationIntent;
+	}
+
+	public void setSynchronizationIntent(SynchronizationIntent synchronizationIntent) {
+		this.synchronizationIntent = synchronizationIntent;
 	}
 
 	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
@@ -594,7 +610,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         sb.append(", assigned=").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", recon=").append(doReconciliation);
+        sb.append(", syncIntent=").append(synchronizationIntent);
         sb.append(", decision=").append(synchronizationPolicyDecision);
+        if (!isFresh()) {
+        	sb.append(", NOT FRESH");
+        }
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {
         	sb.append(", THOMBSTONE");
         }

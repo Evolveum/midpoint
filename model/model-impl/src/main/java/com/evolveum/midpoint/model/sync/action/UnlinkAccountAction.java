@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 
 /**
  * @author lazyman
@@ -29,6 +29,6 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 public class UnlinkAccountAction extends ModifyUserAction {
 
     public UnlinkAccountAction() {
-        super(SynchronizationPolicyDecision.UNLINK, ACTION_UNLINK_ACCOUNT);
+        super(SynchronizationIntent.UNLINK, ACTION_UNLINK_ACCOUNT);
     }
 }

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -101,11 +102,12 @@ public class SynchronizeAction extends BaseAction {
             context = createLensContext(userType, change.getResource().asObjectable(), change);
 
             LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change,
-                    null, null);
+                    SynchronizationIntent.SYNCHRONIZE, null);
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
+            
         } catch (Exception ex) {
             throw new SynchronizationException("Couldn't update account sync context in modify user action.", ex);
         } finally {

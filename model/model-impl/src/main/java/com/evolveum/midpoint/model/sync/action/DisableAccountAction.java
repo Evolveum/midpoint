@@ -21,13 +21,15 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
+
 /**
  * @author Vilo Repan
  */
 public class DisableAccountAction extends ModifyUserAction {
 
     public DisableAccountAction() {
-        super(null, ACTION_DISABLE_ACCOUNT);
+        super(SynchronizationIntent.KEEP, ACTION_DISABLE_ACCOUNT);
         setAccountActivationDecision(ActivationDecision.DISABLE);
     }
 }

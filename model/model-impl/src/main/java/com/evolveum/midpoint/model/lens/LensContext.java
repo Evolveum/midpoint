@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -276,6 +277,34 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	public void setFresh(boolean isFresh) {
 		this.isFresh = isFresh;
+	}
+	
+	/**
+	 * Makes the context and all sub-context non-fresh.
+	 */
+	public void rot() {
+		setFresh(false);
+		if (focusContext != null) {
+			focusContext.setFresh(false);
+		}
+		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+			projectionContext.setFresh(false);
+		}
+	}
+	
+	/**
+	 * Removes projection contexts that are not fresh.
+	 * These are usually artifacts left after the context reload. E.g. an account that used to be linked to a user before
+	 * but was removed in the meantime.
+	 */
+	public void removeRottenContexts() {
+		Iterator<LensProjectionContext<P>> projectionIterator = projectionContexts.iterator();
+		while (projectionIterator.hasNext()) {
+			LensProjectionContext<P> projectionContext = projectionIterator.next();
+			if (!projectionContext.isFresh()) {
+				projectionIterator.remove();
+			}
+		}
 	}
 
 	public String getChannel() {

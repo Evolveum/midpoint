@@ -183,7 +183,8 @@ public class LensUtil {
 			}
 		}
 
-		context.setFresh(false);
+		// This forces context reload before the next projection
+		context.rot();
 		
 		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
 		
