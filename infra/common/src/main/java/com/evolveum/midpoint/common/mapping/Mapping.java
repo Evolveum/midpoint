@@ -78,6 +78,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingSourceDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingTargetDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
@@ -274,13 +275,13 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return variables.containsKey(varName);
 	}
 	
-	public boolean isInitial() {
+	public MappingStrengthType getStrength() {
 		if (mappingType == null) {
-			return false;
+			return MappingStrengthType.STRONG;
 		}
-		Boolean value = mappingType.isInitial();
+		MappingStrengthType value = mappingType.getStrength();
 		if (value == null) {
-			value = false;
+			value = MappingStrengthType.STRONG;
 		}
 		return value;
 	}

@@ -8,7 +8,7 @@
 	    <propertyConstruction>
 	        <property>c:fullName</property>
 	        <valueConstruction>
-	        	<initial>true</initial>
+	        	<strength>weak</strength>
 	            <expression>
 	            	<code>
 	                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
@@ -20,7 +20,7 @@
 	    <propertyConstruction>
 	        <property>c:assignment</property>
 	        <valueConstruction>
-	        	<initial>true</initial>
+	        	<strength>weak</strength>
 	            <value>
 	            	<assignment>
 						<accountConstruction>

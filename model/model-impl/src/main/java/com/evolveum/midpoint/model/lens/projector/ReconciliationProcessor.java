@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
@@ -174,7 +175,7 @@ public class ReconciliationProcessor {
         	
         	boolean hasNonInitialShouldBePValue = false;
         	for (PropertyValueWithOrigin shouldBePValue: shouldBePValues) {
-        		if (shouldBePValue.getMapping() != null && !shouldBePValue.getMapping().isInitial()) {
+        		if (shouldBePValue.getMapping() != null && shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
         			hasNonInitialShouldBePValue = true;
         			break;
         		}
@@ -196,7 +197,7 @@ public class ReconciliationProcessor {
         		if (shouldBeMapping == null) {
         			continue;
         		}
-        		if (shouldBeMapping.isInitial() && (!arePValues.isEmpty() || hasNonInitialShouldBePValue)) {
+        		if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK && (!arePValues.isEmpty() || hasNonInitialShouldBePValue)) {
         			// "initial" value and the attribute already has a value. Skip it.
         			continue;
         		}

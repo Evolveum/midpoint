@@ -64,6 +64,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
@@ -172,7 +173,8 @@ public class UserPolicyProcessor {
 		PropertyPath itemPath = mapping.getOutputPath();
 		
 		PrismProperty<?> existingUserProperty = userOdo.getNewObject().findProperty(itemPath);
-		if (existingUserProperty != null && !existingUserProperty.isEmpty() && mapping.isInitial()) {
+		if (existingUserProperty != null && !existingUserProperty.isEmpty() 
+				&& mapping.getStrength() == MappingStrengthType.WEAK) {
 			// This valueConstruction only applies if the property does not have a value yet.
 			// ... but it does
 			return null;

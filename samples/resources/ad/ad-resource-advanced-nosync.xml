@@ -110,7 +110,7 @@ This resource definition contains only the very basic definitions for midPoint t
 					<ref>ri:givenName</ref> <!-- required attribute on AD -->
 					<displayName>Given Name</displayName>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/givenName</path>
 						</source>
@@ -120,7 +120,7 @@ This resource definition contains only the very basic definitions for midPoint t
 					<ref>ri:sn</ref>
 					<displayName>Surname</displayName>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/familyName</path>
 						</source>
@@ -130,7 +130,7 @@ This resource definition contains only the very basic definitions for midPoint t
 					<ref>ri:sAMAccountName</ref> <!-- required attribute on AD -->
 					<displayName>Login name</displayName>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -145,7 +145,7 @@ This resource definition contains only the very basic definitions for midPoint t
 					<access>read</access>
 
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/givenName</path>
 						</source>
@@ -162,7 +162,7 @@ This resource definition contains only the very basic definitions for midPoint t
 				<attribute>
 					<ref>ri:description</ref>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<expression>
 							<value>Created by IDM</value>
 						</expression>

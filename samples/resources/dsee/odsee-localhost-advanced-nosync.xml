@@ -134,7 +134,7 @@ object.
                          The expression is marked as "initial", therefore it will
                          be evaluated only if the entry already does not have an DN. -->
                     <outbound>
-                        <initial>true</initial>
+                        <strength>weak</strength>
                         <source>
                         	<path>$user/name</path>
                         </source>

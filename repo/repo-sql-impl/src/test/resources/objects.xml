@@ -355,7 +355,7 @@
 					<access>create</access>
 					<access>read</access>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -449,7 +449,7 @@
 				<attribute>
 					<ref>ri:description</ref>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<expression>
 							<description>Expression that assigns a fixed value</description>
 							<value>Created by IDM</value>
@@ -493,7 +493,7 @@
 		                       </expression>
 		                   </outbound>
 		                   <inbound>
-		                   	<initial>true</initial>
+		                   	<strength>weak</strength>
 		                       <expression>
 		                           <generate/>
 		                       </expression>
@@ -505,7 +505,7 @@
 		               <enabled>
 		                   <outbound/>
 		                   <inbound>
-		                   	<initial>true</initial>
+		                   	<strength>weak</strength>
 		                       <expression>
 		                           <asIs/>
 		                       </expression>
@@ -625,7 +625,7 @@
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-            <initial>true</initial>
+            <strength>weak</strength>
             <source>
             	<path>$user/givenName</path>
             </source>
@@ -670,7 +670,7 @@
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
             </description>
-            <initial>true</initial>
+            <strength>weak</strength>
             <source>
             	<path>$user/givenName</path>
             </source>

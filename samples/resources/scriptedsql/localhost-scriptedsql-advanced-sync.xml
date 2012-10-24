@@ -198,7 +198,7 @@ object.
 					<access>create</access>
 					<access>read</access>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -269,7 +269,7 @@ object.
 					<password>
 						<outbound/>
 						<inbound>
-						    <initial>true</initial>
+						    <strength>weak</strength>
 						    <expression>
 						    	<generate/>
 						    </expression>
@@ -280,7 +280,7 @@ object.
 					<enabled>
 						<outbound/>
 						<inbound>
-							<initial>true</initial>
+							<strength>weak</strength>
 						</inbound>
 					</enabled>
 				</activation>

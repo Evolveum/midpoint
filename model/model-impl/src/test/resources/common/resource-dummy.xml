@@ -115,7 +115,7 @@
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
 				<outbound>
-				    <initial>true</initial>
+				    <strength>weak</strength>
 				    <source>
 				    	<path>$user/name</path>
 				    </source>
@@ -129,7 +129,7 @@
 				</outbound>
 				<inbound>
 					<!-- This avoids "kickback" of a name from account to a user. -->
-					<initial>true</initial>
+					<strength>weak</strength>
 					<target>
 						<path>$c:user/c:name</path>
 					</target>
@@ -199,7 +199,7 @@
                         </expression>
                     </outbound>
                     <inbound>
-                    	<initial>true</initial>
+                    	<strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>

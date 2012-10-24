@@ -141,7 +141,7 @@ This resource definition contains also definition to enable synchronization.
 					<access>create</access>
 					<access>read</access>
 					<outbound>
-						<initial>true</initial>
+						<strength>weak</strength>
 						<source>
 							<path>$user/name</path>
 						</source>
@@ -204,7 +204,7 @@ This resource definition contains also definition to enable synchronization.
 					<password>
 						<outbound/>
 						<inbound>
-					    <initial>true</initial>
+					    <strength>weak</strength>
 						  <expression>
 						    <generate/>
 						  </expression>
@@ -215,7 +215,7 @@ This resource definition contains also definition to enable synchronization.
 					<enabled>
 						<outbound/>
 						<inbound>
-							<initial>true</initial>
+							<strength>weak</strength>
 						</inbound>
 					</enabled>
 				</activation>

@@ -85,7 +85,7 @@
     
     <!-- Automatically generate employee number if there is none (note the "initial" flag) -->
     <mapping>
-    	<initial>true</initial>
+    	<strength>weak</strength>
     	<expression>
             <generate>
         		

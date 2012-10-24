@@ -114,7 +114,7 @@
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
 				<outbound>
-				    <initial>true</initial>
+				    <strength>weak</strength>
 				    <source>
 				    	<path>name</path>
 				    </source>

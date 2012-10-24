@@ -3248,7 +3248,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="initial" minOccurs="0" type="xsd:boolean" default="false">
+            <xsd:element name="strength" minOccurs="0" type="tns:MappingStrengthType" default="strong">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -3264,6 +3264,33 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
+    
+    <xsd:simpleType name="MappingStrengthType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="strong">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STRONG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="weak">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEAK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="MappingSourceDeclarationType">
         <xsd:annotation>

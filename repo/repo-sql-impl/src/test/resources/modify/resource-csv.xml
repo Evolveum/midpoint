@@ -133,7 +133,7 @@ object.
                     <access>create</access>
                     <access>read</access>
                     <outbound>
-                        <initial>true</initial>
+                        <strength>weak</strength>
                         <path>$user/name</path>
                     </outbound>
                     <inbound>
@@ -149,7 +149,7 @@ object.
                     <displayName>First name</displayName>
                     <description>Definition of Firstname attribute handling.</description>
                     <outbound>
-                        <initial>true</initial>
+                        <strength>weak</strength>
                         <path>$user/givenName</path>
                     </outbound>
                     <inbound>
@@ -165,7 +165,7 @@ object.
                     <displayName>Last name</displayName>
                     <description>Definition of Lastname attribute handling.</description>
                     <outbound>
-                        <initial>true</initial>
+                        <strength>weak</strength>
                         <path>$user/familyName</path>
                     </outbound>
                     <inbound>
@@ -191,7 +191,7 @@ object.
                         </outbound>
                         <inbound>
                             <source>
-                                <initial>true</initial>
+                                <strength>weak</strength>
                                 <generate/>
                             </source>
                         </inbound>
@@ -204,7 +204,7 @@ object.
                         </outbound>
                         <inbound>
                             <source>
-				<initial>true</initial>
+				<strength>weak</strength>
                                 <asIs/>
                             </source>
                         </inbound>

@@ -223,15 +223,14 @@ public class InboundProcessor {
 		return null;
 	}
 
-	private boolean checkInitialSkip(Mapping<?> inbound, PrismObject<UserType> newUser) throws SchemaException {
-        if (!inbound.isInitial()) {
+	private boolean checkWeakSkip(Mapping<?> inbound, PrismObject<UserType> newUser) throws SchemaException {
+        if (inbound.getStrength() == MappingStrengthType.STRONG) {
         	return false;
         }
         PrismProperty<?> property = newUser.findProperty(inbound.getOutputPath());
         if (property != null && !property.isEmpty()) {
             return true;
         }
-
         return false;
     }
     
@@ -257,7 +256,7 @@ public class InboundProcessor {
 		mapping.setOriginType(OriginType.INBOUND);
 		mapping.setOriginObject(resource);
     	
-    	if (checkInitialSkip(mapping, newUser)) {
+    	if (checkWeakSkip(mapping, newUser)) {
             LOGGER.trace("Skipping because of initial flag.");
             return null;
         }
@@ -403,7 +402,7 @@ public class InboundProcessor {
         		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
 
         PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
-        if (mapping.isInitial() && !property.isEmpty()) {
+        if (mapping.getStrength() == MappingStrengthType.WEAK && !property.isEmpty()) {
             //inbound will be constructed only if initial == false or initial == true and value doesn't exist
             return;
         }

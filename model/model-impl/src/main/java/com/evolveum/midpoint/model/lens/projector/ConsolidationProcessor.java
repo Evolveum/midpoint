@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -198,7 +199,7 @@ public class ConsolidationProcessor {
                 if (!pvwosToAdd.isEmpty()) {
                     for (PropertyValueWithOrigin pvwoToAdd : pvwosToAdd) {
                         Mapping<?> vc = pvwoToAdd.getMapping();
-                        if (!vc.isInitial()) {
+                        if (vc.getStrength() == MappingStrengthType.STRONG) {
                             initialOnly = false;
                         }
                         if (vc.isExclusive()) {

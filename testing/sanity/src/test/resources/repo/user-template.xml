@@ -36,7 +36,7 @@
              This specific definition sets a full name as a concatenation
 	         of givenName and familyName. -->
 		<mapping>
-			<initial>true</initial>
+			<strength>weak</strength>
 			<source>
 				<path>$user/givenName</path>
 			</source>

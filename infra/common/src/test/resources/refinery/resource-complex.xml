@@ -214,7 +214,7 @@
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-				    <initial>true</initial>
+				    <strength>weak</strength>
 					<expression>
 						<code>
 							concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
@@ -306,7 +306,7 @@
 			<attribute>
 				<ref>ri:description</ref>
 				<outbound>
-					<initial>true</initial>
+					<strength>weak</strength>
 					<value>Created by IDM</value>
 				</outbound>
 				<inbound>

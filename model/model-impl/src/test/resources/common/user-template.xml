@@ -26,7 +26,7 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'>
     <name>Default User Template</name>
     <mapping>
-    	<initial>true</initial>
+    	<strength>weak</strength>
     	<source>
     		<path>$user/givenName</path>
     	</source>
