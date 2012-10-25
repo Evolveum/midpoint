@@ -194,7 +194,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 		List<String> oldValues = new ArrayList<String>();
 		List<String> newValues = new ArrayList<String>();
 
-		if (!accountsBeforeModify.isEmpty()) {
+		if (!accountsBeforeModify.isEmpty() && oldAccountObject != null) {
 			for (PrismObject accountInSession : accountsBeforeModify) {
 				if (accountInSession.getOid() == null) {
 					continue;
