@@ -84,7 +84,7 @@ public class Projector {
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		LensUtil.traceContext(LOGGER, activityDescription, "projector start", context, false);
+		LensUtil.traceContext(LOGGER, activityDescription, "projector start", false, context, false);
 		
 		if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
@@ -116,12 +116,12 @@ public class Projector {
 		        inboundProcessor.processInbound(context, result);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        context.recomputeFocus();
-		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", context, false);
+		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
 		        userPolicyProcessor.processUserPolicy(context, result);
 		        context.recomputeFocus();
-		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", context, false);
+		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", false, context, false);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        
 		        checkContextSanity(context, "inbound and user policy", result);
@@ -131,7 +131,7 @@ public class Projector {
 		        context.recompute();
 		        sortAccountsToWaves(context);
 		        maxWaves = context.getMaxWave() + 2;
-		        LensUtil.traceContext(LOGGER, activityDescription,"assignments", context, true);
+		        LensUtil.traceContext(LOGGER, activityDescription,"assignments", false, context, true);
 		        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
@@ -164,12 +164,12 @@ public class Projector {
 		        	activationProcessor.processActivation(context, projectionContext, result);
 			        
 		        	context.recompute();
-		        	LensUtil.traceContext(LOGGER, activityDescription, "values, credentials and activation", context, false);
+		        	LensUtil.traceContext(LOGGER, activityDescription, "values, credentials and activation", false, context, false);
 			        if (CONSISTENCY_CHECKS) context.checkConsistence();
 			
 			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
 			        context.recompute();
-			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation", context, false);
+			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation", false, context, false);
 			        if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        }
 		        

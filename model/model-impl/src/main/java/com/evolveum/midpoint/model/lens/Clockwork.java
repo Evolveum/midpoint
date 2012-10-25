@@ -117,7 +117,7 @@ public class Clockwork {
 			projector.project(context, "projection", result);
 		}
 		
-		LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", context, false);
+		LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", true, context, false);
 		
 //		LOGGER.info("CLOCKWORK: {}: {}", state, context);
 		
@@ -233,7 +233,7 @@ public class Clockwork {
 		// Force recompute for next wave
 		context.rot();
 		
-		LensUtil.traceContext(LOGGER, "clockwork", context.getState() + " change execution", context, false);
+		LensUtil.traceContext(LOGGER, "clockwork", context.getState() + " change execution", false, context, false);
 	}
 
 }

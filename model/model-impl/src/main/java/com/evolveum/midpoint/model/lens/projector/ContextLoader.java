@@ -146,7 +146,7 @@ public class ContextLoader {
         checkProjectionContexts(context, result);
         context.recompute();
         
-        LensUtil.traceContext(LOGGER, activityDescription, "load", context, false);
+        LensUtil.traceContext(LOGGER, activityDescription, "load", false, context, false);
 
 	}
 	
