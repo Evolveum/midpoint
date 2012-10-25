@@ -41,17 +41,15 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -60,6 +58,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 
@@ -100,11 +99,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
+
+        initPanelLayout();
     }
 
     @Override
-    protected void initLayout() {
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.renderCSSReference(new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css"));
+    }
+
+    private void initPanelLayout() {
     	final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER);
+        headerPanel.add(new AttributeAppender("class", createHeaderClassModel(getModel()), " "));
     	headerPanel.setOutputMarkupId(true);
     	add(headerPanel);
     	
@@ -147,17 +155,23 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             @Override
             public boolean isVisible() {
                 AssignmentEditorDto editorDto = AssignmentEditorPanel.this.getModel().getObject();
-                if(editorDto.isMinimized()) {
-                	headerPanel.add(new AttributeModifier("class", "assignmentHeader"));
-                } else {
-                	headerPanel.add(new AttributeModifier("class", "assignmentHeader selectedAssignment"));
-                }
                 return !editorDto.isMinimized();
             }
         });
         main.add(body);
 
         initBodyLayout(body);
+    }
+
+    private IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                AssignmentEditorDto dto = model.getObject();
+                return dto.getStatus().name().toLowerCase();
+            }
+        };
     }
 
     private IModel<String> createActivationModel() {

@@ -205,12 +205,17 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
     @Override
     public int compareTo(AssignmentEditorDto other) {
+        Validate.notNull(other, "Can't compare assignment editor dto with null.");
+
         int value = getIndexOfType(getType()) - getIndexOfType(other.getType());
         if (value != 0) {
             return value;
         }
 
-        return String.CASE_INSENSITIVE_ORDER.compare(getName(), other.getName());
+        String name1 = getName() != null ? getName() : "";
+        String name2 = other.getName() != null ? other.getName() : "";
+
+        return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
     }
 
     private int getIndexOfType(AssignmentEditorDtoType type) {
