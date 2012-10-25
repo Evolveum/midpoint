@@ -1178,7 +1178,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		PrismObject<AccountShadowType> modifiedAccount = provisioningService.getObject(
 				AccountShadowType.class, referenceList.get(0).getOid(), null, parentResult);
 		assertNotNull(modifiedAccount);
-		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=guybrush,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
+		PrismAsserts.assertEqualsPolyString("Wrong shadw name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
 		ResourceAttributeContainer attributeContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(modifiedAccount);
 		assertAttribute(modifiedAccount.asObjectable(),
@@ -1196,7 +1196,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test018CgetObjectNotFoundAssignedAccount() throws Exception {
-		displayTestTile("test018BmodifyObjectNotFoundAssignedAccount");
+		displayTestTile("test018CgetObjectNotFoundAssignedAccount");
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult(

@@ -28,6 +28,7 @@
         <name>hbarbossa</name>
         <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
         <objectClass>ri:AccountObjectClass</objectClass>
+        <dead>false</dead>
         <attributes>
             <icfs:uid>8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
             <icfs:name>uid=hbarbossa,ou=people,dc=example,dc=com</icfs:name>

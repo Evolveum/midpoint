@@ -388,7 +388,7 @@ public class ShadowCache {
 		}
 	}
 
-	public void modifyShadow(ObjectType objectType, ResourceType resource, String oid,
+	public String modifyShadow(ObjectType objectType, ResourceType resource, String oid,
 			Collection<? extends ItemDelta> modifications, boolean isReconciled, ProvisioningScriptsType scripts,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException {
@@ -426,15 +426,19 @@ public class ShadowCache {
 				parentResult.muteLastSubresultError();
 				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
 				try {
-					handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
-					
+					shadow = handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
+					LOGGER.trace("Original shadow oid (before compensating) {}, after compensating {}", oid, shadow.getOid());
+					parentResult.computeStatus();
+//					if (!oid.equals(shadow.getOid())){
+//						LOGGER.trace("Changed original oid to {}", shadow.getOid());
+//						return shadow.getOid();
+//					}
 //					modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.DOWN, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError("While compensating communication problem for modify operation got: "+ ex.getMessage(), ex);
 					throw new SystemException(e);
 				}
-				parentResult.computeStatus();
-				return;
+				return shadow.getOid();
 
 			}
 
@@ -471,7 +475,9 @@ public class ShadowCache {
 //				throw new SystemException(e);
 //			}
 			parentResult.recordSuccess();
+			return oid;
 		}
+		return oid;
 	}
 
 	private Collection<? extends ItemDelta> getShadowChanges(Collection<? extends ItemDelta> objectChange)

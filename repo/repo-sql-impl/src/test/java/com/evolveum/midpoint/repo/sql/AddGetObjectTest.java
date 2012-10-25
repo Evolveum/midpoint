@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -181,6 +182,14 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
 				count += delta.getModifications().size();
 				if (delta.getModifications().size() > 0) {
+					if (delta.getModifications().size() == 1){
+						ItemDelta d = (ItemDelta) delta.getModifications().iterator().next();
+						
+						if (AccountShadowType.F_DEAD.equals(d.getName())){
+							count -= delta.getModifications().size();
+							continue;
+						}
+					}
 					LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[] { (i + 1),
 							delta.getModifications().size(), newObject.toString(), delta.debugDump(3) });
 					LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));

@@ -419,7 +419,10 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-            modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), result);
+            String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), result);
+            if (!oid.equals(change.getOid())){
+            	change.setOid(oid);
+            }
         } else {
             cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         }
@@ -480,12 +483,13 @@ public class ChangeExecutor {
         }
     }
 
-    private void modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
+    private String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
             Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException {
 
         try {
             // TODO: scripts
-            provisioning.modifyObject(objectTypeClass, oid, modifications, null, result);
+            String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, null, result);
+            return changedOid;
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {

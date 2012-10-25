@@ -292,7 +292,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ProvisioningScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
 			CommunicationException, ConfigurationException, SecurityViolationException;
 

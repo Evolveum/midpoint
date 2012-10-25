@@ -64,6 +64,8 @@ public class RResourceObjectShadow extends RObject {
     private RObjectReference resourceRef;
     private String objectChange;
     private Integer attemptNumber;
+    @QueryAttribute
+    private boolean dead;
     private RFailedOperationTypeType failedOperationType;
     private String intent;
     @QueryAttribute(enumerated=true)
@@ -199,6 +201,14 @@ public class RResourceObjectShadow extends RObject {
 		this.synchronizationSituation = synchronizationSituation;
 	}
     
+    public boolean isDead() {
+		return dead;
+	}
+    
+    public void setDead(boolean dead) {
+		this.dead = dead;
+	}
+    
     public void setSynchronizationSituationDescription(
 			Set<RSynchronizationSituationDescription> synchronizationSituationDescription) {
 		this.synchronizationSituationDescription = synchronizationSituationDescription;
@@ -272,6 +282,8 @@ public class RResourceObjectShadow extends RObject {
         	jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSyncType());
         }
         
+        	jaxb.setDead(repo.isDead());
+       
         jaxb.getSynchronizationSituationDescription().addAll(RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription()));
 
         try {
@@ -314,6 +326,9 @@ public class RResourceObjectShadow extends RObject {
         repo.setSynchronizationSituationDescription(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
         repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
         repo.setAttemptNumber(jaxb.getAttemptNumber());
+        if (jaxb.isDead() != null){
+        repo.setDead(jaxb.isDead());
+        }
         repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));
 
         if (jaxb.getResource() != null) {

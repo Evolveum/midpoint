@@ -36,7 +36,9 @@ import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -168,7 +170,8 @@ public class ShadowConstraintsChecker {
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues)));
+						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
+						EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_DEAD, false)));
 		
 		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
@@ -177,19 +180,22 @@ public class ShadowConstraintsChecker {
 			return true;
 		}
 		if (foundObjects.size() > 1) {
+			LOGGER.trace("Found more than one object with attribute "+identifier.getHumanReadableDump());
 			message("Found more than one object with attribute "+identifier.getHumanReadableDump());
 			return false;
-		}
-		
-		PrismProperty<Boolean> isDead = foundObjects.get(0).findProperty(AccountShadowType.F_DEAD);
-		if (isDead != null && !isDead.isEmpty() && isDead.getRealValue() != null && isDead.getRealValue() == true){
-			message("Found matching accounts, but one of them is signed as dead, ignoring this match.");
-			return true;
-		}
-		
+		} 
+//		PrismProperty<Boolean> isDead = foundObjects.get(0).findProperty(AccountShadowType.F_DEAD);
+//		if (isDead != null && !isDead.isEmpty() && isDead.getRealValue() != null && isDead.getRealValue() == true){
+//			LOGGER.trace("Found matching accounts, but one of them is signed as dead, ignoring this match.");
+//			message("Found matching accounts, but one of them is signed as dead, ignoring this match.");
+//			return true;
+//		}
+//		
 		LOGGER.trace("Comparing {} and {}", foundObjects.get(0).getOid(), oid);
 		boolean match = foundObjects.get(0).getOid().equals(oid);
 		if (!match) {
+			LOGGER.trace("Found conflicting existing object with attribute " + identifier.getHumanReadableDump() + ": "
+					+ foundObjects.get(0));
 			message("Found conflicting existing object with attribute " + identifier.getHumanReadableDump() + ": "
 					+ foundObjects.get(0));
 
@@ -198,6 +204,7 @@ public class ShadowConstraintsChecker {
 			if (foundContext != null) {
 				if (foundContext.getResourceShadowDiscriminator() != null) {
 					match = foundContext.getResourceShadowDiscriminator().isThombstone();
+					LOGGER.trace("Comparing with account in other context resulted to {}", match);
 				}
 			}
 		}

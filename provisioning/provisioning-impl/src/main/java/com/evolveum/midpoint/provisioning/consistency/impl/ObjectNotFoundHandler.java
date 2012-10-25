@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.provisioning.consistency.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,9 +15,11 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -126,6 +129,9 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 					shadowModifications.getModification(), shadow.asPrismObject().getDefinition());
 			
 			shadow.setDead(true);
+			Collection<PropertyDelta> deadDeltas = new ArrayList<PropertyDelta>();
+			deadDeltas.add(PropertyDelta.createModificationReplaceProperty(AccountShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true));
+			cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deadDeltas, result);
 			
 			ResourceObjectShadowChangeDescription change = createResourceObjectShadowChangeDescription(shadow,
 					result);
@@ -162,7 +168,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 						"Account was deleted by discovery. Modification were not applied.");
 			}
 		
-				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
+//				LOGGER.trace("Shadow was probably unlinked from the user, so the discovery decided that the account should not exist. Deleting also unused shadow from the repo.");
 				try {
 					cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
 				} catch (ObjectNotFoundException e) {
@@ -173,6 +179,10 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 
 				}
 				result.computeStatus();
+				if (oid != null){
+					shadowModifications.setOid(oid);
+					shadow.setOid(oid);
+				}
 			return shadow;
 		case GET:
 			OperationResult handleGetErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));

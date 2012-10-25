@@ -725,7 +725,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+	public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -770,7 +770,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			
 			// calling shadow cache to modify object
-			getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
+			oid = getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
 					result);
 			result.computeStatus();
 
@@ -799,6 +799,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		LOGGER.trace("Finished modifying of object with oid {}", oid);
+		return oid;
 	}
 
 	@Override
