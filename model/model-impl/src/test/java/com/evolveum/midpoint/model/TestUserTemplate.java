@@ -121,9 +121,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 	}
 		
 	@Test
-    public void test100ModifyUserGivenName() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test100ModifyUserGivenName() throws Exception {
         displayTestTile(this, "test100ModifyUserGivenName");
 
         // GIVEN
@@ -144,15 +142,14 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedNoRole(userJack);
+        assertAssignments(userJack, 1);
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
 	}
 	
 	@Test
-    public void test101ModifyUserEmployeeType() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test101ModifyUserEmployeeType() throws Exception {
         displayTestTile(this, "test101ModifyUserEmployeeType");
 
         // GIVEN
@@ -175,11 +172,40 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
         
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 2);
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
         
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", GenerateExpressionEvaluator.DEFAULT_LENGTH, userJackType.getEmployeeNumber().length());
+	}
+	
+	@Test
+    public void test900DeleteUser() throws Exception {
+        displayTestTile(this, "test900DeleteUser");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test900DeleteUser");
+        OperationResult result = task.getResult();
+    
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class,
+        		USER_JACK_OID, prismContext);
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		try {
+			PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+			display("User after", userJack);
+			assert false : "User was not deleted: "+userJack;
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+
+		// TODO: check on resource
 	}
 	
 }

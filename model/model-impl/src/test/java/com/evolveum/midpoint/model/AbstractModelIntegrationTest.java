@@ -920,6 +920,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertTrue(user + " does have orgs "+user.asObjectable().getParentOrgRef()+" while not expecting them", user.asObjectable().getParentOrgRef().isEmpty());
 	}
 
+	protected void assertAssignments(PrismObject<UserType> user, int expectedNumber) {
+		UserType userType = user.asObjectable();
+		assertEquals("Unexepected number of assignments in "+user, expectedNumber, userType.getAssignment().size());
+	}
+	
 	protected void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
 		UserType userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {

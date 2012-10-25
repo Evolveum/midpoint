@@ -112,6 +112,11 @@ public class UserPolicyProcessor {
     		return;
     	}
     	
+    	ObjectDelta<F> focusDelta = focusContext.getDelta();
+    	if (focusDelta != null && focusDelta.isDelete()) {
+    		return;
+    	}
+    	
 		LensContext<UserType, AccountShadowType> usContext = (LensContext<UserType, AccountShadowType>) context;
     	//check user password if satisfies policies
 		
@@ -172,17 +177,14 @@ public class UserPolicyProcessor {
 		ItemDefinition outputDefinition = mapping.getOutputDefinition();
 		PropertyPath itemPath = mapping.getOutputPath();
 		
-		PrismProperty<?> existingUserProperty = userOdo.getNewObject().findProperty(itemPath);
-		if (existingUserProperty != null && !existingUserProperty.isEmpty() 
+		Item<V> existingUserItem = (Item<V>) userOdo.getNewObject().findItem(itemPath);
+		if (existingUserItem != null && !existingUserItem.isEmpty() 
 				&& mapping.getStrength() == MappingStrengthType.WEAK) {
 			// This valueConstruction only applies if the property does not have a value yet.
 			// ... but it does
 			return null;
 		}
 
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-		// TODO: more variables?
-		
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private PropertyPath outputPath;
 			private ItemDefinition outputDefinition;
@@ -219,7 +221,7 @@ public class UserPolicyProcessor {
 			Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
 			if (outputDefinition.isMultiValue()) {
 				for (V value: nonNegativeValues) {
-					if (!hasValue(existingUserProperty, value)) {
+					if (!hasValue(existingUserItem, value)) {
 						itemDelta.addValueToAdd((V) value.clone());
 					}
 				}
@@ -229,13 +231,13 @@ public class UserPolicyProcessor {
 					throw new SchemaException("Attempt to store "+nonNegativeValues.size()+" values in single-valued user property "+itemPath);
 				}
 				if (nonNegativeValues.size() == 0) {
-					if (existingUserProperty != null && !existingUserProperty.isEmpty()) {
+					if (existingUserItem != null && !existingUserItem.isEmpty()) {
 						// Empty set in replace value will cause the property to remove all existing values.
 						itemDelta.setValuesToReplace(nonNegativeValues);
 					}
 				} else {
-					PrismValue value = nonNegativeValues.iterator().next();
-					if (!hasValue(existingUserProperty, value)) {
+					V value = nonNegativeValues.iterator().next();
+					if (!hasValue(existingUserItem, value)) {
 						itemDelta.setValueToReplace((V) value.clone());
 					}
 				}
@@ -246,12 +248,11 @@ public class UserPolicyProcessor {
 	}
 
 
-	private boolean hasValue(PrismProperty existingUserProperty, PrismValue newValue) {
-		if (existingUserProperty == null) {
+	private <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue) {
+		if (existingUserItem == null) {
 			return false;
 		}
-		// TODO: is this OK? Will it not mess with value meta-data?
-		return existingUserProperty.contains(newValue);
+		return existingUserItem.contains(newValue, true);
 	}
 
 

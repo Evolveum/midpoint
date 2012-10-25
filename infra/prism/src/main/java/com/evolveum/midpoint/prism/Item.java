@@ -300,7 +300,16 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 	}
     
     public boolean contains(V value) {
-    	return getValues().contains(value);
+    	return contains(value, false);
+    }
+    
+    public boolean contains(V value, boolean ignoreMetadata) {
+    	for (V myValue: getValues()) {
+    		if (myValue.equals(value, ignoreMetadata)) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
     
     public boolean containsRealValue(V value) {
