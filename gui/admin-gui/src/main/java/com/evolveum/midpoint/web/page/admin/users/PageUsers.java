@@ -21,42 +21,10 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.ResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
-import org.w3c.dom.Document;
-
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -65,7 +33,6 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,462 +56,538 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.util.string.StringValue;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public class PageUsers extends PageAdminUsers {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
-	private static final String DOT_CLASS = PageUsers.class.getName() + ".";
-	private static final String OPERATION_DELETE_USERS = DOT_CLASS + "deleteUsers";
-	private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
-	private static final String OPERATION_DISABLE_USERS = DOT_CLASS + "disableUsers";
-	private static final String OPERATION_DISABLE_USER = DOT_CLASS + "disableUser";
-	private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
-	private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
-	private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
-	private LoadableModel<UsersDto> model;
+    public static final IPageParametersEncoder ENCODER = new PageUsersEncoder();
+    public static final String PARAM_SEARCH_TEXT = "searchText";
+    public static final String PARAM_NAME = "name";
+    public static final String PARAM_FULL_NAME = "fullName";
+    public static final String PARAM_GIVEN_NAME = "givenName";
+    public static final String PARAM_FAMILY_NAME = "familyName";
+    public static final String PARAM_FROM = "from";
 
-	public PageUsers() {
-		model = new LoadableModel<UsersDto>(false) {
+    private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
+    private static final String DOT_CLASS = PageUsers.class.getName() + ".";
+    private static final String OPERATION_DELETE_USERS = DOT_CLASS + "deleteUsers";
+    private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
+    private static final String OPERATION_DISABLE_USERS = DOT_CLASS + "disableUsers";
+    private static final String OPERATION_DISABLE_USER = DOT_CLASS + "disableUser";
+    private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
+    private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
+    private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
+    private LoadableModel<UsersDto> model;
 
-			@Override
-			protected UsersDto load() {
-				return new UsersDto();
-			}
-		};
-		initLayout();
-	}
+    public PageUsers() {
+        this(null);
+    }
 
-	private void initLayout() {
-		Form mainForm = new Form("mainForm");
-		add(mainForm);
+    public PageUsers(final PageParameters parameters) {
+        model = new LoadableModel<UsersDto>(false) {
 
-		OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"),
-				getPage(), false);
-		option.setOutputMarkupId(true);
-		mainForm.add(option);
+            @Override
+            protected UsersDto load() {
+                //todo improve page parameters loading, generalise this so it can be used on other pages
+                PageParameters params = parameters != null ? parameters : PageUsers.this.getPageParameters();
+                if (params == null) {
+                    return new UsersDto();
+                }
 
-		OptionItem item = new OptionItem("search", createStringResource("pageUsers.search"));
-		option.getBodyContainer().add(item);
-		initSearch(item);
+                UsersDto dto = new UsersDto();
+                dto.setSearchText(getPageParamString(params, PARAM_SEARCH_TEXT));
+                dto.setName(getPageParamBoolean(params, PARAM_NAME, true));
+                dto.setFamilyName(getPageParamBoolean(params, PARAM_FAMILY_NAME));
+                dto.setGivenName(getPageParamBoolean(params, PARAM_GIVEN_NAME));
+                dto.setFullName(getPageParamBoolean(params, PARAM_FULL_NAME));
+                dto.setPageFrom(getPageParamInt(params, PARAM_FROM));
 
-		OptionContent content = new OptionContent("optionContent");
-		mainForm.add(content);
-		initTable(content);
+                return dto;
+            }
+        };
+        initLayout();
+    }
 
-		add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
-				createStringResource("pageUsers.dialog.title.confirmDelete"), createDeleteConfirmString()) {
+    private int getPageParamInt(PageParameters params, String name) {
+        StringValue value = params.get(name);
+        return value != null ? value.toInt(0) : 0;
+    }
 
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				close(target);
-				deleteConfirmedPerformed(target);
-			}
-		});
+    private boolean getPageParamBoolean(PageParameters params, String name) {
+        return getPageParamBoolean(params, name, false);
+    }
 
-		initButtons(mainForm);
-	}
+    private boolean getPageParamBoolean(PageParameters params, String name, boolean def) {
+        StringValue value = params.get(name);
+        return value != null ? value.toBoolean(def) : def;
+    }
 
-	private void initButtons(Form mainForm) {
-		AjaxSubmitLinkButton enable = new AjaxSubmitLinkButton("enable",
-				createStringResource("pageUsers.button.enable")) {
+    private String getPageParamString(PageParameters params, String name) {
+        StringValue value = params.get(name);
+        return value != null ? value.toString(null) : null;
+    }
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				enablePerformed(target);
-			}
+    private void initLayout() {
+        Form mainForm = new Form("mainForm");
+        add(mainForm);
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		mainForm.add(enable);
+        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"),
+                getPage(), false);
+        option.setOutputMarkupId(true);
+        mainForm.add(option);
 
-		AjaxSubmitLinkButton disable = new AjaxSubmitLinkButton("disable",
-				createStringResource("pageUsers.button.disable")) {
+        OptionItem item = new OptionItem("search", createStringResource("pageUsers.search"));
+        option.getBodyContainer().add(item);
+        initSearch(item);
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				disablePerformed(target);
-			}
+        OptionContent content = new OptionContent("optionContent");
+        mainForm.add(content);
+        initTable(content);
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		mainForm.add(disable);
+        add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
+                createStringResource("pageUsers.dialog.title.confirmDelete"), createDeleteConfirmString()) {
 
-		AjaxSubmitLinkButton delete = new AjaxSubmitLinkButton("delete", ButtonType.NEGATIVE,
-				createStringResource("pageUsers.button.delete")) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+                deleteConfirmedPerformed(target);
+            }
+        });
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				deletePerformed(target);
-			}
+        initButtons(mainForm);
+    }
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		mainForm.add(delete);
-	}
+    private void initButtons(Form mainForm) {
+        AjaxSubmitLinkButton enable = new AjaxSubmitLinkButton("enable",
+                createStringResource("pageUsers.button.enable")) {
 
-	private IModel<String> createDeleteConfirmString() {
-		return new AbstractReadOnlyModel<String>() {
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                enablePerformed(target);
+            }
 
-			@Override
-			public String getObject() {
-				return createStringResource("pageUsers.message.deleteUserConfirm",
-						WebMiscUtil.getSelectedData(getTable()).size()).getString();
-			}
-		};
-	}
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(enable);
 
-	private List<IColumn<SelectableBean<UserType>>> initColumns() {
-		List<IColumn<SelectableBean<UserType>>> columns = new ArrayList<IColumn<SelectableBean<UserType>>>();
+        AjaxSubmitLinkButton disable = new AjaxSubmitLinkButton("disable",
+                createStringResource("pageUsers.button.disable")) {
 
-		IColumn column = new CheckBoxHeaderColumn<UserType>();
-		columns.add(column);
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                disablePerformed(target);
+            }
 
-		columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("pageUsers.type")) {
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(disable);
 
-			@Override
-			protected IModel<ResourceReference> createIconModel(
-					final IModel<SelectableBean<UserType>> rowModel) {
-				return new AbstractReadOnlyModel<ResourceReference>() {
+        AjaxSubmitLinkButton delete = new AjaxSubmitLinkButton("delete", ButtonType.NEGATIVE,
+                createStringResource("pageUsers.button.delete")) {
 
-					@Override
-					public ResourceReference getObject() {
-						UserType user = rowModel.getObject().getValue();
-						CredentialsType credentials = user.getCredentials();
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                deletePerformed(target);
+            }
 
-						if (credentials != null) {
-							Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
-							if (allowedAdmin != null && allowedAdmin) {
-								return new SharedResourceReference(ImgResources.class, "user_red.png");
-							}
-						}
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        mainForm.add(delete);
+    }
 
-						return new SharedResourceReference(ImgResources.class, "user.png");
-					}
-				};
-			}
-		});
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
 
-		column = new LinkColumn<SelectableBean<UserType>>(createStringResource("pageUsers.name"), "name",
-				"value.name") {
+            @Override
+            public String getObject() {
+                return createStringResource("pageUsers.message.deleteUserConfirm",
+                        WebMiscUtil.getSelectedData(getTable()).size()).getString();
+            }
+        };
+    }
 
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
-				UserType user = rowModel.getObject().getValue();
-				userDetailsPerformed(target, user.getOid());
-			}
-		};
-		columns.add(column);
+    private List<IColumn<SelectableBean<UserType>>> initColumns() {
+        List<IColumn<SelectableBean<UserType>>> columns = new ArrayList<IColumn<SelectableBean<UserType>>>();
 
-		column = new PropertyColumn(createStringResource("pageUsers.givenName"), "givenName",
-				"value.givenName");
-		columns.add(column);
+        IColumn column = new CheckBoxHeaderColumn<UserType>();
+        columns.add(column);
 
-		column = new PropertyColumn(createStringResource("pageUsers.familyName"), "familyName",
-				"value.familyName");
-		columns.add(column);
+        columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("pageUsers.type")) {
 
-		column = new PropertyColumn(createStringResource("pageUsers.fullName"), "fullName",
-				"value.fullName.orig");
-		columns.add(column);
+            @Override
+            protected IModel<ResourceReference> createIconModel(
+                    final IModel<SelectableBean<UserType>> rowModel) {
+                return new AbstractReadOnlyModel<ResourceReference>() {
 
-		column = new AbstractColumn<SelectableBean<UserType>>(createStringResource("pageUsers.email")) {
+                    @Override
+                    public ResourceReference getObject() {
+                        UserType user = rowModel.getObject().getValue();
+                        CredentialsType credentials = user.getCredentials();
 
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
-					String componentId, IModel<SelectableBean<UserType>> rowModel) {
+                        if (credentials != null) {
+                            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
+                            if (allowedAdmin != null && allowedAdmin) {
+                                return new SharedResourceReference(ImgResources.class, "user_red.png");
+                            }
+                        }
 
-				String email = rowModel.getObject().getValue().getEmailAddress();
-				cellItem.add(new Label(componentId, new Model<String>(email)));
-			}
-		};
-		columns.add(column);
+                        return new SharedResourceReference(ImgResources.class, "user.png");
+                    }
+                };
+            }
+        });
 
-		return columns;
-	}
+        column = new LinkColumn<SelectableBean<UserType>>(createStringResource("pageUsers.name"), "name",
+                "value.name") {
 
-	private void initTable(OptionContent content) {
-		List<IColumn<SelectableBean<UserType>>> columns = initColumns();
-		TablePanel table = new TablePanel<SelectableBean<UserType>>("table", new ObjectDataProvider(
-				PageUsers.this, UserType.class), columns);
-		table.setOutputMarkupId(true);
-		content.getBodyContainer().add(table);
-	}
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
+                UserType user = rowModel.getObject().getValue();
+                userDetailsPerformed(target, user.getOid());
+            }
+        };
+        columns.add(column);
 
-	private void initSearch(OptionItem item) {
-		TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model,
-				"searchText"));
-		item.add(search);
+        column = new PropertyColumn(createStringResource("pageUsers.givenName"), "givenName",
+                "value.givenName");
+        columns.add(column);
 
-		CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
-		item.add(nameCheck);
-		CheckBox fullNameCheck = new CheckBox("fullNameCheck", new PropertyModel<Boolean>(model, "fullName"));
-		item.add(fullNameCheck);
-		CheckBox givenNameCheck = new CheckBox("givenNameCheck", new PropertyModel<Boolean>(model,
-				"givenName"));
-		item.add(givenNameCheck);
-		CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model,
-				"familyName"));
-		item.add(familyNameCheck);
+        column = new PropertyColumn(createStringResource("pageUsers.familyName"), "familyName",
+                "value.familyName");
+        columns.add(column);
 
-		AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
-				createStringResource("pageUsers.button.clearButton")) {
+        column = new PropertyColumn(createStringResource("pageUsers.fullName"), "fullName",
+                "value.fullName.orig");
+        columns.add(column);
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
+        column = new AbstractColumn<SelectableBean<UserType>>(createStringResource("pageUsers.email")) {
 
-			@Override
-			public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				clearButtonPerformed(target);
-			}
-		};
-		item.add(clearButton);
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
+                                     String componentId, IModel<SelectableBean<UserType>> rowModel) {
 
-		AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
-				createStringResource("pageUsers.button.searchButton")) {
+                String email = rowModel.getObject().getValue().getEmailAddress();
+                cellItem.add(new Label(componentId, new Model<String>(email)));
+            }
+        };
+        columns.add(column);
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
+        return columns;
+    }
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				searchPerformed(target);
-			}
-		};
-		item.add(searchButton);
-	}
+    private void initTable(OptionContent content) {
+        List<IColumn<SelectableBean<UserType>>> columns = initColumns();
 
-	private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
-		PageParameters parameters = new PageParameters();
-		parameters.add(PageUser.PARAM_USER_ID, oid);
-		setResponsePage(PageUser.class, parameters);
-	}
+        ObjectDataProvider<UserType> provider = new ObjectDataProvider(PageUsers.this, UserType.class);
+        provider.setQuery(createQuery());
+        TablePanel table = new TablePanel<SelectableBean<UserType>>("table", provider, columns);
+        table.getDataTable().setCurrentPage(model.getObject().getPageFrom());
+        table.setOutputMarkupId(true);
 
-	private TablePanel getTable() {
-		OptionContent content = (OptionContent) get("mainForm:optionContent");
-		return (TablePanel) content.getBodyContainer().get("table");
-	}
+        content.getBodyContainer().add(table);
+    }
 
-	private void searchPerformed(AjaxRequestTarget target) {
-		ObjectQuery query = createQuery();
-		target.add(getFeedbackPanel());
+    private void initSearch(OptionItem item) {
+        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model,
+                "searchText"));
+        item.add(search);
 
-		TablePanel panel = getTable();
-		DataTable table = panel.getDataTable();
-		ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-		provider.setQuery(query);
+        CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
+        item.add(nameCheck);
+        CheckBox fullNameCheck = new CheckBox("fullNameCheck", new PropertyModel<Boolean>(model, "fullName"));
+        item.add(fullNameCheck);
+        CheckBox givenNameCheck = new CheckBox("givenNameCheck", new PropertyModel<Boolean>(model,
+                "givenName"));
+        item.add(givenNameCheck);
+        CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model,
+                "familyName"));
+        item.add(familyNameCheck);
 
-		table.setCurrentPage(0);
+        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
+                createStringResource("pageUsers.button.clearButton")) {
 
-		target.add(panel);
-	}
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
 
-	private ObjectQuery createQuery() {
-		UsersDto dto = model.getObject();
-		ObjectQuery query = null;
-		if (StringUtils.isEmpty(dto.getSearchText())) {
-			return null;
-		}
+            @Override
+            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                clearButtonPerformed(target);
+            }
+        };
+        item.add(clearButton);
 
-		try {
-			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+                createStringResource("pageUsers.button.searchButton")) {
 
-			PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-			if (normalizer == null){
-				normalizer = new PrismDefaultPolyStringNormalizer();
-			}
-			
-			String normalizedString = normalizer.normalize(dto.getSearchText());
-			
-			if (dto.isName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_NAME, normalizedString));
-			}
-			
-			if (dto.isFamilyName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_FAMILY_NAME, normalizedString));
-			}
-			if (dto.isFullName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_FULL_NAME, normalizedString));
-			}
-			if (dto.isGivenName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_GIVEN_NAME, normalizedString));
-			}
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                searchPerformed(target);
+            }
+        };
+        item.add(searchButton);
+    }
+
+    private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageUser.PARAM_USER_ID, oid);
+        setResponsePage(PageUser.class, parameters);
+    }
+
+    private TablePanel getTable() {
+        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        return (TablePanel) content.getBodyContainer().get("table");
+    }
+
+    private void searchPerformed(AjaxRequestTarget target) {
+        ObjectQuery query = createQuery();
+        target.add(getFeedbackPanel());
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        table.setCurrentPage(model.getObject().getPageFrom());
+
+        target.add(panel);
+    }
+
+    private ObjectQuery createQuery() {
+        UsersDto dto = model.getObject();
+        ObjectQuery query = null;
+        if (StringUtils.isEmpty(dto.getSearchText())) {
+            return null;
+        }
+
+        try {
+            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            if (normalizer == null) {
+                normalizer = new PrismDefaultPolyStringNormalizer();
+            }
+
+            String normalizedString = normalizer.normalize(dto.getSearchText());
+
+            if (dto.isName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
+                        UserType.F_NAME, normalizedString));
+            }
+
+            if (dto.isFamilyName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
+                        UserType.F_FAMILY_NAME, normalizedString));
+            }
+            if (dto.isFullName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
+                        UserType.F_FULL_NAME, normalizedString));
+            }
+            if (dto.isGivenName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
+                        UserType.F_GIVEN_NAME, normalizedString));
+            }
 
             if (filters.size() == 1) {
                 query = ObjectQuery.createObjectQuery(filters.get(0));
             } else if (filters.size() > 1) {
                 query = ObjectQuery.createObjectQuery(OrFilter.createOr(filters));
             }
-		} catch (Exception ex) {
-			error(getString("pageUsers.message.queryError") + " " + ex.getMessage());
-			LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
-		}
+        } catch (Exception ex) {
+            error(getString("pageUsers.message.queryError") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+        }
 
-		return query;
-	}
+        return query;
+    }
 
-	private void clearButtonPerformed(AjaxRequestTarget target) {
-		model.reset();
-		target.appendJavaScript("init()");
-		target.add(get("mainForm:option"));
-		searchPerformed(target);
-	}
+    private void clearButtonPerformed(AjaxRequestTarget target) {
+        model.reset();
+        target.appendJavaScript("init()");
+        target.add(get("mainForm:option"));
+        searchPerformed(target);
+    }
 
-	private boolean isAnythingSelected(List<SelectableBean<UserType>> users, AjaxRequestTarget target) {
-		if (!users.isEmpty()) {
-			return true;
-		}
+    private boolean isAnythingSelected(List<SelectableBean<UserType>> users, AjaxRequestTarget target) {
+        if (!users.isEmpty()) {
+            return true;
+        }
 
-		warn(getString("pageUsers.message.nothingSelected"));
-		target.add(getFeedbackPanel());
-		return false;
-	}
+        warn(getString("pageUsers.message.nothingSelected"));
+        target.add(getFeedbackPanel());
+        return false;
+    }
 
-	private void deletePerformed(AjaxRequestTarget target) {
-		List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
-		if (!isAnythingSelected(users, target)) {
-			return;
-		}
-		// When delete one user -> submit page
-		if (users.size() == 1) {
-			OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
-			SelectableBean<UserType> bean = users.get(0);
+    private void deletePerformed(AjaxRequestTarget target) {
+        List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
+        if (!isAnythingSelected(users, target)) {
+            return;
+        }
+        // When delete one user -> submit page
+        if (users.size() == 1) {
+            OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
+            SelectableBean<UserType> bean = users.get(0);
 
-			UserType user = bean.getValue();
-			ModelContext changes = null;
-			ObjectDelta delta = null;
-			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            UserType user = bean.getValue();
+            ModelContext changes = null;
+            ObjectDelta delta = null;
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
-			try {
-				delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
-				deltas.add(delta);
-				changes = getModelInteractionService().previewChanges(deltas, result);
-			} catch (Exception ex) {
-				result.recordFatalError("Couldn't send user to submit.", ex);
-				LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
-			}
+            try {
+                delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
+                deltas.add(delta);
+                changes = getModelInteractionService().previewChanges(deltas, result);
+            } catch (Exception ex) {
+                result.recordFatalError("Couldn't send user to submit.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+            }
 
-			if (result.isError()) {
-				showResult(result);
-				target.add(getFeedbackPanel());
-			} else {
-				PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, null);
-				setResponsePage(pageSubmit);
-			}
+            if (result.isError()) {
+                showResult(result);
+                target.add(getFeedbackPanel());
+            } else {
+                PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, null);
+                setResponsePage(pageSubmit);
+            }
 
-		} else {
-			ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
-			dialog.show(target);
-		}
+        } else {
+            ModalWindow dialog = (ModalWindow) get(DIALOG_CONFIRM_DELETE);
+            dialog.show(target);
+        }
 
-	}
+    }
 
-	private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-		List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
-		if (!isAnythingSelected(users, target)) {
-			return;
-		}
-		OperationResult result = new OperationResult(OPERATION_DELETE_USERS);
-		for (SelectableBean<UserType> bean : users) {
-			OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
-			try {
-				Task task = createSimpleTask(OPERATION_DELETE_USER);
-				UserType user = bean.getValue();
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
+        List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
+        if (!isAnythingSelected(users, target)) {
+            return;
+        }
+        OperationResult result = new OperationResult(OPERATION_DELETE_USERS);
+        for (SelectableBean<UserType> bean : users) {
+            OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
+            try {
+                Task task = createSimpleTask(OPERATION_DELETE_USER);
+                UserType user = bean.getValue();
 
-				ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
-				delta.setOid(user.getOid());
+                ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
+                delta.setOid(user.getOid());
 
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, subResult);
-				subResult.recordSuccess();
-			} catch (Exception ex) {
-				subResult.recomputeStatus();
-				subResult.recordFatalError("Couldn't delete user.", ex);
-				LoggingUtils.logException(LOGGER, "Couldn't delete user", ex);
-			}
-		}
-		result.recomputeStatus();
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, subResult);
+                subResult.recordSuccess();
+            } catch (Exception ex) {
+                subResult.recomputeStatus();
+                subResult.recordFatalError("Couldn't delete user.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't delete user", ex);
+            }
+        }
+        result.recomputeStatus();
 
-		ObjectDataProvider<UserType> provider = (ObjectDataProvider) getTable().getDataTable()
-				.getDataProvider();
-		provider.clearCache();
+        ObjectDataProvider<UserType> provider = (ObjectDataProvider) getTable().getDataTable()
+                .getDataProvider();
+        provider.clearCache();
 
-		showResult(result);
-		target.add(getFeedbackPanel());
-		target.add(getTable());
-	}
+        showResult(result);
+        target.add(getFeedbackPanel());
+        target.add(getTable());
+    }
 
-	private void enablePerformed(AjaxRequestTarget target) {
-		updateActivationPerformed(target, true);
-	}
+    private void enablePerformed(AjaxRequestTarget target) {
+        updateActivationPerformed(target, true);
+    }
 
-	private void disablePerformed(AjaxRequestTarget target) {
-		updateActivationPerformed(target, false);
-	}
+    private void disablePerformed(AjaxRequestTarget target) {
+        updateActivationPerformed(target, false);
+    }
 
-	private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling) {
-		List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
-		if (!isAnythingSelected(users, target)) {
-			return;
-		}
-		OperationResult result = enabling ? new OperationResult(OPERATION_ENABLE_USERS)
-				: new OperationResult(OPERATION_DISABLE_USERS);
-		for (SelectableBean<UserType> bean : users) {
-			String operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
-			OperationResult subResult = result.createSubresult(operation);
-			try {
-				Task task = createSimpleTask(operation);
-				UserType user = bean.getValue();
-				getPrismContext().adopt(user);
+    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling) {
+        List<SelectableBean<UserType>> users = WebMiscUtil.getSelectedData(getTable());
+        if (!isAnythingSelected(users, target)) {
+            return;
+        }
+        OperationResult result = enabling ? new OperationResult(OPERATION_ENABLE_USERS)
+                : new OperationResult(OPERATION_DISABLE_USERS);
+        for (SelectableBean<UserType> bean : users) {
+            String operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
+            OperationResult subResult = result.createSubresult(operation);
+            try {
+                Task task = createSimpleTask(operation);
+                UserType user = bean.getValue();
+                getPrismContext().adopt(user);
 
 //				PrismObject<UserType> object = user.asPrismObject();
-				PropertyPath path = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+                PropertyPath path = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
 //				PrismProperty property = object.findOrCreateProperty(path);
 //				PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
 //				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,
 //						OriginType.USER_ACTION, null)));
 
-				ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(), path, getPrismContext(), enabling);
+                ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(), path, getPrismContext(), enabling);
 //				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 //				objectDelta.addModification(delta);
 
-				getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), null, task,
-						subResult);
-				subResult.recordSuccess();
-			} catch (Exception ex) {
-				subResult.recomputeStatus();
-				if (enabling) {
-					subResult.recordFatalError("Couldn't enable user.", ex);
-					LoggingUtils.logException(LOGGER, "Couldn't enable user", ex);
-				} else {
-					subResult.recordFatalError("Couldn't disable user.", ex);
-					LoggingUtils.logException(LOGGER, "Couldn't disable user", ex);
-				}
-			}
-		}
-		result.recomputeStatus();
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), null, task,
+                        subResult);
+                subResult.recordSuccess();
+            } catch (Exception ex) {
+                subResult.recomputeStatus();
+                if (enabling) {
+                    subResult.recordFatalError("Couldn't enable user.", ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't enable user", ex);
+                } else {
+                    subResult.recordFatalError("Couldn't disable user.", ex);
+                    LoggingUtils.logException(LOGGER, "Couldn't disable user", ex);
+                }
+            }
+        }
+        result.recomputeStatus();
 
-		showResult(result);
-		target.add(getFeedbackPanel());
-		target.add(getTable());
-	}
+        showResult(result);
+        target.add(getFeedbackPanel());
+        target.add(getTable());
+    }
 
 }
