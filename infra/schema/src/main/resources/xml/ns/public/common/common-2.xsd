@@ -4431,7 +4431,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="approvalSchema" type="c:ApprovalSchema" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 More complex (multi-level) approval schema.
@@ -4453,7 +4453,7 @@
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
 
-    <xsd:complexType name="ApprovalSchema">
+    <xsd:complexType name="ApprovalSchemaType">
         <xsd:annotation>
             <xsd:documentation>
                 Rules for approving something (e.g. assignment of a role to a user).
@@ -4463,7 +4463,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="level" type="c:ApprovalLevel" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="level" type="c:ApprovalLevelType" minOccurs="1" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Levels, or steps, of the approval process.
@@ -4473,7 +4473,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ApprovalLevel">
+    <xsd:complexType name="ApprovalLevelType">
         <xsd:annotation>
             <xsd:documentation>
                 One "level" (or step) in the approval process.
@@ -4491,7 +4491,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="evaluationStrategy" type="c:LevelEvaluationStrategy" minOccurs="0">
+            <xsd:element name="evaluationStrategy" type="c:LevelEvaluationStrategyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Must all approvers at this level approve the thing (allMustApprove),
@@ -4502,7 +4502,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="LevelEvaluationStrategy">
+    <xsd:simpleType name="LevelEvaluationStrategyType">
         <xsd:annotation>
             <xsd:documentation>
                 Enumeration of approval strategies at a particular level.
