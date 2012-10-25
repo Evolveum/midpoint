@@ -22,16 +22,15 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExclusionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -52,8 +51,21 @@ public class RRole extends RObject {
 	private Set<RAssignment> assignments;
 	private Set<RExclusion> exclusions;
 	private Set<RObjectReference> approverRefs;
+    private String approvalProcess;
+    private String approvalSchema;
 
-	@OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Column(nullable = true)
+    public String getApprovalProcess() {
+        return approvalProcess;
+    }
+
+    @Column(nullable = true)
+    @Type(type = "org.hibernate.type.TextType")
+    public String getApprovalSchema() {
+        return approvalSchema;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
 	@ForeignKey(name = "none")
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
 	public Set<RAssignment> getAssignments() {
@@ -104,7 +116,15 @@ public class RRole extends RObject {
 		this.assignments = assignments;
 	}
 
-	@Override
+    public void setApprovalProcess(String approvalProcess) {
+        this.approvalProcess = approvalProcess;
+    }
+
+    public void setApprovalSchema(String approvalSchema) {
+        this.approvalSchema = approvalSchema;
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -123,6 +143,10 @@ public class RRole extends RObject {
 			return false;
 		if (approverRefs != null ? !approverRefs.equals(rRole.approverRefs) : rRole.approverRefs != null)
 			return false;
+        if (approvalProcess != null ? !approvalProcess.equals(rRole.approvalProcess) : rRole.approvalProcess != null)
+            return false;
+        if (approvalSchema != null ? !approvalSchema.equals(rRole.approvalSchema) : rRole.approvalSchema != null)
+            return false;
 
 		return true;
 	}
@@ -131,6 +155,8 @@ public class RRole extends RObject {
 	public int hashCode() {
 		int result = super.hashCode();
 		result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
+        result = 31 * result + (approvalSchema != null ? approvalSchema.hashCode() : 0);
 		return result;
 	}
 
@@ -154,6 +180,14 @@ public class RRole extends RObject {
 				jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
 			}
 		}
+
+        jaxb.setApprovalProcess(repo.getApprovalProcess());
+        try {
+            jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new PropertyPath(RoleType.F_APPROVAL_SCHEMA),
+                    repo.getApprovalSchema(), ApprovalSchemaType.class, prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
 	}
 
 	public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext)
@@ -195,6 +229,13 @@ public class RRole extends RObject {
 				repo.getApproverRefs().add(ref);
 			}
 		}
+
+        repo.setApprovalProcess(jaxb.getApprovalProcess());
+        try {
+            repo.setApprovalSchema(RUtil.toRepo(jaxb.getApprovalSchema(), prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
 	}
 
 	@Override
