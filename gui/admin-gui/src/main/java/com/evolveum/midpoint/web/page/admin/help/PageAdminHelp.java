@@ -37,9 +37,9 @@ public class PageAdminHelp extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminHelp.about", PageAbout.class,
+        items.add(new BottomMenuItem(createStringResource("pageAdminHelp.about"), PageAbout.class,
                 new PageDisabledVisibleBehaviour(this, PageAbout.class)));
-        items.add(new BottomMenuItem("pageAdminHelp.system", PageSystem.class,
+        items.add(new BottomMenuItem(createStringResource("pageAdminHelp.system"), PageSystem.class,
                 new PageDisabledVisibleBehaviour(this, PageSystem.class)));
 
         return items;

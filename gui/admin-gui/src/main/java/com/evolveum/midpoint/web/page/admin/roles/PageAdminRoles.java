@@ -26,6 +26,8 @@ import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -42,33 +44,31 @@ public class PageAdminRoles extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminRoles.listRoles", PageRoles.class));
-        items.add(new BottomMenuItem("pageAdminRoles.newRole", PageRole.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return !isEditingRole();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return !(getPage() instanceof PageRole);
-            }
-        }));
-        items.add(new BottomMenuItem("pageAdminRoles.editRole", PageRole.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isEditingRole();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        }));
+        items.add(new BottomMenuItem(createStringResource("pageAdminRoles.listRoles"), PageRoles.class));
+        items.add(new BottomMenuItem(createRoleLabel(), PageRole.class, createRoleVisibleBehaviour()));
 
         return items;
+    }
+
+    private IModel<String> createRoleLabel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                String key = isEditingRole() ? "pageAdminRoles.editRole" : "pageAdminRoles.newRole";
+                return PageAdminRoles.this.getString(key);
+            }
+        };
+    }
+
+    private VisibleEnableBehaviour createRoleVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return !isEditingRole() && !(getPage() instanceof PageRole);
+            }
+        };
     }
 
     private boolean isEditingRole() {

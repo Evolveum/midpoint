@@ -59,8 +59,8 @@ public class PageAdminResources extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminResources.listResources", PageResources.class));
-        items.add(new BottomMenuItem("pageAdminResources.detailsResource", PageResource.class,
+        items.add(new BottomMenuItem(createStringResource("pageAdminResources.listResources"), PageResources.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
                 new PageVisibleDisabledBehaviour(this, PageResource.class)));
 
 //        items.add(new BottomMenuItem("pageAdminResources.newResource", PageResourceEdit.class,
@@ -85,11 +85,11 @@ public class PageAdminResources extends PageAdmin {
 //            }
 //        }));
 
-        items.add(new BottomMenuItem("pageAdminResources.importResource", PageResourceImport.class,
-                new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
-        items.add(new BottomMenuItem("pageAdminResources.contentAccounts", PageContentAccounts.class,
-                new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
-        items.add(new BottomMenuItem("pageAdminResources.accountDetails", PageAccount.class,
+        items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
+                PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
+        items.add(new BottomMenuItem(createStringResource("pageAdminResources.contentAccounts"),
+                PageContentAccounts.class, new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
+        items.add(new BottomMenuItem(createStringResource("pageAdminResources.accountDetails"), PageAccount.class,
                 new PageVisibleDisabledBehaviour(this, PageAccount.class)));
 
         return items;

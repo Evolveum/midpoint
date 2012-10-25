@@ -23,10 +23,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +39,11 @@ public class PageAdminWorkItems extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminWorkItems.listWorkItems", PageWorkItems.class));
-        items.add(new BottomMenuItem("pageAdminWorkItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class));
-        items.add(new BottomMenuItem("pageAdminWorkItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listWorkItems"), PageWorkItems.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedBy"),
+                PageProcessInstancesRequestedBy.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedFor"),
+                PageProcessInstancesRequestedFor.class));
         return items;
     }
 

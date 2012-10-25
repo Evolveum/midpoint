@@ -41,8 +41,8 @@ public class PageAdminConfiguration extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminConfiguration.debugList", PageDebugList.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.debugView", PageDebugView.class,
+        items.add(new BottomMenuItem(createStringResource("pageAdminConfiguration.debugList"), PageDebugList.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminConfiguration.debugView"), PageDebugView.class,
                 new VisibleEnableBehaviour() {
 
                     @Override
@@ -55,8 +55,8 @@ public class PageAdminConfiguration extends PageAdmin {
                         return isEditingObject();
                     }
                 }));
-        items.add(new BottomMenuItem("pageAdminConfiguration.importObject", PageImportObject.class));
-        items.add(new BottomMenuItem("pageAdminConfiguration.logging", PageLogging.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminConfiguration.importObject"), PageImportObject.class));
+        items.add(new BottomMenuItem(createStringResource("pageAdminConfiguration.logging"), PageLogging.class));
 
         return items;
     }

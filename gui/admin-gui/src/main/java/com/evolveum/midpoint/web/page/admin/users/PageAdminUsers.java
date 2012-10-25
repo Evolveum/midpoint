@@ -27,6 +27,8 @@ import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -43,32 +45,34 @@ public class PageAdminUsers extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem("pageAdminUsers.listUsers", PageUsers.class));
-        items.add(new BottomMenuItem("pageAdminUsers.newUser", PageUser.class,
-                new PageDisabledVisibleBehaviour(this, PageUser.class) {
-
-            @Override
-            public boolean isVisible() {
-                return !isEditingUser();
-            }
-        }));
-        items.add(new BottomMenuItem("pageAdminUsers.editUser", PageUser.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isEditingUser();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        }));
-        items.add(new BottomMenuItem("pageAdminUsers.orgStruct", PageOrgStruct.class,
+        items.add(new BottomMenuItem(createStringResource("pageAdminUsers.listUsers"), PageUsers.class));
+        items.add(new BottomMenuItem(createUserLabel(), PageUser.class, createUserVisibleBehaviour()));
+        items.add(new BottomMenuItem(createStringResource("pageAdminUsers.orgStruct"), PageOrgStruct.class,
                 new PageDisabledVisibleBehaviour(this, PageOrgStruct.class)));
 
         return items;
 
+    }
+
+    private IModel<String> createUserLabel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                String key = isEditingUser() ? "pageAdminUsers.editUser" : "pageAdminUsers.newUser";
+                return PageAdminUsers.this.getString(key);
+            }
+        };
+    }
+
+    private VisibleEnableBehaviour createUserVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return !isEditingUser() && !(getPage() instanceof PageUser);
+            }
+        };
     }
 
     private boolean isEditingUser() {

@@ -78,7 +78,7 @@ public class TopMenu extends Panel {
             protected void populateItem(LoopItem loopItem) {
                 final BottomMenuItem item = TopMenu.this.bottomItems.get(loopItem.getIndex());
                 BookmarkablePageLink<String> link = new BookmarkablePageLink<String>("bottomLink", item.getPage());
-                link.add(new Label("bottomLabel", new StringResourceModel(item.getLabel(), TopMenu.this, null)));
+                link.add(new Label("bottomLabel", item.getLabel()));
 
                 Page page = TopMenu.this.getPage();
                 if (page != null && page.getClass().isAssignableFrom(item.getPage())) {
