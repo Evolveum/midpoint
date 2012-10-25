@@ -90,11 +90,9 @@ public class PageReports extends PageAdminReports {
 	private static final String DOT_CLASS = PageReports.class.getName() + ".";
 	private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
 	private LoadableModel<UserFilterDto> userFilterModel;
-	private ServletContext servletContext;
 	private List listObject;
 
 	public PageReports() {
-		servletContext = ((WebApplication) getApplication()).getServletContext();
 		userFilterModel = new LoadableModel<UserFilterDto>(false) {
 
 			@Override
@@ -263,9 +261,9 @@ public class PageReports extends PageAdminReports {
 		columns.add(column);
 
 		final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream(true) {
+
 			@Override
 			protected byte[] initStream() {
-				
 				return createReport();
 			}
 		};
@@ -370,6 +368,7 @@ public class PageReports extends PageAdminReports {
 		JasperPrint jasperPrint = null;
 
 		try {
+            ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
 			// Loading template
 			design = JRXmlLoader.load(servletContext.getRealPath("/reports/Report.jrxml"));
 			report = JasperCompileManager.compileReport(design);
