@@ -127,12 +127,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      * Only works for UserType now.
+     * 
+     * This is relative to execution wave to avoid re-processing of already executed assignments.
      */
-    public ContainerDelta<AssignmentType> getAssignmentDelta() throws SchemaException {
+    public ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta() throws SchemaException {
     	if (getObjectTypeClass() != UserType.class) {
     		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
     	}
-        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getDelta();
+        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getWaveDelta(getLensContext().getExecutionWave());
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }

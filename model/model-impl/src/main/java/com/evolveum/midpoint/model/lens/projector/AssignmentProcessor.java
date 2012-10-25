@@ -159,7 +159,7 @@ public class AssignmentProcessor {
             }
         }
 
-        ContainerDelta<AssignmentType> assignmentDelta = focusContext.getAssignmentDelta();
+        ContainerDelta<AssignmentType> assignmentDelta = focusContext.getExecutionWaveAssignmentDelta();
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 

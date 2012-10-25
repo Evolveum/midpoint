@@ -199,8 +199,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
 	
+	// Largo does not have a full name set, employeeType=PIRATE
 	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
+	
+	// Rapp does not have a full name set, employeeType=COOK
+	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
+	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
@@ -647,14 +652,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName) {
-		assertEquals("Wrong jack OID (prism)", USER_JACK_OID, user.getOid());
+		assertUser(user, USER_JACK_OID, "jack", fullName, givenName, familyName);
 		UserType userType = user.asObjectable();
-		assertEquals("Wrong jack OID (jaxb)", USER_JACK_OID, userType.getOid());
-//		assertEquals("Wrong jack name", "jack", userType.getName());
-		PrismAsserts.assertEqualsPolyString("Wrong jack name", "jack", userType.getName());
-		PrismAsserts.assertEqualsPolyString("Wrong jack fullName", fullName, userType.getFullName());
-		PrismAsserts.assertEqualsPolyString("Wrong jack givenName", givenName, userType.getGivenName());
-		PrismAsserts.assertEqualsPolyString("Wrong jack familyName", familyName, userType.getFamilyName());
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificSuffix", "PhD.", userType.getHonorificSuffix());
 		assertEquals("Wrong jack emailAddress", "jack.sparrow@evolveum.com", userType.getEmailAddress());
@@ -662,6 +661,16 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
 		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
 		PrismAsserts.assertEqualsPolyString("Wrong jack locality", "Caribbean", userType.getLocality());
+	}
+	
+	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
+		assertEquals("Wrong jack OID (prism)", oid, user.getOid());
+		UserType userType = user.asObjectable();
+		assertEquals("Wrong jack OID (jaxb)", oid, userType.getOid());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
+		PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
 	}
 	
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {
