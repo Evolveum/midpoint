@@ -368,6 +368,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.trace("Updating user started.");
 			String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
 			saveExecutedSituationDescription(auditRecord.getTarget(), situation, change, parentResult);
+			if (userOid == null && situation.getSituation() == SynchronizationSituationType.DELETED){
+				LOGGER.trace("Detected DELETE change by synchronization, but the account does not have any owner in the midpoint.");
+				parentResult.recordSuccess();
+				return;
+			}
 			for (Action action : actions) {
 				LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
 

@@ -2402,6 +2402,8 @@ public class TestSanity extends AbstractIntegrationTest {
         UserType user = searchUserByName(WILL_NAME);
 
         PrismAsserts.assertEqualsPolyString("Wrong name.",  WILL_NAME, user.getName());
+        assertNotNull(user.getAccountRef());
+        assertFalse(user.getAccountRef().isEmpty());
 //        AssertJUnit.assertEquals(user.getName(), WILL_NAME);
 
         // TODO: more checks
