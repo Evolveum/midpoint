@@ -442,11 +442,21 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-            	if(deleteSelected){
-            		return createStringResource("pageDebugList.message.deleteSelectedConfirm",
-                            WebMiscUtil.getSelectedData(getListTable()).size()).getString();
-            	}
-            	return createStringResource("pageDebugList.message.deleteObjectConfirm").getString();
+				if (deleteSelected) {
+					List<SelectableBean<ObjectType>> selectedList = WebMiscUtil
+							.getSelectedData(getListTable());
+					if (selectedList.size() > 1) {
+						return createStringResource("pageDebugList.message.deleteSelectedConfirm",
+								selectedList.size()).getString();
+					}
+
+					SelectableBean<ObjectType> selectedItem = selectedList.get(0);
+					return createStringResource("pageDebugList.message.deleteObjectConfirm",
+							selectedItem.getValue().getName()).getString();
+				}
+				
+				return createStringResource("pageDebugList.message.deleteObjectConfirm", object.getName())
+						.getString();
             }
         };
     }
