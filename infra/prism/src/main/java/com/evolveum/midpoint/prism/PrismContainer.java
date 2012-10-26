@@ -491,6 +491,22 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	getValue().remove(item);
     }
     
+    public void removeProperty(QName propertyQName) {
+    	removeItem(new PropertyPath(propertyQName), PrismProperty.class);
+    }
+    
+    public void removeProperty(PropertyPath path) {
+        removeItem(path, PrismProperty.class);
+    }
+    
+    public void removeContainer(QName containerQName) {
+    	removeItem(new PropertyPath(containerQName), PrismContainer.class);
+    }
+    
+    public void removeContainer(PropertyPath path) {
+        removeItem(path, PrismContainer.class);
+    }
+    
     public void removeReference(QName referenceQName) {
     	removeItem(new PropertyPath(referenceQName), PrismReference.class);
     }

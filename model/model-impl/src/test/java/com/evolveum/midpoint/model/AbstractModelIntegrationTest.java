@@ -207,6 +207,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 
+	// Has null name, doesn not have given name, no employeeType
+	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
+	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
+	
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	

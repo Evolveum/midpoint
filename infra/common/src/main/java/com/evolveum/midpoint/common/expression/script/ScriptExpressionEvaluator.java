@@ -210,7 +210,13 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		
 		List<Collection<? extends PrismValue>> valueCollections = new ArrayList<Collection<? extends PrismValue>>(sourceTriples.size());
 		for (SourceTriple<? extends PrismValue> sourceTriple: sourceTriples) {
-			valueCollections.add(sourceTriple.union());
+			Collection<? extends PrismValue> values = sourceTriple.union();
+			if (values.isEmpty()) {
+				// No values for this source. Add null instead. It will make sure that the expression will
+				// evaluate at least once.
+				values.add(null);
+			}
+			valueCollections.add(values);
 		}
 		
 		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<V>();
@@ -237,7 +243,8 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 						hasPlus = true;
 					}
 				}
-				if (!hasPlus && !hasMinus && !hasZero) {
+				if (!hasPlus && !hasMinus && !hasZero && 
+						!(pvalues.size() == 1 && pvalues.iterator().next() == null)) {
 					throw new IllegalStateException("Internal error! The impossible has happened!");
 				}
 				if (hasPlus && hasMinus) {

@@ -243,6 +243,39 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
+    public void test202AddUserMonkey() throws Exception {
+        displayTestTile(this, "test202AddUserMonkey");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test202AddUserMonkey");
+        OperationResult result = task.getResult();
+    
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_THREE_HEADED_MONKEY_FILENAME));
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_THREE_HEADED_MONKEY_OID, null, task, result);
+		display("User after", userAfter);
+//        assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", " Monkey", null, "Monkey");
+        assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", "Three-Headed Monkey", null, "Monkey");
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+                
+        UserType userAfterType = userAfter.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userAfterType.getAccountRef().size());
+        
+        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
+        		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
+	}
+	
+	@Test
     public void test900DeleteUser() throws Exception {
         displayTestTile(this, "test900DeleteUser");
 

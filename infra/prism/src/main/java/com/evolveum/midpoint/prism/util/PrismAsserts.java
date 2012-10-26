@@ -386,6 +386,9 @@ public class PrismAsserts {
 	}
 
 	public static void assertEqualsPolyString(String message, String expectedOrig, PolyStringType actual) {
+		if (expectedOrig == null && actual == null) {
+			return;
+		}
 		assert actual != null : message + ": null value";
 		assert MiscUtil.equals(expectedOrig, actual.getOrig()) : message+"; expected orig "+expectedOrig+ " but was " + actual.getOrig();
 		PolyString expected = new PolyString(expectedOrig);

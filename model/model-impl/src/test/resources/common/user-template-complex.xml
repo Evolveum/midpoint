@@ -42,6 +42,11 @@
     	<target>
     		<path>$user/fullName</path>
     	</target>
+    	<condition>
+     		<script>
+    			<code>givenName != null &amp;&amp; familyName != null</code>
+    		</script>  
+    	</condition>
     </mapping>
     
     <!-- Unconditional automatic assignment of Blue Dummy resource -->

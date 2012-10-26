@@ -33,6 +33,7 @@ import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -605,6 +606,164 @@ public class TestMappingDynamic {
     	// THEN
     	assertNull("Unexpected value in outputTriple", outputTriple);
     }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectTrueGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectTrue("mapping-script-system-variables-condition-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectTrueSourcecontextGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectTrue("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectTrueXPath() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectTrue("mapping-script-system-variables-condition-xpath.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionAddObjectTrue(String filename) throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrue";
+    	
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	user.asObjectable().getEmployeeType().clear();
+    	user.asObjectable().getEmployeeType().add("CAPTAIN");
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Captain jack"));
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalse("mapping-script-system-variables-condition-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseSourcecontextGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalse("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseXPath() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalse("mapping-script-system-variables-condition-xpath.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionAddObjectFalse(String filename) throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalse";
+    	
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	user.asObjectable().getEmployeeType().clear();
+    	user.asObjectable().getEmployeeType().add("SAILOR");
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected output triple: "+outputTriple, outputTriple);
+    }
+
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseNoValGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalseNoVal("mapping-script-system-variables-condition-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseNoValSourcecontextGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalseNoVal("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseNoValXPath() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalseNoVal("mapping-script-system-variables-condition-xpath.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionAddObjectFalseNoVal(String filename) throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoVal";
+    	
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	PrismProperty<String> employeeTypeProperty = user.findProperty(UserType.F_EMPLOYEE_TYPE);
+    	employeeTypeProperty.clear();
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected output triple: "+outputTriple, outputTriple);
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseNoPropertyGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalseNoProperty("mapping-script-system-variables-condition-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseNoPropertySourcecontextGroovy() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalseNoProperty("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
+    }
+    
+    @Test
+    public void testScriptSystemVariablesConditionAddObjectFalseNoPropertyXPath() throws Exception {
+    	testScriptSystemVariablesConditionAddObjectFalseNoProperty("mapping-script-system-variables-condition-xpath.xml");
+    }
+    
+    public void testScriptSystemVariablesConditionAddObjectFalseNoProperty(String filename) throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoProperty";
+    	
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	user.removeProperty(UserType.F_EMPLOYEE_TYPE);
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				filename, 
+    			TEST_NAME, "title", delta);
+		
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected output triple: "+outputTriple, outputTriple);
+    }
+
     
     @Test
     public void testScriptSystemVariablesConditionTrueToTrueGroovy() throws Exception {

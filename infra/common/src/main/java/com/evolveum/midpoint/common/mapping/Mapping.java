@@ -354,10 +354,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		
 		evaluateCondition(result);
 		
-		boolean conditionOutputOld = computeBoolean(conditionOutputTriple.getNonPositiveValues());
+		boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 		boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
 		
-		boolean conditionOutputNew = computeBoolean(conditionOutputTriple.getNonNegativeValues());
+		boolean conditionOutputNew = computeConditionResult(conditionOutputTriple.getNonNegativeValues());
 		boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 		
 		if (!conditionResultOld && !conditionResultNew) {
@@ -372,7 +372,15 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		// TODO: output filter
 	}
 	
-	private boolean computeBoolean(Collection<PrismPropertyValue<Boolean>> booleanPropertyValues) {
+	private boolean computeConditionResult(Collection<PrismPropertyValue<Boolean>> booleanPropertyValues) {
+		if (mappingType.getCondition() == null) {
+			// If condition is not present at all consider it to be true
+			return true;
+		}
+		if (booleanPropertyValues == null || booleanPropertyValues.isEmpty()) {
+			// No value means false
+			return false;
+		}
 		boolean hasFalse = false;
 		for (PrismPropertyValue<Boolean> pval: booleanPropertyValues) {
 			Boolean value = pval.getValue();

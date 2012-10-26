@@ -167,7 +167,10 @@ public class MappingTestEvaluator {
         Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(valueConstructionType, testName);
         
         // Source context: user
-        PrismObject<UserType> userOld = getUserOld();
+        PrismObject<UserType> userOld = null;
+        if (userDelta == null || !userDelta.isAdd()) {
+        	userOld = getUserOld();
+        }
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<UserType>(userOld , userDelta, null);
         userOdo.recompute();
 		mapping.setSourceContext(userOdo);
@@ -186,7 +189,7 @@ public class MappingTestEvaluator {
         return mapping;
     }
 	
-	private PrismObject<UserType> getUserOld() throws SchemaException {
+	protected PrismObject<UserType> getUserOld() throws SchemaException {
 		return PrismTestUtil.parseObject(USER_OLD_FILE);
 	}
 	
