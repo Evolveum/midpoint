@@ -416,7 +416,7 @@ public class ContextLoader {
 						provisioningService.applyDefinition(account, result);
 					}
 					// Create account context from embedded object
-					accountContext = getOrCreateAccountContext(context, account, result);
+					accountContext = createAccountContext(context, account, result);
 					// This is a new account that is to be added. So it should
 					// go to account primary delta
 					ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
@@ -448,7 +448,7 @@ public class ContextLoader {
 								provisioningService.applyDefinition(account, result);
 							}
 							// Create account context from embedded object
-							accountContext = getOrCreateAccountContext(context, account, result);
+							accountContext = createAccountContext(context, account, result);
 							ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
 							accountContext.setPrimaryDelta(accountPrimaryDelta);
 							accountContext.setFullShadow(true);
@@ -601,6 +601,28 @@ public class ContextLoader {
 		String intent = ResourceObjectShadowUtil.getIntent(accountType);
 		LensProjectionContext<AccountShadowType> accountSyncContext = LensUtil.getOrCreateAccountContext(context, resourceOid,
 				intent, provisioningService, prismContext, result);
+		accountSyncContext.setOid(account.getOid());
+		return accountSyncContext;
+	}
+	
+	private LensProjectionContext<AccountShadowType> createAccountContext(LensContext<UserType,AccountShadowType> context,
+			PrismObject<AccountShadowType> account, OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		AccountShadowType accountType = account.asObjectable();
+		String resourceOid = ResourceObjectShadowUtil.getResourceOid(accountType);
+		if (resourceOid == null) {
+			throw new SchemaException("The " + account + " has null resource reference OID");
+		}
+		String intent = ResourceObjectShadowUtil.getIntent(accountType);
+		ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+		String accountIntent = LensUtil.refineAccountType(intent, resource, prismContext);
+		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, accountIntent);
+		LensProjectionContext<AccountShadowType> accountSyncContext = context.findProjectionContext(rsd);
+		if (accountSyncContext != null) {
+			throw new SchemaException("Attempt to add "+account+" to a user that already contains account of type '"+accountIntent+"' on "+resource);
+		}
+		accountSyncContext = context.createProjectionContext(rsd);
+		accountSyncContext.setResource(resource);
 		accountSyncContext.setOid(account.getOid());
 		return accountSyncContext;
 	}

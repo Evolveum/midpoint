@@ -339,6 +339,85 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 
 	@Test
+    public void test108ModifyUserAddAccountAgain() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test108ModifyUserAddAccountAgain");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test108ModifyUserAddAccountAgain");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        
+		try {
+			
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+			
+			// THEN
+			assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
+		} catch (SchemaException e) {
+			// This is expected
+			// THEN
+			String message = e.getMessage();
+			assertMessageContains(message, "already contains account");
+			assertMessageContains(message, "default");
+		}
+		
+	}
+	
+	@Test
+    public void test109ModifyUserAddAccountAgain() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test109ModifyUserAddAccountAgain");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test109ModifyUserAddAccountAgain");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        account.setOid(null);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        
+		try {
+			
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+			
+			// THEN
+			assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
+		} catch (SchemaException e) {
+			// This is expected
+			// THEN
+			String message = e.getMessage();
+			assertMessageContains(message, "already contains account");
+			assertMessageContains(message, "default");
+		}
+		
+	}
+
+	private void assertMessageContains(String message, String string) {
+		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
+	}
+
+	@Test
     public void test110GetUserResolveAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
     		PolicyViolationException, SecurityViolationException {
