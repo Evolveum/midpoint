@@ -774,7 +774,7 @@ public class ShadowConverter {
 		} else {
 			PrismPropertyValue disableValue = getDisableValue(enableDisable);
 			LOGGER.trace("enable attribute delta: {}", disableValue);
-			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
+			enableAttributeDelta.setValueToReplace(disableValue);
 		}
 
 		PropertyModificationOperation attributeChange = new PropertyModificationOperation(
