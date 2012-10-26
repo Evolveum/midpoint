@@ -99,7 +99,6 @@ public abstract class MultiInstanceActivityBehavior extends FlowNodeActivityBeha
    */
   public MultiInstanceActivityBehavior(ActivityImpl activity, AbstractBpmnActivityBehavior innerActivityBehavior) {
     this.activity = activity;
-    System.out.println("************************* MY HACKED VERSION *******************************");
     setInnerActivityBehavior(innerActivityBehavior);
   }
   
