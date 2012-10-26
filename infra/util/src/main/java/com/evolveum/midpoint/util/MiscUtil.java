@@ -226,5 +226,14 @@ public class MiscUtil {
 		}
 		return sb.toString();
 	}
-		
+	
+	public static boolean isAllNull(Collection<?> collection) {
+		for (Object o: collection) {
+			if (o != null) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 }

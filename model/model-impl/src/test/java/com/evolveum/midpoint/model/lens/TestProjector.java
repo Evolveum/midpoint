@@ -707,7 +707,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         // There is an inbound mapping for password that generates it if not present. it is triggered in this case.
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertTrue(userSecondaryDelta.getChangeType() == ChangeType.MODIFY);
-        assertEquals("Unexpected number of modifications in secondary delta", 1, userSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of modifications in user secondary delta", 1, userSecondaryDelta.getModifications().size());
         ItemDelta modification = userSecondaryDelta.getModifications().iterator().next();
         assertEquals("Unexpected modification", PasswordType.F_VALUE, modification.getName());
         PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);

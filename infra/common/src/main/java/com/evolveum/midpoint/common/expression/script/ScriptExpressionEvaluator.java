@@ -224,6 +224,10 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		Processor<Collection<? extends PrismValue>> processor = new Processor<Collection<? extends PrismValue>>() {
 			@Override
 			public void process(Collection<? extends PrismValue> pvalues) {
+				if (MiscUtil.isAllNull(pvalues)) {
+					// The case that all the sources are null. There is no point executing the expression.
+					return;
+				}
 				Map<QName, Object> sourceVariables = new HashMap<QName, Object>();
 				Iterator<SourceTriple<? extends PrismValue>> sourceTriplesIterator = sourceTriples.iterator();
 				boolean hasMinus = false;
