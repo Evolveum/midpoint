@@ -106,7 +106,10 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
 			} else {
 				for (PrismObject account : accountsBeforeModify) {
-					addAccountFromResourceForDelete(new SubmitResourceDto(account, false));
+					if(account.getOid().equals(oldAccountObject.getOid())) {
+						addAccountFromResourceForDelete(new SubmitResourceDto(account, false));
+					}
+					
 				}
 			}
 			return true;
