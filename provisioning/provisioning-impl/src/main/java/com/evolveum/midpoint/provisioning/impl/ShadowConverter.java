@@ -625,7 +625,12 @@ public class ShadowConverter {
 						activationSimulateAttribute.add(getDisableValue(enableDisable));
 					}
 
-					shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES).add(activationSimulateAttribute);
+					PrismContainer attributesContainer =shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
+					if (attributesContainer.findItem(activationSimulateAttribute.getName()) == null){
+						attributesContainer.add(activationSimulateAttribute);
+					} else{
+						attributesContainer.findItem(activationSimulateAttribute.getName()).replace(activationSimulateAttribute.getValue());
+					}
 					shadow.setActivation(null);
 				}
 			}
