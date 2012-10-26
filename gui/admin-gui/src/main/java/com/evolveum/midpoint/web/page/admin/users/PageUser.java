@@ -92,6 +92,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
+    private static final String OPERATION_PREPARE_ACCOUNTS = DOT_CLASS + "getAccountsForSubmit";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
 
@@ -193,6 +194,7 @@ public class PageUser extends PageAdminUsers {
         mainForm.add(userForm);
 
         Accordion accordion = new Accordion(ID_ACCORDION);
+        accordion.setOutputMarkupId(true);
         accordion.setMultipleSelect(true);
         accordion.setExpanded(true);
         mainForm.add(accordion);
@@ -350,6 +352,12 @@ public class PageUser extends PageAdminUsers {
         Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
         return (AccordionItem) accordion.getBodyContainer().get(ID_ACCOUNTS_DELTAS);
     }
+    
+    
+    private Accordion getAccordionsItem() {
+    	return (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
+    }
+    
 
     private List<UserAccountDto> loadAccountWrappers() {
         List<UserAccountDto> list = new ArrayList<UserAccountDto>();
@@ -757,24 +765,24 @@ public class PageUser extends PageAdminUsers {
         List<UserAccountDto> accounts = accountsModel.getObject();
         ArrayList<PrismObject> prismAccounts = new ArrayList<PrismObject>();
         OperationResult subResult = null;
-        Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
+        Task task = createSimpleTask(OPERATION_PREPARE_ACCOUNTS);
         for (UserAccountDto account : accounts) {
             prismAccounts.add(account.getObject().getObject());
             try {
             	ObjectWrapper accountWrapper = account.getObject();
             	ObjectDelta delta = accountWrapper.getObjectDelta();
-            	 if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
+            	 if (delta.isEmpty()) {
             		 continue;
             	 }
             	 WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
-            	 subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
+            	 subResult = result.createSubresult(OPERATION_PREPARE_ACCOUNTS);
             	 deltas.add(delta);
             	 subResult.recordSuccess();
             } catch (Exception ex) {
             	if (subResult != null) {
-            		subResult.recordFatalError("Modify account failed.", ex);
+            		subResult.recordFatalError("Preparing account failed.", ex);
             	}
-            	LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+            	LoggingUtils.logException(LOGGER, "Couldn't prepare account for submit", ex);
             }
         }
         return prismAccounts;
@@ -1178,8 +1186,7 @@ public class PageUser extends PageAdminUsers {
             }
         }
 
-        target.add(getFeedbackPanel());
-        target.add(getAccountsAccordionItem());
+        target.add(getFeedbackPanel(), getAccordionsItem());
     }
 
     private void addSelectedResourceAssignPerformed(ResourceType resource) {
@@ -1235,8 +1242,7 @@ public class PageUser extends PageAdminUsers {
             }
         }
 
-        target.add(getFeedbackPanel());
-        target.add(getAssignmentAccordionItem());
+        target.add(getFeedbackPanel(), getAccordionsItem());
     }
 
     private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts,
@@ -1265,8 +1271,7 @@ public class PageUser extends PageAdminUsers {
             wrapper.setSelected(false);
         }
 
-        target.add(getAccountsAccordionItem());
-        target.add(getFeedbackPanel());
+        target.add(getFeedbackPanel(), getAccordionsItem());
     }
 
     private boolean isAnyAccountSelected(AjaxRequestTarget target) {
@@ -1302,7 +1307,7 @@ public class PageUser extends PageAdminUsers {
                 account.setStatus(UserDtoStatus.DELETE);
             }
         }
-        target.add(getAccountsAccordionItem());
+        target.add(getAccordionsItem());
     }
 
     private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<AssignmentEditorDto> selected) {
@@ -1316,7 +1321,7 @@ public class PageUser extends PageAdminUsers {
             }
         }
 
-        target.add(getFeedbackPanel(), getAssignmentAccordionItem());
+        target.add(getFeedbackPanel(), getAccordionsItem());
     }
 
     private void unlinkAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
@@ -1330,7 +1335,7 @@ public class PageUser extends PageAdminUsers {
             }
             account.setStatus(UserDtoStatus.UNLINK);
         }
-        target.add(getAccountsAccordionItem());
+        target.add(getAccordionsItem());
     }
 
     private void unlinkAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
@@ -1339,8 +1344,7 @@ public class PageUser extends PageAdminUsers {
             return;
         }
         dto.setStatus(UserDtoStatus.UNLINK);
-
-        target.add(getAccountsAccordionItem());
+        target.add(getAccordionsItem());
     }
 
     private void deleteAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
@@ -1353,7 +1357,7 @@ public class PageUser extends PageAdminUsers {
             account.setStatus(UserDtoStatus.DELETE);
         }
         target.appendJavaScript("window.location.reload()");
-        target.add(getAccountsAccordionItem());
+        target.add(getAccordionsItem());
     }
 
     private void unlockAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
