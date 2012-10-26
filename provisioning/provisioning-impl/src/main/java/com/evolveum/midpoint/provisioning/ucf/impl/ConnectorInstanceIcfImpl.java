@@ -806,7 +806,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
 							guardedPassword));
 				}
+				
+				if (account.getActivation() != null && account.getActivation().isEnabled() != null){
+					attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME, account.getActivation().isEnabled().booleanValue()));
+				}
 			}
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("ICF attributes after conversion:\n{}", IcfUtil.dump(attributes));
 			}

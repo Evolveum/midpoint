@@ -181,7 +181,7 @@ public class ShadowConverter {
 
 		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
 
-		applyAttributesDefinition(shadow, resource);
+		ObjectClassComplexTypeDefinition objectClass = applyAttributesDefinition(shadow, resource);
 		
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
@@ -199,6 +199,9 @@ public class ShadowConverter {
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
+			ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
+					.getObjectClassDefinition(shadowType);
+			checkActivationAttribute(shadowType, resource, resourceAttributeDefinition);
 			
 			resourceAttributesAfterAdd = connector.addObject(shadow, additionalOperations, parentResult);
 
@@ -234,6 +237,7 @@ public class ShadowConverter {
 		parentResult.recordSuccess();
 		return shadowType;
 	}
+
 
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
@@ -602,6 +606,32 @@ public class ShadowConverter {
 		}
 		return null;
 	}
+	
+
+	private void checkActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
+			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
+		OperationResult result = new OperationResult("Checking activation attribute in the new shadow.");
+		if (shadow instanceof AccountShadowType) {
+			if (((AccountShadowType) shadow).getActivation() != null && shadow.getActivation().isEnabled() != null) {
+				if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
+					ResourceAttribute activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
+							objectClassDefinition, result);
+					ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(
+							shadow, resource, result);
+					boolean enabled = shadow.getActivation().isEnabled().booleanValue();
+					if (enabled) {
+						activationSimulateAttribute.add(getEnableValue(enableDisable));
+					} else {
+						activationSimulateAttribute.add(getDisableValue(enableDisable));
+					}
+
+					shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES).add(activationSimulateAttribute);
+					shadow.setActivation(null);
+				}
+			}
+		}
+		
+	}
 
 	private Operation determinePasswordChange(Collection<? extends ItemDelta> objectChange, ResourceObjectShadowType objectType) throws SchemaException {
 		// Look for password change
@@ -636,12 +666,6 @@ public class ShadowConverter {
 		for (ItemDelta itemDelta : objectChange) {
 			if (new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
-//					// we need to skip activation change, because it was
-//					// actually
-//					// processed
-//					if (itemDelta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ACTIVATION))) {
-//						continue;
-//					}
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
 					changes.add(attributeModification);
@@ -674,11 +698,8 @@ public class ShadowConverter {
 		}
 		// return changes;
 	}
-
-	private PropertyModificationOperation convertToActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
-			Boolean enabled, ResourceAttributeContainerDefinition objectClassDefinition)
-			throws SchemaException {
-		OperationResult result = new OperationResult("Modify activation attribute.");
+	
+	private ActivationEnableDisableCapabilityType getEnableDisableFromSimulatedActivation(ResourceObjectShadowType shadow, ResourceType resource, OperationResult result){
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
 		if (activationCapability == null) {
@@ -686,8 +707,6 @@ public class ShadowConverter {
 					+ " does not have native or simulated activation capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
 			return null;
-//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-//					+ " does not have native or simulated activation capability");
 		}
 
 		ActivationEnableDisableCapabilityType enableDisable = activationCapability.getEnableDisable();
@@ -695,12 +714,18 @@ public class ShadowConverter {
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ " does not have native or simulated activation/enableDisable capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
-//			parentResult.addSubresult(result);
 			return null;
-//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-//					+ " does not have native or simulated activation/enableDisable capability");
 		}
+		return enableDisable;
 
+	}
+	
+	private ResourceAttribute getSimulatedActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource, ResourceAttributeContainerDefinition objectClassDefinition, OperationResult result){
+		
+		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
+		if (enableDisable == null){
+			return null;
+		}
 		QName enableAttributeName = enableDisable.getAttribute();
 		LOGGER.debug("Simulated attribute name: {}", enableAttributeName);
 		if (enableAttributeName == null) {
@@ -708,12 +733,7 @@ public class ShadowConverter {
 							+ ObjectTypeUtil.toShortString(resource)
 							+ " does not have attribute specification for simulated activation/enableDisable capability. Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
-//			parentResult.addSubresult(result);
 			return null;
-//			throw new SchemaException(
-//					"Resource "
-//							+ ObjectTypeUtil.toShortString(resource)
-//							+ " does not have attribute specification for simulated activation/enableDisable capability");
 		}
 
 		ResourceAttributeDefinition enableAttributeDefinition = objectClassDefinition
@@ -723,16 +743,51 @@ public class ShadowConverter {
 					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
 					+ " in not present in the schema for objeclass " + objectClassDefinition+". Processing of activation for account "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
 			shadow.setFetchResult(result.createOperationResultType());
-//			parentResult.addSubresult(result);
 			return null;
-//			throw new SchemaException("Resource " + ObjectTypeUtil.toShortString(resource)
-//					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
-//					+ " in not present in the schema for objeclass " + objectClassDefinition);
 		}
 
-		PropertyDelta enableAttributeDelta = new PropertyDelta(new PropertyPath(
-				ResourceObjectShadowType.F_ATTRIBUTES, enableAttributeName), enableAttributeDefinition);
+		return enableAttributeDefinition.instantiate(enableAttributeName);
 
+	}
+
+	private PropertyModificationOperation convertToActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
+			Boolean enabled, ResourceAttributeContainerDefinition objectClassDefinition)
+			throws SchemaException {
+		OperationResult result = new OperationResult("Modify activation attribute.");
+
+		ResourceAttribute activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
+		if (activationAttribute == null){
+			return null;
+		}
+
+		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
+		if (enableDisable == null){
+			return null;
+		}
+		PropertyDelta enableAttributeDelta = new PropertyDelta(new PropertyPath(
+				ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition());
+		
+		if (enabled) {
+			PrismPropertyValue enableValue = getEnableValue(enableDisable);
+			LOGGER.trace("enable attribute delta: {}", enableValue);
+			enableAttributeDelta.setValueToReplace(enableValue);
+		} else {
+			PrismPropertyValue disableValue = getDisableValue(enableDisable);
+			LOGGER.trace("enable attribute delta: {}", disableValue);
+			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
+		}
+
+		PropertyModificationOperation attributeChange = new PropertyModificationOperation(
+				enableAttributeDelta);
+		return attributeChange;
+	}
+	
+	private PrismPropertyValue getDisableValue(ActivationEnableDisableCapabilityType enableDisable){
+		String disableValue = enableDisable.getDisableValue().iterator().next();
+		return new PrismPropertyValue(disableValue);
+	}
+	
+	private PrismPropertyValue getEnableValue(ActivationEnableDisableCapabilityType enableDisable){
 		List<String> enableValues = enableDisable.getEnableValue();
 
 		Iterator<String> i = enableValues.iterator();
@@ -744,18 +799,8 @@ public class ShadowConverter {
 				enableValue = i.next();
 			}
 		}
-		String disableValue = enableDisable.getDisableValue().iterator().next();
-		if (enabled) {
-			LOGGER.trace("enable attribute delta: {}", enableValue);
-			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(enableValue));
-		} else {
-			LOGGER.trace("enable attribute delta: {}", disableValue);
-			enableAttributeDelta.setValueToReplace(new PrismPropertyValue(disableValue));
-		}
-
-		PropertyModificationOperation attributeChange = new PropertyModificationOperation(
-				enableAttributeDelta);
-		return attributeChange;
+		
+		return new PrismPropertyValue(enableValue);
 	}
 
 	public <T extends ResourceObjectShadowType> boolean isProtectedShadow(ResourceType resource,
