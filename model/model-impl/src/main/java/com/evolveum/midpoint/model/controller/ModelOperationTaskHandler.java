@@ -73,7 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateT
 @Component
 public class ModelOperationTaskHandler implements TaskHandler {
 
-	public static final String MODEL_OPERATION_TASK_URI = "http://evolveum.com/model-operation-task-uri";
+	public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-1";
 
 	@Autowired(required = true)
 	private TaskManager taskManager;
@@ -95,25 +95,11 @@ public class ModelOperationTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 
-		OperationResult result = new OperationResult("ModelOperationTaskHandler.run");
+		OperationResult result = task.getResult().createSubresult("ModelOperationTaskHandler.run");
 		TaskRunResult runResult = new TaskRunResult();
 
-//		/*
-//		 * First, we delete ourselves from the handler stack. Normally
-//		 * (asynchronous model operation will add us again, if necessary)
-//		 */
-//		try {
-//			task.finishHandler(result);
-//		} catch (ObjectNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (SchemaException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
 		/*
-		 * Now we will call the model operation body.
+		 * Call the model operation body.
 		 */
 
 		ModelOperationStateType state = task.getModelOperationState();
@@ -127,7 +113,10 @@ public class ModelOperationTaskHandler implements TaskHandler {
             try {
                 context = (LensContext) SerializationUtil.fromString(state.getOperationData());
                 context.adopt(prismContext);
-                clockwork.run(context, task, task.getResult());
+                clockwork.run(context, task, result);
+                if (result.isUnknown()) {
+                    result.computeStatus();
+                }
                 runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
             } catch (Exception e) { // todo
                 String message = "An exception occurred within model operation, in task " + task;
@@ -138,7 +127,8 @@ public class ModelOperationTaskHandler implements TaskHandler {
 			}
 		}
 
-		runResult.setOperationResult(result);
+        task.getResult().recomputeStatus();
+		runResult.setOperationResult(task.getResult());
 		return runResult;
 	}
 

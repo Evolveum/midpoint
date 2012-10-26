@@ -98,6 +98,8 @@ public class ActivitiEngine {
                 .setJobExecutorActivate(false)
                 .setHistory(ProcessEngineConfiguration.HISTORY_FULL);
 
+        pec = pec.setJobExecutorActivate(true);
+
         if (configuration.getMailServerHost() != null) {
             pec = pec.setMailServerHost(configuration.getMailServerHost());
         }

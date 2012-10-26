@@ -142,13 +142,13 @@ public class WfDataAccessor {
     * (2) historic
     */
 
-    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean finished, OperationResult parentResult) throws WorkflowException {
+    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_PROCESS_INSTANCES_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("requestedBy", requestedBy);
         result.addParam("finished", finished);
         try {
-            int instances = (int) createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, finished).count();
+            int instances = (int) createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished).count();
             result.recordSuccessIfUnknown();
             return instances;
         } catch (ActivitiException e) {
@@ -158,17 +158,18 @@ public class WfDataAccessor {
         }
     }
 
-    public List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException {
+    public List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_LIST_PROCESS_INSTANCES_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("requestedBy", requestedBy);
+        result.addParam("requestedFor", requestedFor);
         result.addParam("finished", finished);
         try {
-            List<?> instances = createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, finished).listPage(first, count);
+            List<?> instances = createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished).listPage(first, count);
             List<ProcessInstance> mInstances = finished ?
                     activitiToMidpointProcessInstancesHistory((List<HistoricProcessInstance>) instances, false, result) :
                     activitiToMidpointProcessInstances((List<org.activiti.engine.runtime.ProcessInstance>) instances, false, result);
-            result.recordSuccessIfUnknown();
+            result.recomputeStatus();
             return mInstances;
         } catch (ActivitiException e) {
             String m = "Couldn't list process instances related to " + userOid + " due to Activiti exception";
@@ -177,22 +178,27 @@ public class WfDataAccessor {
         }
     }
 
-    private Query<?,?> createQueryForProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean finished) {
+    private Query<?,?> createQueryForProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished) {
         if (finished) {
             HistoryService hs = getActivitiEngine().getHistoryService();
-            HistoricProcessInstanceQuery hpiq = hs.createHistoricProcessInstanceQuery().finished().orderByProcessInstanceEndTime().desc();
+
+            HistoricProcessInstanceQuery hpiq = hs.createHistoricProcessInstanceQuery().processDefinitionKey("AddRoles").finished().orderByProcessInstanceEndTime().desc();
             if (requestedBy) {
-                return hpiq.startedBy(userOid);
-            } else {
-                return hpiq.processInstanceBusinessKey(userOid);
+                hpiq = hpiq.startedBy(userOid);
             }
+            if (requestedFor) {
+                hpiq = hpiq.processInstanceBusinessKey(userOid);
+            }
+            return hpiq;
         } else {
-            ProcessInstanceQuery piq = getActivitiEngine().getRuntimeService().createProcessInstanceQuery().orderByProcessInstanceId().asc();
+            ProcessInstanceQuery piq = getActivitiEngine().getRuntimeService().createProcessInstanceQuery().processDefinitionKey("AddRoles").orderByProcessInstanceId().asc();
             if (requestedBy) {
-                return piq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, userOid);
-            } else {
-                return piq.processInstanceBusinessKey(userOid);
+                piq = piq.variableValueEquals(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, userOid);
             }
+            if (requestedFor) {
+                piq = piq.processInstanceBusinessKey(userOid);
+            }
+            return piq;
         }
     }
 
@@ -267,11 +273,11 @@ public class WfDataAccessor {
     private List<ProcessInstance> activitiToMidpointProcessInstances(List<org.activiti.engine.runtime.ProcessInstance> instances, boolean details, OperationResult result) {
         List<ProcessInstance> retval = new ArrayList<ProcessInstance>();
         int problems = 0;
-        WorkflowException lastException = null;
+        Exception lastException = null;
         for (org.activiti.engine.runtime.ProcessInstance instance : instances) {
             try {
                 retval.add(activitiToMidpointProcessInstance(instance, details, result));
-            } catch(WorkflowException e) {
+            } catch(Exception e) {      // todo: was WorkflowException
                 problems++;
                 lastException = e;
                 // this is a design decision: when an error occurs when listing instances, the ones that are fine WILL BE displayed
@@ -362,7 +368,7 @@ public class WfDataAccessor {
             Map<String,Object> vars = getHistoricVariables(instance.getId(), result);
             pi.setName((String) vars.get(WfConstants.VARIABLE_PROCESS_NAME));
             pi.setDetails(getProcessSpecificDetails(instance, vars, result));
-        } catch (WorkflowException e) {
+        } catch (Exception e) {     // todo: was: WorkflowException but there can be e.g. NPEs there
             result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), e);
             pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
 

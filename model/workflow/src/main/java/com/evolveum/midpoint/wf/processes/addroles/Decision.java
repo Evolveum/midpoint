@@ -38,7 +38,7 @@ public class Decision implements Serializable {
     private static final long serialVersionUID = -542549699933865819L;
 
     private String user;
-    private RoleType role;
+    private AssignmentToApprove assignmentToApprove;
     private boolean approved;
     private String comment;
     private Date date;
@@ -67,14 +67,6 @@ public class Decision implements Serializable {
         this.user = user;
     }
 
-    public RoleType getRole() {
-        return role;
-    }
-
-    public void setRole(RoleType role) {
-        this.role = role;
-    }
-
     public Date getDate() {
         return date;
     }
@@ -83,8 +75,16 @@ public class Decision implements Serializable {
         this.date = date;
     }
 
+    public AssignmentToApprove getAssignmentToApprove() {
+        return assignmentToApprove;
+    }
+
+    public void setAssignmentToApprove(AssignmentToApprove assignmentToApprove) {
+        this.assignmentToApprove = assignmentToApprove;
+    }
+
     @Override
     public String toString() {
-        return "Decision: role=" + role + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
+        return "Decision: assignmentToApprove=" + assignmentToApprove + ", approved=" + isApproved() + ", comment=" + getComment() + ", user=" + getUser() + ", date=" + getDate();
     }
 }

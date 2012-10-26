@@ -30,13 +30,13 @@ import org.apache.wicket.model.IModel;
  * Time: 14:11
  * To change this template use File | Settings | File Templates.
  */
-public class PageProcessInstancesRequestedBy extends PageProcessInstances {
+public class PageProcessInstancesAll extends PageProcessInstances {
 
     protected IModel<String> createPageTitleModel() {
         return createStringResource("PageProcessInstancesRequestedBy.title");
     }
 
-    public PageProcessInstancesRequestedBy() {
-        super(true, false);
+    public PageProcessInstancesAll() {
+        super(false, false);
     }
 }

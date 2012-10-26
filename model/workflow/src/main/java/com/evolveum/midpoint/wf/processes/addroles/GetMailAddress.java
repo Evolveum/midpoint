@@ -61,10 +61,10 @@ public class GetMailAddress implements JavaDelegate {
 //            LOGGER.info(" - " + v);
 //        }
 
-        RoleType role = (RoleType) execution.getVariable("role");
+        RoleType role = (RoleType) execution.getVariable(AddRolesProcessWrapper.ROLE);
         String mail = getMail(execution, role);
         LOGGER.info("Approver's mail for role " + role + " is " + mail);
-        execution.setVariableLocal("approverMailAddress", mail);
+        execution.setVariableLocal(AddRolesProcessWrapper.APPROVER_MAIL_ADDRESS, mail);
     }
 
     private String getMail(DelegateExecution execution, RoleType role) {

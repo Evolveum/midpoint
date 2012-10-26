@@ -37,6 +37,7 @@ import java.util.List;
 
 /**
  * @author lazyman
+ * @author mederly
  */
 public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<ProcessInstanceDto> {
 
@@ -53,6 +54,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 
     boolean requestedBy;
     private boolean finished;
+    private boolean requestedFor;
 
     public static String currentUser() {
         PrincipalUser principal = SecurityUtils.getPrincipalUser();
@@ -63,10 +65,11 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         return principal.getOid();
     }
 
-    public ProcessInstanceDtoProvider(PageBase page, boolean requestedBy, boolean finished) {
+    public ProcessInstanceDtoProvider(PageBase page, boolean requestedBy, boolean requestedFor, boolean finished) {
         super(page);
-        LOGGER.trace("requestedBy = " + requestedBy + ", finished = " + finished);
+        LOGGER.trace("requestedBy = " + requestedBy + ", requestedFor = " + requestedFor + ", finished = " + finished);
         this.requestedBy = requestedBy;
+        this.requestedFor = requestedFor;
         this.finished = finished;
     }
 
@@ -86,7 +89,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //            }
 
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy, finished, first, count, result);
+            List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, first, count, result);
 
             for (ProcessInstance item : items) {
                 try {
@@ -119,9 +122,9 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
             WfDataAccessor wfDataAccessor = getWorkflowDataAccessor();
-            count = wfDataAccessor.countProcessInstancesRelatedToUser(currentUser(), requestedBy, finished, result);
+            count = wfDataAccessor.countProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, result);
         } catch (Exception ex) {
-            String msg = "Couldn't list process instances requested " + (requestedBy ? "by":"for") + " a user.";
+            String msg = "Couldn't list process instances";
             LoggingUtils.logException(LOGGER, msg, ex);
             result.recordFatalError(msg, ex);
         }

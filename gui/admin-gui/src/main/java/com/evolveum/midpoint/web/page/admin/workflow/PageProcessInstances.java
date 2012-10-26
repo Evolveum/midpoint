@@ -39,7 +39,6 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -57,15 +56,17 @@ import java.util.List;
  */
 public abstract class PageProcessInstances extends PageAdminWorkItems {
 
-    boolean requestedBy;        // true if we want to show process instances requested BY a user, false if to show instances requested FOR a user
+    boolean requestedBy;        // true if we want to show process instances requested BY a user
+    boolean requestedFor;       // true if we want to show instances requested FOR a user
 
     private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstances.class);
     private static final String DOT_CLASS = PageProcessInstances.class.getName() + ".";
     private static final String OPERATION_STOP_PROCESS_INSTANCES = DOT_CLASS + "stopProcessInstances";
 
 
-    public PageProcessInstances(boolean requestedBy) {
+    public PageProcessInstances(boolean requestedBy, boolean requestedFor) {
         this.requestedBy = requestedBy;
+        this.requestedFor = requestedFor;
         initLayout();
     }
 
@@ -74,13 +75,13 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         add(mainForm);
 
         List<IColumn<ProcessInstanceDto>> columns = initColumns();
-        TablePanel<ProcessInstanceDto> table = new TablePanel<ProcessInstanceDto>("processInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, false),
+        TablePanel<ProcessInstanceDto> table = new TablePanel<ProcessInstanceDto>("processInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, false),
                 columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
         List<IColumn<ProcessInstanceDto>> finishedColumns = initFinishedColumns();
-        TablePanel<ProcessInstanceDto> finishedTable = new TablePanel<ProcessInstanceDto>("finishedProcessInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, true),
+        TablePanel<ProcessInstanceDto> finishedTable = new TablePanel<ProcessInstanceDto>("finishedProcessInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, true),
                 finishedColumns);
         finishedTable.setOutputMarkupId(true);
         mainForm.add(finishedTable);
@@ -204,7 +205,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
             @Override
             public boolean isVisible() {
-                return requestedBy;
+                return !requestedFor;
             }
         };
         mainForm.add(stop);
@@ -246,9 +247,13 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         PageParameters parameters = new PageParameters();
         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, pid);
         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
-        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK,
-                requestedBy ? PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY :
-                        PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_REQUESTED_FOR);
+        if (requestedBy) {
+            parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY);
+        } else if (requestedFor) {
+            parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_REQUESTED_FOR);
+        } else {
+            parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK, PageProcessInstance.PARAM_PROCESS_INSTANCE_BACK_ALL);
+        }
         setResponsePage(PageProcessInstance.class, parameters);
     }
 

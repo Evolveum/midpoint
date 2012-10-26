@@ -335,7 +335,12 @@ public class ModelController implements ModelService, ModelInteractionService {
 				clockwork.run(context, task, result);
 			}
 
-            if (!result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
+            if (result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
+                result.computeStatus();
+                if (result.isSuccess()) {
+                    result.recordInProgress();
+                }
+            } else {
 			    result.computeStatus();
             }
 			

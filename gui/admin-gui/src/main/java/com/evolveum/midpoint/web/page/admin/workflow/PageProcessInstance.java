@@ -52,6 +52,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
     public static final String PARAM_PROCESS_INSTANCE_BACK = "processInstanceBack";
     public static final String PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY = "PageProcessInstancesRequestedBy";
     public static final String PARAM_PROCESS_INSTANCE_BACK_REQUESTED_FOR = "PageProcessInstancesRequestedFor";
+    public static final String PARAM_PROCESS_INSTANCE_BACK_ALL = "PageProcessInstancesAll";
     private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadProcessInstance";
 
 	private IModel<ProcessInstanceDto> model;

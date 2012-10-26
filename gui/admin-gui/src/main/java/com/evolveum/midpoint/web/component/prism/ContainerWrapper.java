@@ -31,8 +31,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -160,19 +162,21 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                 PrismProperty<Object> temp = def.instantiate();
 
-                if (assignmentType.getTarget() != null) {
-                    temp.setValue(new PrismPropertyValue<Object>(assignmentType.getTarget().getName()));
-                } else {
-                    PrismReference targetRef = pcv.findReference(AssignmentType.F_TARGET_REF);
-                    temp.setValue(new PrismPropertyValue<Object>(targetRef.getValue().getOid()));
-                }
+                String value = formatAssignmentBrief(assignmentType);
+//                if (assignmentType.getTarget() != null) {
+//                    value = assignmentType.getTarget().getName().getOrig();
+//                } else {
+//                    PrismReference targetRef = pcv.findReference(AssignmentType.F_TARGET_REF);
+//                    value = targetRef.getValue().getOid();
+//                }
 
+                temp.setValue(new PrismPropertyValue<Object>(value));
                 properties.add(new PropertyWrapper(this, temp, ValueStatus.NOT_CHANGED));
             }
 
         } else {            // if not an assignment
 
-            if (container.getValues().size() == 1 ||
+           if (container.getValues().size() == 1 ||
                     (container.getValues().isEmpty() && (container.getDefinition() == null || container.getDefinition().isSingleValue()))) {
 
                 // there's no point in showing properties for non-single-valued parent containers,
@@ -197,6 +201,53 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         Collections.sort(properties, new ItemWrapperComparator());
 
         return properties;
+    }
+
+    // temporary - brutal hack - the following three methods are copied from AddRolesProcessWrapper - Pavol M.
+
+    private String formatAssignmentBrief(AssignmentType assignment) {
+        StringBuilder sb = new StringBuilder();
+        if (assignment.getTarget() != null) {
+            sb.append(assignment.getTarget().getName());
+        } else {
+            sb.append(assignment.getTargetRef().getOid());
+        }
+        if (assignment.getActivation() != null) {
+            if (Boolean.TRUE.equals(assignment.getActivation().isEnabled())) {
+                sb.append(", active");
+            }
+        }
+        if (assignment.getActivation() != null && (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
+            sb.append(" ");
+            sb.append("(");
+            sb.append(formatTimeIntervalBrief(assignment));
+            sb.append(")");
+        }
+        return sb.toString();
+    }
+
+    public static String formatTimeIntervalBrief(AssignmentType assignment) {
+        StringBuilder sb = new StringBuilder();
+        if (assignment != null && assignment.getActivation() != null &&
+                (assignment.getActivation().getValidFrom() != null || assignment.getActivation().getValidTo() != null)) {
+            if (assignment.getActivation().getValidFrom() != null && assignment.getActivation().getValidTo() != null) {
+                sb.append(formatTime(assignment.getActivation().getValidFrom()));
+                sb.append("-");
+                sb.append(formatTime(assignment.getActivation().getValidTo()));
+            } else if (assignment.getActivation().getValidFrom() != null) {
+                sb.append("from ");
+                sb.append(formatTime(assignment.getActivation().getValidFrom()));
+            } else {
+                sb.append("to ");
+                sb.append(formatTime(assignment.getActivation().getValidTo()));
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String formatTime(XMLGregorianCalendar time) {
+        DateFormat formatter = DateFormat.getDateInstance();
+        return formatter.format(time.toGregorianCalendar().getTime());
     }
 
     boolean isPropertyVisible(PropertyWrapper property) {

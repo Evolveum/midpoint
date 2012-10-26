@@ -19,24 +19,28 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.workflow;
+package com.evolveum.midpoint.wf.processes.addroles;
 
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConstants;
+import org.activiti.engine.delegate.DelegateExecution;
+import org.activiti.engine.delegate.JavaDelegate;
 
 /**
  * Created with IntelliJ IDEA.
  * User: mederly
- * Date: 28.9.2012
- * Time: 14:11
+ * Date: 7.8.2012
+ * Time: 17:56
  * To change this template use File | Settings | File Templates.
  */
-public class PageProcessInstancesRequestedBy extends PageProcessInstances {
+public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
-    protected IModel<String> createPageTitleModel() {
-        return createStringResource("PageProcessInstancesRequestedBy.title");
+    private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughApproversInLevel.class);
+
+    public void execute(DelegateExecution execution) {
+        execution.setVariableLocal(WfConstants.VARIABLE_DECISION_LIST, new DecisionList());
+        execution.setVariableLocal(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.FALSE);
     }
 
-    public PageProcessInstancesRequestedBy() {
-        super(true, false);
-    }
 }

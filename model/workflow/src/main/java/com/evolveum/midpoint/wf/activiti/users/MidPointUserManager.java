@@ -55,10 +55,10 @@ public class MidPointUserManager extends UserManager {
         throw new UnsupportedOperationException("MidPoint user manager doesn't support deleting a user");
     }
 
-    @Override
-    public List<User> findUserByQueryCriteria(Object query, Page page) {
-
-        throw new UnsupportedOperationException("MidPoint user manager doesn't support finding a user by query criteria");
+//    @Override
+//    public List<User> findUserByQueryCriteria(Object query, Page page) {
+//
+//        throw new UnsupportedOperationException("MidPoint user manager doesn't support finding a user by query criteria");
 
 //        List<User> userList = new ArrayList<User>();
 //
@@ -107,12 +107,12 @@ public class MidPointUserManager extends UserManager {
 //        LDAPConnectionUtil.closeConnection(connection);
 //
 //        return userList;
-    }
+//    }
 
-    @Override
-    public long findUserCountByQueryCriteria(Object query) {
-        return findUserByQueryCriteria(query, null).size();
-    }
+//    @Override
+//    public long findUserCountByQueryCriteria(Object query) {
+//        return findUserByQueryCriteria(query, null).size();
+//    }
 
     @Override
     public Boolean checkPassword(String userId, String password) {

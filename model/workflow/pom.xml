@@ -93,12 +93,12 @@
         <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>activiti-engine</artifactId>
-            <version>5.9</version>
+            <version>5.10</version>
         </dependency>
         <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>activiti-spring</artifactId>
-            <version>5.9</version>
+            <version>5.10</version>
         </dependency>
         <!-- this one is needed to get SQL configuration from the repository -->
         <dependency>

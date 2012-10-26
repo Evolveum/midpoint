@@ -22,9 +22,12 @@
 package com.evolveum.midpoint.wf.processes.addroles;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.LevelEvaluationStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -32,6 +35,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -40,19 +44,15 @@ import java.util.Date;
  * Time: 17:56
  * To change this template use File | Settings | File Templates.
  */
-public class RecordDecision implements JavaDelegate {
+public class RecordIndividualDecision implements JavaDelegate {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RecordDecision.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RecordIndividualDecision.class);
 
     public void execute(DelegateExecution execution) {
-        RoleType role = (RoleType) execution.getVariableLocal("role");
-        Boolean yesOrNo = (Boolean) execution.getVariable(WfConstants.FORM_FIELD_DECISION);
-        String comment = (String) execution.getVariable("comment#C");
 
-        if (comment != null && comment.startsWith("+")) {
-            comment = comment.substring(1);
-            yesOrNo = true;
-        }
+        AssignmentToApprove assignmentToApprove = (AssignmentToApprove) execution.getVariable(AddRolesProcessWrapper.ASSIGNMENT_TO_APPROVE);
+        Boolean yesOrNo = (Boolean) execution.getVariable(WfConstants.FORM_FIELD_DECISION);
+        String comment = (String) execution.getVariable(AddRolesProcessWrapper.FORM_FIELD_COMMENT);
 
         Decision decision = new Decision();
 
@@ -63,17 +63,46 @@ public class RecordDecision implements JavaDelegate {
             decision.setUser("?");    // todo
         }
 
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("======================================== Recording individual decision of " + user);
+        }
+
         decision.setApproved(yesOrNo == null ? false : yesOrNo);
-        decision.setComment(comment);
-        decision.setRole(role);
+        decision.setComment(comment == null ? "" : comment);
+        decision.setAssignmentToApprove(assignmentToApprove);
         decision.setDate(new Date());
-        DecisionList decisionList = (DecisionList) execution.getVariable("decisionList");
+        DecisionList decisionList = (DecisionList) execution.getVariable(AddRolesProcessWrapper.DECISION_LIST);
         decisionList.addDecision(decision);
-        execution.setVariable("decisionList", decisionList);
+        execution.setVariable(AddRolesProcessWrapper.DECISION_LIST, decisionList);
+
+        List<Decision> allDecisions = (List<Decision>) execution.getVariable(AddRolesProcessWrapper.ALL_DECISIONS);
+        allDecisions.add(decision);
+        execution.setVariable(AddRolesProcessWrapper.ALL_DECISIONS, allDecisions);
+
+        // here we carry out level evaluation strategy
+
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRolesProcessWrapper.LEVEL);
+        if (level == null) {
+            throw new SystemException("Process variable 'level' is not present; execution = " + execution);
+        }
+        LevelEvaluationStrategyType levelEvaluationStrategyType = level.getEvaluationStrategy();
+
+        if (levelEvaluationStrategyType == LevelEvaluationStrategyType.FIRST_DECIDES) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Setting " + AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level evaluation strategy is 'firstDecides'.");
+            }
+            execution.setVariable(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.TRUE);
+        } else if (levelEvaluationStrategyType == LevelEvaluationStrategyType.ALL_MUST_AGREE && !decision.isApproved()) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Setting " + AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level eval strategy is 'allMustApprove' and the decision was 'reject'.");
+            }
+            execution.setVariable(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.TRUE);
+        }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Logged decision '" + yesOrNo + "' for role " + role);
+            LOGGER.trace("Logged decision '" + yesOrNo + "' for " + assignmentToApprove);
             LOGGER.trace("Resulting decision list = " + decisionList);
+            LOGGER.trace("All decisions = " + allDecisions);
         }
     }
 

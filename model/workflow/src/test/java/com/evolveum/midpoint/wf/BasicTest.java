@@ -27,11 +27,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
-import com.evolveum.midpoint.wf.processes.addroles.Decision;
-import com.evolveum.midpoint.wf.processes.addroles.DecisionList;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
+import com.evolveum.midpoint.wf.processes.addroles.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.*;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -136,15 +137,32 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 
         OperationResult result = createResult("010StartProcessInstance");
         Map<String, Object> variableMap = new HashMap<String, Object>();
-        variableMap.put("userName", "jack");
-        List<RoleType> rolesToApprove = new ArrayList<RoleType>();
-        rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("1"), result).asObjectable());
-        rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("2"), result).asObjectable());
-        rolesToApprove.add(repositoryService.getObject(RoleType.class, getRoleOid("3"), result).asObjectable());
-        variableMap.put("rolesToApprove", rolesToApprove);
-        variableMap.put("decisionList", new DecisionList());
-        variableMap.put("util", new ActivitiUtil());
-        ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey("AddRoles", variableMap);
+
+        variableMap.put(WfConstants.VARIABLE_PROCESS_NAME, "Adding some roles to a user");
+        variableMap.put(WfConstants.VARIABLE_START_TIME, new Date());
+        variableMap.put(AddRolesProcessWrapper.USER_NAME, "jack");
+
+        List<AssignmentToApprove> assignmentToApproveList = new ArrayList<AssignmentToApprove>();
+        assignmentToApproveList.add(createAssignmentToApprove("1", result));
+        assignmentToApproveList.add(createAssignmentToApprove("2", result));
+        assignmentToApproveList.add(createAssignmentToApprove("3", result));
+
+        LOGGER.info("AssignmentsToApprove = " + assignmentToApproveList);
+
+        variableMap.put(AddRolesProcessWrapper.ASSIGNMENTS_TO_APPROVE, assignmentToApproveList);
+        variableMap.put(AddRolesProcessWrapper.ASSIGNMENTS_APPROVALS, new AssignmentsApprovals());
+        variableMap.put(AddRolesProcessWrapper.ALL_DECISIONS, new ArrayList<Decision>());
+        variableMap.put(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
+
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD, fc.getObjectOld());
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW, fc.getObjectNew());
+//        //spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_DELTA, change);
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_REQUESTER, requester);
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
+        variableMap.put(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, "@role");
+
+        ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey(AddRolesProcessWrapper.ADD_ROLE_PROCESS, variableMap);
         assertNotNull(processInstance.getId());
         System.out.println("test010: id " + processInstance.getId() + " " + processInstance.getProcessDefinitionId());
 
@@ -171,12 +189,12 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
                 .list();
         for (HistoricDetail historicDetail : historicVariableUpdateList) {
             HistoricVariableUpdate historicVariableUpdate = (HistoricVariableUpdate) historicDetail;
-            if("decisionList".equals(historicVariableUpdate.getVariableName())) {
+            if(AddRolesProcessWrapper.ALL_DECISIONS.equals(historicVariableUpdate.getVariableName())) {
                 decisionListTested = true;
-                DecisionList decisionList = (DecisionList) historicVariableUpdate.getValue();
-                assertEquals("There are not 3 answers", 3, decisionList.getDecisionList().size());
+                List<Decision> decisionList = (List<Decision>) historicVariableUpdate.getValue();
+                assertEquals("There are not 3 answers", 3, decisionList.size());
                 int yes = 0, no = 0;
-                for (Decision decision : decisionList.getDecisionList()) {
+                for (Decision decision : decisionList) {
                     if (decision.isApproved()) {
                         yes++;
                         assertTrue("Wrong OK comment", "Role1 OK".equals(decision.getComment()) || "Role3 OK".equals(decision.getComment()));
@@ -188,7 +206,18 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
                 break;
             }
         }
-        assertTrue("DecisionList was not found", decisionListTested);
+        assertTrue("allDecisions variable was not found", decisionListTested);
+    }
+
+    private AssignmentToApprove createAssignmentToApprove(String s, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        RoleType role = repositoryService.getObject(RoleType.class, getRoleOid(s), result).asObjectable();
+        AssignmentType assignment = new AssignmentType();
+        assignment.setTarget(role);
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setOid(role.getOid());
+        ort.setType(role.asPrismObject().getName());
+        assignment.setTargetRef(ort);
+        return new AssignmentToApprove(assignment, role);
     }
 
     private void completeTask(org.activiti.engine.task.Task task, String decision, String comment) {
@@ -216,7 +245,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 
         Map<String,String> outputItems = new HashMap<String,String>();
         outputItems.put(WfConstants.FORM_FIELD_DECISION, decision);
-        outputItems.put("comment#C", comment);
+        outputItems.put(AddRolesProcessWrapper.FORM_FIELD_COMMENT, comment);
         processEngine.getFormService().submitTaskFormData(task.getId(), outputItems);
     }
 

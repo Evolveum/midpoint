@@ -37,6 +37,6 @@ public class PageProcessInstancesRequestedFor extends PageProcessInstances {
     }
 
     public PageProcessInstancesRequestedFor() {
-        super(false);
+        super(false, true);
     }
 }
