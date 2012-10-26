@@ -39,10 +39,9 @@ public class OrFilter extends NaryLogicalFilter {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("OR: \n");
 		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("OR: \n");
 		for (ObjectFilter filter : getCondition()){
-			sb.append("Critaria: ");
 			sb.append(filter.debugDump(indent + 1));
 			sb.append("\n");	
 		}

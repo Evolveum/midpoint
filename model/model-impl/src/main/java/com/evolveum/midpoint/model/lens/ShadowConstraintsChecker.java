@@ -167,11 +167,13 @@ public class ShadowConstraintsChecker {
 		List<?> identifierValues = identifier.getValues();
 		Validate.notEmpty(identifierValues, "Empty identifiers while checking uniqueness of "+context);
 		
+		OrFilter isNotDead = OrFilter.createOr(EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_DEAD, false),
+				EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_DEAD, null));
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
 						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
-						EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_DEAD, false)));
+						isNotDead));
 		
 		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",

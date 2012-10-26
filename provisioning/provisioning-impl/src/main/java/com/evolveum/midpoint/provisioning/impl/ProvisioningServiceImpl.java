@@ -757,7 +757,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try{
 			object = getCacheRepositoryService().getObject(type, oid, result);
 		} catch (ObjectNotFoundException e) {
-			logFatalError(LOGGER, result, "Can't get object to modify with oid " + oid + ". Reason " + e.getMessage(), e);
+			result.recordFatalError("Can't get object to modify with oid" + oid +". Reason: " + e.getMessage(), e);
+//			logFatalError(LOGGER, result, "Can't get object to modify with oid " + oid + ". Reason " + e.getMessage(), e);
 			throw e;
 		} catch (SchemaException ex) {
 			logFatalError(LOGGER, result, "Can't get object to modify with oid " + oid + ". Reason " + ex.getMessage(), ex);

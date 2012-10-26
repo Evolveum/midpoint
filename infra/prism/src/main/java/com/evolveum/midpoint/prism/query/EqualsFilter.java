@@ -57,6 +57,9 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
 	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition item, Object realValue) {
 
+		if (realValue == null){
+			return createEqual(path, item, new PrismPropertyValue(null));
+		}
 		if (List.class.isAssignableFrom(realValue.getClass())) {
 			List<PrismValue> prismValues = new ArrayList<PrismValue>();
 			for (Object o : (List) realValue) {

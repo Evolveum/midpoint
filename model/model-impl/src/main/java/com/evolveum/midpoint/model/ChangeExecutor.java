@@ -205,7 +205,7 @@ public class ChangeExecutor {
             }
             
             //update account situation only if the account was not deleted
-//			if (accCtx.getDelta() != null && !accCtx.getDelta().isDelete() && !accCtx.getDelta().getOid().equals(accountOid)) {
+//			if (accCtx.getDelta() != null ) {
 				LOGGER.trace("Account unlinked from the user, updating also situation in account.");
 				updateSituationInAccount(task, null, accountOid, result);
 				LOGGER.trace("Situation in the account was updated to {}.", "null");
