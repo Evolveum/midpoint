@@ -87,13 +87,14 @@
 		</condition>
     </mapping>
     
-    <!-- Automatically generate employee number if there is none (note the "initial" flag) -->
+    <!-- Automatically generate employee number if there is none (note the "weak" flag)
+	The "Alphanumeric Password Policy" will be used.  -->
     <mapping>
     	<strength>weak</strength>
     	<expression>
             <generate>
-        <valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffd"/>
-        	</generate>
+        	<valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffd"/>
+            </generate>
     	</expression>
     	<target>
     		<path>employeeNumber</path>
