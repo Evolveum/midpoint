@@ -20,7 +20,7 @@
  * Portions Copyrighted 2011 Peter Prochazka
  */
 
-package com.evolveum.midpoint.common.password;
+package com.evolveum.midpoint.common.policy;
 
 /**
  * 
@@ -38,7 +38,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.text.StrBuilder;
 
-import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,9 +46,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 
-public class PasswordGenerator {
+public class ValuePolicyGenerator {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordGenerator.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(ValuePolicyGenerator.class);
 
 	private static final Random rand = new Random(System.currentTimeMillis());
 

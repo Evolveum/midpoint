@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2011 Peter Prochazka
  */
-package com.evolveum.midpoint.common.password;
+package com.evolveum.midpoint.common.policy;
 
 import java.util.ArrayList;
 
@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;

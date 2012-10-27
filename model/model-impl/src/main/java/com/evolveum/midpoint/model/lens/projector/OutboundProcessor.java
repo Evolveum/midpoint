@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
@@ -30,10 +32,12 @@ import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -44,16 +48,24 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -98,7 +110,7 @@ public class OutboundProcessor {
         for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
 			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
 						
-			MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
+			final MappingType outboundMappingType = refinedAttributeDefinition.getOutboundMappingType();
 			if (outboundMappingType == null) {
 			    continue;
 			}
@@ -117,6 +129,47 @@ public class OutboundProcessor {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
 			mapping.setRootNode(userOdo);
 			mapping.setOriginType(OriginType.OUTBOUND);
+			
+			StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+				private PropertyPath outputPath;
+				private ItemDefinition outputDefinition;
+				@Override
+				public void setOutputPath(PropertyPath outputPath) {
+					this.outputPath = outputPath;
+				}
+				
+				@Override
+				public void setOutputDefinition(ItemDefinition outputDefinition) {
+					this.outputDefinition = outputDefinition;
+				}
+				
+				@Override
+				public StringPolicyType resolve() {
+					
+					if (outboundMappingType.getExpression() != null){
+						List<JAXBElement<?>> evaluators = outboundMappingType.getExpression().getExpressionEvaluator();
+						if (evaluators != null){
+							for (JAXBElement jaxbEvaluator : evaluators){
+								Object object = jaxbEvaluator.getValue();
+								if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
+									ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+									try{
+									ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", new OperationResult("Resolving value policy"));
+									if (valuePolicyType != null){
+										return valuePolicyType.getStringPolicy();
+									}
+									} catch (Exception ex){
+										throw new SystemException(ex.getMessage(), ex);
+									}
+								}
+							}
+							
+						}
+					}
+					return null;
+				}
+			};
+			mapping.setStringPolicyResolver(stringPolicyResolver);
 			// TODO: other variables?
 			
 			// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

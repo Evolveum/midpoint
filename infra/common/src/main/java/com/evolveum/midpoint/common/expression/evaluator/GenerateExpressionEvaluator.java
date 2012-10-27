@@ -34,7 +34,7 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.common.password.PasswordGenerator;
+import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -106,9 +106,9 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 		String stringValue = null;
 		if (stringPolicyType != null) {
 			if (stringPolicyType.getLimitations().getMinLength() != null) {
-				stringValue = PasswordGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
+				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
 			}
-			stringValue = PasswordGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
+			stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
 		}
         
         if (stringValue == null){

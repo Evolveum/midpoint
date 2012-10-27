@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2011 Peter Prochazka
  */
-package com.evolveum.midpoint.common.string;
+package com.evolveum.midpoint.common.policy;
 
 import java.util.ArrayList;
 import java.util.HashSet;
