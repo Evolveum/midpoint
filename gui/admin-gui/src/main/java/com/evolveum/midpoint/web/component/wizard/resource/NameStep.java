@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,11 +60,15 @@ public class NameStep extends WizardStep {
     private static final String OPERATION_LOAD_CONNECTORS = DOT_CLASS + "loadConnectors";
     private static final String OPERATION_LOAD_CONNECTOR_HOSTS = DOT_CLASS + "loadConnectorHosts";
     private static final String OPERATION_DISCOVER_CONNECTORS = DOT_CLASS + "discoverConnectors";
+    private static final String OPERATION_SAVE_RESOURCE = DOT_CLASS + "saveResource";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_NAME = "name";
     private static final String ID_LOCATION = "location";
     private static final String ID_CONNECTOR_TYPE = "connectorType";
     private static final String ID_CONNECTOR_VERSION = "connectorVersion";
+
+    private IModel<ResourceType> resourceModel;
 
     private LoadableModel<List<ConnectorHostType>> connectorHostsModel;
     private LoadableModel<List<ConnectorType>> connectorsModel;
@@ -72,6 +77,8 @@ public class NameStep extends WizardStep {
     private LoadableModel<List<ConnectorType>> connectorVersions;
 
     public NameStep(final IModel<ResourceType> model) {
+        this.resourceModel = model;
+
         connectorsModel = new LoadableModel<List<ConnectorType>>(false) {
 
             @Override
@@ -161,7 +168,7 @@ public class NameStep extends WizardStep {
                 ConnectorType connector = null;
                 List<ConnectorType> connectors = connectorsModel.getObject();
                 for (ConnectorType conn : connectors) {
-                    if (ref.getOid().equals(connector.getOid())) {
+                    if (ref.getOid().equals(conn.getOid())) {
                         connector = conn;
                         break;
                     }
@@ -229,11 +236,14 @@ public class NameStep extends WizardStep {
                     return;
                 }
 
-                ObjectReferenceType ref = new ObjectReferenceType();
-                ref.setType(ConnectorType.COMPLEX_TYPE);
-                ref.setOid(object.getOid());
+//                ObjectReferenceType ref = new ObjectReferenceType();
+//                ref.setType(ConnectorType.COMPLEX_TYPE);
+//                ref.setOid(object.getOid());
 
-                resource.setConnectorRef(ref);
+//                resource.setConnectorRef(ref);
+
+                //todo remove
+                resource.setConnector(object);
             }
 
             @Override
@@ -529,5 +539,43 @@ public class NameStep extends WizardStep {
         if (WebMiscUtil.showResultInPage(result)) {
             page.showResult(result);
         }
+    }
+
+    @Override
+    public void applyState() {
+        super.applyState();
+
+        PageBase page = (PageBase) getPage();
+        OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
+        try {
+            PrismObject<ResourceType> resource = resourceModel.getObject().asPrismObject();
+            page.getPrismContext().adopt(resource);
+
+//            ModelService model = page.getModelService();
+//            ObjectDelta addDelta = ObjectDelta.createAddDelta(resource);
+//            model.executeChanges(WebMiscUtil.createDeltaCollection(addDelta), null,
+//                    page.createSimpleTask(OPERATION_SAVE_RESOURCE), result);
+//
+//            OperationResult loadResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
+//            resource = model.getObject(ResourceType.class, addDelta.getOid(), null,
+//                    page.createSimpleTask(OPERATION_LOAD_RESOURCE), loadResult);
+//            resourceModel.setObject(resource.asObjectable());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            //todo error handling
+        } finally {
+            result.recomputeStatus();
+        }
+
+//        if (WebMiscUtil.showResultInPage(result)) {
+//            page.showResult(result);
+//        }
+    }
+
+    @Override
+    public boolean isComplete() {
+//        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
+//        return version.getModelObject() != null;
+        return true;
     }
 }

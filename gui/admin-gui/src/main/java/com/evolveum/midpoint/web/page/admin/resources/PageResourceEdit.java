@@ -91,7 +91,7 @@ public class PageResourceEdit extends PageAdminResources {
     private void initLayout() {
         WizardModel wizardModel = new WizardModel();
         wizardModel.add(new NameStep(model));
-        wizardModel.add(new ConfigurationStep());
+        wizardModel.add(new ConfigurationStep(model));
         wizardModel.add(new SchemaStep());
         wizardModel.add(new SchemaHandlingStep());
         wizardModel.add(new CapabilityStep());
@@ -122,6 +122,7 @@ public class PageResourceEdit extends PageAdminResources {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 target.add(editor);
+                target.appendJavaScript(editor.createJavascriptEditableRefresh());
             }
         };
         add(reload);
