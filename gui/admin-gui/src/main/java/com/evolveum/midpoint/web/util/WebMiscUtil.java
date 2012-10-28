@@ -253,5 +253,11 @@ public final class WebMiscUtil {
         return collection;
     }
     
-   
+    public static boolean showResultInPage(OperationResult result) {
+        if (result == null) {
+            return true;
+        }
+
+        return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();
+    }
 }

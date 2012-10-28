@@ -24,13 +24,19 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.wizard.WizardStep;
@@ -40,26 +46,30 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
  */
 public class NameStep extends WizardStep {
 
-    public static final String DOT_CLASS = NameStep.class.getName() + ".";
-    public static final String OPERATION_LOAD_CONNECTORS = DOT_CLASS + "loadConnectors";
-    public static final String OPERATION_LOAD_CONNECTOR_HOSTS = DOT_CLASS + "loadConnectorHosts";
+    private static final Trace LOGGER = TraceManager.getTrace(NameStep.class);
+
+    private static final String DOT_CLASS = NameStep.class.getName() + ".";
+    private static final String OPERATION_LOAD_CONNECTORS = DOT_CLASS + "loadConnectors";
+    private static final String OPERATION_LOAD_CONNECTOR_HOSTS = DOT_CLASS + "loadConnectorHosts";
+    private static final String OPERATION_DISCOVER_CONNECTORS = DOT_CLASS + "discoverConnectors";
 
     private static final String ID_NAME = "name";
     private static final String ID_LOCATION = "location";
-    private static final String ID_CONNECTOR_NAME = "connectorName";
+    private static final String ID_CONNECTOR_TYPE = "connectorType";
     private static final String ID_CONNECTOR_VERSION = "connectorVersion";
 
+    private LoadableModel<List<ConnectorHostType>> connectorHostsModel;
     private LoadableModel<List<ConnectorType>> connectorsModel;
-    private LoadableModel<ConnectorType> selectedConnectorModel;
+
+    private LoadableModel<List<ConnectorType>> connectorTypes;
+    private LoadableModel<List<ConnectorType>> connectorVersions;
 
     public NameStep(final IModel<ResourceType> model) {
         connectorsModel = new LoadableModel<List<ConnectorType>>(false) {
@@ -69,13 +79,14 @@ public class NameStep extends WizardStep {
                 return loadConnectors();
             }
         };
-        selectedConnectorModel = new LoadableModel<ConnectorType>() {
+        connectorHostsModel = new LoadableModel<List<ConnectorHostType>>(false) {
 
             @Override
-            protected ConnectorType load() {
-                return loadSelectedConnector(model);
+            protected List<ConnectorHostType> load() {
+                return loadConnectorHosts();
             }
         };
+
         initLayout(model);
     }
 
@@ -83,37 +94,213 @@ public class NameStep extends WizardStep {
         RequiredTextField name = new RequiredTextField(ID_NAME, createNameModel(model));
         add(name);
 
-        DropDownChoice location = createLocationDropDown(model);
+        DropDownChoice<ConnectorHostType> location = createLocationDropDown(model);
         add(location);
 
-        DropDownChoice connectorName = createConnectorNameDropDown(model);
-        add(connectorName);
+        DropDownChoice<ConnectorType> connectorType = createConnectorTypeDropDown(model, location.getModel());
+        add(connectorType);
 
-        DropDownChoice connectorVersion = createConnectorVersionDropDown(model);
+        DropDownChoice<ConnectorType> connectorVersion = createConnectorVersionDropDown(model, location.getModel(),
+                connectorType.getModel());
         add(connectorVersion);
     }
 
-    private DropDownChoice createConnectorVersionDropDown(IModel<ResourceType> model) {
-        DropDownChoice connectorVersion = new DropDownChoice(ID_CONNECTOR_VERSION); //todo model
+    private DropDownChoice createConnectorVersionDropDown(IModel<ResourceType> model,
+                                                          final IModel<ConnectorHostType> connectorHostTypeModel,
+                                                          final IModel<ConnectorType> connectorTypeModel) {
+        connectorVersions = new LoadableModel<List<ConnectorType>>(false) {
+
+            @Override
+            protected List<ConnectorType> load() {
+                return loadConnectorVersions(connectorHostTypeModel.getObject(), connectorTypeModel.getObject());
+            }
+        };
+
+        DropDownChoice connectorVersion = new DropDownChoice(ID_CONNECTOR_VERSION, createUsedConnectorModel(model),
+                connectorVersions, new IChoiceRenderer<ConnectorType>() {
+
+            @Override
+            public Object getDisplayValue(ConnectorType object) {
+                String version = object.getConnectorVersion();
+                if (StringUtils.isEmpty(version)) {
+                    return NameStep.this.getString("NameStep.unknownVersion");
+                }
+
+                return version;
+            }
+
+            @Override
+            public String getIdValue(ConnectorType object, int index) {
+                return Integer.toString(index);
+            }
+        }
+        );
+        connectorVersion.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return connectorTypeModel.getObject() != null;
+            }
+        });
         connectorVersion.setOutputMarkupId(true);
 
         return connectorVersion;
     }
 
-    private DropDownChoice createConnectorNameDropDown(IModel<ResourceType> model) {
-        DropDownChoice connectorName = new DropDownChoice(ID_CONNECTOR_NAME, new Model(), new LoadableModel(false) {
+    private IModel<ConnectorHostType> createReadonlyConnectorHostModel(final IModel<ResourceType> model) {
+        return new IModel<ConnectorHostType>() {
+
+            @Override
+            public ConnectorHostType getObject() {
+                ResourceType resource = model.getObject();
+                ObjectReferenceType ref = resource.getConnectorRef();
+                if (ref == null || ref.getOid() == null) {
+                    return null;
+                }
+
+                ConnectorType connector = null;
+                List<ConnectorType> connectors = connectorsModel.getObject();
+                for (ConnectorType conn : connectors) {
+                    if (ref.getOid().equals(connector.getOid())) {
+                        connector = conn;
+                        break;
+                    }
+                }
+
+                if (connector == null || connector.getConnectorHostRef() == null) {
+                    return null;
+                }
+
+                ObjectReferenceType hostRef = connector.getConnectorHostRef();
+                if (hostRef.getOid() == null) {
+                    return null;
+                }
+
+                for (ConnectorHostType host : connectorHostsModel.getObject()) {
+                    if (hostRef.getOid().equals(host.getOid())) {
+                        return host;
+                    }
+                }
+
+                return null;
+            }
+
+            @Override
+            public void setObject(ConnectorHostType object) {
+                //nothing, this is only read only model
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+
+    private ConnectorType getConnectorFromResource(ResourceType resource, List<ConnectorType> connectors) {
+        ObjectReferenceType ref = resource.getConnectorRef();
+        if (ref == null || ref.getOid() == null) {
+            return null;
+        }
+
+        for (ConnectorType connector : connectors) {
+            if (ref.getOid().equals(connector.getOid())) {
+                return connector;
+            }
+        }
+
+        return null;
+    }
+
+    private IModel<ConnectorType> createUsedConnectorModel(final IModel<ResourceType> model) {
+        return new IModel<ConnectorType>() {
+
+            @Override
+            public ConnectorType getObject() {
+                ResourceType resource = model.getObject();
+                List<ConnectorType> connectors = connectorsModel.getObject();
+                return getConnectorFromResource(resource, connectors);
+            }
+
+            @Override
+            public void setObject(ConnectorType object) {
+                ResourceType resource = model.getObject();
+                if (object == null) {
+                    resource.setConnectorRef(null);
+                    return;
+                }
+
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.setType(ConnectorType.COMPLEX_TYPE);
+                ref.setOid(object.getOid());
+
+                resource.setConnectorRef(ref);
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+
+    private IModel<ConnectorType> createReadonlyUsedConnectorModel(final IModel<ResourceType> model) {
+        return new IModel<ConnectorType>() {
+
+            private ConnectorType selected;
+
+            @Override
+            public ConnectorType getObject() {
+                if (selected != null) {
+                    return selected;
+                }
+
+                ResourceType resource = model.getObject();
+                List<ConnectorType> connectors = connectorsModel.getObject();
+                selected = getConnectorFromResource(resource, connectors);
+
+                return selected;
+            }
+
+            @Override
+            public void setObject(ConnectorType object) {
+                selected = object;
+            }
+
+            @Override
+            public void detach() {
+            }
+        };
+    }
+
+    private DropDownChoice createConnectorTypeDropDown(IModel<ResourceType> model,
+                                                       final IModel<ConnectorHostType> hostModel) {
+        connectorTypes = new LoadableModel(false) {
 
             @Override
             protected Object load() {
-                return loadConnectors();
+                return loadConnectorTypes(hostModel.getObject());
             }
-        }); //todo model
+        };
+
+        DropDownChoice connectorName = new DropDownChoice(ID_CONNECTOR_TYPE, createReadonlyUsedConnectorModel(model),
+                connectorTypes, new IChoiceRenderer<ConnectorType>() {
+
+            @Override
+            public Object getDisplayValue(ConnectorType object) {
+                return WebMiscUtil.getName(object);
+            }
+
+            @Override
+            public String getIdValue(ConnectorType object, int index) {
+                return Integer.toString(index);
+            }
+        }
+        );
         connectorName.setOutputMarkupId(true);
         connectorName.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                refreshVersionPerformed(target);
+                changeConnectorTypePerformed(target);
             }
         });
 
@@ -121,13 +308,8 @@ public class NameStep extends WizardStep {
     }
 
     private DropDownChoice createLocationDropDown(IModel<ResourceType> model) {
-        DropDownChoice location = new DropDownChoice(ID_LOCATION, new Model(), new LoadableModel<List<ConnectorHostType>>(false) {
-
-            @Override
-            protected List<ConnectorHostType> load() {
-                return loadConnectorHosts();
-            }
-        }, new IChoiceRenderer<ConnectorHostType>() {
+        DropDownChoice location = new DropDownChoice(ID_LOCATION, createReadonlyConnectorHostModel(model),
+                connectorHostsModel, new IChoiceRenderer<ConnectorHostType>() {
 
             @Override
             public Object getDisplayValue(ConnectorHostType object) {
@@ -178,6 +360,86 @@ public class NameStep extends WizardStep {
         return connectors;
     }
 
+    private List<ConnectorType> loadConnectorTypes(ConnectorHostType host) {
+        List<ConnectorType> filtered = filterConnectorTypes(host, null);
+
+        Collections.sort(filtered, new Comparator<ConnectorType>() {
+
+            @Override
+            public int compare(ConnectorType c1, ConnectorType c2) {
+                String name1 = c1.getConnectorType() == null ? "" : c1.getConnectorType();
+                String name2 = c2.getConnectorType() == null ? "" : c2.getConnectorType();
+
+                return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
+            }
+        });
+
+        return filtered;
+    }
+
+    private List<ConnectorType> filterConnectorTypes(ConnectorHostType host, ConnectorType type) {
+        List<ConnectorType> connectors = connectorsModel.getObject();
+
+        Set<String> alreadyAddedTypes = new HashSet<String>();
+        List<ConnectorType> filtered = new ArrayList<ConnectorType>();
+        for (ConnectorType connector : connectors) {
+            if (host != null && !isConnectorOnHost(connector, host)) {
+                continue;
+            }
+
+            if (type != null && type.getConnectorType() != null
+                    && !type.getConnectorType().equals(connector.getConnectorType())) {
+                //filter out connector if connectorType is not equal to parameter type.connectorType
+                continue;
+            }
+
+            if (type == null && alreadyAddedTypes.contains(connector.getConnectorType())) {
+                //we remove same connector types if we filtering connector based on types...
+                continue;
+            }
+
+            alreadyAddedTypes.add(connector.getConnectorType());
+            filtered.add(connector);
+        }
+
+        return filtered;
+    }
+
+    private List<ConnectorType> loadConnectorVersions(ConnectorHostType host, ConnectorType type) {
+        List<ConnectorType> filtered = filterConnectorTypes(host, type);
+
+        Collections.sort(filtered, new Comparator<ConnectorType>() {
+            @Override
+            public int compare(ConnectorType c1, ConnectorType c2) {
+                String v1 = c1.getVersion() == null ? "" : c1.getVersion();
+                String v2 = c2.getVersion() == null ? "" : c2.getVersion();
+
+                return String.CASE_INSENSITIVE_ORDER.compare(v1, v2);
+            }
+        });
+
+        return filtered;
+    }
+
+    private boolean isConnectorOnHost(ConnectorType connector, ConnectorHostType host) {
+        ConnectorHostType cHost = connector.getConnectorHost();
+
+        if (cHost != null && cHost.getOid() != null && cHost.getOid().equals(host.getOid())) {
+            return true;
+        }
+
+        ObjectReferenceType ref = connector.getConnectorHostRef();
+        if (ref == null) {
+            return false;
+        }
+
+        if (ref.getOid() != null && ref.getOid().equals(host.getOid())) {
+            return true;
+        }
+
+        return false;
+    }
+
     private IModel<String> createNameModel(final IModel<ResourceType> model) {
         return new Model<String>() {
 
@@ -189,13 +451,10 @@ public class NameStep extends WizardStep {
             @Override
             public void setObject(String object) {
                 ResourceType resource = model.getObject();
-                PolyStringType name = resource.getName();
-                if (name == null) {
-                    name = new PolyStringType();
-                    resource.setName(name);
-                }
-
+                PolyStringType name = new PolyStringType();
                 name.setOrig(object);
+
+                resource.setName(name);
             }
         };
     }
@@ -226,21 +485,49 @@ public class NameStep extends WizardStep {
         return hosts;
     }
 
-    private void refreshVersionPerformed(AjaxRequestTarget target) {
-        //todo implement
+    private void changeConnectorTypePerformed(AjaxRequestTarget target) {
+        connectorVersions.reset();
 
-        target.add(NameStep.this.get(ID_CONNECTOR_VERSION));
+        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
+//        version.getModel().setObject(null);
+
+        target.add(version);
     }
 
     private void discoverConnectorsPerformed(AjaxRequestTarget target) {
-        //todo implement
+        DropDownChoice<ConnectorHostType> location = (DropDownChoice) get(ID_LOCATION);
+        ConnectorHostType host = location.getModelObject();
 
-        connectorsModel.reset();
-        target.add(NameStep.this.get(ID_CONNECTOR_NAME), NameStep.this.get(ID_CONNECTOR_VERSION));
+        if (host != null) {
+            discoverConnectors(host);
+            connectorsModel.reset();
+        }
+
+        connectorTypes.reset();
+        connectorVersions.reset();
+
+        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
+//        version.getModel().setObject(null);
+
+        PageBase page = (PageBase) getPage();
+
+        target.add(NameStep.this.get(ID_CONNECTOR_TYPE), version, page.getFeedbackPanel());
     }
 
-    private ConnectorType loadSelectedConnector(IModel<ResourceType> model) {
-        //todo implement
-        return null;
+    private void discoverConnectors(ConnectorHostType host) {
+        PageBase page = (PageBase) getPage();
+        OperationResult result = new OperationResult(OPERATION_DISCOVER_CONNECTORS);
+        try {
+            ModelService model = page.getModelService();
+            model.discoverConnectors(host, result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't discover connectors", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        if (WebMiscUtil.showResultInPage(result)) {
+            page.showResult(result);
+        }
     }
 }

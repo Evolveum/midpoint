@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
+import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -100,7 +101,7 @@ public class PageResourceEdit extends PageAdminResources {
         add(wizard);
 
         //todo remove
-        final MultiLineLabel label = new MultiLineLabel("label", new AbstractReadOnlyModel<Object>() {
+        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<Object>() {
 
             @Override
             public Object getObject() {
@@ -113,13 +114,14 @@ public class PageResourceEdit extends PageAdminResources {
                 return "error";
             }
         });
-        label.setOutputMarkupId(true);
-        add(label);
+        editor.setReadonly(true);
+        editor.setOutputMarkupId(true);
+        add(editor);
         AjaxLinkButton reload = new AjaxLinkButton("reload", new Model<String>("reload")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.add(label);
+                target.add(editor);
             }
         };
         add(reload);
