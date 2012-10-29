@@ -61,7 +61,7 @@ This resource definition contains only the very basic definitions for midPoint t
         <connectorConfiguration>
 
             <!-- Configuration specific for the Active Directory connector -->
-            <icfcad:configurationProperties
+            <icfc:configurationProperties
                 xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
                 <icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
 		<icfcad:DirectoryAdminPassword><clearValue>secret</clearValue></icfcad:DirectoryAdminPassword>
@@ -73,7 +73,7 @@ This resource definition contains only the very basic definitions for midPoint t
                 <icfcad:DomainName>example.com</icfcad:DomainName>
   		<icfcad:SyncGlobalCatalogServer>localhost</icfcad:SyncGlobalCatalogServer><!-- hostname of DC to look up for changes when synchronizing -->
 		<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
-            </icfcad:configurationProperties>
+            </icfc:configurationProperties>
 
         </connectorConfiguration>
 
