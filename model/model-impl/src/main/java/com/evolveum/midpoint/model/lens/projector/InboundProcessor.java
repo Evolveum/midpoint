@@ -404,6 +404,10 @@ public class InboundProcessor {
 
         Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingType, 
         		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
+        
+        if (!mapping.isApplicableToChannel(context.getChannel())) {
+        	return;
+        }
 
         PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
         if (mapping.getStrength() == MappingStrengthType.WEAK && !property.isEmpty()) {

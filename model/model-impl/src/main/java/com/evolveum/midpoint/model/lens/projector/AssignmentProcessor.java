@@ -169,6 +169,7 @@ public class AssignmentProcessor {
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
         assignmentEvaluator.setUserOdo(focusContext.getObjectDeltaObject());
+        assignmentEvaluator.setChannel(context.getChannel());
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);

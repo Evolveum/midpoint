@@ -199,6 +199,16 @@
 					</target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:loot</ref>
+				<displayName>Loot</displayName>
+				<outbound>
+					<channel>http://pirates.net/avast</channel>
+					<expression>
+						<value>10000</value>
+					</expression>
+				</outbound>
+			</attribute>
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>

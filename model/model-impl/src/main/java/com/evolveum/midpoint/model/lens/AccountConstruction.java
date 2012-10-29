@@ -65,6 +65,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private AccountConstructionType accountConstructionType;
 	private ObjectType source;
 	private OriginType originType;
+	private String channel;
 	private ObjectDeltaObject<UserType> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
@@ -96,6 +97,14 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	public void setOriginType(OriginType originType) {
 		this.originType = originType;
+	}
+
+	public String getChannel() {
+		return channel;
+	}
+
+	public void setChannel(String channel) {
+		this.channel = channel;
 	}
 
 	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
@@ -240,11 +249,14 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 				throw new SchemaException("No oubound section in definition of attribute "+attrName+" in account construction in "+source);
 			}
 			Mapping<? extends PrismPropertyValue<?>> attributeConstruction = evaluateAttribute(attribudeDefinitionType, result);
-			attributeConstructions.add(attributeConstruction);
+			if (attributeConstruction != null) {
+				attributeConstructions.add(attributeConstruction);
+			}
 		}
 	}
 
-	private Mapping<? extends PrismPropertyValue<?>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType, OperationResult result) 
+	private Mapping<? extends PrismPropertyValue<?>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType,
+			OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName attrName = attribudeDefinitionType.getRef();
 		if (attrName == null) {
@@ -263,6 +275,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		}
 		Mapping<? extends PrismPropertyValue<?>> mapping = valueConstructionFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
+		
+		if (!mapping.isApplicableToChannel(channel)) {
+			return null;
+		}
+		
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.setSourceContext(userOdo);
 		mapping.setRootNode(userOdo);

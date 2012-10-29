@@ -121,6 +121,10 @@ public class OutboundProcessor {
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + ObjectTypeUtil.toShortString(rAccount.getResourceType()));
 			
+			if (!mapping.isApplicableToChannel(context.getChannel())) {
+				continue;
+			}
+			
 			mapping.setDefaultTargetDefinition(refinedAttributeDefinition);
 			mapping.setSourceContext(userOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);

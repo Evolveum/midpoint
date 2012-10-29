@@ -171,46 +171,48 @@ public class CredentialsProcessor {
         
         Mapping<PrismPropertyValue<?>> passwordMapping = valueConstructionFactory.createMapping(outboundMappingType, 
         		"outbound password mapping in account type " + rat);
-        passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
-        ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
-        Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
-		passwordMapping.setDefaultSource(source);
-		
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private PropertyPath outputPath;
-			private ItemDefinition outputDefinition;
-			@Override
-			public void setOutputPath(PropertyPath outputPath) {
-				this.outputPath = outputPath;
-			}
+        if (passwordMapping.isApplicableToChannel(context.getChannel())) {
+	        passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
+	        ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
+	        Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
+			passwordMapping.setDefaultSource(source);
 			
-			@Override
-			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
-			}
-			
-			@Override
-			public StringPolicyType resolve() {
-				ValuePolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
-				if (passwordPolicy == null) {
-					return null;
+			StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+				private PropertyPath outputPath;
+				private ItemDefinition outputDefinition;
+				@Override
+				public void setOutputPath(PropertyPath outputPath) {
+					this.outputPath = outputPath;
 				}
-				return passwordPolicy.getStringPolicy();
-			}
-		};
-		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
-		
-        passwordMapping.evaluate(result);
-        
-        PrismProperty accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
-        if (accountPasswordNew == null) {
-            LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
-            return;
+				
+				@Override
+				public void setOutputDefinition(ItemDefinition outputDefinition) {
+					this.outputDefinition = outputDefinition;
+				}
+				
+				@Override
+				public StringPolicyType resolve() {
+					ValuePolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
+					if (passwordPolicy == null) {
+						return null;
+					}
+					return passwordPolicy.getStringPolicy();
+				}
+			};
+			passwordMapping.setStringPolicyResolver(stringPolicyResolver);
+			
+	        passwordMapping.evaluate(result);
+	        
+	        PrismProperty accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
+	        if (accountPasswordNew == null) {
+	            LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
+	            return;
+	        }
+	        PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
+	        accountPasswordDelta.setValuesToReplace(accountPasswordNew.getClonedValues());
+	        LOGGER.trace("Adding new password delta for account {}", rat);
+	        accCtx.addToSecondaryDelta(accountPasswordDelta);
         }
-        PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
-        accountPasswordDelta.setValuesToReplace(accountPasswordNew.getClonedValues());
-        LOGGER.trace("Adding new password delta for account {}", rat);
-        accCtx.addToSecondaryDelta(accountPasswordDelta);
 
     }
 

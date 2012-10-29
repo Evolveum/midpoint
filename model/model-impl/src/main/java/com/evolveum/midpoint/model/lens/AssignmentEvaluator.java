@@ -60,6 +60,7 @@ public class AssignmentEvaluator {
 
 	private RepositoryService repository;
 	private ObjectDeltaObject<UserType> userOdo;
+	private String channel;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private MappingFactory valueConstructionFactory;
@@ -78,6 +79,14 @@ public class AssignmentEvaluator {
 
 	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
 		this.userOdo = userOdo;
+	}
+
+	public String getChannel() {
+		return channel;
+	}
+
+	public void setChannel(String channel) {
+		this.channel = channel;
 	}
 
 	public ObjectResolver getObjectResolver() {
@@ -171,6 +180,7 @@ public class AssignmentEvaluator {
 		accContruction.setPrismContext(prismContext);
 		accContruction.setValueConstructionFactory(valueConstructionFactory);
 		accContruction.setOriginType(OriginType.ASSIGNMENTS);
+		accContruction.setChannel(channel);
 		
 		accContruction.evaluate(result);
 		

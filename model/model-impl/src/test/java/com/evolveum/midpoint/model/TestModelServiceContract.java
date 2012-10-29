@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
@@ -933,6 +934,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Cpt. Jack Sparrow", true);
+        DummyAccount dummyAccount = getDummyAccount(null, "jack");
+        assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
 	}
 	
 	@Test
@@ -1043,6 +1046,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test150AddUserBlackbeardWithAccount");
+        // Use custom channel to trigger a special outbound mapping
+        task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -1074,6 +1079,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("blackbeard", "Edward Teach", true);
+        DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
+        assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
 	}
 
 	

@@ -142,22 +142,24 @@ public class ActivationProcessor {
         Mapping<PrismPropertyValue<Boolean>> enabledMapping =
         	valueConstructionFactory.createMapping(outbound, 
         		"outbound activation mapping in account type " + rat);
-        enabledMapping.setDefaultTargetDefinition(accountEnabledPropertyDefinition);
-        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ENABLE);
-        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
-		enabledMapping.setDefaultSource(source);
-        enabledMapping.setOriginType(OriginType.OUTBOUND);
-        enabledMapping.setOriginObject(accCtx.getResource());
-        enabledMapping.evaluate(result);
-        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
-        if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
-            LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
-            return;
+        if (enabledMapping.isApplicableToChannel(context.getChannel())) {
+	        enabledMapping.setDefaultTargetDefinition(accountEnabledPropertyDefinition);
+	        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ENABLE);
+	        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
+			enabledMapping.setDefaultSource(source);
+	        enabledMapping.setOriginType(OriginType.OUTBOUND);
+	        enabledMapping.setOriginObject(accCtx.getResource());
+	        enabledMapping.evaluate(result);
+	        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
+	        if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
+	            LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
+	            return;
+	        }
+	        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
+	        accountEnabledDelta.setValuesToReplace(PrismValue.cloneCollection(accountEnabledNew.getValues()));
+	        LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
+	        accCtx.addToSecondaryDelta(accountEnabledDelta);
         }
-        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
-        accountEnabledDelta.setValuesToReplace(PrismValue.cloneCollection(accountEnabledNew.getValues()));
-        LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
-        accCtx.addToSecondaryDelta(accountEnabledDelta);
 
     }
 
