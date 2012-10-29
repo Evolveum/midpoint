@@ -1069,7 +1069,8 @@ public class PageUser extends PageAdminUsers {
     private void submitPerformed(AjaxRequestTarget target) {
         LOGGER.debug("Submit user.");
 
-        OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
+        Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+        OperationResult result = task.getResult();
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ArrayList<PrismObject> accountsBeforeModify = getAccountsForSubmit(result, deltas);
 
@@ -1094,14 +1095,14 @@ public class PageUser extends PageAdminUsers {
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
                     deltas.add(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, result);
+                    changes = getModelInteractionService().previewChanges(deltas, task, result);
                     result.recordSuccess();
                     break;
                 case MODIFYING:
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
                     prepareUserDeltaForModify(delta);
                     deltas.add(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, result);
+                    changes = getModelInteractionService().previewChanges(deltas, task, result);
                     result.recordSuccess();
                     break;
                 // support for add/delete containers (e.g. delete credentials)

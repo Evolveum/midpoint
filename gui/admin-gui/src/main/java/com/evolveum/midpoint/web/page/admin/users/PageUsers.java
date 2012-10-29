@@ -469,7 +469,8 @@ public class PageUsers extends PageAdminUsers {
         }
         // When delete one user -> submit page
         if (users.size() == 1) {
-            OperationResult result = new OperationResult(PageUsers.class.getName() + "sendToSubmit");
+        	Task task = createSimpleTask(PageUsers.class.getName() + "sendToSubmit");
+            OperationResult result = task.getResult();
             SelectableBean<UserType> bean = users.get(0);
 
             UserType user = bean.getValue();
@@ -480,7 +481,7 @@ public class PageUsers extends PageAdminUsers {
             try {
                 delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
                 deltas.add(delta);
-                changes = getModelInteractionService().previewChanges(deltas, result);
+                changes = getModelInteractionService().previewChanges(deltas, task, result);
             } catch (Exception ex) {
                 result.recordFatalError("Couldn't send user to submit.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
