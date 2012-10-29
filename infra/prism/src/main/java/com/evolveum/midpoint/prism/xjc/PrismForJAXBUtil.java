@@ -143,22 +143,22 @@ public final class PrismForJAXBUtil {
     }
 
     
-    public static <T> void setPropertyValue(PrismContainerValue container, QName name, T value) {
+    public static <T> void setPropertyValue(PrismContainerValue<?> container, QName name, T value) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        PrismProperty<?> property;
-		try {
-			property = container.findOrCreateProperty(name);
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
         if (value == null) {
-        	property.clear();
+        	container.removeProperty(name);
         } else {
-        	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(value);
-        	property.setValue(new PrismPropertyValue(propertyRealValue));
+	        PrismProperty<?> property;
+			try {
+				property = container.findOrCreateProperty(name);
+			} catch (SchemaException e) {
+				// This should not happen. Code generator and compiler should take care of that.
+				throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+			}
+	    	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(value);
+	    	property.setValue(new PrismPropertyValue(propertyRealValue));
         }
     }
 

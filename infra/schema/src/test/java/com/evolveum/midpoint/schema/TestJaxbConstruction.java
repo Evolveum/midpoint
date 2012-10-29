@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -38,6 +39,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -54,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -83,6 +86,28 @@ public class TestJaxbConstruction {
 		PrismObject<UserType> user = userType.asPrismObject();
 		assertNotNull("No object definition after adopt", user.getDefinition());
 		SchemaTestUtil.assertUserDefinition(user.getDefinition());
+		
+		// fullName: PolyString
+		userType.setFullName(new PolyStringType("Čučoriedka"));
+		PrismProperty<PolyString> fullNameProperty = user.findProperty(UserType.F_FULL_NAME);
+		PolyString fullName = fullNameProperty.getRealValue();
+		assertEquals("Wrong fullName orig", "Čučoriedka", fullName.getOrig());
+		assertEquals("Wrong fullName norm", "cucoriedka", fullName.getNorm());
+		
+		// description: setting null value
+		userType.setDescription(null);
+		PrismProperty<String> descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
+		assertNull("Unexpected description property "+descriptionProperty, descriptionProperty);
+		
+		// description: setting null value
+		userType.setDescription("blah blah");
+		descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
+		assertEquals("Wrong description value", "blah blah", descriptionProperty.getRealValue());
+		
+		// description: resetting null value
+		userType.setDescription(null);
+		descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
+		assertNull("Unexpected description property (after reset) "+descriptionProperty, descriptionProperty);
 		
 		// Extension
 		ExtensionType extension = new ExtensionType();
