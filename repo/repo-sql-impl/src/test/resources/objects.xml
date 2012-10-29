@@ -818,16 +818,16 @@
         <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
         <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
         <connectorVersion>1.1.0.0-e2</connectorVersion>
-        <connectorBundle>org.forgerock.openicf.connectors.file.csvfile</connectorBundle>
-        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector</namespace>
+        <connectorBundle>openicf-csvfile-connector</connectorBundle>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector</namespace>
         <schema>
         <definition>
-            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector"
+            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.file.csvfile/org.forgerock.openicf.csvfile.CSVFileConnector">
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
                 
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>

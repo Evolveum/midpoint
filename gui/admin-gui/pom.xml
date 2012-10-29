@@ -302,7 +302,7 @@
         </dependency>
         <dependency>
             <groupId>org.forgerock.openicf.connectors.file</groupId>
-            <artifactId>csvfile</artifactId>
+            <artifactId>openicf-csvfile-connector</artifactId>
             <scope>runtime</scope>
         </dependency>
         <!-- end connectors -->
