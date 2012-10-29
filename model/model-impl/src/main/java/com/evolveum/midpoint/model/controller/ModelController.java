@@ -331,7 +331,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 					clonedDeltas.add(delta.clone());
 				}
 				// Normal processing
-				LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, result);
+				LensContext<?, ?> context = LensUtil.objectDeltaToContext(deltas, provisioning, prismContext, task, result);
 				clockwork.run(context, task, result);
 			}
 
@@ -349,7 +349,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				//TODO: log reset operation, maybe add new result informing about the situation
 				result.muteLastSubresultError();
 				LOGGER.trace("Reseting add operation, recomputing user and his accounts.");
-				LensContext<?, ?> context = LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, result);
+				LensContext<?, ?> context = LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, task, result);
 				clockwork.run(context, task, result);
 				result.computeStatus();
 			} catch (SystemException ex){
@@ -426,7 +426,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	 */
 	@Override
 	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult parentResult)
+			Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
@@ -436,7 +436,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		
 		//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, result);
+		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltaToContext(clonedDeltas, provisioning, prismContext, task, result);
 		
 		projector.project(context, "preview", result);
 		context.distributeResource();

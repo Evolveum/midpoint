@@ -25,6 +25,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -65,7 +66,7 @@ public interface ModelInteractionService {
 	 * on the generated values. 
 	 */
 	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) 
+			Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) 
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 }

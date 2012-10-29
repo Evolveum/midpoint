@@ -810,6 +810,7 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="parent" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3255,6 +3256,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Limits application of this mapping only to specific channel. If the channel is listed then the
+            			mapping will be applied. If it is not then it will not be applied.
+            			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="source" type="tns:MappingSourceDeclarationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="target" type="tns:MappingTargetDeclarationType" minOccurs="0" maxOccurs="1"/>
@@ -3793,6 +3803,7 @@
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
+                        <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
                         <xsd:element name="action" minOccurs="0" maxOccurs="unbounded">
                             <xsd:annotation>
                                 <xsd:documentation>

@@ -145,7 +145,7 @@ public class TestPreviewChanges extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         
 		// WHEN
-		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
 		
 		// THEN
 		display("Preview context", modelContext);
@@ -204,7 +204,7 @@ public class TestPreviewChanges extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         
 		// WHEN
-		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
 		
 		// THEN
 		display("Preview context", modelContext);
@@ -243,7 +243,7 @@ public class TestPreviewChanges extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -291,7 +291,7 @@ public class TestPreviewChanges extends AbstractModelIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
 		
 		// THEN
         display("Preview context", modelContext);

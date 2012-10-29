@@ -69,6 +69,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -180,6 +181,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
                 accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
         PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+        PrismAsserts.assertNoEmptyItem(accountToAddPrimary);
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
@@ -246,6 +248,8 @@ public class TestProjector extends AbstractModelIntegrationTest {
         for (ResourceAttribute<?> attribute: ResourceObjectShadowUtil.getAttributes(newAccount)) {
         	PrismAsserts.assertOrigin(attribute, OriginType.OUTBOUND);
         }
+        
+        PrismAsserts.assertNoEmptyItem(newAccount);
 	}
 
 	/**
@@ -488,6 +492,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals("Wrong fullName", "Jack Sparrow",
         		attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
         
+        PrismAsserts.assertNoEmptyItem(newAccount);
 	}
 	
 	@Test
@@ -500,6 +505,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
@@ -521,6 +527,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         PrismAsserts.assertOrigin(userSecondaryDelta, OriginType.INBOUND);
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
         
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -546,6 +553,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_OPENDJ_FILENAME, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
@@ -689,6 +697,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         dummyAccount.replaceAttributeValue("location", "Phatt Island");
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        context.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         context.setDoReconciliationForAllProjections(true);
 

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -133,7 +134,7 @@ public class LensUtil {
 	
 	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> objectDeltaToContext(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ProvisioningService provisioningService, 
-			PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ObjectDelta<F> focusDelta = null;
 		Collection<ObjectDelta<P>> projectionDeltas = new ArrayList<ObjectDelta<P>>(deltas.size());
 		Class<F> focusClass = null;
@@ -158,8 +159,8 @@ public class LensUtil {
 			}
 		}
 		
-		LensContext<F, P> context = null;
-		context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+		LensContext<F, P> context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
+		context.setChannel(task.getChannel());
 		if (focusDelta != null) {
 			LensFocusContext<F> focusContext = context.createFocusContext();
 			focusContext.setPrimaryDelta(focusDelta);

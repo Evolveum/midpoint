@@ -1071,6 +1071,28 @@ public class TaskQuartzImpl implements Task {
 	}
 	
 	@Override
+	public String getChannel() {
+		PrismProperty<String> channelProperty = taskPrism.findProperty(TaskType.F_CHANNEL);
+		if (channelProperty == null) {
+			return null;
+		}
+		return channelProperty.getRealValue();
+	}
+
+	@Override
+	public void setChannel(String channelUri) {
+		// TODO: Is this OK?
+		PrismProperty<String> channelProperty;
+		try {
+			channelProperty = taskPrism.findOrCreateProperty(TaskType.F_CHANNEL);
+		} catch (SchemaException e) {
+			// This should not happen
+			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+		}
+		channelProperty.setRealValue(channelUri);
+	}
+	
+	@Override
 	public ObjectReferenceType getObjectRef() {
 		PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
 		if (objectRef == null) {

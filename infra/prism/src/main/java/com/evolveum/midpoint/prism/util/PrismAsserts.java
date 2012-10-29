@@ -130,6 +130,31 @@ public class PrismAsserts {
 		fail("Oid "+oid+" not found in reference "+ref);
 	}
 	
+	public static <T extends Objectable> void assertNoItem(PrismObject<T> object, QName itemName) {
+		assertNoItem(object, new PropertyPath(itemName));
+	}
+
+	public static <T extends Objectable> void assertNoItem(PrismObject<T> object, PropertyPath itemPath) {
+		Item<?> item = object.findItem(itemPath);
+		assert item == null : "Unexpected item "+item+" in "+object;
+	}
+	
+	public static void assertNotEmpty(Item<?> item) {
+		assert !item.isEmpty() : "Item "+item+" is empty";
+	}
+	
+	public static void assertNoEmptyItem(PrismContainer<?> container) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if (visitable != null && visitable instanceof Item) {
+					assertNotEmpty((Item<?>)visitable);
+				}
+			}
+		};
+		container.accept(visitor);
+	}
+
 	// DEFINITION asserts
 	
 	public static <T extends Objectable> void assertObjectDefinition(PrismObjectDefinition<T> objDef, QName elementName,
@@ -586,5 +611,6 @@ public class PrismAsserts {
 		}
 		return a.equals(b);
 	}
+
 
 }

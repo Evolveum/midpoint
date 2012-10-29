@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -139,6 +140,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack, "Jackie Sparrow", "Jackie", "Sparrow");
+        PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
         
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedNoRole(userJack);
@@ -170,6 +172,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 2);
@@ -199,6 +202,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		// THEN
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
+        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
         
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedNoRole(userAfter);
@@ -217,6 +221,8 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test201AddUserLargo");
+        // This simulates IMPORT to trigger the channel-limited mapping
+        task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
         OperationResult result = task.getResult();
     
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
@@ -231,6 +237,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_LARGO_OID, null, task, result);
         assertUser(userAfter, USER_LARGO_OID, "largo", "Largo LaGrande", "Largo", "LaGrande");
         
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);
@@ -263,6 +270,7 @@ public class TestUserTemplate extends AbstractModelIntegrationTest {
 		display("User after", userAfter);
 //        assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", " Monkey", null, "Monkey");
         assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", "Three-Headed Monkey", null, "Monkey");
+        PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
         
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedNoRole(userAfter);

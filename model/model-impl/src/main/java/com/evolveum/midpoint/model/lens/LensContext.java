@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
@@ -311,8 +314,12 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         return channel;
     }
 
-    public void setChannel(String channel) {
-        this.channel = channel;
+    public void setChannel(String channelUri) {
+        this.channel = channelUri;
+    }
+    
+    public void setChannel(QName channelQName) {
+        this.channel = QNameUtil.qNameToUri(channelQName);
     }
 
 	public boolean isDoReconciliationForAllProjections() {

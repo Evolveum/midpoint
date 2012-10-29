@@ -155,13 +155,13 @@ public class UserPolicyProcessor {
 		for (MappingType mappingType : userTemplate.getMapping()) {
 			ItemDelta<PrismValue> itemDelta = evaluateMapping(context, mappingType, userTemplate, userOdo, result);
 			
-			if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
-				if (itemDelta != null && !itemDelta.isEmpty()) {
+			if (itemDelta != null && !itemDelta.isEmpty()) {
+				if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
 					if (userSecondaryDelta == null) {
 						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
 						focusContext.setProjectionWaveSecondaryDelta(userSecondaryDelta);
 					}
-					userSecondaryDelta.mergeModification(itemDelta);	
+					userSecondaryDelta.mergeModification(itemDelta);
 				}
 			}
 		}
@@ -173,6 +173,11 @@ public class UserPolicyProcessor {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate
 				+ " while processing user " + userOdo.getAnyObject());
+		
+		if (!mapping.isApplicableToChannel(context.getChannel())) {
+			return null;
+		}
+		
 		mapping.setSourceContext(userOdo);
 		mapping.setTargetContext(getUserDefinition());
 		mapping.setRootNode(userOdo);

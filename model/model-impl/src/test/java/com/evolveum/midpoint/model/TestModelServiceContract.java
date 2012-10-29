@@ -760,7 +760,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         deltas.add(accountAssignmentUserDelta);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
 		
 		// THEN
 		result.computeStatus();

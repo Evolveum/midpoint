@@ -180,7 +180,7 @@ public class InboundProcessor {
                 PropertyDelta<?> userPropertyDelta = null;
                 if (aPrioriDelta != null) {
                     LOGGER.trace("Processing inbound from a priori delta.");
-                    userPropertyDelta = evaluateInboundExpression(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
+                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 } else if (accountOld != null) {
                 	if (!accContext.isFullShadow()) {
@@ -188,7 +188,7 @@ public class InboundProcessor {
                 	}
                     LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = accountOld.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
-                    userPropertyDelta = evaluateInboundExpression(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
+                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 }
 
@@ -234,17 +234,21 @@ public class InboundProcessor {
         return false;
     }
     
-    private <A,U> PropertyDelta<U> evaluateInboundExpression(final LensContext<UserType,AccountShadowType> context, 
+    private <A,U> PropertyDelta<U> evaluateInboundMapping(final LensContext<UserType,AccountShadowType> context, 
     		MappingType inboundMappingType, 
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
             PrismObject<UserType> newUser, PrismObject<AccountShadowType> account, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
+    	
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
     	
     	Mapping<PrismPropertyValue<U>> mapping = mappingFactory.createMapping(inboundMappingType, 
     			"inbound expression for "+accountAttributeName+" in "+resource);
+    	
+    	if (!mapping.isApplicableToChannel(context.getChannel())) {
+    		return null;
+    	}
     	
     	Source<PrismPropertyValue<A>> defaultSource = new Source<PrismPropertyValue<A>>(oldAccountProperty, accountAttributeDelta, null, ExpressionConstants.VAR_INPUT);
     	defaultSource.recompute();

@@ -343,6 +343,14 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	public void setStringPolicyResolver(StringPolicyResolver stringPolicyResolver) {
 		this.stringPolicyResolver = stringPolicyResolver;
 	}
+	
+	public boolean isApplicableToChannel(String channelUri) {
+		List<String> applicableChannels = mappingType.getChannel();
+		if (applicableChannels == null || applicableChannels.isEmpty()) {
+			return true;
+		}
+		return applicableChannels.contains(channelUri);
+	}
 
 	public void evaluate(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {		
 		sources = parseSources(result);

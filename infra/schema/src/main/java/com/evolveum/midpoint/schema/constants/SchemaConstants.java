@@ -171,7 +171,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
 	// Synchronization constants
-	public static final String NS_CHANNEL = NS_PROVISIONING + "/channels-1";
+	public static final String NS_CHANNEL = NS_PROVISIONING + "/channels-2";
 	public static final QName CHANGE_CHANNEL_SYNC = new QName(NS_CHANNEL, "synchronization");
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_CHANNEL, "reconciliation");
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_CHANNEL, "discovery");

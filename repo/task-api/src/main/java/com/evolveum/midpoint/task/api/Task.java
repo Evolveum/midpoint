@@ -257,6 +257,16 @@ public interface Task extends Dumpable {
 	public void setOwner(PrismObject<UserType> owner);
 	
 	/**
+	 * Returns change channel URI.
+	 */
+	public String getChannel();
+	
+	/**
+	 * Sets change channel URI.
+	 */
+	public void setChannel(String channelUri);
+	
+	/**
 	 * Returns task OID.
 	 * 
 	 * Only persistent tasks have OID. This returns null if the task is not persistent.
