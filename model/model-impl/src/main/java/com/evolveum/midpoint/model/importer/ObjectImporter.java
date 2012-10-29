@@ -79,6 +79,9 @@ public class ObjectImporter {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectImporter.class);
     private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
             + ".resolveReference";
+    private static final String OPERATION_VALIDATE_DYN_SCHEMA = ObjectImporter.class.getName()
+            + ".validateDynamicSchema";
+
 
     @Autowired(required = true)
     private Protector protector;
@@ -288,11 +291,12 @@ public class ObjectImporter {
                                                            RepositoryService repository, OperationResult objectResult) {
 
         // TODO: check extension schema (later)
-
+    	OperationResult result = objectResult.createSubresult(OPERATION_VALIDATE_DYN_SCHEMA);
         if (object.canRepresent(ConnectorType.class)) {
             ConnectorType connector = (ConnectorType) object.asObjectable();
-            checkSchema(connector.getSchema(), "connector", objectResult);
-            objectResult.computeStatus("Connector schema error");
+            checkSchema(connector.getSchema(), "connector", result);
+            result.computeStatus("Connector schema error");
+            result.recordSuccessIfUnknown();
 
         } else if (object.canRepresent(ResourceType.class)) {
 
@@ -304,31 +308,31 @@ public class ObjectImporter {
             PrismContainer<Containerable> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resource);
             if (configurationContainer == null || configurationContainer.isEmpty()) {
                 // Nothing to check
-                objectResult.recordWarning("The resource has no configuration");
+                result.recordWarning("The resource has no configuration");
                 return;
             }
 
             // Check the resource configuration. The schema is in connector, so fetch the connector first
             String connectorOid = resourceType.getConnectorRef().getOid();
             if (StringUtils.isBlank(connectorOid)) {
-                objectResult.recordFatalError("The connector reference (connectorRef) is null or empty");
+                result.recordFatalError("The connector reference (connectorRef) is null or empty");
                 return;
             }
 
             PrismObject<ConnectorType> connector = null;
             ConnectorType connectorType = null;
             try {
-                connector = repository.getObject(ConnectorType.class, connectorOid, objectResult);
+                connector = repository.getObject(ConnectorType.class, connectorOid, result);
                 connectorType = connector.asObjectable();
             } catch (ObjectNotFoundException e) {
                 // No connector, no fun. We can't check the schema. But this is referential integrity problem.
                 // Mark the error ... there is nothing more to do
-                objectResult.recordFatalError("Connector (OID:" + connectorOid + ") referenced from the resource is not in the repository", e);
+                result.recordFatalError("Connector (OID:" + connectorOid + ") referenced from the resource is not in the repository", e);
                 return;
             } catch (SchemaException e) {
                 // Probably a malformed connector. To be kind of robust, lets allow the import.
                 // Mark the error ... there is nothing more to do
-                objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
+                result.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
                 LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}", new Object[]{connectorOid, resourceType.getName(), e.getMessage(), e});
                 return;
             }
@@ -337,32 +341,34 @@ public class ObjectImporter {
             PrismSchema connectorSchema = null;
             if (connectorSchemaElement == null) {
             	// No schema to validate with
+            	result.recordSuccessIfUnknown();
             	return;
             }
 			try {
 				connectorSchema = PrismSchema.parse(connectorSchemaElement, "schema for " + connector, prismContext);
 			} catch (SchemaException e) {
-				objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
+				result.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
 				return;
 			}
             QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
     		PrismContainerDefinition<?> configContainerDef = connectorSchema.findContainerDefinitionByElementName(configContainerQName);
     		if (configContainerDef == null) {
-    			objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
+    			result.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
                 return;
     		}
             
             try {
 				configurationContainer.applyDefinition(configContainerDef);
 			} catch (SchemaException e) {
-				objectResult.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
+				result.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
                 return;
 			}
             
             // Also check integrity of the resource schema
-            checkSchema(resourceType.getSchema(), "resource", objectResult);
+            checkSchema(resourceType.getSchema(), "resource", result);
 
-            objectResult.computeStatus("Dynamic schema error");
+            result.computeStatus("Dynamic schema error");
+            
 
         } else if (object.canRepresent(ResourceObjectShadowType.class)) {
             // TODO
@@ -370,6 +376,7 @@ public class ObjectImporter {
             //objectResult.computeStatus("Dynamic schema error");
         }
 
+        result.recordSuccessIfUnknown();
         return;
     }
 

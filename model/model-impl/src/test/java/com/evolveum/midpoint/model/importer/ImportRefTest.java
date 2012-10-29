@@ -119,7 +119,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		// THEN
 		result.computeStatus("Failed import.");
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result, 2);
+		assertSuccessOrWarning("Import has failed (result)", result, 2);
 
 		// Check import of user
 //		Document doc = DOMUtil.getDocument();
