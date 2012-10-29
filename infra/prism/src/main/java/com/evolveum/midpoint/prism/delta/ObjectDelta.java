@@ -260,8 +260,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     			if (!modification.hasCompleteDefinition()) {
     				return false;
     			}
-    			return true;
+//    			return true;
     		}
+    		return true;
     	} else if (isDelete()) {
     		return true;
     	}
