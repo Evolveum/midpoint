@@ -226,8 +226,13 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	public void addValueToAdd(V newValue) {
 		if (valuesToReplace != null) {
-			throw new IllegalStateException("Delta " + this
-					+ " already has values to replace, attempt to add value to add");
+			if (PrismValue.containsRealValue(valuesToReplace, newValue)) {
+				// Nothing to do. the delta already contains that value
+				return;
+			} else {
+				throw new IllegalStateException("Delta " + this
+					+ " already has values to replace ("+valuesToReplace+"), attempt to add value ("+newValue+") is an error");
+			}
 		}
 		if (valuesToAdd == null) {
 			valuesToAdd = newValueCollection();
@@ -254,8 +259,14 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	
 	public void addValueToDelete(V newValue) {
 		if (valuesToReplace != null) {
-			throw new IllegalStateException("Delta " + this
-					+ " already has values to replace, attempt to add value to delete");
+			Iterator<V> valuesToReplaceIterator = valuesToReplace.iterator();
+			if (valuesToReplaceIterator.hasNext()) {
+				V valueToReplace = valuesToReplaceIterator.next();
+				if (valueToReplace.equalsRealValue(newValue)) {
+					valuesToReplaceIterator.remove();
+				}
+			}
+			return;
 		}
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
