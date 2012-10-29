@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model.lens.projector;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -64,8 +66,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
@@ -164,7 +168,7 @@ public class UserPolicyProcessor {
 
 	}
 
-	private <V extends PrismValue> ItemDelta<V> evaluateMapping(final LensContext<UserType, AccountShadowType> context, MappingType mappingType, UserTemplateType userTemplate, 
+	private <V extends PrismValue> ItemDelta<V> evaluateMapping(final LensContext<UserType, AccountShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
 			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate
@@ -200,14 +204,35 @@ public class UserPolicyProcessor {
 			
 			@Override
 			public StringPolicyType resolve() {
-				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
-					return null;
+				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+					ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+					if (passwordPolicy == null) {
+						return null;
+					}
+					return passwordPolicy.getStringPolicy();
 				}
-				ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
-				if (passwordPolicy == null) {
-					return null;
+				if (mappingType.getExpression() != null){
+					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
+					if (evaluators != null){
+						for (JAXBElement jaxbEvaluator : evaluators){
+							Object object = jaxbEvaluator.getValue();
+							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
+								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+								try{
+								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", new OperationResult("Resolving value policy"));
+								if (valuePolicyType != null){
+									return valuePolicyType.getStringPolicy();
+								}
+								} catch (Exception ex){
+									throw new SystemException(ex.getMessage(), ex);
+								}
+							}
+						}
+						
+					}
 				}
-				return passwordPolicy.getStringPolicy();
+				return null;
+				
 			}
 		};
 		mapping.setStringPolicyResolver(stringPolicyResolver);
