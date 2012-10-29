@@ -240,6 +240,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         ThreeStateCheckPanel enabled = new ThreeStateCheckPanel(ID_ENABLED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_ACTIVATION + ".enabled"));
+        enabled.setStyle("margin: 1px 0 0 10px;");
         body.add(enabled);
 
         DateTextField validFrom = DateTextField.forDatePattern(ID_VALID_FROM,
