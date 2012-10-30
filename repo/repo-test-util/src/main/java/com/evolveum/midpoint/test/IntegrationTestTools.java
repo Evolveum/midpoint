@@ -271,6 +271,7 @@ public class IntegrationTestTools {
 
 	public static void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
 		Collection<String> values = getAttributeValues(repoShadow, name);
+		assertFalse(message + ": no values", values == null || values.isEmpty());
 		assertEquals(message, 1, values.size());
 		assertEquals(message, value, values.iterator().next());
 	}

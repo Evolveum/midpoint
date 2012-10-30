@@ -226,13 +226,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	public void addValueToAdd(V newValue) {
 		if (valuesToReplace != null) {
-			if (PrismValue.containsRealValue(valuesToReplace, newValue)) {
-				// Nothing to do. the delta already contains that value
-				return;
-			} else {
-				throw new IllegalStateException("Delta " + this
-					+ " already has values to replace ("+valuesToReplace+"), attempt to add value ("+newValue+") is an error");
-			}
+			throw new IllegalStateException("Delta " + this
+				+ " already has values to replace ("+valuesToReplace+"), attempt to add value ("+newValue+") is an error");
 		}
 		if (valuesToAdd == null) {
 			valuesToAdd = newValueCollection();
@@ -243,6 +238,28 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		valuesToAdd.add(newValue);
 		newValue.setParent(this);
 		newValue.recompute();
+	}
+	
+	public void mergeValuesToAdd(Collection<V> newValues) {
+		for (V val : newValues) {
+			mergeValueToAdd(val);
+		}
+	}
+	
+	public void mergeValuesToAdd(V[] newValues) {
+		for (V val : newValues) {
+			mergeValueToAdd(val);
+		}
+	}
+	
+	public void mergeValueToAdd(V newValue) {
+		if (valuesToReplace != null) {
+			if (!PrismValue.containsRealValue(valuesToReplace, newValue)) {
+				valuesToReplace.add(newValue);
+			}
+		} else {
+			addValueToAdd(newValue);
+		}
 	}
 
 	public void addValuesToDelete(Collection<V> newValues) {
@@ -259,14 +276,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	
 	public void addValueToDelete(V newValue) {
 		if (valuesToReplace != null) {
-			Iterator<V> valuesToReplaceIterator = valuesToReplace.iterator();
-			if (valuesToReplaceIterator.hasNext()) {
-				V valueToReplace = valuesToReplaceIterator.next();
-				if (valueToReplace.equalsRealValue(newValue)) {
-					valuesToReplaceIterator.remove();
-				}
-			}
-			return;
+			throw new IllegalStateException("Delta " + this
+					+ " already has values to replace ("+valuesToReplace+"), attempt to set value to delete ("+newValue+")");
 		}
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
@@ -278,11 +289,37 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		newValue.setParent(this);
 		newValue.recompute();
 	}
+	
+	public void mergeValuesToDelete(Collection<V> newValues) {
+		for (V val : newValues) {
+			mergeValueToDelete(val);
+		}
+	}
+
+	public void mergeValuesToDelete(V[] newValues) {
+		for (V val : newValues) {
+			mergeValueToDelete(val);
+		}
+	}
+	
+	public void mergeValueToDelete(V newValue) {
+		if (valuesToReplace != null) {
+			Iterator<V> valuesToReplaceIterator = valuesToReplace.iterator();
+			if (valuesToReplaceIterator.hasNext()) {
+				V valueToReplace = valuesToReplaceIterator.next();
+				if (valueToReplace.equalsRealValue(newValue)) {
+					valuesToReplaceIterator.remove();
+				}
+			}
+		} else {
+			addValueToDelete(newValue);
+		}
+	}
 
 	public void setValuesToReplace(Collection<V> newValues) {
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
-					+ " already has values to add, attempt to set value to replace");
+					+ " already has values to add ("+valuesToAdd+"), attempt to set value to replace ("+newValues+")");
 		}
 		if (valuesToDelete != null) {
 			throw new IllegalStateException("Delta " + this
@@ -338,6 +375,30 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		valuesToReplace.add(newValue);
 		newValue.setParent(this);
 		newValue.recompute();
+	}
+	
+	public void mergeValuesToReplace(Collection<V> newValues) {
+		// No matter what type the delta was before. We are just discarding all the previous
+		// state as the replace that we are applying will overwrite that anyway.
+		valuesToAdd = null;
+		valuesToDelete = null;
+		setValuesToReplace(newValues);
+	}
+
+	public void mergeValuesToReplace(V[] newValues) {
+		// No matter what type the delta was before. We are just discarding all the previous
+		// state as the replace that we are applying will overwrite that anyway.
+		valuesToAdd = null;
+		valuesToDelete = null;
+		setValuesToReplace(newValues);
+	}
+	
+	public void mergeValueToReplace(V newValue) {
+		// No matter what type the delta was before. We are just discarding all the previous
+		// state as the replace that we are applying will overwrite that anyway.
+		valuesToAdd = null;
+		valuesToDelete = null;
+		setValueToReplace(newValue);
 	}
 
 	private Collection<V> newValueCollection() {
@@ -545,20 +606,20 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	/**
 	 * Merge specified delta to this delta. This delta is assumed to be
-	 * chronologically earlier.
+	 * chronologically earlier, delta provided in the parameter is chronilogically later.
 	 */
 	public void merge(ItemDelta deltaToMerge) {
 		if (deltaToMerge.isEmpty()) {
 			return;
 		}
 		if (deltaToMerge.valuesToReplace != null) {
-			setValuesToReplace(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
+			mergeValuesToReplace(PrismValue.cloneValues(deltaToMerge.valuesToReplace));
 		} else {
 			if (deltaToMerge.valuesToAdd != null) {
-				addValuesToAdd(PrismValue.cloneValues(deltaToMerge.valuesToAdd));
+				mergeValuesToAdd(PrismValue.cloneValues(deltaToMerge.valuesToAdd));
 			}
 			if (deltaToMerge.valuesToDelete != null) {
-				addValuesToDelete(PrismValue.cloneValues(deltaToMerge.valuesToDelete));
+				mergeValuesToDelete(PrismValue.cloneValues(deltaToMerge.valuesToDelete));
 			}
 		}
 	}
