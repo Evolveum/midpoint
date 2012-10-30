@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
@@ -166,5 +167,79 @@ public class TestCompare {
 		
 		// THEN
 		assertTrue("Roundtrip failed", jackOriginal.equivalent(jackModified));
+	}
+	
+	@Test
+	public void testEqualsReferenceValues() throws Exception {
+		System.out.println("===[ testEqualsReferenceValues ]===");
+		
+		PrismContext prismContext = constructInitializedPrismContext();
+		
+		PrismReferenceValue val11 = new PrismReferenceValue("oid1");
+		val11.setTargetType(ACCOUNT_TYPE_QNAME);
+		
+		PrismReferenceValue val12 = new PrismReferenceValue("oid1");
+		val12.setTargetType(ACCOUNT_TYPE_QNAME);
+		
+		PrismReferenceValue val13 = new PrismReferenceValue("oid1");
+		// No type
+		
+		PrismReferenceValue val21 = new PrismReferenceValue();
+		val21.setTargetType(ACCOUNT_TYPE_QNAME);
+		
+		PrismReferenceValue val22 = new PrismReferenceValue();
+		val22.setTargetType(ACCOUNT_TYPE_QNAME);
+		
+		PrismReferenceValue val23 = new PrismReferenceValue();
+		// No type
+		
+		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE);
+		
+		PrismReferenceValue val31 = new PrismReferenceValue();
+		val31.setObject(user);
+		
+		PrismReferenceValue val32 = new PrismReferenceValue();
+		val32.setObject(user.clone());
+				
+		PrismReferenceValue val33 = new PrismReferenceValue();
+		// No type, no object
+		
+		PrismReferenceValue val34 = new PrismReferenceValue();
+		PrismObject<UserType> differentUser = user.clone();
+		differentUser.setOid(null);
+		differentUser.setPropertyRealValue(UserType.F_FULL_NAME, "Jack Different");
+		val34.setObject(differentUser);
+		
+		PrismReferenceValue val35 = new PrismReferenceValue();
+		PrismObject<UserType> yetAnotherDifferentUser = user.clone();
+		yetAnotherDifferentUser.setOid(null);
+		yetAnotherDifferentUser.setPropertyRealValue(UserType.F_FULL_NAME, "John J Random");
+		val35.setObject(yetAnotherDifferentUser);
+
+		
+		assertTrue("val11 - val11", val11.equals(val11));
+		assertTrue("val11 - val12", val11.equals(val12));
+		assertTrue("val12 - val11", val12.equals(val11));
+		assertFalse("val11 - val13", val11.equals(val13));
+		assertFalse("val13 - val11", val13.equals(val11));
+		
+		assertTrue("val21 - val21", val21.equals(val21));
+		assertTrue("val21 - val22", val21.equals(val22));
+		assertTrue("val22 - val21", val22.equals(val21));
+		assertFalse("val21 - val23", val21.equals(val23));
+		assertFalse("val23 - val21", val23.equals(val21));
+		
+		assertTrue("val31 - val31", val31.equals(val31));
+		assertTrue("val31 - val32", val31.equals(val32));
+		assertTrue("val32 - val31", val32.equals(val31));
+		assertFalse("val31 - val33", val31.equals(val33));
+		assertFalse("val33 - val31", val33.equals(val31));
+		assertFalse("val31 - val34", val31.equals(val34));
+		assertFalse("val34 - val31", val34.equals(val31));
+		assertFalse("val31 - val35", val31.equals(val35));
+		assertFalse("val35 - val31", val35.equals(val31));
+		assertFalse("val34 - val35", val34.equals(val35));
+		assertFalse("val35 - val34", val35.equals(val34));
+		
 	}
 }

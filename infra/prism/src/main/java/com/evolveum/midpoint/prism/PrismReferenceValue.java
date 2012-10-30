@@ -223,6 +223,18 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 				return false;
 		} else if (!this.oid.equals(other.oid))
 			return false;
+		// Special handling: if both oids are null we need to compare embedded objects
+		if (this.oid == null && other.oid == null) {
+			if (this.object != null || other.object != null) {
+				if (this.object == null || other.object == null) {
+					// one is null the other is not
+					return false;
+				}
+				if (!this.object.equals(other.object)) {
+					return false;
+				}
+			}
+		}
 		if (this.targetType == null) {
 			if (other.targetType != null)
 				return false;
