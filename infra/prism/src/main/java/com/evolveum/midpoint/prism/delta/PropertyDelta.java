@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -230,7 +231,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
         return (PrismProperty<T>) super.getItemNew(propertyOld);
     }
     
-    public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
+    @Override
+	public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object) {
+		return (PropertyDelta<T>) super.narrow(object);
+	}
+
+	public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
     	return new PropertyDelta(propertyPath, propDef);
     }

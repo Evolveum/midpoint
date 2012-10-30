@@ -239,7 +239,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
+	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Collection<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
 	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	

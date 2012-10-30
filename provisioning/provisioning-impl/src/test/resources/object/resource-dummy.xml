@@ -65,4 +65,7 @@
 			</protected>
 		</accountType>
 	</schemaHandling>
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
 </resource>

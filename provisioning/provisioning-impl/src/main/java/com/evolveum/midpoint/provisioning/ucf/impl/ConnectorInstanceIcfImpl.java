@@ -923,7 +923,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass,
-			Collection<? extends ResourceAttribute> identifiers, Set<Operation> changes,
+			Collection<? extends ResourceAttribute> identifiers, Collection<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, SecurityViolationException {
 

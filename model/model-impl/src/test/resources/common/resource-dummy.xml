@@ -231,6 +231,10 @@
 		
 	</schemaHandling>
 	
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
+	
 	<synchronization>
 		<objectSynchronization>
 			<enabled>true</enabled>

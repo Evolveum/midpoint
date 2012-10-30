@@ -32,6 +32,8 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
@@ -81,6 +83,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -123,6 +126,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 	private static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	private static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	private static final String RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME = "fullname";
+	private static final QName RESOURCE_DUMMY_ATTR_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME);
+	private static final PropertyPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new PropertyPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);
+	private static final String RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME = "title";
+	private static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME);
+	private static final PropertyPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new PropertyPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
 
 	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
@@ -189,6 +199,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
+		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition(RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, String.class, false, true);
+		accountObjectClass.add(titleAttrDef);
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
 		dummyAccountDaemon.setEnabled(true);
@@ -1124,16 +1137,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test123ModifyObject() throws Exception {
-		displayTestTile("test123ModifyObject");
+	public void test123ModifyObjectReplace() throws Exception {
+		displayTestTile("test123ModifyObjectReplace");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test123ModifyObject");
+				+ ".test123ModifyObjectReplace");
 
-		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_MODIFY_ACCOUNT,
-				ObjectModificationType.class);
-		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectModification,
-				AccountShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, 
+				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_FULLNAME_PATH, prismContext, "Pirate Will Turner");
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 
@@ -1146,7 +1157,110 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		// check if activation was changed
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
 		assertEquals("Wrong fullname", "Pirate Will Turner", dummyAccount.getAttributeValue("fullname"));
+		
+		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
 
+	}
+
+	@Test
+	public void test124ModifyObjectAddPirate() throws Exception {
+		displayTestTile("test124ModifyObjectAddPirate");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test124ModifyObjectAddPirate");
+
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
+				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Pirate");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), result);
+
+		// THEN
+		delta.checkConsistence();
+		// check if attribute was changed
+		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate");
+	}
+	
+	@Test
+	public void test125ModifyObjectAddCaptain() throws Exception {
+		displayTestTile("test125ModifyObjectAddCaptain");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test125ModifyObjectAddCaptain");
+
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
+				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Captain");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), result);
+
+		// THEN
+		delta.checkConsistence();
+		// check if attribute was changed
+		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate", "Captain");
+	}
+
+	@Test
+	public void test126ModifyObjectDeletePirate() throws Exception {
+		displayTestTile("test126ModifyObjectDeletePirate");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test126ModifyObjectDeletePirate");
+
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class, 
+				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Pirate");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), result);
+
+		// THEN
+		delta.checkConsistence();
+		// check if attribute was changed
+		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
+	}
+	
+	/**
+	 * Try to add the same value that the account attribute already has. Resources that do not tolerate this will fail
+	 * unless the mechanism to compensate for this works properly.
+	 */
+	@Test
+	public void test127ModifyObjectAddCaptainAgain() throws Exception {
+		displayTestTile("test127ModifyObjectAddCaptainAgain");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test127ModifyObjectAddCaptainAgain");
+
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
+				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Captain");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
+				new ProvisioningScriptsType(), result);
+
+		// THEN
+		delta.checkConsistence();
+		// check if attribute was changed
+		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
+	}
+
+	
+	private <T> void assertDummyAttributeValues(String accountId, String attributeName, T... expectedValues) {
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
+		assertNotNull("No account '"+accountId+"'", dummyAccount);
+		Set<T> attributeValues = (Set<T>) dummyAccount.getAttributeValues(attributeName, expectedValues[0].getClass());
+		assertNotNull("No attribute "+attributeName+" in account "+accountId, attributeValues);
+		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in account "+accountId, attributeValues, expectedValues);
 	}
 
 	@Test

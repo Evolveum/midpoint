@@ -68,6 +68,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,6 +78,8 @@ import java.util.Set;
 
 @Component
 public class ShadowConverter {
+	
+	private static final PropertyPath ATTRIBUTES_PATH = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES);
 
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
@@ -299,7 +303,7 @@ public class ShadowConverter {
 	}
 
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
-			ResourceObjectShadowType shadow, Set<Operation> operations, String oid,
+			ResourceObjectShadowType shadow, Collection<Operation> operations, String oid,
 			Collection<? extends ItemDelta> objectChanges, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -350,6 +354,33 @@ public class ShadowConverter {
 		}
 		
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+		
+		if (avoidDuplicateValues(resource)) {
+			// We need to filter out the deltas that add duplicate values or remove values that are not there
+			
+			ResourceObjectShadowType currentShadow = fetchResourceObject(ResourceObjectShadowType.class, objectClassDefinition, identifiers, connector, resource, parentResult);
+			Collection<Operation> filteredOperations = new ArrayList(operations.size());
+			for (Operation origOperation: operations) {
+				if (origOperation instanceof PropertyModificationOperation) {
+					PropertyDelta<?> propertyDelta = ((PropertyModificationOperation)origOperation).getPropertyDelta();
+					PropertyDelta<?> filteredDelta = propertyDelta.narrow(currentShadow.asPrismObject());
+					if (filteredDelta != null && !filteredDelta.isEmpty()) {
+						if (propertyDelta == filteredDelta) {
+							filteredOperations.add(origOperation);
+						} else {
+							PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
+							filteredOperations.add(newOp);
+						}
+					}
+				}
+			}
+			if (filteredOperations.isEmpty()){
+				LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
+				parentResult.recordSuccess();
+				return new HashSet<PropertyModificationOperation>();
+			}
+			operations = filteredOperations;
+		}
 	
 		Set<PropertyModificationOperation> sideEffectChanges = null;
 		try {
@@ -393,6 +424,16 @@ public class ShadowConverter {
 		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
+	}
+
+	private boolean avoidDuplicateValues(ResourceType resource) {
+		if (resource.getConsistency() == null) {
+			return false;
+		}
+		if (resource.getConsistency().isAvoidDuplicateValues() == null) {
+			return false;
+		}
+		return resource.getConsistency().isAvoidDuplicateValues();
 	}
 
 	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
@@ -663,7 +704,7 @@ public class ShadowConverter {
 		return passwordChangeOp;
 	}
 
-	private void getAttributeChanges(Collection<? extends ItemDelta> objectChange, Set<Operation> changes,
+	private void getAttributeChanges(Collection<? extends ItemDelta> objectChange, Collection<Operation> changes,
 			ResourceType resource, ResourceObjectShadowType shadow, ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 	if (changes == null) {
 			changes = new HashSet<Operation>();

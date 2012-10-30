@@ -2485,6 +2485,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false"/>
             <!-- TODO -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>

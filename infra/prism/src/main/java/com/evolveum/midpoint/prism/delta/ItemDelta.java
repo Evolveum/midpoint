@@ -33,9 +33,11 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -518,6 +520,45 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
                 deltasIterator.remove();
             }
         }
+    }
+    
+    /**
+     * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
+     * removes all values to delete that the property does not have, etc. 
+     */
+    public ItemDelta<V> narrow(PrismObject<? extends Objectable> object) {
+    	Item<V> currentItem = (Item<V>) object.findItem(getPath());
+    	if (currentItem == null) {
+    		if (valuesToDelete != null) {
+    			ItemDelta<V> clone = clone();
+    			clone.valuesToDelete = null;
+    			return clone;
+    		} else {
+    			// Nothing to narrow
+    			return this;
+    		}
+    	} else {
+    		ItemDelta<V> clone = clone();
+    		if (clone.valuesToDelete != null) {
+    			Iterator<V> iterator = clone.valuesToDelete.iterator();
+    			while (iterator.hasNext()) {
+    				V valueToDelete = iterator.next();
+    				if (!currentItem.contains(valueToDelete, true)) {
+    					iterator.remove();
+    				}
+    			}
+    		}
+    		if (clone.valuesToAdd != null) {
+    			Iterator<V> iterator = clone.valuesToAdd.iterator();
+    			while (iterator.hasNext()) {
+    				V valueToDelete = iterator.next();
+    				if (currentItem.contains(valueToDelete, true)) {
+    					iterator.remove();
+    				}
+    			}
+    		}
+    		return clone;
+    	}
     }
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {

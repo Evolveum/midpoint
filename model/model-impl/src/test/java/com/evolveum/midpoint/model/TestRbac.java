@@ -167,8 +167,8 @@ public class TestRbac extends AbstractModelIntegrationTest {
         
         // FIXME: MID-784
         // Make sure that the existing account has the same value as is set by the role
-//        TestUtil.setAttribute(account, new QName(resourceDummyType.getNamespace(), "title"), DOMUtil.XSD_STRING,
-//        		prismContext, "Bloody Pirate");
+        TestUtil.setAttribute(account, new QName(resourceDummyType.getNamespace(), "title"), DOMUtil.XSD_STRING,
+        		prismContext, "Bloody Pirate");
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
