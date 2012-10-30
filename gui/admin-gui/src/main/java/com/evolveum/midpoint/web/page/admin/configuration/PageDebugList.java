@@ -21,7 +21,37 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.ListChoice;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.file.File;
+import org.apache.wicket.util.file.Files;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -30,9 +60,6 @@ import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,56 +79,11 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.ListChoice;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.file.File;
-import org.apache.wicket.util.file.Files;
-import org.apache.wicket.util.resource.FileResourceStream;
-import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.resource.PackageResourceStream;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * @author lazyman
@@ -121,7 +103,6 @@ public class PageDebugList extends PageAdminConfiguration {
     private boolean downloadZip;
     private IModel<ObjectTypes> choice = null;
     private ObjectType object = null;
-    private List<?> objects;
 
     public PageDebugList() {
         initLayout();
@@ -154,7 +135,6 @@ public class PageDebugList extends PageAdminConfiguration {
     		sessionChoice = new Model<ObjectTypes>(ObjectTypes.SYSTEM_CONFIGURATION);
     	}
     	final IModel<ObjectTypes> choice = sessionChoice;
-    	loadObjects(choice.getObject(), null);
 
         List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
 
@@ -389,12 +369,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target, String nameText, ObjectTypes selected) {
         RepositoryObjectDataProvider provider = getTableDataProvider();
-        ObjectQuery query = null;
         if (StringUtils.isNotEmpty(nameText)) {
             try {
 				ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(),
 						ObjectType.F_NAME, nameText);
-                query = new ObjectQuery();
+				ObjectQuery query = new ObjectQuery();
                 query.setFilter(substring);
                 provider.setQuery(query);
             } catch (Exception ex) {
@@ -408,21 +387,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
         if (selected != null) {
             provider.setType(selected.getClassDefinition());
-            loadObjects(selected, query);
         }
         
         TablePanel table = getListTable();
         target.add(table);
-    }
-    
-    private void loadObjects(ObjectTypes selected, ObjectQuery query) {
-    	Task task = createSimpleTask(OPERATION_SEARCH_OBJECT);
-		OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECT);
-        try {
-        	objects = getModelService().searchObjects(selected.getClassDefinition(), query, task, result);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't search objects", ex);
-		}
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid) {
@@ -535,6 +503,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		try {
 			LOGGER.trace("creating xml file {}", file.getName());
 			stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
+			List objects = getTableDataProvider().getAvailableData();
 			if (objects != null) {
 				String stringObject;
 				stream.write(createHeaderForXml());
@@ -572,7 +541,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			LOGGER.trace("adding file {} to zip archive", file.getName());
 			out = new ZipOutputStream(new FileOutputStream(zipFile));
 			final ZipEntry entry = new ZipEntry(file.getName());
-			
+			List objects = getTableDataProvider().getAvailableData();
 			if (objects != null) {
 				String stringObject;
 				//FIXME: could cause problem with unzip in java when size is not set, however it is not our case
