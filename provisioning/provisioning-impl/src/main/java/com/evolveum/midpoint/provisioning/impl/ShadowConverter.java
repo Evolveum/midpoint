@@ -353,12 +353,19 @@ public class ShadowConverter {
 			return new HashSet<PropertyModificationOperation>();
 		}
 		
+		//check idetifier if it is not null
+		if (identifiers.isEmpty() && shadow.getFailedOperationType()!= null){
+			throw new GenericConnectorException(
+					"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+		}
+		
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		
 		if (avoidDuplicateValues(resource)) {
 			// We need to filter out the deltas that add duplicate values or remove values that are not there
 			
-			ResourceObjectShadowType currentShadow = fetchResourceObject(ResourceObjectShadowType.class, objectClassDefinition, identifiers, connector, resource, parentResult);
+			ResourceObjectShadowType currentShadow = fetchResourceObject(ResourceObjectShadowType.class, objectClassDefinition,
+					identifiers, connector, resource, parentResult);
 			Collection<Operation> filteredOperations = new ArrayList(operations.size());
 			for (Operation origOperation: operations) {
 				if (origOperation instanceof PropertyModificationOperation) {
@@ -391,14 +398,6 @@ public class ShadowConverter {
 						new Object[] { ObjectTypeUtil.toShortString(resource), shadow.getObjectClass(),
 								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(operations) });
 			}
-
-			//check idetifier if it is not null
-			if (identifiers.isEmpty() && shadow.getFailedOperationType()!= null){
-				throw new GenericConnectorException(
-						"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-			}
-	
-			
 			
 			// Invoke ICF
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
