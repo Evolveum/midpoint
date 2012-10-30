@@ -31,12 +31,14 @@ public class SubmitAssignmentDto implements Serializable {
 	private String status;
 	private boolean secondaryValue;
 	private boolean deleted;
+	private String originType;
 
-	public SubmitAssignmentDto(String assignment, String status, boolean secondaryValue, boolean deleted) {
+	public SubmitAssignmentDto(String assignment, String status, String originType, boolean secondaryValue, boolean deleted) {
 		this.assignment = assignment;
 		this.status = status;
 		this.secondaryValue = secondaryValue;
 		this.deleted = deleted;
+		this.originType = originType;
 	}
 
 	public String getAssignment() {
@@ -53,5 +55,9 @@ public class SubmitAssignmentDto implements Serializable {
 	
 	public boolean isDeletedValue() {
 		return deleted;
+	}
+	
+	public String getOriginType() {
+		return originType;
 	}
 }

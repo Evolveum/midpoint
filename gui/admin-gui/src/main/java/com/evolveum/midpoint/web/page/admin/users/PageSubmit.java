@@ -41,6 +41,7 @@ import org.apache.wicket.request.resource.ResourceReference;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -220,6 +221,7 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.originType"), "originType"));
 		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
 
 		ListDataProvider<SubmitUserDto> provider = new ListDataProvider<SubmitUserDto>(this,
@@ -254,6 +256,7 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.originType"), "originType"));
 		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
 
 		ListDataProvider<SubmitAccountDto> provider = new ListDataProvider<SubmitAccountDto>(this,
@@ -287,6 +290,7 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.assignment"),
 				"assignment"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.operation"), "status"));
+		columns.add(new PropertyColumn(createStringResource("pageSubmit.originType"), "originType"));
 		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
 
 		ListDataProvider<SubmitAssignmentDto> provider = new ListDataProvider<SubmitAssignmentDto>(this,
@@ -334,21 +338,28 @@ public class PageSubmit extends PageAdmin {
 	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
 
 		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
+		PrismContainerValue prismValue;
+		OriginType originType;
 		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsList()) {
+			originType = null;
 			ContainerDelta assignment = (ContainerDelta) assignmentDto.getItemDelta();
 			if (assignment.getValuesToAdd() != null) {
 				for (Object item : assignment.getValuesToAdd()) {
-					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitStatus.ADDING), assignmentDto
-									.isSecondaryValue(), false));
+					prismValue = (PrismContainerValue) item;
+					originType = prismValue.getOriginType();
+					list.add(new SubmitAssignmentDto(getReferenceFromAssignment(prismValue),
+							getString("pageSubmit.status." + SubmitStatus.ADDING), getString("OriginType."
+									+ originType), assignmentDto.isSecondaryValue(), false));
 				}
 			}
 
 			if (assignment.getValuesToDelete() != null) {
 				for (Object item : assignment.getValuesToDelete()) {
-					list.add(new SubmitAssignmentDto(getReferenceFromAssignment((PrismContainerValue) item),
-							getString("pageSubmit.status." + SubmitStatus.DELETING), assignmentDto
-									.isSecondaryValue(), true));
+					prismValue = (PrismContainerValue) item;
+					originType = prismValue.getOriginType();
+					list.add(new SubmitAssignmentDto(getReferenceFromAssignment(prismValue),
+							getString("pageSubmit.status." + SubmitStatus.DELETING),getString("OriginType."
+									+ originType), assignmentDto.isSecondaryValue(), true));
 				}
 			}
 		}
@@ -452,9 +463,10 @@ public class PageSubmit extends PageAdmin {
 				}
 			}
 		}
-
+		OriginType originType = null;
 		// add imported values to newValues
 		for (SubmitPropertiesDto newValue : values) {
+			originType = newValue.getSubmitedProperties().getOriginType();
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 				continue;
 			}
@@ -470,7 +482,7 @@ public class PageSubmit extends PageAdmin {
 		}
 
 		return new SubmitUserDto(attribute, StringUtils.join(oldValues, ", "),
-				StringUtils.join(newValues, ", "), secondaryValue);
+				StringUtils.join(newValues, ", "), getString("OriginType." + originType), secondaryValue);
 	}
 
 	private String getReferenceFromAssignment(PrismContainerValue assignment) {

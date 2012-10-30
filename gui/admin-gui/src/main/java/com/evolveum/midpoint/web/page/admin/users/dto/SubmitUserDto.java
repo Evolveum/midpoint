@@ -31,11 +31,13 @@ public class SubmitUserDto implements Serializable {
 	private String oldValue;
 	private String newValue;
 	private boolean secondaryValue;
+	private String originType;
 
-	public SubmitUserDto(String attribute, String oldValue, String newValue, boolean secondaryValue) {
+	public SubmitUserDto(String attribute, String oldValue, String newValue, String originType, boolean secondaryValue) {
 		this.attribute = attribute;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
+		this.originType = originType;
 		this.secondaryValue = secondaryValue;
 	}
 
@@ -53,6 +55,10 @@ public class SubmitUserDto implements Serializable {
 
 	public boolean isSecondaryValue() {
 		return secondaryValue;
+	}
+	
+	public String getOriginType() {
+		return originType;
 	}
 
 	public boolean isDeletedValue() {

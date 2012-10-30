@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.OriginType;
+
 /**
  * @author mserbak
  */
@@ -32,12 +34,15 @@ public class SubmitAccountDto implements Serializable {
 	private String oldValue;
 	private String newValue;
 	private boolean secondaryValue;
+	private String originType;
 
-	public SubmitAccountDto(String resourceName, String attribute, String oldValue, String newValue, boolean secondaryValue) {
+	public SubmitAccountDto(String resourceName, String attribute, String oldValue, String newValue,
+			String originType, boolean secondaryValue) {
 		this.resourceName = resourceName;
 		this.attribute = attribute;
 		this.oldValue = oldValue;
 		this.newValue = newValue;
+		this.originType = originType;
 		this.secondaryValue = secondaryValue;
 	}
 
@@ -59,6 +64,10 @@ public class SubmitAccountDto implements Serializable {
 
 	public boolean isSecondaryValue() {
 		return secondaryValue;
+	}
+	
+	public String getOriginType() {
+		return originType;
 	}
 	
 	public boolean isDeletedValue() {

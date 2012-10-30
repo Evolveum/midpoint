@@ -34,6 +34,7 @@ import org.apache.wicket.RestartResponseException;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -176,7 +177,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 
 	private void addAccountFromResourceForDelete(SubmitResourceDto resourceDto) {
 		SubmitAccountDto submitedAccount = new SubmitAccountDto(resourceDto.getResourceName(),
-				getString("schema.objectTypes.account"), resourceDto.getName(), "", false);
+				getString("schema.objectTypes.account"), resourceDto.getName(), "", getString("OriginType.null"), false);
 		if (!accountChangesList.contains(submitedAccount)) {
 			accountChangesList.add(submitedAccount);
 		}
@@ -232,8 +233,10 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				}
 			}
 		}
+		OriginType originType = null;
 
 		for (SubmitAccountChangesDto newValue : values) {
+			originType = newValue.getSubmitedValue().getOriginType();
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 				continue;
 			}
@@ -256,7 +259,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			newValues.add(stringValue);
 		}
 		accountChangesList.add(new SubmitAccountDto(resource.getResourceName(), attribute, StringUtils.join(
-				oldValues, ", "), StringUtils.join(newValues, ", "), secondaryValue));
+				oldValues, ", "), StringUtils.join(newValues, ", "), getString("OriginType." + originType), secondaryValue));
 	}
 
 	public List<PrismObject> getAccountsList() {
