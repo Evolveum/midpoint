@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -119,9 +120,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
 	 * be updated as well. 
 	 */
 	@Test
-    public void test002JackModifyUserLocality() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test002JackModifyUserLocality() throws Exception {
         displayTestTile(this, "test002JackModifyUserLocality");
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test002JackModifyUserLocality");
@@ -156,9 +155,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
 
 	
 	@Test
-    public void test100JackAssignRolePirateWhileAlreadyHasAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test100JackAssignRolePirateWhileAlreadyHasAccount() throws Exception {
         displayTestTile(this, "test100JackAssignRolePirateWhileAlreadyHasAccount");
 
         // GIVEN
@@ -167,13 +164,17 @@ public class TestRbac extends AbstractModelIntegrationTest {
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
-        // FIXME: MID-784
+        // Make sure that the account has explicit intent
+        account.asObjectable().setIntent(SchemaConstants.INTENT_DEFAULT);
+        
         // Make sure that the existing account has the same value as is set by the role
+        // This causes problems if the resource does not tolerate duplicate values in deltas. But provisioning
+        // should work around that.
         TestUtil.setAttribute(account, new QName(resourceDummyType.getNamespace(), "title"), DOMUtil.XSD_STRING,
         		prismContext, "Bloody Pirate");
         
-		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID, UserType.F_ACCOUNT_REF, prismContext,
-				account);
+		ObjectDelta<UserType> delta = ObjectDelta.createModificationAddReference(UserType.class, USER_JACK_OID, 
+				UserType.F_ACCOUNT_REF, prismContext, account);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		
 		modelService.executeChanges(deltas, null, task, result);
@@ -185,6 +186,53 @@ public class TestRbac extends AbstractModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
+        assertAccounts(USER_JACK_OID, 1);
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        
+	}
+	
+	@Test
+    public void test110JackAssignAccountImplicitIntent() throws Exception {
+        displayTestTile(this, "test110JackAssignAccountImplicitIntent");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110JackAssignAccountImplicitIntent");
+        OperationResult result = task.getResult();
+        		        
+        // Precondition (simplified)
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // WHEN
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        
+        // THEN
+        assertAccounts(USER_JACK_OID, 1);
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        
+	}
+	
+	@Test
+    public void test111JackAssignAccountExplicitIntent() throws Exception {
+        displayTestTile(this, "test111JackAssignAccountExplicitIntent");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111JackAssignAccountExplicitIntent");
+        OperationResult result = task.getResult();
+        		        
+        // Precondition (simplified)
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // WHEN
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        
+        // THEN
+        assertAccounts(USER_JACK_OID, 1);
         assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");

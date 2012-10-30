@@ -132,7 +132,7 @@ public class LensUtil {
 		return accountSyncContext;
 	}
 	
-	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> objectDeltaToContext(
+	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> objectDeltasToContext(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ProvisioningService provisioningService, 
 			PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ObjectDelta<F> focusDelta = null;
@@ -151,6 +151,9 @@ public class LensUtil {
 				focusClass = (Class<F>) typeClass;
 				projectionClass = checkProjectionClass(projectionClass, (Class<P>) getProjectionClass(focusClass));
 				Validate.notNull(projectionClass, "No projection class for focus "+focusClass);
+				if (!delta.isAdd() && delta.getOid() == null) {
+					throw new IllegalArgumentException("Delta "+delta+" does not have an OID");
+				}
 				focusDelta = (ObjectDelta<F>) delta;
 			} else {
 				// This must be projection delta
@@ -182,6 +185,10 @@ public class LensUtil {
 			if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
 				ShadowDiscriminatorObjectDelta<P> shadowDelta = (ShadowDiscriminatorObjectDelta<P>)projectionDelta;
 				projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
+			} else {
+				if (!projectionDelta.isAdd() && projectionDelta.getOid() == null) {
+					throw new IllegalArgumentException("Delta "+projectionDelta+" does not have an OID");
+				}
 			}
 		}
 

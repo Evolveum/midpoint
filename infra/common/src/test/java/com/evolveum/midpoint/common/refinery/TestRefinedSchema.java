@@ -78,7 +78,6 @@ public class TestRefinedSchema {
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
 	private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
 	private static final File RESOURCE_SIMPLE_FILE = new File(TEST_DIR_NAME, "resource-simple.xml");
-	private static final String DEFAULT_INTENT = "default";
     
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -196,7 +195,7 @@ public class TestRefinedSchema {
         QName objectClassQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, objectClassQName);
-        PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, DEFAULT_INTENT);
+        PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
         assertEquals("Wrong type of <attributes> definition in account", RefinedAccountDefinition.class, attributes.getDefinition().getClass());
@@ -290,7 +289,7 @@ public class TestRefinedSchema {
 
     private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType, boolean hasSchemaHandling) {
         assertNotNull("Null account definition", rAccount);
-        assertEquals(DEFAULT_INTENT, rAccount.getAccountTypeName());
+        assertEquals(SchemaConstants.INTENT_DEFAULT, rAccount.getAccountTypeName());
         assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
         assertTrue(rAccount.isDefault());
 

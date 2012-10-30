@@ -178,6 +178,8 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
+	
+	public static final String INTENT_DEFAULT = "default";
 
 	public static final String[] JAXB_PACKAGES = new String[] {
 			"com.evolveum.midpoint.xml.ns._public.common.common_2",

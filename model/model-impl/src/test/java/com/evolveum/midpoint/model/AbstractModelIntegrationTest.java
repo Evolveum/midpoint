@@ -750,6 +750,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertTrue("User "+userOid+" has not linked to account "+accountOid, found);
 	}
 	
+	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertAccounts");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		assertEquals("Wrong number of accounts linked to "+user, numAccounts, accountRef.size());
+	}
+	
 	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {
 		assertDummyAccountAttribute(null, username, attributeName, expectedAttributeValues);
 	}
@@ -836,7 +843,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return userDelta;
 	}
 	
-	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, boolean add) throws SchemaException {
+	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
 		if (add) {
@@ -850,14 +857,27 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
 		accountConstructionType.setResourceRef(resourceRef);
+		accountConstructionType.setType(intent);
 		return assignmentDelta;
 	}
 	
-	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, boolean add) throws SchemaException {
+	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, String intent, boolean add) throws SchemaException {
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
-		modifications.add((createAccountAssignmentModification(resourceOid, add)));
+		modifications.add((createAccountAssignmentModification(resourceOid, intent, add)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
+	}
+	
+	protected void assignAccount(String userOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(userOid, resourceOid, intent, true);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);
+	}
+	
+	protected void unassignAccount(String userOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(userOid, resourceOid, intent, false);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected PrismObject<UserType> getUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
