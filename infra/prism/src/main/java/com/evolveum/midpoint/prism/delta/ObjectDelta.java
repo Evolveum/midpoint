@@ -725,6 +725,25 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return objectDelta;
     }
     
+    /**
+     * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often
+     * to justify a separate method. 
+     */
+    public static <O extends Objectable> ObjectDelta<O> createModificationAddReference(Class<O> type, String oid, QName propertyName,
+    		PrismContext prismContext, PrismReferenceValue... referenceValues) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+    	PrismReferenceDefinition refDef = objDef.findReferenceDefinition(propertyName);
+    	ReferenceDelta referenceDelta = objectDelta.createReferenceModification(propertyName, refDef);
+    	Collection<PrismReferenceValue> valuesToReplace = new ArrayList<PrismReferenceValue>(referenceValues.length);
+    	for (PrismReferenceValue refVal: referenceValues) {
+    		valuesToReplace.add(refVal);
+    	}
+    	referenceDelta.setValuesToReplace(valuesToReplace);
+    	return objectDelta;
+    }
+    
     public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, Collection<? extends ItemDelta> modifications,
     		Class<T> objectTypeClass, PrismContext prismContext) {
     	ObjectDelta<T> objectDelta = new ObjectDelta<T>(objectTypeClass, ChangeType.MODIFY, prismContext);
