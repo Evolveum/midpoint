@@ -172,12 +172,16 @@ public class SqlBaseService {
     }
 
     protected void rollbackTransaction(Session session) {
-        rollbackTransaction(session, null, null);
+        rollbackTransaction(session, null, null, false);
     }
 
-    protected void rollbackTransaction(Session session, Exception ex, OperationResult result) {
+    protected void rollbackTransaction(Session session, Exception ex, OperationResult result, boolean fatal) {
         if (ex != null && result != null) {
-            result.recordHandledError(ex.getMessage());
+            if (fatal) {
+                result.recordFatalError(ex.getMessage(), ex);
+            } else {
+                result.recordHandledError(ex.getMessage());
+            }
         }
     	 
     	if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
@@ -198,7 +202,7 @@ public class SqlBaseService {
     }
 
     protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
-        rollbackTransaction(session, ex, result);
+        rollbackTransaction(session, ex, result, true);
         if (ex instanceof GenericJDBCException) {
             //fix for table timeout lock in H2, this exception will be wrapped as system exception
             //in SqlRepositoryServiceImpl#logOperationAttempt if necessary

@@ -148,16 +148,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			session.getTransaction().commit();
 		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session);
 			throw ex;
 		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session);
 			throw ex;
 		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session, ex, result, true);
 			throw ex;
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
@@ -340,16 +340,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			rollbackTransaction(session);
 			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session, ex, result, true);
 			throw ex;
 		} catch (ConstraintViolationException ex) {
-			rollbackTransaction(session, ex, result);
-			// we don't know if it's only name uniqueness violation, or
-			// something else,
-			// therefore we're throwing it always as
-			// ObjectAlreadyExistsException
-			// revert to the original oid and prevent of unexpected behaviour
-			// (e.g. by import with overwrite option)
+			rollbackTransaction(session, ex, result, true);
+			// we don't know if it's only name uniqueness violation, or something else,
+			// therefore we're throwing it always as ObjectAlreadyExistsException revert
+			// to the original oid and prevent of unexpected behaviour (e.g. by import with overwrite option)
 			if (StringUtils.isEmpty(originalOid)) {
 				object.setOid(null);
 			}
@@ -461,7 +458,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			rollbackTransaction(session);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session, ex, result, true);
 			throw ex;
 		} catch (Exception ex) {
 			handleGeneralException(ex, session, result);
@@ -757,10 +754,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			rollbackTransaction(session);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session, ex, result, true);
 			throw ex;
 		} catch (ConstraintViolationException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session, ex, result, true);
 			// we don't know if it's only name uniqueness violation, or
 			// something else,
 			// therefore we're throwing it always as
@@ -1018,10 +1015,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			session.getTransaction().commit();
 			LOGGER.trace("Task status updated.");
 		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session);
 			throw new SystemException(ex.getMessage(), ex);
 		} catch (ObjectNotFoundException ex) {
-			rollbackTransaction(session, ex, result);
+			rollbackTransaction(session, ex, result, true);
 			throw ex;
 		} catch (Exception ex) {
 			handleGeneralException(ex, session, result);
