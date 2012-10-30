@@ -97,8 +97,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "loadObjects";
-	private static final String OPERATION_CREATE_DOWNLOAD_FILE = PageDebugList.class.getName()
-			+ "- create file for download";
+	private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
     private boolean deleteSelected;
     private boolean downloadZip;
     private IModel<ObjectTypes> choice = null;
