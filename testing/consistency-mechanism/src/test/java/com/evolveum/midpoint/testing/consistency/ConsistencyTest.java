@@ -111,6 +111,7 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -915,6 +916,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	@Test
 	public void test014addAccountAlreadyExistLinked() throws Exception {
 		displayTestTile("test014addAccountAlreadyExistLinked");
+		
+		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
 		testAddUserToRepo("test014testAssAccountAlreadyExistLinked", USER_JACK2_FILENAME, USER_JACK2_OID);
 
@@ -943,15 +946,14 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_JACK2_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
-		modelService.executeChanges(deltas, null, task, parentResult);
-//		modelService.modifyObject(UserType.class, USER_JACK2_OID, delta.getModifications(), task,
-//				parentResult);
-
-		// modifyUserAddAccount(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME);
-
 		
+		// WHEN
+		modelService.executeChanges(deltas, null, task, parentResult);
+
+		// THEN
 		user = modelService.getObject(UserType.class, USER_JACK2_OID, null, task, parentResult);
 		assertEquals(1, user.asObjectable().getAccountRef().size());
+		MidPointAsserts.assertAssignments(user, 1);
 
 		PrismObject<AccountShadowType> newAccount = modelService.getObject(AccountShadowType.class, user
 				.asObjectable().getAccountRef().get(0).getOid(), null, task, parentResult);
@@ -972,6 +974,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	public void test015addAccountAlreadyExistUnlinked() throws Exception {
 		displayTestTile("test015addAccountAlreadyExistUnlinked");
 
+		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
 		Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILENAME);
 		SearchResultEntry searchResult = openDJController.searchByUid("wturner");
@@ -999,21 +1002,23 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_UNLINKED_OPENDJ_FILENAME,
 				ObjectModificationType.class);
 
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+		ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
 		Task task = taskManager.createTaskInstance();
 		
-		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_WILL_OID, delta.getModifications(), UserType.class, prismContext);
+		ObjectDelta<UserType> modifyDelta = ObjectDelta.createModifyDelta(USER_WILL_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		
+		// WHEN
 		modelService.executeChanges(deltas, null, task, parentResult);
-//		modelService
-//				.modifyObject(UserType.class, USER_WILL_OID, delta.getModifications(), task, parentResult);
 
+		// THEN
 		user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
 		List<ObjectReferenceType> accountRefs = user.asObjectable().getAccountRef();
 		assertEquals(1, accountRefs.size());
+		MidPointAsserts.assertAssignments(user, 1);
 
 		PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class,
 				accountRefs.get(0).getOid(),null,  parentResult);
@@ -1573,21 +1578,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		}
 	}
-
-	private Object findSyncToken(Task syncCycle) {
-		Object token = null;
-		PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-		if (tokenProperty != null) {
-			Collection<?> values = tokenProperty.getRealValues();
-			if (values.size() > 1) {
-				throw new IllegalStateException("Too must values in token " + tokenProperty);
-			}
-			token = values.iterator().next();
-		}
-
-		return token;
-	}
-
+	
 	@Test
 	public void test999Shutdown() throws Exception {
 		taskManager.shutdown();
@@ -1681,35 +1672,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		return user;
 	}
 
-	private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
-			final OperationResult result) throws Exception {
-		basicWaitForSyncChangeDetection(syncCycle, tokenBefore, result, 40000);
-	}
-
-	private void basicWaitForSyncChangeDetection(final Task syncCycle, final Object tokenBefore,
-			final OperationResult result, int timeout) throws Exception {
-
-		waitFor("Waiting for sync cycle to detect change", new Checker() {
-			@Override
-			public boolean check() throws Exception {
-				syncCycle.refresh(result);
-				display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
-				Object tokenNow = findSyncToken(syncCycle);
-				display("tokenNow = " + tokenNow);
-				if (tokenBefore == null) {
-					return (tokenNow != null);
-				} else {
-					return (!tokenBefore.equals(tokenNow));
-				}
-			}
-
-			@Override
-			public void timeout() {
-				// No reaction, the test will fail right after return from this
-			}
-		}, timeout);
-	}
-
 	private void importObjectFromFile(String filename, OperationResult parentResult)
 			throws FileNotFoundException {
 		OperationResult result = parentResult.createSubresult(ConsistencyTest.class.getName()
@@ -1762,15 +1724,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				.getAssignmentPolicyEnforcement();
 		assertNotNull("assignmentPolicyEnforcement is null", assignmentPolicyEnforcement);
 		assertEquals("Assignment policy mismatch", assignmentPolicy, assignmentPolicyEnforcement);
-	}
-
-	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException {
-		LOGGER.trace("Checking all shadows");
-		System.out.println("Checking all shadows");
-		ObjectChecker<AccountShadowType> checker = null;
-		IntegrationTestTools
-				.checkAllShadows(resourceTypeOpenDjrepo, repositoryService, checker, prismContext);
 	}
 
 }

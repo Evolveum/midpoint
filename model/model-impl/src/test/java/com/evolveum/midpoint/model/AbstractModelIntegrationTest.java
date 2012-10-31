@@ -101,6 +101,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -923,7 +924,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertAssignedRole(PrismObject<UserType> user, String roleOid) {
-		assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
+		MidPointAsserts.assertAssignedRole(user, roleOid);
 	}
 
 	protected void assertAssignedOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -932,7 +933,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
-		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE);
+		MidPointAsserts.assertAssignedOrg(user, orgOid);
 	}
 	
 	protected void assertHasOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -941,36 +942,19 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertHasOrg(PrismObject<UserType> user, String orgOid) {
-		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
-			if (orgOid.equals(orgRef.getOid())) {
-				return;
-			}
-		}
-		AssertJUnit.fail(user + " does not have org " + orgOid);
+		MidPointAsserts.assertHasOrg(user, orgOid);
 	}
 	
 	protected void assertHasNoOrg(PrismObject<UserType> user) {
-		assertTrue(user + " does have orgs "+user.asObjectable().getParentOrgRef()+" while not expecting them", user.asObjectable().getParentOrgRef().isEmpty());
+		MidPointAsserts.assertHasNoOrg(user);
 	}
 
 	protected void assertAssignments(PrismObject<UserType> user, int expectedNumber) {
-		UserType userType = user.asObjectable();
-		assertEquals("Unexepected number of assignments in "+user, expectedNumber, userType.getAssignment().size());
+		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 	
 	protected void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
-		UserType userType = user.asObjectable();
-		for (AssignmentType assignmentType: userType.getAssignment()) {
-			ObjectReferenceType targetRef = assignmentType.getTargetRef();
-			if (targetRef != null) {
-				if (refType.equals(targetRef.getType())) {
-					if (targetOid.equals(targetRef.getOid())) {
-						return;
-					}
-				}
-			}
-		}
-		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
+		MidPointAsserts.assertAssigned(user, targetOid, refType);
 	}
 	
 	protected void assertAssignedNoOrg(String userOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
