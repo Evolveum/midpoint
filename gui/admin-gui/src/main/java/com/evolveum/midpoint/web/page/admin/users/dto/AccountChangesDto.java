@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -91,14 +92,24 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			accountsList.add(account.getObjectNew());
 			this.oldAccountObject = account.getObjectOld();
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
-			if (!getChanges(resource, account.getPrimaryDelta(), false)) {
-				getChanges(resource, account.getSecondaryDelta(), true);
+			if (!getChanges(resource, account.getPrimaryDelta(), account, false)) {
+				getChanges(resource, account.getSecondaryDelta(), account, true);
 			}
 		}
 	}
 
-	private boolean getChanges(SubmitResourceDto resource, ObjectDelta delta, boolean secondaryValue) {
+	private boolean getChanges(SubmitResourceDto resource, ObjectDelta delta, ModelProjectionContext account, boolean secondaryValue) {
 		// Return true if modification is delete
+		SynchronizationPolicyDecision syncStatus = account.getSynchronizationPolicyDecision();
+		if (syncStatus != null && !syncStatus.equals(SynchronizationPolicyDecision.KEEP)) {
+			SubmitResourceDto resourceDto = new SubmitResourceDto(oldAccountObject, false);
+			accountChangesList.add(new SubmitAccountDto(resourceDto.getResourceName(),
+					"Account status", "-", syncStatus.name().toLowerCase(), getString("OriginType.null"),
+					secondaryValue));
+			if(delta == null) {
+				return true;
+			}
+		}
 
 		if (delta == null) {
 			return false;
@@ -106,9 +117,9 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 			if (accountsBeforeModify == null) {
 				addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
 			} else {
-				for (PrismObject account : accountsBeforeModify) {
-					if(account.getOid().equals(oldAccountObject.getOid())) {
-						addAccountFromResourceForDelete(new SubmitResourceDto(account, false));
+				for (PrismObject prismAccount : accountsBeforeModify) {
+					if(prismAccount.getOid().equals(oldAccountObject.getOid())) {
+						addAccountFromResourceForDelete(new SubmitResourceDto(prismAccount, false));
 					}
 					
 				}
