@@ -80,6 +80,31 @@ public class ObjectWrapper implements Serializable {
 		}
 		return headerStatus;
 	}
+	
+	public boolean getEnableStatus() {
+		ContainerWrapper activation = null;
+		PropertyPath activationPath = new PropertyPath(ResourceObjectShadowType.F_ACTIVATION);
+		for (ContainerWrapper container : getContainers()) {
+			if (container.getPath() == null || !container.getPath().equals(activationPath)) {
+				continue;
+			}
+			activation = container;
+			break;
+
+		}
+        if (activation == null) {
+        	LOGGER.warn("No activation found for account " + getDisplayName() + ".");
+            return false;
+        }
+        
+        PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ENABLED);
+        if (enabledProperty.getValues().size() != 1) {
+        	LOGGER.warn("No enabled property found for account " + getDisplayName() + ".");
+        	return false;
+        }
+        ValueWrapper value = enabledProperty.getValues().get(0);
+        return (Boolean) value.getValue().getValue();
+	}
 
 	public void setHeaderStatus(HeaderStatus headerStatus) {
 		this.headerStatus = headerStatus;

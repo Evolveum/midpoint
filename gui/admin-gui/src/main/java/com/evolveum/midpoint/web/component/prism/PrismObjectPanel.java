@@ -82,6 +82,19 @@ public class PrismObjectPanel extends Panel {
             }
         };
     }
+    
+    private IModel<String> createHeaderNameClassModel(final IModel<ObjectWrapper> model) {
+        return new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                ObjectWrapper wrapper = model.getObject();
+                if(!wrapper.getEnableStatus()) {
+                	return "disable";
+                }
+                return "";
+            }
+        };
+    } 
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
@@ -95,6 +108,7 @@ public class PrismObjectPanel extends Panel {
             }
         });
         Label header = new Label("header", createDisplayName(model));
+        header.add(new AttributeAppender("class", createHeaderNameClassModel(model), " "));
         header.add(createHeaderOnClickBehaviour(model));
         headerPanel.add(header);
         Label description = new Label("description", createDescription(model));

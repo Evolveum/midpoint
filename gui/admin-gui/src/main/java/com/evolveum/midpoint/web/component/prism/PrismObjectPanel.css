@@ -114,6 +114,11 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderName {
 	font-size: 19px;
 }
 
+div.objectForm .tableForm .tableFormHead .objectFormHeaderName.disable  {
+	text-decoration: line-through;
+	color: #E06666;
+}
+
 div.objectForm .tableForm .tableFormHead .objectFormHeaderDescription {
 	text-shadow: 0 1px 0 #fff;
 	color: #333;
