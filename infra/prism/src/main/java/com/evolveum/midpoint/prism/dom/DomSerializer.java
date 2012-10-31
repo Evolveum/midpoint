@@ -64,6 +64,7 @@ public class DomSerializer {
 	private Document doc;
 	private Element topElement;
 	private boolean serializeCompositeObjects = false;
+	private boolean fortifyNamespaces = false; 
 	
 	DomSerializer(PrismContext prismContext) {
 		super();
@@ -149,9 +150,11 @@ public class DomSerializer {
 			DOMUtil.fixNamespaceDeclarations(originalValueElement);
 			Element adoptedElement = (Element) parentElement.getOwnerDocument().importNode(originalValueElement, true);
 			parentElement.appendChild(adoptedElement);
-			// HACK HACK HACK. Make sure that the declarations survive stupid XML normalization by placing them
-			// in explicit elements.
-			PrismUtil.fortifyNamespaceDeclarations(adoptedElement);
+			if (fortifyNamespaces) {
+				// HACK HACK HACK. Make sure that the declarations survive stupid XML normalization by placing them
+				// in explicit elements.
+				PrismUtil.fortifyNamespaceDeclarations(adoptedElement);
+			}
 		} else if (XmlTypeConverter.canConvert(type)) {
 			// Primitive value
 			Element element = createElement(elementName);
