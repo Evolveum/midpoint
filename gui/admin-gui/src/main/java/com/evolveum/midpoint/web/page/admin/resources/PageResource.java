@@ -361,7 +361,7 @@ public class PageResource extends PageAdminResources {
             result.recordFatalError("Error occurred during importing accounts from resource.", ex);
         }
 
-        result.recordSuccessIfUnknown();
+        result.computeStatus();
 
         showResult(result);
         target.add(getFeedbackPanel());
