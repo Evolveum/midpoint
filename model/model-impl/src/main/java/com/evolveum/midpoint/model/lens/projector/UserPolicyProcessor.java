@@ -159,6 +159,9 @@ public class UserPolicyProcessor {
 				if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
 					if (userSecondaryDelta == null) {
 						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
+						if (focusContext.getObjectNew() != null && focusContext.getObjectNew().getOid() != null){
+							userSecondaryDelta.setOid(focusContext.getObjectNew().getOid());
+						}
 						focusContext.setProjectionWaveSecondaryDelta(userSecondaryDelta);
 					}
 					userSecondaryDelta.mergeModification(itemDelta);
