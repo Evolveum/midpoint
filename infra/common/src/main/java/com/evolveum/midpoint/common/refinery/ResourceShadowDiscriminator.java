@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.refinery;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceShadowDiscriminatorType;
 
@@ -40,14 +41,14 @@ public class ResourceShadowDiscriminator implements Serializable {
 	private String intent;
 	private boolean thombstone;
 	
-	public ResourceShadowDiscriminator(String resourceOid, String accountType) {
-		this(resourceOid, accountType, false);
+	public ResourceShadowDiscriminator(String resourceOid, String intent) {
+		this(resourceOid, intent, false);
 	}
 	
-	public ResourceShadowDiscriminator(String resourceOid, String accountType, boolean thombstone) {
+	public ResourceShadowDiscriminator(String resourceOid, String intent, boolean thombstone) {
 		this.resourceOid = resourceOid;
 		this.thombstone = thombstone;
-		setIntent(accountType);
+		setIntent(intent);
 	}
 	
 	public ResourceShadowDiscriminator(ResourceShadowDiscriminatorType accRefType) {
@@ -64,6 +65,9 @@ public class ResourceShadowDiscriminator implements Serializable {
 		return intent;
 	}
 	public void setIntent(String intent) {
+		if (intent == null) {
+			intent = SchemaConstants.INTENT_DEFAULT;
+		}
 		this.intent = intent;
 	}
 

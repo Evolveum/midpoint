@@ -600,6 +600,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         SchemaDebugUtil.indentDebugDump(sb, indent);
+        sb.append(getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName());
+        sb.append(" ");
+        sb.append(getResourceShadowDiscriminator());
+        sb.append("\n");
+        SchemaDebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("OID: ").append(getOid());
         sb.append(", wave ").append(wave);
         if (fullShadow) {
@@ -622,30 +627,30 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         	sb.append(", iteration=").append(iteration);
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), getObjectNew(), indent);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), getObjectNew(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), getSyncDelta(), indent);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), getSyncDelta(), indent + 1);
 
         if (showTriples) {
         	
         	sb.append("\n");
-        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("accountConstructionDeltaSetTriple"), accountConstructionDeltaSetTriple, indent);
+        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("accountConstructionDeltaSetTriple"), accountConstructionDeltaSetTriple, indent + 1);
         	
 	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundAccountConstruction, indent);
+	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundAccountConstruction, indent + 1);
 	        
 	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent);
+	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent + 1);
 
 	        // This is just a debug thing
 //	        sb.append("\n");

@@ -203,5 +203,15 @@ public class MiscSchemaUtil {
         ref.setType(type);
         return ref;
     }
+    
+    public static boolean equalsIntent(String intent1, String intent2) {
+		if (intent1 == null) {
+			intent1 = SchemaConstants.INTENT_DEFAULT;
+		}
+		if (intent2 == null) {
+			intent2 = SchemaConstants.INTENT_DEFAULT;
+		}
+		return intent1.equals(intent2);
+	}
 
 }

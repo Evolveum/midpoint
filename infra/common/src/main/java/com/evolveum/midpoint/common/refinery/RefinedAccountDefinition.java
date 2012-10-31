@@ -452,6 +452,9 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         String accountTypeName = null;
         if (objectClassDef.getIntent() != null) {
             accountTypeName = objectClassDef.getIntent();
+            if (accountTypeName == null) {
+            	accountTypeName = SchemaConstants.INTENT_DEFAULT;
+            }
             rAccountDef.setAccountTypeName(accountTypeName);
         } else {
             if (objectClassDef.isDefaultAccountType()) {
