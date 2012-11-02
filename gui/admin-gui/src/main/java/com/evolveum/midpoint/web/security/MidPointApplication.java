@@ -25,8 +25,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
-import com.evolveum.midpoint.web.page.admin.users.PageUsersEncoder;
-import com.evolveum.midpoint.web.util.MountedMapperWithoutPageComponentInfo;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -37,14 +35,12 @@ import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -89,9 +85,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
     @Autowired
     transient ModelService model;
-    @Autowired
-    @Qualifier("repositoryService")
-    transient RepositoryService repository;
     @Autowired
     transient PrismContext prismContext;
     @Autowired
@@ -164,9 +157,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config/debugs", PageDebugList.class, encoder));
         mount(new MountedMapper("/admin/config/import", PageImportObject.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
-        
+
         mount(new MountedMapper("/admin/reports", PageReports.class, encoder));
-        
+
         mount(new MountedMapper("/admin/about/midPoint", PageAbout.class, encoder));
         mount(new MountedMapper("/admin/about/system", PageSystem.class, encoder));
 
@@ -215,10 +208,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelService getModel() {
         return model;
-    }
-
-    public RepositoryService getRepository() {
-        return repository;
     }
 
     public TaskManager getTaskManager() {

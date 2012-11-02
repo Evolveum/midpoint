@@ -151,7 +151,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
         
 		// THEN
         assertNotNull("null rearch return", resources);

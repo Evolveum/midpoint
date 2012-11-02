@@ -75,7 +75,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
             }
             query.setPaging(paging);
             Task task = getPage().createSimpleTask(OPERATION_LIST_RESOURCES);
-            List<PrismObject<ResourceType>> resources = getModel().searchObjects(ResourceType.class, query, task, result);
+            List<PrismObject<ResourceType>> resources = getModel().searchObjects(ResourceType.class, query, null, task, result);
 
             for (PrismObject<ResourceType> resource : resources) {
                 ResourceType resourceType = resource.asObjectable();
@@ -115,7 +115,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
         int count = 0;
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_RESOURCES);
-            count = getModel().countObjects(ResourceType.class, getQuery(), task, result);
+            count = getModel().countObjects(ResourceType.class, getQuery(), null, task, result);
 
             result.recordSuccess();
         } catch (Exception ex) {

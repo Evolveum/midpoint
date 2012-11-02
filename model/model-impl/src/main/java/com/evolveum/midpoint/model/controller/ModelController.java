@@ -554,7 +554,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+            Collection<ObjectOperationOptions> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		if (query != null) {
@@ -562,27 +563,28 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 		RepositoryCache.enter();
 
-		List<PrismObject<T>> list = null;
+        Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
 
+		List<PrismObject<T>> list = null;
 		try {
 			if (query != null){
-			if (query.getPaging() == null) {
-				LOGGER.trace("Searching objects with null paging (query in TRACE).");
-			} else {
-				LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
-						new Object[] { query.getPaging().getOffset(), query.getPaging().getMaxSize(), query.getPaging().getDirection(),
-								query.getPaging().getOrderBy() });
-			}
+                if (query.getPaging() == null) {
+                    LOGGER.trace("Searching objects with null paging (query in TRACE).");
+                } else {
+                    LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+                            new Object[] { query.getPaging().getOffset(), query.getPaging().getMaxSize(),
+                                    query.getPaging().getDirection(), query.getPaging().getOrderBy() });
+                }
 			}
 			boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
 			String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
 					: SEARCH_OBJECTS_IN_REPOSITORY;
 			OperationResult subResult = result.createSubresult(operationName);
-			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, (query != null ? query.getPaging() : "undefined"),
-					searchInProvisioning);
+			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" },
+                    query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
 
 			try {
-				if (searchInProvisioning) {
+				if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW) && searchInProvisioning) {
 					list = provisioning.searchObjects(type, query, subResult);
 				} else {
 					list = cacheRepositoryService.searchObjects(type, query, subResult);
@@ -590,7 +592,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				subResult.recordSuccess();
 			} catch (Exception ex) {
 				String message;
-				if (!searchInProvisioning) {
+				if (ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW) || !searchInProvisioning) {
 					message = "Couldn't search objects in repository";
 				} else {
 					message = "Couldn't search objects in provisioning";
@@ -619,11 +621,14 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
-			Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+            Collection<ObjectOperationOptions> options, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
 		// TODO: implement properly
 
+        Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
 		try {
-			if (ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
+			if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW)
+                    && ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
 				return provisioning.countObjects(type, query, parentResult);
 			} else {
 				return cacheRepositoryService.countObjects(type, query, parentResult);

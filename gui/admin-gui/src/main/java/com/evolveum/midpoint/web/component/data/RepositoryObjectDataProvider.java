@@ -26,6 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -70,7 +73,10 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
 				query = new ObjectQuery();
 			}
 			query.setPaging(paging);
-            List<PrismObject<T>> list = getRepository().searchObjects(type, query, result);
+
+            List<PrismObject<T>> list = getModel().searchObjects(type, query,
+                    ObjectOperationOptions.createCollection(new PropertyPath(), ObjectOperationOption.RAW),
+                    getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS), result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -94,7 +100,9 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
-            count = getRepository().countObjects(type, getQuery(), result);
+            count = getModel().countObjects(type, getQuery(),
+                    ObjectOperationOptions.createCollection(new PropertyPath(), ObjectOperationOption.RAW),
+                    getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
 
             result.recordSuccess();
         } catch (Exception ex) {

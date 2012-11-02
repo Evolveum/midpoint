@@ -354,7 +354,7 @@ public class NameStep extends WizardStep {
             PageBase page = (PageBase) getPage();
             ModelService model = page.getModelService();
 
-            List<PrismObject<ConnectorType>> objects = model.searchObjects(ConnectorType.class, null,
+            List<PrismObject<ConnectorType>> objects = model.searchObjects(ConnectorType.class, null, null,
                     page.createSimpleTask(OPERATION_LOAD_CONNECTORS), result);
 
             for (PrismObject<ConnectorType> connector : objects) {
@@ -476,7 +476,7 @@ public class NameStep extends WizardStep {
         try {
             PageBase page = (PageBase) getPage();
             ModelService model = page.getModelService();
-            List<PrismObject<ConnectorHostType>> objects = model.searchObjects(ConnectorHostType.class, null,
+            List<PrismObject<ConnectorHostType>> objects = model.searchObjects(ConnectorHostType.class, null, null,
                     page.createSimpleTask(OPERATION_LOAD_CONNECTOR_HOSTS), result);
 
             for (PrismObject<ConnectorHostType> host : objects) {

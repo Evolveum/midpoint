@@ -2246,7 +2246,7 @@ public class TestSanity extends AbstractIntegrationTest {
         final OperationResult result = task.getResult();
 
         // WHEN
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
 
         // THEN
         assertNotNull("listObjects returned null list", resources);
@@ -2749,7 +2749,7 @@ public class TestSanity extends AbstractIntegrationTest {
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
         assertCache();
 
-        modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null,
+        modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, null,
                 listHolder, resultHolder);
 
         assertCache();
@@ -3275,7 +3275,7 @@ public class TestSanity extends AbstractIntegrationTest {
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
         assertCache();
 
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, listHolder, resultHolder);
+        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, listHolder, resultHolder);
 
         assertCache();
         ObjectListType objects = listHolder.value;

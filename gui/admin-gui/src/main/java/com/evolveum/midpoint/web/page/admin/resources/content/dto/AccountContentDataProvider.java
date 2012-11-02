@@ -104,7 +104,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
 
             query.setPaging(paging);
             List<PrismObject<AccountShadowType>> list = getModel().searchObjects(AccountShadowType.class,
-                    query, task, result);
+                    query, null, task, result);
 
             AccountContentDto dto;
             for (PrismObject<AccountShadowType> object : list) {

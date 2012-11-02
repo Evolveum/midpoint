@@ -24,13 +24,12 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -57,7 +56,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -429,8 +427,6 @@ public class PageDebugList extends PageAdminConfiguration {
     }
     
     private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target){
-    	MidPointApplication application = getMidpointApplication();
-        RepositoryService repository = application.getRepository();
         ObjectTypes type = choice.getObject();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
@@ -439,10 +435,15 @@ public class PageDebugList extends PageAdminConfiguration {
             ObjectType object = bean.getValue();
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
-                repository.deleteObject(type.getClassDefinition(), object.getOid(), subResult);
+                ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
+
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
+                        ObjectOperationOption.createCollection(ObjectOperationOption.RAW),
+                        createSimpleTask(OPERATION_DELETE_OBJECT), subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't delete objects.", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't delete objects", ex);
             }
         }
         result.recomputeStatus();
@@ -456,13 +457,15 @@ public class PageDebugList extends PageAdminConfiguration {
     }
     
     private void deleteObjectConfirmedPerformed(AjaxRequestTarget target){
-    	MidPointApplication application = getMidpointApplication();
-        RepositoryService repository = application.getRepository();
-
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
         try {
             ObjectTypes type = choice.getObject();
-            repository.deleteObject(type.getClassDefinition(), object.getOid(), result);
+            ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
+
+            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
+                    ObjectOperationOption.createCollection(ObjectOperationOption.RAW),
+                    createSimpleTask(OPERATION_DELETE_OBJECT), result);
+
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't delete object '" + object.getName() + "'.", ex);

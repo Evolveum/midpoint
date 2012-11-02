@@ -89,12 +89,12 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullClassType() throws Exception {
-		controller.searchObjects(null, null, null, null);
+		controller.searchObjects(null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullPaging() throws Exception {
-		controller.searchObjects(UserType.class, null, null, null);
+		controller.searchObjects(UserType.class, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -102,7 +102,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 		//original was PagingTypeFactory.createListAllPaging()
 		ObjectPaging paging = ObjectPaging.createPaging(0, Integer.MAX_VALUE, ObjectType.F_NAME, OrderDirection.ASCENDING);
 		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
-		controller.searchObjects(UserType.class, query, null, null);
+		controller.searchObjects(UserType.class, query, null, null, null);
 	}
 
 	@Test
@@ -116,7 +116,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 
 		Task task = taskManager.createTaskInstance("List Users");
 		try {
-			final List<PrismObject<UserType>> returnedUserList = controller.searchObjects(UserType.class, new ObjectQuery(), task, task.getResult());
+			final List<PrismObject<UserType>> returnedUserList = controller.searchObjects(UserType.class, new ObjectQuery(), null, task, task.getResult());
 
 			verify(repository, times(1)).searchObjects(eq(ObjectTypes.USER.getClassDefinition()), any(ObjectQuery.class), any(OperationResult.class));
 			testObjectList((List)expectedUserList, (List)returnedUserList);

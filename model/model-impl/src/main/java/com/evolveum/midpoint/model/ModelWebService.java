@@ -130,8 +130,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void listObjects(String objectType, PagingType paging, Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result)
-			throws FaultMessage {
+	public void listObjects(String objectType, PagingType paging, OperationOptionsType options,
+                    Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(objectType, "Object type must not be null or empty.");
 
 		OperationResult operationResult = null;
@@ -140,8 +140,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			setTaskOwner(task);
 			operationResult = task.getResult();
 			ObjectQuery query = ObjectQuery.createObjectQuery(PagingConvertor.createObjectPaging(paging));
-			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
-					.getClassDefinition(), query, task, operationResult);
+			List<PrismObject<? extends ObjectType>> list = (List) model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+					.getClassDefinition(), query, MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
 			handleOperationResult(operationResult, result);
 
 			ObjectListType listType = new ObjectListType();
@@ -157,7 +157,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void searchObjects(String objectTypeUri, QueryType query, Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
+	public void searchObjects(String objectTypeUri, QueryType query, OperationOptionsType options,
+                  Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
 
 		OperationResult operationResult = null;
@@ -167,7 +168,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			operationResult = task.getResult();
 			ObjectQuery q = QueryConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
-					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q, task, operationResult);
+					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q,
+                    MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : list) {

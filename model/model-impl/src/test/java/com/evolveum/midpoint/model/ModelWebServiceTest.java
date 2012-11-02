@@ -252,7 +252,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullObjectType() throws FaultMessage {
         try {
-            modelService.listObjects(null, new PagingType(), new Holder<ObjectListType>(), new Holder<OperationResultType>());
+            modelService.listObjects(null, new PagingType(), null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -262,7 +262,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullObjectTypeAndPaging() throws FaultMessage {
         try {
-            modelService.listObjects(null, null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
+            modelService.listObjects(null, null, null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -272,7 +272,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullPagingList() throws FaultMessage {
         try {
-            modelService.listObjects("", null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
+            modelService.listObjects("", null, null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -289,7 +289,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
         try {
-            modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
+            modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging, null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -303,7 +303,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryType() throws FaultMessage {
         try {
-            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null,
+            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -315,7 +315,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryTypeAndPaging() throws FaultMessage {
         try {
-            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null,
+            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -336,7 +336,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         try {
         	QueryType queryType = new QueryType();
         	queryType.setPaging(paging);
-            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), queryType,
+            modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), queryType, null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {

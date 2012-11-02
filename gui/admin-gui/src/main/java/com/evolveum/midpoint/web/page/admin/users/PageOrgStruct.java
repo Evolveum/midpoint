@@ -94,7 +94,7 @@ public class PageOrgStruct extends PageAdminUsers {
 		List<PrismObject<OrgType>> orgUnitList = null;
 		try {
 			ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPrismContext());
-			orgUnitList = getModelService().searchObjects(OrgType.class, query, task, result);
+			orgUnitList = getModelService().searchObjects(OrgType.class, query, null, task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			result.recordFatalError("Unable to load org unit", ex);

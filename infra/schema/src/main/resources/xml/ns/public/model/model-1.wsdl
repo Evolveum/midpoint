@@ -109,6 +109,7 @@
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
+        <part name="options" type="apit:OperationOptionsType"/>
     </message>
     <message name="listObjectsResponse">
         <part name="objectList" type="apit:ObjectListType"/>
@@ -122,6 +123,7 @@
                 Search criteria
             </documentation>
         </part>
+        <part name="options" type="apit:OperationOptionsType"/>
 <!--         <part name="paging" type="q:PagingType"> -->
 <!--             <documentation> -->
 <!--                 Parameters limiting the number of returned entries, offset, etc. -->

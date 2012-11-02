@@ -75,7 +75,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
             }
             query.setPaging(paging);
 
-            List<PrismObject<T>> list = getModel().searchObjects(type, query, task, result);
+            List<PrismObject<T>> list = getModel().searchObjects(type, query, null, task, result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
             }
@@ -101,7 +101,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(type, getQuery(), task, result);
+            count = getModel().countObjects(type, getQuery(), null, task, result);
 
             result.recordSuccess();
         } catch (Exception ex) {

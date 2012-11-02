@@ -174,7 +174,7 @@ public class PageReports extends PageAdminReports {
 				OperationResult result = new OperationResult(OPERATION_CREATE_RESOURCE_LIST);
 				Task task = createSimpleTask(OPERATION_CREATE_RESOURCE_LIST);
 				try {
-					list = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), task,
+					list = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task,
 							result);
 					result.recordSuccess();
 				} catch (Exception ex) {

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -69,8 +68,6 @@ public abstract class PageBase extends WebPage {
     private ModelService modelService;
     @SpringBean(name = "modelController")
     private ModelInteractionService modelInteractionService;
-    @SpringBean(name = "cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
     @SpringBean(name = "workflowManager")
@@ -79,10 +76,9 @@ public abstract class PageBase extends WebPage {
     public PageBase() {
         Injector.get().inject(this);
         validateInjection(modelService, "Model service was not injected.");
-        validateInjection(cacheRepositoryService, "Cache repository service was not injected.");
         validateInjection(taskManager, "Task manager was not injected.");
         initLayout();
-        
+
     }
 
     @Override
@@ -126,16 +122,16 @@ public abstract class PageBase extends WebPage {
 
         LoginPanel loginPanel = new LoginPanel("loginPanel");
         add(loginPanel);
-        
+
         add(new Label("pageTitle", createPageTitleModel()));
-        
+
         WebMarkupContainer feedbackContainer = new WebMarkupContainer("feedbackContainer");
         feedbackContainer.setOutputMarkupId(true);
         add(feedbackContainer);
-        
+
         MainFeedback feedback = new MainFeedback("feedback");
         feedbackContainer.add(feedback);
-        
+
         TempFeedback tempFeedback = new TempFeedback("tempFeedback");
         feedbackContainer.add(tempFeedback);
     }
@@ -160,10 +156,6 @@ public abstract class PageBase extends WebPage {
 
     public abstract List<LeftMenuItem> getLeftMenuItems();
 
-    protected RepositoryService getCacheRepositoryService() {
-        return cacheRepositoryService;
-    }
-
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
     }
@@ -187,7 +179,7 @@ public abstract class PageBase extends WebPage {
     public ModelService getModelService() {
         return modelService;
     }
-    
+
     protected ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
@@ -277,8 +269,8 @@ public abstract class PageBase extends WebPage {
      * It's here only because of eclipse ide - it's not properly filtering resources during maven build.
      * "buildnumber" variable is not replaced.
      *
-     * @deprecated
      * @return
+     * @deprecated
      */
     @Deprecated
     public String getBuildNumber() {

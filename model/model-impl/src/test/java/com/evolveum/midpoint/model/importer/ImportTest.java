@@ -303,7 +303,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		
@@ -361,7 +361,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertSuccess("Import failed (result)", result,1);
 
 		// list all users
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), task, result);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, new ObjectQuery(), null, task, result);
 		// Three old users, one new
 		assertEquals(4,users.size());
 		

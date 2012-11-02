@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web;
 
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -54,13 +53,10 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
     private ModelService modelService;
     @Autowired(required = true)
     private InitialDataImport initialDataImport;
-    @Autowired(required = true)
-    private RepositoryService repositoryService;
 
     @Test
     public void initApplicationContext() {
         assertNotNull(modelService);
         assertNotNull(initialDataImport);
-        assertNotNull(repositoryService);
     }
 }

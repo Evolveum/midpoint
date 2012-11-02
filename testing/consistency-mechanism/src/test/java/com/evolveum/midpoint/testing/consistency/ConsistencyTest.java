@@ -1664,7 +1664,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
 		assertCache();
 
-		modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, listHolder, resultHolder);
+		modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, listHolder, resultHolder);
 
 		assertCache();
 		ObjectListType objects = listHolder.value;
