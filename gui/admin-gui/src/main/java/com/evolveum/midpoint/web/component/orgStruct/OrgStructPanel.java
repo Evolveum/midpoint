@@ -25,15 +25,10 @@ import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.IHeaderResponse;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
-
-import wickettree.AbstractTree;
-import wickettree.NestedTree;
 
 /**
  * @author mserbak
@@ -61,6 +56,11 @@ public class OrgStructPanel extends OptionalTree {
 			@Override
 			protected Component newContentComponent(String id, IModel<NodeDto> model) {
 				return OrgStructPanel.this.newContentComponent(id, model);
+			}
+
+			@Override
+			public Component newNodeComponent(String id, IModel<NodeDto> model) {
+				return OrgStructPanel.this.newNodeComponent(id, model);
 			}
 		};
 		return tree;

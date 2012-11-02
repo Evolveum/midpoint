@@ -32,7 +32,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 
-import wickettree.AbstractTree;
 import wickettree.theme.HumanTheme;
 import wickettree.theme.WindowsTheme;
 import wickettree.util.ProviderSubset;
@@ -80,5 +79,9 @@ abstract class OptionalTree extends Panel{
 
 	protected Component newContentComponent(String id, IModel<NodeDto> model) {
 		return content.newContentComponent(id, tree, model);
+	}
+	
+	protected Component newNodeComponent(String id, IModel<NodeDto> model) {
+		return content.newNodeComponent(id, tree, model);
 	}
 }

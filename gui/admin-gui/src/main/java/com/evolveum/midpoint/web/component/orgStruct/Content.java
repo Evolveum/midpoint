@@ -26,14 +26,15 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
-import wickettree.AbstractTree;
-
 /**
  * @author mserbak
  */
 public abstract class Content extends PageAdmin implements IDetachable
 {
 	public abstract Component newContentComponent(String id, AbstractTree<NodeDto> tree,
+			IModel<NodeDto> model);
+	
+	public abstract Component newNodeComponent(String id, AbstractTree<NodeDto> tree,
 			IModel<NodeDto> model);
 
 }

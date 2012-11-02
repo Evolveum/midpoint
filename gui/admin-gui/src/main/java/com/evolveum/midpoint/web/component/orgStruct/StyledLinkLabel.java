@@ -63,7 +63,7 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 		treeButton.setOutputMarkupId(true);
 		add(treeButton);
 		treeButton.add(BUTTON_STYLE_CLASS);
-		
+		treeButton.setVisible(false);
 		createMenu(treeButton.getMarkupId(), model);
 	}
 

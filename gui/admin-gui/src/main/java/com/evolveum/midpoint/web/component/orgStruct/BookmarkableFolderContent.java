@@ -27,25 +27,20 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
 import org.apache.wicket.model.IModel;
-
-import wickettree.AbstractTree;
-import wickettree.AbstractTree.State;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.orgStruct.AbstractTree.State;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author mserbak
@@ -59,6 +54,81 @@ public class BookmarkableFolderContent extends Content {
 
 	@Override
 	public Component newContentComponent(String id, final AbstractTree<NodeDto> tree,
+			final IModel<NodeDto> model) {
+		return createContentComponent(id, tree, model);
+
+	}
+
+	@Override
+	public Component newNodeComponent(String id, final AbstractTree<NodeDto> tree, final IModel<NodeDto> model) {
+		return new TreeNode<NodeDto>(id, tree, model) {
+
+			@Override
+			protected Component createContent(String id, IModel<NodeDto> model) {
+				return tree.newContentComponent(id, model);
+			}
+
+			@Override
+			protected MarkupContainer createJunctionComponent(String id) {
+				return new AjaxFallbackLink<Void>(id) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						NodeDto t = model.getObject();
+						if (tree.getState(t) == State.EXPANDED) {
+							tree.collapse(t);
+						} else {
+							t.setNodes(getNodes(t));
+							tree.expand(t);
+						}
+						target.appendJavaScript("initMenuButtons()");
+					}
+
+					@Override
+					public boolean isEnabled() {
+						final NodeDto node = model.getObject();
+						return tree.getProvider().hasChildren(node);
+					}
+				};
+			}
+
+			@Override
+			protected String getStyleClass() {
+				NodeDto t = getModelObject();
+				if (t.getType().equals(NodeType.FOLDER)) {
+					if (tree.getState(t).equals(State.EXPANDED)) {
+						return getExpandedStyleClass(t);
+					} else {
+						return getCollapsedStyleClass();
+					}
+				}
+				return getOtherStyleClass();
+			}
+		};
+	}
+
+	private List<NodeDto> getNodes(NodeDto parent) {
+		OrgStructDto orgUnit = loadOrgUnit(parent);
+		List<NodeDto> listNodes = new ArrayList<NodeDto>();
+
+		if (orgUnit.getOrgUnitDtoList() != null && !orgUnit.getOrgUnitDtoList().isEmpty()) {
+			for (Object orgObject : orgUnit.getOrgUnitDtoList()) {
+				NodeDto org = (NodeDto) orgObject;
+				listNodes.add(org);
+			}
+		}
+
+		if (orgUnit.getUserDtoList() != null && !orgUnit.getUserDtoList().isEmpty()) {
+			for (Object userObject : orgUnit.getUserDtoList()) {
+				NodeDto user = (NodeDto) userObject;
+				listNodes.add(user);
+			}
+		}
+		return listNodes;
+	}
+
+	private Node<NodeDto> createContentComponent(String id, final AbstractTree<NodeDto> tree,
 			final IModel<NodeDto> model) {
 		return new Node<NodeDto>(id, model) {
 
@@ -109,8 +179,7 @@ public class BookmarkableFolderContent extends Content {
 
 			@Override
 			protected void initOrgMenu(WebMarkupContainer orgPanel) {
-				AjaxLink edit = new AjaxLink("orgEdit", 
-						createStringResource("styledLinkLabel.orgMenu.edit")) {
+				AjaxLink edit = new AjaxLink("orgEdit", createStringResource("styledLinkLabel.orgMenu.edit")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 
@@ -122,7 +191,7 @@ public class BookmarkableFolderContent extends Content {
 						createStringResource("styledLinkLabel.orgMenu.rename")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						//model.getObject().setEditable(!model.getObject().isEditable());
+						// model.getObject().setEditable(!model.getObject().isEditable());
 					}
 				};
 				orgPanel.add(rename);
@@ -136,8 +205,7 @@ public class BookmarkableFolderContent extends Content {
 				};
 				orgPanel.add(createSub);
 
-				AjaxLink del = new AjaxLink("orgDel", 
-						createStringResource("styledLinkLabel.orgMenu.del")) {
+				AjaxLink del = new AjaxLink("orgDel", createStringResource("styledLinkLabel.orgMenu.del")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 
@@ -145,10 +213,10 @@ public class BookmarkableFolderContent extends Content {
 				};
 				orgPanel.add(del);
 			}
-			
+
 			@Override
 			protected void initUserMenu(WebMarkupContainer userPanel) {
-				AjaxLink edit = new AjaxLink("userEdit", 
+				AjaxLink edit = new AjaxLink("userEdit",
 						createStringResource("styledLinkLabel.userMenu.edit")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -161,7 +229,7 @@ public class BookmarkableFolderContent extends Content {
 						createStringResource("styledLinkLabel.userMenu.rename")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						
+
 					}
 				};
 				userPanel.add(rename);
@@ -175,7 +243,7 @@ public class BookmarkableFolderContent extends Content {
 				};
 				userPanel.add(enable);
 
-				AjaxLink disable = new AjaxLink("userDisable", 
+				AjaxLink disable = new AjaxLink("userDisable",
 						createStringResource("styledLinkLabel.userMenu.disable")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -183,8 +251,8 @@ public class BookmarkableFolderContent extends Content {
 					}
 				};
 				userPanel.add(disable);
-				
-				AjaxLink changeAttr = new AjaxLink("userChangeAttr", 
+
+				AjaxLink changeAttr = new AjaxLink("userChangeAttr",
 						createStringResource("styledLinkLabel.userMenu.changeAttr")) {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -195,27 +263,6 @@ public class BookmarkableFolderContent extends Content {
 			}
 
 		};
-
-	}
-
-	private List<NodeDto> getNodes(NodeDto parent) {
-		OrgStructDto orgUnit = loadOrgUnit(parent);
-		List<NodeDto> listNodes = new ArrayList<NodeDto>();
-
-		if (orgUnit.getOrgUnitDtoList() != null && !orgUnit.getOrgUnitDtoList().isEmpty()) {
-			for (Object orgObject : orgUnit.getOrgUnitDtoList()) {
-				NodeDto org = (NodeDto) orgObject;
-				listNodes.add(org);
-			}
-		}
-
-		if (orgUnit.getUserDtoList() != null && !orgUnit.getUserDtoList().isEmpty()) {
-			for (Object userObject : orgUnit.getUserDtoList()) {
-				NodeDto user = (NodeDto) userObject;
-				listNodes.add(user);
-			}
-		}
-		return listNodes;
 	}
 
 	private OrgStructDto loadOrgUnit(NodeDto parent) {
