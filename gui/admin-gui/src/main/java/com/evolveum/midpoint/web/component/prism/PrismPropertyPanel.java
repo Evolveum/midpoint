@@ -22,12 +22,18 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -46,6 +52,9 @@ import java.util.List;
  * @author lazyman
  */
 public class PrismPropertyPanel extends Panel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
+    private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
 
     public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form) {
         super(id);
@@ -93,18 +102,20 @@ public class PrismPropertyPanel extends Panel {
 
             @Override
             public boolean isVisible() {
-                PropertyWrapper wrapper = model.getObject();
-                PrismProperty property = wrapper.getItem();
-                PrismPropertyDefinition def = property.getDefinition();
-                if (!(def instanceof RefinedAttributeDefinition)) {
-                    return false;
-                }
-
-                RefinedAttributeDefinition refinedDef = (RefinedAttributeDefinition) def;
-                return refinedDef.hasOutboundMapping();
+                return hasOutbound(model);
             }
         });
         add(hasOutbound);
+
+        WebMarkupContainer hasPendingModification = new WebMarkupContainer(ID_HAS_PENDING_MODIFICATION);
+        hasPendingModification.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return hasPendingModification(model);
+            }
+        });
+        add(hasPendingModification);
 
         ListView<ValueWrapper> values = new ListView<ValueWrapper>("values",
                 new PropertyModel<List<ValueWrapper>>(model, "values")) {
@@ -122,6 +133,50 @@ public class PrismPropertyPanel extends Panel {
             }
         };
         add(values);
+    }
+
+    private boolean hasOutbound(IModel<PropertyWrapper> model) {
+        PropertyWrapper wrapper = model.getObject();
+        PrismProperty property = wrapper.getItem();
+        PrismPropertyDefinition def = property.getDefinition();
+        if (!(def instanceof RefinedAttributeDefinition)) {
+            return false;
+        }
+
+        RefinedAttributeDefinition refinedDef = (RefinedAttributeDefinition) def;
+        return refinedDef.hasOutboundMapping();
+    }
+
+    private boolean hasPendingModification(IModel<PropertyWrapper> model) {
+        PropertyWrapper propertyWrapper = model.getObject();
+        ContainerWrapper containerWrapper = propertyWrapper.getContainer();
+        ObjectWrapper objectWrapper = containerWrapper.getObject();
+
+        PrismObject prismObject = objectWrapper.getObject();
+        if (!ResourceObjectShadowType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
+            return false;
+        }
+
+        PrismProperty objectChange = prismObject.findProperty(ResourceObjectShadowType.F_OBJECT_CHANGE);
+        if (objectChange == null || objectChange.getValue() == null) {
+            return false;
+        }
+
+        PropertyPath path = propertyWrapper.getItem().getPath(containerWrapper.getPath());
+        ObjectDeltaType delta = (ObjectDeltaType) objectChange.getValue().getValue();
+        try {
+            for (ItemDeltaType itemDelta : delta.getModification()) {
+                ItemDelta iDelta = DeltaConvertor.createItemDelta(itemDelta, (Class<? extends Objectable>)
+                        prismObject.getCompileTimeClass(), prismObject.getPrismContext());
+                if (iDelta.getPath().equals(path)) {
+                    return true;
+                }
+            }
+        } catch (SchemaException ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't check if property has pending modification", ex);
+        }
+
+        return false;
     }
 
     private IModel<String> createDisplayName(final IModel<PropertyWrapper> model) {
