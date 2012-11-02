@@ -100,12 +100,12 @@ public class CredentialsProcessor {
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userDelta = focusContext.getDelta();
-        PropertyDelta<PasswordType> passwordValueDelta = null;
+        PropertyDelta<PasswordType> userPasswordValueDelta = null;
         if (userDelta != null) {
-        	passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+        	userPasswordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
         	// Modification sanity check
-            if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null && 
-            		(passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+            if (userDelta.getChangeType() == ChangeType.MODIFY && userPasswordValueDelta != null && 
+            		(userPasswordValueDelta.isAdd() || userPasswordValueDelta.isDelete())) {
             	throw new SchemaException("User password value cannot be added or deleted, it can only be replaced"); 
             }
         }
@@ -125,37 +125,24 @@ public class CredentialsProcessor {
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
 
         ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
+        PropertyDelta<ProtectedStringType> accountPasswordValueDelta = null;
+        if (accountDelta != null) {
+        	accountPasswordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+        }
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.MODIFY) {
-        	PropertyDelta<PasswordType> accountPasswordDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-        	if (accountPasswordDelta != null && (accountPasswordDelta.isAdd() || accountDelta.isDelete())) {
+        	if (accountPasswordValueDelta != null && (accountPasswordValueDelta.isAdd() || accountDelta.isDelete())) {
         		throw new SchemaException("Password for account "+rat+" cannot be added or deleted, it can only be replaced");
         	}
         }
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
             // adding new account, synchronize password regardless whether the password was changed or not.
-        } else if (passwordValueDelta != null) {
+        } else if (userPasswordValueDelta != null) {
             // user password was changed. synchronize it regardless of the account change.
         } else {
             LOGGER.trace("No change in password and the account is not added, skipping credentials processing for account " + rat);
             return;
         }
 
-//        ResourceAccountTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
-//        if (resourceAccountDefType == null) {
-//            LOGGER.trace("No ResourceAccountTypeDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
-//            return;
-//        }
-//        ResourceCredentialsDefinitionType credentialsType = resourceAccountDefType.getCredentials();
-//        if (credentialsType == null) {
-//            LOGGER.trace("No credentials definition in account type {}, skipping credentials processing", rat);
-//            return;
-//        }
-//        ResourcePasswordDefinitionType passwordType = credentialsType.getPassword();
-//        if (passwordType == null) {
-//            LOGGER.trace("No password definition in credentials in account type {}, skipping credentials processing", rat);
-//            return;
-//        }
-//        ValueConstructionType outbound = passwordType.getOutbound();
         RefinedAccountDefinition refinedAccountDef = accCtx.getRefinedAccountDefinition();
         if (refinedAccountDef == null){
         	LOGGER.trace("No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
@@ -169,50 +156,58 @@ public class CredentialsProcessor {
             return;
         }
         
-        Mapping<PrismPropertyValue<?>> passwordMapping = valueConstructionFactory.createMapping(outboundMappingType, 
+        Mapping<PrismPropertyValue<ProtectedStringType>> passwordMapping = valueConstructionFactory.createMapping(outboundMappingType, 
         		"outbound password mapping in account type " + rat);
-        if (passwordMapping.isApplicableToChannel(context.getChannel())) {
-	        passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
-	        ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
-	        Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
-			passwordMapping.setDefaultSource(source);
-			
-			StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-				private PropertyPath outputPath;
-				private ItemDefinition outputDefinition;
-				@Override
-				public void setOutputPath(PropertyPath outputPath) {
-					this.outputPath = outputPath;
-				}
-				
-				@Override
-				public void setOutputDefinition(ItemDefinition outputDefinition) {
-					this.outputDefinition = outputDefinition;
-				}
-				
-				@Override
-				public StringPolicyType resolve() {
-					ValuePolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
-					if (passwordPolicy == null) {
-						return null;
-					}
-					return passwordPolicy.getStringPolicy();
-				}
-			};
-			passwordMapping.setStringPolicyResolver(stringPolicyResolver);
-			
-	        passwordMapping.evaluate(result);
-	        
-	        PrismProperty accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
-	        if (accountPasswordNew == null) {
-	            LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
-	            return;
-	        }
-	        PropertyDelta accountPasswordDelta = new PropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
-	        accountPasswordDelta.setValuesToReplace(accountPasswordNew.getClonedValues());
-	        LOGGER.trace("Adding new password delta for account {}", rat);
-	        accCtx.addToSecondaryDelta(accountPasswordDelta);
+        if (!passwordMapping.isApplicableToChannel(context.getChannel())) {
+        	return;
         }
+        
+        passwordMapping.setDefaultTargetDefinition(accountPasswordPropertyDefinition);
+        ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
+        Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
+		passwordMapping.setDefaultSource(source);
+		
+		if (passwordMapping.getStrength() == MappingStrengthType.WEAK) {
+        	if (accountPasswordValueDelta != null && !accountPasswordValueDelta.isEmpty()) {
+        		return;
+        	}
+        }
+		
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private PropertyPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(PropertyPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				ValuePolicyType passwordPolicy = accCtx.getEffectivePasswordPolicy();
+				if (passwordPolicy == null) {
+					return null;
+				}
+				return passwordPolicy.getStringPolicy();
+			}
+		};
+		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
+		
+        passwordMapping.evaluate(result);
+        
+        PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
+        if (accountPasswordNew == null) {
+            LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
+            return;
+        }
+        PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
+        accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
+        LOGGER.trace("Adding new password delta for account {}", rat);
+        accCtx.addToSecondaryDelta(accountPasswordDeltaNew);
 
     }
 

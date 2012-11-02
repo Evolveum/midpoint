@@ -173,6 +173,16 @@
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
+			<credentials>
+                <password>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
 		</accountType>
 	</schemaHandling>
 	

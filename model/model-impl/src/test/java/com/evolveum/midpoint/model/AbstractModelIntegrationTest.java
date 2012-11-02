@@ -777,14 +777,36 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
+		return createModifyUserReplaceDelta(userOid, new PropertyPath(propertyName), newRealValue);
+	}
+	
+	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, PropertyPath propertyName, Object... newRealValue) {
 		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+	}
+	
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PropertyPath propertyName, Object... newRealValue) {
+		return ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
 	
 	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyName, newRealValue);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(objectDelta);
+		modifyUserReplace(userOid, new PropertyPath(propertyName), task, result, newRealValue);
+	}
+	
+	protected void modifyUserReplace(String userOid, PropertyPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		modelService.executeChanges(deltas, null, task, result);	
+	}
+	
+	protected void modifyAccountShadowReplace(String accountOid, PropertyPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<AccountShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountOid, propertyPath, newRealValue);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);	
 	}
 	
@@ -890,6 +912,15 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return user;
 	}
 	
+	protected PrismObject<AccountShadowType> getAccount(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getAccount");
+        OperationResult result = task.getResult();
+		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+		result.computeStatus();
+		IntegrationTestTools.assertSuccess("getObject(Account) result not success", result);
+		return account;
+	}
+	
 	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
         UserType userType = user.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userType.getAccountRef().size());
@@ -900,6 +931,20 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
         return accountOid;
+	}
+	
+	protected String getUserAccountRef(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        UserType userType = user.asObjectable();
+        for (ObjectReferenceType accountRefType: userType.getAccountRef()) {
+        	String accountOid = accountRefType.getOid();
+	        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+	        PrismObject<AccountShadowType> account = getAccount(accountOid);
+	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
+	        	return accountOid;
+	        }
+        }
+        AssertJUnit.fail("Account for resource "+resourceOid+" not found in "+user);
+        return null; // Never reached. But compiler complains about missing return 
 	}
 	
 	protected void assertUserNoAccountRefs(PrismObject<UserType> user) {
