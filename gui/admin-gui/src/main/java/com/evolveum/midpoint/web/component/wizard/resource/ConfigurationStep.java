@@ -21,24 +21,18 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.WizardStep;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
@@ -46,9 +40,8 @@ import org.apache.wicket.model.IModel;
 public class ConfigurationStep extends WizardStep {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurationStep.class);
-    private static final String ID_CONFIGURATION_PROPERTIES = "configurationProperties";
-    private static final String ID_CONNECTOR_POOL_CONFIGURATION = "connectorPoolConfiguration";
-    private static final String ID_TIMEOUTS = "timeouts";
+    private static final String ID_CONFIGURATION = "configuration";
+    private static final String ID_TEST_CONNECTION = "testConnection";
 
     private IModel<ResourceType> resourceModel;
 
@@ -58,53 +51,35 @@ public class ConfigurationStep extends WizardStep {
         initLayout(resourceModel);
     }
 
-    private void initLayout(IModel<ResourceType> resourceModel) {
-        IModel<ContainerWrapper> wrapperModel = new LoadableModel<ContainerWrapper>(false) {
+    private void initLayout(final IModel<ResourceType> resourceModel) {
+        IModel<ObjectWrapper> wrapperModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
-            protected ContainerWrapper load() {
-                //todo remove this container wrapper hack, this method is really ugly
+            protected ObjectWrapper load() {
+                ObjectWrapper wrapper = new ObjectWrapper(null, null, resourceModel.getObject().asPrismObject(),
+                        ContainerStatus.MODIFYING);
+                wrapper.setMinimalized(false);
+                wrapper.setShowEmpty(true);
 
-                try {
-                    PrismObject<ResourceType> resource = ConfigurationStep.this.resourceModel.getObject().asPrismObject();
-                    PrismContainer connectorConfiguration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-                    ContainerStatus status = ContainerStatus.MODIFYING;
-                    if (connectorConfiguration == null) {
-                        PrismContainerDefinition definition = resource.getDefinition().findContainerDefinition(
-                                ResourceType.F_CONNECTOR_CONFIGURATION);
-                        connectorConfiguration = definition.instantiate();
-                        status = ContainerStatus.ADDING;
-                    }
-
-                    PrismReferenceValue connectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF).getValue();
-                    String connectorOid = connectorRef.getOid();
-
-                    PageBase page = (PageBase) ConfigurationStep.this.getPage();
-                    ModelService model = page.getModelService();
-                    PrismObject<ConnectorType> connector = model.getObject(ConnectorType.class, connectorOid, null,
-                            page.createSimpleTask("load connector"), new OperationResult("load connector"));
-
-
-
-                    ObjectWrapper wrapper = new ObjectWrapper(null, null, resource, ContainerStatus.MODIFYING);
-
-                    return new ContainerWrapper(wrapper, connectorConfiguration, status, null);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                return null;
+                return wrapper;
             }
         };
-        PrismContainerPanel configurationProperties = new PrismContainerPanel(ID_CONFIGURATION_PROPERTIES,
-                wrapperModel, null);
-        add(configurationProperties);
 
-//        PrismContainerPanel connectorPoolConfiguration = new PrismContainerPanel(ID_CONNECTOR_POOL_CONFIGURATION,
-//                wrapperModel, null);
-//        add(connectorPoolConfiguration);
-//
-//        PrismContainerPanel timeouts = new PrismContainerPanel(ID_TIMEOUTS, wrapperModel, null);
-//        add(timeouts);
+        PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, wrapperModel, null, null);
+        add(configuration);
+
+        AjaxLinkButton testConnection = new AjaxLinkButton(ID_TEST_CONNECTION,
+                new StringResourceModel("ConfigurationStep.button.testConnection", this, null, "Test connection")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                testConnectionPerformed(target);
+            }
+        };
+        add(testConnection);
+    }
+
+    private void testConnectionPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 }

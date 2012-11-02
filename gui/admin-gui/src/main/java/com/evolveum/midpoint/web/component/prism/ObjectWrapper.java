@@ -25,9 +25,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -223,6 +223,8 @@ public class ObjectWrapper implements Serializable {
 						containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
 					}
 				}
+            } else if (ResourceType.class.isAssignableFrom(clazz)) {
+                containers =  createResourceContainers();
 			} else {
 				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
 				containers.add(container);
@@ -239,6 +241,46 @@ public class ObjectWrapper implements Serializable {
 		return containers;
 	}
 
+    private List<ContainerWrapper> createResourceContainers() throws SchemaException {
+        List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
+        PrismObject<ConnectorType> connector = loadConnector();
+
+        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONFIGURATION_PROPERTIES, connector));
+        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_CONNECTOR_POOL_CONFIGURATION, connector));
+        containers.add(createResourceContainerWrapper(SchemaConstants.ICF_TIMEOUTS, connector));
+
+        return containers;
+    }
+
+    private PrismObject<ConnectorType> loadConnector() {
+        PrismReference connectorRef = object.findReference(ResourceType.F_CONNECTOR_REF);
+        return connectorRef.getValue().getObject();
+        //todo reimplement
+    }
+
+    private ContainerWrapper createResourceContainerWrapper(QName name, PrismObject<ConnectorType> connector)
+        throws SchemaException {
+
+        PrismContainer container = object.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+        if (container != null && container.size() == 1 &&  container.getValue() != null) {
+            PrismContainerValue value = container.getValue();
+            container = value.findContainer(name);
+        }
+
+        ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+        if (container == null) {
+            ConnectorType connectorType = connector.asObjectable();
+            PrismSchema schema = ConnectorTypeUtil.getConnectorSchema(connectorType, connector.getPrismContext());
+            PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
+
+            definition = definition.findContainerDefinition(new PropertyPath(name));
+            container =  definition.instantiate();
+        }
+
+        return new ContainerWrapper(this, container, status,
+                new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, name));
+    }
+
 	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, PropertyPath path) {
 
 		PrismContainerDefinition definition = parent.getDefinition();
@@ -249,7 +291,6 @@ public class ObjectWrapper implements Serializable {
 			segments.addAll(path.getSegments());
 		}
 		PropertyPath parentPath = new PropertyPath(segments);
-
 		for (ItemDefinition def : (Collection<ItemDefinition>) definition.getDefinitions()) {
 			if (!(def instanceof PrismContainerDefinition)) {
 				continue;

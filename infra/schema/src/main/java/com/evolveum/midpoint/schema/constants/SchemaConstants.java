@@ -143,7 +143,7 @@ public abstract class SchemaConstants {
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 	public static final QName I_PASSWORD_POLICY_TYPE = new QName(NS_C, "PasswordPolicyType");
 	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
-	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings"); 
+	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings");
 
 	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
@@ -186,7 +186,10 @@ public abstract class SchemaConstants {
 			"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
 			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_2",
 			"com.evolveum.midpoint.xml.ns._public.communication.workflow_1" };
-	
+
+    public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION, "configurationProperties");
+    public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
+    public static final QName ICF_CONNECTOR_POOL_CONFIGURATION =new QName(NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
 
 	static {
 
