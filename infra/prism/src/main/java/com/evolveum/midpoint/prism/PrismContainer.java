@@ -206,14 +206,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return property.getRealValue(type);
     }
     
-    public boolean add(PrismContainerValue<V> pValue) throws SchemaException {
-    	pValue.setParent(this);
-    	if (getDefinition() != null) {
-    		pValue.applyDefinition(getDefinition(), false);
-    	}
-    	return getValues().add(pValue);
-    }
-    
     /**
      * Convenience method. Works only on single-valued containers.
      */
@@ -629,6 +621,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
 
     @Override
+	public boolean containsEquivalentValue(PrismContainerValue<V> value) {
+    	if (value.getId() == null) {
+    		return super.contains(value, true);
+    	} else {
+    		return super.contains(value, false);
+    	}
+	}
+
+	@Override
 	public int hashCode() {
 		int result = super.hashCode();
 		return result;

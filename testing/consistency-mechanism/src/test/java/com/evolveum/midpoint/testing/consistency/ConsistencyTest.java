@@ -26,6 +26,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -972,7 +974,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	@Test
 	public void test015addAccountAlreadyExistUnlinked() throws Exception {
-		displayTestTile("test015addAccountAlreadyExistUnlinked");
+		final String TEST_NAME = "test015addAccountAlreadyExistUnlinked";
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
@@ -1011,9 +1014,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		
 		// WHEN
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, parentResult);
 
 		// THEN
+		displayThen(TEST_NAME);
 		user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
 		List<ObjectReferenceType> accountRefs = user.asObjectable().getAccountRef();

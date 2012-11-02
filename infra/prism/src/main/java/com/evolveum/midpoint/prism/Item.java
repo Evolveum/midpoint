@@ -303,6 +303,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return contains(value, false);
     }
     
+    public boolean containsEquivalentValue(V value) {
+    	return contains(value, true);
+    }
+    
     public boolean contains(V value, boolean ignoreMetadata) {
     	for (V myValue: getValues()) {
     		if (myValue.equals(value, ignoreMetadata)) {
@@ -337,9 +341,12 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     
     public boolean add(V newValue) throws SchemaException {
     	newValue.setParent(this);
-    	if (contains(newValue)) {
+    	if (containsEquivalentValue(newValue)) {
     		return false;
     	}	
+    	if (getDefinition() != null) {
+    		newValue.applyDefinition(getDefinition(), false);
+    	}
     	return values.add(newValue);
     }
     
