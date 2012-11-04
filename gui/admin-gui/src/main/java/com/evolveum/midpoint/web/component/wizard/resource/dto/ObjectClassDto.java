@@ -21,9 +21,14 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,19 +37,29 @@ import java.util.List;
 public class ObjectClassDto implements Serializable {
 
     public static final String F_ATTRIBUTES_VISIBLE = "attributesVisible";
+    public static final String F_NAME = "name";
+    public static final String F_ATTRIBUTES = "attributes";
 
+    private ObjectClassComplexTypeDefinition definition;
     private boolean attributesVisible;
-    private List<QName> attributes;
 
-    public List<QName> getAttributes() {
-        if (attributes == null) {
-            attributes = new ArrayList<QName>();
-        }
-        return attributes;
+    public ObjectClassDto(ObjectClassComplexTypeDefinition definition) {
+        Validate.notNull(definition, "Object class complex type definition must not be null.");
+        this.definition = definition;
     }
 
-    public void setAttributes(List<QName> attributes) {
-        this.attributes = attributes;
+    public String getName() {
+        StringBuilder builder = new StringBuilder();
+        if (StringUtils.isNotEmpty(definition.getDisplayName())) {
+            builder.append(definition.getDisplayName());
+            builder.append(", ");
+        }
+
+        if (definition.getTypeName() != null) {
+            builder.append(definition.getTypeName().getLocalPart());
+        }
+
+        return builder.toString().trim();
     }
 
     public boolean isAttributesVisible() {
@@ -53,5 +68,15 @@ public class ObjectClassDto implements Serializable {
 
     public void setAttributesVisible(boolean attributesVisible) {
         this.attributesVisible = attributesVisible;
+    }
+
+    public String getAttributes() {
+        List<String> attributes = new ArrayList<String>();
+        for (ResourceAttributeDefinition def : definition.getAttributeDefinitions()) {
+            attributes.add(def.getName().getLocalPart());
+        }
+
+        Collections.sort(attributes);
+        return StringUtils.join(attributes, ", ");
     }
 }

@@ -30,9 +30,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.io.Serializable;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
@@ -68,7 +66,7 @@ public class ObjectClassPanel extends SimplePanel<ObjectClassDto> {
         visibleLabel.setOutputMarkupId(true);
         visible.add(visibleLabel);
 
-        Label name = new Label(ID_NAME, new Model<Serializable>()); //todo model
+        Label name = new Label(ID_NAME, new PropertyModel(getModel(), ObjectClassDto.F_NAME));
         header.add(name);
 
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
@@ -76,7 +74,7 @@ public class ObjectClassPanel extends SimplePanel<ObjectClassDto> {
         add(body);
 
         //attributes list, now very simple
-        Label main = new Label(ID_MAIN, new Model<Serializable>()); //todo model
+        Label main = new Label(ID_MAIN, new PropertyModel(getModel(), ObjectClassDto.F_ATTRIBUTES));
         main.add(new VisibleEnableBehaviour() {
 
             @Override

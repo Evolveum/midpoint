@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
@@ -28,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,18 +44,23 @@ public class SchemaListPanel extends SimplePanel<ResourceType> {
     private static final String ID_OBJECT_CLASS = "objectClass";
     private static final String ID_PANEL = "panel";
 
+    private LoadableModel<List<ObjectClassDto>> objectsModel;
+
     public SchemaListPanel(String id, IModel model) {
         super(id, model);
     }
 
     @Override
     protected void initLayout() {
-        ListView objectClass = new ListView<ObjectClassDto>(ID_OBJECT_CLASS, new LoadableModel<List<ObjectClassDto>>() {
+        objectsModel = new LoadableModel<List<ObjectClassDto>>(false) {
+
             @Override
             protected List<ObjectClassDto> load() {
                 return createObjectClassList();
             }
-        }) {
+        };
+
+        ListView objectClass = new ListView<ObjectClassDto>(ID_OBJECT_CLASS, objectsModel) {
 
             @Override
             protected void populateItem(ListItem<ObjectClassDto> item) {
@@ -66,7 +75,22 @@ public class SchemaListPanel extends SimplePanel<ResourceType> {
 
     private List<ObjectClassDto> createObjectClassList() {
         List<ObjectClassDto> classes = new ArrayList<ObjectClassDto>();
-        //todo implement
+
+        ResourceType resource = getModel().getObject();
+        Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+        if (xsdSchema == null) {
+            return classes;
+        }
+
+        try {
+            ResourceSchema schema = ResourceSchema.parse(xsdSchema, resource.toString(), getBasePage().getPrismContext());
+            for (ObjectClassComplexTypeDefinition def : schema.getObjectClassDefinitions()) {
+                classes.add(new ObjectClassDto(def));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            //todo error handling
+        }
 
         return classes;
     }
