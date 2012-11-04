@@ -1069,28 +1069,58 @@ public class TaskQuartzImpl implements Task {
 			throw new SystemException("The owner of task "+getOid()+" cannot be found (owner OID: "+ownerRef.getOid()+")",e);
 		}
 	}
-	
-	@Override
-	public String getChannel() {
-		PrismProperty<String> channelProperty = taskPrism.findProperty(TaskType.F_CHANNEL);
-		if (channelProperty == null) {
-			return null;
-		}
-		return channelProperty.getRealValue();
-	}
 
-	@Override
-	public void setChannel(String channelUri) {
-		// TODO: Is this OK?
-		PrismProperty<String> channelProperty;
-		try {
-			channelProperty = taskPrism.findOrCreateProperty(TaskType.F_CHANNEL);
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-		channelProperty.setRealValue(channelUri);
-	}
+    @Override
+    public String getChannel() {
+        return taskPrism.asObjectable().getChannel();
+    }
+
+    @Override
+    public void setChannel(String value) {
+        processModificationBatched(setChannelAndPrepareDelta(value));
+    }
+
+//    @Override
+//    public void setDescriptionImmediate(String value, OperationResult parentResult)
+//            throws ObjectNotFoundException, SchemaException {
+//        try {
+//            processModificationNow(setDescriptionAndPrepareDelta(value), parentResult);
+//        } catch (ObjectAlreadyExistsException ex) {
+//            throw new SystemException(ex);
+//        }
+//    }
+
+    public void setChannelTransient(String name) {
+        taskPrism.asObjectable().setChannel(name);
+    }
+
+    private PropertyDelta<?> setChannelAndPrepareDelta(String value) {
+        setChannelTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_CHANNEL, value) : null;
+    }
+
+
+//    @Override
+//	public String getChannel() {
+//		PrismProperty<String> channelProperty = taskPrism.findProperty(TaskType.F_CHANNEL);
+//		if (channelProperty == null) {
+//			return null;
+//		}
+//		return channelProperty.getRealValue();
+//	}
+//	@Override
+//	public void setChannel(String channelUri) {
+//		// TODO: Is this OK?
+//		PrismProperty<String> channelProperty;
+//		try {
+//			channelProperty = taskPrism.findOrCreateProperty(TaskType.F_CHANNEL);
+//		} catch (SchemaException e) {
+//			// This should not happen
+//			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+//		}
+//		channelProperty.setRealValue(channelUri);
+//	}
 	
 	@Override
 	public ObjectReferenceType getObjectRef() {
