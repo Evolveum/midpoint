@@ -92,7 +92,7 @@ public class PageResourceEdit extends PageAdminResources {
         WizardModel wizardModel = new WizardModel();
         wizardModel.add(new NameStep(model));
         wizardModel.add(new ConfigurationStep(model));
-        wizardModel.add(new SchemaStep());
+        wizardModel.add(new SchemaStep(model));
         wizardModel.add(new SchemaHandlingStep());
         wizardModel.add(new CapabilityStep());
         wizardModel.add(new SynchronizationStep());

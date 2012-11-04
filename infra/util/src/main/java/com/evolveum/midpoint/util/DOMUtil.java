@@ -824,6 +824,10 @@ public class DOMUtil {
 		}
 	}
 
+    public static Element createElement(QName qname) {
+        return createElement(DOMUtil.getDocument(), qname);
+    }
+
 	public static Element createElement(Document document, QName qname) {
 		Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
 		if (qname.getPrefix() != null) {

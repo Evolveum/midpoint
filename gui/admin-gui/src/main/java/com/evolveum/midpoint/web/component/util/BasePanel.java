@@ -31,6 +31,7 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  * @author lazyman
  */
+@Deprecated
 public abstract class BasePanel<T> extends Panel {
 
     private IModel<T> model;
