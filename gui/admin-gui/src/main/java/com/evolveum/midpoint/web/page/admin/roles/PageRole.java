@@ -129,7 +129,7 @@ public class PageRole extends PageAdminRoles {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
+        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(new LoadableModel<Boolean>(false) {
 
             @Override

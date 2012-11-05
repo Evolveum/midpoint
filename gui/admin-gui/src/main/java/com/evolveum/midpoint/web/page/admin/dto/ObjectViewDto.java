@@ -31,10 +31,14 @@ import java.io.Serializable;
  */
 public class ObjectViewDto<T extends ObjectType> implements Serializable {
 
+    public static final String F_OID = "oid";
+    public static final String F_NAME = "name";
+    public static final String F_XML = "xml";
+
     private String oid;
     private String name;
     private String xml;
-    private PrismObject<T> object;
+    private PrismObject<T> object;       //todo why this?
 
     public ObjectViewDto() {
     }

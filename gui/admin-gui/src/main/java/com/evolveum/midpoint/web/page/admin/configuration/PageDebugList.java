@@ -30,6 +30,8 @@ import java.util.zip.ZipOutputStream;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -96,10 +98,10 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "loadObjects";
 	private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
-    private boolean deleteSelected;
-    private boolean downloadZip;
+    private boolean deleteSelected; //todo what is this used for?
+    private boolean downloadZip; //todo what is this used for?
     private IModel<ObjectTypes> choice = null;
-    private ObjectType object = null;
+    private ObjectType object = null; //todo what is this used for?
 
     public PageDebugList() {
         initLayout();
@@ -113,6 +115,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
+                //todo wtf
                 if(deleteSelected){
                 	deleteSelected = false;
                 	deleteSelectedConfirmedPerformed(target);
@@ -124,6 +127,7 @@ public class PageDebugList extends PageAdminConfiguration {
         });
     	
         //listed type
+        //todo wtf is this? why is prism object definition in session, where is this saved?
     	IModel<ObjectTypes> sessionChoice = null;
     	PrismObjectDefinition selectedCategory = (PrismObjectDefinition)getSession().getAttribute("category");
     	if(selectedCategory != null) {
@@ -242,7 +246,9 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 		};
         main.add(export);
-        
+
+        //todo refactor. zipCheck value is in Model<Boolean> and in downloadZip, why we need two variables?
+        //also this method has 150 lines, which is way to much. break it into smaller chunks
         AjaxCheckBox zipCheck = new AjaxCheckBox("zipCheck", new Model<Boolean>(false)){
 
 			@Override
@@ -302,8 +308,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public Object getDisplayValue(ObjectTypes object) {
-                return new StringResourceModel(object.getLocalizationKey(),
-                        (PageBase) PageDebugList.this, null).getString();
+                return new StringResourceModel(object.getLocalizationKey(), PageDebugList.this, null).getString();
             }
 
             @Override
@@ -358,12 +363,6 @@ public class PageDebugList extends PageAdminConfiguration {
         return (TablePanel) content.getBodyContainer().get("table");
     }
 
-    private RepositoryObjectDataProvider getDataTableProvider() {
-        TablePanel tablePanel = getListTable();
-        DataTable dataTable = tablePanel.getDataTable();
-        return (RepositoryObjectDataProvider) dataTable.getDataProvider();
-    }
-
     private void listObjectsPerformed(AjaxRequestTarget target, String nameText, ObjectTypes selected) {
         RepositoryObjectDataProvider provider = getTableDataProvider();
         if (StringUtils.isNotEmpty(nameText)) {
@@ -396,7 +395,7 @@ public class PageDebugList extends PageAdminConfiguration {
         setResponsePage(PageDebugView.class, parameters);
     }
 
-    private RepositoryObjectDataProvider getTableDataProvider() {
+    private RepositoryObjectDataProvider<ObjectType> getTableDataProvider() {
         TablePanel tablePanel = getListTable();
         DataTable table = tablePanel.getDataTable();
         return (RepositoryObjectDataProvider<ObjectType>) table.getDataProvider();
@@ -505,25 +504,22 @@ public class PageDebugList extends PageAdminConfiguration {
 		try {
 			LOGGER.trace("creating xml file {}", file.getName());
 			stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-			List objects = getTableDataProvider().getAvailableData();
-			if (objects != null) {
-				String stringObject;
-				stream.write(createHeaderForXml());
-				for (Object object : objects) {
-					if (!(object instanceof PrismObject)) {
-						continue;
-					}
-					try {
-						stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
-								(PrismObject) object);
-						stream.write("\t" + stringObject + "\n");
-					} catch (Exception ex) {
-						LoggingUtils.logException(LOGGER, "Failed to parse objects to string for xml. Reason:", ex);
-						result.recordFatalError("Failed to parse objects to string for xml. Reason:", ex);
-					}
-				}
-				stream.write("</objects>");
-			}
+            //todo this only downloads 10 objects (only data listed on page)
+			List<SelectableBean<ObjectType>> objects = getTableDataProvider().getAvailableData();
+            String stringObject;
+            stream.write(createHeaderForXml());
+            for (SelectableBean<ObjectType> bean : objects) {
+                //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
+                try {
+                    stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
+                            bean.getValue().asPrismObject());
+                    stream.write("\t" + stringObject + "\n");
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Failed to parse objects to string for xml. Reason:", ex);
+                    result.recordFatalError("Failed to parse objects to string for xml. Reason:", ex);
+                }
+            }
+            stream.write("</objects>");
 			LOGGER.debug("created xml file {}", file.getName());
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't create xml file", ex);
@@ -543,41 +539,36 @@ public class PageDebugList extends PageAdminConfiguration {
 			LOGGER.trace("adding file {} to zip archive", file.getName());
 			out = new ZipOutputStream(new FileOutputStream(zipFile));
 			final ZipEntry entry = new ZipEntry(file.getName());
-			List objects = getTableDataProvider().getAvailableData();
-			if (objects != null) {
-				String stringObject;
-				//FIXME: could cause problem with unzip in java when size is not set, however it is not our case
-				//entry.setSize(stringObject.length());
-				out.putNextEntry(entry);
-				out.write(createHeaderForXml().getBytes());
-				for (Object object : objects) {
-					if (!(object instanceof PrismObject)) {
-						continue;
-					}
-					try {
-						stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
-								(PrismObject) object);
-						out.write(("\t" + stringObject + "\n").getBytes());
-					} catch (Exception ex) {
-						LoggingUtils.logException(LOGGER,
-								"Failed to parse object " + WebMiscUtil.getName((PrismObject) object)
-										+ " to string for zip. Reason:", ex);
-						result.recordFatalError(
-								"Failed to parse object " + WebMiscUtil.getName((PrismObject) object)
-										+ " to string for zip. Reason:", ex);
-					}
-				}
-				out.write("</objects>".getBytes());
-				stream = new OutputStreamWriter(out, "utf-8");
-			} else {
-				entry.setSize(0);
-				out.putNextEntry(entry);
-			}
+            //todo this only downloads 10 objects (only data listed on page)
+			List<SelectableBean<ObjectType>> objects = getTableDataProvider().getAvailableData();
+
+            String stringObject;
+            //FIXME: could cause problem with unzip in java when size is not set, however it is not our case
+            //entry.setSize(stringObject.length());
+            out.putNextEntry(entry);
+            out.write(createHeaderForXml().getBytes());
+            for (SelectableBean<ObjectType> bean : objects) {
+                PrismObject object = bean.getValue().asPrismObject();
+
+                //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
+                try {
+                    stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
+                    out.write(("\t" + stringObject + "\n").getBytes());
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Failed to parse object " + WebMiscUtil.getName(object)
+                            + " to string for zip", ex);
+                    result.recordFatalError("Failed to parse object " + WebMiscUtil.getName(object)
+                            + " to string for zip", ex);
+                }
+            }
+            out.write("</objects>".getBytes());
+            stream = new OutputStreamWriter(out, "utf-8");        //todo wtf?
 			LOGGER.debug("added file {} to zip archive", file.getName());
-		} catch (final IOException ex) {
+		} catch (IOException ex) {
 			LoggingUtils.logException(LOGGER, "Failed to write to stream.", ex);
 			result.recordFatalError("Failed to write to stream.", ex);
 		} finally {
+            //todo wtf? check on stream != null, than using out
 			if (null != stream) {
 				try {
 					out.finish();
@@ -594,11 +585,12 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
     
     private String createHeaderForXml() {
-    	String out = "";
-    	out += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    	out += "<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'\n";
-    	out += "         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'\n";
-    	out += "         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>\n";
-    	return out;
+        StringBuilder builder = new StringBuilder();
+        builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        builder.append("<objects xmlns='").append(SchemaConstantsGenerated.NS_COMMON).append("'\n");
+        builder.append("\txmlns:c='").append(SchemaConstantsGenerated.NS_COMMON).append("'\n");
+        builder.append("\txmlns:org='").append(SchemaConstants.NS_ORG).append("'>\n");
+
+        return builder.toString();
 	}
 }

@@ -52,7 +52,9 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         };
         initLayout();
-    }    private ObjectViewDto loadObject() {
+    }
+
+    private ObjectViewDto loadObject() {
         StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
         if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
             getSession().error(getString("pageDebugView.message.oidNotDefined"));
@@ -60,7 +62,7 @@ public class PageDebugView extends PageAdminConfiguration {
         }
 
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
-        OperationResult result = task.getResult();
+        OperationResult result = task.getResult(); //todo is this result != null ?
         ObjectViewDto dto = null;
         try {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
@@ -68,6 +70,7 @@ public class PageDebugView extends PageAdminConfiguration {
             
             Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
 			// FIXME: ObjectType.class will not work well here. We need more specific type.
+            //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
             PrismObject<ObjectType> object = getModelService().getObject(ObjectType.class, objectOid.toString(), options, task, result);
             
             PrismContext context = application.getPrismContext();
@@ -95,8 +98,8 @@ public class PageDebugView extends PageAdminConfiguration {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        mainForm.add(new Label("oid", new PropertyModel<Object>(model, "oid")));
-        mainForm.add(new Label("name", new PropertyModel<Object>(model, "name")));
+        mainForm.add(new Label("oid", new PropertyModel(model, ObjectViewDto.F_OID)));
+        mainForm.add(new Label("name", new PropertyModel(model, ObjectViewDto.F_NAME)));
         final IModel<Boolean> editable = new Model<Boolean>(false);
         
         mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
@@ -112,7 +115,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 editPerformed(target, editable.getObject());
             }
         });
-        editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, "xml"));
+        editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
 
@@ -141,6 +144,7 @@ public class PageDebugView extends PageAdminConfiguration {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 //target.appendJavaScript("history.go(-1)");
+                //todo wtf????
                 Page requestPage = (Page)getSession().getAttribute("requestPage");
                 
                 if(requestPage != null){
@@ -196,6 +200,7 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
+            //todo .....wtf?
             getSession().setAttribute("category", dto.getObject().getDefinition());
             setResponsePage(PageDebugList.class);
         }
