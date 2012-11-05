@@ -28,6 +28,8 @@
     <name>jack</name>
     <extension>
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
+        <piracy:weapon>pistol</piracy:weapon>
+        <piracy:weapon>mouth</piracy:weapon>
     </extension>
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>

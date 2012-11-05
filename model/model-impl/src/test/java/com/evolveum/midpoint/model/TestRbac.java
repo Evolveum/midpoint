@@ -113,6 +113,8 @@ public class TestRbac extends AbstractModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Caribbean");
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
 	}
 	
 	/**
@@ -134,6 +136,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
 	}
 	
 	@Test
@@ -181,6 +184,7 @@ public class TestRbac extends AbstractModelIntegrationTest {
 		        
         // Precondition (simplified)
         assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "weapon", "rum");
         
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -191,6 +195,9 @@ public class TestRbac extends AbstractModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        // The account already has a value for 'weapon', it should be unchanged. But it is not.
+        // The relative change does cannot see the existing value so it adds its own.
+        assertDefaultDummyAccountAttribute("jack", "weapon", "rum", "cutlass");
         
 	}
 	

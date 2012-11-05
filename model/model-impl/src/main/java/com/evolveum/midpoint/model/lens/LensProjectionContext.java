@@ -40,13 +40,16 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -538,6 +541,55 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
 		}
 		return clonedMap;
+	}
+	
+	/**
+	 * Returns true if the projection has any value for specified attribute, has any delta for it or any
+	 * other indication that there will be delta (e.g. triple)
+	 */
+	public boolean hasValueForAttribute(QName attributeName) throws SchemaException {
+		PropertyPath attrPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName);
+		if (getObjectNew() != null) {
+			PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
+			if (attrNew != null && !attrNew.isEmpty()) {
+				return true;
+			}
+		}
+		ObjectDelta<O> delta = getDelta();
+		if (delta != null) {
+			PropertyDelta<?> attrDelta = delta.findPropertyDelta(attrPath);
+			if (attrDelta != null && !attrDelta.isEmpty()) {
+				return true;
+			}
+		}
+		if (squeezedAttributes != null) {
+			DeltaSetTriple<PropertyValueWithOrigin> attrTriple = squeezedAttributes.get(attributeName);
+			if (attrTriple != null && !attrTriple.isEmpty()) {
+				return true;
+			}
+		}
+		if (accountConstructionDeltaSetTriple != null) {
+			if (hasValueForAttribute(attributeName, accountConstructionDeltaSetTriple.getPlusSet())) {
+				return true;
+			}
+			if (hasValueForAttribute(attributeName, accountConstructionDeltaSetTriple.getZeroSet())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<AccountConstruction>> acPpvSet) {
+		if (acPpvSet == null) {
+			return false;
+		}
+		for (PrismPropertyValue<AccountConstruction> acPpv: acPpvSet) {
+			AccountConstruction ac = acPpv.getValue();
+			if (ac.hasValueForAttribute(attributeName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public String getHumanReadableName() {

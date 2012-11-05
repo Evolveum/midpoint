@@ -187,7 +187,6 @@ public class ConsolidationProcessor {
                 	propDelta.setDefinition(attributeDefinition);
                 }
 
-                boolean initialOnly = true;
                 Mapping<?> exclusiveMapping = null;
                 Collection<PropertyValueWithOrigin> pvwosToAdd = null;
                 if (addUnchangedValues) {
@@ -197,17 +196,18 @@ public class ConsolidationProcessor {
                 }
 
                 if (!pvwosToAdd.isEmpty()) {
+                	boolean initialOnly = true;
                     for (PropertyValueWithOrigin pvwoToAdd : pvwosToAdd) {
-                        Mapping<?> vc = pvwoToAdd.getMapping();
-                        if (vc.getStrength() == MappingStrengthType.STRONG) {
+                        Mapping<?> mapping = pvwoToAdd.getMapping();
+                        if (mapping.getStrength() == MappingStrengthType.STRONG) {
                             initialOnly = false;
                         }
-                        if (vc.isExclusive()) {
+                        if (mapping.isExclusive()) {
                             if (exclusiveMapping == null) {
-                                exclusiveMapping = vc;
+                                exclusiveMapping = mapping;
                             } else {
                                 String message = "Exclusion conflict in account " + rat + ", attribute " + attributeName +
-                                        ", conflicting constructions: " + exclusiveMapping + " and " + vc;
+                                        ", conflicting constructions: " + exclusiveMapping + " and " + mapping;
                                 LOGGER.error(message);
                                 throw new ExpressionEvaluationException(message);
                             }

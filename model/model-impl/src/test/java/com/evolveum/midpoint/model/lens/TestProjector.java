@@ -192,6 +192,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
         IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
         IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");
+        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON, "mouth", "pistol");
 	}
 	
 	@Test
@@ -243,7 +244,8 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
         IntegrationTestTools.assertIcfsNameAttribute(newAccount, "jack");
-        IntegrationTestTools.assertAttribute(newAccount, new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname"), "Jack Sparrow");
+        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");
+        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON, "mouth", "pistol");
         
         for (ResourceAttribute<?> attribute: ResourceObjectShadowUtil.getAttributes(newAccount)) {
         	PrismAsserts.assertOrigin(attribute, OriginType.OUTBOUND);

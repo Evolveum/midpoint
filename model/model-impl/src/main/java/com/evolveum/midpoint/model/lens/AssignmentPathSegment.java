@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 public class AssignmentPathSegment {
 	
 	private AssignmentType assignmentType;
+	private Assignment evaluatedAssignment;
 	private ObjectType target;
 	
 	AssignmentPathSegment(AssignmentType assignmentType, ObjectType target) {
@@ -43,6 +44,14 @@ public class AssignmentPathSegment {
 
 	public void setAssignmentType(AssignmentType assignmentType) {
 		this.assignmentType = assignmentType;
+	}
+
+	public Assignment getEvaluatedAssignment() {
+		return evaluatedAssignment;
+	}
+
+	public void setEvaluatedAssignment(Assignment evaluatedAssignment) {
+		this.evaluatedAssignment = evaluatedAssignment;
 	}
 
 	public ObjectType getTarget() {

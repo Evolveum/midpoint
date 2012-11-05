@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -313,6 +314,18 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
 		return refinedAccountDefinition.getObjectClassDefinition().findAttributeDefinition(attributeName);
+	}
+	
+	public boolean hasValueForAttribute(QName attributeName) {
+		for (Mapping<? extends PrismPropertyValue<?>> attributeConstruction: attributeConstructions) {
+			if (attributeName.equals(attributeConstruction.getItemName())) {
+				PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction.getOutputTriple();
+				if (outputTriple != null && !outputTriple.isEmpty()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 		
 	@Override

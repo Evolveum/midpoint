@@ -31,5 +31,6 @@
 		<icfs:name>jack</icfs:name>
 		<icfs:uid>jack</icfs:uid>
 		<ri:fullname>Jack Sparrow</ri:fullname>
+		<ri:weapon>rum</ri:weapon>
 	</attributes>
 </account>

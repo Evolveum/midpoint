@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
@@ -122,6 +123,12 @@ public class OutboundProcessor {
 			        + " in " + ObjectTypeUtil.toShortString(rAccount.getResourceType()));
 			
 			if (!mapping.isApplicableToChannel(context.getChannel())) {
+				LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", attributeName);
+				continue;
+			}
+			
+			if (mapping.getStrength() == MappingStrengthType.WEAK && accCtx.hasValueForAttribute(attributeName)) {
+				LOGGER.trace("Skipping outbound mapping for {} because it is weak", attributeName);
 				continue;
 			}
 			

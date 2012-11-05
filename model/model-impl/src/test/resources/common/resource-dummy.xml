@@ -25,6 +25,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -99,6 +100,7 @@
                   <xsd:element name="ship" type="xsd:string"/>
                   <xsd:element name="location" type="xsd:string"/>
                   <xsd:element name="loot" type="xsd:int"/>
+                  <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -164,6 +166,7 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
+					<strength>strong</strength>
 					<source>
 						<path>
 							$c:user/c:locality
@@ -209,9 +212,23 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<displayName>Weapon</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>
+							$user/extension/piracy:weapon
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
+			
 			<credentials>
                 <password>
                     <outbound>
@@ -228,6 +245,7 @@
                     </inbound>
                 </password>
             </credentials>
+            
             <activation>
             	<enabled>
             		<outbound>

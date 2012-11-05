@@ -52,6 +52,15 @@
 					</condition>
 				</outbound>
             </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <outbound>
+                	<stregth>weak</stregth>
+                	<expression>
+						<value>cutlass</value>
+					</expression>
+				</outbound>
+            </attribute>
     	</accountConstruction>
     </assignment>    
 </role>

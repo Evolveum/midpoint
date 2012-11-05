@@ -238,6 +238,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final PropertyPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new PropertyPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME);
 	
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON = new QName(RESOURCE_DUMMY_NAMESPACE, "weapon");
+	protected static final PropertyPath DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH = new PropertyPath(
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON);
+	
 	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
 	
@@ -381,6 +385,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		accountObjectClass.add(locationAttrDef);
 		DummyAttributeDefinition lootAttrDef = new DummyAttributeDefinition("loot", Integer.class, false, false);
 		accountObjectClass.add(lootAttrDef);
+		DummyAttributeDefinition weaponAttrDef = new DummyAttributeDefinition("weapon", String.class, false, true);
+		accountObjectClass.add(weaponAttrDef);
 	}
 
 	protected void postInitDummyResouce() {
@@ -767,7 +773,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertNotNull("No dummy account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
 		assertNotNull("No values for attribute "+attributeName+" of dummy account "+username, values);
-		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username, expectedAttributeValues.length, values.size());
+		assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy account "+username+": "+values, expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {
 				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy account "+username+

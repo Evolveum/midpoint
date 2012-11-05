@@ -254,6 +254,17 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable 
 		return clonedSet;
 	}
 	
+	public boolean isEmpty() {
+		return isEmpty(minusSet) && isEmpty(plusSet) && isEmpty(zeroSet);
+	}
+	
+	private boolean isEmpty(Collection<T> set) {
+		if (set == null) {
+			return true;
+		}
+		return set.isEmpty();
+	}
+
 	@Override
     public String toString() {
         return dump();

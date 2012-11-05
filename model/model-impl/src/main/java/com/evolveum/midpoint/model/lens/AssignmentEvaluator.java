@@ -185,6 +185,7 @@ public class AssignmentEvaluator {
 		accContruction.evaluate(result);
 		
 		assignment.addAccountConstruction(accContruction);
+		assignmentPathSegment.setEvaluatedAssignment(assignment);
 	}
 
 	private void evaluateTargetRef(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,

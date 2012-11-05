@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -73,6 +75,8 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -252,32 +256,52 @@ public class IntegrationTestTools {
 		assertNotEmpty(qname.getLocalPart());
 	}
 
-	public static void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name,
-			String value) {
+	public static <T> void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name,
+			T... expectedValues) {
 		assertAttribute("Wrong attribute " + name + " in shadow", repoShadow,
-				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), value);
+				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), expectedValues);
 	}
 	
-	public static void assertAttribute(ResourceObjectShadowType shadowType, QName name, String value) {
-		assertAttribute(shadowType.asPrismObject(), name, value);
+	public static <T> void assertAttribute(ResourceObjectShadowType shadowType, QName name, T... expectedValues) {
+		assertAttribute(shadowType.asPrismObject(), name, expectedValues);
 	}
 	
-	public static void assertAttribute(PrismObject<? extends ResourceObjectShadowType> shadow, QName name, String value) {	
-		Collection<String> values = getAttributeValues(shadow, name);
-		if (values == null || values.isEmpty()) {
-			AssertJUnit.fail("Attribute "+name+" is not present in "+shadow);
-		}
-		if (values.size() > 1) {
-			AssertJUnit.fail("Too many values for attribute "+name+" in "+shadow);	
-		}
-		assertEquals("Wrong value for attribute "+name+" in "+shadow, value, values.iterator().next());
+	public static <T> void assertAttribute(PrismObject<? extends ResourceObjectShadowType> shadow, QName name, T... expectedValues) {	
+		Collection<T> values = getAttributeValues(shadow, name);
+		assertEqualsCollection("Wrong value for attribute "+name+" in "+shadow, expectedValues, values);
 	}
 
-	public static void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
-		Collection<String> values = getAttributeValues(repoShadow, name);
-		assertFalse(message + ": no values", values == null || values.isEmpty());
-		assertEquals(message, 1, values.size());
-		assertEquals(message, value, values.iterator().next());
+	public static <T> void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, T... expectedValues) {
+		Collection<T> values = getAttributeValues(repoShadow, name);
+		assertEqualsCollection(message, expectedValues, values);
+	}
+	
+	public static <T> void assertEqualsCollection(String message, Collection<T> expectedValues, Collection<T> actualValues) {
+		if (expectedValues == null && actualValues == null) {
+			return;
+		}
+		assert !(expectedValues == null && actualValues != null) : "Expecting null values but got "+actualValues;
+		assert actualValues != null : message+": Expecting "+expectedValues+" but got null";
+		assertEquals(message+": Wrong number of values in " + actualValues, expectedValues.size(), actualValues.size());
+		for (T actualValue: actualValues) {
+			boolean found = false;
+			for (T value: expectedValues) {
+				if (value.equals(actualValue)) {
+					found = true;
+				}
+			}
+			if (!found) {
+				fail(message + ": Unexpected value "+actualValue+"; has "+actualValues);
+			}
+		}
+	}
+
+	public static <T> void assertEqualsCollection(String message, Collection<T> expectedValues, T[] actualValues) {
+		assertEqualsCollection(message, expectedValues, Arrays.asList(actualValues));
+	}
+
+	public static <T> void assertEqualsCollection(String message, T[] expectedValues, Collection<T> actualValues) {
+		assertEqualsCollection(message, Arrays.asList(expectedValues), actualValues);
 	}
 	
 	public static void assertIcfsNameAttribute(ResourceObjectShadowType repoShadow, String value) {
@@ -336,23 +360,23 @@ public class IntegrationTestTools {
 		assertAttributeDefinition(icfsNameAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
 	}
 
-	public static Collection<String> getAttributeValues(ResourceObjectShadowType shadowType, QName name) {
+	public static <T> Collection<T> getAttributeValues(ResourceObjectShadowType shadowType, QName name) {
 		return getAttributeValues(shadowType.asPrismObject(), name);
 	}
 	
-	public static Collection<String> getAttributeValues(PrismObject<? extends ResourceObjectShadowType> shadow, QName name) {
+	public static <T> Collection<T> getAttributeValues(PrismObject<? extends ResourceObjectShadowType> shadow, QName name) {
 		if (shadow == null) {
 			throw new IllegalArgumentException("No shadow");
 		}
-		PrismContainer attrCont = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<?> attrCont = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		if (attrCont == null) {
 			return null;
 		}
-		PrismProperty attrProp = attrCont.findProperty(name);
+		PrismProperty<T> attrProp = attrCont.findProperty(name);
 		if (attrProp == null) {
 			return null;
 		}
-		return attrProp.getRealValues(String.class);
+		return attrProp.getRealValues();
 	}
 
 	public static String getAttributeValue(ResourceObjectShadowType repoShadow, QName name) {
