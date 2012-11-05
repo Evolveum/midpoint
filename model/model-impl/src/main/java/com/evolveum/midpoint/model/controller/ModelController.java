@@ -230,7 +230,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
 			Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
 			object = objectResolver.getObject(clazz, oid, rootOptions, subResult);
-			updateDefinition(object.asPrismObject(), result);
+
+            if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW)) {
+			    updateDefinition(object.asPrismObject(), result);
+            }
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
@@ -608,8 +611,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			if (list == null) {
 				list = new ArrayList<PrismObject<T>>();
 			}
-			
-			updateDefinitions(list, result);
+
+            if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW)) {
+			    updateDefinitions(list, result);
+            }
 
 		} finally {
 			RepositoryCache.exit();
