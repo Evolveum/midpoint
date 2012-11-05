@@ -86,7 +86,7 @@ public class ActivationProcessor {
             LOGGER.trace("userDelta is null, skipping activation processing");
             return;
         }
-        PropertyDelta enabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        PropertyDelta userEnabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         if (userNew == null) {
@@ -109,9 +109,13 @@ public class ActivationProcessor {
         }
 
         ObjectDelta<AccountShadowType> accountDelta = accCtx.getDelta();
+        PropertyDelta<Boolean> accountEnabledValueDelta = null;
+        if (accountDelta != null) {
+        	accountEnabledValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        }
         if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
             // adding new account, synchronize activation regardless whether the user activation was changed or not.
-        } else if (enabledValueDelta != null) {
+        } else if (userEnabledValueDelta != null) {
             // user activation was changed. synchronize it regardless of the account change.
         } else {
             LOGGER.trace("No change in activation and the account is not added, skipping activation processing for account " + rat);
@@ -142,24 +146,34 @@ public class ActivationProcessor {
         Mapping<PrismPropertyValue<Boolean>> enabledMapping =
         	valueConstructionFactory.createMapping(outbound, 
         		"outbound activation mapping in account type " + rat);
-        if (enabledMapping.isApplicableToChannel(context.getChannel())) {
-	        enabledMapping.setDefaultTargetDefinition(accountEnabledPropertyDefinition);
-	        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ENABLE);
-	        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
-			enabledMapping.setDefaultSource(source);
-	        enabledMapping.setOriginType(OriginType.OUTBOUND);
-	        enabledMapping.setOriginObject(accCtx.getResource());
-	        enabledMapping.evaluate(result);
-	        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
-	        if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
-	            LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
-	            return;
-	        }
-	        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
-	        accountEnabledDelta.setValuesToReplace(PrismValue.cloneCollection(accountEnabledNew.getValues()));
-	        LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
-	        accCtx.addToSecondaryDelta(accountEnabledDelta);
+
+        if (!enabledMapping.isApplicableToChannel(context.getChannel())) {
+        	return;
         }
+        
+        enabledMapping.setDefaultTargetDefinition(accountEnabledPropertyDefinition);
+        ItemDeltaItem<PrismPropertyValue<Boolean>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_ENABLE);
+        Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
+		enabledMapping.setDefaultSource(source);
+		
+		if (enabledMapping.getStrength() == MappingStrengthType.WEAK) {
+        	if (accountEnabledValueDelta != null && !accountEnabledValueDelta.isEmpty()) {
+        		return;
+        	}
+        }
+		
+        enabledMapping.setOriginType(OriginType.OUTBOUND);
+        enabledMapping.setOriginObject(accCtx.getResource());
+        enabledMapping.evaluate(result);
+        PrismProperty<Boolean> accountEnabledNew = (PrismProperty<Boolean>) enabledMapping.getOutput();
+        if (accountEnabledNew == null || accountEnabledNew.isEmpty()) {
+            LOGGER.trace("Activation 'enable' expression resulted in null or empty value, skipping activation processing for {}", rat);
+            return;
+        }
+        PropertyDelta accountEnabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, AccountShadowType.class, prismContext);
+        accountEnabledDelta.setValuesToReplace(PrismValue.cloneCollection(accountEnabledNew.getValues()));
+        LOGGER.trace("Adding new 'enabled' delta for account {}: {}", rat, accountEnabledNew.getValues());
+        accCtx.addToSecondaryDelta(accountEnabledDelta);
 
     }
 

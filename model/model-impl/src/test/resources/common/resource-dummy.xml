@@ -228,6 +228,16 @@
                     </inbound>
                 </password>
             </credentials>
+            <activation>
+            	<enabled>
+            		<outbound>
+            			<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</enabled>
+            </activation>
 		</accountType>
 		
 	</schemaHandling>

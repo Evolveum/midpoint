@@ -49,4 +49,8 @@
             </value>
         </password>
     </credentials>
+    
+    <activation>
+    	<enabled>true</enabled>
+    </activation>
 </user>

@@ -58,6 +58,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PropertyPath;
@@ -89,6 +90,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
@@ -112,88 +114,47 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPassword extends AbstractModelIntegrationTest {
-		
-	private static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
-	private static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";
-	private static final String USER_PASSWORD_3_CLEAR = "wh3r3sTheRum?";
-	private static final String USER_PASSWORD_4_CLEAR = "sh1v3rM3T1mb3rs";
-	private static final String USER_PASSWORD_5_CLEAR = "s3tSa1al";
-	
-	private static final PropertyPath PASSWORD_VALUE_PATH = new PropertyPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE); 
+public class TestActivation extends AbstractModelIntegrationTest {
+			
+	private static final PropertyPath ACTIVATION_ENABLED_PATH = new PropertyPath(UserType.F_ACTIVATION, 
+			ActivationType.F_ENABLED); 
 	
 	private String accountOid;
 	private String accountRedOid;
 
-	public TestPassword() throws JAXBException {
+	public TestActivation() throws JAXBException {
 		super();
 	}
-		
+			
 	@Test
-    public void test010AddPasswordPolicy() throws Exception {
-        displayTestTile(this, "test010AddPasswordPolicy");
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test010AddPasswordPolicy");
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-        
-        PrismObject<ValuePolicyType> passwordPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
-        ObjectDelta<ValuePolicyType> passwordPolicyDelta = ObjectDelta.createAddDelta(passwordPolicy);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(passwordPolicyDelta);
-        
-		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
-		
-		// THEN
-        result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
-        
-        assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicyDelta.getOid());
-
-		// Check object
-        PrismObject<ValuePolicyType> accountShadow = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, result);
-
-        // TODO: more asserts
-	}
-	
-	@Test
-    public void test050CheckJackPassword() throws Exception {
-        displayTestTile(this, "test050CheckJackPassword");
+    public void test050CheckJackEnabled() throws Exception {
+        displayTestTile(this, "test050CheckJackEnabled");
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
         
         // THEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test050CheckJackPassword");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test050CheckJackEnabled");
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedPassword(userJack, "deadmentellnotales");
+		assertEnabled(userJack);
 	}
 	
-
 	@Test
-    public void test051ModifyUserJackPassword() throws Exception {
-        displayTestTile(this, "test051ModifyUserJackPassword");
+    public void test051ModifyUserJackDisable() throws Exception {
+        displayTestTile(this, "test051ModifyUserJackDisable");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test051ModifyUserJackPassword");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test051ModifyUserJackDisable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(USER_PASSWORD_1_CLEAR);
-                        
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, 
-        		PASSWORD_VALUE_PATH,
-        		task, 
-        		result, 
-        		userPasswordPs);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, false);
 		
 		// THEN
 		result.computeStatus();
@@ -203,7 +164,30 @@ public class TestPassword extends AbstractModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
+		assertDisabled(userJack);
+	}
+	
+	@Test
+    public void test052ModifyUserJackEnable() throws Exception {
+        displayTestTile(this, "test052ModifyUserJackEnable");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, true);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertEnabled(userJack);
 	}
 	
 	@Test
@@ -211,7 +195,7 @@ public class TestPassword extends AbstractModelIntegrationTest {
         displayTestTile(this, "test100ModifyUserJackAssignAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test100ModifyUserJackAssignAccount");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test100ModifyUserJackAssignAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -242,30 +226,20 @@ public class TestPassword extends AbstractModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyPassword("jack", USER_PASSWORD_1_CLEAR);
+        assertDummyEnabled("jack");
 	}
 	
-	/**
-	 * This time user has assigned account. Account password should be changed as well.
-	 */
 	@Test
-    public void test110ModifyUserJackPassword() throws Exception {
-        displayTestTile(this, "test110ModifyUserJackPassword");
+    public void test101ModifyUserJackDisable() throws Exception {
+        displayTestTile(this, "test051ModifyUserJackDisable");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test110ModifyUserJackPassword");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test051ModifyUserJackDisable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(USER_PASSWORD_2_CLEAR);
-                        
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, 
-        		PASSWORD_VALUE_PATH,
-        		task, 
-        		result, 
-        		userPasswordPs);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, false);
 		
 		// THEN
 		result.computeStatus();
@@ -275,32 +249,21 @@ public class TestPassword extends AbstractModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		assertEncryptedPassword(userJack, USER_PASSWORD_2_CLEAR);
-		assertDummyPassword("jack", USER_PASSWORD_2_CLEAR);
+		assertDisabled(userJack);
+		assertDummyDisabled("jack");
 	}
 	
-	/**
-	 * Modify account password. User's password should be unchanged
-	 */
 	@Test
-    public void test111ModifyAccountJackPassword() throws Exception {
-        displayTestTile(this, "test111ModifyAccountJackPassword");
+    public void test102ModifyUserJackEnable() throws Exception {
+        displayTestTile(this, "test052ModifyUserJackEnable");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test111ModifyAccountJackPassword");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test052ModifyUserJackEnable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(USER_PASSWORD_3_CLEAR);
-                        
 		// WHEN
-        modifyAccountShadowReplace(
-        		accountOid,
-        		PASSWORD_VALUE_PATH,
-        		task, 
-        		result, 
-        		userPasswordPs);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, true);
 		
 		// THEN
 		result.computeStatus();
@@ -310,32 +273,80 @@ public class TestPassword extends AbstractModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		// User should still have old password
-		assertEncryptedPassword(userJack, USER_PASSWORD_2_CLEAR);
-		// Account has new password
-		assertDummyPassword("jack", USER_PASSWORD_3_CLEAR);
+		assertEnabled(userJack);
+		assertDummyEnabled("jack");
 	}
 	
+
 	/**
-	 * Modify both user and account password. As password outbound mapping is weak the user should have its own password
-	 * and account should have its own password.
+	 * Modify account activation. User's activation should be unchanged
 	 */
 	@Test
-    public void test112ModifyJackPasswordUserAndAccount() throws Exception {
-        displayTestTile(this, "test112ModifyJackPasswordUserAndAccount");
+    public void test111ModifyAccountJackDisable() throws Exception {
+        displayTestTile(this, "test111ModifyAccountJackDisable");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test112ModifyJackPasswordUserAndAccount");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test111ModifyAccountJackDisable");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ProtectedStringType userPasswordPs4 = new ProtectedStringType();
-        userPasswordPs4.setClearValue(USER_PASSWORD_4_CLEAR);
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, PASSWORD_VALUE_PATH, userPasswordPs4);
+		// WHEN
+        modifyAccountShadowReplace(accountOid, ACTIVATION_ENABLED_PATH, task, result, false);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
         
-        ProtectedStringType userPasswordPs5 = new ProtectedStringType();
-        userPasswordPs5.setClearValue(USER_PASSWORD_5_CLEAR);
-        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, PASSWORD_VALUE_PATH, userPasswordPs5);        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertEnabled(userJack);
+		assertDummyDisabled("jack");
+	}
+	
+	/**
+	 * Re-enabling the user should enable the account sa well. Even if the user is already enabled.
+	 */
+	@Test
+    public void test112ModifyUserJackEnable() throws Exception {
+        displayTestTile(this, "test112ModifyUserJackEnable");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test112ModifyUserJackEnable");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ENABLED_PATH, task, result, true);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertEnabled(userJack);
+		assertDummyEnabled("jack");
+	}
+	
+	/**
+	 * Modify both user and account activation. As password outbound mapping is weak the user should have its own state
+	 * and account should have its own state.
+	 */
+	@Test
+    public void test113ModifyJackActivationUserAndAccount() throws Exception {
+        displayTestTile(this, "test113ModifyJackActivationUserAndAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test113ModifyJackActivationUserAndAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, true);
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, ACTIVATION_ENABLED_PATH, false);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         
@@ -350,10 +361,8 @@ public class TestPassword extends AbstractModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
         
-		// User should still have old password
-		assertEncryptedPassword(userJack, USER_PASSWORD_4_CLEAR);
-		// Account has new password
-		assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
+		assertEnabled(userJack);
+		assertDummyDisabled("jack");
 	}
 	
 	/**
@@ -364,7 +373,7 @@ public class TestPassword extends AbstractModelIntegrationTest {
         displayTestTile(this, "test120ModifyUserJackAssignAccountDummyRed");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test120ModifyUserJackAssignAccountDummyRed");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test120ModifyUserJackAssignAccountDummyRed");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -388,15 +397,13 @@ public class TestPassword extends AbstractModelIntegrationTest {
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
         
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, "jack", USER_PASSWORD_4_CLEAR);
-        
-        // User and default dummy account should have unchanged passwords
-        assertEncryptedPassword(userJack, USER_PASSWORD_4_CLEAR);
-     	assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
+        assertEnabled(userJack);
+		assertDummyDisabled("jack");
+		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
 	
 	/**
-	 * Modify both user and account password. Red dummy has a strong password mapping. User change should override account
+	 * Modify both user and account activation. Red dummy has a strong mapping. User change should override account
 	 * change.
 	 */
 	@Test
@@ -404,17 +411,14 @@ public class TestPassword extends AbstractModelIntegrationTest {
         displayTestTile(this, "test121ModifyJackPasswordUserAndAccountRed");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPassword.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
-        ProtectedStringType userPasswordPs1 = new ProtectedStringType();
-        userPasswordPs1.setClearValue(USER_PASSWORD_1_CLEAR);
-        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, PASSWORD_VALUE_PATH, userPasswordPs1);
+
+        ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, false);
         
-        ProtectedStringType userPasswordPs2 = new ProtectedStringType();
-        userPasswordPs2.setClearValue(USER_PASSWORD_2_CLEAR);
-        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, PASSWORD_VALUE_PATH, userPasswordPs2);        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, ACTIVATION_ENABLED_PATH, true);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         
@@ -428,31 +432,52 @@ public class TestPassword extends AbstractModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
-        
-		// User should still have old password
-		assertEncryptedPassword(userJack, USER_PASSWORD_1_CLEAR);
-		// Red account has the same account as user
-		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, "jack", USER_PASSWORD_1_CLEAR);
-		// ... and default account has also the same password as user now. There was no other change on default dummy instance 
-		// so even the weak mapping took place.
-		assertDummyPassword("jack", USER_PASSWORD_1_CLEAR);
-	}
 
-	private void assertEncryptedPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException {
-		UserType userType = user.asObjectable();
-		ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
-		String actualClearPassword = protector.decryptString(protectedActualPassword);
-		assertEquals("Wrong password for "+user, expectedClearPassword, actualClearPassword);
-	}
-
-	private void assertDummyPassword(String userId, String expectedClearPassword) {
-		assertDummyPassword(null, userId, expectedClearPassword);
+        assertDisabled(userJack);
+		assertDummyDisabled("jack");
+		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
 	
-	private void assertDummyPassword(String instance, String userId, String expectedClearPassword) {
+	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {
+		assertDummyActivationEnabledState(null, userId, expectedEnabled);
+	}
+	
+	private void assertDummyActivationEnabledState(String instance, String userId, boolean expectedEnabled) {
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
-		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());
+		assertEquals("Wrong enabled flag in dummy '"+instance+"' account "+userId, expectedEnabled, account.isEnabled());
+	}
+	
+	private void assertDummyEnabled(String userId) {
+		assertDummyActivationEnabledState(userId, true);
+	}
+	
+	private void assertDummyDisabled(String userId) {
+		assertDummyActivationEnabledState(userId, false);
+	}
+	
+	private void assertDummyEnabled(String instance, String userId) {
+		assertDummyActivationEnabledState(instance, userId, true);
+	}
+	
+	private void assertDummyDisabled(String instance, String userId) {
+		assertDummyActivationEnabledState(instance, userId, false);
+	}
+
+	private void assertEnabled(PrismObject<UserType> user) {
+		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);
+		assert enabledProperty != null : "No enabled property in "+user;
+		Boolean enabled = enabledProperty.getRealValue();
+		assert enabled != null : "No enabled property is null in "+user;
+		assert enabled : "Enabled property is false in "+user;
+	}
+	
+	private void assertDisabled(PrismObject<UserType> user) {
+		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);
+		assert enabledProperty != null : "No enabled property in "+user;
+		Boolean enabled = enabledProperty.getRealValue();
+		assert enabled != null : "No enabled property is null in "+user;
+		assert !enabled : "Enabled property is true in "+user;
 	}
 	
 }

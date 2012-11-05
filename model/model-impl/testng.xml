@@ -130,6 +130,7 @@
             <class name="com.evolveum.midpoint.model.TestOrgStruct"/>
             <class name="com.evolveum.midpoint.model.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.TestPassword"/>
+            <class name="com.evolveum.midpoint.model.TestActivation"/>
         </classes>
     </test>
 </suite>
