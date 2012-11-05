@@ -28,12 +28,16 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -98,8 +102,11 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "loadObjects";
 	private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_ZIP_CHECK = "zipCheck";
+
     private boolean deleteSelected; //todo what is this used for?
-    private boolean downloadZip; //todo what is this used for?
     private IModel<ObjectTypes> choice = null;
     private ObjectType object = null; //todo what is this used for?
 
@@ -163,7 +170,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         columns.add(column);
 
-        final Form main = new Form("mainForm");
+        final Form main = new Form(ID_MAIN_FORM);
         add(main);
         
         OptionPanel option = new OptionPanel("option", createStringResource("pageDebugList.optionsTitle"), getPage(), false);
@@ -198,40 +205,10 @@ public class PageDebugList extends PageAdminConfiguration {
         main.add(delete);
         
         final AjaxDownloadBehaviorFromFile ajaxDownloadBehavior = new AjaxDownloadBehaviorFromFile(true) {
+
             @Override
             protected File initFile() {
-            	OperationResult result = new OperationResult(OPERATION_CREATE_DOWNLOAD_FILE);
-            	MidPointApplication application = getMidpointApplication();
-				WebApplicationConfiguration config = application.getWebApplicationConfiguration();
-				File folder = new File(config.getExportFolder());
-				if (!folder.exists() || !folder.isDirectory()) {
-					folder.mkdir();
-				}
-				
-				String suffix = choice.getObject().getClassDefinition().getSimpleName() + "_"
-						+ System.currentTimeMillis();
-				File file = new File(folder, "ExportedData_" + suffix + ".xml");
-				
-				try {
-					result.recordSuccess();
-					if(downloadZip) {
-						file = createZipForDownload(file, folder, suffix, result);
-					} else {
-						file.createNewFile();
-						createXmlForDownload(file, result);
-					}
-					result.recomputeStatus();
-				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't init download link", ex);
-					result.recordFatalError("Couldn't init download link", ex);
-				}
-				if(!result.isSuccess()) {
-					showResultInSession(result);
-					getSession().error(getString("pageDebugList.message.createFileException"));
-					Files.remove(file);
-					throw new RestartResponseException(PageDebugList.class);
-				}
-				return file;
+            	return initDownloadFile(choice);
             }
         };
         main.add(ajaxDownloadBehavior);
@@ -247,17 +224,58 @@ public class PageDebugList extends PageAdminConfiguration {
 		};
         main.add(export);
 
-        //todo refactor. zipCheck value is in Model<Boolean> and in downloadZip, why we need two variables?
-        //also this method has 150 lines, which is way to much. break it into smaller chunks
-        AjaxCheckBox zipCheck = new AjaxCheckBox("zipCheck", new Model<Boolean>(false)){
+        //todo this method has 150 lines, which is way to much. break it into smaller chunks
+        AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<Boolean>(false)){
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				downloadZip = !downloadZip;
 			}
-        	
         };
         main.add(zipCheck);
+    }
+
+    //todo remove argument, choice model all over the place (at least two of them, again two variables...)
+    private File initDownloadFile(IModel<ObjectTypes> choice) {
+        OperationResult result = new OperationResult(OPERATION_CREATE_DOWNLOAD_FILE);
+        MidPointApplication application = getMidpointApplication();
+        WebApplicationConfiguration config = application.getWebApplicationConfiguration();
+        File folder = new File(config.getExportFolder());
+        if (!folder.exists() || !folder.isDirectory()) {
+            folder.mkdir();
+        }
+
+        String suffix = choice.getObject().getClassDefinition().getSimpleName() + "_"
+                + System.currentTimeMillis();
+        File file = new File(folder, "ExportedData_" + suffix + ".xml");
+
+        try {
+            result.recordSuccess();
+            if(hasToZip()) {
+                file = createZipForDownload(file, folder, suffix, result);
+            } else {
+                file.createNewFile();
+                createXmlForDownload(file, result);
+            }
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't init download link", ex);
+            result.recordFatalError("Couldn't init download link", ex);
+        }
+
+        if(!result.isSuccess()) {
+            showResultInSession(result);
+            getSession().error(getString("pageDebugList.message.createFileException"));
+            Files.remove(file);
+
+            setResponsePage(PageDebugList.class);
+        }
+
+        return file;
+    }
+
+    private boolean hasToZip() {
+        AjaxCheckBox zipCheck = (AjaxCheckBox) get(ID_MAIN_FORM + ":" + ID_ZIP_CHECK);
+        return zipCheck.getModelObject();
     }
 
     private IModel<String> initSearch(OptionItem item, final IModel<ObjectTypes> choice) {
@@ -278,7 +296,7 @@ public class PageDebugList extends PageAdminConfiguration {
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 model.setObject(null);
                 target.appendJavaScript("init()");
-                target.add(PageDebugList.this.get("mainForm:option"));
+                target.add(PageDebugList.this.get(ID_MAIN_FORM + ":option"));
                 listObjectsPerformed(target, model.getObject(), choice.getObject());
             }
         };
@@ -359,7 +377,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private TablePanel getListTable() {
-        OptionContent content = (OptionContent) get("mainForm:optionContent");
+        OptionContent content = (OptionContent) get(ID_MAIN_FORM + ":optionContent");
         return (TablePanel) content.getBodyContainer().get("table");
     }
 
@@ -504,15 +522,13 @@ public class PageDebugList extends PageAdminConfiguration {
 		try {
 			LOGGER.trace("creating xml file {}", file.getName());
 			stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
-            //todo this only downloads 10 objects (only data listed on page)
-			List<SelectableBean<ObjectType>> objects = getTableDataProvider().getAvailableData();
+            List<PrismObject> objects = getExportedObjects();
             String stringObject;
             stream.write(createHeaderForXml());
-            for (SelectableBean<ObjectType> bean : objects) {
+            for (PrismObject object : objects) {
                 //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
                 try {
-                    stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(
-                            bean.getValue().asPrismObject());
+                    stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
                     stream.write("\t" + stringObject + "\n");
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Failed to parse objects to string for xml. Reason:", ex);
@@ -530,6 +546,38 @@ public class PageDebugList extends PageAdminConfiguration {
 			IOUtils.closeQuietly(stream);
 		}
     }
+
+    private List<PrismObject> getExportedObjects() {
+        ObjectQuery query = getTableDataProvider().getQuery();
+
+        ObjectQuery clonedQuery = null;
+        if (query != null) {
+            clonedQuery = new ObjectQuery();
+            clonedQuery.setFilter(query.getFilter());
+        }
+        Class type = getTableDataProvider().getType();
+        if (type == null) {
+            type = ObjectType.class;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECT);
+        List<PrismObject> objects = null;
+        try {
+            objects = getModelService().searchObjects(type, clonedQuery,
+                    ObjectOperationOptions.createCollection(new PropertyPath(), ObjectOperationOption.RAW),
+                    createSimpleTask(OPERATION_SEARCH_OBJECT), result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        if (WebMiscUtil.showResultInPage(result)) {
+            showResult(result);
+        }
+
+        return objects != null ? objects : new ArrayList<PrismObject>();
+    }
     
     private File createZipForDownload(File file, File folder, String suffix, OperationResult result) {
 		File zipFile = new File(folder, "ExportedData_" + suffix + ".zip");
@@ -539,17 +587,14 @@ public class PageDebugList extends PageAdminConfiguration {
 			LOGGER.trace("adding file {} to zip archive", file.getName());
 			out = new ZipOutputStream(new FileOutputStream(zipFile));
 			final ZipEntry entry = new ZipEntry(file.getName());
-            //todo this only downloads 10 objects (only data listed on page)
-			List<SelectableBean<ObjectType>> objects = getTableDataProvider().getAvailableData();
+			List<PrismObject> objects = getExportedObjects();
 
             String stringObject;
             //FIXME: could cause problem with unzip in java when size is not set, however it is not our case
             //entry.setSize(stringObject.length());
             out.putNextEntry(entry);
             out.write(createHeaderForXml().getBytes());
-            for (SelectableBean<ObjectType> bean : objects) {
-                PrismObject object = bean.getValue().asPrismObject();
-
+            for (PrismObject object : objects) {
                 //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
                 try {
                     stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(object);

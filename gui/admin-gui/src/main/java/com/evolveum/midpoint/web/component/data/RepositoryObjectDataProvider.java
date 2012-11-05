@@ -121,6 +121,10 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
         this.type = type;
     }
 
+    public Class<T> getType() {
+        return type;
+    }
+
     @Override
     protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
         return cache.get(new TypedCacheKey(getQuery(), type));
