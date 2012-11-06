@@ -1226,8 +1226,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		Checker checker = new Checker() {
 			@Override
 			public boolean check() throws Exception {
-				task.refresh(waitResult);
-				OperationResult result = task.getResult();
+				//task.refresh(waitResult);
+				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
+				OperationResult result = freshTask.getResult();
 				assert !isError(result) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
 				return !isInProgress(result);
 			}
