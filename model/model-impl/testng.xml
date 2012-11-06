@@ -131,6 +131,7 @@
             <class name="com.evolveum.midpoint.model.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.TestPassword"/>
             <class name="com.evolveum.midpoint.model.TestActivation"/>
+            <class name="com.evolveum.midpoint.model.TestImportRecon"/>
         </classes>
     </test>
 </suite>

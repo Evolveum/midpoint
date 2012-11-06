@@ -23,6 +23,9 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -228,53 +231,19 @@ public class QueryUtil {
 
         return logical;
     }
-
-//    public static Element createAndFilter(Document doc, Element el1, Element el2) {
-//        Validate.notNull(doc);
-//        Validate.notNull(el1);
-//        Validate.notNull(el2);
-//
-//        Element and = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(), SchemaConstants.C_FILTER_AND.getLocalPart());
-//        and.appendChild(el1);
-//        and.appendChild(el2);
-//        return and;
-//    }
-//
-//    public static Element createAndFilter(Document doc, Element el1, Element el2, Element el3) {
-//        Validate.notNull(doc);
-//        Validate.notNull(el1);
-//        Validate.notNull(el2);
-//        Validate.notNull(el3);
-//
-//        Element and = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(), SchemaConstants.C_FILTER_AND.getLocalPart());
-//        and.appendChild(el1);
-//        and.appendChild(el2);
-//        and.appendChild(el3);
-//        return and;
-//    }
     
-    public static QueryType createNameQuery(PolyStringType name) throws SchemaException {
-    	return createNameQuery(name.getOrig());
+    public static ObjectQuery createNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
+    	return createNameQuery(name.toPolyString(), prismContext);
     }
 
-	public static QueryType createNameQuery(String name) throws SchemaException {
-		Document doc = DOMUtil.getDocument();
-        Element filter = QueryUtil.createEqualFilter(doc, null, ObjectType.F_NAME, name);
-        QueryType query = new QueryType();
-        query.setFilter(filter);
-        return query;
+	public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
+        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME, name);
+        return ObjectQuery.createObjectQuery(filter);
 	}
 	
-	public static QueryType createNameQuery(ObjectType object) throws SchemaException {
-		return createNameQuery(object.getName());
+	public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
+		return createNameQuery(object.getName(), object.asPrismObject().getPrismContext());
 	}
-
-    @Deprecated
-    public static <T extends ObjectType> Element createNameAndClassFilter(Class<T> type, String name) throws
-            SchemaException {
-        Document doc = DOMUtil.getDocument();
-        return QueryUtil.createEqualFilter(doc, null, ObjectType.F_NAME, name);
-    }
 
     public static QueryType createQuery(Element filter) {
         QueryType query = new QueryType();

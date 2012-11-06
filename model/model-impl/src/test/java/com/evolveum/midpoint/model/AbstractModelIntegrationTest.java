@@ -46,6 +46,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -81,6 +82,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -88,6 +90,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -208,13 +212,14 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	// Rapp does not have a full name set, employeeType=COOK
 	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
+	protected static final String USER_RAPP_USERNAME = "rapp";
 
 	// Has null name, doesn not have given name, no employeeType
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
 	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
 	
-	private static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
-    private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
@@ -381,7 +386,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 	}
 	
-	private void addDummyAccount(DummyResource resource, String userId, String fullName, String location) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+	protected void addDummyAccount(DummyResource resource, String userId, String fullName, String location) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
 		account.addAttributeValues("fullname", fullName);
@@ -771,10 +776,23 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertTrue("User "+userOid+" has not linked to account "+accountOid, found);
 	}
 	
+	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		String accountOid = getUserAccountRef(user, resourceOid);
+		assertNotNull("User "+user+" has no account on resource "+resourceOid, accountOid);
+	}
+	
 	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertAccounts");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertAccounts(user, numAccounts);
+	}
+	
+	protected void assertAccounts(PrismObject<UserType> user, int numAccounts) throws ObjectNotFoundException, SchemaException {
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		if (accountRef == null) {
+			assert numAccounts == 0 : "Expected "+numAccounts+" but "+user+" has no accountRef";
+			return;
+		}
 		assertEquals("Wrong number of accounts linked to "+user, numAccounts, accountRef.size());
 	}
 	
@@ -932,10 +950,34 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return user;
 	}
 	
+	protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findUserByUsername");
+        OperationResult result = task.getResult();
+        ObjectQuery query = QueryUtil.createNameQuery(PrismTestUtil.createPolyString(username), prismContext);
+		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
+		if (users.isEmpty()) {
+			return null;
+		}
+		assert users.size() == 1 : "Too many users found for username "+username+": "+users;
+		return users.iterator().next();
+	}
+	
 	protected PrismObject<AccountShadowType> getAccount(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		return getAccount(accountOid, false);
+	}
+	
+	protected PrismObject<AccountShadowType> getAccountNoFetch(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		return getAccount(accountOid, true);
+	}
+	
+	protected PrismObject<AccountShadowType> getAccount(String accountOid, boolean noFetch) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getAccount");
         OperationResult result = task.getResult();
-		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+		Collection<ObjectOperationOptions> opts = null;
+		if (noFetch) {
+			opts = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
+		}
+		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, opts , task, result);
 		result.computeStatus();
 		IntegrationTestTools.assertSuccess("getObject(Account) result not success", result);
 		return account;
@@ -958,7 +1000,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
         for (ObjectReferenceType accountRefType: userType.getAccountRef()) {
         	String accountOid = accountRefType.getOid();
 	        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-	        PrismObject<AccountShadowType> account = getAccount(accountOid);
+	        PrismObject<AccountShadowType> account = getAccountNoFetch(accountOid);
 	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
 	        	return accountOid;
 	        }
@@ -1229,7 +1271,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				//task.refresh(waitResult);
 				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
 				OperationResult result = freshTask.getResult();
+//				display("Check result", result);
 				assert !isError(result) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
+				assert !isUknown(result) : "Unknown result in "+task+": "+IntegrationTestTools.getErrorMessage(result);
 				return !isInProgress(result);
 			}
 			@Override
@@ -1251,6 +1295,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	private boolean isError(OperationResult result) {
 		return result.getLastSubresult().isError();
+	}
+	
+	private boolean isUknown(OperationResult result) {
+		return result.getLastSubresult().isUnknown();
 	}
 
 	private boolean isInProgress(OperationResult result) {

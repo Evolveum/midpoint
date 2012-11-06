@@ -1022,15 +1022,15 @@ public class ModelController implements ModelService, ModelInteractionService {
 			RepositoryCache.exit();
 			throw ex;
 		}
+		
+		result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 
 		importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed
 
-		if (task.isAsynchronous()) {
-			result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
-		} else {
+		if (!task.isAsynchronous()) {
 			result.recordSuccess();
 		}
 		RepositoryCache.exit();

@@ -555,8 +555,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 //			query = new QueryType();
 //			query.setFilter(filter);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for OID {} results in filter\n{}", new Object[] {
-						currentShadow.getOid(), SchemaDebugUtil.prettyPrint(query) });
+				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}", new Object[] {
+						currentShadow, SchemaDebugUtil.prettyPrint(query) });
 			}
 			PagingType paging = new PagingType();
 //			ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
@@ -571,8 +571,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			throw new SynchronizationException("Couldn't search users in repository, based on filter (See logs).", ex);
 		}
 
-		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for OID {} returned {} users: {}", new Object[] {
-				currentShadow.getOid(), users.size(), PrettyPrinter.prettyPrint(users, 3) });
+		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", new Object[] {
+				currentShadow, users.size(), PrettyPrinter.prettyPrint(users, 3) });
 		return users;
 	}
 
@@ -595,8 +595,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		}
 
-		LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for OID {} matched {} users.", new Object[] {
-				currentShadow.getOid(), list.size() });
+		LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for {} matched {} users.", new Object[] {
+				currentShadow, list.size() });
 		return list;
 	}
 
@@ -634,7 +634,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			Element valueExpressionElement = query.getFilter().getExpression();
 			if (valueExpressionElement == null && (((PropertyValueFilter) query.getFilter()).getValues() == null
 					|| ((PropertyValueFilter) query.getFilter()).getValues().isEmpty())) {
-				LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
+				LOGGER.warn("No valueExpression in rule for {}", currentShadow);
 				return null;
 			}
 //				if (valueExpressionElement != null) {
@@ -666,8 +666,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						return null;
 					}
 					// TODO: log more context
-					LOGGER.trace("Search filter expression in the rule for OID {} evaluated to {}.", new Object[] {
-							currentShadow.getOid(), expressionResult });
+					LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
+							currentShadow, expressionResult });
 //					attribute.setTextContent(expressionResult);
 //					value.appendChild(attribute);
 //					and.appendChild(equal);

@@ -482,15 +482,15 @@ public class IntegrationTestTools {
 	public static void display(String message, Task task) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(task.dump());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		LOGGER.debug(task.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message  + "\n" 
+				+ task.dump());
 	}
 
 	public static void display(String message, ObjectType o) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(ObjectTypeUtil.dump(o));
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		LOGGER.debug(ObjectTypeUtil.dump(o));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" 
+				+ ObjectTypeUtil.dump(o));
 	}
 
 	public static void display(String message, Collection<? extends ObjectType> collection) {
@@ -507,22 +507,22 @@ public class IntegrationTestTools {
 	public static void display(String title, Entry entry) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(entry.toLDIFString());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(entry.toLDIFString());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
+				+ entry.toLDIFString());
 	}
 
 	public static void display(String message, PrismContainer propertyContainer) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(propertyContainer.dump());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		LOGGER.debug(propertyContainer.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" 
+				+ propertyContainer.dump());
 	}
 	
 	public static void display(String title, OperationResult result) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(result.dump());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(result.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
+				+ result.dump());
 	}
 	
 	public static void display(String title, OperationResultType result) throws JAXBException {
@@ -542,22 +542,22 @@ public class IntegrationTestTools {
 	public static void display(String title, Dumpable dumpable) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(dumpable == null ? "null" : dumpable.dump());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(dumpable == null ? "null" : dumpable.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
+				+ dumpable == null ? "null" : dumpable.dump());
 	}
 	
 	public static void display(String title, String value) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(value);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(value);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" 
+				+ value);
 	}
 
 	public static void display(String title, Object value) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(SchemaDebugUtil.prettyPrint(value));
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(SchemaDebugUtil.prettyPrint(value));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" 
+				+ SchemaDebugUtil.prettyPrint(value));
 	}
 	
 	
