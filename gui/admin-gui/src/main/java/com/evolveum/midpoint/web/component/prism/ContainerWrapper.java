@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -52,10 +53,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private ContainerStatus status;
 
     private boolean main;
-    private PropertyPath path;
+    private ItemPath path;
     private List<PropertyWrapper> properties;
 
-    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, PropertyPath path) {
+    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "Prism object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
@@ -74,7 +75,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return status;
     }
 
-    public PropertyPath getPath() {
+    public ItemPath getPath() {
         return path;
     }
 

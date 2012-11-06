@@ -31,9 +31,9 @@ import com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -79,7 +79,7 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
         }
         
         XPathHolder xpath = new XPathHolder((Element)evaluatorElementObject);
-        PropertyPath path = xpath.toPropertyPath();
+        ItemPath path = xpath.toPropertyPath();
         
         return new PathExpressionEvaluator(path, objectResolver, outputDefinition, prismContext);
         

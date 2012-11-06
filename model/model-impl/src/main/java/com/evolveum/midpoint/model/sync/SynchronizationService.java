@@ -46,10 +46,10 @@ import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
@@ -429,7 +429,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		syncSituationDescriptionList.add(new PrismPropertyValue(syncSituationDescription));
 
-		syncSituationDelta = PropertyDelta.createDelta(new PropertyPath(
+		syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
 				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
 		syncSituationDelta.addValuesToAdd(syncSituationDescriptionList);
 		syncSituationDeltas.add(syncSituationDelta);

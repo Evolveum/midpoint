@@ -46,11 +46,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,12 +68,12 @@ import com.evolveum.prism.xml.ns._public.types_2.XPathType;
  */
 public class PathExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
 	
-	private PropertyPath path;
+	private ItemPath path;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private ItemDefinition outputDefinition;
 	
-    public PathExpressionEvaluator(PropertyPath path, ObjectResolver objectResolver, ItemDefinition outputDefinition, PrismContext prismContext) {
+    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver, ItemDefinition outputDefinition, PrismContext prismContext) {
     	this.path = path;
 		this.objectResolver = objectResolver;
 		this.outputDefinition = outputDefinition;
@@ -112,7 +112,7 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 	        }
         }
         
-        PropertyPath resolvePath = path;
+        ItemPath resolvePath = path;
         if (path.first().isVariable()) {
         	QName variableName = path.first().getName();
         	if (variablesAndSources.containsKey(variableName)) {

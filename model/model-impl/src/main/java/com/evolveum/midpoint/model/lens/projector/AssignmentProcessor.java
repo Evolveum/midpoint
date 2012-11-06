@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -368,7 +369,7 @@ public class AssignmentProcessor {
 		
 		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
-		PropertyPath orgRefPath = new PropertyPath(UserType.F_PARENT_ORG_REF);
+		ItemPath orgRefPath = new ItemPath(UserType.F_PARENT_ORG_REF);
 		
 		// Plus
 		for (Assignment assignment: evaluatedAssignmentTriple.getPlusSet()) {

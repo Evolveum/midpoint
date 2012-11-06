@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -162,7 +163,7 @@ public class PrismPropertyPanel extends Panel {
             return false;
         }
 
-        PropertyPath path = propertyWrapper.getItem().getPath(containerWrapper.getPath());
+        ItemPath path = propertyWrapper.getItem().getPath(containerWrapper.getPath());
         ObjectDeltaType delta = (ObjectDeltaType) objectChange.getValue().getValue();
         try {
             for (ItemDeltaType itemDelta : delta.getModification()) {

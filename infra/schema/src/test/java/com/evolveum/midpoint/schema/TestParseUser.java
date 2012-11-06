@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -230,7 +231,7 @@ public class TestParseUser {
 //		assertTrue("Extension parent", extensionValue.getParent() == extension);
 //		assertNull("Extension ID", extensionValue.getId());
 		
-		PropertyPath enabledPath = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+		ItemPath enabledPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
 		PrismProperty enabledProperty1 = user.findProperty(enabledPath);
 		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), ActivationType.F_ENABLED, DOMUtil.XSD_BOOLEAN, 0, 1);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);

@@ -32,13 +32,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -134,7 +134,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		}
 	}
 
-	public <X extends PrismValue> ItemDeltaItem<X> findIdi(PropertyPath path) {
+	public <X extends PrismValue> ItemDeltaItem<X> findIdi(ItemPath path) {
 		if (path.isEmpty()) {
 			return (ItemDeltaItem<X>) this;
 		}
@@ -210,7 +210,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	}
 
 	// Assumes that this IDI represents structured property
-	public <X> ItemDeltaItem<PrismPropertyValue<X>> resolveStructuredProperty(PropertyPath resolvePath, PrismPropertyDefinition outputDefinition, PropertyPath outputPath) {
+	public <X> ItemDeltaItem<PrismPropertyValue<X>> resolveStructuredProperty(ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
 		ItemDeltaItem<PrismPropertyValue<Structured>> thisIdi = (ItemDeltaItem<PrismPropertyValue<Structured>>)this;
 		PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
 		PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);
@@ -218,7 +218,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		return new ItemDeltaItem<PrismPropertyValue<X>>(outputPropertyOld, outputDelta, outputPropertyNew);
 	}
 
-	private <X> PrismProperty<X> resolveStructuredPropertyItem(PrismProperty<Structured> sourceProperty, PropertyPath resolvePath, PrismPropertyDefinition outputDefinition) {
+	private <X> PrismProperty<X> resolveStructuredPropertyItem(PrismProperty<Structured> sourceProperty, ItemPath resolvePath, PrismPropertyDefinition outputDefinition) {
 		if (sourceProperty == null) {
 			return null;
 		}
@@ -230,7 +230,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		return outputProperty;
 	}
 	
-	private <X> PropertyDelta<X> resolveStructuredPropertyDelta(PropertyDelta<Structured> sourceDelta, PropertyPath resolvePath, PrismPropertyDefinition outputDefinition, PropertyPath outputPath) {
+	private <X> PropertyDelta<X> resolveStructuredPropertyDelta(PropertyDelta<Structured> sourceDelta, ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath) {
 		if (sourceDelta == null) {
 			return null;
 		}
@@ -250,7 +250,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 		return outputDelta;
 	}
 	
-	private <X> Collection<PrismPropertyValue<X>> resolveStructuredDeltaSet(Collection<PrismPropertyValue<Structured>> set, PropertyPath resolvePath) {
+	private <X> Collection<PrismPropertyValue<X>> resolveStructuredDeltaSet(Collection<PrismPropertyValue<Structured>> set, ItemPath resolvePath) {
 		if (set == null) {
 			return null;
 		}

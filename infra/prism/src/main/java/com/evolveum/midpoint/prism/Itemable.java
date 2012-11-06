@@ -21,6 +21,8 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 /**
  * Interface for objects that behave like an item: they have a name and may have a definition.
  * 
@@ -38,6 +40,6 @@ public interface Itemable {
 	
 	public PrismContext getPrismContext();
 	
-	public PropertyPath getPath(PropertyPath pathPrefix);
+	public ItemPath getPath(ItemPath pathPrefix);
 
 }

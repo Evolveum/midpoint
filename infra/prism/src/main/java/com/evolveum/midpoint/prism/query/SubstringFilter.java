@@ -6,17 +6,17 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class SubstringFilter extends StringValueFilter {
 
-	public SubstringFilter(PropertyPath path, ItemDefinition definition, String value) {
+	public SubstringFilter(ItemPath path, ItemDefinition definition, String value) {
 		super(path, definition, value);
 		// TODO Auto-generated constructor stub
 	}
 
-	public static SubstringFilter createSubstring(PropertyPath path, ItemDefinition definition, String value) {
+	public static SubstringFilter createSubstring(ItemPath path, ItemDefinition definition, String value) {
 		return new SubstringFilter(path, definition, value);
 	}
 	

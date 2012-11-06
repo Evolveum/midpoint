@@ -35,7 +35,7 @@ import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;

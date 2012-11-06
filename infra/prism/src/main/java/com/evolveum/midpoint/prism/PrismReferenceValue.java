@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -190,8 +191,8 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 	
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
-		PropertyPath myPath = getParent().getPath(parentPath);
+	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
+		ItemPath myPath = getParent().getPath(parentPath);
 		if (oid == null && object == null && filter == null) {
 			throw new IllegalStateException("Neither OID, object nor filter specified in reference value "+this+" ("+myPath+" in "+rootItem+")");
 		}

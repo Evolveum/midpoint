@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * Resource Object Attribute Definition.

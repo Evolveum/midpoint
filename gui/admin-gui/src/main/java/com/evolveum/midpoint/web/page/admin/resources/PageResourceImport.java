@@ -35,7 +35,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;

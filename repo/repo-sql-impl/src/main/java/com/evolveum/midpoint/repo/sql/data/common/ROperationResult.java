@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
@@ -229,10 +229,10 @@ public class ROperationResult implements Serializable {
         jaxb.setToken(repo.getToken());
 
         try {
-            jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class, new PropertyPath(
+            jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class, new ItemPath(
                     OperationResultType.F_LOCALIZED_MESSAGE), repo.getLocalizedMessage(), LocalizedMessageType.class,
                     prismContext));
-            jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new PropertyPath(OperationResultType.F_PARAMS),
+            jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_PARAMS),
                     repo.getParams(), ParamsType.class, prismContext));
 
             if (StringUtils.isNotEmpty(repo.getPartialResults())) {

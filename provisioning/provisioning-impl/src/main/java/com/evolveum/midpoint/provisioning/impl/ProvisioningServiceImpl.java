@@ -42,11 +42,11 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -1220,7 +1220,7 @@ private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> condit
 			throw new IllegalArgumentException("Live sync token " + token
 					+ " has no definition. Cannot create modification.");
 		}
-		PropertyDelta tokenDelta = new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_EXTENSION,
+		PropertyDelta tokenDelta = new PropertyDelta(new ItemPath(ResourceObjectShadowType.F_EXTENSION,
 				token.getName()), token.getDefinition());
 		tokenDelta.setValuesToReplace((Collection) token.getValues());
 		return tokenDelta;

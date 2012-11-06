@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -161,8 +162,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 	
     @Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
-    	PropertyPath myPath = getParent().getPath(parentPath);
+	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
+    	ItemPath myPath = getParent().getPath(parentPath);
     	if (prohibitRaw && rawElement != null) {
     		throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
     	}

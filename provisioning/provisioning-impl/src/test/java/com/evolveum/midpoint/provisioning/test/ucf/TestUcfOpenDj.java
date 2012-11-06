@@ -32,8 +32,8 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -420,7 +420,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createReplaceAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.setValueToReplace(new PrismPropertyValue(propertyValue));
@@ -430,7 +430,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createAddAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToAdd(new PrismPropertyValue(propertyValue));
@@ -440,7 +440,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private PropertyModificationOperation createDeleteAttributeChange(String propertyName, String propertyValue) {
 		PrismProperty property = createProperty(propertyName, propertyValue);
-		PropertyPath propertyPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, 
+		ItemPath propertyPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, 
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), propertyName));
 		PropertyDelta delta = new PropertyDelta(propertyPath, property.getDefinition());
 		delta.addValueToDelete(new PrismPropertyValue(propertyValue));
@@ -451,7 +451,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private PropertyModificationOperation createActivationChange(boolean b) {
 		PrismObjectDefinition<ResourceObjectShadowType> shadowDefinition = getShadowDefinition(ResourceObjectShadowType.class);
 		PropertyDelta delta = PropertyDelta.createDelta(
-				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
+				new ItemPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
 				shadowDefinition);
 		delta.setValueToReplace(new PrismPropertyValue(b));
 		return new PropertyModificationOperation(delta);

@@ -24,7 +24,7 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -55,7 +55,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         this.property = property;
         this.status = status;
 
-        PropertyPath passwordPath = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+        ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
         if (passwordPath.equals(container.getPath())
                 && PasswordType.F_VALUE.equals(property.getName())) {
@@ -125,7 +125,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     }
 
     private boolean isThisPropertyActivationEnabled() {
-        if (!new PropertyPath(UserType.F_ACTIVATION).equals(container.getPath())) {
+        if (!new ItemPath(UserType.F_ACTIVATION).equals(container.getPath())) {
             return false;
         }
 

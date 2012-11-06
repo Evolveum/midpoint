@@ -41,7 +41,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;

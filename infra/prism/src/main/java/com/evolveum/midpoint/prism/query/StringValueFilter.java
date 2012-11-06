@@ -1,13 +1,13 @@
 package com.evolveum.midpoint.prism.query;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 public abstract class StringValueFilter extends ValueFilter{
 
 	private String value;
 	
-	public StringValueFilter(PropertyPath path, ItemDefinition definition, String value) {
+	public StringValueFilter(ItemPath path, ItemDefinition definition, String value) {
 		super(path, definition);
 		this.value = value;
 	}	

@@ -47,10 +47,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -129,10 +129,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	private static final String RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME = "fullname";
 	private static final QName RESOURCE_DUMMY_ATTR_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME);
-	private static final PropertyPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new PropertyPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);
+	private static final ItemPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);
 	private static final String RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME = "title";
 	private static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME);
-	private static final PropertyPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new PropertyPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
+	private static final ItemPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
 
 	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
@@ -1389,7 +1389,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
 		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
-		PropertyDelta fullnameDelta = fullnameAttr.createDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES,
+		PropertyDelta fullnameDelta = fullnameAttr.createDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES,
 				fullnameAttrDef.getName()));
 		fullnameDelta.setValueToReplace(new PrismPropertyValue<String>("Good Daemon"));
 		((Collection) modifications).add(fullnameDelta);
@@ -1683,7 +1683,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		
-		EqualsFilter equal = EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "

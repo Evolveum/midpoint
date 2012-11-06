@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.path;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,14 +32,14 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class PropertyPath implements Serializable {
+public class ItemPath implements Serializable {
 	
-	public static final PropertyPath EMPTY_PATH = new PropertyPath();
+	public static final ItemPath EMPTY_PATH = new ItemPath();
 	
-	private List<PropertyPathSegment> segments;
+	private List<ItemPathSegment> segments;
 
-	public PropertyPath() {
-		segments = new ArrayList<PropertyPathSegment>(0);
+	public ItemPath() {
+		segments = new ArrayList<ItemPathSegment>(0);
 	}
 	
 //	public PropertyPath(List<QName> qnames) {
@@ -53,60 +53,60 @@ public class PropertyPath implements Serializable {
 //		add(subName);
 //	}
 	
-	public PropertyPath(QName... qnames) {
-		this.segments = new ArrayList<PropertyPathSegment>(qnames.length);
+	public ItemPath(QName... qnames) {
+		this.segments = new ArrayList<ItemPathSegment>(qnames.length);
 		for (QName qname : qnames) {
 			add(qname);
 		}
 	}
 	
-	public PropertyPath(PropertyPath parentPath, QName subName) {
-		this.segments = new ArrayList<PropertyPathSegment>(parentPath.segments.size()+1);
+	public ItemPath(ItemPath parentPath, QName subName) {
+		this.segments = new ArrayList<ItemPathSegment>(parentPath.segments.size()+1);
 		segments.addAll(parentPath.segments);
 		add(subName);
 	}
 
 	
-	public PropertyPath(List<PropertyPathSegment> segments) {
-		this.segments = new ArrayList<PropertyPathSegment>(segments.size());
+	public ItemPath(List<ItemPathSegment> segments) {
+		this.segments = new ArrayList<ItemPathSegment>(segments.size());
 		this.segments.addAll(segments);
 	}
 			
-	public PropertyPath(List<PropertyPathSegment> segments, PropertyPathSegment subSegment) {
-		this.segments = new ArrayList<PropertyPathSegment>(segments.size()+1);
+	public ItemPath(List<ItemPathSegment> segments, ItemPathSegment subSegment) {
+		this.segments = new ArrayList<ItemPathSegment>(segments.size()+1);
 		this.segments.addAll(segments);
 		this.segments.add(subSegment);
 	}
 	
-	public PropertyPath(List<PropertyPathSegment> segments, QName subName) {
-		this.segments = new ArrayList<PropertyPathSegment>(segments.size()+1);
+	public ItemPath(List<ItemPathSegment> segments, QName subName) {
+		this.segments = new ArrayList<ItemPathSegment>(segments.size()+1);
 		this.segments.addAll(segments);
 		add(subName);
 	}
 	
-	public PropertyPath(PropertyPathSegment... segments) {
-		this.segments = new ArrayList<PropertyPathSegment>(segments.length);
-		for (PropertyPathSegment seg : segments) {
+	public ItemPath(ItemPathSegment... segments) {
+		this.segments = new ArrayList<ItemPathSegment>(segments.length);
+		for (ItemPathSegment seg : segments) {
 			this.segments.add(seg);
 		}
 	}
 	
-	public PropertyPath(PropertyPath parentPath, PropertyPathSegment subSegment) {
-		this.segments = new ArrayList<PropertyPathSegment>(parentPath.segments.size()+1);
+	public ItemPath(ItemPath parentPath, ItemPathSegment subSegment) {
+		this.segments = new ArrayList<ItemPathSegment>(parentPath.segments.size()+1);
 		this.segments.addAll(parentPath.segments);
 		this.segments.add(subSegment);
 	}
 
-	public PropertyPath subPath(QName subName) {
-		return new PropertyPath(segments, subName);
+	public ItemPath subPath(QName subName) {
+		return new ItemPath(segments, subName);
 	}
 	
-	public PropertyPath subPath(PropertyPathSegment subSegment) {
-		return new PropertyPath(segments, subSegment);
+	public ItemPath subPath(ItemPathSegment subSegment) {
+		return new ItemPath(segments, subSegment);
 	}
 
-	public PropertyPath subPath(PropertyPath subPath) {
-		PropertyPath newPath = new PropertyPath(segments);
+	public ItemPath subPath(ItemPath subPath) {
+		ItemPath newPath = new ItemPath(segments);
 		newPath.segments.addAll(subPath.getSegments());
 		return newPath;
 	}
@@ -118,28 +118,28 @@ public class PropertyPath implements Serializable {
 //	}
 	
 	private void add(QName qname) {
-		this.segments.add(new PropertyPathSegment(qname));
+		this.segments.add(new ItemPathSegment(qname));
 	}
 		
-	public List<PropertyPathSegment> getSegments() {
+	public List<ItemPathSegment> getSegments() {
 		return segments;
 	}
 	
-	public PropertyPathSegment first() {
+	public ItemPathSegment first() {
 		if (segments.size() == 0) {
 			return null;
 		}
 		return segments.get(0);
 	}
 
-	public PropertyPath rest() {
+	public ItemPath rest() {
 		if (segments.size() == 0) {
 			return EMPTY_PATH;
 		}
-		return new PropertyPath(segments.subList(1, segments.size()));
+		return new ItemPath(segments.subList(1, segments.size()));
 	}
 	
-	public PropertyPathSegment last() {
+	public ItemPathSegment last() {
 		if (segments.size() == 0) {
 			return null;
 		}
@@ -149,28 +149,28 @@ public class PropertyPath implements Serializable {
 	/**
 	 * Returns first segment in a form of path.
 	 */
-	public PropertyPath head() {
-		return new PropertyPath(first());
+	public ItemPath head() {
+		return new ItemPath(first());
 	}
 	
 	/**
 	 * Returns path containinig all segments except the first.
 	 */
-	public PropertyPath tail() {
+	public ItemPath tail() {
 		if (segments.size() == 0) {
 			return EMPTY_PATH;
 		}
-		return new PropertyPath(segments.subList(1, segments.size()));
+		return new ItemPath(segments.subList(1, segments.size()));
 	}
 
 	/**
 	 * Returns a path containing all segments except the last one.
 	 */
-	public PropertyPath allExceptLast() {
+	public ItemPath allExceptLast() {
 		if (segments.size() == 0) {
 			return EMPTY_PATH;
 		}
-		return new PropertyPath(segments.subList(0, segments.size()-1));
+		return new ItemPath(segments.subList(0, segments.size()-1));
 	}
 	
 	public int size() {
@@ -184,7 +184,7 @@ public class PropertyPath implements Serializable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		Iterator<PropertyPathSegment> iterator = segments.iterator();
+		Iterator<ItemPathSegment> iterator = segments.iterator();
 		while (iterator.hasNext()) {
 			sb.append(iterator.next());
 			if (iterator.hasNext()) {
@@ -210,7 +210,7 @@ public class PropertyPath implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PropertyPath other = (PropertyPath) obj;
+		ItemPath other = (ItemPath) obj;
 		if (segments == null) {
 			if (other.segments != null)
 				return false;

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -47,11 +47,11 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
 		super(itemDefinition);
 	}
 
-	public ReferenceDelta(PropertyPath propertyPath, PrismReferenceDefinition itemDefinition) {
+	public ReferenceDelta(ItemPath propertyPath, PrismReferenceDefinition itemDefinition) {
 		super(propertyPath, itemDefinition);
 	}
 
-	public ReferenceDelta(PropertyPath parentPath, QName name, PrismReferenceDefinition itemDefinition) {
+	public ReferenceDelta(ItemPath parentPath, QName name, PrismReferenceDefinition itemDefinition) {
 		super(parentPath, name, itemDefinition);
 	}
 

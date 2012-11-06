@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;

@@ -3,19 +3,19 @@ package com.evolveum.midpoint.prism.query;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 public abstract class ValueFilter extends ObjectFilter {
 	
-	private PropertyPath path;
+	private ItemPath path;
 	private ItemDefinition definition;
 	
-	public ValueFilter(PropertyPath path, ItemDefinition definition){
+	public ValueFilter(ItemPath path, ItemDefinition definition){
 		this.path = path;
 		this.definition = definition;
 	}
 	
-	public ValueFilter(PropertyPath path, ItemDefinition definition, Element expression){
+	public ValueFilter(ItemPath path, ItemDefinition definition, Element expression){
 		super(expression);
 		this.path = path;
 		this.definition = definition;
@@ -29,11 +29,11 @@ public abstract class ValueFilter extends ObjectFilter {
 		this.definition = definition;
 	}
 	
-	public PropertyPath getPath() {
+	public ItemPath getPath() {
 		return path;
 	}
 	
-	public void setPath(PropertyPath path) {
+	public void setPath(ItemPath path) {
 		this.path = path;
 	}
 

@@ -23,10 +23,10 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -77,7 +77,7 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	}
 
 	@Override
-	public <V extends PrismValue> ItemDeltaItem<V> findIdi(PropertyPath path) {
+	public <V extends PrismValue> ItemDeltaItem<V> findIdi(ItemPath path) {
 		Item<V> itemOld = null;
 		if (oldObject != null) {
 			itemOld = (Item<V>) oldObject.findItem(path);

@@ -4,7 +4,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
 

@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordLifeTimeType;
@@ -106,9 +106,9 @@ public class RPasswordPolicy extends RObject {
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         try {
-            jaxb.setLifetime(RUtil.toJAXB(ValuePolicyType.class, new PropertyPath(ValuePolicyType.F_LIFETIME), repo.getLifetime(),
+            jaxb.setLifetime(RUtil.toJAXB(ValuePolicyType.class, new ItemPath(ValuePolicyType.F_LIFETIME), repo.getLifetime(),
                     PasswordLifeTimeType.class, prismContext));
-            jaxb.setStringPolicy(RUtil.toJAXB(ValuePolicyType.class, new PropertyPath(ValuePolicyType.F_STRING_POLICY), repo.getStringPolicy(),
+            jaxb.setStringPolicy(RUtil.toJAXB(ValuePolicyType.class, new ItemPath(ValuePolicyType.F_STRING_POLICY), repo.getStringPolicy(),
                     StringPolicyType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

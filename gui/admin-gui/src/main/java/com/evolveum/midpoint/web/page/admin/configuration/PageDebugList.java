@@ -28,7 +28,6 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
@@ -59,6 +58,7 @@ import org.apache.wicket.util.file.Files;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -564,7 +564,7 @@ public class PageDebugList extends PageAdminConfiguration {
         List<PrismObject> objects = null;
         try {
             objects = getModelService().searchObjects(type, clonedQuery,
-                    ObjectOperationOptions.createCollection(new PropertyPath(), ObjectOperationOption.RAW),
+                    ObjectOperationOptions.createCollection(new ItemPath(), ObjectOperationOption.RAW),
                     createSimpleTask(OPERATION_SEARCH_OBJECT), result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);

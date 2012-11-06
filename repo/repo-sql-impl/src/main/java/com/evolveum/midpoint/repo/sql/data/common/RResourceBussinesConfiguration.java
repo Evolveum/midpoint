@@ -20,7 +20,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
@@ -86,7 +86,7 @@ public class RResourceBussinesConfiguration {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(RResourceBussinesConfiguration repo, ResourceBusinessConfigurationType jaxb, ObjectType parent, PropertyPath path,
+    public static void copyToJAXB(RResourceBussinesConfiguration repo, ResourceBusinessConfigurationType jaxb, ObjectType parent, ItemPath path,
             PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -137,7 +137,7 @@ public class RResourceBussinesConfiguration {
         }
     }
 
-    public ResourceBusinessConfigurationType toJAXB(ObjectType parent, PropertyPath path, PrismContext prismContext) throws
+    public ResourceBusinessConfigurationType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws
             DtoTranslationException {
         ResourceBusinessConfigurationType businessConfiguration = new ResourceBusinessConfigurationType();
         RResourceBussinesConfiguration.copyToJAXB(this, businessConfiguration, parent, path, prismContext);

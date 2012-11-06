@@ -31,8 +31,8 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
@@ -121,8 +121,8 @@ public class MiscSchemaUtil {
 		return list;
 	}
 
-	public static Collection<PropertyPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
-		Collection<PropertyPath> itemPathList = new ArrayList<PropertyPath>(resolve.getProperty().size());
+	public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
+		Collection<ItemPath> itemPathList = new ArrayList<ItemPath>(resolve.getProperty().size());
 		for (Element itemXPathElement: resolve.getProperty()) {
 			XPathHolder itemXPath = new XPathHolder(itemXPathElement);
 			itemPathList.add(itemXPath.toPropertyPath());

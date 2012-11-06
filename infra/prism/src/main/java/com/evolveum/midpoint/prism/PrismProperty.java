@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -339,18 +340,18 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
     	
     @Override
-	public PropertyDelta<T> createDelta(PropertyPath path) {
+	public PropertyDelta<T> createDelta(ItemPath path) {
     	if (path == null || path.isEmpty()) {
     		throw new IllegalArgumentException("Attempt to create delta with null or empty path");
     	}
 		return new PropertyDelta<T>(path, getDefinition());
 	}
     
-    public PropertyDelta<T> diff(PrismProperty<T> other, PropertyPath pathPrefix) {
+    public PropertyDelta<T> diff(PrismProperty<T> other, ItemPath pathPrefix) {
     	return diff(other, pathPrefix, true, false);
     }
     
-    public PropertyDelta<T> diff(PrismProperty<T> other, PropertyPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
+    public PropertyDelta<T> diff(PrismProperty<T> other, ItemPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
     	List<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
     	diffInternal(other, pathPrefix, deltas, ignoreMetadata, isLiteral);
     	if (deltas.isEmpty()) {
@@ -401,7 +402,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
 	
 	@Override
-	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem, PropertyPath pathPrefix,
+	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem, ItemPath pathPrefix,
 			boolean ignoreMetadata) {
 		PrismPropertyDefinition def = getDefinition();
 		if (def != null && def.isSingleValue() && !delta.isEmpty()) {

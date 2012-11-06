@@ -37,6 +37,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
@@ -356,7 +357,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 

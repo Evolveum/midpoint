@@ -27,6 +27,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -226,7 +227,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 */
 	abstract public Item instantiate(QName name);
 	
-    <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
+    <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
         if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
             return (T) this;
         } else {
@@ -234,7 +235,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
         }
     }
     
-    abstract public ItemDelta createEmptyDelta(PropertyPath path);
+    abstract public ItemDelta createEmptyDelta(ItemPath path);
     
     abstract public ItemDefinition clone();
     	

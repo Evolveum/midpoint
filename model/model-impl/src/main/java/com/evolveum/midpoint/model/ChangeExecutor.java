@@ -33,12 +33,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -295,7 +295,7 @@ public class ChangeExecutor {
 		syncSituationDescription.setChannel(task.getHandlerUri());
 		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		
-		syncSituationDelta = PropertyDelta.createDelta(new PropertyPath(
+		syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
 				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), accountDefinition);
 		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
 		syncSituationDeltas.add(syncSituationDelta);

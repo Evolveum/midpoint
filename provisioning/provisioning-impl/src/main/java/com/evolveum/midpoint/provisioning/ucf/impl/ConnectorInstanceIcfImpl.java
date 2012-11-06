@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -958,7 +959,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
 				PropertyDelta<?> delta = change.getPropertyDelta();
 
-				if (delta.getParentPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
+				if (delta.getParentPath().equals(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
 					if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ResourceAttributeDefinition)) {
 						ResourceAttributeDefinition def = objectClass
 								.findAttributeDefinition(delta.getName());
@@ -983,10 +984,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						updateAttribute.addValues(PrismValue.cloneCollection(delta.getValuesToReplace()));
 						updateValues.add(updateAttribute);
 					}
-				} else if (delta.getParentPath().equals(new PropertyPath(AccountShadowType.F_ACTIVATION))) {
+				} else if (delta.getParentPath().equals(new ItemPath(AccountShadowType.F_ACTIVATION))) {
 					activationDeltas.add(delta);
 				} else if (delta.getParentPath().equals(
-						new PropertyPath(new PropertyPath(AccountShadowType.F_CREDENTIALS),
+						new ItemPath(new ItemPath(AccountShadowType.F_CREDENTIALS),
 								CredentialsType.F_PASSWORD))) {
 					passwordDelta = (PropertyDelta<ProtectedStringType>) delta;
 				} else {
@@ -1200,7 +1201,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		PropertyDelta uidDelta = new PropertyDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES),
+		PropertyDelta uidDelta = new PropertyDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
 				uidDefinition);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidDelta;

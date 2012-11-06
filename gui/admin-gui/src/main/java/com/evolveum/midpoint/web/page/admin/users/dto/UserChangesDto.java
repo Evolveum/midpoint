@@ -34,12 +34,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
@@ -64,8 +64,8 @@ public class UserChangesDto implements Serializable {
 			return;
 		}
 
-		PropertyPath account = new PropertyPath(SchemaConstants.I_ACCOUNT_REF);
-		PropertyPath assignment = new PropertyPath(SchemaConstantsGenerated.C_ASSIGNMENT);
+		ItemPath account = new ItemPath(SchemaConstants.I_ACCOUNT_REF);
+		ItemPath assignment = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 
 		if (delta.getChangeType().equals(ChangeType.DELETE)) {
 

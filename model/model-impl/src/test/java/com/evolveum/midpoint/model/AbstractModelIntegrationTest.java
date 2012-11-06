@@ -74,13 +74,13 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -242,11 +242,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
 	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "fullname");
-	protected static final PropertyPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new PropertyPath(
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new ItemPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME);
 	
 	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON = new QName(RESOURCE_DUMMY_NAMESPACE, "weapon");
-	protected static final PropertyPath DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH = new PropertyPath(
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH = new ItemPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON);
 	
 	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
@@ -499,11 +499,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, 
 			QName propertyName, Object... propertyValues) throws SchemaException {
-		return addModificationToContextReplaceUserProperty(context, new PropertyPath(propertyName), propertyValues);
+		return addModificationToContextReplaceUserProperty(context, new ItemPath(propertyName), propertyValues);
 	}
 	
 	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, 
-			PropertyPath propertyPath, Object... propertyValues) throws SchemaException {
+			ItemPath propertyPath, Object... propertyValues) throws SchemaException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, focusContext.getObjectOld().getOid(), 
 				propertyPath, prismContext, propertyValues);
@@ -550,7 +550,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			String attributeLocalName, T... propertyValues) throws SchemaException {
 		ResourceType resourceType = accCtx.getResource();
 		QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
-		PropertyPath attrPath = new PropertyPath(AccountShadowType.F_ATTRIBUTES, attrQName);
+		ItemPath attrPath = new ItemPath(AccountShadowType.F_ATTRIBUTES, attrQName);
 		RefinedAccountDefinition refinedAccountDefinition = accCtx.getRefinedAccountDefinition();
 		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
 		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
@@ -797,24 +797,24 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
-		return createModifyUserReplaceDelta(userOid, new PropertyPath(propertyName), newRealValue);
+		return createModifyUserReplaceDelta(userOid, new ItemPath(propertyName), newRealValue);
 	}
 	
-	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, PropertyPath propertyName, Object... newRealValue) {
+	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
 		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 	
-	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PropertyPath propertyName, Object... newRealValue) {
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
 		return ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
 	
 	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyUserReplace(userOid, new PropertyPath(propertyName), task, result, newRealValue);
+		modifyUserReplace(userOid, new ItemPath(propertyName), task, result, newRealValue);
 	}
 	
-	protected void modifyUserReplace(String userOid, PropertyPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+	protected void modifyUserReplace(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
@@ -822,7 +822,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);	
 	}
 	
-	protected void modifyAccountShadowReplace(String accountOid, PropertyPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+	protected void modifyAccountShadowReplace(String accountOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<AccountShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountOid, propertyPath, newRealValue);
@@ -1154,15 +1154,15 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertSuccess("Aplying default user template failed (result)", result);
 	}
 
-	protected PropertyPath getOpenDJAttributePath(String attrName) {
-		return new PropertyPath(
+	protected ItemPath getOpenDJAttributePath(String attrName) {
+		return new ItemPath(
 				ResourceObjectShadowType.F_ATTRIBUTES,
 				new QName(RESOURCE_OPENDJ_NAMESPACE, attrName));
 		
 	}
 
-	protected PropertyPath getDummyAttributePath(String attrName) {
-		return new PropertyPath(
+	protected ItemPath getDummyAttributePath(String attrName) {
+		return new ItemPath(
 				ResourceObjectShadowType.F_ATTRIBUTES,
 				new QName(RESOURCE_DUMMY_NAMESPACE, attrName));
 		

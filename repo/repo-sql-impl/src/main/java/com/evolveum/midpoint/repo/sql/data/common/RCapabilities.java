@@ -10,7 +10,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilityCollectionType;
@@ -93,9 +93,9 @@ public class RCapabilities {
 		Validate.notNull(repo);
 		Validate.notNull(jaxb);
 		try {
-			jaxb.setNative(RUtil.toJAXB(CapabilitiesType.class, new PropertyPath(CapabilitiesType.F__NATIVE),
+			jaxb.setNative(RUtil.toJAXB(CapabilitiesType.class, new ItemPath(CapabilitiesType.F__NATIVE),
 					repo.getNative(), CapabilityCollectionType.class, prismContext));
-			jaxb.setConfigured(RUtil.toJAXB(CapabilitiesType.class, new PropertyPath(CapabilitiesType.F__NATIVE),
+			jaxb.setConfigured(RUtil.toJAXB(CapabilitiesType.class, new ItemPath(CapabilitiesType.F__NATIVE),
 					repo.getConfigured(), CapabilityCollectionType.class, prismContext));
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);

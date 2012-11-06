@@ -10,7 +10,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -54,7 +54,7 @@ public class ROperationalState {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, PropertyPath path,
+    public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, ItemPath path,
             PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -82,7 +82,7 @@ public class ROperationalState {
         }
     }
 
-    public OperationalStateType toJAXB(ObjectType parent, PropertyPath path, PrismContext prismContext) throws
+    public OperationalStateType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws
             DtoTranslationException {
         OperationalStateType operationalState = new OperationalStateType();
         ROperationalState.copyToJAXB(this, operationalState, parent, path, prismContext);

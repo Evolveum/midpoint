@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -187,7 +187,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 			modifications.add(statusDelta);
-			statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
+			statusDelta.setParentPath(new ItemPath(ResourceType.F_OPERATIONAL_STATE));
 			cacheRepositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 		}
 		if (resource.getOperationalState() == null){

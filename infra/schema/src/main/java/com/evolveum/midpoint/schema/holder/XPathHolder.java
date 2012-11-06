@@ -42,8 +42,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -147,9 +147,9 @@ public class XPathHolder {
 		this.absolute = false;		
 	}
 	
-	public XPathHolder(PropertyPath propertyPath) {
+	public XPathHolder(ItemPath propertyPath) {
 		this.segments = new ArrayList<XPathSegment>();
-		for (PropertyPathSegment segment: propertyPath.getSegments()) {
+		for (ItemPathSegment segment: propertyPath.getSegments()) {
 			XPathSegment xsegment = new XPathSegment(segment.getName());
 			// TODO: support ID
 			this.segments.add(xsegment);
@@ -540,17 +540,17 @@ public class XPathHolder {
 		return false;
 	}
 	
-	public PropertyPath toPropertyPath() {
+	public ItemPath toPropertyPath() {
 		List<XPathSegment> xsegments = toSegments();
-		List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>(xsegments.size());
+		List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());
 		for (XPathSegment segment : xsegments) {
 			QName qName = segment.getQName();
 			// TODO: support IDs
 			String id = null;
 			boolean variable = segment.isVariable();
-			segments.add(new PropertyPathSegment(qName, id, variable));
+			segments.add(new ItemPathSegment(qName, id, variable));
 		}
-		return new PropertyPath(segments);
+		return new ItemPath(segments);
 	}
 	
 }

@@ -27,6 +27,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -86,7 +87,7 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		this.parent = parent;
 	}
 	
-	public PropertyPath getPath(PropertyPath pathPrefix) {
+	public ItemPath getPath(ItemPath pathPrefix) {
 		Itemable parent = getParent();
 		if (parent == null) {
 			throw new IllegalStateException("No parent, cannot create value path for "+this); 
@@ -137,7 +138,7 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		domElement = null;
 	}
 	
-	public abstract void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw);
+	public abstract void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw);
 		
 	/**
 	 * Returns true if this and other value represent the same value.
@@ -277,13 +278,13 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
 	 * E.g. the container with the same ID. 
 	 */
-	public Collection<? extends ItemDelta> diff(PrismValue otherValue, PropertyPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
+	public Collection<? extends ItemDelta> diff(PrismValue otherValue, ItemPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
 		diffMatchingRepresentation(otherValue, pathPrefix, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
 	}
 	
-	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
+	void diffMatchingRepresentation(PrismValue otherValue, ItemPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		// Nothing to do by default
 	}

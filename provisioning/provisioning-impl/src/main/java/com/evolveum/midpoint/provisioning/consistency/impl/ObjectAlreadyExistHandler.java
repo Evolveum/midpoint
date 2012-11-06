@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -102,7 +102,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		// TODO: error handling
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
 				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualsFilter nameFilter = EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES),
+		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES),
 				nameProperty.getDefinition(), nameProperty.getValues());
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(AccountShadowType.class,
 				AccountShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());

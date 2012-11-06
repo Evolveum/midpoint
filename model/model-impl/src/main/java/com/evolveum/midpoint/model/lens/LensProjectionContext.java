@@ -44,13 +44,13 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -548,7 +548,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	 * other indication that there will be delta (e.g. triple)
 	 */
 	public boolean hasValueForAttribute(QName attributeName) throws SchemaException {
-		PropertyPath attrPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName);
+		ItemPath attrPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName);
 		if (getObjectNew() != null) {
 			PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
 			if (attrNew != null && !attrNew.isEmpty()) {

@@ -26,7 +26,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author semancik
@@ -59,12 +59,12 @@ public class ObjectOperationOptions {
 		return create((ObjectSelector)null, options);
 	}
 	
-	public static ObjectOperationOptions create(PropertyPath path, ObjectOperationOption... options) {
+	public static ObjectOperationOptions create(ItemPath path, ObjectOperationOption... options) {
 		return create(new ObjectSelector(path), options);
 	}
 	
 	public static ObjectOperationOptions create(QName pathQName, ObjectOperationOption... options) {
-		return create(new ObjectSelector(new PropertyPath(pathQName)), options);
+		return create(new ObjectSelector(new ItemPath(pathQName)), options);
 	}
 	
 	public static ObjectOperationOptions create(ObjectSelector selector, ObjectOperationOption... options) {
@@ -72,7 +72,7 @@ public class ObjectOperationOptions {
 		return new ObjectOperationOptions(selector, optionsList);
 	}
 	
-	public static Collection<ObjectOperationOptions> createCollection(PropertyPath path, ObjectOperationOption... options) {
+	public static Collection<ObjectOperationOptions> createCollection(ItemPath path, ObjectOperationOption... options) {
 		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(1);
 		optionsCollection.add(create(path, options));
 		return optionsCollection;
@@ -94,9 +94,9 @@ public class ObjectOperationOptions {
 		return optionsCollection;
 	}
 
-	public static Collection<ObjectOperationOptions> createCollection(ObjectOperationOption options, PropertyPath... paths) {
+	public static Collection<ObjectOperationOptions> createCollection(ObjectOperationOption options, ItemPath... paths) {
 		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(paths.length);
-		for (PropertyPath path: paths) {
+		for (ItemPath path: paths) {
 			optionsCollection.add(create(path, options));
 		}
 		return optionsCollection;

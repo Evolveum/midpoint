@@ -30,11 +30,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.consistency.impl.GenericErrorHandler;
@@ -79,7 +79,7 @@ import java.util.Set;
 @Component
 public class ShadowConverter {
 	
-	private static final PropertyPath ATTRIBUTES_PATH = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES);
+	private static final ItemPath ATTRIBUTES_PATH = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
 
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
@@ -621,7 +621,7 @@ public class ShadowConverter {
 			throws SchemaException {
 
 		PropertyDelta<Boolean> enabledPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				new PropertyPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+				new ItemPath(ResourceObjectShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
 		if (enabledPropertyDelta == null) {
 			return null;
 		}
@@ -709,7 +709,7 @@ public class ShadowConverter {
 			changes = new HashSet<Operation>();
 		}
 		for (ItemDelta itemDelta : objectChange) {
-			if (new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+			if (new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
 					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
 							(PropertyDelta) itemDelta);
@@ -809,7 +809,7 @@ public class ShadowConverter {
 		if (enableDisable == null){
 			return null;
 		}
-		PropertyDelta enableAttributeDelta = new PropertyDelta(new PropertyPath(
+		PropertyDelta enableAttributeDelta = new PropertyDelta(new ItemPath(
 				ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition());
 		
 		if (enabled) {
@@ -910,7 +910,7 @@ public class ShadowConverter {
 		if (delta.isAdd()) {
 			applyAttributesDefinition(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
-			PropertyPath attributesPath = new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES);
+			ItemPath attributesPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
 			for(ItemDelta modification: delta.getModifications()) {
 				if (modification.getDefinition() == null && attributesPath.equals(modification.getParentPath())) {
 					QName attributeName = modification.getName();

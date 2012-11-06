@@ -25,10 +25,10 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -413,7 +413,7 @@ public class PageContentAccounts extends PageAdminResources {
 //                }
 //                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 
@@ -423,7 +423,7 @@ public class PageContentAccounts extends PageAdminResources {
 					secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
 				}
 				for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
-					conditions.add(SubstringFilter.createSubstring(new PropertyPath(AccountShadowType.F_ATTRIBUTES),
+					conditions.add(SubstringFilter.createSubstring(new ItemPath(AccountShadowType.F_ATTRIBUTES),
 							attrDef, dto.getSearchText()));
 				}
 			}

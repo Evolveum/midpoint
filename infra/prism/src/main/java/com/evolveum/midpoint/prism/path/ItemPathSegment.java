@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.path;
 
 import javax.xml.namespace.QName;
 
@@ -29,23 +29,23 @@ import java.io.Serializable;
  * @author semancik
  *
  */
-public class PropertyPathSegment implements Serializable {
+public class ItemPathSegment implements Serializable {
 	
 	private QName name;
 	private String id;
 	private boolean isVariable = false;
 	
-	public PropertyPathSegment(QName name) {
+	public ItemPathSegment(QName name) {
 		this.name = name;
 		this.id = null;
 	}
 
-	public PropertyPathSegment(QName name, String id) {
+	public ItemPathSegment(QName name, String id) {
 		this.name = name;
 		this.id = id;
 	}
 
-	public PropertyPathSegment(QName name, String id, boolean isVariable) {
+	public ItemPathSegment(QName name, String id, boolean isVariable) {
 		this.name = name;
 		this.id = id;
 		this.isVariable = isVariable;
@@ -89,7 +89,7 @@ public class PropertyPathSegment implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PropertyPathSegment other = (PropertyPathSegment) obj;
+		ItemPathSegment other = (ItemPathSegment) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;

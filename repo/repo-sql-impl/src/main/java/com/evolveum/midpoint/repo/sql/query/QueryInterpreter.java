@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -55,8 +57,8 @@ public class QueryInterpreter {
 	private PrismContext prismContext;
 	// query context stuff
 	private Class<? extends ObjectType> type;
-	private Map<PropertyPath, Criteria> criterions = new HashMap<PropertyPath, Criteria>();
-	private Map<PropertyPath, String> aliases = new HashMap<PropertyPath, String>();
+	private Map<ItemPath, Criteria> criterions = new HashMap<ItemPath, Criteria>();
+	private Map<ItemPath, String> aliases = new HashMap<ItemPath, String>();
 
 	public QueryInterpreter(Session session, Class<? extends ObjectType> type, PrismContext prismContext) {
 		this.prismContext = prismContext;
@@ -127,14 +129,14 @@ public class QueryInterpreter {
 		SchemaRegistry registry = prismContext.getSchemaRegistry();
 		PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(type);
 
-		PropertyPath propertyPath = createPropertyPath(path);
+		ItemPath propertyPath = createPropertyPath(path);
 		if (propertyPath == null) {
-			propertyPath = new PropertyPath();
+			propertyPath = new ItemPath();
 		}
 
-		List<PropertyPathSegment> segments = propertyPath.getSegments();
-		segments.add(new PropertyPathSegment(name));
-		propertyPath = new PropertyPath(segments);
+		List<ItemPathSegment> segments = propertyPath.getSegments();
+		segments.add(new ItemPathSegment(name));
+		propertyPath = new ItemPath(segments);
 		LOGGER.trace("Checking item definition on path {}", new Object[] { propertyPath });
 		ItemDefinition def = objectDef.findItemDefinition(propertyPath);
 		if (def != null) {
@@ -147,8 +149,8 @@ public class QueryInterpreter {
 		return definition;
 	}
 
-	public PropertyPath createPropertyPath(Element path) {
-		PropertyPath propertyPath = null;
+	public ItemPath createPropertyPath(Element path) {
+		ItemPath propertyPath = null;
 		if (path != null && StringUtils.isNotEmpty(path.getTextContent())) {
 			propertyPath = new XPathHolder(path).toPropertyPath();
 		}
@@ -174,11 +176,11 @@ public class QueryInterpreter {
 		return alias;
 	}
 
-	public Criteria getCriteria(PropertyPath path) {
+	public Criteria getCriteria(ItemPath path) {
 		return criterions.get(path);
 	}
 
-	public void setCriteria(PropertyPath path, Criteria criteria) {
+	public void setCriteria(ItemPath path, Criteria criteria) {
 		Validate.notNull(criteria, "Criteria must not be null.");
 		if (criterions.containsKey(path)) {
 			throw new IllegalArgumentException("Already has criteria with this path '" + path + "'");
@@ -187,11 +189,11 @@ public class QueryInterpreter {
 		criterions.put(path, criteria);
 	}
 
-	public String getAlias(PropertyPath path) {
+	public String getAlias(ItemPath path) {
 		return aliases.get(path);
 	}
 
-	public void setAlias(PropertyPath path, String alias) {
+	public void setAlias(ItemPath path, String alias) {
 		Validate.notNull(alias, "Alias must not be null.");
 		if (aliases.containsValue(alias)) {
 			throw new IllegalArgumentException("Already has alias '" + alias + "' with this path '" + path + "'.");

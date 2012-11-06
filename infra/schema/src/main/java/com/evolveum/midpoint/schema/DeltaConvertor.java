@@ -37,12 +37,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -193,7 +193,7 @@ public class DeltaConvertor {
     public static ItemDelta createItemDelta(ItemDeltaType propMod, PrismContainerDefinition pcDef) throws
             SchemaException {
     	XPathHolder xpath = new XPathHolder(propMod.getPath());
-        PropertyPath parentPath = xpath.toPropertyPath();
+        ItemPath parentPath = xpath.toPropertyPath();
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
         }

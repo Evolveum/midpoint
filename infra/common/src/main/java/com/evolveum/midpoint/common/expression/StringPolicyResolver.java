@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.StringPolicyType;
 
 /**
@@ -35,7 +35,7 @@ public interface StringPolicyResolver {
 
 	void setOutputDefinition(ItemDefinition outputDefinition);
 
-	void setOutputPath(PropertyPath outputPath);
+	void setOutputPath(ItemPath outputPath);
 	
 	StringPolicyType resolve();
 	

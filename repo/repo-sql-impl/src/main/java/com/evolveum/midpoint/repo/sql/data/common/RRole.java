@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
@@ -183,7 +183,7 @@ public class RRole extends RObject {
 
         jaxb.setApprovalProcess(repo.getApprovalProcess());
         try {
-            jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new PropertyPath(RoleType.F_APPROVAL_SCHEMA),
+            jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVAL_SCHEMA),
                     repo.getApprovalSchema(), ApprovalSchemaType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

@@ -27,8 +27,8 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -292,7 +292,7 @@ public class QueryConvertor {
 		Element path = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_PATH);
 		XPathHolder xpath = null;
 		if (filter.getPath() != null) {
-			xpath = new XPathHolder(new PropertyPath(filter.getPath(), filter.getDefinition().getName()));
+			xpath = new XPathHolder(new ItemPath(filter.getPath(), filter.getDefinition().getName()));
 		} else {
 			xpath = new XPathHolder(filter.getDefinition().getName());
 		}
@@ -376,7 +376,7 @@ public class QueryConvertor {
 
 	private static EqualsFilter createEqualFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
 		
-		PropertyPath path = getPath((Element) filter);
+		ItemPath path = getPath((Element) filter);
 
 		if (path == null || path.isEmpty()){
 		throw new SchemaException("Could not convert query, because query does not contain property path.");	
@@ -423,7 +423,7 @@ public class QueryConvertor {
 	}
 	
 	private static RefFilter createRefFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException{
-		PropertyPath path = getPath((Element) filter);
+		ItemPath path = getPath((Element) filter);
 		
 		if (path == null || path.isEmpty()){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
@@ -461,7 +461,7 @@ public class QueryConvertor {
 	}
 
 	private static Item getItem(List<Element> values, PrismContainerDefinition pcd,
-			PropertyPath path, QName propertyName, boolean reference) throws SchemaException {
+			ItemPath path, QName propertyName, boolean reference) throws SchemaException {
 		
 		if (propertyName ==  null){
 			throw new SchemaException("No property name in the search query specified.");
@@ -484,7 +484,7 @@ public class QueryConvertor {
 		
 	}
 
-	private static PropertyPath getPath(Element filter) {
+	private static ItemPath getPath(Element filter) {
 		Element path = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_PATH);
 		XPathHolder xpath = new XPathHolder((Element) path);
 		return xpath.toPropertyPath();
@@ -498,7 +498,7 @@ public class QueryConvertor {
 	private static SubstringFilter createSubstringFilter(PrismContainerDefinition pcd, Node filter)
 			throws SchemaException {
 
-		PropertyPath path = getPath((Element) filter);
+		ItemPath path = getPath((Element) filter);
 		if (path == null || path.isEmpty()){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}

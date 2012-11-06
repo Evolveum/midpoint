@@ -35,7 +35,7 @@ import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
@@ -146,12 +146,12 @@ public abstract class SchemaConstants {
 	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings");
 
-	public static final PropertyPath PATH_PASSWORD = new PropertyPath(I_CREDENTIALS, CredentialsType.F_PASSWORD);
-	public static final PropertyPath PATH_PASSWORD_VALUE = new PropertyPath(I_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-	public static final PropertyPath PATH_ACTIVATION = new PropertyPath(C_ACTIVATION);
-	public static final PropertyPath PATH_ACTIVATION_ENABLE = new PropertyPath(C_ACTIVATION, C_ACTIVATION_ENABLED);
-	public static final PropertyPath PATH_ATTRIBUTES = new PropertyPath(I_ATTRIBUTES);
-	public static final PropertyPath PATH_EXTENSION = new PropertyPath(C_EXTENSION);
+	public static final ItemPath PATH_PASSWORD = new ItemPath(I_CREDENTIALS, CredentialsType.F_PASSWORD);
+	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(I_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+	public static final ItemPath PATH_ACTIVATION = new ItemPath(C_ACTIVATION);
+	public static final ItemPath PATH_ACTIVATION_ENABLE = new ItemPath(C_ACTIVATION, C_ACTIVATION_ENABLED);
+	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(I_ATTRIBUTES);
+	public static final ItemPath PATH_EXTENSION = new ItemPath(C_EXTENSION);
 	
 	public static final QName ROLE = new QName(NS_C, "role");
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");

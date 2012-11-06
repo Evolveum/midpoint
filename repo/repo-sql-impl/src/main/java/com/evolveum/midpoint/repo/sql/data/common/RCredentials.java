@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
@@ -89,14 +89,14 @@ public class RCredentials {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyToJAXB(RCredentials repo, CredentialsType jaxb, ObjectType parent, PropertyPath path,
+    public static void copyToJAXB(RCredentials repo, CredentialsType jaxb, ObjectType parent, ItemPath path,
             PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         try {
             jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
-            PropertyPath passwordPath = new PropertyPath(path, CredentialsType.F_PASSWORD);
+            ItemPath passwordPath = new ItemPath(path, CredentialsType.F_PASSWORD);
             jaxb.setPassword(RUtil.toJAXB(parent.getClass(), passwordPath, repo.getPassword(), PasswordType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -116,7 +116,7 @@ public class RCredentials {
         }
     }
 
-    public CredentialsType toJAXB(ObjectType parent, PropertyPath path, PrismContext prismContext) throws
+    public CredentialsType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws
             DtoTranslationException {
         CredentialsType credentials = new CredentialsType();
         RCredentials.copyToJAXB(this, credentials, parent, path, prismContext);

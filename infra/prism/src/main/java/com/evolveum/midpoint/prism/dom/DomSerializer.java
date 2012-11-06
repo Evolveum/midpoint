@@ -45,7 +45,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;

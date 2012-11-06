@@ -59,11 +59,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -189,7 +189,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
         addModificationToContextReplaceUserProperty(context,
-        		new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED),
+        		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED),
         		false);
         context.recompute();
 
@@ -217,7 +217,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
-        		new PropertyPath(AccountShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
+        		new ItemPath(AccountShadowType.F_ACTIVATION, ActivationType.F_ENABLED),
         		false);
                 
     }

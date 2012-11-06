@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -162,7 +163,7 @@ public class PrismPropertyDefinition extends ItemDefinition {
     }
 
     @Override
-	public ItemDelta createEmptyDelta(PropertyPath path) {
+	public ItemDelta createEmptyDelta(ItemPath path) {
 		return new PropertyDelta(path, this);
 	}
 

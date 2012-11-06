@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -137,7 +139,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public <I extends Item<?>> I findItem(PropertyPath path, Class<I> type) {
+	public <I extends Item<?>> I findItem(ItemPath path, Class<I> type) {
 		try {
 			return findCreateItem(path, type, null, false);
 		} catch (SchemaException e) {
@@ -147,7 +149,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public Item<?> findItem(PropertyPath path) {
+	public Item<?> findItem(ItemPath path) {
 		try {
 			return findCreateItem(path, Item.class, null, false);
 		} catch (SchemaException e) {
@@ -157,11 +159,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	<I extends Item<?>> I findCreateItem(PropertyPath path, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
+	<I extends Item<?>> I findCreateItem(ItemPath path, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
-		PropertyPathSegment first = path.first();
-		PropertyPath rest = path.rest();
+		ItemPathSegment first = path.first();
+		ItemPath rest = path.rest();
 		Item<?> subitem = null; 
 		if (rest.isEmpty()) {
 			subitem = getValue().findCreateItem(first.getName(), Item.class, itemDefinition, create);
@@ -197,7 +199,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public <I extends Item<?>> void removeItem(PropertyPath path, Class<I> itemType) {
+	public <I extends Item<?>> void removeItem(ItemPath path, Class<I> itemType) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.
 		getValue().removeItem(path, itemType);
@@ -271,11 +273,11 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public PropertyPath getPath(PropertyPath pathPrefix) {
+	public ItemPath getPath(ItemPath pathPrefix) {
 		if (pathPrefix != null && !pathPrefix.isEmpty()) {
 			throw new IllegalStateException("It makes no sense to use pathPrefix for an object");
 		}
-		return new PropertyPath();
+		return new ItemPath();
 	}
 	
 	/**
@@ -292,9 +294,9 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		return getValue().asDomElement();
 	}
 
-	private Collection<PropertyPath> listItemPaths() {
-		List<PropertyPath> list = new ArrayList<PropertyPath>();
-		addItemPathsToList(new PropertyPath(), list);
+	private Collection<ItemPath> listItemPaths() {
+		List<ItemPath> list = new ArrayList<ItemPath>();
+		addItemPathsToList(new ItemPath(), list);
 		return list;
 	}
 

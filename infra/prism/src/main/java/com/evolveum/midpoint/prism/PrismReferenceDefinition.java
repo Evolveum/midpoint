@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 
 /**
@@ -107,7 +108,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
     }
     
     @Override
-	public ItemDelta createEmptyDelta(PropertyPath path) {
+	public ItemDelta createEmptyDelta(ItemPath path) {
 		return new ReferenceDelta(path, this);
 	}
 

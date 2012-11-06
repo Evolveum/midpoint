@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -578,7 +579,7 @@ public class TaskQuartzImpl implements Task {
     public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
         PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
         property.setRealValue(realValue);
-        PropertyDelta propertyDelta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), definition);
+        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), definition);
         propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
         return propertyDelta;
     }
@@ -1369,7 +1370,7 @@ public class TaskQuartzImpl implements Task {
 
 	private PropertyDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 		
-        PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
         
 		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
@@ -1390,7 +1391,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> addExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 
-        PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
         delta.addValuesToAdd(PrismValue.cloneCollection(property.getValues()));
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
@@ -1402,7 +1403,7 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> deleteExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
 
-        PropertyDelta delta = new PropertyDelta(new PropertyPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
         delta.addValuesToDelete(PrismValue.cloneCollection(property.getValues()));
 
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);

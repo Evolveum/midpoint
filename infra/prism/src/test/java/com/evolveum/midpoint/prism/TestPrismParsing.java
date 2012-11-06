@@ -54,6 +54,8 @@ import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -297,7 +299,7 @@ public class TestPrismParsing {
 		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
 		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 		
-		PropertyPath enabledPath = USER_ENABLED_PATH;
+		ItemPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
 		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
@@ -309,7 +311,7 @@ public class TestPrismParsing {
 				
 		QName actName = new QName(NS_FOO,"activation");
 		// Use path
-		PropertyPath actPath = new PropertyPath(actName);
+		ItemPath actPath = new ItemPath(actName);
 		PrismContainer<ActivationType> actContainer1 = user.findContainer(actPath);
 		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
 		assertNotNull("Property "+actPath+" not found", actContainer1);
@@ -333,8 +335,8 @@ public class TestPrismParsing {
 		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 		
-		PropertyPath a1Path = new PropertyPath(new PropertyPathSegment(assName, USER_ASSIGNMENT_1_ID),
-				new PropertyPathSegment(descriptionName));
+		ItemPath a1Path = new ItemPath(new ItemPathSegment(assName, USER_ASSIGNMENT_1_ID),
+				new ItemPathSegment(descriptionName));
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
 		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
@@ -374,7 +376,7 @@ public class TestPrismParsing {
         PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
 		
-		PropertyPath barPath = new PropertyPath(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+		ItemPath barPath = new ItemPath(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
 		PrismProperty<String> barProperty = user.findProperty(barPath);
 		assertNotNull("Property "+barPath+" not found", barProperty);
 		PrismAsserts.assertPropertyValue(barProperty, "BAR");
@@ -399,7 +401,7 @@ public class TestPrismParsing {
 		assertNull("Extension ID", extensionValue.getId());
 		PrismAsserts.assertPropertyValue(extension, USER_ADHOC_BOTTLES_ELEMENT, 20);
 		
-		PropertyPath bottlesPath = new PropertyPath(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
+		ItemPath bottlesPath = new ItemPath(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
 		PrismProperty<Integer> bottlesProperty = user.findProperty(bottlesPath);
 		assertNotNull("Property "+bottlesPath+" not found", bottlesProperty);
 		PrismAsserts.assertPropertyValue(bottlesProperty, 20);

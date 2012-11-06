@@ -56,10 +56,10 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -160,7 +160,7 @@ public class MappingTestEvaluator {
 		return createMapping(filename, testName, toPath(defaultTargetPropertyName), userDelta);
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, PropertyPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
     
         JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, filename), MappingType.class);
@@ -211,7 +211,7 @@ public class MappingTestEvaluator {
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
-			PropertyPath defaultTargetPropertyPath) 
+			ItemPath defaultTargetPropertyPath) 
 			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, null);
 		OperationResult opResult = new OperationResult(testName);
@@ -266,8 +266,8 @@ public class MappingTestEvaluator {
 		return mapping.getOutputTriple();
 	}
 	
-	public PropertyPath toPath(String propertyName) {
-		return new PropertyPath(new QName(SchemaConstants.NS_C, propertyName));
+	public ItemPath toPath(String propertyName) {
+		return new ItemPath(new QName(SchemaConstants.NS_C, propertyName));
 	}
 	
 	public static <T> T getSingleValue(String setName, Collection<PrismPropertyValue<T>> set) {

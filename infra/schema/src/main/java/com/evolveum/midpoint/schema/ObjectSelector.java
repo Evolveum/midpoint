@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author semancik
@@ -27,14 +27,14 @@ import com.evolveum.midpoint.prism.PropertyPath;
  */
 public class ObjectSelector {
 	
-	private PropertyPath path;
+	private ItemPath path;
 
-	public ObjectSelector(PropertyPath path) {
+	public ObjectSelector(ItemPath path) {
 		super();
 		this.path = path;
 	}
 
-	public PropertyPath getPath() {
+	public ItemPath getPath() {
 		return path;
 	}
 

@@ -71,12 +71,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismValidate;
@@ -263,16 +263,16 @@ public class ModelController implements ModelService, ModelInteractionService {
 		if (selector == null) {
 			return;
 		}
-		PropertyPath path = selector.getPath();
+		ItemPath path = selector.getPath();
 		resolve (object, path, option, task, result);
 	}
 		
-	private void resolve(PrismObject<?> object, PropertyPath path, ObjectOperationOptions option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void resolve(PrismObject<?> object, ItemPath path, ObjectOperationOptions option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
-		PropertyPathSegment first = path.first();
-		PropertyPath rest = path.rest();
+		ItemPathSegment first = path.first();
+		ItemPath rest = path.rest();
 		QName refName = first.getName();
 		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
 		if (reference == null) {

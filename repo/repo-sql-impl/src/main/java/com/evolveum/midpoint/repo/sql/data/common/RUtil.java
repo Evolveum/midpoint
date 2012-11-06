@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -69,7 +70,7 @@ public final class RUtil {
         return toJAXB(null, null, value, clazz, prismContext);
     }
 
-    public static <T> T toJAXB(Class<?> parentClass, PropertyPath path, String value,
+    public static <T> T toJAXB(Class<?> parentClass, ItemPath path, String value,
             Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
         if (StringUtils.isEmpty(value)) {
             return null;

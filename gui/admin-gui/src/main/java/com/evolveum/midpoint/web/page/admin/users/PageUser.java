@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
@@ -886,7 +888,7 @@ public class PageUser extends PageAdminUsers {
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> userDelta, PrismContainerDefinition def)
             throws SchemaException {
-        ContainerDelta assDelta = new ContainerDelta(new PropertyPath(), UserType.F_ASSIGNMENT, def);
+        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), UserType.F_ASSIGNMENT, def);
 
         PrismObject<UserType> user = userModel.getObject().getObject();
         PrismObjectDefinition userDef = user.getDefinition();
@@ -939,17 +941,17 @@ public class PageUser extends PageAdminUsers {
 
         PrismValue oldValue = assDto.getOldValue();
         Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
-        List<PropertyPathSegment> pathSegments = oldValue.getPath(null).getSegments();
+        List<ItemPathSegment> pathSegments = oldValue.getPath(null).getSegments();
 
         for (ItemDelta delta : deltas) {
-            PropertyPath deltaPath = delta.getPath();
+            ItemPath deltaPath = delta.getPath();
             ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
             //replace relative path - add "assignment" path prefix
-            List<PropertyPathSegment> newPath = new ArrayList<PropertyPathSegment>();
+            List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
             newPath.addAll(pathSegments);
             newPath.addAll(delta.getParentPath().getSegments());
             //add definition to item delta
-            delta.setParentPath(new PropertyPath(newPath));
+            delta.setParentPath(new ItemPath(newPath));
             delta.applyDefinition(deltaDef);
 
             userDelta.addModification(delta);
@@ -1254,7 +1256,7 @@ public class PageUser extends PageAdminUsers {
 
         for (UserAccountDto account : accounts) {
             ObjectWrapper wrapper = account.getObject();
-            ContainerWrapper activation = wrapper.findContainerWrapper(new PropertyPath(
+            ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(
                     ResourceObjectShadowType.F_ACTIVATION));
             if (activation == null) {
                 warn(getString("pageUser.message.noActivationFound", wrapper.getDisplayName()));

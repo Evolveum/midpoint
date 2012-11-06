@@ -19,10 +19,10 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -84,7 +84,7 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
 	}
 	
 	@Override
-	public Object resolve(PropertyPath subpath) {
+	public Object resolve(ItemPath subpath) {
 		if (subpath == null || subpath.isEmpty()) {
 			return this;
 		}

@@ -34,12 +34,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -59,7 +59,7 @@ public class ExpressionUtil {
 	
     // Black magic hack follows. This is TODO to refactor to a cleaner state.
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(PrismValueDeltaSetTriple<V> resultTriple, 
-    		ItemDefinition outputDefinition, final PropertyPathSegment lastPathSegment, final PrismContext prismContext) {
+    		ItemDefinition outputDefinition, final ItemPathSegment lastPathSegment, final PrismContext prismContext) {
     	Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
     	if (resultTripleValueClass == null) {
     		// triple is empty. type does not matter.
@@ -103,12 +103,12 @@ public class ExpressionUtil {
     	return clonedTriple;
     }
 
-	public static Object resolvePath(PropertyPath path, Map<QName, Object> variables, Object defaultContext, 
+	public static Object resolvePath(ItemPath path, Map<QName, Object> variables, Object defaultContext, 
 			ObjectResolver objectResolver, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		
 		Object root = defaultContext;
-		PropertyPath relativePath = path;
-		PropertyPathSegment first = path.first();
+		ItemPath relativePath = path;
+		ItemPathSegment first = path.first();
 		String varDesc = "default context";
 		if (first.isVariable()) {
 			varDesc = "variable "+PrettyPrinter.prettyPrint(first.getName());
@@ -169,11 +169,11 @@ public class ExpressionUtil {
     	}
     }
 
-	public static ItemDefinition resolveDefinitionPath(PropertyPath path, Map<QName, Object> variables,
+	public static ItemDefinition resolveDefinitionPath(ItemPath path, Map<QName, Object> variables,
 			PrismObjectDefinition<?> defaultContext, String shortDesc) throws SchemaException {
 		Object root = defaultContext;
-		PropertyPath relativePath = path;
-		PropertyPathSegment first = path.first();
+		ItemPath relativePath = path;
+		ItemPathSegment first = path.first();
 		if (first.isVariable()) {
 			relativePath = path.rest();
 			if (variables.containsKey(first.getName())) {

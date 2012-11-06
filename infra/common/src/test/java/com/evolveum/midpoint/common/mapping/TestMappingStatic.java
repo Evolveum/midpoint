@@ -35,8 +35,8 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -143,7 +143,7 @@ public class TestMappingStatic {
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
     			"mapping-value-boolean-true.xml",
     			"testValue",
-    			new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED));				// target    	
+    			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED));				// target    	
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, Boolean.TRUE);
     	PrismAsserts.assertTripleNoPlus(outputTriple);
@@ -156,7 +156,7 @@ public class TestMappingStatic {
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
     			"mapping-value-boolean-false.xml",
     			"testValue",
-    			new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED));				// target    	
+    			new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED));				// target    	
         // THEN
     	PrismAsserts.assertTripleZero(outputTriple, Boolean.FALSE);
     	PrismAsserts.assertTripleNoPlus(outputTriple);

@@ -54,12 +54,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -109,7 +109,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private PrismObjectDefinition<?> targetContext = null;
 	private PrismValueDeltaSetTriple<V> outputTriple = null;
 	private ItemDefinition outputDefinition;
-	private PropertyPath outputPath;
+	private ItemPath outputPath;
 	private Collection<Source<?>> sources;
 	private boolean conditionMaskOld = true;
 	private boolean conditionMaskNew = true;
@@ -430,7 +430,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		if (pathElement == null) {
 			throw new SchemaException("No path in source definition in "+contextDescription);
 		}
-		PropertyPath path = new XPathHolder(pathElement).toPropertyPath();
+		ItemPath path = new XPathHolder(pathElement).toPropertyPath();
 		if (path.isEmpty()) {
 			throw new SchemaException("Empty source path in "+contextDescription);
 		}
@@ -467,7 +467,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			if (pathElement == null) {
 				throw new SchemaException("No path in target definition in "+contextDescription);
 			}
-			PropertyPath path = new XPathHolder(pathElement).toPropertyPath();
+			ItemPath path = new XPathHolder(pathElement).toPropertyPath();
 			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+contextDescription);
 			if (outputDefinition == null) {
 				throw new SchemaException("No target item that would comform to the path "+path+" in "+getContextDescription());
@@ -493,7 +493,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return outputDefinition;
 	}
 	
-	public PropertyPath getOutputPath() throws SchemaException {
+	public ItemPath getOutputPath() throws SchemaException {
 		if (outputDefinition == null) {
 			parseTarget();
 		}
@@ -600,7 +600,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return output;
 	}
 	
-	public ItemDelta<V> createEmptyDelta(PropertyPath path) {
+	public ItemDelta<V> createEmptyDelta(ItemPath path) {
 		return outputDefinition.createEmptyDelta(path);
 	}
 	

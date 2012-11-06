@@ -19,12 +19,14 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 /**
  * @author semancik
  *
  */
 public interface Structured {
 	
-	Object resolve(PropertyPath subpath);
+	Object resolve(ItemPath subpath);
 
 }

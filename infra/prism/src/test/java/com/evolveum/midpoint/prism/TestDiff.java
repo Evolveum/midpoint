@@ -35,6 +35,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -202,9 +204,9 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications, 
-        		new PropertyPath(
-        				new PropertyPathSegment(UserType.F_ASSIGNMENT, "1"),
-        				new PropertyPathSegment(AssignmentType.F_DESCRIPTION)),
+        		new ItemPath(
+        				new ItemPathSegment(UserType.F_ASSIGNMENT, "1"),
+        				new ItemPathSegment(AssignmentType.F_DESCRIPTION)),
         		"chamalalia patlama paprtala");
     	
     }
@@ -234,7 +236,7 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications, 
-        		new PropertyPath(AssignmentType.F_DESCRIPTION),
+        		new ItemPath(AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
     	
     }
@@ -255,7 +257,7 @@ public class TestDiff {
     	PrismContainerValue<AssignmentType> ass2cval = ass2.createNewValue();
     	ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala");
 		
-		PropertyPath pathPrefix = new PropertyPath(new PropertyPathSegment(UserType.F_ASSIGNMENT, "1"));
+		ItemPath pathPrefix = new ItemPath(new ItemPathSegment(UserType.F_ASSIGNMENT, "1"));
 		
 		// WHEN
     	Collection<? extends ItemDelta> modifications = ass1cval.diff(ass2cval, pathPrefix, true, false);
@@ -266,9 +268,9 @@ public class TestDiff {
         assertEquals("Unexpected number of midifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
         		modifications, 
-        		new PropertyPath(
-        				new PropertyPathSegment(UserType.F_ASSIGNMENT, "1"),
-        				new PropertyPathSegment(AssignmentType.F_DESCRIPTION)),
+        		new ItemPath(
+        				new ItemPathSegment(UserType.F_ASSIGNMENT, "1"),
+        				new ItemPathSegment(AssignmentType.F_DESCRIPTION)),
         		"chamalalia patlama paprtala");
     	
     }

@@ -41,11 +41,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
@@ -310,7 +310,7 @@ public class ShadowCache {
 			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 			modifications.add(statusDelta);
-			statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
+			statusDelta.setParentPath(new ItemPath(ResourceType.F_OPERATIONAL_STATE));
 			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 		}
 		if (resource.getOperationalState() == null){
@@ -485,7 +485,7 @@ public class ShadowCache {
 
 		Collection<ItemDelta> shadowChanges = new ArrayList<ItemDelta>();
 		for (ItemDelta itemDelta : objectChange) {
-			if (new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath())
+			if (new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath())
 					|| SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())
 					|| SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())) {
 				continue;

@@ -26,11 +26,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -473,7 +473,7 @@ public class ResourceTypeManager {
 				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 				PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 				modifications.add(statusDelta);
-				statusDelta.setParentPath(new PropertyPath(ResourceType.F_OPERATIONAL_STATE));
+				statusDelta.setParentPath(new ItemPath(ResourceType.F_OPERATIONAL_STATE));
 				
 				try{
 				repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
@@ -982,7 +982,7 @@ public class ResourceTypeManager {
         	}
         	
         	if (itemDelta.getDefinition() == null && (ResourceType.F_CONNECTOR_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
-        		PropertyPath path = itemDelta.getPath().rest();
+        		ItemPath path = itemDelta.getPath().rest();
         		ItemDefinition itemDef = configContainerDef.findItemDefinition(path);
 				itemDelta.applyDefinition(itemDef);
         		

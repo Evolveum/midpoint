@@ -32,8 +32,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -172,7 +172,7 @@ public class ShadowConstraintsChecker {
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
+						EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifierValues),
 						isNotDead));
 		
 		List<PrismObject<AccountShadowType>> foundObjects = repositoryService.searchObjects(AccountShadowType.class, query, result);
@@ -218,7 +218,7 @@ public class ShadowConstraintsChecker {
 		if (delta == null) {
 			return false;
 		}
-		return delta.hasItemDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
+		return delta.hasItemDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
 	}
 
 	private void message(String message) {

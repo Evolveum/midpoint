@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -175,7 +176,7 @@ public final class WebMiscUtil {
             return;
         }
 
-        PropertyDelta propertyDelta = delta.findPropertyDelta(new PropertyPath(
+        PropertyDelta propertyDelta = delta.findPropertyDelta(new ItemPath(
                 SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD,
                 PasswordType.F_VALUE));
         if (propertyDelta == null) {
@@ -191,7 +192,7 @@ public final class WebMiscUtil {
     }
 
     public static void encryptCredentials(PrismObject object, boolean encrypt, MidPointApplication app) {
-        PrismContainer password = object.findContainer(new PropertyPath(
+        PrismContainer password = object.findContainer(new ItemPath(
                 SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD));
         if (password == null) {
             return;

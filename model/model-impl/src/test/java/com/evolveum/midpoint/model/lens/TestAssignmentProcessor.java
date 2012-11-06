@@ -30,11 +30,11 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.projector.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -84,7 +84,7 @@ import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
 
-    private static final PropertyPath ATTRIBUTES_PARENT_PATH = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
+    private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
 	private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
 

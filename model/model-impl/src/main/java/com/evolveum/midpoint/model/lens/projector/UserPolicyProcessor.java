@@ -46,12 +46,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -187,7 +187,7 @@ public class UserPolicyProcessor {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 
 		ItemDefinition outputDefinition = mapping.getOutputDefinition();
-		PropertyPath itemPath = mapping.getOutputPath();
+		ItemPath itemPath = mapping.getOutputPath();
 		
 		Item<V> existingUserItem = (Item<V>) userOdo.getNewObject().findItem(itemPath);
 		if (existingUserItem != null && !existingUserItem.isEmpty() 
@@ -198,10 +198,10 @@ public class UserPolicyProcessor {
 		}
 
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private PropertyPath outputPath;
+			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
-			public void setOutputPath(PropertyPath outputPath) {
+			public void setOutputPath(ItemPath outputPath) {
 				this.outputPath = outputPath;
 			}
 			

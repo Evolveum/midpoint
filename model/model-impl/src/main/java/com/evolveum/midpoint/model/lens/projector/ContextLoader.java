@@ -43,10 +43,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
@@ -380,7 +380,7 @@ public class ContextLoader {
 				// Adding new user with no accountRef -> nothing to do
 				return;
 			}
-			accountRefDelta = accountRef.createDelta(new PropertyPath(UserType.F_ACCOUNT_REF));
+			accountRefDelta = accountRef.createDelta(new ItemPath(UserType.F_ACCOUNT_REF));
 			accountRefDelta.addValuesToAdd(PrismValue.cloneValues(accountRef.getValues()));
 		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
 			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);

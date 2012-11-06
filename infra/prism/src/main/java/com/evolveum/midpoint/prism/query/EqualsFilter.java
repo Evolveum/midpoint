@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -28,34 +28,34 @@ import com.sun.tools.xjc.reader.xmlschema.parser.SchemaConstraintChecker;
 
 public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
-	EqualsFilter(PropertyPath path, ItemDefinition definition, List<PrismValue> values) {
+	EqualsFilter(ItemPath path, ItemDefinition definition, List<PrismValue> values) {
 		super(path, definition, values);
 	}
 
-	EqualsFilter(PropertyPath path, ItemDefinition definition, PrismValue value) {
+	EqualsFilter(ItemPath path, ItemDefinition definition, PrismValue value) {
 		super(path, definition, value);
 	}
 	
-	EqualsFilter(PropertyPath path, ItemDefinition definition, Element expression) {
+	EqualsFilter(ItemPath path, ItemDefinition definition, Element expression) {
 		super(path, definition, expression);
 	}
 
-	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition itemDef, PrismValue value) {
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(path, itemDef, value);
 	}
 
-	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition itemDef, List<PrismValue> values) {
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, List<PrismValue> values) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(path, itemDef, values);
 	}
 
-	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition itemDef, Element expression) {
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, Element expression) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(path, itemDef, expression);
 	}
 
-	public static EqualsFilter createEqual(PropertyPath path, ItemDefinition item, Object realValue) {
+	public static EqualsFilter createEqual(ItemPath path, ItemDefinition item, Object realValue) {
 
 		if (realValue == null){
 			return createEqual(path, item, new PrismPropertyValue(null));
@@ -77,7 +77,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}
 
 	
-	public static EqualsFilter createEqual(PropertyPath path, PrismContainerDefinition containerDef,
+	public static EqualsFilter createEqual(ItemPath path, PrismContainerDefinition containerDef,
 			QName propertyName, PrismValue... values) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {
@@ -88,7 +88,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		return createEqual(path, itemDef, values);
 	}
 
-	public static EqualsFilter createEqual(PropertyPath path, PrismContainerDefinition containerDef,
+	public static EqualsFilter createEqual(ItemPath path, PrismContainerDefinition containerDef,
 			QName propertyName, Object realValue) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {
@@ -185,7 +185,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}
 
 	@Override
-	public PropertyPath getPath(PropertyPath pathPrefix) {
+	public ItemPath getPath(ItemPath pathPrefix) {
 		// TODO Auto-generated method stub
 		return null;
 	}

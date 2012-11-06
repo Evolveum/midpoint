@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
@@ -90,7 +90,7 @@ public class RAccountShadow extends RResourceObjectShadow {
         jaxb.setAccountType(repo.getAccountType());
 
         if (repo.getCredentials() != null) {
-            PropertyPath path = new PropertyPath(AccountShadowType.F_CREDENTIALS);
+            ItemPath path = new ItemPath(AccountShadowType.F_CREDENTIALS);
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
     }

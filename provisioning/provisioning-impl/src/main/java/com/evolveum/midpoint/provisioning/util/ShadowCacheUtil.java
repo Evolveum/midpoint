@@ -23,6 +23,7 @@ package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -489,7 +490,7 @@ public class ShadowCacheUtil {
 
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
-			EqualsFilter filter = EqualsFilter.createEqual(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES),
+			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
 					identifier.getDefinition(), identifier.getValue());
 			conditions.add(filter);
 		}
@@ -555,7 +556,7 @@ public class ShadowCacheUtil {
 			// .asPrismObject().getPrismContext()));
 			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(AccountShadowType.class,
 					AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-					new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(),
+					new ItemPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(),
 					identifier.getValues()));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",

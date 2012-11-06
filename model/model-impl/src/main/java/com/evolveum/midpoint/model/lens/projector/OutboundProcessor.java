@@ -37,10 +37,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -142,10 +142,10 @@ public class OutboundProcessor {
 			mapping.setOriginType(OriginType.OUTBOUND);
 			
 			StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-				private PropertyPath outputPath;
+				private ItemPath outputPath;
 				private ItemDefinition outputDefinition;
 				@Override
-				public void setOutputPath(PropertyPath outputPath) {
+				public void setOutputPath(ItemPath outputPath) {
 					this.outputPath = outputPath;
 				}
 				

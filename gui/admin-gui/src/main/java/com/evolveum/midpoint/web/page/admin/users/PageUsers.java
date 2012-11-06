@@ -22,9 +22,9 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -560,7 +560,7 @@ public class PageUsers extends PageAdminUsers {
                 getPrismContext().adopt(user);
 
 //				PrismObject<UserType> object = user.asPrismObject();
-                PropertyPath path = new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
+                ItemPath path = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED);
 //				PrismProperty property = object.findOrCreateProperty(path);
 //				PropertyDelta delta = new PropertyDelta(path, property.getDefinition());
 //				delta.setValuesToReplace(Arrays.asList(new PrismPropertyValue(enabling,

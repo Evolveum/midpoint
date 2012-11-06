@@ -35,7 +35,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -335,7 +335,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return findItemDefinition(elementQName, ResourceAttributeDefinition.class);
 	}
 	
-	public ResourceAttributeDefinition findAttributeDefinition(PropertyPath elementPath) {
+	public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
 		return findItemDefinition(elementPath, ResourceAttributeDefinition.class);
 	}
 	

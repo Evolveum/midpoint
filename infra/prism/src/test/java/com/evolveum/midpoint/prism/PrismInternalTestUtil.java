@@ -37,6 +37,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -90,15 +91,15 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
 	public static final QName USER_ACTIVATION_QNAME = new QName(NS_FOO,"activation");
 	public static final QName USER_ENABLED_QNAME = new QName(NS_FOO,"enabled");
-	public static final PropertyPath USER_ENABLED_PATH = new PropertyPath(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
+	public static final ItemPath USER_ENABLED_PATH = new ItemPath(USER_ACTIVATION_QNAME, USER_ENABLED_QNAME);
 	public static final QName USER_VALID_FROM_QNAME = new QName(NS_FOO,"validFrom");
-	public static final PropertyPath USER_VALID_FROM_PATH = new PropertyPath(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
+	public static final ItemPath USER_VALID_FROM_PATH = new ItemPath(USER_ACTIVATION_QNAME, USER_VALID_FROM_QNAME);
 	public static final QName USER_VALID_TO_QNAME = new QName(NS_FOO,"validTo");
 	public static final QName ACTIVATION_TYPE_QNAME = new QName(NS_FOO,"ActivationType");
 	
 	public static final QName USER_ASSIGNMENT_QNAME = new QName(NS_FOO,"assignment");
 	public static final QName USER_DESCRIPTION_QNAME = new QName(NS_FOO,"description");
-	public static final PropertyPath USER_ASSIGNMENT_DESCRIPTION_PATH = new PropertyPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
+	public static final ItemPath USER_ASSIGNMENT_DESCRIPTION_PATH = new ItemPath(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
 	public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO,"AssignmentType");
 	public static final QName USER_ACCOUNT_CONSTRUCTION_QNAME = new QName(NS_FOO,"accountConstruction");
 	public static final String USER_ASSIGNMENT_1_ID = "i1111";

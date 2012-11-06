@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -164,7 +165,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     	return def.isValidFor(name, clazz);
     }
 
-    public <T extends ItemDefinition> T findItemDefinition(PropertyPath path, Class<T> clazz) {
+    public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
         if (path.isEmpty()) {
             return (T) this;
         }
@@ -181,7 +182,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return findItemDefinition(name, ItemDefinition.class);
     }
     
-    public ItemDefinition findItemDefinition(PropertyPath path) {
+    public ItemDefinition findItemDefinition(ItemPath path) {
         return findItemDefinition(path, ItemDefinition.class);
     }
 
@@ -197,7 +198,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return findItemDefinition(name, PrismPropertyDefinition.class);
     }
 
-    public PrismPropertyDefinition findPropertyDefinition(PropertyPath propertyPath) {
+    public PrismPropertyDefinition findPropertyDefinition(ItemPath propertyPath) {
         if (propertyPath.isEmpty()) {
             throw new IllegalArgumentException("Property path is empty while searching for property definition in " + this);
         }
@@ -236,7 +237,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      * @param path property container path
      * @return found property container definition or null
      */
-    public PrismContainerDefinition findContainerDefinition(PropertyPath path) {
+    public PrismContainerDefinition findContainerDefinition(ItemPath path) {
         return findItemDefinition(path, PrismContainerDefinition.class);
     }
 
@@ -309,7 +310,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     }
 
     @Override
-	public ItemDelta createEmptyDelta(PropertyPath path) {
+	public ItemDelta createEmptyDelta(ItemPath path) {
 		return new ContainerDelta(path, this);
 	}
 

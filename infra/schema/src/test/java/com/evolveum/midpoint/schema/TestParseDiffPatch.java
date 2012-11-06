@@ -32,6 +32,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
@@ -44,7 +45,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -97,10 +97,10 @@ public class TestParseDiffPatch {
         userDelta.checkConsistence();
         userDelta.assertDefinitions();
 
-        PropertyPath path = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+        ItemPath path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PrismAsserts.assertPropertyAdd(userDelta, path, 1);
-        path = new PropertyPath(SchemaConstantsGenerated.C_CREDENTIALS,
+        path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
         		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
@@ -338,7 +338,7 @@ public class TestParseDiffPatch {
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("update"), 3);
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
-        		new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
+        		new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
         		100);
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
@@ -358,13 +358,13 @@ public class TestParseDiffPatch {
 		resourceDelta.checkConsistence();
 	}
 
-	private PropertyPath pathConfigProperties(String propName) {
-		return new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+	private ItemPath pathConfigProperties(String propName) {
+		return new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
 				new QName(SchemaTestConstants.NS_ICFC_LDAP, propName));
 	}
 
-	private PropertyPath pathTimeouts(String last) {
-		return new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "timeouts"),
+	private ItemPath pathTimeouts(String last) {
+		return new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, new QName(SchemaTestConstants.NS_ICFC, "timeouts"),
 				new QName(SchemaTestConstants.NS_ICFC, last));
 	}
 

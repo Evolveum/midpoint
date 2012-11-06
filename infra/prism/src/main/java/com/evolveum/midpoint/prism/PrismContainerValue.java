@@ -32,6 +32,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -174,16 +176,16 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		super.setParent(container);
 	}
 	
-	public PropertyPath getPath(PropertyPath pathPrefix) {
+	public ItemPath getPath(ItemPath pathPrefix) {
 		Itemable parent = getParent();
-		PropertyPath parentPath = PropertyPath.EMPTY_PATH;
+		ItemPath parentPath = ItemPath.EMPTY_PATH;
 		if (parent != null) {
 			parentPath = getParent().getPath(pathPrefix);
 		}
 		if (parentPath == null || parentPath.isEmpty()) {
 			return parentPath;
 		}
-		PropertyPathSegment mySegment = new PropertyPathSegment(getParent().getName(), getId());
+		ItemPathSegment mySegment = new ItemPathSegment(getParent().getName(), getId());
 		return parentPath.allExceptLast().subPath(mySegment);
 	}
 	
@@ -326,7 +328,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
     // Expects that the "self" path segment is already included in the basePath
-    void addItemPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
+    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
     	for (Item<?> item: items) {
     		if (item instanceof PrismProperty) {
     			list.add(basePath.subPath(item.getName()));
@@ -401,7 +403,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
     }
     
-    public Item<?> findItem(PropertyPath itemPath) {
+    public Item<?> findItem(ItemPath itemPath) {
     	try {
 			return findCreateItem(itemPath, Item.class, null, false);
 		} catch (SchemaException e) {
@@ -443,9 +445,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
     // Expects that "self" path is NOT present in propPath
     @SuppressWarnings("unchecked")
-	<I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
-    	PropertyPathSegment first = propPath.first();
-    	PropertyPath rest = propPath.rest();
+	<I extends Item<?>> I findCreateItem(ItemPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
+    	ItemPathSegment first = propPath.first();
+    	ItemPath rest = propPath.rest();
     	for (Item<?> item : items) {
             if (first.getName().equals(item.getName())) {
             	if (rest.isEmpty()) {
@@ -613,17 +615,17 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     public void removeProperty(QName propertyName) {
-    	removeProperty(new PropertyPath(propertyName));
+    	removeProperty(new ItemPath(propertyName));
     }
     
-	public void removeProperty(PropertyPath propertyPath) {
+	public void removeProperty(ItemPath propertyPath) {
 		removeItem(propertyPath, PrismProperty.class);
 	}
 
 	// Expects that "self" path is NOT present in propPath
-	<I extends Item<?>> void removeItem(PropertyPath propPath, Class<I> itemType) {
-    	PropertyPathSegment first = propPath.first();
-    	PropertyPath rest = propPath.rest();
+	<I extends Item<?>> void removeItem(ItemPath propPath, Class<I> itemType) {
+    	ItemPathSegment first = propPath.first();
+    	ItemPath rest = propPath.rest();
     	Iterator<Item<?>> itemsIterator = items.iterator();
     	while(itemsIterator.hasNext()) {
     		Item<?> item = itemsIterator.next();
@@ -719,7 +721,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
 
 	@Override
-	void diffMatchingRepresentation(PrismValue otherValue, PropertyPath pathPrefix,
+	void diffMatchingRepresentation(PrismValue otherValue, ItemPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		if (otherValue instanceof PrismContainerValue) {
 			diffRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata, isLiteral);
@@ -728,7 +730,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}		
 	}
 	
-	void diffRepresentation(PrismContainerValue<T> otherValue, PropertyPath pathPrefix,
+	void diffRepresentation(PrismContainerValue<T> otherValue, ItemPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		PrismContainerValue<T> thisValue = this;
 		if (this.rawElements != null || otherValue.rawElements != null) {
@@ -780,7 +782,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 		
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, PropertyPath pathPrefix,
+	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, ItemPath pathPrefix,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		
 		for (Item<?> thisItem: thisValue.getItems()) {
@@ -871,8 +873,8 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     @Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
-		PropertyPath myPath = getPath(parentPath);
+	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
+		ItemPath myPath = getPath(parentPath);
 		if (prohibitRaw && rawElements != null) {
 			throw new IllegalStateException("Raw elements in container value "+this+" ("+myPath+" in "+rootItem+")");
 		}
@@ -964,7 +966,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		Collection<? extends ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
-		diffItems(thisValue, other, PropertyPath.EMPTY_PATH, deltas, ignoreMetadata, isLiteral);
+		diffItems(thisValue, other, ItemPath.EMPTY_PATH, deltas, ignoreMetadata, isLiteral);
 		return deltas.isEmpty();
 	}
 

@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
@@ -415,11 +415,11 @@ public class RTask extends RObject {
         }
 
         try {
-            jaxb.setModelOperationState(RUtil.toJAXB(TaskType.class, new PropertyPath(TaskType.F_MODEL_OPERATION_STATE),
+            jaxb.setModelOperationState(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_MODEL_OPERATION_STATE),
                     repo.getModelOperationState(), ModelOperationStateType.class, prismContext));
-            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, new PropertyPath(TaskType.F_OTHER_HANDLERS_URI_STACK),
+            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK),
                     repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
-            jaxb.setSchedule(RUtil.toJAXB(TaskType.class, new PropertyPath(TaskType.F_SCHEDULE), repo.getSchedule(),
+            jaxb.setSchedule(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_SCHEDULE), repo.getSchedule(),
                     ScheduleType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

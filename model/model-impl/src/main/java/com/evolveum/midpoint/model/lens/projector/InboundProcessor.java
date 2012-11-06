@@ -41,14 +41,14 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -162,7 +162,7 @@ public class InboundProcessor {
         for (QName accountAttributeName : accountDefinition.getNamesOfAttributesWithInboundExpressions()) {
             PropertyDelta<?> accountAttributeDelta = null;
             if (aPrioriDelta != null) {
-                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new PropertyPath(SchemaConstants.I_ATTRIBUTES), accountAttributeName);
+                accountAttributeDelta = aPrioriDelta.findPropertyDelta(new ItemPath(SchemaConstants.I_ATTRIBUTES), accountAttributeName);
                 if (accountAttributeDelta == null) {
                     LOGGER.trace("Skipping inbound for {} in {}: Account a priori delta exists, but doesn't have change for processed property.",
                     		accountAttributeName, accContext.getResourceShadowDiscriminator());
@@ -187,7 +187,7 @@ public class InboundProcessor {
                 		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
                 	}
                     LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
-                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new PropertyPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
+                    PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
                     userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 }
@@ -265,7 +265,7 @@ public class InboundProcessor {
             return null;
         }
         
-        PropertyPath targetUserPropertyPath = mapping.getOutputPath();
+        ItemPath targetUserPropertyPath = mapping.getOutputPath();
 		PrismProperty<U> targetUserProperty = newUser.findProperty(targetUserPropertyPath);
         PrismPropertyDefinition targetPropertyDef = newUser.getDefinition().findPropertyDefinition(targetUserPropertyPath);
         if (targetPropertyDef == null) {
@@ -347,10 +347,10 @@ public class InboundProcessor {
 
 	private StringPolicyResolver createStringPolicyResolver(final LensContext<UserType, AccountShadowType> context) {
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private PropertyPath outputPath;
+			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
-			public void setOutputPath(PropertyPath outputPath) {
+			public void setOutputPath(ItemPath outputPath) {
 				this.outputPath = outputPath;
 			}
 			
@@ -393,7 +393,7 @@ public class InboundProcessor {
     /**
      * Processing for special (fixed-schema) properties such as credentials and activation. 
      */
-    private void processSpecialPropertyInbound(MappingType inboundMappingType, PropertyPath sourcePath,
+    private void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
             PrismObject<UserType> newUser, LensProjectionContext<AccountShadowType> accContext, 
             RefinedAccountDefinition accountDefinition, LensContext<UserType,AccountShadowType> context, 
             OperationResult opResult) throws SchemaException {

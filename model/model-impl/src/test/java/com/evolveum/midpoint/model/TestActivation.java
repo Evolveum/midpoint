@@ -61,11 +61,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
@@ -116,7 +116,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestActivation extends AbstractModelIntegrationTest {
 			
-	private static final PropertyPath ACTIVATION_ENABLED_PATH = new PropertyPath(UserType.F_ACTIVATION, 
+	private static final ItemPath ACTIVATION_ENABLED_PATH = new ItemPath(UserType.F_ACTIVATION, 
 			ActivationType.F_ENABLED); 
 	
 	private String accountOid;

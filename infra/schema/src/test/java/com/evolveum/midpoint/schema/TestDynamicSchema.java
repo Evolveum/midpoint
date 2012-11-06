@@ -20,6 +20,8 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -89,7 +91,7 @@ public class TestDynamicSchema {
 		
 		// WHEN
 		PrismProperty<String> assignmentExtensionStringProperty = assignmentExtensionContainer.findOrCreateItem(
-				new PropertyPath(AssignmentType.F_EXTENSION, EXTENSION_STRING_TYPE_ELEMENT), PrismProperty.class);
+				new ItemPath(AssignmentType.F_EXTENSION, EXTENSION_STRING_TYPE_ELEMENT), PrismProperty.class);
 
 		// THEN
 		assertNotNull("stringType is null", assignmentExtensionStringProperty);
@@ -142,9 +144,9 @@ public class TestDynamicSchema {
 		System.out.println(user.dump());
 		
 		return user.findContainer(
-				new PropertyPath(
-						new PropertyPathSegment(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID),
-						new PropertyPathSegment(AssignmentType.F_EXTENSION)));		
+				new ItemPath(
+						new ItemPathSegment(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID),
+						new ItemPathSegment(AssignmentType.F_EXTENSION)));		
 	}
 
 }

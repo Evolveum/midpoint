@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -83,7 +85,7 @@ public class ObjectWrapper implements Serializable {
 	
 	public boolean getEnableStatus() {
 		ContainerWrapper activation = null;
-		PropertyPath activationPath = new PropertyPath(ResourceObjectShadowType.F_ACTIVATION);
+		ItemPath activationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);
 		for (ContainerWrapper container : getContainers()) {
 			if (container.getPath() == null || !container.getPath().equals(activationPath)) {
 				continue;
@@ -168,7 +170,7 @@ public class ObjectWrapper implements Serializable {
 		return containers;
 	}
 
-	public ContainerWrapper findContainerWrapper(PropertyPath path) {
+	public ContainerWrapper findContainerWrapper(ItemPath path) {
 		for (ContainerWrapper wrapper : getContainers()) {
 			if (path != null && path.equals(wrapper.getPath())) {
 				return wrapper;
@@ -191,8 +193,8 @@ public class ObjectWrapper implements Serializable {
 			container = definition.instantiate();
 		}
 
-		list.add(new ContainerWrapper(this, container, status, new PropertyPath(name)));
-		list.addAll(createContainerWrapper(container, new PropertyPath(name)));
+		list.add(new ContainerWrapper(this, container, status, new ItemPath(name)));
+		list.addAll(createContainerWrapper(container, new ItemPath(name)));
 
 		return list;
 	}
@@ -211,7 +213,7 @@ public class ObjectWrapper implements Serializable {
 					attributes = definition.instantiate();
 				}
 
-				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new PropertyPath(
+				ContainerWrapper container = new ContainerWrapper(this, attributes, status, new ItemPath(
 						ResourceObjectShadowType.F_ATTRIBUTES));
 				
 				container.setMain(true);
@@ -273,24 +275,24 @@ public class ObjectWrapper implements Serializable {
             PrismSchema schema = ConnectorTypeUtil.getConnectorSchema(connectorType, connector.getPrismContext());
             PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
 
-            definition = definition.findContainerDefinition(new PropertyPath(name));
+            definition = definition.findContainerDefinition(new ItemPath(name));
             container =  definition.instantiate();
         }
 
         return new ContainerWrapper(this, container, status,
-                new PropertyPath(ResourceType.F_CONNECTOR_CONFIGURATION, name));
+                new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, name));
     }
 
-	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, PropertyPath path) {
+	private List<ContainerWrapper> createContainerWrapper(PrismContainer parent, ItemPath path) {
 
 		PrismContainerDefinition definition = parent.getDefinition();
 		List<ContainerWrapper> wrappers = new ArrayList<ContainerWrapper>();
 
-		List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>();
+		List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
 		if (path != null) {
 			segments.addAll(path.getSegments());
 		}
-		PropertyPath parentPath = new PropertyPath(segments);
+		ItemPath parentPath = new ItemPath(segments);
 		for (ItemDefinition def : (Collection<ItemDefinition>) definition.getDefinitions()) {
 			if (!(def instanceof PrismContainerDefinition)) {
 				continue;
@@ -301,7 +303,7 @@ public class ObjectWrapper implements Serializable {
 				continue;
 			}
 
-			PropertyPath newPath = createPropertyPath(parentPath, containerDef.getName());
+			ItemPath newPath = createPropertyPath(parentPath, containerDef.getName());
 			PrismContainer prismContainer = object.findContainer(def.getName());
 			if (prismContainer != null) {
 				wrappers.add(new ContainerWrapper(this, prismContainer, ContainerStatus.MODIFYING, newPath));
@@ -318,12 +320,12 @@ public class ObjectWrapper implements Serializable {
 		return wrappers;
 	}
 
-	private PropertyPath createPropertyPath(PropertyPath path, QName element) {
-		List<PropertyPathSegment> segments = new ArrayList<PropertyPathSegment>();
+	private ItemPath createPropertyPath(ItemPath path, QName element) {
+		List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
 		segments.addAll(path.getSegments());
-		segments.add(new PropertyPathSegment(element));
+		segments.add(new ItemPathSegment(element));
 
-		return new PropertyPath(segments);
+		return new ItemPath(segments);
 	}
 
 	public void normalize() throws SchemaException {
@@ -359,8 +361,8 @@ public class ObjectWrapper implements Serializable {
 
 				PrismPropertyDefinition propertyDef = propertyWrapper.getItem().getDefinition();
 
-				PropertyPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
-						: new PropertyPath();
+				ItemPath path = containerWrapper.getPath() != null ? containerWrapper.getPath()
+						: new ItemPath();
 				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef);
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
 					ValueStatus valueStatus = valueWrapper.getStatus();
@@ -444,11 +446,11 @@ public class ObjectWrapper implements Serializable {
 			}
 
 			PrismContainer container = containerWrapper.getItem();
-			PropertyPath path = containerWrapper.getPath();
+			ItemPath path = containerWrapper.getPath();
 			if (containerWrapper.getPath() != null) {
 				container = container.clone();
 				if (path.size() > 1) {
-					PropertyPath parentPath = path.allExceptLast();
+					ItemPath parentPath = path.allExceptLast();
 					PrismContainer parent = object.findOrCreateContainer(parentPath);
 					parent.add(container);
 				} else {

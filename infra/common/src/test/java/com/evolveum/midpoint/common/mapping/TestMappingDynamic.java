@@ -43,10 +43,10 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -942,10 +942,10 @@ public class TestMappingDynamic {
     	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
     	
     	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private PropertyPath outputPath;
+			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
-			public void setOutputPath(PropertyPath outputPath) {
+			public void setOutputPath(ItemPath outputPath) {
 				this.outputPath = outputPath;
 			}
 			

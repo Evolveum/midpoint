@@ -37,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -119,8 +121,8 @@ public class TestCompare {
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, USER_FULLNAME_QNAME, "Jack Sparrow");
 		
-		PrismAsserts.assertPropertyDelete(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
-		PrismAsserts.assertPropertyAdd(jackDelta, new PropertyPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
+		PrismAsserts.assertPropertyDelete(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "dva");
+		PrismAsserts.assertPropertyAdd(jackDelta, new ItemPath(USER_EXTENSION_QNAME, EXTENSION_MULTI_ELEMENT), "osem");
 		// TODO: assert BAR
 		
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_ADDITIONALNAMES_QNAME, "Captain");
@@ -131,12 +133,12 @@ public class TestCompare {
 		PrismAsserts.assertPropertyDelete(jackDelta, USER_VALID_FROM_PATH, USER_JACK_VALID_FROM);
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, 
-				new PropertyPath(
-						new PropertyPathSegment(USER_ASSIGNMENT_QNAME,  USER_ASSIGNMENT_2_ID),
-						new PropertyPathSegment(USER_DESCRIPTION_QNAME, null)), 
+				new ItemPath(
+						new ItemPathSegment(USER_ASSIGNMENT_QNAME,  USER_ASSIGNMENT_2_ID),
+						new ItemPathSegment(USER_DESCRIPTION_QNAME, null)), 
 				"Assignment II");
 		
-		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAdd(jackDelta, new PropertyPath(USER_ASSIGNMENT_QNAME));
+		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAdd(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));
 		PrismContainerValue<?> assignment3DeltaAddValue = assignment3Delta.getValuesToAdd().iterator().next();
 		assertEquals("Assignment 3 wrong ID", USER_ASSIGNMENT_3_ID, assignment3DeltaAddValue.getId());
 		

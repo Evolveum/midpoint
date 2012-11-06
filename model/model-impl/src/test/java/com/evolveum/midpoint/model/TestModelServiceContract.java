@@ -59,11 +59,11 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
@@ -472,8 +472,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 
         Collection<ObjectOperationOptions> options = 
         	ObjectOperationOptions.createCollection(ObjectOperationOption.RESOLVE,
-        			new PropertyPath(UserType.F_ACCOUNT),
-    				new PropertyPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
+        			new ItemPath(UserType.F_ACCOUNT),
+    				new ItemPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
         	);
         
 		// WHEN

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -701,7 +701,7 @@ public class IntegrationTestTools {
 			ItemDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findItemDefinition(AccountShadowType.F_RESOURCE_REF);
 			filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(null, itemDef, resourceShadow.getResourceRef().getOid()),
-					EqualsFilter.createEqual(new PropertyPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifier.getValue()));
+					EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), identifier.getDefinition(), identifier.getValue()));
 			
 //		} catch (SchemaException e) {
 //			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);

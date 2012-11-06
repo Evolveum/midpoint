@@ -38,10 +38,10 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -174,10 +174,10 @@ public class CredentialsProcessor {
         }
 		
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private PropertyPath outputPath;
+			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;
 			@Override
-			public void setOutputPath(PropertyPath outputPath) {
+			public void setOutputPath(ItemPath outputPath) {
 				this.outputPath = outputPath;
 			}
 			

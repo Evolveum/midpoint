@@ -14,40 +14,40 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class RefFilter extends PropertyValueFilter{
 	
-	RefFilter(PropertyPath path, ItemDefinition definition, List<PrismReferenceValue> values) {
+	RefFilter(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values) {
 		super(path, definition, values);
 		// TODO Auto-generated constructor stub
 	}
 		
-	RefFilter(PropertyPath path, ItemDefinition definition, PrismReferenceValue value) {
+	RefFilter(ItemPath path, ItemDefinition definition, PrismReferenceValue value) {
 		super(path, definition, value);
 		// TODO Auto-generated constructor stub
 	}
 	
-	RefFilter(PropertyPath path, ItemDefinition definition, Element expression) {
+	RefFilter(ItemPath path, ItemDefinition definition, Element expression) {
 		super(path, definition, expression);
 		// TODO Auto-generated constructor stub
 	}
 	
-	public static RefFilter createReferenceEqual(PropertyPath path, ItemDefinition definition, List<PrismReferenceValue> values){
+	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values){
 		return new RefFilter(path, definition, values);
 	}
 	
-	public static RefFilter createReferenceEqual(PropertyPath path, ItemDefinition definition, Element expression){
+	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, Element expression){
 		return new RefFilter(path, definition, expression);
 	}
 	
-	public static RefFilter createReferenceEqual(PropertyPath path, ItemDefinition definition, PrismReferenceValue value){
+	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, PrismReferenceValue value){
 		return new RefFilter(path, definition, value);
 	}
 	
-	public static RefFilter createReferenceEqual(PropertyPath path, ItemDefinition item, String oid) {
+	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition item, String oid) {
 		PrismReferenceValue value = new PrismReferenceValue(oid);
 		return createReferenceEqual(path, item, value);
 	}
@@ -59,7 +59,7 @@ public class RefFilter extends PropertyValueFilter{
 
 	}
 
-	public static RefFilter createReferenceEqual(PropertyPath path, PrismContainerDefinition containerDef,
+	public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef,
 			QName propertyName, String realValue) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {

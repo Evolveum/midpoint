@@ -37,13 +37,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -146,7 +146,7 @@ public class ConsolidationProcessor {
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
 
-        PropertyPath parentPath = new PropertyPath(SchemaConstants.I_ATTRIBUTES);
+        ItemPath parentPath = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
         for (Map.Entry<QName, DeltaSetTriple<PropertyValueWithOrigin>> entry : squeezedAttributes.entrySet()) {
             QName attributeName = entry.getKey();

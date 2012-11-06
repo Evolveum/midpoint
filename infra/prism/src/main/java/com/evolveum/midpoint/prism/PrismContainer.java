@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -339,7 +341,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         return getValue().findCreateItem(itemQName, type, null, create);
     }
         
-    public <I extends Item<?>> I findItem(PropertyPath propPath, Class<I> type) {
+    public <I extends Item<?>> I findItem(ItemPath propPath, Class<I> type) {
     	try {
 			return findCreateItem(propPath, type, null, false);
 		} catch (SchemaException e) {
@@ -348,7 +350,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		}
     }
     
-    public Item<?> findItem(PropertyPath propPath) {
+    public Item<?> findItem(ItemPath propPath) {
     	try {
 			return findCreateItem(propPath, Item.class, null, false);
 		} catch (SchemaException e) {
@@ -358,11 +360,11 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     // Expects that "self" path IS present in propPath
-    <I extends Item<?>> I findCreateItem(PropertyPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
+    <I extends Item<?>> I findCreateItem(ItemPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	if (propPath == null || propPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
-    	PropertyPath rest = propPath.rest();
+    	ItemPath rest = propPath.rest();
     	if (rest.isEmpty()) {
     		// This is the end ...
     		if (type.isAssignableFrom(getClass())) {
@@ -377,7 +379,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		}
     	}
 
-    	PropertyPathSegment first = propPath.first();
+    	ItemPathSegment first = propPath.first();
     	PrismContainerValue<V> cval = findValue(first);
     	if (cval == null) {
     		return null;
@@ -387,7 +389,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     // Expects that "self" path IS present in propPath
-    private PrismContainerValue<V> findValue(PropertyPathSegment pathSegment) {
+    private PrismContainerValue<V> findValue(ItemPathSegment pathSegment) {
     	if (!pathSegment.getName().equals(getName())) {
     		throw new IllegalArgumentException("Expected path with first segment name "+getName()+", but got "+pathSegment);
     	}
@@ -408,7 +410,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	}
     }
     
-	public <T extends Containerable> PrismContainer<T> findContainer(PropertyPath path) {
+	public <T extends Containerable> PrismContainer<T> findContainer(ItemPath path) {
         return findItem(path, PrismContainer.class);
     }
     
@@ -416,7 +418,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         return findItem(containerName, PrismContainer.class);
     }
 
-    public <T> PrismProperty<T> findProperty(PropertyPath path) {
+    public <T> PrismProperty<T> findProperty(ItemPath path) {
         return findItem(path, PrismProperty.class);
     }
     
@@ -424,7 +426,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return findItem(propertyQName, PrismProperty.class);
     }
 
-    public PrismReference findReference(PropertyPath path) {
+    public PrismReference findReference(ItemPath path) {
         return findItem(path, PrismReference.class);
     }
     
@@ -436,13 +438,13 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return getValue().findReferenceByCompositeObjectElementName(elementName);
     }
             
-    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type) throws SchemaException {
+    public <T extends Item<?>> T findOrCreateItem(ItemPath containerPath, Class<T> type) throws SchemaException {
         return findCreateItem(containerPath, type, null, true);
     }
     
     // The "definition" parameter provides definition of item to create, in case that the container does not have
     // the definition (e.g. in case of "extension" containers)
-    public <T extends Item<?>> T findOrCreateItem(PropertyPath containerPath, Class<T> type, ItemDefinition definition) throws SchemaException {
+    public <T extends Item<?>> T findOrCreateItem(ItemPath containerPath, Class<T> type, ItemDefinition definition) throws SchemaException {
     	if (PrismObject.class.isAssignableFrom(type)) {
     		throw new IllegalArgumentException("It makes no sense to find object in a container (class)");
     	}
@@ -452,7 +454,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         return findCreateItem(containerPath, type, definition, true);
     }
     
-    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(PropertyPath containerPath) throws SchemaException {
+    public <T extends Containerable> PrismContainer<T> findOrCreateContainer(ItemPath containerPath) throws SchemaException {
         return findCreateItem(containerPath, PrismContainer.class, null, true);
     }
     
@@ -460,7 +462,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         return findCreateItem(containerName, PrismContainer.class, true);
     }
     
-    public <T> PrismProperty<T> findOrCreateProperty(PropertyPath propertyPath) throws SchemaException {
+    public <T> PrismProperty<T> findOrCreateProperty(ItemPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismProperty.class, null, true);
     }
     
@@ -468,7 +470,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         return findCreateItem(propertyName, PrismProperty.class, true);
     }
 
-    public PrismReference findOrCreateReference(PropertyPath propertyPath) throws SchemaException {
+    public PrismReference findOrCreateReference(ItemPath propertyPath) throws SchemaException {
         return findCreateItem(propertyPath, PrismReference.class, null, true);
     }
     
@@ -484,31 +486,31 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     public void removeProperty(QName propertyQName) {
-    	removeItem(new PropertyPath(propertyQName), PrismProperty.class);
+    	removeItem(new ItemPath(propertyQName), PrismProperty.class);
     }
     
-    public void removeProperty(PropertyPath path) {
+    public void removeProperty(ItemPath path) {
         removeItem(path, PrismProperty.class);
     }
     
     public void removeContainer(QName containerQName) {
-    	removeItem(new PropertyPath(containerQName), PrismContainer.class);
+    	removeItem(new ItemPath(containerQName), PrismContainer.class);
     }
     
-    public void removeContainer(PropertyPath path) {
+    public void removeContainer(ItemPath path) {
         removeItem(path, PrismContainer.class);
     }
     
     public void removeReference(QName referenceQName) {
-    	removeItem(new PropertyPath(referenceQName), PrismReference.class);
+    	removeItem(new ItemPath(referenceQName), PrismReference.class);
     }
     
-    public void removeReference(PropertyPath path) {
+    public void removeReference(ItemPath path) {
         removeItem(path, PrismReference.class);
     }
 
-    public <I extends Item<?>> void removeItem(PropertyPath path, Class<I> itemType) {
-    	PropertyPathSegment firstPathSegment = path.first();
+    public <I extends Item<?>> void removeItem(ItemPath path, Class<I> itemType) {
+    	ItemPathSegment firstPathSegment = path.first();
     	PrismContainerValue<V> cval = findValue(firstPathSegment);
     	if (cval == null) {
     		return;
@@ -517,7 +519,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
 
     // Expects that the "self" path segment is NOT included in the basePath
-    void addItemPathsToList(PropertyPath basePath, Collection<PropertyPath> list) {
+    void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
     	boolean addIds = true;
     	if (getDefinition() != null) {
     		if (getDefinition().isSingleValue()) {
@@ -525,18 +527,18 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		}
     	}
     	for (PrismContainerValue<V> pval: getValues()) {
-    		PropertyPathSegment segment = null;
+    		ItemPathSegment segment = null;
     		if (addIds) {
-    			segment = new PropertyPathSegment(getName(), pval.getId());
+    			segment = new ItemPathSegment(getName(), pval.getId());
     		} else {
-    			segment = new PropertyPathSegment(getName());
+    			segment = new ItemPathSegment(getName());
     		}
     		pval.addItemPathsToList(basePath.subPath(segment), list);
     	}
     }
     
     @Override
-	public ContainerDelta<V> createDelta(PropertyPath path) {
+	public ContainerDelta<V> createDelta(ItemPath path) {
     	return new ContainerDelta<V>(path, getDefinition());
 	}
     
@@ -581,7 +583,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 		
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, PropertyPath path, boolean requireDefinitions,
+	public void checkConsistenceInternal(Itemable rootItem, ItemPath path, boolean requireDefinitions,
 			boolean prohibitRaw) {
 		// Containers that are from run-time schema cannot have compile-time class.
 		if (getDefinition() != null && !getDefinition().isRuntimeSchema) {

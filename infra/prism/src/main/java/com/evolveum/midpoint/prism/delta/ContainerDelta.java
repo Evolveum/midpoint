@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -31,7 +31,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		super(itemDefinition);
 	}
 
-	public ContainerDelta(PropertyPath propertyPath, PrismContainerDefinition itemDefinition) {
+	public ContainerDelta(ItemPath propertyPath, PrismContainerDefinition itemDefinition) {
 		super(propertyPath, itemDefinition);
     	// Extra check. It makes no sense to create container delta with object definition
     	if (itemDefinition instanceof PrismObjectDefinition<?>) {
@@ -39,7 +39,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     	}
 	}
 
-	public ContainerDelta(PropertyPath parentPath, QName name, PrismContainerDefinition itemDefinition) {
+	public ContainerDelta(ItemPath parentPath, QName name, PrismContainerDefinition itemDefinition) {
 		super(parentPath, name, itemDefinition);
     	// Extra check. It makes no sense to create container delta with object definition
     	if (itemDefinition instanceof PrismObjectDefinition<?>) {
@@ -142,7 +142,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		super.applyTo(item);
 	}
 	
-	public ItemDelta<?> findItemDelta(PropertyPath path) {
+	public ItemDelta<?> findItemDelta(ItemPath path) {
 		if (path.isEmpty()) {
 			return this;
 		}
@@ -157,7 +157,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 		return itemDelta;
 	}
 	
-	private Collection findItemValues(PropertyPath path, Collection<PrismContainerValue<V>> cvalues) {
+	private Collection findItemValues(ItemPath path, Collection<PrismContainerValue<V>> cvalues) {
 		if (cvalues == null) {
 			return null;
 		}

@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
@@ -475,7 +475,7 @@ public class RUser extends RObject {
         }
 
         if (repo.getCredentials() != null) {
-            PropertyPath path = new PropertyPath(UserType.F_CREDENTIALS);
+            ItemPath path = new ItemPath(UserType.F_CREDENTIALS);
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
 

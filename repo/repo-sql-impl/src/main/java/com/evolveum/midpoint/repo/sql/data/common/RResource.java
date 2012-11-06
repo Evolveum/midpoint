@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -255,29 +255,29 @@ public class RResource extends RObject {
 		}
 
 		try {
-			jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new PropertyPath(
+			jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new ItemPath(
 					ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class,
 					prismContext));
-			jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA),
+			jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCHEMA),
 					repo.getXmlSchema(), XmlSchemaType.class, prismContext));
-			jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCHEMA_HANDLING),
+			jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCHEMA_HANDLING),
 					repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
-			jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SYNCHRONIZATION),
+			jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SYNCHRONIZATION),
 					repo.getSynchronization(), SynchronizationType.class, prismContext));
 			if (repo.getCapabilities() != null) {
 				jaxb.setCapabilities(repo.getCapabilities().toJAXB(prismContext));
 			}
-			jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_SCRIPTS),
+			jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCRIPTS),
 					repo.getScripts(), ProvisioningScriptsType.class, prismContext));
 			if (repo.getBusiness() != null && !repo.getBusiness().empty()) {
-				jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new PropertyPath(ResourceType.F_BUSINESS),
+				jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new ItemPath(ResourceType.F_BUSINESS),
 						prismContext));
 			}
 			if (repo.getOperationalState() != null) {
 				jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
-						new PropertyPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
+						new ItemPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
 			}
-			jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new PropertyPath(ResourceType.F_CONSISTENCY),
+			jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_CONSISTENCY),
 					repo.getConsistency(), ResourceConsistencyType.class, prismContext));
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);

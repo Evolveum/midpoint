@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -64,11 +64,11 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	super(name, propertyDefinition);
     }
 
-    public PropertyDelta(PropertyPath parentPath, QName name, PrismPropertyDefinition propertyDefinition) {
+    public PropertyDelta(ItemPath parentPath, QName name, PrismPropertyDefinition propertyDefinition) {
     	super(parentPath, name, propertyDefinition);
     }
 
-    public PropertyDelta(PropertyPath propertyPath, PrismPropertyDefinition propertyDefinition) {
+    public PropertyDelta(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition) {
     	super(propertyPath, propertyDefinition);
     }
     
@@ -236,12 +236,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		return (PropertyDelta<T>) super.narrow(object);
 	}
 
-	public static PropertyDelta createDelta(PropertyPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
+	public static PropertyDelta createDelta(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
     	return new PropertyDelta(propertyPath, propDef);
     }
     
-    public static <T extends Objectable> PropertyDelta createDelta(PropertyPath propertyPath, Class<T> compileTimeClass, PrismContext prismContext) {
+    public static <T extends Objectable> PropertyDelta createDelta(ItemPath propertyPath, Class<T> compileTimeClass, PrismContext prismContext) {
     	PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
     	return new PropertyDelta(propertyPath, propDef);
@@ -275,7 +275,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	return modifications;
     }
     
-    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, PropertyPath propertyPath) {
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, ItemPath propertyPath) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getPath().equals(propertyPath)) {
     			return (PropertyDelta) delta;

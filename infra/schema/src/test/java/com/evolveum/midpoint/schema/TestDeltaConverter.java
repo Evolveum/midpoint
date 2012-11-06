@@ -33,12 +33,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -83,8 +83,8 @@ public class TestDeltaConverter {
 	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
 	private static final File COMMON_TEST_DIR = new File("src/test/resources/common");
 	
-	private static final PropertyPath CREDENTIALS_PASSWORD_VALUE_PATH = 
-		new PropertyPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH = 
+		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -227,7 +227,7 @@ public class TestDeltaConverter {
     	System.out.println("===[ testProtectedStringObjectDelta ]====");
 
     	// GIVEN
-    	PropertyPath path = CREDENTIALS_PASSWORD_VALUE_PATH;
+    	ItemPath path = CREDENTIALS_PASSWORD_VALUE_PATH;
     	ProtectedStringType protectedString = new ProtectedStringType();
     	protectedString.setClearValue("abrakadabra");
     	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, "12345",

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -199,9 +200,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
     
     @Override
-    public PropertyPath getPath(PropertyPath pathPrefix) {
+    public ItemPath getPath(ItemPath pathPrefix) {
     	if (pathPrefix == null) {
-    		return new PropertyPath(getName());
+    		return new ItemPath(getName());
     	}
     	return pathPrefix.subPath(getName());
     }
@@ -407,15 +408,15 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return diff(other, null, ignoreMetadata, isLiteral);
     }
     
-    public Collection<? extends ItemDelta> diff(Item<V> other, PropertyPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
+    public Collection<? extends ItemDelta> diff(Item<V> other, ItemPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
     	Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
 		diffInternal(other, pathPrefix, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
     }
         
-    protected void diffInternal(Item<V> other, PropertyPath pathPrefix, Collection<? extends ItemDelta> deltas, 
+    protected void diffInternal(Item<V> other, ItemPath pathPrefix, Collection<? extends ItemDelta> deltas, 
     		boolean ignoreMetadata, boolean isLiteral) {
-    	PropertyPath deltaPath = getPath(pathPrefix);
+    	ItemPath deltaPath = getPath(pathPrefix);
     	ItemDelta delta = null;
     	if (deltaPath != null && !deltaPath.isEmpty()) {
     		// DeltaPath can be empty in objects. But in that case we don't expect to create any delta at this level anyway.
@@ -471,7 +472,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	}
     }
     
-	protected ItemDelta fixupDelta(ItemDelta delta, Item<V> other, PropertyPath pathPrefix,
+	protected ItemDelta fixupDelta(ItemDelta delta, Item<V> other, ItemPath pathPrefix,
 			boolean ignoreMetadata) {
 		return delta;
 	}
@@ -480,7 +481,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      * Creates specific sublcass of ItemDelta appropriate for type of item that this definition
      * represents (e.g. PropertyDelta, ContainerDelta, ...)
      */
-	public abstract ItemDelta<V> createDelta(PropertyPath path);
+	public abstract ItemDelta<V> createDelta(ItemPath path);
 
 	@Override
 	public void accept(Visitor visitor) {
@@ -559,18 +560,18 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
     
     public void checkConsistence(boolean requireDefinitions) {
-    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH, requireDefinitions, false);
+    	checkConsistenceInternal(this, ItemPath.EMPTY_PATH, requireDefinitions, false);
     }
     
     public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw) {
-    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH, requireDefinitions, prohibitRaw);
+    	checkConsistenceInternal(this, ItemPath.EMPTY_PATH, requireDefinitions, prohibitRaw);
     }
     
     public void checkConsistence() {
-    	checkConsistenceInternal(this, PropertyPath.EMPTY_PATH, false, false);
+    	checkConsistenceInternal(this, ItemPath.EMPTY_PATH, false, false);
     }
     
-    public void checkConsistenceInternal(Itemable rootItem, PropertyPath path, boolean requireDefinitions, boolean prohibitRaw) {
+    public void checkConsistenceInternal(Itemable rootItem, ItemPath path, boolean requireDefinitions, boolean prohibitRaw) {
     	if (name == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}

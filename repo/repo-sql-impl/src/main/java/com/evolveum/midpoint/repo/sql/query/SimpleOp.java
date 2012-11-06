@@ -26,9 +26,9 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
-import com.evolveum.midpoint.prism.PropertyPathSegment;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -102,7 +102,7 @@ public class SimpleOp extends Op {
 		// validate(filter);
 
 		ValueFilter valueFilter = (ValueFilter) filter;
-		PropertyPath propertyPath = valueFilter.getPath();
+		ItemPath propertyPath = valueFilter.getPath();
 
 		if (propertyPath != null) {
 			// at first we build criterions with aliases
@@ -273,7 +273,7 @@ public class SimpleOp extends Op {
 		return criterion;
 	}
 
-	private SimpleItem updateConditionItem(ItemDefinition itemDef, PropertyPath path) throws QueryException {
+	private SimpleItem updateConditionItem(ItemDefinition itemDef, ItemPath path) throws QueryException {
 		// QName conditionItem = DOMUtil.getQNameWithoutPrefix(condition);
 		QName conditionItem = itemDef.getName();
 		LOGGER.trace("Updating condition item '{}' on property path\n{}", new Object[] { conditionItem, path });
@@ -286,13 +286,13 @@ public class SimpleOp extends Op {
 			if (definition.isAny()) {
 				try {
 					item.isAny = true;
-					List<PropertyPathSegment> segments = path.getSegments();
+					List<ItemPathSegment> segments = path.getSegments();
 					// get any type name (e.g. clobs, strings, dates,...) based
 					// on definition
 					String anyTypeName = RAnyConverter.getAnySetType(itemDef);
-					segments.add(new PropertyPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
+					segments.add(new ItemPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
-					path = new PropertyPath(segments);
+					path = new ItemPath(segments);
 					LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
 							new Object[] { anyTypeName });
 					addNewCriteriaToContext(path, anyTypeName);
@@ -322,11 +322,11 @@ public class SimpleOp extends Op {
 			}
 			
 			if (attrDef.isReference()) {
-				PropertyPath propPath = path;
+				ItemPath propPath = path;
 				String realName = attrDef.getJpaName();
 				if (propPath == null || propPath.isEmpty()) {
 					// used in references from main criteria
-					propPath = new PropertyPath(new QName(RUtil.NS_SQL_REPO, realName));
+					propPath = new ItemPath(new QName(RUtil.NS_SQL_REPO, realName));
 				}
 
                 addNewCriteriaToContext(propPath, realName);
@@ -356,14 +356,14 @@ public class SimpleOp extends Op {
 		return item;
 	}
 
-	private EntityDefinition findDefinition(Class<? extends ObjectType> type, PropertyPath path) throws QueryException {
+	private EntityDefinition findDefinition(Class<? extends ObjectType> type, ItemPath path) throws QueryException {
 		EntityDefinition definition = getClassTypeDefinition(type);
 		if (path == null) {
 			return definition;
 		}
 
 		Definition def;
-		for (PropertyPathSegment segment : path.getSegments()) {
+		for (ItemPathSegment segment : path.getSegments()) {
 			def = definition.findDefinition(segment.getName());
 			if (!def.isEntity()) {
 				throw new QueryException("Can't query attribute in attribute.");
@@ -391,20 +391,20 @@ public class SimpleOp extends Op {
 	 * @param path
 	 * @throws QueryException
 	 */
-	private void updateQueryContext(PropertyPath path) throws QueryException {
+	private void updateQueryContext(ItemPath path) throws QueryException {
 		LOGGER.trace("Updating query context based on path\n{}", new Object[] { path.toString() });
 		Class<? extends ObjectType> type = getInterpreter().getType();
 		Definition definition = getClassTypeDefinition(type);
 
-		List<PropertyPathSegment> segments = path.getSegments();
+		List<ItemPathSegment> segments = path.getSegments();
 
-		List<PropertyPathSegment> propPathSegments = new ArrayList<PropertyPathSegment>();
-		PropertyPath propPath;
-		for (PropertyPathSegment segment : segments) {
+		List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
+		ItemPath propPath;
+		for (ItemPathSegment segment : segments) {
 			QName qname = segment.getName();
 			// create new property path
-			propPathSegments.add(new PropertyPathSegment(qname));
-			propPath = new PropertyPath(propPathSegments);
+			propPathSegments.add(new ItemPathSegment(qname));
+			propPath = new ItemPath(propPathSegments);
 			// get entity query definition
 			definition = definition.findDefinition(qname);
 			if (definition == null || !definition.isEntity()) {
@@ -428,9 +428,9 @@ public class SimpleOp extends Op {
 		}
 	}
 
-	private void addNewCriteriaToContext(PropertyPath propPath, String realName) {
-		PropertyPath lastPropPath = propPath.allExceptLast();
-		if (PropertyPath.EMPTY_PATH.equals(lastPropPath)) {
+	private void addNewCriteriaToContext(ItemPath propPath, String realName) {
+		ItemPath lastPropPath = propPath.allExceptLast();
+		if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
 			lastPropPath = null;
 		}
 		// get parent criteria

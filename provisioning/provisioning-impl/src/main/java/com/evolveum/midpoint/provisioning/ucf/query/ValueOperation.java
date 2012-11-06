@@ -10,7 +10,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -34,7 +34,7 @@ public class ValueOperation extends Operation {
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
 		if (valueFilter.getPath() != null && !valueFilter.getPath().isEmpty()
-				&& valueFilter.getPath().equals(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
+				&& valueFilter.getPath().equals(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = UcfUtil.convertAttributeNameToIcf(propName, getInterpreter()

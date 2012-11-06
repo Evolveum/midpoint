@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PropertyPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -201,15 +201,15 @@ public class RSystemConfiguration extends RObject {
         }
 
         try {
-            jaxb.setConnectorFramework(RUtil.toJAXB(SystemConfigurationType.class, new PropertyPath(SystemConfigurationType.F_CONNECTOR_FRAMEWORK),
+            jaxb.setConnectorFramework(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_CONNECTOR_FRAMEWORK),
                     repo.getConnectorFramework(), ConnectorFrameworkType.class, prismContext));
             jaxb.setGlobalAccountSynchronizationSettings(RUtil.toJAXB(SystemConfigurationType.class,
-                    new PropertyPath(SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS),
+                    new ItemPath(SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS),
                     repo.getGlobalAccountSynchronizationSettings(), AccountSynchronizationSettingsType.class,
                     prismContext));
-            jaxb.setLogging(RUtil.toJAXB(SystemConfigurationType.class, new PropertyPath(SystemConfigurationType.F_LOGGING),
+            jaxb.setLogging(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_LOGGING),
                     repo.getLogging(), LoggingConfigurationType.class, prismContext));
-            jaxb.setModelHooks(RUtil.toJAXB(SystemConfigurationType.class, new PropertyPath(SystemConfigurationType.F_MODEL_HOOKS),
+            jaxb.setModelHooks(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_MODEL_HOOKS),
                     repo.getModelHooks(), ModelHooksType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

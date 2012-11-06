@@ -41,9 +41,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -63,7 +63,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	/**
 	 * Parent path of the property (path to the property container)
 	 */
-	protected PropertyPath parentPath;
+	protected ItemPath parentPath;
 	protected ItemDefinition definition;
 
 	protected Collection<V> valuesToReplace = null;
@@ -72,23 +72,23 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	public ItemDelta(ItemDefinition itemDefinition) {
 		this.name = itemDefinition.getName();
-		this.parentPath = new PropertyPath();
+		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
 	}
 
 	public ItemDelta(QName name, ItemDefinition itemDefinition) {
 		this.name = name;
-		this.parentPath = new PropertyPath();
+		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
 	}
 
-	public ItemDelta(PropertyPath parentPath, QName name, ItemDefinition itemDefinition) {
+	public ItemDelta(ItemPath parentPath, QName name, ItemDefinition itemDefinition) {
 		this.name = name;
 		this.parentPath = parentPath;
 		this.definition = itemDefinition;
 	}
 
-	public ItemDelta(PropertyPath propertyPath, ItemDefinition itemDefinition) {
+	public ItemDelta(ItemPath propertyPath, ItemDefinition itemDefinition) {
 		this.name = propertyPath.last().getName();
 		this.parentPath = propertyPath.allExceptLast();
 		this.definition = itemDefinition;
@@ -102,20 +102,20 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		this.name = name;
 	}
 
-	public PropertyPath getParentPath() {
+	public ItemPath getParentPath() {
 		return parentPath;
 	}
 
-	public void setParentPath(PropertyPath parentPath) {
+	public void setParentPath(ItemPath parentPath) {
 		this.parentPath = parentPath;
 	}
 
-	public PropertyPath getPath() {
+	public ItemPath getPath() {
 		return getParentPath().subPath(name);
 	}
 
 	@Override
-	public PropertyPath getPath(PropertyPath pathPrefix) {
+	public ItemPath getPath(ItemPath pathPrefix) {
 		return pathPrefix.subPath(name);
 	}
 
@@ -169,7 +169,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	public static void applyDefinition(Collection<? extends ItemDelta> deltas,
 			PrismObjectDefinition definition) throws SchemaException {
 		for (ItemDelta<?> itemDelta : deltas) {
-			PropertyPath path = itemDelta.getPath();
+			ItemPath path = itemDelta.getPath();
 			ItemDefinition itemDefinition = definition.findItemDefinition(path, ItemDefinition.class);
 			itemDelta.applyDefinition(itemDefinition);
 		}
@@ -470,26 +470,26 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 	
 	public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, QName propertyName) {
-        return findPropertyDelta(deltas, new PropertyPath(propertyName));
+        return findPropertyDelta(deltas, new ItemPath(propertyName));
     }
 
-    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, PropertyPath parentPath, QName propertyName) {
-        return findPropertyDelta(deltas, new PropertyPath(parentPath, propertyName));
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath parentPath, QName propertyName) {
+        return findPropertyDelta(deltas, new ItemPath(parentPath, propertyName));
     }
     
-    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath) {
+    public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
     	return findItemDelta(deltas, propertyPath, PropertyDelta.class);
     }
     
-    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath) {
+    public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath) {
     	return findItemDelta(deltas, propertyPath, ContainerDelta.class);
     }
 
     public static <X extends Containerable> ContainerDelta<X> findContainerDelta(Collection<? extends ItemDelta> deltas, QName name) {
-    	return findContainerDelta(deltas, new PropertyPath(name));
+    	return findContainerDelta(deltas, new ItemPath(name));
     }
 
-    public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath, Class<D> deltaType) {
+    public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath, Class<D> deltaType) {
         if (deltas == null) {
             return null;
         }
@@ -502,14 +502,14 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
     }
     
     public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, QName itemName, Class<D> deltaType) {
-    	return findItemDelta(deltas, new PropertyPath(itemName), deltaType);
+    	return findItemDelta(deltas, new ItemPath(itemName), deltaType);
     }
     
     public static ReferenceDelta findReferenceModification(Collection<? extends ItemDelta> deltas, QName itemName) {
     	return findItemDelta(deltas, itemName, ReferenceDelta.class);
     }
     
-    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, PropertyPath propertyPath, Class<D> deltaType) {
+    public static <D extends ItemDelta> void removeItemDelta(Collection<? extends ItemDelta> deltas, ItemPath propertyPath, Class<D> deltaType) {
         if (deltas == null) {
             return;
         }

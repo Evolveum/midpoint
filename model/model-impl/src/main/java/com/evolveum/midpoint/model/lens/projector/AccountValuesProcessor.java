@@ -31,8 +31,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PropertyPath;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -200,7 +200,7 @@ public class AccountValuesProcessor {
 		if (delta == null) {
 			return false;
 		}
-		return delta.hasItemDelta(new PropertyPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
+		return delta.hasItemDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
 	}
 
 	
