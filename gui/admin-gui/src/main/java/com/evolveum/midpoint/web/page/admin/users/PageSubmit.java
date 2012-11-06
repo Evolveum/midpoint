@@ -49,10 +49,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -360,14 +364,20 @@ public class PageSubmit extends PageAdmin {
 	private List<SubmitAssignmentDto> loadAssignmentsChanges() {
 
 		List<SubmitAssignmentDto> list = new ArrayList<SubmitAssignmentDto>();
-		PrismContainerValue prismValue;
+		PrismValue prismValue;
 		OriginType originType;
 		for (SubmitDeltaObjectDto assignmentDto : userChangesDto.getAssignmentsList()) {
 			originType = null;
-			ContainerDelta assignment = (ContainerDelta) assignmentDto.getItemDelta();
+			ItemDelta assignment = null;
+			if(assignmentDto.getItemDelta() instanceof ContainerDelta) {
+				assignment = (ContainerDelta) assignmentDto.getItemDelta(); 
+			} else {
+				assignment = (ReferenceDelta) assignmentDto.getItemDelta(); 
+			}
+			 
 			if (assignment.getValuesToAdd() != null) {
 				for (Object item : assignment.getValuesToAdd()) {
-					prismValue = (PrismContainerValue) item;
+					prismValue = (PrismValue) item;
 					originType = prismValue.getOriginType();
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment(prismValue),
 							getString("pageSubmit.status." + SubmitStatus.ADDING), getString("OriginType."
@@ -377,7 +387,7 @@ public class PageSubmit extends PageAdmin {
 
 			if (assignment.getValuesToDelete() != null) {
 				for (Object item : assignment.getValuesToDelete()) {
-					prismValue = (PrismContainerValue) item;
+					prismValue = (PrismValue) item;
 					originType = prismValue.getOriginType();
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment(prismValue),
 							getString("pageSubmit.status." + SubmitStatus.DELETING),getString("OriginType."
@@ -507,16 +517,27 @@ public class PageSubmit extends PageAdmin {
 				StringUtils.join(newValues, ", "), getString("OriginType." + originType), secondaryValue);
 	}
 
-	private String getReferenceFromAssignment(PrismContainerValue assignment) {
+	private String getReferenceFromAssignment(PrismValue assignment) {
 		Task task = createSimpleTask("getRefFromAssignment: Load role");
 		OperationResult result = new OperationResult("getRefFromAssignment: Load role");
+		PrismReference accountConstrRef = null;
+		PrismReferenceValue prismRefValue = null;
+		
+		if(assignment instanceof PrismReferenceValue) {
+			prismRefValue = (PrismReferenceValue) assignment;
+		} else {
+			PrismContainerValue prismContVal = (PrismContainerValue) assignment;
+			accountConstrRef = prismContVal.findReference(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+			if(accountConstrRef == null) {
+				accountConstrRef = prismContVal.findReference(AssignmentType.F_TARGET_REF);
+			}
+		}
 
-		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
-		if (targetRef != null) {
-			if(targetRef.getValue().getTargetType().equals(OrgType.COMPLEX_TYPE)) {
+		if (prismRefValue != null) {
+			if(prismRefValue.getTargetType().equals(OrgType.COMPLEX_TYPE)) {
 				PrismObject<OrgType> org = null;
 				try {
-					org = getModelService().getObject(OrgType.class, targetRef.getValue().getOid(), null, task,
+					org = getModelService().getObject(OrgType.class, prismRefValue.getOid(), null, task,
 							result);
 				} catch (Exception ex) {
 					result.recordFatalError("Unable to get orgUnit object", ex);
@@ -527,7 +548,7 @@ public class PageSubmit extends PageAdmin {
 			} else {
 				PrismObject<RoleType> role = null;
 				try {
-					role = getModelService().getObject(RoleType.class, targetRef.getValue().getOid(), null, task,
+					role = getModelService().getObject(RoleType.class, prismRefValue.getOid(), null, task,
 							result);
 				} catch (Exception ex) {
 					result.recordFatalError("Unable to get role object", ex);
@@ -536,10 +557,8 @@ public class PageSubmit extends PageAdmin {
 				}
 				return WebMiscUtil.getName(role);
 			}
-			
 		}
 
-		PrismReference accountConstrRef = assignment.findReference(AssignmentType.F_ACCOUNT_CONSTRUCTION);
 		if (accountConstrRef != null) {
 			if(accountConstrRef.getValue().getTargetType().equals(OrgType.COMPLEX_TYPE)) {
 				PrismObject<OrgType> org = null;

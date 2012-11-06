@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -65,7 +66,6 @@ public class UserChangesDto implements Serializable {
 		}
 
 		ItemPath account = new ItemPath(SchemaConstants.I_ACCOUNT_REF);
-		ItemPath assignment = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT);
 
 		if (delta.getChangeType().equals(ChangeType.DELETE)) {
 
@@ -103,8 +103,10 @@ public class UserChangesDto implements Serializable {
 				ItemDelta itemDelta = (ItemDelta) item;
 				if (itemDelta.getPath().equals(account)) {
 					continue;
-				} else if (itemDelta.getPath().equals(assignment)) {
+				} else if (itemDelta instanceof ContainerDelta) {
 					assignmentsList.add(new SubmitDeltaObjectDto((ContainerDelta) itemDelta, secondaryValue));
+				} else if (itemDelta instanceof ReferenceDelta) {
+					assignmentsList.add(new SubmitDeltaObjectDto((ReferenceDelta) itemDelta, secondaryValue));
 				} else {
 					userPropertiesList
 							.add(new SubmitDeltaObjectDto((PropertyDelta) itemDelta, secondaryValue));
