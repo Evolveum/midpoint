@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -90,7 +91,7 @@ public class ExpressionUtil {
 						PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
 						PolyString realVal = (PolyString)pval.getValue();
 						if (realVal != null) {
-							if (lastPathSegment != null && lastPathSegment.getName().equals(PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME)) {
+							if (lastPathSegment != null && ItemPath.getName(lastPathSegment).equals(PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME)) {
 								pval.setValue(realVal.getNorm());
 							} else {
 								pval.setValue(realVal.getOrig());
@@ -110,13 +111,14 @@ public class ExpressionUtil {
 		ItemPath relativePath = path;
 		ItemPathSegment first = path.first();
 		String varDesc = "default context";
-		if (first.isVariable()) {
-			varDesc = "variable "+PrettyPrinter.prettyPrint(first.getName());
+		if (first instanceof NameItemPathSegment && ((NameItemPathSegment)first).isVariable()) {
+			QName varName = ((NameItemPathSegment)first).getName();
+			varDesc = "variable "+PrettyPrinter.prettyPrint(varName);
 			relativePath = path.rest();
-			if (variables.containsKey(first.getName())) {
-				root = variables.get(first.getName());
+			if (variables.containsKey(varName)) {
+				root = variables.get(varName);
 			} else {
-				throw new SchemaException("No variable with name "+first.getName()+" in "+shortDesc);
+				throw new SchemaException("No variable with name "+varName+" in "+shortDesc);
 			}
 		}
 		if (root == null) {
@@ -171,9 +173,12 @@ public class ExpressionUtil {
 
 	public static ItemDefinition resolveDefinitionPath(ItemPath path, Map<QName, Object> variables,
 			PrismObjectDefinition<?> defaultContext, String shortDesc) throws SchemaException {
+		while (path!=null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+			path = path.rest();
+		}
 		Object root = defaultContext;
 		ItemPath relativePath = path;
-		ItemPathSegment first = path.first();
+		NameItemPathSegment first = (NameItemPathSegment)path.first();
 		if (first.isVariable()) {
 			relativePath = path.rest();
 			if (variables.containsKey(first.getName())) {

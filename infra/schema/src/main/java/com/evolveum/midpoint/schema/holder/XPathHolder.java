@@ -44,6 +44,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -150,8 +151,13 @@ public class XPathHolder {
 	public XPathHolder(ItemPath propertyPath) {
 		this.segments = new ArrayList<XPathSegment>();
 		for (ItemPathSegment segment: propertyPath.getSegments()) {
-			XPathSegment xsegment = new XPathSegment(segment.getName());
-			// TODO: support ID
+			XPathSegment xsegment = null;
+			if (segment instanceof NameItemPathSegment) {
+				xsegment = new XPathSegment(((NameItemPathSegment)segment).getName());
+			} else {
+				throw new UnsupportedOperationException("ID not supported in Xpath yet");
+				// TODO: support ID
+			}
 			this.segments.add(xsegment);
 		}
 
@@ -546,9 +552,8 @@ public class XPathHolder {
 		for (XPathSegment segment : xsegments) {
 			QName qName = segment.getQName();
 			// TODO: support IDs
-			String id = null;
 			boolean variable = segment.isVariable();
-			segments.add(new ItemPathSegment(qName, id, variable));
+			segments.add(new NameItemPathSegment(qName, variable));
 		}
 		return new ItemPath(segments);
 	}

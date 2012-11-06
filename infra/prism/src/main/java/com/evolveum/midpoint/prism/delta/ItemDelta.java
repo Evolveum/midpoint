@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -89,7 +90,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public ItemDelta(ItemPath propertyPath, ItemDefinition itemDefinition) {
-		this.name = propertyPath.last().getName();
+		this.name = ((NameItemPathSegment)propertyPath.last()).getName();
 		this.parentPath = propertyPath.allExceptLast();
 		this.definition = itemDefinition;
 	}
@@ -685,7 +686,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * Apply this delta (path) to a property container.
 	 */
 	public void applyTo(PrismContainer<?> propertyContainer) throws SchemaException {
-		Item<?> item = propertyContainer.findOrCreateItem(getPath(), getItemClass(), getDefinition());
+		ItemPath itemPath = getPath();
+		Item<?> item = propertyContainer.findOrCreateItem(itemPath, getItemClass(), getDefinition());
+		if (item == null) {
+			throw new IllegalStateException("Cannot apply delta because cannot find item "+itemPath+" in "+propertyContainer);
+		}
 		applyTo(item);
 		if (item.isEmpty()) {
 			propertyContainer.remove(item);

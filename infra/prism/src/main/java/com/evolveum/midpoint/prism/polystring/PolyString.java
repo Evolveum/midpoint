@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -91,7 +92,10 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
 		if (subpath.size() > 1) {
 			throw new IllegalArgumentException("Cannot resolve path "+subpath+" on polystring "+this+", the path is too deep");
 		}
-		QName itemName = subpath.first().getName();
+		if (!(subpath.first() instanceof NameItemPathSegment)) {
+			throw new IllegalArgumentException("Cannot resolve non-name path "+subpath+" on polystring "+this);
+		}
+		QName itemName = ((NameItemPathSegment)subpath.first()).getName();
 		if ("orig".equals(itemName.getLocalPart())) {
 			return orig;
 		} else if ("norm".equals(itemName.getLocalPart())) {

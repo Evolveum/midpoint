@@ -2,6 +2,7 @@ package com.evolveum.midpoint.schema;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -20,7 +21,7 @@ public class PagingConvertor {
 		QName orderBy = null;
 		if (pagingType.getOrderBy() != null){
 			XPathHolder xpath = new XPathHolder(pagingType.getOrderBy());
-			orderBy = xpath.toPropertyPath().first().getName();
+			orderBy = ItemPath.getName(xpath.toPropertyPath().first());
 		}
 		
 		return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(), orderBy, toOrderDirection(pagingType.getOrderDirection()));

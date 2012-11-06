@@ -273,7 +273,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 		ItemPathSegment first = path.first();
 		ItemPath rest = path.rest();
-		QName refName = first.getName();
+		QName refName = ItemPath.getName(first);
 		PrismReference reference = object.findReferenceByCompositeObjectElementName(refName);
 		if (reference == null) {
 			return;//throw new SchemaException("Cannot resolve: No reference "+refName+" in "+object);
@@ -722,7 +722,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	private void applyAttributeDefinition(ItemDelta<?> itemDelta,
 			Collection<? extends ResourceAttributeDefinition> attributeDefinitions) throws SchemaException {
-		QName attributeName = itemDelta.getPath().last().getName();
+		QName attributeName = ItemPath.getName(itemDelta.getPath().last());
 		for (ResourceAttributeDefinition attrDef: attributeDefinitions) {
 			if (attrDef.getName().equals(attributeName)) {
 				itemDelta.applyDefinition(attrDef);

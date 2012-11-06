@@ -24,6 +24,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -166,12 +167,15 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     }
 
     public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
+    	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+    		path = path.rest();
+    	}
         if (path.isEmpty()) {
             return (T) this;
         }
-        QName first = path.first().getName();
+        QName firstName = ((NameItemPathSegment)path.first()).getName();
         for (ItemDefinition def : getDefinitions()) {
-            if (first.equals(def.getName())) {
+            if (firstName.equals(def.getName())) {
                 return def.findItemDefinition(path.rest(), clazz);
             }
         }
@@ -198,15 +202,19 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return findItemDefinition(name, PrismPropertyDefinition.class);
     }
 
-    public PrismPropertyDefinition findPropertyDefinition(ItemPath propertyPath) {
-        if (propertyPath.isEmpty()) {
+    public PrismPropertyDefinition findPropertyDefinition(ItemPath path) {
+        while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+    		path = path.rest();
+    	}
+        if (path.isEmpty()) {
             throw new IllegalArgumentException("Property path is empty while searching for property definition in " + this);
         }
-        if (propertyPath.size() == 1) {
-            return findPropertyDefinition(propertyPath.first().getName());
+        QName firstName = ((NameItemPathSegment)path.first()).getName();
+        if (path.size() == 1) {
+            return findPropertyDefinition(firstName);
         }
-        PrismContainerDefinition pcd = findContainerDefinition(propertyPath.first().getName());
-        return pcd.findPropertyDefinition(propertyPath.rest());
+        PrismContainerDefinition pcd = findContainerDefinition(firstName);
+        return pcd.findPropertyDefinition(path.rest());
     }
 
     public PrismReferenceDefinition findReferenceDefinition(QName name) {

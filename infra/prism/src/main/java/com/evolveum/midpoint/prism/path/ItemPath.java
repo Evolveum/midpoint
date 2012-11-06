@@ -41,18 +41,7 @@ public class ItemPath implements Serializable {
 	public ItemPath() {
 		segments = new ArrayList<ItemPathSegment>(0);
 	}
-	
-//	public PropertyPath(List<QName> qnames) {
-//		this.segments = new ArrayList<PropertyPathSegment>(qnames.size());
-//		addAll(qnames);
-//	}
-			
-//	public PropertyPath(List<QName> qnames, QName subName) {
-//		this.segments = new ArrayList<PropertyPathSegment>(qnames.size()+1);
-//		addAll(qnames);
-//		add(subName);
-//	}
-	
+		
 	public ItemPath(QName... qnames) {
 		this.segments = new ArrayList<ItemPathSegment>(qnames.length);
 		for (QName qname : qnames) {
@@ -110,15 +99,22 @@ public class ItemPath implements Serializable {
 		newPath.segments.addAll(subPath.getSegments());
 		return newPath;
 	}
-
-//	private void addAll(List<QName> qnames) {
-//		for (QName qname: qnames) {
-//			add(qname);
-//		}
-//	}
 	
+	/**
+	 * Null-proof static version. 
+	 */
+	public static ItemPath subPath(ItemPath prefix, ItemPathSegment subSegment) {
+		if (prefix == null && subSegment == null) {
+			return EMPTY_PATH;
+		}
+		if (prefix == null) {
+			return new ItemPath(subSegment);
+		}
+		return prefix.subPath(subSegment);
+	}
+
 	private void add(QName qname) {
-		this.segments.add(new ItemPathSegment(qname));
+		this.segments.add(new NameItemPathSegment(qname));
 	}
 		
 	public List<ItemPathSegment> getSegments() {
@@ -180,6 +176,18 @@ public class ItemPath implements Serializable {
 	public boolean isEmpty() {
 		return segments.isEmpty();
 	}
+	
+	/**
+	 * Convenience static method with checks
+	 * @throw IllegalArgumentException
+	 */
+	public static QName getName(ItemPathSegment segment) {
+		if (!(segment instanceof NameItemPathSegment)) {
+			throw new IllegalArgumentException("Unable to get name from non-name path segment "+segment);
+		}
+		return ((NameItemPathSegment)segment).getName();
+	}
+
 
 	@Override
 	public String toString() {

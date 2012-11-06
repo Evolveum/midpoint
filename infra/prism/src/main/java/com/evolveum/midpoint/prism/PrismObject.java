@@ -159,46 +159,6 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	<I extends Item<?>> I findCreateItem(ItemPath path, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
-		// Objects are only a single-valued containers. The path of the object itself is "empty".
-		// Fix this special behavior here.
-		ItemPathSegment first = path.first();
-		ItemPath rest = path.rest();
-		Item<?> subitem = null; 
-		if (rest.isEmpty()) {
-			subitem = getValue().findCreateItem(first.getName(), Item.class, itemDefinition, create);
-		} else {
-			// This is intermediary item
-			PrismContainerDefinition contDef = null;
-			if (getDefinition() != null) {
-				contDef = getDefinition().findContainerDefinition(first.getName());
-				if (contDef == null) {
-					throw new SchemaException("No definition for container " + first.getName() + " in " + this);
-				}
-				if (contDef instanceof PrismObjectDefinition) {
-					throw new IllegalStateException("Got "+contDef+" as a subitem "+first.getName()+" from "+getDefinition()+
-							"which was quite unexpected");
-				}
-			}
-			subitem = getValue().findCreateItem(first.getName(), PrismContainer.class, contDef, create);
-		}
-		if (subitem == null) {
-			return null;
-		}
-		if (subitem instanceof PrismContainer) {
-			return ((PrismContainer<?>)subitem).findCreateItem(path, type, itemDefinition, create);
-		} else if (type.isAssignableFrom(subitem.getClass())){
-			return (I) subitem;
-		} else {
-			if (create) {
-				throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
-						+ subitem.getClass().getSimpleName() + " with the same name exists");
-			}
-			return null;
-		}
-	}
-
-	@Override
 	public <I extends Item<?>> void removeItem(ItemPath path, Class<I> itemType) {
 		// Objects are only a single-valued containers. The path of the object itself is "empty".
 		// Fix this special behavior here.

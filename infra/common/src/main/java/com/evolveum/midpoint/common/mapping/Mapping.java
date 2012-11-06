@@ -60,6 +60,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -436,7 +437,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		QName name = sourceType.getName();
 		if (name == null) {
-			name = path.last().getName();
+			name = ItemPath.getName(path.last());
 		}
 		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "source definition in "+contextDescription, result);
 		Item<X> itemOld = null;
@@ -474,7 +475,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			}
 
 			// Make the path relative if needed
-			if (!path.isEmpty() && path.first().isVariable()) {
+			if (!path.isEmpty() && (path.first() instanceof NameItemPathSegment) && 
+					((NameItemPathSegment)path.first()).isVariable()) {
 				outputPath = path.rest();
 			} else {
 				outputPath = path;

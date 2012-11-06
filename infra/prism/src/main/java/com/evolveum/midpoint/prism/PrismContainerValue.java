@@ -32,8 +32,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -185,8 +187,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		if (parentPath == null || parentPath.isEmpty()) {
 			return parentPath;
 		}
-		ItemPathSegment mySegment = new ItemPathSegment(getParent().getName(), getId());
-		return parentPath.allExceptLast().subPath(mySegment);
+		if (getId() != null) {
+			return ItemPath.subPath(parentPath, new IdItemPathSegment(getId()));
+		} else {
+			return parentPath;
+		}
 	}
 	
 	// For compatibility with other PrismValue types
@@ -447,9 +452,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     @SuppressWarnings("unchecked")
 	<I extends Item<?>> I findCreateItem(ItemPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	ItemPathSegment first = propPath.first();
+    	if (!(first instanceof NameItemPathSegment)) {
+    		throw new IllegalArgumentException("Attempt to lookup item using a non-name path "+propPath+" in "+this);
+    	}
+    	QName subName = ((NameItemPathSegment)first).getName();
     	ItemPath rest = propPath.rest();
     	for (Item<?> item : items) {
-            if (first.getName().equals(item.getName())) {
+            if (subName.equals(item.getName())) {
             	if (rest.isEmpty()) {
             		if (type.isAssignableFrom(item.getClass())) {
             			return (I)item;
@@ -464,7 +473,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             	} else {
             		// Go deeper
 	            	if (item instanceof PrismContainer) {
-	            		return ((PrismContainer<?>)item).findCreateItem(propPath, type, itemDefinition, create);
+	            		return ((PrismContainer<?>)item).findCreateItem(rest, type, itemDefinition, create);
 	            	} else {
             			if (create) {
             				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
@@ -485,11 +494,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         }
     	if (create) {
     		if (rest.isEmpty()) {
-    			return createSubItem(first.getName(), type, itemDefinition);
+    			return createSubItem(subName, type, itemDefinition);
     		} else {
 	    		// Go deeper
-    			PrismContainer<?> subItem = createSubItem(first.getName(), PrismContainer.class, null);
-	        	return subItem.findCreateItem(propPath, type, itemDefinition, create);
+    			PrismContainer<?> subItem = createSubItem(subName, PrismContainer.class, null);
+	        	return subItem.findCreateItem(rest, type, itemDefinition, create);
     		}
     	} else {
     		return null;
@@ -625,11 +634,15 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	// Expects that "self" path is NOT present in propPath
 	<I extends Item<?>> void removeItem(ItemPath propPath, Class<I> itemType) {
     	ItemPathSegment first = propPath.first();
+    	if (!(first instanceof NameItemPathSegment)) {
+    		throw new IllegalArgumentException("Attempt to remove item using a non-name path "+propPath+" in "+this);
+    	}
+    	QName subName = ((NameItemPathSegment)first).getName();
     	ItemPath rest = propPath.rest();
     	Iterator<Item<?>> itemsIterator = items.iterator();
     	while(itemsIterator.hasNext()) {
     		Item<?> item = itemsIterator.next();
-            if (first.getName().equals(item.getName())) {
+            if (subName.equals(item.getName())) {
             	if (!rest.isEmpty() && item instanceof PrismContainer) {
             		((PrismContainer<?>)item).removeItem(propPath, itemType);
             		return;
@@ -637,7 +650,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             		if (itemType.isAssignableFrom(item.getClass())) {
             			itemsIterator.remove();
             		} else {
-           				throw new IllegalArgumentException("Attempt to remove item "+first.getName()+" from "+this+
+           				throw new IllegalArgumentException("Attempt to remove item "+subName+" from "+this+
            						" of type "+itemType+" while the existing item is of incompatible type "+item.getClass());
             		}
             	}        

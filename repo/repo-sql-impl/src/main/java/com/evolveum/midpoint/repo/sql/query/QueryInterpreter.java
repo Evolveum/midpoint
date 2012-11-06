@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -135,7 +136,7 @@ public class QueryInterpreter {
 		}
 
 		List<ItemPathSegment> segments = propertyPath.getSegments();
-		segments.add(new ItemPathSegment(name));
+		segments.add(new NameItemPathSegment(name));
 		propertyPath = new ItemPath(segments);
 		LOGGER.trace("Checking item definition on path {}", new Object[] { propertyPath });
 		ItemDefinition def = objectDef.findItemDefinition(propertyPath);

@@ -396,7 +396,7 @@ public class QueryConvertor {
 		if (path.last() == null){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
-		QName propertyName = path.last().getName();
+		QName propertyName = ItemPath.getName(path.last());
 		path = path.allExceptLast();
 		if (path.isEmpty()){
 			path = null;
@@ -435,7 +435,7 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		
-		QName propertyName = path.last().getName();
+		QName propertyName = ItemPath.getName(path.last());
 		path = path.allExceptLast();
 		if (path.isEmpty()){
 			path = null;
@@ -507,7 +507,7 @@ public class QueryConvertor {
 		if (path.last() == null){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
-		QName propertyName = path.last().getName();
+		QName propertyName = ItemPath.getName(path.last());
 		path = path.allExceptLast();
 		if (path.isEmpty()){
 			path = null;

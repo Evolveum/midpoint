@@ -1348,7 +1348,7 @@ public class TaskQuartzImpl implements Task {
     public void modifyExtension(ItemDelta itemDelta) throws SchemaException {
         if (itemDelta.getPath() == null ||
                 itemDelta.getPath().first() == null ||
-                !TaskType.F_EXTENSION.equals(itemDelta.getPath().first().getName())) {
+                !TaskType.F_EXTENSION.equals(ItemPath.getName(itemDelta.getPath().first()))) {
             throw new IllegalArgumentException("modifyExtension must modify the Task extension element; however, the path is " + itemDelta.getPath());
         }
         processModificationBatched(modifyExtensionAndPrepareDelta(itemDelta));

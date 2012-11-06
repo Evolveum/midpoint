@@ -325,7 +325,7 @@ public class InboundProcessor {
 		            //simple property comparing if user property exists
 		            PropertyDelta<U> diffDelta = targetUserProperty.diff(sourceProperty, targetUserPropertyPath);
 		            if (diffDelta != null) {
-		            	diffDelta.setName(targetUserPropertyPath.last().getName());
+		            	diffDelta.setName(ItemPath.getName(targetUserPropertyPath.last()));
 		            	diffDelta.setParentPath(targetUserPropertyPath.allExceptLast());
 		            	outputUserPropertydelta.merge(diffDelta);
 		            }

@@ -37,8 +37,10 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -134,8 +136,9 @@ public class TestCompare {
 		
 		PrismAsserts.assertPropertyReplace(jackDelta, 
 				new ItemPath(
-						new ItemPathSegment(USER_ASSIGNMENT_QNAME,  USER_ASSIGNMENT_2_ID),
-						new ItemPathSegment(USER_DESCRIPTION_QNAME, null)), 
+						new NameItemPathSegment(USER_ASSIGNMENT_QNAME),
+						new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
+						new NameItemPathSegment(USER_DESCRIPTION_QNAME)), 
 				"Assignment II");
 		
 		ContainerDelta<?> assignment3Delta = PrismAsserts.assertContainerAdd(jackDelta, new ItemPath(USER_ASSIGNMENT_QNAME));

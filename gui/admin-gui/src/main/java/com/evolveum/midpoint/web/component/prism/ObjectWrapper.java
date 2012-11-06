@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -323,7 +324,7 @@ public class ObjectWrapper implements Serializable {
 	private ItemPath createPropertyPath(ItemPath path, QName element) {
 		List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
 		segments.addAll(path.getSegments());
-		segments.add(new ItemPathSegment(element));
+		segments.add(new NameItemPathSegment(element));
 
 		return new ItemPath(segments);
 	}

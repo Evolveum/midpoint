@@ -54,8 +54,10 @@ import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -301,6 +303,7 @@ public class TestPrismParsing {
 		
 		ItemPath enabledPath = USER_ENABLED_PATH;
 		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
+		assertNotNull("No enabled property", enabledProperty1);
 		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
 		PrismAsserts.assertPropertyValue(enabledProperty1, true);
@@ -335,8 +338,10 @@ public class TestPrismParsing {
 		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
 		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
 		
-		ItemPath a1Path = new ItemPath(new ItemPathSegment(assName, USER_ASSIGNMENT_1_ID),
-				new ItemPathSegment(descriptionName));
+		ItemPath a1Path = new ItemPath(
+				new NameItemPathSegment(assName),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
+				new NameItemPathSegment(descriptionName));
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
 		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");

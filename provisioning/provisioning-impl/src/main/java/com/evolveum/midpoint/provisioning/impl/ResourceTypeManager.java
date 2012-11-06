@@ -975,7 +975,7 @@ public class ResourceTypeManager {
         		continue;
         	}
         	
-        	QName first = itemDelta.getParentPath().first().getName();
+        	QName first = ItemPath.getName(itemDelta.getParentPath().first());
         	
         	if (first == null){
         		continue;

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -290,7 +291,7 @@ public class SimpleOp extends Op {
 					// get any type name (e.g. clobs, strings, dates,...) based
 					// on definition
 					String anyTypeName = RAnyConverter.getAnySetType(itemDef);
-					segments.add(new ItemPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
+					segments.add(new NameItemPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
 
 					path = new ItemPath(segments);
 					LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
@@ -364,7 +365,7 @@ public class SimpleOp extends Op {
 
 		Definition def;
 		for (ItemPathSegment segment : path.getSegments()) {
-			def = definition.findDefinition(segment.getName());
+			def = definition.findDefinition(ItemPath.getName(segment));
 			if (!def.isEntity()) {
 				throw new QueryException("Can't query attribute in attribute.");
 			} else {
@@ -401,9 +402,9 @@ public class SimpleOp extends Op {
 		List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
 		ItemPath propPath;
 		for (ItemPathSegment segment : segments) {
-			QName qname = segment.getName();
+			QName qname = ItemPath.getName(segment);
 			// create new property path
-			propPathSegments.add(new ItemPathSegment(qname));
+			propPathSegments.add(new NameItemPathSegment(qname));
 			propPath = new ItemPath(propPathSegments);
 			// get entity query definition
 			definition = definition.findDefinition(qname);
@@ -436,7 +437,7 @@ public class SimpleOp extends Op {
 		// get parent criteria
 		Criteria pCriteria = getInterpreter().getCriteria(lastPropPath);
 		// create new criteria for this relationship
-		String alias = getInterpreter().createAlias(propPath.last().getName());
+		String alias = getInterpreter().createAlias(ItemPath.getName(propPath.last()));
 		Criteria criteria = pCriteria.createCriteria(realName, alias);
 		// save criteria and alias to our query context
 		getInterpreter().setCriteria(propPath, criteria);

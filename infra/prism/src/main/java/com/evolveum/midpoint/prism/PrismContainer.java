@@ -25,8 +25,10 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -359,13 +361,12 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		}
     }
     
-    // Expects that "self" path IS present in propPath
-    <I extends Item<?>> I findCreateItem(ItemPath propPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
-    	if (propPath == null || propPath.isEmpty()) {
+    <I extends Item<?>> I findCreateItem(ItemPath itemPath, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
+    	if (itemPath == null || itemPath.isEmpty()) {
     		throw new IllegalArgumentException("Empty path specified");
     	}
-    	ItemPath rest = propPath.rest();
-    	if (rest.isEmpty()) {
+    	
+    	if (itemPath.isEmpty()) {
     		// This is the end ...
     		if (type.isAssignableFrom(getClass())) {
     			return (I) this;
@@ -378,23 +379,28 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     			}
     		}
     	}
-
-    	ItemPathSegment first = propPath.first();
+    	
+    	ItemPathSegment first = itemPath.first();
     	PrismContainerValue<V> cval = findValue(first);
     	if (cval == null) {
     		return null;
     	}
     	// descent to the correct value
+    	ItemPath rest = pathRest(itemPath);
     	return cval.findCreateItem(rest, type, itemDefinition, create);
     }
     
-    // Expects that "self" path IS present in propPath
     private PrismContainerValue<V> findValue(ItemPathSegment pathSegment) {
-    	if (!pathSegment.getName().equals(getName())) {
-    		throw new IllegalArgumentException("Expected path with first segment name "+getName()+", but got "+pathSegment);
+    	String id = null;
+    	if (pathSegment instanceof NameItemPathSegment) {
+    		// id remains null
+    	} else if (pathSegment instanceof IdItemPathSegment) {
+    		id = ((IdItemPathSegment)pathSegment).getId();
+    	} else {
+    		throw new IllegalArgumentException("Unexpected path segment "+pathSegment);
     	}
     	// Otherwise descent to the correct value
-    	if (pathSegment.getId() == null) {
+    	if (id == null) {
     		if (canAssumeSingleValue()) {
     			return getValue();
     		} else {
@@ -402,14 +408,25 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		}
     	} else {
 	        for (PrismContainerValue<V> pval : getValues()) {
-	        	if (pathSegment.getId().equals(pval.getId())) {
+	        	if (id.equals(pval.getId())) {
 	        		return pval;
 	        	}
 	        }
 	        return null;
     	}
     }
-    
+
+    private ItemPath pathRest(ItemPath path) {
+    	ItemPathSegment pathSegment = path.first();
+    	if (pathSegment instanceof NameItemPathSegment) {
+    		return path;
+    	} else if (pathSegment instanceof IdItemPathSegment) {
+    		return path.rest();
+    	} else {
+    		throw new IllegalArgumentException("Unexpected path segment "+pathSegment);
+    	}
+    }
+
 	public <T extends Containerable> PrismContainer<T> findContainer(ItemPath path) {
         return findItem(path, PrismContainer.class);
     }
@@ -515,7 +532,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	if (cval == null) {
     		return;
     	}
-    	cval.removeItem(path.rest(), itemType);
+    	cval.removeItem(pathRest(path.rest()), itemType);
     }
 
     // Expects that the "self" path segment is NOT included in the basePath
@@ -527,13 +544,14 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		}
     	}
     	for (PrismContainerValue<V> pval: getValues()) {
+    		ItemPath subpath = null;
     		ItemPathSegment segment = null;
     		if (addIds) {
-    			segment = new ItemPathSegment(getName(), pval.getId());
+    			subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getName()));
     		} else {
-    			segment = new ItemPathSegment(getName());
+    			subpath = basePath.subPath(new NameItemPathSegment(getName()));
     		}
-    		pval.addItemPathsToList(basePath.subPath(segment), list);
+    		pval.addItemPathsToList(subpath, list);
     	}
     }
     
