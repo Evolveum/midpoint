@@ -28,6 +28,7 @@ import javax.xml.xpath.XPathFunction;
 import javax.xml.xpath.XPathFunctionException;
 
 import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.MidPointFunctionsXPath;
 import com.evolveum.midpoint.util.ReflectionUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,13 +43,13 @@ private static final Object LOG_FUNCTION_NAME = "logDebug";
 	
 	public static final Trace LOGGER = TraceManager.getTrace(ReflectionXPathFunctionWrapper.class);
 	
-	private MidPointFunctions functionLibrary;
+	private MidPointFunctionsXPath functionLibrary;	
 	private String functionName;
 	private int arity;
 
 	ReflectionXPathFunctionWrapper(MidPointFunctions functionLibrary, String functionName, int arity) {
 		super();
-		this.functionLibrary = functionLibrary;
+		this.functionLibrary = new MidPointFunctionsXPath(functionLibrary);
 		this.functionName = functionName;
 		this.arity = arity;
 	}

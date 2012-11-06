@@ -141,32 +141,11 @@ public class MidPointFunctions {
 	public Collection<String> getAttributeStringValues(ResourceObjectShadowType shadow, javax.xml.namespace.QName attributeQname) {
 		return ResourceObjectShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
 	}
-	
-	public String determineLdapSingleAttributeValue(Element dn, String attributeName, Element valueElement) throws NamingException {
-		// Trivial case: the value is a single elmenet therefore it has a single value.
-		return valueElement.getTextContent();
-	}
-	
-//	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Element valueElement) throws NamingException {
-//		// Trivial case: the value is a single elmenet therefore it has a single value.
-//		return valueElement.getTextContent();
-//	}
-	
+			
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, PrismProperty attribute) throws NamingException {
 		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
 	}
 	
-	public String determineLdapSingleAttributeValue(Element dnElement, String attributeName, Collection<String> values) throws NamingException {
-		if (values == null || values.isEmpty()) {
-			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
-			return null;
-		}
-		if (dnElement == null) {
-			throw new IllegalArgumentException("No dn argument specified");
-		}
-		return determineLdapSingleAttributeValue(dnElement.getTextContent(), attributeName, values);
-	}
-
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
 		if (values == null || values.isEmpty()) {
 			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
