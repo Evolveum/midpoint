@@ -77,10 +77,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
  * @author mserbak
  */
 public class AccountChangesDto extends PageAdmin implements Serializable {
-	private List<PrismObject> accountsList = new ArrayList<PrismObject>();
+	private List<AccountDto> accountsList = new ArrayList<AccountDto>();
 	private List<SubmitAccountDto> accountChangesList = new ArrayList<SubmitAccountDto>();
 	private PrismObject oldAccountObject;
 	private ArrayList<PrismObject> accountsBeforeModify;
+	private SynchronizationPolicyDecision syncPolicy;
 
 	public AccountChangesDto(Collection<? extends ModelProjectionContext> accounts,
 			ArrayList<PrismObject> accountsBeforeModify) {
@@ -89,8 +90,12 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 		}
 		this.accountsBeforeModify = accountsBeforeModify;
 		for (ModelProjectionContext account : accounts) {
-			accountsList.add(account.getObjectNew());
 			this.oldAccountObject = account.getObjectOld();
+			syncPolicy = account.getSynchronizationPolicyDecision();
+			accountsList.add(new AccountDto(account.getObjectNew() == null ? account.getObjectOld() : account
+					.getObjectNew(), syncPolicy));
+			
+			
 			SubmitResourceDto resource = new SubmitResourceDto(account.getObjectNew(), false);
 			if (!getChanges(resource, account.getPrimaryDelta(), account, false)) {
 				getChanges(resource, account.getSecondaryDelta(), account, true);
@@ -99,27 +104,22 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 	}
 
 	private boolean getChanges(SubmitResourceDto resource, ObjectDelta delta, ModelProjectionContext account, boolean secondaryValue) {
-		// Return true if modification is delete
-		SynchronizationPolicyDecision syncStatus = account.getSynchronizationPolicyDecision();
-		if (syncStatus != null && !syncStatus.equals(SynchronizationPolicyDecision.KEEP)) {
-			SubmitResourceDto resourceDto = new SubmitResourceDto(oldAccountObject, false);
-			accountChangesList.add(new SubmitAccountDto(resourceDto.getResourceName(),
-					"Account status", "-", syncStatus.name().toLowerCase(), getString("OriginType.null"),
-					secondaryValue));
-			if(delta == null) {
-				return true;
-			}
+		// Return true if modification is delete or unlink
+		if(delta == null && syncPolicy != null && syncPolicy.equals(SynchronizationPolicyDecision.UNLINK)) {
+			return true;
 		}
 
 		if (delta == null) {
 			return false;
 		} else if (delta.getChangeType().equals(ChangeType.DELETE)) {
 			if (accountsBeforeModify == null) {
-				addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
+				// add deleted resource to changeList
+				// addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
 			} else {
 				for (PrismObject prismAccount : accountsBeforeModify) {
 					if(prismAccount.getOid().equals(oldAccountObject.getOid())) {
-						addAccountFromResourceForDelete(new SubmitResourceDto(prismAccount, false));
+						// add deleted resource to changeList
+						// addAccountFromResourceForDelete(new SubmitResourceDto(prismAccount, false));
 					}
 					
 				}
@@ -273,7 +273,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				oldValues, ", "), StringUtils.join(newValues, ", "), getString("OriginType." + originType), secondaryValue));
 	}
 
-	public List<PrismObject> getAccountsList() {
+	public List<AccountDto> getAccountsList() {
 		return accountsList;
 	}
 

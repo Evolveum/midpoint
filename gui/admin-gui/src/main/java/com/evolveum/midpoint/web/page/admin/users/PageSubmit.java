@@ -33,6 +33,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -66,8 +67,10 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.dto.AccountChangesDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.AccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitAssignmentDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitDeltaObjectDto;
@@ -181,7 +184,26 @@ public class PageSubmit extends PageAdmin {
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.name"), "name"));
 		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.resourceName"),
 				"resourceName"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.exist"), "exist"));
+		PropertyColumn status = new PropertyColumn(createStringResource("pageSubmit.resourceList.status"), "syncPolicy"){
+
+			@Override
+			public void populateItem(final Item item, String componentId, final IModel rowModel) {
+				
+				Label label = new Label(componentId, createLabelModel(rowModel));
+				item.add(label);	
+				
+				SubmitResourceDto resourceDto = (SubmitResourceDto) rowModel.getObject();
+				if(resourceDto.getSyncPolicy() == null) {
+					return;
+				}
+				if(resourceDto.getSyncPolicy().equals("Delete")) {
+					label.add(new AttributeModifier("class", "deletedValue"));
+				} else if (resourceDto.getSyncPolicy().equals("Add")) {
+					label.add(new AttributeModifier("class", "addedValue"));
+				}
+			}
+		};
+		columns.add(status);
 
 		ListDataProvider<SubmitResourceDto> provider = new ListDataProvider<SubmitResourceDto>(this,
 				new AbstractReadOnlyModel<List<SubmitResourceDto>>() {
@@ -189,9 +211,9 @@ public class PageSubmit extends PageAdmin {
 					@Override
 					public List<SubmitResourceDto> getObject() {
 						List<SubmitResourceDto> list = new ArrayList<SubmitResourceDto>();
-						for (PrismObject account : accountChangesDto.getAccountsList()) {
-							if (account != null) {
-								list.add(new SubmitResourceDto(account, true));
+						for (AccountDto accountDto : accountChangesDto.getAccountsList()) {
+							if (accountDto != null) {
+								list.add(new SubmitResourceDto(accountDto, true));
 							}
 						}
 						return list;

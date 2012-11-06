@@ -25,6 +25,7 @@ import java.io.Serializable;
 
 import org.apache.wicket.RestartResponseException;
 
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -44,11 +45,16 @@ public class SubmitResourceDto extends PageAdmin implements Serializable {
 	private String name;
 	private String resourceName;
 	private boolean selected;
-	private String exist;
+	private SynchronizationPolicyDecision syncPolicy;
 
 	public SubmitResourceDto(PrismObject account, boolean selected) {
 		this.account = account;
 		this.selected = selected;
+	}
+	
+	public SubmitResourceDto(AccountDto accountDto, boolean selected) {
+		this(accountDto.getPrismAccount(), selected);
+		this.syncPolicy = accountDto.getSyncPolicy();
 	}
 
 	public String getName() {
@@ -82,10 +88,13 @@ public class SubmitResourceDto extends PageAdmin implements Serializable {
 		return selected;
 	}
 	
-	public String isExist() {
+	public String getSyncPolicy() {
 		if(WebMiscUtil.getName(account) != null) {
-			return getString("existing.yes");
+			if(syncPolicy == null) {
+				return getString("SynchronizationPolicyDecision.KEEP");
+			}
+			return getString("SynchronizationPolicyDecision." + syncPolicy.name());
 		}
-		return getString("existing.no");
+		return getString("SynchronizationPolicyDecision.ADD");
 	}
 }
