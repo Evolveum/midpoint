@@ -117,4 +117,44 @@ public final class TaskRunResult {
 		this.operationResult = operationResult;
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((operationResult == null) ? 0 : operationResult.hashCode());
+		result = prime * result + (int) (progress ^ (progress >>> 32));
+		result = prime * result
+				+ ((runResultStatus == null) ? 0 : runResultStatus.hashCode());
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TaskRunResult other = (TaskRunResult) obj;
+		if (operationResult == null) {
+			if (other.operationResult != null)
+				return false;
+		} else if (!operationResult.equals(other.operationResult))
+			return false;
+		if (progress != other.progress)
+			return false;
+		if (runResultStatus != other.runResultStatus)
+			return false;
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return "TaskRunResult(progress=" + progress + ", status="
+				+ runResultStatus + ", result=" + operationResult
+				+ ")";
+	}
+	
 }

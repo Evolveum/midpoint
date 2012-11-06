@@ -641,11 +641,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 //					equal.removeChild(valueExpressionElement);
 //					copyNamespaceDefinitions(equal, valueExpressionElement);
 
-					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
-					if (refElement == null) {
-						throw new SchemaException("No <ref> element in valueExpression in correlation rule for "
-								+ currentShadow.getResource());
-					}
+//					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
+//					if (refElement == null) {
+//						throw new SchemaException("No <ref> element in valueExpression in correlation rule for "
+//								+ currentShadow.getResource());
+//					}
 //					QName ref = DOMUtil.resolveQName(refElement);
 
 //					Element value = document.createElementNS(SchemaConstants.NS_QUERY, "value");

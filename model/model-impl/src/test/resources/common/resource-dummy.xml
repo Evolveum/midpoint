@@ -256,6 +256,13 @@
             		</outbound>
             	</enabled>
             </activation>
+            
+            <protected>
+            	<icfs:name>daviejones</icfs:name>
+            </protected>
+            <protected>
+            	<icfs:name>calypso</icfs:name>
+            </protected>
 		</accountType>
 		
 	</schemaHandling>
@@ -269,15 +276,9 @@
 			<enabled>true</enabled>
 			<correlation>
 				<q:equal>
-					<q:path>.</q:path>
+					<q:path>c:name</q:path>
 					<valueExpression>
-						<ref>c:name</ref>
-						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								$c:account/c:attributes/icfs:name
-							</code>
-						</script>
+						<path>$account/attributes/icfs:name</path>
 					</valueExpression>
 				</q:equal>
 			</correlation>

@@ -89,7 +89,7 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 
 		ItemDeltaItem<?> resolveContext = null;
 		
-		if (params.getSources().size() == 1) {
+		if (params.getSources() != null && params.getSources().size() == 1) {
 			Source<?> source = params.getSources().iterator().next();
 			if (path.isEmpty()) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple();
@@ -106,8 +106,10 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 	        }
         }
 	        
-        for (Source<?> source: params.getSources()) {
-        	variablesAndSources.put(source.getName(), source);
+        if (params.getSources() != null) {
+	        for (Source<?> source: params.getSources()) {
+	        	variablesAndSources.put(source.getName(), source);
+	        }
         }
         
         PropertyPath resolvePath = path;

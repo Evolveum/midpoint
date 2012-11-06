@@ -100,6 +100,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -212,6 +213,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
 	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
 	
+	private static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+    private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+	
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	
@@ -231,6 +235,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 	
+	public static final String ACCOUNT_DAVIEJONES_DUMMY_USERNAME = "daviejones";
+	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
+	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
@@ -246,6 +253,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
+	
+	private static final int DEFAULT_TASK_WAIT_TIMEOUT = 10000;
+	private static final long DEFAULT_TASK_SLEEP_TIME = 200;
 
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -268,6 +278,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 	
 	protected MockClockworkHook mockClockworkHook;
+	
+	protected PrismObject<UserType> userAdministrator;
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
@@ -303,17 +315,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		dummyResource.populateWithDefaultSchema();
 		extendDummySchema(dummyResource);
 		
-		DummyAccount hermanDummyAccount = new DummyAccount(ACCOUNT_HERMAN_DUMMY_USERNAME);
-		hermanDummyAccount.setEnabled(true);
-		hermanDummyAccount.addAttributeValues("fullname", "Herman Toothrot");
-		hermanDummyAccount.addAttributeValues("location", "Monkey Island");
-		dummyResource.addAccount(hermanDummyAccount);
-		
-		DummyAccount guybrushDummyAccount = new DummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-		guybrushDummyAccount.setEnabled(true);
-		guybrushDummyAccount.addAttributeValues("fullname", "Guybrush Threepwood");
-		guybrushDummyAccount.addAttributeValues("location", "Melee Island");
-		dummyResource.addAccount(guybrushDummyAccount);
+		addDummyAccount(dummyResource, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
+		addDummyAccount(dummyResource, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
+		addDummyAccount(dummyResource, ACCOUNT_DAVIEJONES_DUMMY_USERNAME, "Davie Jones", "Davie Jones' Locker");
+		addDummyAccount(dummyResource, ACCOUNT_CALYPSO_DUMMY_USERNAME, "Tia Dalma", "Pantano River");
 		
 		dummyResourceRed = DummyResource.getInstance(RESOURCE_DUMMY_RED_NAME);
 		dummyResourceRed.reset();
@@ -361,6 +366,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, AccountShadowType.class, initResult);
 		
 		// Users
+		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
@@ -375,6 +381,14 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 	}
 	
+	private void addDummyAccount(DummyResource resource, String userId, String fullName, String location) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+		DummyAccount account = new DummyAccount(userId);
+		account.setEnabled(true);
+		account.addAttributeValues("fullname", fullName);
+		account.addAttributeValues("location", location);
+		resource.addAccount(account);
+	}
+
 	private void extendDummySchema(DummyResource dummyResource) {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition("title", String.class, false, true);
@@ -1197,4 +1211,49 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		}
 	}
 	
+	protected Task createTask(String operationName) {
+		Task task = taskManager.createTaskInstance(operationName);
+		task.setOwner(userAdministrator);
+		return task;
+	}
+	
+	protected void waitForTaskFinish(Task task) throws Exception {
+		waitForTaskFinish(task, DEFAULT_TASK_WAIT_TIMEOUT);
+	}
+	
+	protected void waitForTaskFinish(final Task task, int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				task.refresh(waitResult);
+				OperationResult result = task.getResult();
+				assert !isError(result) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
+				return !isInProgress(result);
+			}
+			@Override
+			public void timeout() {
+				try {
+					task.refresh(waitResult);
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				} catch (SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				}
+				OperationResult result = task.getResult();
+				LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+				assert false : "Timeout while waiting for "+task+" to finish. Last result "+result;
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+	
+	private boolean isError(OperationResult result) {
+		return result.getLastSubresult().isError();
+	}
+
+	private boolean isInProgress(OperationResult result) {
+		return result.getLastSubresult().isInProgress();
+	}
+
 }

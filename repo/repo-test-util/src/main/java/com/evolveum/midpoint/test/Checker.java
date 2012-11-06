@@ -26,6 +26,10 @@ package com.evolveum.midpoint.test;
  */
 public interface Checker {
 	
+	/**
+	 * true = done
+	 * false = continue waiting
+	 */
 	public boolean check() throws Exception;
 	
 	public void timeout();

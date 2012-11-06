@@ -163,4 +163,18 @@ public class TestMappingStatic {
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
     
+    @Test
+    public void testPathNoSource() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-path-system-variables-nosource.xml",
+    			"testPathNoSource",
+    			"employeeType");				// target
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "jack");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
 }

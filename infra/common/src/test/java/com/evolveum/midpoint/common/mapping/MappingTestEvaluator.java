@@ -72,6 +72,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
@@ -95,6 +96,7 @@ public class MappingTestEvaluator {
     public static File OBJECTS_DIR = new File("src/test/resources/objects");
     public static final String KEYSTORE_PATH = "src/test/resources/crypto/test-keystore.jceks";
     public static final File USER_OLD_FILE = new File(TEST_DIR, "user-jack.xml");
+    public static final File ACCOUNT_FILE = new File(TEST_DIR, "account-jack.xml");
 	public static final String USER_OLD_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";
 	private static final File PASSWORD_POLICY_FILE = new File(TEST_DIR, "password-policy.xml");
     
@@ -174,8 +176,15 @@ public class MappingTestEvaluator {
 		ObjectDeltaObject<UserType> userOdo = new ObjectDeltaObject<UserType>(userOld , userDelta, null);
         userOdo.recompute();
 		mapping.setSourceContext(userOdo);
-		// ... also as a variable $user
+		
+		// Variable $user
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		
+		// Variable $account
+		PrismObject<AccountShadowType> account = getAccount();
+		ObjectDeltaObject<AccountShadowType> accountOdo = new ObjectDeltaObject<AccountShadowType>(account , null, null);
+		accountOdo.recompute();
+		mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
         
 		// Target context: user
 		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
@@ -191,6 +200,10 @@ public class MappingTestEvaluator {
 	
 	protected PrismObject<UserType> getUserOld() throws SchemaException {
 		return PrismTestUtil.parseObject(USER_OLD_FILE);
+	}
+	
+	protected PrismObject<AccountShadowType> getAccount() throws SchemaException {
+		return PrismTestUtil.parseObject(ACCOUNT_FILE);
 	}
 	
 	private PrismObjectDefinition<UserType> getUserDefinition() {

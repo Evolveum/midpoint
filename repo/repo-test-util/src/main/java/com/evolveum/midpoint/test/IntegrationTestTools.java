@@ -195,6 +195,24 @@ public class IntegrationTestTools {
 		}
 	}
 	
+	public static void assertInProgress(String message, OperationResult result) {
+		assertTrue("Expected result IN_PROGRESS but it was "+result.getStatus()+" in "+message,
+				result.getStatus() == OperationResultStatus.IN_PROGRESS);
+	}
+	
+	public static String getErrorMessage(OperationResult result) {
+		if (result.isError()) {
+			return result.getMessage();
+		}
+		for (OperationResult subresult: result.getSubresults()) {
+			String message = getErrorMessage(subresult);
+			if (message != null) {
+				return message;
+			}
+		}
+		return null;
+	}
+	
 	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
 		OperationResult opResult = testResult.findSubresult(operation.getOperation());
 		assertNotNull("No result for "+operation, opResult);

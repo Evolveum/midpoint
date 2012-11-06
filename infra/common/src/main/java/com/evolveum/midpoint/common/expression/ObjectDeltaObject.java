@@ -72,6 +72,11 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	}
 	
 	@Override
+	public boolean isContainer() {
+		return true;
+	}
+
+	@Override
 	public <V extends PrismValue> ItemDeltaItem<V> findIdi(PropertyPath path) {
 		Item<V> itemOld = null;
 		if (oldObject != null) {
