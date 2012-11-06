@@ -1171,6 +1171,11 @@ public class PageUser extends PageAdminUsers {
 
                 RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(
                         resource.asPrismObject(), getPrismContext());
+                if (refinedSchema == null) {
+                    error(getString("pageUser.message.couldntCreateAccountNoSchema", resource.getName()));
+                    continue;
+                }
+
                 QName objectClass = refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition()
                         .getTypeName();
                 shadow.setObjectClass(objectClass);
