@@ -32,6 +32,7 @@ import org.apache.wicket.model.Model;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.orgStruct.NodeDto;
 import com.evolveum.midpoint.web.component.orgStruct.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
@@ -47,9 +48,17 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 	private List<NodeDto> userList;
 	private static QName ORG_MANAGER = new QName("http://midpoint.evolveum.com/xml/ns/public/common/org-2",
 			"manager");
+	private OperationResult result = new OperationResult(OrgStructDto.class.getName());
 
 	public OrgStructDto(List<PrismObject<T>> orgUnitList, NodeDto parent) {
+		this(orgUnitList, parent, null);
+	}
+	
+	public OrgStructDto(List<PrismObject<T>> orgUnitList, NodeDto parent, OperationResult result) {
 		Validate.notNull(orgUnitList);
+		if(result != null) {
+			this.result = result;
+		}
 		initNodes(orgUnitList, parent);
 	}
 
@@ -74,13 +83,13 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 				if(!userList.isEmpty()) {
 					for (NodeDto userDto : userList) {
 						if(userDto.getOid().equals(user.getOid())) {
-							userDto.addTypeToListTypes(getRelation(parent, user.getParentOrgRef()));
+							userDto.addTypeToListTypes(getRelation(parent, user));
 							continue listNodes;
 						}
 					}
 				}
 				userList.add(new NodeDto(parent, user.getFullName().toString(), user.getOid(), getRelation(
-						parent, user.getParentOrgRef())));
+						parent, user)));
 			}
 		}
 	}
@@ -101,14 +110,21 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 		return userList;
 	}
 
-	public static NodeType getRelation(NodeDto parent, List<ObjectReferenceType> orgRefList) {
+	public NodeType getRelation(NodeDto parent, UserType user) {
+		List<ObjectReferenceType> orgRefList = user.getParentOrgRef();
 		ObjectReferenceType orgRef = null;
 
 		for (ObjectReferenceType orgRefType : orgRefList) {
-			if (orgRefType.getOid().equals(parent.getOid())) {
+			if (orgRefType.getOid()!= null && orgRefType.getOid().equals(parent.getOid())) {
 				orgRef = orgRefType;
 				break;
 			}
+		}
+		
+		if(orgRef == null) {
+			OperationResult subresult = result.createSubresult("getRelation - Getting NodeType for node: " + user.getName());
+			subresult.recordFatalError("ObjectReferenceType is undefined/incorrect");
+			return null;
 		}
 
 		if (orgRef.getRelation() == null) {
@@ -119,7 +135,6 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 		if (relation.equals(ORG_MANAGER)) {
 			return NodeType.MANAGER;
 		}
-
 		return null;
 	}
 

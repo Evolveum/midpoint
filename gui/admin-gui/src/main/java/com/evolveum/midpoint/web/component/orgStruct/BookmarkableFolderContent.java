@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.orgStruct.AbstractTree.State;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
 
@@ -47,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
  */
 public class BookmarkableFolderContent extends Content {
 	private static final String DOT_CLASS = BookmarkableFolderContent.class.getName() + ".";
-	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";
+	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "loadOrgUnit";
 
 	public BookmarkableFolderContent() {
 	}
@@ -136,9 +139,11 @@ public class BookmarkableFolderContent extends Content {
 			protected MarkupContainer newLinkComponent(String id, IModel<NodeDto> model) {
 				final NodeDto node = model.getObject();
 				if (tree.getProvider().hasChildren(node)) {
+					tree.collapse(node);
 					return super.newLinkComponent(id, model);
 
 				} else {
+					tree.collapse(node);
 					return new LabeledWebMarkupContainer(id, model) {
 					};
 				}
@@ -277,20 +282,22 @@ public class BookmarkableFolderContent extends Content {
 
 		try {
 			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
-			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent);
-			result.recordSuccess();
+			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent, result);
+			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recordFatalError("Unable to load org unit", ex);
 		}
 
 		if (!result.isSuccess()) {
-			showResult(result);
+			showResultInSession(result);
+			throw new RestartResponseException(PageOrgStruct.class);
 		}
 
-		if (newOrgModel.getOrgUnitDtoList() == null) {
-			result.recordFatalError("pageOrgStruct.message.noOrgStructDefined");
-			showResult(result);
-		}
+//		if (newOrgModel.getOrgUnitDtoList() == null) {
+//			result.recordFatalError("Unable to load org unit");
+//			showResultInSession(result);
+//			throw new RestartResponseException(PageOrgStruct.class);
+//		}
 		return newOrgModel;
 	}
 }
