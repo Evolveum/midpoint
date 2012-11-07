@@ -23,6 +23,9 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
     <parameter name="site.url" value="http://localhost:8080/idm"/>
+    <parameter name="timeout.script" value="1"/>
+    <parameter name="timeout.wait" value="1"/>
+    <parameter name="timeout.page" value="1"/>
 
     <test name="Log in/out Tests" parallel="false" preserve-order="true" verbose="10">
         <classes>
