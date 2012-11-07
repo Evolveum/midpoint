@@ -34,10 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -157,7 +154,12 @@ public class LocalNodeManager {
                 connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
             } catch (SQLException ignored) {
                 try {
-                    connection.prepareStatement(getResource(configuration.getSqlSchemaFile())).executeUpdate();
+                    Reader scriptReader = getResourceReader(configuration.getSqlSchemaFile());
+
+                    ScriptRunner runner = new ScriptRunner(connection, false, true);
+                    runner.runScript(scriptReader);
+
+//                    connection.prepareStatement(statements).executeUpdate();
                 } catch (IOException ex) {
                     throw new TaskManagerInitializationException("Could not read Quartz database schema file: " + configuration.getSqlSchemaFile(), ex);
                 } catch (SQLException e) {
@@ -170,6 +172,14 @@ public class LocalNodeManager {
             } catch (SQLException ignored) {
             }
         }
+    }
+
+    private Reader getResourceReader(String name) throws IOException, TaskManagerInitializationException {
+        InputStream stream = getClass().getResourceAsStream(name);
+        if (stream == null) {
+            throw new TaskManagerInitializationException("Quartz DB schema (" + name + ") cannot be found.");
+        }
+        return new BufferedReader(new InputStreamReader(stream));
     }
 
     private String getResource(String name) throws IOException, TaskManagerInitializationException {
