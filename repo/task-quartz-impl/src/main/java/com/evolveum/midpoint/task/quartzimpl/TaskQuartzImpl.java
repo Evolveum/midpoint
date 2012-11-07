@@ -39,7 +39,6 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -69,14 +68,32 @@ public class TaskQuartzImpl implements Task {
     private PrismObject<TaskType> taskPrism;
 
     // private Set<Task> subtasks = new HashSet<Task>();          // relevant only for transient tasks, currently not used
-	
-	private TaskPersistenceStatus persistenceStatus;
-	private TaskManagerQuartzImpl taskManager;
-	private RepositoryService repositoryService;
-	private OperationResult taskResult;         // this is the live value of this task's result
-                                                // the one in taskPrism is updated when necessary (see code)
+
+    /*
+     * Task result is stored here as well as in task prism.
+     *
+     * This one is the live value of this task's result. All operations working with this task
+     * should work with this value. This value is explicitly updated from the value in prism
+     * when fetching task from repo (or creating anew), see initializeFromRepo().
+     *
+     * The value in taskPrism is updated when necessary, e.g. when getting taskPrism
+     * (for example, used when persisting task to repo), etc, see the code.
+     *
+     * Note that this means that we SHOULD NOT get operation result from the prism - we should
+     * use task.getResult() instead!
+     */
+
+	private OperationResult taskResult;
+
 	private volatile boolean canRun;
+
+    // current information about the node on which this task executes at
+    // filled-in by searchTasks (see its description in TaskManager API)
+
     private Node currentlyExecutesAt;
+
+    private TaskManagerQuartzImpl taskManager;
+    private RepositoryService repositoryService;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
@@ -85,8 +102,9 @@ public class TaskQuartzImpl implements Task {
 	 * Note: This constructor assumes that the task is transient.
 	 * @param taskManager
 	 * @param taskIdentifier
+     * @param operationName if null, default op. name will be used
 	 */	
-	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier) {
+	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
 		this.taskManager = taskManager;
 		this.repositoryService = null;
 		this.taskPrism = createPrism();
@@ -94,26 +112,39 @@ public class TaskQuartzImpl implements Task {
 		
 		setTaskIdentifier(taskIdentifier.toString());
 		setExecutionStatusTransient(TaskExecutionStatus.RUNNABLE);
-		setPersistenceStatusTransient(TaskPersistenceStatus.TRANSIENT);
 		setRecurrenceStatusTransient(TaskRecurrence.SINGLE);
 		setBindingTransient(DEFAULT_BINDING_TYPE);
 		setProgressTransient(0);
 		setObjectTransient(null);
-		
-		setDefaults();
-	}
+        createOrUpdateTaskResult(operationName);
+
+        setDefaults();
+    }
 
 	/**
 	 * Assumes that the task is persistent
-	 */
-	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
+     * @param operationName if null, default op. name will be used
+     */
+	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService, String operationName) {
 		this.taskManager = taskManager;
 		this.repositoryService = repositoryService;
 		this.taskPrism = taskPrism;
 		canRun = true;
-		
-		setDefaults();
-	}
+        createOrUpdateTaskResult(operationName);
+
+        setDefaults();
+    }
+
+    /**
+     * Analogous to the previous constructor.
+     *
+     * @param taskPrism
+     */
+    void replaceTaskPrism(PrismObject<TaskType> taskPrism) {
+        this.taskPrism = taskPrism;
+        updateTaskResult();
+        setDefaults();
+    }
 
 	private PrismObject<TaskType> createPrism() {
 		PrismObjectDefinition<TaskType> taskTypeDef = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
@@ -122,27 +153,32 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	private void setDefaults() {
-		if (getBinding() == null)
+		if (getBinding() == null) {
 			setBindingTransient(DEFAULT_BINDING_TYPE);
-		
-		if (StringUtils.isEmpty(getOid())) {
-			persistenceStatus = TaskPersistenceStatus.TRANSIENT;
-		} else {
-			persistenceStatus = TaskPersistenceStatus.PERSISTENT;
-		}
-		
-		OperationResultType resultType = taskPrism.asObjectable().getResult();
-		if (resultType == null) {
-            resultType = new OperationResult(Task.class.getName() + ".run").createOperationResultType();
-            taskPrism.asObjectable().setResult(resultType);
         }
-
-		taskResult = OperationResult.createOperationResult(resultType);
 	}
 
-	void initialize(OperationResult initResult) throws SchemaException {
-		resolveOwnerRef(initResult);
-	}
+    private void updateTaskResult() {
+        createOrUpdateTaskResult(null);
+    }
+
+    private void createOrUpdateTaskResult(String operationName) {
+        OperationResultType resultInPrism = taskPrism.asObjectable().getResult();
+        if (resultInPrism == null) {
+            if (operationName == null) {
+                resultInPrism = new OperationResult(Task.class.getName() + ".run").createOperationResultType();
+            } else {
+                resultInPrism = new OperationResult(operationName).createOperationResultType();
+            }
+            taskPrism.asObjectable().setResult(resultInPrism);
+        }
+        taskResult = OperationResult.createOperationResult(resultInPrism);
+    }
+
+    // called after getObject (within getTask or refresh)
+//	void initializeFromRepo(OperationResult initResult) throws SchemaException {
+//		resolveOwnerRef(initResult);
+//	}
 	
 	@Override
 	public PrismObject<TaskType> getTaskPrismObject() {
@@ -170,7 +206,7 @@ public class TaskQuartzImpl implements Task {
 	@Override
 	public boolean isAsynchronous() {
 		// This is very simple now. It may complicate later.
-		return (persistenceStatus==TaskPersistenceStatus.PERSISTENT);
+		return (getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT);
 	}
 
 	private boolean recreateQuartzTrigger = false;          // whether to recreate quartz trigger on next savePendingModifications and/or synchronizeWithQuartz
@@ -186,8 +222,9 @@ public class TaskQuartzImpl implements Task {
     private Collection<ItemDelta<?>> pendingModifications = null;
 	
 	public void addPendingModification(ItemDelta<?> delta) {
-		if (pendingModifications == null)
+		if (pendingModifications == null) {
 			pendingModifications = new ArrayList<ItemDelta<?>>();
+        }
 		pendingModifications.add(delta);
 	}
 	
@@ -696,23 +733,21 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public TaskPersistenceStatus getPersistenceStatus() {
-		return persistenceStatus;
+        return StringUtils.isEmpty(getOid()) ? TaskPersistenceStatus.TRANSIENT : TaskPersistenceStatus.PERSISTENT;
 	}
 	
-	public void setPersistenceStatusTransient(TaskPersistenceStatus persistenceStatus) {
-		this.persistenceStatus = persistenceStatus;
-	}
+//	public void setPersistenceStatusTransient(TaskPersistenceStatus persistenceStatus) {
+//		this.persistenceStatus = persistenceStatus;
+//	}
 	
 	public boolean isPersistent() {
-		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
+		return getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT;
 	}
 
     @Override
     public boolean isTransient() {
-        return persistenceStatus == TaskPersistenceStatus.TRANSIENT;
+        return getPersistenceStatus() == TaskPersistenceStatus.TRANSIENT;
     }
-
-    // obviously, there are no "persistent" versions of setPersistenceStatus
 
 	/*
 	 * Oid
@@ -1057,7 +1092,7 @@ public class TaskQuartzImpl implements Task {
 		ownerRef.getValue().setObject(owner);
 	}
 	
-	private PrismObject<UserType> resolveOwnerRef(OperationResult result) throws SchemaException {
+	PrismObject<UserType> resolveOwnerRef(OperationResult result) throws SchemaException {
 		PrismReference ownerRef = taskPrism.findReference(TaskType.F_OWNER_REF);
 		if (ownerRef == null) {
 			throw new SchemaException("Task "+getOid()+" does not have an owner (missing ownerRef)");
@@ -1537,7 +1572,7 @@ public class TaskQuartzImpl implements Task {
 		sb.append(")\n");
 		sb.append(taskPrism.debugDump(1));
 		sb.append("\n  persistenceStatus: ");
-		sb.append(persistenceStatus);
+		sb.append(getPersistenceStatus());
 		sb.append("\n  result: ");
 		if (taskResult ==null) {
 			sb.append("null");
@@ -1647,7 +1682,7 @@ public class TaskQuartzImpl implements Task {
 			return;
 		}
 		
-		PrismObject<TaskType> repoObj = null;
+		PrismObject<TaskType> repoObj;
 		try {
 			repoObj = repositoryService.getObject(TaskType.class, getOid(), result);
 		} catch (ObjectNotFoundException ex) {
@@ -1657,8 +1692,7 @@ public class TaskQuartzImpl implements Task {
 			result.recordFatalError("Schema error", ex);
 			throw ex;			
 		}
-		this.taskPrism = repoObj;
-		initialize(result);
+        taskManager.updateTaskInstance(this, repoObj, result);
 		result.recordSuccess();
 	}
 	
@@ -1722,8 +1756,8 @@ public class TaskQuartzImpl implements Task {
 		if (getClass() != obj.getClass())
 			return false;
 		TaskQuartzImpl other = (TaskQuartzImpl) obj;
-		if (persistenceStatus != other.persistenceStatus)
-			return false;
+//		if (persistenceStatus != other.persistenceStatus)
+//			return false;
 		if (taskResult == null) {
 			if (other.taskResult != null)
 				return false;

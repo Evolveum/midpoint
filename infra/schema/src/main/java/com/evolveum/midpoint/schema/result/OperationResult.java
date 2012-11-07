@@ -612,7 +612,11 @@ public class OperationResult implements Serializable, Dumpable {
         status = OperationResultStatus.IN_PROGRESS;
     }
 
-	public void recordFatalError(Throwable cause) {
+    public void recordUnknown() {
+        status = OperationResultStatus.UNKNOWN;
+    }
+
+    public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
 	

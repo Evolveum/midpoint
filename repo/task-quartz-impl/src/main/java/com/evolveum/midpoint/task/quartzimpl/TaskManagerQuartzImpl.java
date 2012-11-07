@@ -47,8 +47,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -425,15 +423,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public Task createTaskInstance() {
-		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
-		return new TaskQuartzImpl(this, taskIdentifier);
+		return createTaskInstance(null);
 	}
 	
 	@Override
 	public Task createTaskInstance(String operationName) {
 		LightweightIdentifier taskIdentifier = generateTaskIdentifier();
-		TaskQuartzImpl taskImpl = new TaskQuartzImpl(this, taskIdentifier);
-		taskImpl.setResult(new OperationResult(operationName));
+		TaskQuartzImpl taskImpl = new TaskQuartzImpl(this, taskIdentifier, operationName);
 		return taskImpl;
 	}
 	
@@ -441,33 +437,35 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return lightweightIdentifierGenerator.generate();
 	}
 
-	@Override
-	public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+    @Override
+    public Task createTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+        return createTaskInstance(taskPrism, null, parentResult);
+    }
+
+    @Override
+	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "createTaskInstance");
         result.addParam("taskPrism", taskPrism);
 
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
-		TaskQuartzImpl task = new TaskQuartzImpl(this, taskPrism, repoService);
-		task.initialize(result);
+		TaskQuartzImpl task = new TaskQuartzImpl(this, taskPrism, repoService, operationName);
+		task.resolveOwnerRef(result);
         result.recordSuccessIfUnknown();
 		return task;
 	}
 
-	@Override
-	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
-
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "createTaskInstance");
+    void updateTaskInstance(Task task, PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "updateTaskInstance");
+        result.addParam("task", task);
         result.addParam("taskPrism", taskPrism);
 
-        TaskQuartzImpl taskImpl = (TaskQuartzImpl) createTaskInstance(taskPrism, result);
-		if (taskImpl.getResult()==null) {
-			taskImpl.setResultTransient(new OperationResult(operationName));
-		}
+        TaskQuartzImpl taskQuartz = (TaskQuartzImpl) task;
+        taskQuartz.replaceTaskPrism(taskPrism);
+        taskQuartz.resolveOwnerRef(result);
         result.recordSuccessIfUnknown();
-		return taskImpl;
-	}
+    }
 
 	@Override
 	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -477,8 +475,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		
 		Task task;
 		try {
-			task = fetchTaskFromRepository(taskOid, result);
-		} catch (ObjectNotFoundException e) {
+			PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, taskOid, result);
+            task = createTaskInstance(taskPrism, result);
+        } catch (ObjectNotFoundException e) {
 			result.recordFatalError("Task not found", e);
 			throw e;
 		} catch (SchemaException e) {
@@ -490,32 +489,33 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		return task;
 	}
 
-	private Task fetchTaskFromRepository(String taskOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		
-		PrismObject<TaskType> task = repositoryService.getObject(TaskType.class, taskOid, result);
-		return createTaskInstance(task, result);
-	}
-
 	@Override
 	public void switchToBackground(final Task task, OperationResult parentResult) {
 
 		parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "switchToBackground");
-		// Kind of hack. We want success to be persisted. In case that the persist fails, we will switch it back
-		
+
+        // if the task result was unknown, we change it to 'in-progress'
+        // (and roll back this change if storing into repo fails...)
+        boolean wasUnknown = false;
 		try {
-			
-			result.recordSuccess();
+            if (task.getResult().isUnknown()) {
+                wasUnknown = true;
+                task.getResult().recordInProgress();
+            }
 			persist(task, result);
-			
-		} catch (RuntimeException ex) {
+            result.recordSuccess();
+        } catch (RuntimeException ex) {
+            if (wasUnknown) {
+                task.getResult().recordUnknown();
+            }
 			result.recordFatalError("Unexpected problem: "+ex.getMessage(),ex);
 			throw ex;
 		}
 	}
 
-	private void persist(Task task, OperationResult parentResult)  {
-		if (task.getPersistenceStatus()==TaskPersistenceStatus.PERSISTENT) {
+	private void persist(Task task, OperationResult parentResult) {
+		if (task.getPersistenceStatus() == TaskPersistenceStatus.PERSISTENT) {
 			// Task already persistent. Nothing to do.
 			return;
 		}
@@ -537,7 +537,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             taskImpl.setCategoryTransient(taskImpl.getCategoryFromHandler());
         }
 		
-		taskImpl.setPersistenceStatusTransient(TaskPersistenceStatus.PERSISTENT);
+//		taskImpl.setPersistenceStatusTransient(TaskPersistenceStatus.PERSISTENT);
 
 		// Make sure that the task has repository service instance, so it can fully work as "persistent"
     	if (taskImpl.getRepositoryService() == null) {
