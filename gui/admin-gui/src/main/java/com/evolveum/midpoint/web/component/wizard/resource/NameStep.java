@@ -68,6 +68,8 @@ public class NameStep extends WizardStep {
     private static final String ID_CONNECTOR_TYPE = "connectorType";
     private static final String ID_CONNECTOR_VERSION = "connectorVersion";
 
+    private static final ConnectorHostType NOT_USED_HOST = new ConnectorHostType();
+
     private IModel<ResourceType> resourceModel;
 
     private LoadableModel<List<ConnectorHostType>> connectorHostsModel;
@@ -157,12 +159,19 @@ public class NameStep extends WizardStep {
     private IModel<ConnectorHostType> createReadonlyConnectorHostModel(final IModel<ResourceType> model) {
         return new IModel<ConnectorHostType>() {
 
+            private ConnectorHostType connectorHost;
+
             @Override
             public ConnectorHostType getObject() {
+                if (connectorHost != null) {
+                    return connectorHost;
+                }
+
                 ResourceType resource = model.getObject();
                 ObjectReferenceType ref = resource.getConnectorRef();
                 if (ref == null || ref.getOid() == null) {
-                    return null;
+                    connectorHost = NOT_USED_HOST;
+                    return connectorHost;
                 }
 
                 ConnectorType connector = null;
@@ -175,26 +184,30 @@ public class NameStep extends WizardStep {
                 }
 
                 if (connector == null || connector.getConnectorHostRef() == null) {
-                    return null;
+                    connectorHost = NOT_USED_HOST;
+                    return connectorHost;
                 }
 
                 ObjectReferenceType hostRef = connector.getConnectorHostRef();
                 if (hostRef.getOid() == null) {
-                    return null;
+                    connectorHost = NOT_USED_HOST;
+                    return connectorHost;
                 }
 
                 for (ConnectorHostType host : connectorHostsModel.getObject()) {
                     if (hostRef.getOid().equals(host.getOid())) {
-                        return host;
+                        connectorHost = host;
+                        return connectorHost;
                     }
                 }
 
-                return null;
+                connectorHost = NOT_USED_HOST;
+                return connectorHost;
             }
 
             @Override
             public void setObject(ConnectorHostType object) {
-                //nothing, this is only read only model
+                connectorHost = object;
             }
 
             @Override
@@ -323,7 +336,7 @@ public class NameStep extends WizardStep {
 
             @Override
             public Object getDisplayValue(ConnectorHostType object) {
-                if (object == null) {
+                if (NOT_USED_HOST.equals(object )) {
                     return NameStep.this.getString("NameStep.hostNotUsed");
                 }
                 return ConnectorHostTypeComparator.getUserFriendlyName(object);
@@ -334,7 +347,10 @@ public class NameStep extends WizardStep {
                 return Integer.toString(index);
             }
         }
-        );
+        ) {
+
+
+        };
         location.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
@@ -393,7 +409,7 @@ public class NameStep extends WizardStep {
         Set<String> alreadyAddedTypes = new HashSet<String>();
         List<ConnectorType> filtered = new ArrayList<ConnectorType>();
         for (ConnectorType connector : connectors) {
-            if (host != null && !isConnectorOnHost(connector, host)) {
+            if (!NOT_USED_HOST.equals(host) && !isConnectorOnHost(connector, host)) {
                 continue;
             }
 
@@ -490,7 +506,7 @@ public class NameStep extends WizardStep {
         }
 
         //for localhost
-        hosts.add(0, null);
+        hosts.add(0, NOT_USED_HOST);
 
         return hosts;
     }
@@ -508,7 +524,7 @@ public class NameStep extends WizardStep {
         DropDownChoice<ConnectorHostType> location = (DropDownChoice) get(ID_LOCATION);
         ConnectorHostType host = location.getModelObject();
 
-        if (host != null) {
+        if (!NOT_USED_HOST.equals(host)) {
             discoverConnectors(host);
             connectorsModel.reset();
         }
@@ -516,12 +532,9 @@ public class NameStep extends WizardStep {
         connectorTypes.reset();
         connectorVersions.reset();
 
-        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
-//        version.getModel().setObject(null);
-
         PageBase page = (PageBase) getPage();
 
-        target.add(NameStep.this.get(ID_CONNECTOR_TYPE), version, page.getFeedbackPanel());
+        target.add(get(ID_CONNECTOR_TYPE), get(ID_CONNECTOR_VERSION), page.getFeedbackPanel());
     }
 
     private void discoverConnectors(ConnectorHostType host) {
