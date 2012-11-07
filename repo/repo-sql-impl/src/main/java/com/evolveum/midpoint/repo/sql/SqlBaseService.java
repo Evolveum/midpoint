@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 
 /**
  * @author lazyman
@@ -51,9 +52,11 @@ public class SqlBaseService {
     // how many times we want to repeat operation after lock acquisition,
     // pessimistic, optimistic exception
     private static final int LOCKING_MAX_ATTEMPTS = 20;
-    // time in ms to wait before next operation attempt. it seems that 0
-    // works best here (i.e. it is best to repeat operation immediately)
-    private static final long LOCKING_TIMEOUT = 0;
+
+    // timeout will be a random number between 0 and LOCKING_TIMEOUT_STEP * 2^(attempt-1) where attempt is either real attempt # or LOCKING_EXP_THRESHOLD
+    private static final long LOCKING_TIMEOUT_STEP = 50;
+    private static final int LOCKING_EXP_THRESHOLD = 7;       // i.e. up to 6400 msec wait time
+
     @Autowired(required = true)
     private PrismContext prismContext;
     @Autowired(required = true)
@@ -111,49 +114,83 @@ public class SqlBaseService {
             OperationResult result) {
         if (!(ex instanceof PessimisticLockException) && !(ex instanceof LockAcquisitionException)
                 && !(ex instanceof HibernateOptimisticLockingFailureException)) {
-            //it's not locking exception (optimistic, pesimistic lock or simple lock acquisition)
+            // it's not locking exception (optimistic, pesimistic lock or simple lock acquisition) understood by hibernate
+            // however, it still could be such exception... wrapped in e.g. TransactionException
+            // so we have a look inside - we try to find SQLException there
 
-            // yet another brutal hack...
-            boolean deadlockRelated = ex.getMessage() != null && ex.getMessage().contains("deadlock");
+            // these error codes / SQL states we consider related to locking:
+            //  code 50200 [table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code]
+            //  code 40001 [DEADLOCK_1 in H2]
+            //  state 40001 [serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems]
+            //  state 40P01 [deadlock in PostgreSQL]
+            //
+            // sql states should be somewhat standardized; sql error codes are vendor-specific
+            // todo: so it is probably not very safe to test for code 50200/40001 without testing for h2
+            // but the risk of problem is quite low here, so let it be...
 
-            if (ex instanceof GenericJDBCException) {
-                //fix for table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
-                GenericJDBCException jdbcEx = (GenericJDBCException) ex;
-                if (jdbcEx.getErrorCode() != 50200) {
-                    if (deadlockRelated) {
-                        LOGGER.error("Deadlock-related problem was not caught correctly (jdbc branch)!", jdbcEx);
-                    }
-                    throw new SystemException(ex);
-                }
-            } else {
-                if (deadlockRelated) {
-                    LOGGER.error("Deadlock-related problem was not caught correctly (non-jdbc branch)!", ex);
+            SQLException sqlException = findSqlException(ex);
+            boolean serializationCodeFound = sqlException != null && (sqlException.getErrorCode() == 50200 || sqlException.getErrorCode() == 40001 ||
+                    "40001".equals(sqlException.getSQLState()) || "40P01".equals(sqlException.getSQLState()));
+
+            if (!serializationCodeFound) {
+                // to be sure that we won't miss anything related to deadlocks, here is an ugly hack that checks it (with some probability...)
+                boolean serializationTextFound = ex.getMessage() != null && (exceptionContainsText(ex, "deadlock") || exceptionContainsText(ex, "could not serialize access"));
+                if (serializationTextFound) {
+                    LOGGER.error("Transaction serialization-related problem (e.g. deadlock) was not caught correctly!", ex);
                 }
                 throw ex;
             }
         }
 
+        double waitTimeInterval = LOCKING_TIMEOUT_STEP * Math.pow(2, attempt > LOCKING_EXP_THRESHOLD ? LOCKING_EXP_THRESHOLD : (attempt-1));
+        long waitTime = Math.round(Math.random() * waitTimeInterval);
+
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("A locking-related problem occurred when {} object with oid '{}', retrying after "
-                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, LOCKING_TIMEOUT,
+            LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
                     attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
         }
 
         if (attempt >= LOCKING_MAX_ATTEMPTS) {
+            LOGGER.error("A serialization-related problem occurred, maximum attempts (" + attempt + ") reached.", ex);
             if (ex != null && result != null) {
-                result.recordFatalError("A locking-related problem occurred.", ex);
+                result.recordFatalError("A serialization-related problem occurred.", ex);
             }
             throw new SystemException(ex.getMessage() + " [attempts: " + attempt + "]", ex);
         }
 
-        if (LOCKING_TIMEOUT > 0) {
+        if (waitTime > 0) {
             try {
-                Thread.sleep(LOCKING_TIMEOUT);
+                Thread.sleep(waitTime);
             } catch (InterruptedException ex1) {
                 // ignore this
             }
         }
         return ++attempt;
+    }
+
+    private SQLException findSqlException(Throwable ex) {
+        while (ex != null) {
+            if (ex instanceof SQLException) {
+                return (SQLException) ex;
+            }
+            ex = ex.getCause();
+        }
+        return null;
+    }
+
+    private boolean exceptionContainsText(Throwable ex, String text) {
+        while (ex != null) {
+            if (ex.getMessage().contains(text)) {
+                return true;
+            }
+            ex = ex.getCause();
+        }
+        return false;
     }
 
     protected Session beginTransaction() {

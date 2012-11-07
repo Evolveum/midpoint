@@ -19,8 +19,6 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<!-- Basic role. It specfies creation of user account on OpenDJ resource. -->
-
 <role oid="12345678-d34d-b33f-f00d-000287987988"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">

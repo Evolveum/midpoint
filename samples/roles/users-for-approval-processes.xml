@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+      oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
+      version="2">
+   <name>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</norm>
+   </name>
+   <fullName>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Boss2</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</norm>
+   </fullName>
+   <credentials>
+      <password>
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+                  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                  xsi:type="c:ProtectedStringType">
+            <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+               <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+               <ds:KeyInfo>
+                  <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+               </ds:KeyInfo>
+               <enc:CipherData>
+                  <enc:CipherValue>SSwafbAyWjmD3c039qQJlj9Rqx1c45q2mVg+z+w/l0M/9vWqCTRjEUi1SFLUxd6K</enc:CipherValue>
+               </enc:CipherData>
+            </enc:EncryptedData>
+         </c:value>
+      </password>
+      <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+   </credentials>
+   <activation>
+      <enabled>true</enabled>
+   </activation>
+</user>
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+      oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
+      version="2">
+   <name>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</norm>
+   </name>
+   <fullName>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Security Manager</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security manager</norm>
+   </fullName>
+   <credentials>
+      <password>
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+                  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                  xsi:type="c:ProtectedStringType">
+            <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+               <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+               <ds:KeyInfo>
+                  <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+               </ds:KeyInfo>
+               <enc:CipherData>
+                  <enc:CipherValue>iimZ2lYWAEatFmD8C3ZLp0Kw+Bp0+de6vQTfNiE5aK6A1CVDx1homddXQzc7edYL</enc:CipherValue>
+               </enc:CipherData>
+            </enc:EncryptedData>
+         </c:value>
+      </password>
+      <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+   </credentials>
+   <activation>
+      <enabled>true</enabled>
+   </activation>
+</user>
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+      oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
+      version="5">
+   <name>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</norm>
+   </name>
+   <fullName>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Boss1</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</norm>
+   </fullName>
+   <credentials>
+      <password>
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+                  xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                  xsi:type="c:ProtectedStringType">
+            <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+               <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+               <ds:KeyInfo>
+                  <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+               </ds:KeyInfo>
+               <enc:CipherData>
+                  <enc:CipherValue>J39QnxGpKzA121JSoa0f9lbu8i+ggGRQNv8aCTu3uaeGUA0ipSIzZsVG9MkweGWs</enc:CipherValue>
+               </enc:CipherData>
+            </enc:EncryptedData>
+         </c:value>
+      </password>
+      <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+   </credentials>
+   <activation>
+      <enabled>true</enabled>
+   </activation>
+</user>
+</objects>
