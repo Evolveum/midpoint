@@ -23,7 +23,10 @@ package com.evolveum.midpoint.selenium;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.openqa.selenium.By;
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author lazyman
@@ -37,7 +40,12 @@ public class LoginLogoutTest extends BaseTest {
         logTestMethodStart(LOGGER, "launchSite");
         driver.get(getSiteUrl());
 
-        //todo asserts
+        //check if there are login form elements
+        driver.findElement(By.id("userName"));
+        driver.findElement(By.id("userPass"));
+        driver.findElement(By.cssSelector("input.button"));
+
+        assertTrue(driver.getCurrentUrl().startsWith(getSiteUrl() + "/login"));
 
         logTestMethodFinish(LOGGER, "launchSite");
     }
