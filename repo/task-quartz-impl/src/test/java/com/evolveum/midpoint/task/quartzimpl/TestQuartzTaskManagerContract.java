@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -341,7 +342,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     @Test(enabled = true)
     public void test004TaskProperties() throws Exception {
- 
+
     	String test = "004TaskProperties";
         OperationResult result = createResult(test);
 
@@ -382,7 +383,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, result);
 
         task.setBindingImmediate(TaskBinding.LOOSE, result);
-        
+
         // other properties will be set in batched mode
         String newname = "Test task, name changed";
         task.setName(PrismTestUtil.createPolyStringType(newname));
@@ -409,17 +410,17 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, task.createExtensionDelta(delayDefinition, 2));
 
         task.setRecurrenceStatus(TaskRecurrence.RECURRING);
-                
+
         OperationResultType ort = result.createOperationResultType();			// to be compared with later
-        
+
         task.setResult(result);
-        
+
         logger.trace("Saving modifications...");
-        
+
         task.savePendingModifications(result);
-        
+
         logger.trace("Retrieving the task (second time) and comparing its properties...");
-        
+
         Task task001 = taskManager.getTask(taskOid(test), result);
         logger.trace("Task from repo: " + task001.dump());
         AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
@@ -429,7 +430,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
         AssertJUnit.assertTrue(currentTime == task001.getLastRunStartTimestamp());
         AssertJUnit.assertNotNull(task001.getLastRunFinishTimestamp());
-        AssertJUnit.assertTrue(currentTime1 == task001.getLastRunFinishTimestamp());        
+        AssertJUnit.assertTrue(currentTime1 == task001.getLastRunFinishTimestamp());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
         AssertJUnit.assertEquals("Handler after 2xPUSH is not OK", "http://no-handler.org/2", task001.getHandlerUri());
@@ -450,8 +451,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
 
         OperationResultType ort1 = r001.createOperationResultType();
-        
-        // handling of operation result in tasks is extremely fragile now... 
+
+        // handling of operation result in tasks is extremely fragile now...
         // in case of problems, just uncomment the following line ;)
         AssertJUnit.assertEquals(ort, ort1);
 
@@ -490,16 +491,16 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     	final String test = "005Single";
         final OperationResult result = createResult(test);
-    	
+
         // reset 'has run' flag on the handler
         singleHandler1.resetHasRun();
 
         // Add single task. This will get picked by task scanner and executed
         addObjectFromFile(taskFilename(test));
-        
+
         logger.trace("Retrieving the task...");
         TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
-        
+
        	AssertJUnit.assertNotNull(task);
        	logger.trace("Task retrieval OK.");
 
@@ -522,7 +523,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         logger.info("... done");
 
         // Check task status
-        
+
         Task task1 = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task1);
@@ -554,13 +555,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
         AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
-        AssertJUnit.assertTrue("Other handlers are still present", 
+        AssertJUnit.assertTrue("Other handlers are still present",
         		task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
-        
+
         // Test whether handler has really run
         AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
     }
-    
+
     /*
      * Executes a cyclic task
      */
@@ -569,24 +570,24 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test006Cycle() throws Exception {
     	final String test = "006Cycle";
         final OperationResult result = createResult(test);
-    	
+
         // But before that check sanity ... a known problem with xsi:type
     	PrismObject<ObjectType> object = addObjectFromFile(taskFilename(test));
-    	
+
         ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
         System.out.println("Added task");
         System.out.println(object.dump());
-        
+
         PrismContainer<?> extensionContainer = object.getExtension();
         PrismProperty<Object> deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
         assertEquals("Bad typed of 'dead' property (add result)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
-        
+
         // Read from repo
-        
+
         PrismObject<TaskType> repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), result);
         TaskType repoTaskType = repoTask.asObjectable();
-        
+
         extensionContainer = repoTask.getExtension();
         deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
         assertEquals("Bad typed of 'dead' property (from repo)", DOMUtil.XSD_INT, deadProperty.getDefinition().getTypeName());
@@ -639,7 +640,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
-    	
+
     }
 
     /*
@@ -651,7 +652,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     	final String test = "008MoreHandlers";
         final OperationResult result = createResult(test);
-    	
+
         // reset 'has run' flag on handlers
         singleHandler1.resetHasRun();
         singleHandler2.resetHasRun();
@@ -703,9 +704,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
 
         // Test for no presence of handlers
-        
+
         AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
-        AssertJUnit.assertTrue("Other handlers are still present", 
+        AssertJUnit.assertTrue("Other handlers are still present",
         		task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test if all three handlers were run
@@ -719,9 +720,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     public void test009CycleLoose() throws Exception {
     	final String test = "009CycleLoose";
         final OperationResult result = createResult(test);
-    	
+
     	PrismObject<ObjectType> object = addObjectFromFile(taskFilename(test));
-    	
+
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this task
 
@@ -770,15 +771,15 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
-    	
+
     }
 
     @Test(enabled = true)
     public void test010CycleCronLoose() throws Exception {
-    	
+
     	final String test = "010CycleCronLoose";
     	final OperationResult result = createResult(test);
-    	
+
         addObjectFromFile(taskFilename(test));
 
         waitFor("Waiting for task manager to execute the task", new Checker() {
@@ -796,7 +797,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Check task status
 
         Task task = taskManager.getTask(taskOid(test), result);
-        
+
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
 
@@ -895,7 +896,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     @Test(enabled = true)
     public void test012Suspend() throws Exception {
-    	
+
     	final String test = "012Suspend";
         final OperationResult result = createResult(test);
 
@@ -922,22 +923,22 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // Check task status (task is running 5 iterations where each takes 2000 ms)
 
         Task task = taskManager.getTask(taskOid(test), result);
-        
+
         AssertJUnit.assertNotNull(task);
         System.out.println(task.dump());
-        
+
         AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
-        
+
         // Now suspend the task
 
         boolean stopped = taskManager.suspendTask(task, 0, result);
-        
+
         task.refresh(result);
         System.out.println("After suspend and refresh: " + task.dump());
-        
+
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
-        
+
         AssertJUnit.assertNotNull("Task last start time is null", task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse("Task last start time is 0", task.getLastRunStartTimestamp().longValue() == 0);
 
@@ -945,19 +946,19 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Task has not reported any progress", task.getProgress() > 0);
 
 //        Thread.sleep(200);		// give the scheduler a chance to release the task
-        
+
 //        task.refresh(result);
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
 
     @Test(enabled = true)
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
-    	
+
     	final String test = "013ReleaseAndSuspendLooselyBound";
         final OperationResult result = createResult(test);
 
     	addObjectFromFile(taskFilename(test));
-        
+
         Task task = taskManager.getTask(taskOid(test), result);
         System.out.println("After setup: " + task.dump());
 
@@ -983,35 +984,35 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         }, 10000, 2000);
 
         task.refresh(result);
-        
+
         System.out.println("After refresh: " + task.dump());
-        
+
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
-//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now 
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now
 
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
         AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
-        
+
         // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
-        
+
         boolean stopped = taskManager.suspendTask(task, 300, result);
-        
+
         task.refresh(result);
-        
+
         AssertJUnit.assertTrue("Task is not stopped", stopped);
-        
+
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
-        
+
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
         AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
-	    
+
 //        Thread.sleep(200);		// give the scheduler a chance to release the task
 //        task.refresh(result);
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
@@ -1023,7 +1024,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     	final String test = "014SuspendLongRunning";
     	final OperationResult result = createResult(test);
-    	
+
     	addObjectFromFile(taskFilename(test));
 
         Task task = taskManager.getTask(taskOid(test), result);
@@ -1042,23 +1043,23 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         }, 10000, 2000);
 
         task.refresh(result);
-        
+
         System.out.println("After refresh: " + task.dump());
-        
+
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
-        
+
         // now let us suspend it, without long waiting
-        
+
         boolean stopped = taskManager.suspendTask(task, 1000, result);
-        
+
         task.refresh(result);
-        
+
         AssertJUnit.assertFalse("Task is stopped (it should be running for now)", stopped);
-        
+
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
 //        AssertJUnit.assertEquals("Task should be still claimed, as it is not definitely stopped", TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
@@ -1066,15 +1067,15 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
         AssertJUnit.assertTrue("There should be no progress reported", task.getProgress() == 0);
-        
+
         // now let us wait for the finish
-        
+
         stopped = taskManager.suspendTask(task, 0, result);
-        
+
         task.refresh(result);
-        
+
         AssertJUnit.assertTrue("Task is not stopped", stopped);
-        
+
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
 
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
@@ -1148,6 +1149,27 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Progress is too low", task.getProgress() >= 2);
     }
 
+    @Test(enabled = true)
+    public void test017TaskResult() throws Exception {
+        final String test = "017RefreshingResult";
+        final OperationResult result = createResult(test);
+
+        Task task = taskManager.createTaskInstance();
+        PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, result);
+        task.setOwner(owner2);
+        AssertJUnit.assertEquals("Task result for new task is not correct", OperationResultStatus.UNKNOWN, task.getResult().getStatus());
+
+        taskManager.switchToBackground(task, result);
+        AssertJUnit.assertEquals("Background task result is not correct (in memory)", OperationResultStatus.IN_PROGRESS, task.getResult().getStatus());
+        PrismObject<TaskType> task1 = repositoryService.getObject(TaskType.class, task.getOid(), result);
+        AssertJUnit.assertEquals("Background task result is not correct (in repo)", OperationResultStatusType.IN_PROGRESS, task1.asObjectable().getResult().getStatus());
+
+        // now change task's result and check the refresh() method w.r.t. result handling
+        task.getResult().recordFatalError("");
+        AssertJUnit.assertEquals(OperationResultStatus.FATAL_ERROR, task.getResult().getStatus());
+        task.refresh(result);
+        AssertJUnit.assertEquals("Refresh does not update task's result", OperationResultStatus.IN_PROGRESS, task.getResult().getStatus());
+    }
 
     @Test(enabled = true)
     public void test999CheckingLeftovers() throws Exception {
