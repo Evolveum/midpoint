@@ -824,6 +824,9 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
 	}
 	
+	/**
+	 * Modify the account. Some of the changes should be reflected back to the user by inbound mapping.
+	 */
 	@Test
     public void test132ModifyAccountJackDummy() throws Exception {
         displayTestTile(this, "test132ModifyAccountJackDummy");
@@ -836,6 +839,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
         		accountOid, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, prismContext, "Cpt. Jack Sparrow");
+        accountDelta.addModificationReplaceProperty(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
         deltas.add(accountDelta);
                 
 		// WHEN
@@ -847,7 +851,13 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
+		// Fullname inbound mapping is not used because it is weak
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// ship inbound mapping is used, it is strong 
+		assertEquals("Wrong user locality (orig)", "The crew of Queen Anne's Revenge", 
+				userJack.asObjectable().getOrganizationalUnit().iterator().next().getOrig());
+		assertEquals("Wrong user locality (norm)", "the crew of queen annes revenge", 
+				userJack.asObjectable().getOrganizationalUnit().iterator().next().getNorm());
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
@@ -855,17 +865,19 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertDummyShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
+        // All the changes should be reflected to the account
         PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
         assertDummyShadowModel(accountModel, accountOid, "jack", "Cpt. Jack Sparrow");
+        PrismAsserts.assertPropertyValue(accountModel, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH, "Queen Anne's Revenge");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Cpt. Jack Sparrow", true);
+        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, 
+        		"Queen Anne's Revenge");
 	}
 	
 	@Test
-    public void test139ModifyUserJackUnassignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test139ModifyUserJackUnassignAccount() throws Exception {
         displayTestTile(this, "test139ModifyUserJackUnassignAccount");
 
         // GIVEN
@@ -885,7 +897,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
         
@@ -896,10 +908,13 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 	
+	/**
+	 * We try to both assign an account and modify that account in one operation.
+	 * Some changes should be reflected to account (e.g.  weapon) as the mapping is weak, other should be
+	 * overridded (e.g. fullname) as the mapping is strong.
+	 */
 	@Test
-    public void test140ModifyUserJackAssignAccountAndModify() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test140ModifyUserJackAssignAccountAndModify() throws Exception {
         displayTestTile(this, "test140ModifyUserJackAssignAccountAndModify");
 
         // GIVEN
@@ -911,6 +926,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         ShadowDiscriminatorObjectDelta<AccountShadowType> accountDelta = ShadowDiscriminatorObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
         		RESOURCE_DUMMY_OID, null, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH, prismContext, "Cpt. Jack Sparrow");
+        accountDelta.addModificationAddProperty(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH, "smell");
         deltas.add(accountDelta);
         deltas.add(accountAssignmentUserDelta);
                 
@@ -923,20 +939,21 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack, "Cpt. Jack Sparrow");
+		assertUserJack(userJack, "Jack Sparrow");
         accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
         PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
         
         // Check account
         PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "jack", "Cpt. Jack Sparrow");
+        assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount("jack", "Cpt. Jack Sparrow", true);
-        DummyAccount dummyAccount = getDummyAccount(null, "jack");
+        assertDummyAccount(USER_JACK_USERNAME, "Jack Sparrow", true);
+        DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
 	}
 	
@@ -950,7 +967,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
                         
 		// WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, "Magnificent Captain Jack Sparrow");
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
 		
 		// THEN
 		result.computeStatus();

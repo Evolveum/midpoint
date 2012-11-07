@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.PropertyValueWithOrigin;
+import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -192,6 +193,7 @@ public class ReconciliationProcessor {
         	// Too loud :-)
         	//LOGGER.trace("SHOULD BE:\n{}\nIS:\n{}",shouldBePValues,arePValues);
         	
+        	boolean hasValue = false;
         	for (PropertyValueWithOrigin shouldBePvwo: shouldBePValues) {
         		Mapping<?> shouldBeMapping = shouldBePvwo.getMapping();
         		if (shouldBeMapping == null) {
@@ -203,7 +205,15 @@ public class ReconciliationProcessor {
         		}
         		Object shouldBeRealValue = shouldBePvwo.getPropertyValue().getValue();
         		if (!isInValues(shouldBeRealValue, arePValues)) {
-        			recordDelta(accCtx, attributeDefinition, ChangeType.ADD, shouldBeRealValue, shouldBePvwo.getAccountConstruction().getSource());
+        			if (attributeDefinition.isSingleValue()) {
+	        			if (hasValue) {
+	        				throw new SchemaException("Attept to set more than one value for single-valued attribute "+attrName+" in "+accCtx.getResourceShadowDiscriminator());
+	        			}
+	        			recordDelta(accCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue, shouldBePvwo.getAccountConstruction().getSource());
+        			} else {
+        				recordDelta(accCtx, attributeDefinition, ModificationType.ADD, shouldBeRealValue, shouldBePvwo.getAccountConstruction().getSource());
+        			}
+        			hasValue = true;
         		}
         		
         	}
@@ -211,22 +221,25 @@ public class ReconciliationProcessor {
         	if (!attributeDefinition.isTolerant()) {
         		for (PrismPropertyValue<Object> isPValue: arePValues) {
         			if (!isInPvwoValues(isPValue.getValue(), shouldBePValues)) {
-        				recordDelta(accCtx, attributeDefinition, ChangeType.DELETE, isPValue.getValue(), null);
+        				recordDelta(accCtx, attributeDefinition, ModificationType.DELETE, isPValue.getValue(), null);
         			}
         		}
         	}
         }
     }
 
-	private void recordDelta(LensProjectionContext<AccountShadowType> accCtx, ResourceAttributeDefinition attrDef, ChangeType changeType, Object value, ObjectType originObject) throws SchemaException {
+	private <T> void recordDelta(LensProjectionContext<AccountShadowType> accCtx, ResourceAttributeDefinition attrDef, 
+			ModificationType changeType, T value, ObjectType originObject) throws SchemaException {
 		LOGGER.trace("Reconciliation will {} value of attribute {}: {}", new Object[]{changeType, attrDef, value});
 		
-		PropertyDelta attrDelta = new PropertyDelta(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);
-		PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value, OriginType.RECONCILIATION, originObject);
-		if (changeType == ChangeType.ADD) {
+		PropertyDelta<T> attrDelta = new PropertyDelta<T>(SchemaConstants.PATH_ATTRIBUTES, attrDef.getName(), attrDef);
+		PrismPropertyValue<T> pValue = new PrismPropertyValue<T>(value, OriginType.RECONCILIATION, originObject);
+		if (changeType == ModificationType.ADD) {
 			attrDelta.addValueToAdd(pValue);
-		} else if (changeType == ChangeType.DELETE) {
+		} else if (changeType == ModificationType.DELETE) {
 			attrDelta.addValueToDelete(pValue);
+		} else if (changeType == ModificationType.REPLACE) {
+			attrDelta.setValueToReplace(pValue);
 		} else {
 			throw new IllegalArgumentException("Unknown change type "+changeType);
 		}

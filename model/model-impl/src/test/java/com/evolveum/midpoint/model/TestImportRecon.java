@@ -137,7 +137,7 @@ public class TestImportRecon extends AbstractModelIntegrationTest {
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TestImportRecon.class.getName() + ".test100ImportFromResourceDummy");
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -160,7 +160,7 @@ public class TestImportRecon extends AbstractModelIntegrationTest {
         OperationResult subresult = result.getLastSubresult();
         IntegrationTestTools.assertInProgress("importAccountsFromResource result", subresult);
         
-        waitForTaskFinish(task);
+        waitForTaskFinish(task, true);
         
         displayThen(TEST_NAME);
         
@@ -204,6 +204,83 @@ public class TestImportRecon extends AbstractModelIntegrationTest {
         assertNull("Jones sneaked in", daviejones);
         PrismObject<UserType> calypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         assertNull("Calypso sneaked in", calypso);
+	}
+	
+	@Test
+    public void test200ReconcileDummy() throws Exception {
+		final String TEST_NAME = "test200ReconcileDummy";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        // Lets do some local changes on dummy resource
+        DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        guybrushDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Dubrish Freepweed");
+        
+        // Calypso is protected, this should not reconcile
+        DummyAccount calypsoDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        calypsoDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Calypso");
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
+		
+        // THEN
+        displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
+        
+        displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after import", users);
+        
+        assertEquals("Unexpected number of users", 6, users.size());
+        
+        PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
+        assertNotNull("No admin", admin);
+        assertAccounts(admin, 0);
+        
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        assertNotNull("No jack", jack);
+        assertAccounts(jack, 0);
+        
+        PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
+        assertNotNull("No barbossa", barbossa);
+        assertAccounts(barbossa, 1);
+        assertAccount(barbossa, RESOURCE_OPENDJ_OID);
+        
+        PrismObject<UserType> guybrush = getUser(USER_GUYBRUSH_OID);
+        assertNotNull("No guybrush", guybrush);
+        assertAccounts(guybrush, 1);
+        assertAccount(guybrush, RESOURCE_DUMMY_OID);
+        // Guybrush should be corrected back to real fullname
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Guybrush Threepwood");
+        
+        PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
+        assertNotNull("No rapp", rapp);
+        // Rapp account should be linked
+        assertAccounts(rapp, 1);
+        assertAccount(rapp, RESOURCE_DUMMY_OID);
+        
+        PrismObject<UserType> herman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
+        assertNotNull("No herman", herman);
+        assertAccounts(herman, 1);
+        assertAccount(herman, RESOURCE_DUMMY_OID);
+        
+        // These are protected accounts, they should not be imported
+        PrismObject<UserType> daviejones = findUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNull("Jones sneaked in", daviejones);
+        PrismObject<UserType> calypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        assertNull("Calypso sneaked in", calypso);
+        
+        // Calypso is protected account. Reconciliation should not touch it
+        assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+        		"Calypso");
 	}
 		
 

@@ -869,9 +869,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test112SeachIterative() throws SchemaException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException,
-			SecurityViolationException {
+	public void test112SeachIterative() throws Exception {
 		displayTestTile("test112SeachIterative");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -1451,9 +1449,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test801LiveSyncAddBlackbeard() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException {
+	public void test801LiveSyncAddBlackbeard() throws Exception {
 		displayTestTile("test801LiveSyncAddBlackbeard");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -1507,9 +1503,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test802LiveSyncModifyBlackbeard() throws ObjectNotFoundException, CommunicationException,
-			SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException {
+	public void test802LiveSyncModifyBlackbeard() throws Exception {
 		displayTestTile("test802LiveSyncModifyBlackbeard");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -1560,9 +1554,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test803LiveSyncAddDrake() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException {
+	public void test803LiveSyncAddDrake() throws Exception {
 		displayTestTile("test803LiveSyncAddDrake");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
@@ -1616,9 +1608,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test810LiveSyncModifyProtectedAccount() throws ObjectNotFoundException, CommunicationException,
-			SchemaException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException {
+	public void test810LiveSyncModifyProtectedAccount() throws Exception {
 		displayTestTile("test810LiveSyncModifyProtectedAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()

@@ -351,6 +351,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	public <X> PrismProperty<X> findProperty(QName propertyQName) {
         return findItem(propertyQName, PrismProperty.class);
     }
+    
+    public <X> PrismProperty<X> findProperty(ItemPath propertyPath) {
+        return (PrismProperty<X>) findItem(propertyPath);
+    }
 
     /**
      * Finds a specific property in the container by definition.

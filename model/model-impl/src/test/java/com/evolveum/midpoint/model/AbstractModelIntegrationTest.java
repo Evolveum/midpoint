@@ -46,6 +46,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -198,6 +199,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 
 	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	protected static final String USER_JACK_USERNAME = "jack";
 
 	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_NAME + "/user-barbossa.xml";
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
@@ -246,16 +248,31 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
-	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "fullname");
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME = "fullname";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
 	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new ItemPath(
-			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME);
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
 	
-	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON = new QName(RESOURCE_DUMMY_NAMESPACE, "weapon");
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME = "location";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_PATH = new ItemPath(
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME);
+	
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME = "ship";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH = new ItemPath(
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME);
+	
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
 	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH = new ItemPath(
-			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON);
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
 	
 	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
+	
+	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy.xml";
+	protected static final String TASK_RECONCILE_DUMMY_OID = "91919191-76e0-59e2-86d6-3d4f02d3dddd";
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 	
@@ -386,11 +403,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 	}
 	
-	protected void addDummyAccount(DummyResource resource, String userId, String fullName, String location) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+	protected void addDummyAccount(DummyResource resource, String userId, String fullName, String location) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, SchemaViolationException {
 		DummyAccount account = new DummyAccount(userId);
 		account.setEnabled(true);
-		account.addAttributeValues("fullname", fullName);
-		account.addAttributeValues("location", location);
+		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
+		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, location);
 		resource.addAccount(account);
 	}
 
@@ -411,8 +428,15 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected void postInitDummyResouce() {
 		// Do nothing be default. Concrete tests may override this.
 	}
+	
+	protected void importObjectFromFile(String filename) throws FileNotFoundException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".importObjectFromFile");
+		importObjectFromFile(filename, result);
+		result.computeStatus();
+		assertSuccess(result);
+	}
 
-	private void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
+	protected void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
 		LOGGER.trace("importObjectFromFile: {}", filename);
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
@@ -1259,11 +1283,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return task;
 	}
 	
-	protected void waitForTaskFinish(Task task) throws Exception {
-		waitForTaskFinish(task, DEFAULT_TASK_WAIT_TIMEOUT);
+	protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
+		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskFinish(final Task task, int timeout) throws Exception {
+	protected void waitForTaskFinish(final Task task, final boolean checkSubresult, int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
@@ -1272,9 +1296,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 //				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
 				OperationResult result = task.getResult();
 //				display("Check result", result);
-				assert !isError(result) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
-				assert !isUknown(result) : "Unknown result in "+task+": "+IntegrationTestTools.getErrorMessage(result);
-				return !isInProgress(result);
+				assert !isError(result, checkSubresult) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
+				assert !isUknown(result, checkSubresult) : "Unknown result in "+task+": "+IntegrationTestTools.getErrorMessage(result);
+				return !isInProgress(result, checkSubresult);
 			}
 			@Override
 			public void timeout() {
@@ -1293,16 +1317,62 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
-	private boolean isError(OperationResult result) {
-		return result.getLastSubresult().isError();
+	protected void waitForTaskFinish(String taskOid, boolean checkSubresult) throws Exception {
+		waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	private boolean isUknown(OperationResult result) {
-		return result.getLastSubresult().isUnknown();
+	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				Task freshTask = taskManager.getTask(taskOid, waitResult);
+				OperationResult result = freshTask.getResult();
+				display("Check result", result);
+				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				if (isUknown(result, checkSubresult)) {
+					return false;
+				}
+//				assert !isUknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				return !isInProgress(result, checkSubresult);
+			}
+			@Override
+			public void timeout() {
+				try {
+					Task freshTask = taskManager.getTask(taskOid, waitResult);
+					OperationResult result = freshTask.getResult();
+					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+					assert false : "Timeout while waiting for "+freshTask+" to finish. Last result "+result;
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				} catch (SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				}
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+	
+	private boolean isError(OperationResult result, boolean checkSubresult) {
+		OperationResult subresult = getSubresult(result, checkSubresult);
+		return subresult.isError();
+	}
+	
+	private boolean isUknown(OperationResult result, boolean checkSubresult) {
+		OperationResult subresult = getSubresult(result, checkSubresult);
+		return subresult.isUnknown();
 	}
 
-	private boolean isInProgress(OperationResult result) {
-		return result.getLastSubresult().isInProgress();
+	private boolean isInProgress(OperationResult result, boolean checkSubresult) {
+		OperationResult subresult = getSubresult(result, checkSubresult);
+		return subresult.isInProgress();
+	}
+
+	private OperationResult getSubresult(OperationResult result, boolean checkSubresult) {
+		if (checkSubresult) {
+			return result.getLastSubresult();
+		}
+		return result;
 	}
 
 }

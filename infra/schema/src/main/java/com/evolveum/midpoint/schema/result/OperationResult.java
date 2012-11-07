@@ -297,6 +297,10 @@ public class OperationResult implements Serializable, Dumpable {
 		return status;
 	}
 
+	public void setStatus(OperationResultStatus status) {
+		this.status = status;
+	}
+
 	/**
 	 * Returns true if the result is success.
 	 * 

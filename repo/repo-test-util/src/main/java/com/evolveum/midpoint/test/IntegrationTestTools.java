@@ -109,6 +109,10 @@ public class IntegrationTestTools {
 	private static final String OBJECT_LIST_SEPARATOR = "---";
 	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 500;
 
+	public static void assertSuccess(OperationResult result) {
+		assertSuccess("Operation "+result.getOperation()+" result", result);
+	}
+	
 	public static void assertSuccess(String message, OperationResultType result) {
 		if (!checkResults) {
 			return;
@@ -543,7 +547,7 @@ public class IntegrationTestTools {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(dumpable == null ? "null" : dumpable.dump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
-				+ dumpable == null ? "null" : dumpable.dump());
+				+ (dumpable == null ? "null" : dumpable.dump()));
 	}
 	
 	public static void display(String title, String value) {

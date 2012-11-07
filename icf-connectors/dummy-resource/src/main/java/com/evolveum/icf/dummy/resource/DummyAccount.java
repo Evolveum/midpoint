@@ -108,13 +108,13 @@ public class DummyAccount {
 		return getAttributeValue(attrName,String.class);
 	}
 
-	public void replaceAttributeValue(String name, Object value) {
+	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException {
 		Collection<Object> values = new ArrayList<Object>(1);
 		values.add(value);
 		replaceAttributeValues(name, values);
 	}
 	
-	public void replaceAttributeValues(String name, Collection<Object> values) {
+	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -123,34 +123,35 @@ public class DummyAccount {
 			currentValues.clear();
 		}
 		currentValues.addAll(values);
+		checkSchema(name, values, "relace");
 		recordModify();
 	}
 
-	public void addAttributeValues(String name, Collection<Object> valuesToAdd) {
+	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
 			attributes.put(name, currentValues);
 		}
 		for(Object valueToAdd: valuesToAdd) {
-			addAttributeValue(currentValues, valueToAdd);
+			addAttributeValue(name, currentValues, valueToAdd);
 		}
 		recordModify();
 	}
 	
-	public void addAttributeValues(String name, String... valuesToAdd) {
+	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
 			attributes.put(name, currentValues);
 		}
 		for (Object valueToAdd: valuesToAdd) {
-			addAttributeValue(currentValues, valueToAdd);
+			addAttributeValue(name, currentValues, valueToAdd);
 		}
 		recordModify();
 	}
 	
-	private void addAttributeValue(Set<Object> currentValues, Object valueToAdd) {
+	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException {
 		if (resource != null && !resource.isTolerateDuplicateValues()) {
 			for (Object currentValue: currentValues) {
 				if (currentValue.equals(valueToAdd)) {
@@ -158,15 +159,27 @@ public class DummyAccount {
 				}
 			}
 		}
+		
+		Set<Object> valuesToCheck = new HashSet<Object>();
+		valuesToCheck.addAll(currentValues);
+		valuesToCheck.add(valueToAdd);
+		checkSchema(attrName, valuesToCheck, "add");
+		
 		currentValues.add(valueToAdd);
 	}
 
-	public void removeAttributeValues(String name, Collection<Object> values) {
+	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException {
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
 			attributes.put(name, currentValues);
 		}
+		
+		Set<Object> valuesToCheck = new HashSet<Object>();
+		valuesToCheck.addAll(currentValues);
+		valuesToCheck.removeAll(values);
+		checkSchema(name, valuesToCheck, "remove");
+		
 		currentValues.removeAll(values);
 		recordModify();
 	}
@@ -176,6 +189,28 @@ public class DummyAccount {
 			resource.recordModify(this);
 		}
 	}
+
+	private void checkSchema(String attrName, Collection<Object> values, String operationName) throws SchemaViolationException {
+		if (resource == null || !resource.isEnforceSchema()) {
+			return;
+		}
+		DummyObjectClass accountObjectClass = resource.getAccountObjectClass();
+		if (accountObjectClass == null) {
+			// Nothing to check
+			return;
+		}
+		DummyAttributeDefinition attributeDefinition = accountObjectClass.getAttributeDefinition(attrName);
+		if (attributeDefinition == null) {
+			throw new SchemaViolationException("Attribute "+attrName+" is not defined in resource schema");
+		}
+		if (attributeDefinition.isRequired() && (values == null || values.isEmpty())) {
+			throw new SchemaViolationException(operationName + " of required attribute "+attrName+" results in no values");
+		}
+		if (!attributeDefinition.isMulti() && values != null && values.size() > 1) {
+			throw new SchemaViolationException(operationName + " of single-valued attribute "+attrName+" results in "+values.size()+" values");
+		}
+}
+
 	
 	@Override
 	public String toString() {

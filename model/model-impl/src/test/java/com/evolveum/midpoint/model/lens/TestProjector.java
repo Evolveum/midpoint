@@ -191,8 +191,8 @@ public class TestProjector extends AbstractModelIntegrationTest {
 
         PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
         IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
-        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");
-        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON, "mouth", "pistol");
+        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
+        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME, "mouth", "pistol");
 	}
 	
 	@Test
@@ -244,8 +244,8 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
         IntegrationTestTools.assertIcfsNameAttribute(newAccount, "jack");
-        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME, "Jack Sparrow");
-        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON, "mouth", "pistol");
+        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
+        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME, "mouth", "pistol");
         
         for (ResourceAttribute<?> attribute: ResourceObjectShadowUtil.getAttributes(newAccount)) {
         	PrismAsserts.assertOrigin(attribute, OriginType.OUTBOUND);
@@ -696,7 +696,8 @@ public class TestProjector extends AbstractModelIntegrationTest {
         
         // Change the guybrush account on dummy resource directly. This creates inconsistency.
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccount.replaceAttributeValue("location", "Phatt Island");
+        dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
+        dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
@@ -732,8 +733,11 @@ public class TestProjector extends AbstractModelIntegrationTest {
         
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath("location"));
-        PrismAsserts.assertAdd(locationDelta, "Melee Island");
+        PropertyDelta<String> fullnameDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        PrismAsserts.assertReplace(fullnameDelta, "Guybrush Threepwood");
+        PrismAsserts.assertOrigin(fullnameDelta, OriginType.RECONCILIATION);
+        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        PrismAsserts.assertReplace(locationDelta, "Melee Island");
         PrismAsserts.assertOrigin(locationDelta, OriginType.RECONCILIATION);
         
     }

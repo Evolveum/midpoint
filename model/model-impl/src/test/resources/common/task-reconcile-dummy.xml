@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2012 [name of copyright owner]     -->
+<!--                                                         -->
+
+<!--Reconciliation task definition for dummy resource -->
+
+<task oid="91919191-76e0-59e2-86d6-3d4f02d3dddd"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:my="http://whatever.com/my"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd
+							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+								  
+	<!-- Resource printable name -->
+	<name>Reconciliation: Dummy</name>
+	
+	<extension>
+	</extension>
+	
+	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3dddd</taskIdentifier>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+	<exclusivityStatus>released</exclusivityStatus>
+	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
+	<objectRef oid="10000000-0000-0000-0000-000000000004"/>
+	<recurrence>recurring</recurrence>
+	<binding>tight</binding>
+	<schedule>
+		<interval>5</interval>
+	</schedule>
+
+</task>

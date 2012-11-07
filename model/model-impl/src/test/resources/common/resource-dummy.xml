@@ -154,6 +154,7 @@
 					</source>
 				</outbound>
 				<inbound>
+					<strength>weak</strength>
 					<target>
 						<path>$user/fullName</path>
 					</target>

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -112,6 +113,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
+		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 		String resourceOid = task.getObjectOid();
@@ -225,7 +227,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, opResult);
 
-		// TODO: process result
+		opResult.computeStatus();
 	}
 
 	private void performRepoReconciliation(Task task, OperationResult result) throws SchemaException,
@@ -264,6 +266,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 
 		// for each try the operation again
+		
+		opResult.computeStatus();
 	}
 
 	// private void normalizeShadow(PrismObject<AccountShadowType> shadow,

@@ -68,6 +68,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.icf.dummy.connector.Utils;
 
 /**
@@ -205,7 +206,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         		
         	} else {
 	        	String name = attr.getName();
-	        	account.replaceAttributeValues(name, attr.getValue());
+	        	try {
+					account.replaceAttributeValues(name, attr.getValue());
+				} catch (SchemaViolationException e) {
+					// we cannot throw checked exceptions. But this one looks suitable.
+					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+					// The framework should deal with it ... somehow
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
         	}
         }
         
@@ -238,7 +246,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         		
         	} else {
 	        	String name = attr.getName();
-	        	account.addAttributeValues(name, attr.getValue());
+	        	try {
+					account.addAttributeValues(name, attr.getValue());
+				} catch (SchemaViolationException e) {
+					// we cannot throw checked exceptions. But this one looks suitable.
+					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+					// The framework should deal with it ... somehow
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
         	}
         }
         
@@ -265,7 +280,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
         	} else {
 	        	String name = attr.getName();
-	        	account.removeAttributeValues(name, attr.getValue());
+	        	try {
+					account.removeAttributeValues(name, attr.getValue());
+				} catch (SchemaViolationException e) {
+					// we cannot throw checked exceptions. But this one looks suitable.
+					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+					// The framework should deal with it ... somehow
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
         	}
         }
 
@@ -501,7 +523,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				
 			} else {
 				String name = attr.getName();
-				newAccount.replaceAttributeValues(name,attr.getValue());
+				try {
+					newAccount.replaceAttributeValues(name,attr.getValue());
+				} catch (SchemaViolationException e) {
+					// we cannot throw checked exceptions. But this one looks suitable.
+					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+					// The framework should deal with it ... somehow
+					throw new IllegalArgumentException(e.getMessage(),e);
+				}
 			}
 		}
 		

@@ -67,6 +67,7 @@ public class DummyResource {
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
+	private boolean enforceSchema = true;
 	
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
@@ -116,6 +117,14 @@ public class DummyResource {
 
 	public void setTolerateDuplicateValues(boolean tolerateDuplicateValues) {
 		this.tolerateDuplicateValues = tolerateDuplicateValues;
+	}
+
+	public boolean isEnforceSchema() {
+		return enforceSchema;
+	}
+
+	public void setEnforceSchema(boolean enforceSchema) {
+		this.enforceSchema = enforceSchema;
 	}
 
 	public String getUselessString() {

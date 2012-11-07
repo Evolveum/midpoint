@@ -97,7 +97,7 @@ public class TestSynchronizationService extends AbstractModelIntegrationTest {
 	}
 		
 	@Test
-    public void test001AddedAccountJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException {
+    public void test001AddedAccountJack() throws Exception {
         displayTestTile(this, "test001AddedAccountJack");
 
         // GIVEN
