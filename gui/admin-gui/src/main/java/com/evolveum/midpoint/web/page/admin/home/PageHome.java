@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -63,18 +64,6 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAssignmentDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
 
 /**
  * @author lazyman
@@ -89,6 +78,9 @@ public class PageHome extends PageAdmin {
 	private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
 	private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
+
+    private static final String ID_ORG_UNITS ="orgUnits";
+    private static final String ID_ASSIGNED_ORG_UNITS = "assignedOrgUnits";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageHome.class);
 	private IModel<AdminHomeDto> model;
@@ -121,7 +113,9 @@ public class PageHome extends PageAdmin {
                 LOGGER.trace("Loading accounts.");
 				dto.getAccounts().addAll(loadAccounts(prismUser));
                 LOGGER.trace("Loading role assignments.");
-				dto.getAssignments().addAll(loadRoleAssignments(prismUser));
+				dto.getAssignments().addAll(loadAssignments(prismUser, AssignmentEditorDtoType.ROLE));
+                LOGGER.trace("Loading org. unit assignments.");
+                dto.getOrgAssignments().addAll(loadAssignments(prismUser, AssignmentEditorDtoType.ORG_UNIT));
                 LOGGER.trace("Loading resource assignments.");
 				dto.getResources().addAll(loadResourceAssignments(prismUser));
                 if (getWorkflowManager().isEnabled()) {
@@ -171,7 +165,19 @@ public class PageHome extends PageAdmin {
 		});
 		roles.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(roles);
-		initRoles(roles);
+        initAssignmentAccordionItem(roles, "assignedRoles", new PropertyModel(model, "assignments"));
+
+        AccordionItem orgUnits = new AccordionItem(ID_ORG_UNITS, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("pageHome.orgUnits", model.getObject().getOrgAssignments().size())
+                        .getString();
+            }
+        });
+        orgUnits.setOutputMarkupId(true);
+        accordion.getBodyContainer().add(orgUnits);
+        initAssignmentAccordionItem(orgUnits, "assignedOrgUnits", new PropertyModel(model, "orgAssignments"));
 
 		AccordionItem accounts = new AccordionItem("myAccounts", new AbstractReadOnlyModel<String>() {
 
@@ -299,43 +305,50 @@ public class PageHome extends PageAdmin {
         return list;
     }
 
-    private List<SimpleAssignmentDto> loadRoleAssignments(PrismObject<UserType> prismUser) {
-		List<SimpleAssignmentDto> list = new ArrayList<SimpleAssignmentDto>();
+    private List<SimpleAssignmentDto> loadAssignments(PrismObject<UserType> user, AssignmentEditorDtoType wantedType) {
+        List<SimpleAssignmentDto> list = new ArrayList<SimpleAssignmentDto>();
 
-		OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
-		List<AssignmentType> assignments = prismUser.asObjectable().getAssignment();
-		for (AssignmentType assignment : assignments) {
-			String name = null;
-			AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
-			if (assignment.getTarget() != null) {
-				ObjectType target = assignment.getTarget();
-				name = WebMiscUtil.getOrigStringFromPoly(target.getName());
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
+        List<AssignmentType> assignments = user.asObjectable().getAssignment();
+        for (AssignmentType assignment : assignments) {
+            String name = null;
+            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
+            if (assignment.getTarget() != null) {
+                ObjectType target = assignment.getTarget();
+                name = WebMiscUtil.getOrigStringFromPoly(target.getName());
                 type = AssignmentEditorDtoType.getType(target.getClass());
-			} else if (assignment.getTargetRef() != null) {
-				ObjectReferenceType ref = assignment.getTargetRef();
-				OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-				subResult.addParam("targetRef", ref.getOid());
-				PrismObject target = null;
-				try {
-					Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
-					target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
-							subResult);
-					subResult.recordSuccess();
-				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
-					subResult.recordFatalError("Couldn't get assignment target ref.", ex);
-				}
+            } else if (assignment.getTargetRef() != null) {
+                ObjectReferenceType ref = assignment.getTargetRef();
+                OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
+                subResult.addParam("targetRef", ref.getOid());
+                PrismObject target = null;
+                try {
+                    Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT);
+                    target = getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
+                            subResult);
+                    subResult.recordSuccess();
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't get assignment target ref", ex);
+                    subResult.recordFatalError("Couldn't get assignment target ref.", ex);
+                }
 
-				if (target != null) {
-					name = WebMiscUtil.getName(target);
+                if (target != null) {
+                    name = WebMiscUtil.getName(target);
                     type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
-				}
-			}
-			list.add(new SimpleAssignmentDto(name, type, assignment.getActivation()));
-		}
+                }
+            } else {
+                continue;
+            }
 
-		return list;
-	}
+            if (!wantedType.equals(type)) {
+                continue;
+            }
+
+            list.add(new SimpleAssignmentDto(name, type, assignment.getActivation()));
+        }
+
+        return list;
+    }
 
 	private void initPersonal(AccordionItem personal) {
 		final UserType user = SecurityUtils.getPrincipalUser().getUser();
@@ -405,61 +418,65 @@ public class PageHome extends PageAdmin {
 		personal.getBodyContainer().add(passwordExp);
 	}
 
-	private void initRoles(AccordionItem assignments) {
-		List<IColumn<SimpleAssignmentDto>> columns = new ArrayList<IColumn<SimpleAssignmentDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageHome.assignment.name"), "assignmentName"));
-		columns.add(new AbstractColumn<SimpleAssignmentDto>(
-				createStringResource("pageHome.assignment.active")) {
+    private String createActivationString(ActivationType activation) {
+        if (activation == null) {
+            return "-";
+        }
 
-			@Override
-			public void populateItem(Item<ICellPopulator<SimpleAssignmentDto>> cellItem, String componentId,
-					final IModel<SimpleAssignmentDto> rowModel) {
-				cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+        Boolean enabled = activation.isEnabled();
+        String strEnabled;
+        if (enabled != null) {
+            if (enabled) {
+                strEnabled = getString("pageHome.assignment.activation.active");
+            } else {
+                strEnabled = getString("pageHome.assignment.activation.inactive");
+            }
+        } else {
+            strEnabled = getString("pageHome.assignment.activation.undefined");
+        }
 
-					@Override
-					public Object getObject() {
-						SimpleAssignmentDto dto = rowModel.getObject();
-						ActivationType activation = dto.getActivation();
-						if (activation == null) {
-							return "-";
-						}
+        if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+            return getString("pageHome.assignment.activation.enabledFromTo",
+                    strEnabled, MiscUtil.asDate(activation.getValidFrom()),
+                    MiscUtil.asDate(activation.getValidTo()));
+        } else if (activation.getValidFrom() != null) {
+            return getString("pageHome.assignment.activation.enabledFrom",
+                    strEnabled, MiscUtil.asDate(activation.getValidFrom()));
+        } else if (activation.getValidTo() != null) {
+            return getString("pageHome.assignment.activation.enabledTo",
+                    strEnabled, MiscUtil.asDate(activation.getValidTo()));
+        }
 
-						Boolean enabled = activation.isEnabled();
-						String strEnabled;
-						if (enabled != null) {
-							if (enabled) {
-								strEnabled = PageHome.this.getString("pageHome.assignment.activation.active");
-							} else {
-								strEnabled = PageHome.this
-										.getString("pageHome.assignment.activation.inactive");
-							}
-						} else {
-							strEnabled = PageHome.this.getString("pageHome.assignment.activation.undefined");
-						}
+        return "-";
+    }
 
-						if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-							return PageHome.this.getString("pageHome.assignment.activation.enabledFromTo",
-									strEnabled, MiscUtil.asDate(activation.getValidFrom()),
-									MiscUtil.asDate(activation.getValidTo()));
-						} else if (activation.getValidFrom() != null) {
-							return PageHome.this.getString("pageHome.assignment.activation.enabledFrom",
-									strEnabled, MiscUtil.asDate(activation.getValidFrom()));
-						} else if (activation.getValidTo() != null) {
-							return PageHome.this.getString("pageHome.assignment.activation.enabledTo",
-									strEnabled, MiscUtil.asDate(activation.getValidTo()));
-						}
+    private void initAssignmentAccordionItem(AccordionItem assignmentItem, String tableId, IModel<List> model) {
+        List<IColumn<SimpleAssignmentDto>> columns = new ArrayList<IColumn<SimpleAssignmentDto>>();
+        columns.add(new PropertyColumn(createStringResource("pageHome.assignment.name"), "assignmentName"));
+        columns.add(new AbstractColumn<SimpleAssignmentDto>(
+                createStringResource("pageHome.assignment.active")) {
 
-						return "-";
-					}
-				}));
-			}
-		});
+            @Override
+            public void populateItem(Item<ICellPopulator<SimpleAssignmentDto>> cellItem, String componentId,
+                                     final IModel<SimpleAssignmentDto> rowModel) {
+                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
-		ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel(model, "assignments"));
-		TablePanel assignmentTable = new TablePanel<SimpleAssignmentDto>("assignedRoles", provider, columns);
-		assignmentTable.setShowPaging(false);
-		assignments.getBodyContainer().add(assignmentTable);
-	}
+                    @Override
+                    public Object getObject() {
+                        SimpleAssignmentDto dto = rowModel.getObject();
+                        ActivationType activation = dto.getActivation();
+
+                        return createActivationString(activation);
+                    }
+                }));
+            }
+        });
+
+        ISortableDataProvider provider = new ListDataProvider(this, model);
+        TablePanel assignmentTable = new TablePanel<SimpleAssignmentDto>(tableId, provider, columns);
+        assignmentTable.setShowPaging(false);
+        assignmentItem.getBodyContainer().add(assignmentTable);
+    }
 
 	private void initAccounts(AccordionItem accounts) {
 		List<IColumn<SimpleAccountDto>> columns = new ArrayList<IColumn<SimpleAccountDto>>();
@@ -490,7 +507,7 @@ public class PageHome extends PageAdmin {
 
 	private void initResources(AccordionItem resources) {
 		List<IColumn<String>> columns = new ArrayList<IColumn<String>>();
-		columns.add(new PropertyColumn(createStringResource("pageHome.resource.name"), "resources"));
+		columns.add(new PropertyColumn(createStringResource("pageHome.resource.name"), ""));
 
 		ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel(model, "resources"));
 		TablePanel assignedResources = new TablePanel<String>("assignedResources", provider, columns);

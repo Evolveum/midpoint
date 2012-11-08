@@ -30,31 +30,39 @@ import java.util.List;
 
 public class AdminHomeDto implements Serializable {
 
-	private List<SimpleAccountDto> accounts;
-	private List<SimpleAssignmentDto> assignments;
-	private List<String> resources;
+    private List<SimpleAccountDto> accounts;
+    private List<SimpleAssignmentDto> assignments;
+    private List<SimpleAssignmentDto> orgAssignments;
+    private List<String> resources;
     private List<WorkItemDto> workItems;
 
-	public List<SimpleAccountDto> getAccounts() {
-		if (accounts == null) {
-			accounts = new ArrayList<SimpleAccountDto>();
-		}
-		return accounts;
-	}
+    public List<SimpleAssignmentDto> getOrgAssignments() {
+        if (orgAssignments == null) {
+            orgAssignments = new ArrayList<SimpleAssignmentDto>();
+        }
+        return orgAssignments;
+    }
 
-	public List<SimpleAssignmentDto> getAssignments() {
-		if (assignments == null) {
-			assignments = new ArrayList<SimpleAssignmentDto>();
-		}
-		return assignments;
-	}
+    public List<SimpleAccountDto> getAccounts() {
+        if (accounts == null) {
+            accounts = new ArrayList<SimpleAccountDto>();
+        }
+        return accounts;
+    }
 
-	public List<String> getResources() {
-		if (resources == null) {
-			resources = new ArrayList<String>();
-		}
-		return resources;
-	}
+    public List<SimpleAssignmentDto> getAssignments() {
+        if (assignments == null) {
+            assignments = new ArrayList<SimpleAssignmentDto>();
+        }
+        return assignments;
+    }
+
+    public List<String> getResources() {
+        if (resources == null) {
+            resources = new ArrayList<String>();
+        }
+        return resources;
+    }
 
     public List<WorkItemDto> getWorkItems() {
         if (workItems == null) {
