@@ -81,16 +81,16 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 /**
  * @author lazyman

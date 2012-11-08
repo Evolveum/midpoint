@@ -38,10 +38,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 import org.apache.commons.lang.Validate;
 

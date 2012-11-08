@@ -32,8 +32,8 @@ import com.evolveum.midpoint.task.api.NodeErrorStatus;
 import com.evolveum.midpoint.task.api.NodeExecutionStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author lazyman

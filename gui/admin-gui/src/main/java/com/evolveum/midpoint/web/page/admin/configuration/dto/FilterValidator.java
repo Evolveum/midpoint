@@ -30,7 +30,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.validator.AbstractValidator;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
 
 public class FilterValidator extends AbstractValidator<LoggingComponentType> {
 

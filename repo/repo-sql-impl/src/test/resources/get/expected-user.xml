@@ -21,8 +21,8 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <user oid="f00d-0">
         <name>get account user</name>

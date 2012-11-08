@@ -42,7 +42,8 @@ import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStateType;
+
 import org.jvnet.jaxb2_commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -22,7 +22,7 @@
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
 xmlns:prov="http://midpoint.evolveum.com/xml/ns/public/provisioning/provisioning-1.wsdl"
 xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:com='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns:com='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    
    xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
@@ -31,7 +31,7 @@ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:schemaLocation='http://schemas.xmlsoap.org/soap/envelope/ http://schemas.xmlsoap.org/soap/envelope/
    http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema
-   http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd   
+   http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd   
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/resource-schema-2.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/resource/idconnector/configuration-1.xsd'>
     <soapenv:Header/>

@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 
 /**
  * TODO

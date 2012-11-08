@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.wf.processes.addroles.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.*;
 import org.activiti.engine.form.FormProperty;

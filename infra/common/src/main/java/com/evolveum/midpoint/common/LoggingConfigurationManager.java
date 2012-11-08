@@ -40,12 +40,12 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
 
 public class LoggingConfigurationManager {
 

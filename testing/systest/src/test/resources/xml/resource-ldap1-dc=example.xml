@@ -24,12 +24,12 @@
      tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<!-- Resource printable name -->
@@ -39,7 +39,7 @@
 	     OID during import. -->
 	<connectorRef type="ConnectorType">
 		<and>
-	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#ConnectorType"/>
+	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#ConnectorType"/>
 	        <equal>
 	          <value>
 	              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
@@ -139,7 +139,7 @@
 				<c:outbound default="true">
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							concat('uid=',
 							$i:user/c:name, ',ou=people,dc=example,dc=com')
 						</c:code>
@@ -193,7 +193,7 @@
 				<c:outbound>
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							$i:user/i:fullName
 						</c:code>
 					</c:valueExpression>
@@ -206,7 +206,7 @@
                      -->
 				<c:inbound>
 					<c:target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							$i:user/i:fullName
 					</c:target>
 				</c:inbound>
@@ -222,7 +222,7 @@
 				<c:outbound>
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							$i:user/i:familyName
 						</c:code>
 					</c:valueExpression>
@@ -230,7 +230,7 @@
                     <!-- sn will be synchronized to user's familyName -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 						$i:user/i:familyName
 						</c:target>
 				</c:inbound>
@@ -245,7 +245,7 @@
 				<c:outbound>
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							$i:user/i:givenName
 						</c:code>
 					</c:valueExpression>
@@ -253,7 +253,7 @@
                     <!-- givenName will be synchronized to user's givenName -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 						$i:user/i:givenName
 						</c:target>
 				</c:inbound>
@@ -270,7 +270,7 @@
                              user. It is essentially a login name -->
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							$i:user/i:name
 						</c:code>
 					</c:valueExpression>
@@ -279,7 +279,7 @@
                              user. It is essentially a login name -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 						$i:user/i:name
                     </c:target>
 				</c:inbound>
@@ -305,7 +305,7 @@
 						</f:replace>
 					</c:valueFilter>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 						declare namespace
 						my="http://whatever.com/my";
 						$i:user/i:extension/my:description
@@ -340,7 +340,7 @@
                              in the $my:config variable specified above. -->
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							declare namespace my="http://myself.me/schemas/whatever";
 							
 							if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
@@ -389,7 +389,7 @@
                  It will be used to find appropriate user entry for an account.
               -->
 			<c:correlation> <!-- Correlation rule is a search query -->
-            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2#UserType"/> is implicit in correlation rules -->
+            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#UserType"/> is implicit in correlation rules -->
                 <!-- Following search queury will look for users that have "name"
                      equal to the "uid" attribute of the account. Simply speaking,
                      it will look for match in usernames in the IDM and the resource. -->

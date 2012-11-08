@@ -21,12 +21,12 @@
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             elementFormDefault="qualified">
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
 
     <xsd:annotation>
         <xsd:documentation>

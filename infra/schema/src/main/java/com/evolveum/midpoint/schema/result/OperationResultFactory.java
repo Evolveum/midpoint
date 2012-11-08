@@ -27,12 +27,12 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.EntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ParamsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
 
 /**
  * 

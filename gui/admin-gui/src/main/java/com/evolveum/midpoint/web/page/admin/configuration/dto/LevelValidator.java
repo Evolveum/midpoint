@@ -24,7 +24,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.validator.AbstractValidator;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingLevelType;
 
 public class LevelValidator extends AbstractValidator<LoggingLevelType> {
 

@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
 
 	<!-- Functional organizational structure -->

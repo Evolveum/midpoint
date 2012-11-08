@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 	<expression>
 		<generate>
 			<valuePolicyRef oid="c0c010c0-d34d-b33f-f00d-999888111111"/>

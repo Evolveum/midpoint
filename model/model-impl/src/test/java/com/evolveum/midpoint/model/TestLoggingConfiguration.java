@@ -56,15 +56,15 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik

@@ -27,10 +27,11 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;

@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.wf.processes.addroles;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 import java.io.Serializable;
 import java.util.Date;

@@ -84,12 +84,12 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 /**
  * @author mserbak

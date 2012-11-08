@@ -50,8 +50,9 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDtoProvider;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceState;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;

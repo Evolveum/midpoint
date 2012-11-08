@@ -20,7 +20,7 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 <c:user oid="00000000-0000-0000-0000-000000000002"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <c:name>
     	<t:orig>administrator</t:orig>
@@ -39,7 +39,7 @@
         <t:norm>administrator</t:norm>
     </c:familyName>
     <c:emailAddress>administrator@example.com</c:emailAddress>
-    <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+    <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
         <c:password>
             <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
                                xmlns:ds="http://www.w3.org/2000/09/xmldsig#">

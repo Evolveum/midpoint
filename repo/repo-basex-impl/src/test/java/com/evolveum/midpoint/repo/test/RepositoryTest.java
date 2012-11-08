@@ -181,7 +181,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 //		PropertyModificationType modification = new PropertyModificationType();
 //		Value value = new Value();
 //		Element element = DOMUtil.getFirstChildElement(DOMUtil.parseDocument("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
-//				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'>Foo Bar</fullName>"));
+//				"<fullName xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'>Foo Bar</fullName>"));
 //		value.getAny().add(element);
 //		modification.setValue(value);
 //		objModifications.getPropertyModification().add(modification);

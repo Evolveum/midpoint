@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourceType" oid="aae7be60-df56-11df-8608-0002a5d5c51b">
     <c:name>Localhost DatabaseTable</c:name>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b</c:namespace>

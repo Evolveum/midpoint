@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * Interface used to intercept the SyncContext as it passes through the computation.

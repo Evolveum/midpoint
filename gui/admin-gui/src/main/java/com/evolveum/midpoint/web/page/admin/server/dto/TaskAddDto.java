@@ -24,8 +24,8 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import java.io.Serializable;
 import java.util.Date;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 /**
  * @author lazyman

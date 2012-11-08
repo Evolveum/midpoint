@@ -39,11 +39,11 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AsIsExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.GenerateExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AsIsExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 
 /**
  * @author Radovan Semancik

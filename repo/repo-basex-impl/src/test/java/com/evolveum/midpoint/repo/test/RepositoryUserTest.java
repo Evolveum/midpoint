@@ -282,7 +282,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 //			value.getAny()
 //					.add((Element) DOMUtil
 //							.parseDocument(
-//									"<i:accountRef xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2' type=\"i:AccountShadowType\" oid=\"8254880d-6584-425a-af2e-58f8ca394bbb\"/>")
+//									"<i:accountRef xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' type=\"i:AccountShadowType\" oid=\"8254880d-6584-425a-af2e-58f8ca394bbb\"/>")
 //							.getFirstChild());
 //			modification.setValue(value);
 //			modifications.getPropertyModification().add(modification);

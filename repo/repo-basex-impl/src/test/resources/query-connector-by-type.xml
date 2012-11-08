@@ -21,7 +21,7 @@
 <!-- -->
 <object xsi:type="q:QueryType"
 	xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">

@@ -20,8 +20,8 @@
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
 <role oid="12345678-d34d-b33f-f00d-987987cccccc"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
     <name>Captain Role</name>    
     <assignment>
@@ -53,7 +53,7 @@
 				<expression>
 					<returnType>scalar</returnType>
 					<code>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                         concat('Department of ',$c:user/c:givenName)
 					</code>
 				</expression>
@@ -62,7 +62,7 @@
                 <ref>ri:destinationIndicator</ref>
 				<expression>
 					<code>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                         c:fullName
 					</code>
 				</expression>
@@ -71,7 +71,7 @@
                 <ref>ri:physicalDeliveryOfficeName</ref>
 				<expression>
 					<code>
-						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 						declare namespace my="http://whatever.com/my";
                         $c:assignment/c:extension/my:shipName
 					</code>

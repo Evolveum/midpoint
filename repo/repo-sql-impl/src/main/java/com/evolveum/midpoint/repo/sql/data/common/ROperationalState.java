@@ -12,10 +12,10 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceBusinessConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceBusinessConfigurationType;
 
 @Embeddable
 public class ROperationalState {

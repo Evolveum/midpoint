@@ -28,9 +28,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.WfHook;
 import com.evolveum.midpoint.wf.WfTaskUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import org.springframework.beans.factory.annotation.Autowired;
 

@@ -26,7 +26,7 @@ import java.io.Serializable;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.orgStruct.NodeDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author mserbak

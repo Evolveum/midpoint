@@ -20,8 +20,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExclusivityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 
 /**
  * Exclusivity status tells about task "locking" to a particular node.

@@ -52,8 +52,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ModelOperationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStateType;
 
 /**
  * Handles a "ModelOperation task" - executes a given model operation in a context

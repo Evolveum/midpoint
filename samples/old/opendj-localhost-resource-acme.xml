@@ -26,8 +26,8 @@
                              dc=acme,dc=com
      It is supposed to be used while testing with several resources -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4"
            xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
@@ -70,12 +70,12 @@
             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
                         targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4"
                         elementFormDefault="qualified"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                         
                         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4"
                         xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
                 
                 <xsd:complexType name="Account">
                     <xsd:annotation>
@@ -212,7 +212,7 @@
                     <c:access>read</c:access>
                     <i:outbound default="true">
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             concat('uid=', $i:user/i:name,',ou=people,dc=acme,dc=com')
                         </i:valueExpression>
                     </i:outbound>
@@ -229,7 +229,7 @@
                     <i:outbound>
                         <i:valueExpression>
                             $i:user/i:fullName
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                         </i:valueExpression>
                     </i:outbound>
                 </i:attribute>
@@ -240,7 +240,7 @@
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             $i:user/i:familyName
                         </i:valueExpression>
                     </i:outbound>
@@ -252,7 +252,7 @@
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             $i:user/i:givenName
                         </i:valueExpression>
                     </i:outbound>
@@ -264,7 +264,7 @@
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             $i:user/i:eMailAddress
                         </i:valueExpression>
                     </i:outbound>

@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 		 xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
 	<expression>
 		<path>$account/attributes/icfs:name</path>

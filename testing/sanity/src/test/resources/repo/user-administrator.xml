@@ -19,13 +19,13 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 <user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 	<name>administrator</name>
 	<fullName>midPoint Administrator</fullName>
 	<givenName>midPoint</givenName>
 	<familyName>Administrator</familyName>
 	<emailAddress>administrator@evolveum.com</emailAddress>
-	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 		<password>
 			<value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
 				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">

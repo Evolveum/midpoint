@@ -22,8 +22,8 @@
 
 
 <resourceAttributeDefinition
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:foo='http://midpoint.evolveum.com/xml/ns/samples/foo'>
 

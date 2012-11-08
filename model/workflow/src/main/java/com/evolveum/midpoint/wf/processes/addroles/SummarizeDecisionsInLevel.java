@@ -26,9 +26,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.springframework.security.core.context.SecurityContext;

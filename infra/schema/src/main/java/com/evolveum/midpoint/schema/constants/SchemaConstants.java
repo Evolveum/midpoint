@@ -38,8 +38,8 @@ import org.apache.xml.resolver.tools.CatalogResolver;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 
 /**
  * @author Vilo Repan
@@ -55,7 +55,7 @@ public abstract class SchemaConstants {
     public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
     public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
-	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	public static final String NS_C_PREFIX = "c";
 	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";

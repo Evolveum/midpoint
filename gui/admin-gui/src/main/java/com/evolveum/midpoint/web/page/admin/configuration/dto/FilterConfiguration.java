@@ -23,9 +23,10 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
+
 import org.apache.commons.lang.Validate;
 
 import java.util.ArrayList;

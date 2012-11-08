@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
 public enum RSynchronizationSituation {
 	

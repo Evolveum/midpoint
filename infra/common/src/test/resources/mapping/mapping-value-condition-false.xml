@@ -19,7 +19,7 @@
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 	<expression>
 		<value>foobar</value>
 	</expression>

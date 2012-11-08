@@ -13,8 +13,8 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 @Embeddable

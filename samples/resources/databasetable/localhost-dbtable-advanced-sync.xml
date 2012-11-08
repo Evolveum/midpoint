@@ -29,8 +29,8 @@ This resource definition contains also definition to enable synchronization.
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
@@ -38,7 +38,7 @@ This resource definition contains also definition to enable synchronization.
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
     
@@ -124,7 +124,7 @@ This resource definition contains also definition to enable synchronization.
 					<outbound default="true">
 						<expression>
 							<code>
-                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2";
+                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							$i:user/c:name
 							</code>
 						</expression>

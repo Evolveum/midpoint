@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.orgStruct.AbstractTree.State;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author mserbak

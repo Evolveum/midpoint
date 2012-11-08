@@ -28,7 +28,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

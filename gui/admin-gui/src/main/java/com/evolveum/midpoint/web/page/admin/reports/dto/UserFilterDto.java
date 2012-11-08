@@ -24,7 +24,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
  * @author mserbak

@@ -20,8 +20,8 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 <i:user oid="c0c010c0-d34d-b33f-f00d-111111111112"
-        xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+        xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
         >
     <c:name>jack2</c:name>
     <i:fullName>Cpt. Jack Sparrow2</i:fullName>

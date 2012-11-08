@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

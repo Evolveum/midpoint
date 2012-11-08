@@ -50,9 +50,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -95,7 +94,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 
-	private static final ObjectFactory capabilityObjectFactory = new ObjectFactory();
+	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory capabilityObjectFactory 
+		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory();
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceIcfImpl.class);
 

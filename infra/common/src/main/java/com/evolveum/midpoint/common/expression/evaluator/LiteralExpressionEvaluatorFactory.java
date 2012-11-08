@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 
 /**
  * @author semancik

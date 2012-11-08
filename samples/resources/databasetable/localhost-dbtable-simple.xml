@@ -30,8 +30,8 @@ See the content of the SQL files in this directory to see the table structure.
 
 -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
@@ -39,7 +39,7 @@ See the content of the SQL files in this directory to see the table structure.
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2.xsd">
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
 	<name>Localhost DBTable</name>

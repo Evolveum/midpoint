@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.wf.processes.addroles;
 
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import java.io.Serializable;
 import java.util.List;

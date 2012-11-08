@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 
 /**
  * @author mserbak

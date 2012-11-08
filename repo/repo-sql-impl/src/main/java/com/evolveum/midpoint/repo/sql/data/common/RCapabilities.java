@@ -12,9 +12,9 @@ import org.hibernate.annotations.Type;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 @Embeddable
 public class RCapabilities {

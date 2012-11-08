@@ -20,7 +20,7 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
   <role oid="12345678-d34d-b33f-f00d-987987987988"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>Basic Role - LDAP</name>    
     <assignment>
     	<accountConstruction>

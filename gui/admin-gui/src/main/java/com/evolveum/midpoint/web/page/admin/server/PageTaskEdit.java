@@ -63,9 +63,9 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 /**
  * @author lazyman

@@ -27,7 +27,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 
 /**
  * @author mserbak

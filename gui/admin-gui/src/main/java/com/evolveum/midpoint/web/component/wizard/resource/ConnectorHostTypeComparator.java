@@ -22,7 +22,8 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Comparator;

@@ -66,15 +66,15 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 /**
  * @author lazyman

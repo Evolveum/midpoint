@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
  
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'
          xmlns:a="http://prism.evolveum.com/xml/ns/public/types-2"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"

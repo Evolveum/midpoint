@@ -76,16 +76,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionVariableDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingSourceDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingTargetDeclarationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ValueFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionVariableDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingSourceDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingTargetDeclarationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValueFilterType;
 
 /**
  * 

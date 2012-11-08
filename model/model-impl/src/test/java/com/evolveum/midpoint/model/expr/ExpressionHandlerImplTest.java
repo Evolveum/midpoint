@@ -55,11 +55,11 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * 
@@ -93,11 +93,11 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
 		ExpressionType expression = PrismTestUtil.unmarshalObject(
-						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2\" "
+						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "
 								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 								+ "<script>\n"
 								+ "<language>http://www.w3.org/TR/xpath/</language>\n"
-								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2\";\n"
+								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\";\n"
 								+ "declare namespace t=\"http://prism.evolveum.com/xml/ns/public/types-2\";\n"
 								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
 								+ "$c:user/c:givenName/t:orig = $c:account/c:attributes/dj:givenName</code>"

@@ -19,9 +19,9 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 
-<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>testuser0001</name>
     <fullName>Test User0001</fullName>
     <givenName>Test</givenName>
@@ -41,7 +41,7 @@
     </activation>
 </object>
 
-<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>testuser0002</name>
     <fullName>Test User0002</fullName>
     <givenName>Test</givenName>
@@ -61,7 +61,7 @@
     </activation>
 </object>
 
-<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>testuser0003</name>
     <fullName>Test User0003</fullName>
     <givenName>Test</givenName>
@@ -81,7 +81,7 @@
     </activation>
 </object>
 
-<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>testuser0004</name>
     <fullName>Test User0004</fullName>
     <givenName>Test</givenName>
@@ -101,7 +101,7 @@
     </activation>
 </object>
 
-<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<object xsi:type="UserType" version="1.0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <name>testuser0005</name>
     <fullName>Test User0005</fullName>
     <givenName>Test</givenName>

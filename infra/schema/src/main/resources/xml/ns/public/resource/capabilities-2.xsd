@@ -22,7 +22,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
     xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
     elementFormDefault="qualified"
@@ -44,7 +44,7 @@
 		</xsd:appinfo>
     </xsd:annotation>
     
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2" schemaLocation="../common/common-2.xsd">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" schemaLocation="../common/common-2a.xsd">
     	<xsd:annotation>
     		<xsd:documentation>
     			Import of the common schema. Some datatypes are reused here.

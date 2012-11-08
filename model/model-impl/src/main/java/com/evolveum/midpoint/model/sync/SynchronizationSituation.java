@@ -22,8 +22,8 @@ package com.evolveum.midpoint.model.sync;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * 

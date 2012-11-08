@@ -23,7 +23,7 @@
 <!-- Testing cycle task -->
 
 <task oid="91919191-76e0-59e2-86d6-556655660014"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2" 
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
 	xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

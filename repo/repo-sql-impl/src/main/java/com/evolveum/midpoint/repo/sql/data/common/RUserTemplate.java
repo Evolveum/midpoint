@@ -24,7 +24,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;

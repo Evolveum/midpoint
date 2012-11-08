@@ -145,7 +145,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 				session.execute("CREATE DB " + databaseName + " " + initialDataPath);
 				if (StringUtils.isEmpty(initialDataPath)) {
 					// FIXME: remove hardcoded values
-					String serializedObject = "<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>";
+					String serializedObject = "<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>";
 					StringBuilder query = new StringBuilder()
 							.append("declare namespace c='" + SchemaConstants.NS_C + "';\n").append("let $x := ")
 							.append(serializedObject).append("\n").append("return insert node $x into doc(\"")

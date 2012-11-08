@@ -37,9 +37,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 /**
  * Responsible for keeping the cluster consistent.

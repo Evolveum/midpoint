@@ -27,8 +27,9 @@ import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

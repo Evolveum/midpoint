@@ -20,7 +20,7 @@
 <!-- Portions Copyrighted 2011 Radovan Semancik              -->
 <!--                                                         -->
 <role oid="12345678-d34d-b33f-f00d-55555555bbbb"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>Beta</name>    
     <assignment>
     	<accountConstruction>

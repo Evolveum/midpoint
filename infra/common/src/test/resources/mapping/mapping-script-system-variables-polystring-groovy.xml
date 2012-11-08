@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2012 [name of copyright owner]     -->
 <!--                                                         -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2"
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<source>
     	<path>$user/name</path>

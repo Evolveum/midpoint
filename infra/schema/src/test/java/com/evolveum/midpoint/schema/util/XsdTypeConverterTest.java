@@ -31,10 +31,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.Objects;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.Objects;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author Radovan Semancik
@@ -53,7 +53,7 @@ public class XsdTypeConverterTest {
 	public void testConvertFromProtectedString() throws SchemaException {
 		Document document = DOMUtil.parseDocument(
 				"<password xmlns=\""+FOO_NAMESPACE+"\" "+
-				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2\" "+
+				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "+
 				"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
 				"xsi:type=\"c:ProtectedStringType\">"+
 				"<c:clearValue>3lizab3th</c:clearValue></password>");
