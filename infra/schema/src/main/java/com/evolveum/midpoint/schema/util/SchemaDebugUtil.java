@@ -261,9 +261,9 @@ public class SchemaDebugUtil {
 			sb.append(prettyPrint(act.getResourceRef()));
 		}
 		sb.append(", ");
-		if (act.getType() != null) {
-			sb.append("type=");
-			sb.append(act.getType());
+		if (act.getIntent() != null) {
+			sb.append("intent=");
+			sb.append(act.getIntent());
 			sb.append(", ");
 		}
 		if (act.getAttribute() != null) {

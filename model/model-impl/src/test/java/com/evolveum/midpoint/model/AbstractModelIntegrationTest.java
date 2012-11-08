@@ -943,7 +943,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
 		accountConstructionType.setResourceRef(resourceRef);
-		accountConstructionType.setType(intent);
+		accountConstructionType.setIntent(intent);
 		return assignmentDelta;
 	}
 	

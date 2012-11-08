@@ -222,11 +222,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getResource(result), prismContext);
 		
-		refinedAccountDefinition = refinedSchema.getAccountDefinition(accountConstructionType.getType());
+		refinedAccountDefinition = refinedSchema.getAccountDefinition(accountConstructionType.getIntent());
 		
 		if (refinedAccountDefinition == null) {
-			if (accountConstructionType.getType() != null) {
-				throw new SchemaException("No account type '"+accountConstructionType.getType()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
+			if (accountConstructionType.getIntent() != null) {
+				throw new SchemaException("No account type '"+accountConstructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			} else {
 				throw new SchemaException("No default account type found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			}

@@ -4645,7 +4645,7 @@
                 </xsd:element>
             </xsd:choice>
             <xsd:choice>
-                <xsd:element name="type" type="xsd:string" minOccurs="0" default="user">
+                <xsd:element name="intent" type="xsd:string" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Type of account that should be created on the resource.
@@ -4655,21 +4655,6 @@
 
                             This element is optional. If not specified then the account
                             type marked as default in the resource definition should be used.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="typeExpression" type="c:ExpressionType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Expression that determines type of account that
-                            should be created on the resource.
-                            TODO: more
-
-                            The variables should be set as follows:
-                            $user - the user that this account will belong to
-                            $assignment - an assignemt that is assigning the
-                            object in which context is this expression
-                            evaluated (e.g. assignment of role)
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
