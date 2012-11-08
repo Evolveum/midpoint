@@ -289,6 +289,21 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		secondaryDelta = null;
 	}
 	
+	public void normalize() {
+		if (objectNew != null) {
+			objectNew.normalize();
+		}
+		if (objectOld != null) {
+			objectOld.normalize();
+		}
+		if (primaryDelta != null) {
+			primaryDelta.normalize();
+		}
+		if (secondaryDelta != null) {
+			secondaryDelta.normalize();
+		}
+	}
+	
 	public void adopt(PrismContext prismContext) throws SchemaException {
 		if (objectNew != null) {
 			prismContext.adopt(objectNew);

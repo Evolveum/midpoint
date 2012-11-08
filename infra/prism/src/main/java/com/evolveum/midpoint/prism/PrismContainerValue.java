@@ -885,11 +885,24 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
 	}
     
+	@Override
     public boolean isEmpty() {
         return items.isEmpty();
     }
     
     @Override
+	public void normalize() {
+    	Iterator<Item<?>> iterator = items.iterator();
+    	while (iterator.hasNext()) {
+    		Item<?> item = iterator.next();
+    		item.normalize();
+    		if (item.isEmpty()) {
+    			iterator.remove();
+    		}
+    	}
+	}
+
+	@Override
 	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
 		ItemPath myPath = getPath(parentPath);
 		if (prohibitRaw && rawElements != null) {

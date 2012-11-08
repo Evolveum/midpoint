@@ -88,6 +88,7 @@ public class Projector {
 		
 		if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
+		context.normalize();
 		context.resetProjectionWave();
 		
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");

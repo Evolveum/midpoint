@@ -100,6 +100,16 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 		}		
 	}
 	
+	public void normalize() {
+		if (waves != null) {
+			for (ObjectDelta<O> wave: waves) {
+				if (wave != null) {
+					wave.normalize();
+				}
+			}
+		}
+	}
+	
 	public ObjectDeltaWaves<O> clone() {
 		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<O>();
 		copyValues(clone);

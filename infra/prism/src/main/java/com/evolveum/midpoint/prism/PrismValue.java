@@ -162,6 +162,12 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		return false;
 	}
 	
+	public abstract boolean isEmpty();
+	
+	public void normalize() {
+		// do nothing by default
+	}
+	
 	/**
 	 * Returns true if the value is raw. Raw value is a semi-parsed value.
 	 * A value for which we don't have a full definition yet and therefore

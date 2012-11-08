@@ -256,6 +256,7 @@
         <xsd:sequence>
         	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
         	<xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0"/>
+        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
     </xsd:complexType>

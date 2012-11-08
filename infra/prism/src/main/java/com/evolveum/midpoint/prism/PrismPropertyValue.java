@@ -176,6 +176,11 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 
 	@Override
+	public boolean isEmpty() {
+		return value == null;
+	}
+
+	@Override
     public PrismPropertyValue<T> clone() {
         PrismPropertyValue clone = new PrismPropertyValue(null, getOriginType(), getOriginObject());
         copyValues(clone);

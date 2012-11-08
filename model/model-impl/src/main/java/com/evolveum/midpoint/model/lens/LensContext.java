@@ -476,6 +476,17 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     	}
     }
     
+    public void normalize() {
+    	if (focusContext != null) {
+    		focusContext.normalize();
+    	}
+    	if (projectionContexts != null) {
+    		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+    			projectionContext.normalize();
+    		}
+    	}
+    }
+    
     public LensContext<F, P> clone() {
     	LensContext<F, P> clone = new LensContext<F, P>(focusClass, projectionClass, prismContext);
     	copyValues(clone);

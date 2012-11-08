@@ -391,6 +391,17 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     public void clear() {
     	values.clear();
     }
+    
+    public void normalize() {
+    	Iterator<V> iterator = values.iterator();
+    	while (iterator.hasNext()) {
+    		V value = iterator.next();
+    		value.normalize();
+    		if (value.isEmpty()) {
+    			iterator.remove();
+    		}
+    	}
+    }
 
     public List<Element> asDomElements() {
     	List<Element> elements = new ArrayList<Element>();

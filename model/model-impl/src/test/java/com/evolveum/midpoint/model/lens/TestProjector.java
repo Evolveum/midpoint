@@ -52,7 +52,9 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -60,6 +62,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -89,6 +92,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -196,9 +200,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test020AssignAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test020AssignAccountToJack() throws Exception {
         displayTestTile(this, "test020AssignAccountToJack");
 
         // GIVEN
@@ -218,6 +220,40 @@ public class TestProjector extends AbstractModelIntegrationTest {
         projector.project(context, "test", result);
         
         // THEN
+        assertAssignAccountToJack(context);
+	}
+	
+	/**
+	 * Same sa previous test but the deltas are slightly broken.
+	 */
+	@Test
+    public void test021AssignAccountToJackBroken() throws Exception {
+        displayTestTile(this, "test021AssignAccountToJackBroken");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test021AssignAccountToJackBroken");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+        
+        // Let's break it a bit...
+        breakAssignmentDelta(context);
+        
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        assertAssignAccountToJack(context);
+	}
+
+	private void assertAssignAccountToJack(LensContext<UserType, AccountShadowType> context) {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
@@ -240,7 +276,9 @@ public class TestProjector extends AbstractModelIntegrationTest {
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH , "mouth", "pistol");
         
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
+
 	}
+
 
 	/**
 	 * User barbossa has a direct account assignment. This assignment has an expression for user/locality -> opendj/l.

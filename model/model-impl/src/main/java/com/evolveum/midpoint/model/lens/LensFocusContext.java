@@ -164,6 +164,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	}
 
 	@Override
+	public void normalize() {
+		super.normalize();
+		if (secondaryDeltas != null) {
+			secondaryDeltas.normalize();
+		}
+	}
+
+	@Override
 	public void adopt(PrismContext prismContext) throws SchemaException {
 		super.adopt(prismContext);
 		if (secondaryDeltas != null) {

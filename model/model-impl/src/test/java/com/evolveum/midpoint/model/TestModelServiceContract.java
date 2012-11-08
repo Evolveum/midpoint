@@ -908,17 +908,95 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 	
+	@Test
+    public void test141ModifyUserJackAssignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
+    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
+    		PolicyViolationException, SecurityViolationException {
+        displayTestTile(this, "test141ModifyUserJackAssignAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test141ModifyUserJackAssignAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        // Let's break the delta a bit. Projector should handle this anyway
+        breakAssignmentDelta(deltas);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+	}
+	
+	
+	@Test
+    public void test149ModifyUserJackUnassignAccount() throws Exception {
+        displayTestTile(this, "test149ModifyUserJackUnassignAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
+        deltas.add(accountAssignmentUserDelta);
+        
+        // Let's break the delta a bit. Projector should handle this anyway
+        breakAssignmentDelta(deltas);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+	}
+	
 	/**
 	 * We try to both assign an account and modify that account in one operation.
 	 * Some changes should be reflected to account (e.g.  weapon) as the mapping is weak, other should be
 	 * overridded (e.g. fullname) as the mapping is strong.
 	 */
 	@Test
-    public void test140ModifyUserJackAssignAccountAndModify() throws Exception {
-        displayTestTile(this, "test140ModifyUserJackAssignAccountAndModify");
+    public void test160ModifyUserJackAssignAccountAndModify() throws Exception {
+        displayTestTile(this, "test160ModifyUserJackAssignAccountAndModify");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test140ModifyUserJackAssignAccountAndModify");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test160ModifyUserJackAssignAccountAndModify");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -958,11 +1036,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test145ModifyUserJack() throws Exception {
-        displayTestTile(this, "test145ModifyUserJack");
+    public void test165ModifyUserJack() throws Exception {
+        displayTestTile(this, "test165ModifyUserJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test145ModifyUserJack");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test165ModifyUserJack");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
                         
@@ -992,11 +1070,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test146ModifyUserJackRaw() throws Exception {
-        displayTestTile(this, "test146ModifyUserJackRaw");
+    public void test166ModifyUserJackRaw() throws Exception {
+        displayTestTile(this, "test166ModifyUserJackRaw");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test146ModifyUserJackRaw");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test166ModifyUserJackRaw");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
@@ -1028,11 +1106,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 		
 	@Test
-    public void test149DeleteUserJack() throws Exception {
-        displayTestTile(this, "test149DeleteUserJack");
+    public void test169DeleteUserJack() throws Exception {
+        displayTestTile(this, "test169DeleteUserJack");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149DeleteUserJack");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test169DeleteUserJack");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -1061,11 +1139,11 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test150AddUserBlackbeardWithAccount() throws Exception {
-        displayTestTile(this, "test150AddUserBlackbeardWithAccount");
+    public void test200AddUserBlackbeardWithAccount() throws Exception {
+        displayTestTile(this, "test200AddUserBlackbeardWithAccount");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test150AddUserBlackbeardWithAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test200AddUserBlackbeardWithAccount");
         // Use custom channel to trigger a special outbound mapping
         task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();

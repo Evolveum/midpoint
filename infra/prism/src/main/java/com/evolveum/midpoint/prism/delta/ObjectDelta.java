@@ -357,6 +357,22 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         return true;
     }
     
+    public void normalize() {
+    	if (objectToAdd != null) {
+    		objectToAdd.normalize();
+    	}
+    	if (modifications != null) {
+    		Iterator<? extends ItemDelta> iterator = modifications.iterator();
+    		while (iterator.hasNext()) {
+    			ItemDelta<?> modification = iterator.next();
+    			modification.normalize();
+    			if (modification.isEmpty()) {
+    				iterator.remove();
+    			}
+    		}
+    	}
+    }
+    
     public void applyDefinition(PrismObjectDefinition<T> definition) throws SchemaException {
     	if (objectToAdd != null) {
     		objectToAdd.applyDefinition(definition);

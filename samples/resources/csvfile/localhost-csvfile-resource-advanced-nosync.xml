@@ -169,7 +169,9 @@ using an Identity Connector Framework connector.
 				</attribute>-->
 				<credentials>
 					<password>
-						<outbound/>
+						<outbound>
+							<strength>weak</strength>
+						</outbound>
 					</password>
 				</credentials>
 				<activation>

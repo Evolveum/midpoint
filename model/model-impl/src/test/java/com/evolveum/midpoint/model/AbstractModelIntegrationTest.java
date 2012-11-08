@@ -123,6 +123,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
@@ -847,8 +848,16 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 	
+	protected ObjectDelta<UserType> createModifyUserAddDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
+		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+	}
+	
 	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
 		return ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, accountOid, propertyName, prismContext, newRealValue);
+	}
+	
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
+		return ObjectDelta.createModificationAddProperty(AccountShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
 	
 	protected void modifyUserReplace(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
@@ -1285,6 +1294,42 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		for (PrismReferenceValue pval: values) {
 			assertNotNull("resourceRef in "+desc+" does not contain object", pval.getObject());
 		}
+	}
+	
+	/**
+	 * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
+	 * existing user values. 
+	 */
+	protected void breakAssignmentDelta(LensContext<UserType, AccountShadowType> context) throws SchemaException {
+        LensFocusContext<UserType> focusContext = context.getFocusContext();
+        ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
+        breakAssignmentDelta(userPrimaryDelta);		
+	}
+	
+	/**
+	 * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
+	 * existing user values. 
+	 */
+	protected void breakAssignmentDelta(Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
+		breakAssignmentDelta((ObjectDelta<UserType>)deltas.iterator().next());
+	}
+	
+	/**
+	 * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
+	 * existing user values. 
+	 */
+	protected void breakAssignmentDelta(ObjectDelta<UserType> userDelta) throws SchemaException {
+        ContainerDelta<?> assignmentDelta = userDelta.findContainerDelta(UserType.F_ASSIGNMENT);
+        PrismContainerValue<?> assignmentDeltaValue = null;
+        if (assignmentDelta.getValuesToAdd() != null) {
+        	assignmentDeltaValue = assignmentDelta.getValuesToAdd().iterator().next();
+        }
+        if (assignmentDelta.getValuesToDelete() != null) {
+        	assignmentDeltaValue = assignmentDelta.getValuesToDelete().iterator().next();
+        }
+        PrismContainer<ActivationType> activationContainer = assignmentDeltaValue.findOrCreateContainer(AssignmentType.F_ACTIVATION);
+        PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>();
+		activationContainer.add(emptyValue);		
 	}
 	
 	protected Task createTask(String operationName) {

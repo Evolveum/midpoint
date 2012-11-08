@@ -208,6 +208,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 
 	@Override
+	public boolean isEmpty() {
+		return oid == null && object == null;
+	}
+
+	@Override
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null || !(other instanceof PrismReferenceValue)) {
 			return false;

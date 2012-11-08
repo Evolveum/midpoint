@@ -337,7 +337,7 @@ public class TestPassword extends AbstractModelIntegrationTest {
         userPasswordPs5.setClearValue(USER_PASSWORD_5_CLEAR);
         ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, PASSWORD_VALUE_PATH, userPasswordPs5);        
 		
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
                         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -355,7 +355,7 @@ public class TestPassword extends AbstractModelIntegrationTest {
 		// Account has new password
 		assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
 	}
-	
+		
 	/**
 	 * Add red dummy resource to the mix. This would be fun.
 	 */

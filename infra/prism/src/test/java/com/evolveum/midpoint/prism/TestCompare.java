@@ -36,6 +36,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -245,6 +246,31 @@ public class TestCompare {
 		assertFalse("val35 - val31", val35.equals(val31));
 		assertFalse("val34 - val35", val34.equals(val35));
 		assertFalse("val35 - val34", val35.equals(val34));
+		
+	}
+	
+	@Test
+	public void testEqualsBrokenAssignmentActivation() throws Exception {
+		System.out.println("===[ testEqualsReferenceValues ]===");
+		
+		// GIVEN
+		PrismObjectDefinition<UserType> userDef = PrismInternalTestUtil.getUserTypeDefinition();
+		PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
+		PrismContainer<AssignmentType> goodAssignment = assignmentDef.instantiate(UserType.F_ASSIGNMENT);
+		PrismContainer<AssignmentType> brokenAssignment = goodAssignment.clone();
+		assertEquals("Not equals after clone", goodAssignment, brokenAssignment);
+		// lets break one of these ...
+		PrismContainerValue<AssignmentType> emptyValue = new PrismContainerValue<AssignmentType>();
+		brokenAssignment.add(emptyValue);
+		
+		// WHEN
+		assertFalse("Unexpected equals", goodAssignment.equals(brokenAssignment));
+		
+		brokenAssignment.normalize();
+		assertEquals("Not equals after normalize(bad)", goodAssignment, brokenAssignment);
+		
+		goodAssignment.normalize();
+		assertEquals("Not equals after normalize(good)", goodAssignment, brokenAssignment);
 		
 	}
 }

@@ -451,6 +451,26 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		return false;
 	}
+	
+	public void normalize() {
+		normalize(valuesToAdd);
+		normalize(valuesToDelete);
+		normalize(valuesToReplace);
+	}
+
+	private void normalize(Collection<V> set) {
+		if (set == null) {
+			return;
+		}
+		Iterator<V> iterator = set.iterator();
+		while (iterator.hasNext()) {
+			V value = iterator.next();
+			value.normalize();
+			if (value.isEmpty()) {
+				iterator.remove();
+			}
+		}
+	}
 
 	public boolean isReplace() {
 		return (valuesToReplace != null);
