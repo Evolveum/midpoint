@@ -304,6 +304,12 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		Iterator<LensProjectionContext<P>> projectionIterator = projectionContexts.iterator();
 		while (projectionIterator.hasNext()) {
 			LensProjectionContext<P> projectionContext = projectionIterator.next();
+			if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
+				// We must never remove contexts with primary delta. Even though it fails later on.
+				// What the user wishes should be done (or at least attempted) regardless of the consequences.
+				// Vox populi vox dei
+				continue;
+			}
 			if (!projectionContext.isFresh()) {
 				projectionIterator.remove();
 			}

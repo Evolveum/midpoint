@@ -110,9 +110,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
 	
 		
 	@Test
-    public void test020AssignAccountToJackSync() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test020AssignAccountToJackSync() throws Exception {
         displayTestTile(this, "test020AssignAccountToJackSync");
 
         try {
@@ -138,6 +136,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
 	        display("Hook contexts", mockClockworkHook);
 	        
 	        assertJackAssignAccountContext(context);
+	        assertJackAccountShadow(context);
 	        
 	        List<LensContext<?, ?>> hookContexts = mockClockworkHook.getContexts();
 	        assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
@@ -256,6 +255,7 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         display("Hook contexts", mockClockworkHook);
         
         assertJackAssignAccountContext(context);
+        assertJackAccountShadow(context);
 	}
 	
 	private void assertJackAssignAccountContext(LensContext<UserType, AccountShadowType> context) {
@@ -272,8 +272,21 @@ public class TestClockwork extends AbstractModelIntegrationTest {
         
         assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
         
-        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-        PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+        
+	}
+	
+	private void assertJackAccountShadow(LensContext<UserType, AccountShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        String accountOid = accContext.getOid();
+        assertNotNull("No OID in account context "+accContext);
+        
+        PrismObject<AccountShadowType> newAccount = getAccount(accountOid);
         assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());

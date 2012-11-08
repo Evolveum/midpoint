@@ -21,6 +21,9 @@
 
 package com.evolveum.midpoint.model;
 
+import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+
+import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
@@ -124,6 +127,45 @@ public class ChangeExecutor {
 	        		continue;
 	        	}
 	            ObjectDelta<P> accDelta = accCtx.getDelta();
+	            
+	            SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
+	            if (policyDecision == SynchronizationPolicyDecision.ADD) {
+	                if (accDelta.isModify()) {
+	                	// We need to convert modify delta to ADD
+	                	ObjectDelta<P> addDelta = new ObjectDelta<P>(accCtx.getObjectTypeClass(),
+	                    		ChangeType.ADD, prismContext);
+	                    RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
+
+	                    if (rAccount == null) {
+	                        LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", 
+	                        		accCtx.getResourceShadowDiscriminator(), syncContext.dump());
+	                        throw new IllegalStateException("Definition for account type " + accCtx.getResourceShadowDiscriminator() 
+	                        		+ " not found in the context, but it should be there");
+	                    }
+	                    PrismObject<P> newAccount = (PrismObject<P>) rAccount.createBlankShadow();
+	                    addDelta.setObjectToAdd(newAccount);
+
+	                    addDelta.merge(accDelta);
+	                    accDelta = addDelta;
+	                }
+	            } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
+	                // Any delta is OK
+	            } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
+	            	ObjectDelta<P> deleteDelta = new ObjectDelta<P>(accCtx.getObjectTypeClass(),
+	                		ChangeType.DELETE, prismContext);
+	                String oid = accCtx.getOid();
+	                if (oid == null) {
+	                	throw new IllegalStateException(
+	                			"Internal error: account context OID is null during attempt to create delete secondary delta; context="
+	                					+syncContext);
+	                }
+	                deleteDelta.setOid(oid);
+	                accDelta = deleteDelta;
+	            } else {
+	                // This is either UNLINK or null, both are in fact the same as KEEP
+	            	// Any delta is OK
+	            }
+	            
 	            if (accDelta == null || accDelta.isEmpty()) {
 	                if (LOGGER.isTraceEnabled()) {
 	                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());

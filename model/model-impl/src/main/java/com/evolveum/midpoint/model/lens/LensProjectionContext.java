@@ -326,11 +326,17 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 	
     public RefinedResourceSchema getRefinedResourceSchema() throws SchemaException {
+    	if (resource == null) {
+    		return null;
+    	}
     	return RefinedResourceSchema.getRefinedSchema(resource, getNotNullPrismContext());
     }
     
     public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {
 		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+		if (refinedSchema == null) {
+			return null;
+		}
 		return refinedSchema.getAccountDefinition(getResourceShadowDiscriminator().getIntent());
 	}
 	
@@ -386,6 +392,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
             // No change
             setObjectNew(oldAccount);
             return;
+        }
+        
+        if (oldAccount == null && accDelta.isModify()) {
+        	RefinedAccountDefinition rAccountDef = getRefinedAccountDefinition();
+        	if (rAccountDef != null) {
+        		oldAccount = (PrismObject<O>) rAccountDef.createBlankShadow();
+        	}
         }
 
         setObjectNew(accDelta.computeChangedObject(oldAccount));
@@ -483,6 +496,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			}
     	}
     }
+	
+	protected boolean isRequireSecondardyDeltaOid() {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+			return false;
+		}
+		return super.isRequireSecondardyDeltaOid();
+	}
     
 	@Override
 	public void cleanup() {

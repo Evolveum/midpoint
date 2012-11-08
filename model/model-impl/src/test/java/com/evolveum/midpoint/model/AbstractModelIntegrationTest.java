@@ -103,6 +103,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
@@ -1234,6 +1235,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 	}
 	
+	protected ItemPath getIcfsNameAttributePath() {
+		return new ItemPath(
+				ResourceObjectShadowType.F_ATTRIBUTES,
+				SchemaTestConstants.ICFS_NAME);
+		
+	}
+	
 	protected void assertResolvedResourceRefs(ModelContext<UserType,AccountShadowType> context) {
 		for (ModelProjectionContext<AccountShadowType> projectionContext: context.getProjectionContexts()) {
 			assertResolvedResourceRefs(projectionContext.getObjectOld(), "objectOld in "+projectionContext);
@@ -1251,9 +1259,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			assertResolvedResourceRefs(delta.getObjectToAdd(), desc);
 		} else if (delta.isModify()) {
 			ReferenceDelta referenceDelta = delta.findReferenceModification(ResourceObjectShadowType.F_RESOURCE_REF);
-			assertResolvedResourceRefs(referenceDelta.getValuesToAdd(), "valuesToAdd in "+desc);
-			assertResolvedResourceRefs(referenceDelta.getValuesToDelete(), "valuesToDelete in "+desc);
-			assertResolvedResourceRefs(referenceDelta.getValuesToReplace(), "valuesToReplace in "+desc);
+			if (referenceDelta != null) {
+				assertResolvedResourceRefs(referenceDelta.getValuesToAdd(), "valuesToAdd in "+desc);
+				assertResolvedResourceRefs(referenceDelta.getValuesToDelete(), "valuesToDelete in "+desc);
+				assertResolvedResourceRefs(referenceDelta.getValuesToReplace(), "valuesToReplace in "+desc);
+			}
 		}
 	}
 

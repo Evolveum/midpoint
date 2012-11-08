@@ -236,7 +236,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	if (secondaryDelta != null) {
     		try {
 	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
-	    		boolean requireOid = primaryDelta == null;
+	    		boolean requireOid = isRequireSecondardyDeltaOid();
 	    		secondaryDelta.checkConsistence(requireOid, true, true);
     		} catch (IllegalArgumentException e) {
 				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
@@ -248,6 +248,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	if (getObjectNew() != null) {
     		checkConsistence(getObjectNew(), "new "+getElementDesc(), contextDesc);
     	}
+	}
+	
+	protected boolean isRequireSecondardyDeltaOid() {
+		return primaryDelta == null;
 	}
 	
 	protected void checkConsistence(PrismObject<O> object, String elementDesc, String contextDesc) {

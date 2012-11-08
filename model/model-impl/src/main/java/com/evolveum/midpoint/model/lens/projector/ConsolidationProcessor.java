@@ -98,17 +98,10 @@ public class ConsolidationProcessor {
         SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
 
         if (CONSISTENCY_CHECKS) context.checkConsistence();
-        if (policyDecision == SynchronizationPolicyDecision.ADD) {
-            consolidateValuesAddAccount(context, accCtx, result);
-            if (CONSISTENCY_CHECKS) context.checkConsistence();
-        } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
-            consolidateValuesModifyAccount(context, accCtx, result);
-            if (CONSISTENCY_CHECKS) context.checkConsistence();
-        } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-            consolidateValuesDeleteAccount(context, accCtx, result);
-            if (CONSISTENCY_CHECKS) context.checkConsistence();
+        if (policyDecision == SynchronizationPolicyDecision.DELETE) {
+            // Nothing to do
         } else {
-            // This is either UNLINK or null, both are in fact the same as KEEP
+            // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
             consolidateValuesModifyAccount(context, accCtx, result);
             if (CONSISTENCY_CHECKS) context.checkConsistence();
         }
@@ -275,7 +268,12 @@ public class ConsolidationProcessor {
     private void consolidateValuesModifyAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
-        ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, false, result);
+        boolean addUnchangedValues = false;
+        if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
+        	addUnchangedValues = true;
+        }
+        
+		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues , result);
         if (modifyDelta == null || modifyDelta.isEmpty()) {
         	return;
         }
@@ -285,18 +283,6 @@ public class ConsolidationProcessor {
         } else {
             accCtx.setSecondaryDelta(modifyDelta);
         }
-    }
-
-    private void consolidateValuesDeleteAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
-            OperationResult result) {
-        ObjectDelta<AccountShadowType> deleteDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class,
-        		ChangeType.DELETE, prismContext);
-        String oid = accCtx.getOid();
-        if (oid == null) {
-        	throw new IllegalStateException("Internal error: account context OID is null during attempt to create delete secondary delta; context="+context);
-        }
-        deleteDelta.setOid(oid);
-        accCtx.setSecondaryDelta(deleteDelta);
     }
 
     /**

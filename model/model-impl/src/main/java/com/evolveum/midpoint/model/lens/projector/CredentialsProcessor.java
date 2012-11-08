@@ -27,10 +27,12 @@ import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -134,7 +136,7 @@ public class CredentialsProcessor {
         		throw new SchemaException("Password for account "+rat+" cannot be added or deleted, it can only be replaced");
         	}
         }
-        if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+        if (accountDelta != null && (accountDelta.getChangeType() == ChangeType.ADD || accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD)) {
             // adding new account, synchronize password regardless whether the password was changed or not.
         } else if (userPasswordValueDelta != null) {
             // user password was changed. synchronize it regardless of the account change.
@@ -166,6 +168,8 @@ public class CredentialsProcessor {
         ItemDeltaItem<PrismPropertyValue<PasswordType>> userPasswordIdi = focusContext.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
         Source<PrismPropertyValue<PasswordType>> source = new Source<PrismPropertyValue<PasswordType>>(userPasswordIdi, ExpressionConstants.VAR_INPUT);
 		passwordMapping.setDefaultSource(source);
+		passwordMapping.setOriginType(OriginType.OUTBOUND);
+		passwordMapping.setOriginObject(accCtx.getResource());
 		
 		if (passwordMapping.getStrength() == MappingStrengthType.WEAK) {
         	if (accountPasswordValueDelta != null && !accountPasswordValueDelta.isEmpty()) {

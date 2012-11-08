@@ -231,27 +231,15 @@ public class TestProjector extends AbstractModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
+        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
         
-        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-        PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-        display("New account", newAccount);
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         
-        assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
-                newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
-        PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
-        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
-
-        IntegrationTestTools.assertIcfsNameAttribute(newAccount, "jack");
-        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
-        IntegrationTestTools.assertAttribute(newAccount, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME, "mouth", "pistol");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH , "mouth", "pistol");
         
-        for (ResourceAttribute<?> attribute: ResourceObjectShadowUtil.getAttributes(newAccount)) {
-        	PrismAsserts.assertOrigin(attribute, OriginType.OUTBOUND);
-        }
-        
-        PrismAsserts.assertNoEmptyItem(newAccount);
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
 	}
 
 	/**
@@ -478,23 +466,14 @@ public class TestProjector extends AbstractModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
+        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
         
-        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-        PrismObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-        assertEquals(DEFAULT_ACCOUNT_TYPE, newAccount.findProperty(AccountShadowType.F_ACCOUNT_TYPE).getRealValue());
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
-                newAccount.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
-        PrismReference resourceRef = newAccount.findReference(AccountShadowType.F_RESOURCE_REF);
-        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
-        PrismContainer<?> attributes = newAccount.findContainer(AccountShadowType.F_ATTRIBUTES);
-        assertNotNull("No attributes in new account", attributes);
-        assertEquals("jack1", attributes.findProperty(SchemaTestConstants.ICFS_NAME).getRealValue());
-        assertEquals("Wrong fullName", "Jack Sparrow",
-        		attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
-        
-        PrismAsserts.assertNoEmptyItem(newAccount);
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack1");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
 	}
 	
 	@Test
@@ -586,8 +565,7 @@ public class TestProjector extends AbstractModelIntegrationTest {
         assertNull(accContext.getPrimaryDelta());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-        // TODO
+        assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
     }
 	
