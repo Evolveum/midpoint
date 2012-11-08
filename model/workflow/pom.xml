@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>activiti-engine</artifactId>
-            <version>5.10</version>
+            <version>5.10-p1</version>
         </dependency>
         <dependency>
             <groupId>org.activiti</groupId>
