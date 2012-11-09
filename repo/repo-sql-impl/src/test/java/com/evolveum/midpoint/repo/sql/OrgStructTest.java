@@ -66,7 +66,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 	private static final String QUERY_ORG_STRUCT_USER_UNBOUNDED = TEST_DIR + "/query-org-struct-user-unbounded.xml";
 	private static final String QUERY_ORG_STRUCT_ORG_DEPTH = TEST_DIR + "/query-org-struct-org-depth.xml";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AddGetObjectTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(OrgStructTest.class);
 
 	String ELAINE_OID;
 	private static final String ELAINE_NAME = "elaine";
