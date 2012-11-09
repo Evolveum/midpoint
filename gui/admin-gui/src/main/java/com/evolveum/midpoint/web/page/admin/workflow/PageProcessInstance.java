@@ -35,6 +35,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.util.string.StringValue;
 
 /**
@@ -85,7 +86,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
             if (!result.isSuccess()) {
                 showResultInSession(result);
             }
-            throw new RestartResponseException(PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY.equals(back.toString()) ? PageProcessInstancesRequestedBy.class : PageProcessInstancesRequestedFor.class);
+            throw new RestartResponseException(backPage(back.toString()));
         }
 
 	}
@@ -125,14 +126,21 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				setResponsePage(
-                        PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY.equals(
-                                getPageParameters().get(PARAM_PROCESS_INSTANCE_BACK).toString()) ?
-                                PageProcessInstancesRequestedBy.class :
-                                PageProcessInstancesRequestedFor.class);
+				setResponsePage(backPage(getPageParameters().get(PARAM_PROCESS_INSTANCE_BACK).toString()));
 			}
 		};
 		mainForm.add(backButton);
 	}
+
+    private Class backPage(String backValue) {
+        if (PARAM_PROCESS_INSTANCE_BACK_ALL.equals(backValue)) {
+            return PageProcessInstancesAll.class;
+        } else if (PARAM_PROCESS_INSTANCE_BACK_REQUESTED_BY.equals(backValue)) {
+            return PageProcessInstancesRequestedBy.class;
+        } else {
+            return PageProcessInstancesRequestedFor.class;
+        }
+    }
+
 
 }
