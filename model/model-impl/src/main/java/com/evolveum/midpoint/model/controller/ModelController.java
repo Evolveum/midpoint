@@ -327,6 +327,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 						throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
 					}
 				}
+				auditRecord.setTimestamp(null);
+				auditRecord.setOutcome(OperationResultStatus.SUCCESS);
+				auditRecord.setEventStage(AuditEventStage.EXECUTION);
+				auditService.audit(auditRecord, task);
 				
 			} else {
 				clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
