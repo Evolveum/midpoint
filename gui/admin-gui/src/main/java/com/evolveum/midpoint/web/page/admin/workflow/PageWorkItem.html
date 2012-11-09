@@ -23,51 +23,45 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-
     <form wicket:id="mainForm">
-
+    	<h2><span wicket:id="title"/></h2>
+		<table>
+			<tr>
+				<td><wicket:message key="pageWorkItem.requestedBy" /></td>
+				<td><b><span wicket:id="requestedBy" /></b> (<span
+					wicket:id="requestedByFullName" />)</td>
+			</tr>
+			<tr>
+				<td><wicket:message key="pageWorkItem.requestedOn" /></td>
+				<td><b><span wicket:id="requestedOn" /></b></td>
+			</tr>
+			<tr>
+				<td><wicket:message key="pageWorkItem.workItemCreatedOn" /></td>
+				<td><b><span wicket:id="workItemCreatedOn" /></b></td>
+			</tr>
+		</table>
         <table width="100%">
-            <tr>
-                <td><h2><span wicket:id="title"/></h2></td>
-                <td><h3><wicket:message key="pageWorkItem.additionalInfo"/></h3></td>
-            </tr>
-            <tr>
+			<tr>
                 <td style="width: 620px; vertical-align: top;">
-
-                    <table>
-                        <tr>
-                            <td><wicket:message key="pageWorkItem.requestedBy"/></td>
-                            <td><b><span wicket:id="requestedBy"/></b> (<span wicket:id="requestedByFullName"/>)</td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="pageWorkItem.requestedOn"/></td>
-                            <td><b><span wicket:id="requestedOn"/></b></td>
-                        </tr>
-                        <tr>
-                            <td><wicket:message key="pageWorkItem.workItemCreatedOn"/></td>
-                            <td><b><span wicket:id="workItemCreatedOn"/></b></td>
-                        </tr>
-                    </table>
-
                     <div wicket:id="requestSpecificForm"/>
-
                 </td>
                 <td style="vertical-align: top;">
-                    <div wicket:id="requesterForm"/>
-                    <div wicket:id="additionalDataForm"/>
-                    <div wicket:id="objectOldForm"/>
-                    <div wicket:id="objectNewForm"/>
-                    <!-- delta should be here -->
-                    <div wicket:id="trackingDataForm"/>
+                	<div wicket:id="accordion">
+                        <li wicket:id="additionalInfo">
+                            <div wicket:id="requesterForm"/>
+		                    <div wicket:id="additionalDataForm"/>
+		                    <div wicket:id="objectOldForm"/>
+		                    <div wicket:id="objectNewForm"/>
+		                    <!-- delta should be here -->
+		                    <div wicket:id="trackingDataForm"/>
+                        </li>
+                    </div>
                 </td>
             </tr>
         </table>
 
-
         <div class="operatingFormButtons">
-            
             <div class="operatingFormBlock">
-
                 <a wicket:id="approve"/>
                 <a wicket:id="reject"/>
                 <!--<a wicket:id="done"/>-->

@@ -29,6 +29,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.accordion.Accordion;
+import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
@@ -76,6 +79,9 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String OPERATION_LOAD_REQUEST_SPECIFIC = DOT_CLASS + "loadRequestSpecific";
     private static final String OPERATION_LOAD_ADDITIONAL_DATA = DOT_CLASS + "loadAdditionalData";
     private static final String OPERATION_LOAD_TRACKING_DATA = DOT_CLASS + "loadTrackingData";
+    
+    private static final String ID_ACCORDION = "accordion";
+    private static final String ID_ADDITIONAL_INFO = "additionalInfo";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
 
@@ -341,45 +347,9 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         });
         mainForm.add(workItemCreatedOn);
-
-        PrismObjectPanel requesterForm = new PrismObjectPanel("requesterForm", requesterModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
-
-            @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return createStringResource("pageWorkItem.requester.description");
-            }
-        };
-        requesterForm.add(new VisibleEnableBehaviour(){
-            @Override
-            public boolean isVisible() {
-                return requesterModel != null && !requesterModel.getObject().getObject().isEmpty();
-            }
-        });
-        mainForm.add(requesterForm);
-
-        PrismObjectPanel objectOldForm = new PrismObjectPanel("objectOldForm", objectOldModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
-
-            @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return createStringResource("pageWorkItem.objectOld.description");
-            }
-        };
-        mainForm.add(objectOldForm);
-
-        PrismObjectPanel objectNewForm = new PrismObjectPanel("objectNewForm", objectNewModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
-
-            @Override
-            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return createStringResource("pageWorkItem.objectNew.description");
-            }
-        };
-        mainForm.add(objectNewForm);
-
+        
         PrismObjectPanel requestSpecificForm = new PrismObjectPanel("requestSpecificForm", requestSpecificModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
+        		new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm) {
 
             @Override
             protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
@@ -392,19 +362,71 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
         };
         mainForm.add(requestSpecificForm);
+        
+        Accordion accordion = new Accordion(ID_ACCORDION);
+        accordion.setOutputMarkupId(true);
+        accordion.setMultipleSelect(true);
+        accordion.setExpanded(true);
+        mainForm.add(accordion);
+
+        AccordionItem additionalInfo = new AccordionItem(ID_ADDITIONAL_INFO, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getString("pageWorkItem.additionalInfo");
+            }
+        });
+        additionalInfo.setOutputMarkupId(true);
+        accordion.getBodyContainer().add(additionalInfo);
+
+        PrismObjectPanel requesterForm = new PrismObjectPanel("requesterForm", requesterModel,
+        		new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm) {
+
+            @Override
+            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+                return createStringResource("pageWorkItem.requester.description");
+            }
+        };
+        requesterForm.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return requesterModel != null && !requesterModel.getObject().getObject().isEmpty();
+            }
+        });
+        additionalInfo.getBodyContainer().add(requesterForm);
+
+        PrismObjectPanel objectOldForm = new PrismObjectPanel("objectOldForm", objectOldModel,
+        		new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm) {
+
+            @Override
+            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+                return createStringResource("pageWorkItem.objectOld.description");
+            }
+        };
+        additionalInfo.getBodyContainer().add(objectOldForm);
+
+        PrismObjectPanel objectNewForm = new PrismObjectPanel("objectNewForm", objectNewModel,
+        		new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm) {
+
+            @Override
+            protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
+                return createStringResource("pageWorkItem.objectNew.description");
+            }
+        };
+        additionalInfo.getBodyContainer().add(objectNewForm);
 
         PrismObjectPanel additionalDataForm = new PrismObjectPanel("additionalDataForm", additionalDataModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
+        		new PackageResourceReference(ImgResources.class, ImgResources.ROLE_PRISM), mainForm) {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
                 return createStringResource("pageWorkItem.additionalData.description");
             }
         };
-        mainForm.add(additionalDataForm);
+        additionalInfo.getBodyContainer().add(additionalDataForm);
 
         PrismObjectPanel trackingDataForm = new PrismObjectPanel("trackingDataForm", trackingDataModel,
-                new PackageResourceReference(PageWorkItem.class, "User.png"), mainForm) {
+        		new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm) {
 
             @Override
             protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {
@@ -416,7 +438,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 return new Model("");
             }
         };
-        mainForm.add(trackingDataForm);
+        additionalInfo.getBodyContainer().add(trackingDataForm);
 
         initButtons(mainForm);
     }
