@@ -67,6 +67,12 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -151,6 +157,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/resources/account", PageAccount.class, new OnePageParameterEncoder(PageAccount.PARAM_ACCOUNT_ID)));
         mount(new MountedMapper("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID)));
         mount(new MountedMapper("/admin/resources/content/entitlements", PageContentEntitlements.class, new OnePageParameterEncoder(PageContentEntitlements.PARAM_RESOURCE_ID)));
+        
+        mount(new MountedMapper("/admin/workItems", PageWorkItems.class, encoder));
+        mount(new MountedMapper("/admin/workItem", PageWorkItem.class, new OnePageParameterEncoder(PageWorkItem.PARAM_TASK_ID)));
+        mount(new MountedMapper("/admin/workItems/allRequests", PageProcessInstancesAll.class, encoder));
+        mount(new MountedMapper("/admin/workItems/myRequests", PageProcessInstancesRequestedBy.class, encoder));
+        mount(new MountedMapper("/admin/workItems/aboutMeRequests", PageProcessInstancesRequestedFor.class, encoder));
+        mount(new MountedMapper("/admin/workItems/processInstance", PageProcessInstance.class, new OnePageParameterEncoder(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID)));
 
         mount(new MountedMapper("/admin/config", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/debug", PageDebugView.class, new OnePageParameterEncoder(PageDebugView.PARAM_OBJECT_ID)));

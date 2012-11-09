@@ -22,9 +22,11 @@
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WorkItem;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -39,11 +41,11 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getStarted() {
-        return processInstance.getStartTime() == null ? "" : processInstance.getStartTime().toString();       //todo i18n
+        return processInstance.getStartTime() == null ? "-" : WebMiscUtil.getFormatedDate(processInstance.getStartTime());
     }
 
     public String getFinished() {
-        return processInstance.getEndTime() == null ? "" : processInstance.getEndTime().toString();         //todo i18n
+        return processInstance.getEndTime() == null ? "-" : WebMiscUtil.getFormatedDate(processInstance.getEndTime());
     }
 
     public String getName() {
@@ -60,7 +62,7 @@ public class ProcessInstanceDto extends Selectable {
 
     public String getTasks() {
         if (processInstance.getWorkItems() == null || processInstance.getWorkItems().isEmpty()) {
-            return "none";  // todo i18n
+            return "-";
         } else {
             StringBuffer sb = new StringBuffer();
             for (WorkItem wi : processInstance.getWorkItems()) {
@@ -75,7 +77,9 @@ public class ProcessInstanceDto extends Selectable {
                     sb.append(")");
                 }
                 if (wi.getCreateTime() != null) {
-                    sb.append(", created on " + wi.getCreateTime().toString());
+                	
+                	
+                    sb.append(", created on " + WebMiscUtil.getFormatedDate(wi.getCreateTime()));
                 }
                 sb.append("\n");
             }
@@ -86,5 +90,4 @@ public class ProcessInstanceDto extends Selectable {
     public String getDetails() {
         return processInstance.getDetails();
     }
-
 }

@@ -50,6 +50,8 @@ import org.apache.wicket.model.IModel;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -260,5 +262,10 @@ public final class WebMiscUtil {
         }
 
         return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();
+    }
+    
+    public static String getFormatedDate(Date date) {
+    	SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+    	return dateFormat.format(date);
     }
 }

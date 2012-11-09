@@ -160,8 +160,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                         if (started == null) {
                             return "?";
                         } else {
-                            // todo i18n
-                            return started.toString();
+                        	return WebMiscUtil.getFormatedDate(started);
                         }
                     }
                 }));
@@ -180,10 +179,9 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                         ProcessInstanceDto pi = rowModel.getObject();
                         Date finished = pi.getProcessInstance().getEndTime();
                         if (finished == null) {
-                            return "not yet";   // todo i18n
+                            return getString("pageProcessInstances.notYet");
                         } else {
-                            // todo i18n
-                            return finished.toString();
+                            return WebMiscUtil.getFormatedDate(finished);
                         }
                     }
                 }));

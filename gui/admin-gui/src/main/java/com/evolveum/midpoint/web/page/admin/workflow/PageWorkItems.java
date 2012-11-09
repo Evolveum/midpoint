@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 
@@ -138,8 +139,7 @@ public class PageWorkItems extends PageAdminWorkItems {
                         if (started == null) {
                             return "?";
                         } else {
-                            // todo i18n
-                            return started.toString();
+                            return WebMiscUtil.getFormatedDate(started);
                         }
                     }
                 }));
