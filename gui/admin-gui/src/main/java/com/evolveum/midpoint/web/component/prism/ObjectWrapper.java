@@ -88,6 +88,12 @@ public class ObjectWrapper implements Serializable {
 		ContainerWrapper activation = null;
 		ItemPath activationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);
 		for (ContainerWrapper container : getContainers()) {
+			Class clazz = container.getItem().getCompileTimeClass();
+			if(clazz != null) {
+				if(!clazz.equals(UserType.class) || !clazz.equals(ResourceObjectShadowAttributesType.class)) {
+					return true;
+				}
+			}
 			if (container.getPath() == null || !container.getPath().equals(activationPath)) {
 				continue;
 			}
@@ -96,7 +102,6 @@ public class ObjectWrapper implements Serializable {
 
 		}
         if (activation == null) {
-        	LOGGER.warn("No activation found for account " + getDisplayName() + ".");
             return false;
         }
         
