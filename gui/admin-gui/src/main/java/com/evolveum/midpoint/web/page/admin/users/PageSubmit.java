@@ -624,7 +624,7 @@ public class PageSubmit extends PageAdmin {
 			LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
 		}
 
-		if (!result.isSuccess()) {
+		if (!result.isSuccess() && !result.isInProgress()) {
 			showResult(result);
 			target.add(getFeedbackPanel());
 		} else {
