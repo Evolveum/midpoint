@@ -468,6 +468,16 @@ public class OperationResult implements Serializable, Dumpable {
 			}
 		}
 	}
+	
+	public OperationResultStatus getComputeStatus() {
+		OperationResultStatus origStatus = status;
+		String origMessage = message;
+		computeStatus();
+		OperationResultStatus computedStatus = status;
+		status = origStatus;
+		message = origMessage;
+		return computedStatus;
+	}
 
 	public void recomputeStatus() {
 		// Only recompute if there are subresults, otherwise keep original

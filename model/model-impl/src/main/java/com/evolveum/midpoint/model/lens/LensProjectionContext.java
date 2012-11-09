@@ -467,6 +467,51 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			distributeResourceValue(pval, resource);
 		}
 	}
+	
+	/**
+	 * Returns delta suitable for execution. The primary and secondary deltas may not make complete sense all by themselves.
+	 * E.g. they may both be MODIFY deltas even in case that the account should be created. The deltas begin to make sense
+	 * only if combined with sync decision. This method provides the deltas all combined and ready for execution.
+	 */
+	public ObjectDelta<O> getExecutableDelta() throws SchemaException {
+		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
+		ObjectDelta<O> origDelta = getDelta();
+		if (policyDecision == SynchronizationPolicyDecision.ADD) {
+            if (origDelta.isModify()) {
+            	// We need to convert modify delta to ADD
+            	ObjectDelta<O> addDelta = new ObjectDelta<O>(getObjectTypeClass(),
+                		ChangeType.ADD, getPrismContext());
+                RefinedAccountDefinition rAccount = getRefinedAccountDefinition();
+
+                if (rAccount == null) {
+                    throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator() 
+                    		+ " not found in the context, but it should be there");
+                }
+                PrismObject<O> newAccount = (PrismObject<O>) rAccount.createBlankShadow();
+                addDelta.setObjectToAdd(newAccount);
+
+                addDelta.merge(origDelta);
+                return addDelta;
+            }
+        } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
+            // Any delta is OK
+        } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
+        	ObjectDelta<O> deleteDelta = new ObjectDelta<O>(getObjectTypeClass(),
+            		ChangeType.DELETE, getPrismContext());
+            String oid = getOid();
+            if (oid == null) {
+            	throw new IllegalStateException(
+            			"Internal error: account context OID is null during attempt to create delete secondary delta; context="
+            					+this);
+            }
+            deleteDelta.setOid(oid);
+            return deleteDelta;
+        } else {
+            // This is either UNLINK or null, both are in fact the same as KEEP
+        	// Any delta is OK
+        }
+		return origDelta;
+	}
 
 	public void checkConsistence() {
 		checkConsistence(null, true);

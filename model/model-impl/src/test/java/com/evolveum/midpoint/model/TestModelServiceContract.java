@@ -71,9 +71,11 @@ import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -208,9 +210,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test100ModifyUserAddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test100ModifyUserAddAccount() throws Exception {
         displayTestTile(this, "test100ModifyUserAddAccount");
 
         // GIVEN
@@ -226,6 +226,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		dummyAuditService.clear();
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -256,12 +258,22 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
+        assertEquals("Wrong number of execution deltas", 2, auditExecution0Deltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+        
 	}
 	
 	@Test
-    public void test101GetAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test101GetAccount() throws Exception {
         displayTestTile(this, "test101GetAccount");
 
         // GIVEN
@@ -286,9 +298,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-    public void test102GetAccountNoFetch() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test102GetAccountNoFetch() throws Exception {
         displayTestTile(this, "test102GetAccountNoFetch");
 
         // GIVEN
@@ -314,9 +324,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test103GetAccountRaw() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test103GetAccountRaw() throws Exception {
         displayTestTile(this, "test103GetAccountRaw");
 
         // GIVEN
@@ -342,9 +350,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-    public void test108ModifyUserAddAccountAgain() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test108ModifyUserAddAccountAgain() throws Exception {
         displayTestTile(this, "test108ModifyUserAddAccountAgain");
 
         // GIVEN
@@ -360,6 +366,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		dummyAuditService.clear();
         
 		try {
 			
@@ -370,18 +378,24 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 			assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
 		} catch (SchemaException e) {
 			// This is expected
+			e.printStackTrace();
 			// THEN
 			String message = e.getMessage();
 			assertMessageContains(message, "already contains account");
 			assertMessageContains(message, "default");
 		}
 		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+		
 	}
 	
 	@Test
-    public void test109ModifyUserAddAccountAgain() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test109ModifyUserAddAccountAgain() throws Exception {
         displayTestTile(this, "test109ModifyUserAddAccountAgain");
 
         // GIVEN
@@ -398,6 +412,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		dummyAuditService.clear();
         
 		try {
 			
@@ -414,6 +430,13 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 			assertMessageContains(message, "default");
 		}
 		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+		
 	}
 
 	private void assertMessageContains(String message, String string) {
@@ -421,9 +444,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-    public void test110GetUserResolveAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test110GetUserResolveAccount() throws Exception {
         displayTestTile(this, "test110GetUserResolveAccount");
 
         // GIVEN
@@ -460,9 +481,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 
 
 	@Test
-    public void test111GetUserResolveAccountResource() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test111GetUserResolveAccountResource() throws Exception {
         displayTestTile(this, "test111GetUserResolveAccountResource");
 
         // GIVEN
@@ -503,9 +522,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-    public void test112GetUserResolveAccountNoFetch() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test112GetUserResolveAccountNoFetch() throws Exception {
         displayTestTile(this, "test112GetUserResolveAccountNoFetch");
 
         // GIVEN
@@ -541,22 +558,19 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test119ModifyUserDeleteAccount() throws Exception {
         displayTestTile(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test119ModifyUserDeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(accountOid);
         		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-		PrismReferenceValue accountRefVal = new PrismReferenceValue();
-		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), account);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -584,18 +598,28 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
-    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test120AddAccount() throws Exception {
         displayTestTile(this, "test120AddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createAddDelta(account);
@@ -626,18 +650,27 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
-    public void test121ModifyUserAddAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test121ModifyUserAddAccountRef() throws Exception {
         displayTestTile(this, "test121ModifyUserAddAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
@@ -665,20 +698,29 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 
 	
 	@Test
-    public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test128ModifyUserDeleteAccountRef() throws Exception {
         displayTestTile(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test128ModifyUserDeleteAccountRef");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         
@@ -711,18 +753,27 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource (if it is unchanged)
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
-    public void test129DeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException, ConsistencyViolationException {
+    public void test129DeleteAccount() throws Exception {
         displayTestTile(this, "test129DeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test129DeleteAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
         
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
@@ -744,19 +795,28 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 	
 	@Test
-    public void test130PreviewModifyUserJackAssignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test130PreviewModifyUserJackAssignAccount() throws Exception {
         displayTestTile(this, "test130PreviewModifyUserJackAssignAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test130PreviewModifyUserJackAssignAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -783,18 +843,19 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertNoDummyAccount("jack");
+        
+        dummyAuditService.assertNoRecord();
 	}
 	
 	@Test
-    public void test131ModifyUserJackAssignAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test131ModifyUserJackAssignAccount() throws Exception {
         displayTestTile(this, "test131ModifyUserJackAssignAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test131ModifyUserJackAssignAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -822,6 +883,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	/**
@@ -835,6 +907,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test132ModifyAccountJackDummy");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
@@ -874,6 +947,20 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, 
         		"Queen Anne's Revenge");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
+        assertEquals("Wrong number of execution deltas", 1, auditExecution0Deltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, AccountShadowType.class);
+        // Inbound
+        Collection<ObjectDelta<? extends ObjectType>> auditExecution1Deltas = dummyAuditService.getExecutionDeltas(1);
+        assertEquals("Wrong number of execution deltas", 1, auditExecution1Deltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution1Deltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -884,6 +971,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test139ModifyUserJackUnassignAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
@@ -906,6 +994,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -918,6 +1017,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test141ModifyUserJackAssignAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -948,6 +1048,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	
@@ -959,6 +1070,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
@@ -984,6 +1096,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	/**
@@ -999,6 +1122,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test160ModifyUserJackAssignAccountAndModify");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -1033,6 +1157,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -1043,6 +1178,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test165ModifyUserJack");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
                         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
@@ -1067,6 +1203,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -1077,6 +1224,8 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test166ModifyUserJackRaw");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
         		PrismTestUtil.createPolyString("Marvelous Captain Jack Sparrow"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(objectDelta);
@@ -1103,6 +1252,16 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource - the original fullName should not be changed
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 		
 	@Test
@@ -1113,6 +1272,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test169DeleteUserJack");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -1136,6 +1296,17 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 	@Test
@@ -1148,6 +1319,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1179,6 +1351,18 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         assertDummyAccount("blackbeard", "Edward Teach", true);
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
         assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
+        
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
 	
@@ -1190,6 +1374,7 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210AddUserMorganWithAssignment");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1219,6 +1404,18 @@ public class TestModelServiceContract extends AbstractModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount("morgan", "Sir Henry Morgan", true);
+        
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
 	
 

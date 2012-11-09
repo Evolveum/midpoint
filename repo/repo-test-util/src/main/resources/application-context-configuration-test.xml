@@ -32,6 +32,8 @@
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
 		<constructor-arg value="test-config.xml" />
 	</bean>
+	
+	<bean name="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory" />
 
     <!-- protector initialization -->
     <bean name="keyStoreFactory" class="com.evolveum.midpoint.init.ConfigurableProtectorFactory" init-method="init" />

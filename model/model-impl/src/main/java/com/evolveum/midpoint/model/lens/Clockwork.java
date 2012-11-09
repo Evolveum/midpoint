@@ -39,6 +39,7 @@ import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -105,85 +106,70 @@ public class Clockwork {
 	
 	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
-		ModelState state = context.getState();
-		if (state == ModelState.INITIAL) {
-			// We need to do this BEFORE projection. If we would do that after projection
-			// there will be secondary changes that are not part of the request.
-			audit(context, AuditEventStage.REQUEST, task, result);
+		try {
+			
+			ModelState state = context.getState();
+			if (state == ModelState.INITIAL) {
+				// We need to do this BEFORE projection. If we would do that after projection
+				// there will be secondary changes that are not part of the request.
+				audit(context, AuditEventStage.REQUEST, task, result);
+			}
+			
+			if (!context.isFresh()) {
+				context.cleanup();
+				projector.project(context, "projection", result);
+			}
+			
+			LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", true, context, false);
+			
+	//		LOGGER.info("CLOCKWORK: {}: {}", state, context);
+			
+			switch (state) {
+				case INITIAL:
+					processInitialToPrimary(context, task, result);
+					break;
+				case PRIMARY:
+					processPrimaryToSecondary(context, task, result);
+					break;
+				case SECONDARY:
+					processSecondary(context, task, result);
+					break;
+				case FINAL:
+					return HookOperationMode.FOREGROUND;
+			}		
+			
+			return invokeHooks(context, task, result);
+			
+		} catch (CommunicationException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (ConfigurationException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (ExpressionEvaluationException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (PolicyViolationException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (SchemaException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (SecurityViolationException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
+		} catch (RuntimeException e) {
+			audit(context, AuditEventStage.EXECUTION, task, result);
+			throw e;
 		}
-		
-		if (!context.isFresh()) {
-			context.cleanup();
-			projector.project(context, "projection", result);
-		}
-		
-		LensUtil.traceContext(LOGGER, "clockwork", state.toString() + " projection (before processing)", true, context, false);
-		
-//		LOGGER.info("CLOCKWORK: {}: {}", state, context);
-		
-		switch (state) {
-			case INITIAL:
-				processInitialToPrimary(context, task, result);
-				break;
-			case PRIMARY:
-				processPrimaryToSecondary(context, task, result);
-				break;
-			case SECONDARY:
-				processSecondary(context, task, result);
-				break;
-			case FINAL:
-				audit(context, AuditEventStage.EXECUTION, task, result);
-				return HookOperationMode.FOREGROUND;
-		}		
-		
-		return invokeHooks(context, task, result);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
-		
-		PrismObject<? extends ObjectType> primaryObject = null;
-		ObjectDelta<? extends ObjectType> primaryDelta = null;
-		if (context.getFocusContext() != null) {
-			primaryObject = context.getFocusContext().getObjectOld();
-			primaryDelta = context.getFocusContext().getDelta();
-		} else {
-			Collection<LensProjectionContext<P>> projectionContexts = context.getProjectionContexts();
-			if (projectionContexts == null || projectionContexts.isEmpty()) {
-				throw new IllegalStateException("No focus and no projectstions in "+context);
-			}
-			if (projectionContexts.size() > 1) {
-				throw new IllegalStateException("No focus and more than one projectstions in "+context);
-			}
-			LensProjectionContext<P> projection = projectionContexts.iterator().next();
-			primaryObject = projection.getObjectOld();
-			primaryDelta = projection.getDelta();
-		}
-		
-		AuditEventType eventType = null;
-		if (primaryDelta == null) {
-			eventType = AuditEventType.SYNCHRONIZATION;
-		} else if (primaryDelta.isAdd()) {
-			eventType = AuditEventType.ADD_OBJECT;
-		} else if (primaryDelta.isModify()) {
-			eventType = AuditEventType.MODIFY_OBJECT;
-		} else if (primaryDelta.isDelete()) {
-			eventType = AuditEventType.DELETE_OBJECT;
-		} else {
-			throw new IllegalStateException("Unknown state of delta "+primaryDelta);
-		}
-		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
-		if (primaryObject != null) {
-			auditRecord.setTarget(primaryObject.clone());
-		}
-		auditRecord.setChannel(context.getChannel());
-		auditRecord.addDeltas(MiscSchemaUtil.cloneCollection(context.getAllChanges()));
-		if (stage == AuditEventStage.EXECUTION) {
-			auditRecord.setResult(result);
-		}
-		auditService.audit(auditRecord, task);
-
-	}
-
 	/**
      * Invokes hooks, if there are any.
      *
@@ -228,6 +214,9 @@ public class Clockwork {
 		}
 		// execute current wave and go to the next wave
 		changeExecutor.executeChanges(context, task, result);
+		
+		audit(context, AuditEventStage.EXECUTION, task, result);
+		
 		// TODO: attempts
 		context.incrementExecutionWave();
 		// Force recompute for next wave
@@ -236,4 +225,60 @@ public class Clockwork {
 		LensUtil.traceContext(LOGGER, "clockwork", context.getState() + " change execution", false, context, false);
 	}
 
+	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
+		
+		PrismObject<? extends ObjectType> primaryObject = null;
+		ObjectDelta<? extends ObjectType> primaryDelta = null;
+		if (context.getFocusContext() != null) {
+			primaryObject = context.getFocusContext().getObjectOld();
+			primaryDelta = context.getFocusContext().getDelta();
+		} else {
+			Collection<LensProjectionContext<P>> projectionContexts = context.getProjectionContexts();
+			if (projectionContexts == null || projectionContexts.isEmpty()) {
+				throw new IllegalStateException("No focus and no projectstions in "+context);
+			}
+			if (projectionContexts.size() > 1) {
+				throw new IllegalStateException("No focus and more than one projectstions in "+context);
+			}
+			LensProjectionContext<P> projection = projectionContexts.iterator().next();
+			primaryObject = projection.getObjectOld();
+			primaryDelta = projection.getDelta();
+		}
+		
+		AuditEventType eventType = null;
+		if (primaryDelta == null) {
+			eventType = AuditEventType.SYNCHRONIZATION;
+		} else if (primaryDelta.isAdd()) {
+			eventType = AuditEventType.ADD_OBJECT;
+		} else if (primaryDelta.isModify()) {
+			eventType = AuditEventType.MODIFY_OBJECT;
+		} else if (primaryDelta.isDelete()) {
+			eventType = AuditEventType.DELETE_OBJECT;
+		} else {
+			throw new IllegalStateException("Unknown state of delta "+primaryDelta);
+		}
+		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
+		if (primaryObject != null) {
+			auditRecord.setTarget(primaryObject.clone());
+		}
+		auditRecord.setChannel(context.getChannel());
+		if (stage == AuditEventStage.REQUEST) {
+			auditRecord.addDeltas(MiscSchemaUtil.cloneCollection(context.getAllChanges()));
+		} else if (stage == AuditEventStage.EXECUTION) {
+			auditRecord.setResult(result);
+			auditRecord.setOutcome(result.getComputeStatus());
+			Collection<ObjectDelta<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
+			if ((executedDeltas == null || executedDeltas.isEmpty()) && auditRecord.getOutcome() == OperationResultStatus.SUCCESS) {
+				// No deltas, nothing to audit in this wave
+				return;
+			}
+			auditRecord.addDeltas(MiscSchemaUtil.cloneCollection(executedDeltas));
+		} else {
+			throw new IllegalStateException("Unknown audit stage "+stage);
+		}
+		auditService.audit(auditRecord, task);
+		// We need to clean up so these deltas will not be audited again in next wave
+		context.clearExecutedDeltas();
+	}
+	
 }

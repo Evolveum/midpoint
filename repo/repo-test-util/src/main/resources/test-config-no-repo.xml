@@ -35,6 +35,9 @@
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
         </audit>
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>

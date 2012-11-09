@@ -19,6 +19,9 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -49,6 +52,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
 	private ObjectDelta<O> secondaryDelta;
+	private List<ObjectDelta<O>> executedDeltas = new ArrayList<ObjectDelta<O>>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
 	private transient boolean isFresh = false;
@@ -142,6 +146,18 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         secondaryDelta.swallow(accountPasswordDelta);
     }
 	
+	public List<ObjectDelta<O>> getExecutedDeltas() {
+		return executedDeltas;
+	}
+	
+	public void clearExecutedDeltas() {
+		executedDeltas.clear();
+	}
+	
+	public void addToExecutedDeltas(ObjectDelta<O> executedDelta) {
+		executedDeltas.add(executedDelta);
+	}
+
 	/**
      * Returns user delta, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -363,14 +364,37 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         }
         return allChanges;
     }
-    
-    private <T extends ObjectType> void addChangeIfNotNull(Collection<ObjectDelta<? extends ObjectType>> changes,
+
+	private <T extends ObjectType> void addChangeIfNotNull(Collection<ObjectDelta<? extends ObjectType>> changes,
             ObjectDelta<T> change) {
         if (change != null) {
             changes.add(change);
         }
     }
-	
+    
+    /**
+     * Returns all executed deltas, user and all accounts.
+     */
+    public Collection<ObjectDelta<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
+        Collection<ObjectDelta<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        if (focusContext != null) {
+	        executedDeltas.addAll(focusContext.getExecutedDeltas());
+        }
+        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+        	executedDeltas.addAll(projCtx.getExecutedDeltas());
+        }
+        return executedDeltas;
+    }
+    
+    public void clearExecutedDeltas()  {
+        if (focusContext != null) {
+        	focusContext.clearExecutedDeltas();
+        }
+        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+        	projCtx.clearExecutedDeltas();
+        }
+    }
+    
 	public void recompute() throws SchemaException {
 		recomputeFocus();
 		recomputeProjections();

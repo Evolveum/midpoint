@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensElementContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.sync.SynchronizationSituation;
@@ -112,7 +113,7 @@ public class ChangeExecutor {
 		        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
 		        if (userDelta != null) {
 		
-		            executeChange(userDelta, syncContext, task, result);
+		            executeChange(userDelta, focusContext, syncContext, task, result);
 		
 		            // userDelta is composite, mixed from primary and secondary. The OID set into
 		            // it will be lost ... unless we explicitly save it
@@ -126,45 +127,7 @@ public class ChangeExecutor {
 	        	if (accCtx.getWave() != syncContext.getExecutionWave()) {
 	        		continue;
 	        	}
-	            ObjectDelta<P> accDelta = accCtx.getDelta();
-	            
-	            SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
-	            if (policyDecision == SynchronizationPolicyDecision.ADD) {
-	                if (accDelta.isModify()) {
-	                	// We need to convert modify delta to ADD
-	                	ObjectDelta<P> addDelta = new ObjectDelta<P>(accCtx.getObjectTypeClass(),
-	                    		ChangeType.ADD, prismContext);
-	                    RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
-
-	                    if (rAccount == null) {
-	                        LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", 
-	                        		accCtx.getResourceShadowDiscriminator(), syncContext.dump());
-	                        throw new IllegalStateException("Definition for account type " + accCtx.getResourceShadowDiscriminator() 
-	                        		+ " not found in the context, but it should be there");
-	                    }
-	                    PrismObject<P> newAccount = (PrismObject<P>) rAccount.createBlankShadow();
-	                    addDelta.setObjectToAdd(newAccount);
-
-	                    addDelta.merge(accDelta);
-	                    accDelta = addDelta;
-	                }
-	            } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
-	                // Any delta is OK
-	            } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-	            	ObjectDelta<P> deleteDelta = new ObjectDelta<P>(accCtx.getObjectTypeClass(),
-	                		ChangeType.DELETE, prismContext);
-	                String oid = accCtx.getOid();
-	                if (oid == null) {
-	                	throw new IllegalStateException(
-	                			"Internal error: account context OID is null during attempt to create delete secondary delta; context="
-	                					+syncContext);
-	                }
-	                deleteDelta.setOid(oid);
-	                accDelta = deleteDelta;
-	            } else {
-	                // This is either UNLINK or null, both are in fact the same as KEEP
-	            	// Any delta is OK
-	            }
+	            ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
 	            
 	            if (accDelta == null || accDelta.isEmpty()) {
 	                if (LOGGER.isTraceEnabled()) {
@@ -172,17 +135,17 @@ public class ChangeExecutor {
 	                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
 	                }
 	                if (focusContext != null) {
-	                	updateAccountLinks(focusContext.getObjectNew(), accCtx, task, result);
+	                	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
 	                }
 	                continue;
 	            }
 	            
-	            executeChange(accDelta, syncContext, task, result);
+	            executeChange(accDelta, accCtx, syncContext, task, result);
 	            
 	            // To make sure that the OID is set (e.g. after ADD operation)
 	            accCtx.setOid(accDelta.getOid());
 	            if (focusContext != null) {
-	            	updateAccountLinks(focusContext.getObjectNew(), accCtx, task, result);
+	            	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
 	            }
 	        }
 	        
@@ -219,7 +182,8 @@ public class ChangeExecutor {
     /**
      * Make sure that the account is linked (or unlinked) as needed.
      */
-    private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject, LensProjectionContext<P> accCtx,
+    private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject,
+    		LensFocusContext<F> focusContext, LensProjectionContext<P> accCtx,
     		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
     	if (prismObject == null) {
     		return;
@@ -239,7 +203,7 @@ public class ChangeExecutor {
             for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
                 if (accountRef.getOid().equals(accountOid)) {
                     // Linked, need to unlink
-                    unlinkAccount(userTypeNew.getOid(), accountOid, task, result);
+                    unlinkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
 //                    LOGGER.trace("Start to update situation in account after unlinking it from the user.");
 //    				updateSituationInAccount(task, null, accountOid, result);
 //    				LOGGER.trace("Situation in the account was updated to {}.", "null");
@@ -267,7 +231,7 @@ public class ChangeExecutor {
                 }
             }
             // Not linked, need to link
-            linkAccount(userTypeNew.getOid(), accountOid, task, result);
+            linkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
             //be sure, that the situation is set correctly
             LOGGER.trace("Updating situation after account was linked.");
             updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountOid, result);
@@ -275,7 +239,7 @@ public class ChangeExecutor {
         }
     }
 
-    private void linkAccount(String userOid, String accountOid, Task task, OperationResult result) throws ObjectNotFoundException,
+    private void linkAccount(String userOid, String accountOid, LensElementContext<UserType> userContext, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException {
 
         LOGGER.trace("Linking account " + accountOid + " to user " + userOid);
@@ -292,13 +256,16 @@ public class ChangeExecutor {
             throw new SystemException(ex);
         }
 //        updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountRef, result);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
+		userContext.addToExecutedDeltas(userDelta);
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return userDefinition;
 	}
 
-	private void unlinkAccount(String userOid, String accountOid, Task task, OperationResult result) throws
+	private void unlinkAccount(String userOid, String accountOid, LensElementContext<UserType> userContext, Task task, OperationResult result) throws
             ObjectNotFoundException, SchemaException {
 
         LOGGER.trace("Unlinking account " + accountOid + " to user " + userOid);
@@ -317,6 +284,9 @@ public class ChangeExecutor {
         
       //setting new situation to account
 //        updateSituationInAccount(task, null, accountRef, result);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
+		userContext.addToExecutedDeltas(userDelta);
 
     }
 	
@@ -359,7 +329,7 @@ public class ChangeExecutor {
 	}
     
 	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
-    	void executeChange(ObjectDelta<T> objectDelta, LensContext<F,P> context, Task task, OperationResult result) 
+    	void executeChange(ObjectDelta<T> objectDelta, LensElementContext<T> objectContext, LensContext<F,P> context, Task task, OperationResult result) 
     			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
     			ConfigurationException, SecurityViolationException {
     	
@@ -385,6 +355,8 @@ public class ChangeExecutor {
         } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
             executeDeletion(objectDelta, result);
         }
+        
+        objectContext.addToExecutedDeltas(objectDelta.clone());
         
     }
 	

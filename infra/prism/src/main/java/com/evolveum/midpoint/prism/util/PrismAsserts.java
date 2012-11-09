@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -351,6 +352,15 @@ public class PrismAsserts {
 			}
 		};
 		visitableItem.accept(visitor);
+	}
+	
+	public static void asserHasDelta(String message, Collection<? extends ObjectDelta<? extends Objectable>> deltas, ChangeType expectedChangeType, Class<?> expectedClass) {
+		for (ObjectDelta<?> delta: deltas) {
+			if (delta.getObjectTypeClass() == expectedClass && delta.getChangeType() == expectedChangeType) {
+				return;
+			}
+		}
+		assert false : message+": Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in collection "+deltas;
 	}
 	
 	// DeltaSetTriple asserts

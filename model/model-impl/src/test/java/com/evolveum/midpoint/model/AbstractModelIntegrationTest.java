@@ -107,6 +107,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
+import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -299,6 +300,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	@Autowired(required = true)
 	protected PrismContext prismContext;
 	
+	protected DummyAuditService dummyAuditService;
+	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 	
 	protected MockClockworkHook mockClockworkHook;
@@ -333,6 +336,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
+		
+		dummyAuditService = DummyAuditService.getInstance();
 		
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();

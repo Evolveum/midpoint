@@ -27,6 +27,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -34,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author semancik
  *
  */
-public class AuditEventRecord {
+public class AuditEventRecord implements Dumpable, DebugDumpable {
 	
 	/**
 	 * Timestamp in millis.
@@ -75,7 +79,7 @@ public class AuditEventRecord {
 	private AuditEventStage eventStage;
 	
 	// delta
-	private Collection<ObjectDelta<?>> deltas;
+	private Collection<ObjectDelta<? extends ObjectType>> deltas;
 	
 	// delta order (primary, secondary)
 	
@@ -89,16 +93,16 @@ public class AuditEventRecord {
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
 	public AuditEventRecord() {
-		this.deltas = new ArrayList<ObjectDelta<?>>();
+		this.deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 	}
 	
 	public AuditEventRecord(AuditEventType eventType) {
-		this.deltas = new ArrayList<ObjectDelta<?>>();
+		this.deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		this.eventType = eventType;
 	}
 
 	public AuditEventRecord(AuditEventType eventType, AuditEventStage eventStage) {
-		this.deltas = new ArrayList<ObjectDelta<?>>();
+		this.deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		this.eventType = eventType;
 		this.eventStage = eventStage;
 	}
@@ -195,11 +199,11 @@ public class AuditEventRecord {
 		this.eventStage = eventStage;
 	}
 
-	public Collection<ObjectDelta<?>> getDeltas() {
+	public Collection<ObjectDelta<? extends ObjectType>> getDeltas() {
 		return deltas;
 	}
 	
-	public void addDelta(ObjectDelta<?> delta) {
+	public void addDelta(ObjectDelta<? extends ObjectType> delta) {
 		deltas.add(delta);
 	}
 
@@ -245,6 +249,25 @@ public class AuditEventRecord {
 			ObjectDelta.checkConsistence(deltas);
 		}
 	}
+	
+	public AuditEventRecord clone() {
+		AuditEventRecord clone = new AuditEventRecord();
+		clone.channel = this.channel;
+		clone.deltas = MiscSchemaUtil.cloneCollection(this.deltas);
+		clone.eventIdentifier = this.eventIdentifier;
+		clone.eventStage = this.eventStage;
+		clone.eventType = this.eventType;
+		clone.hostIdentifier = this.hostIdentifier;
+		clone.initiator = this.initiator;
+		clone.outcome = this.outcome;
+		clone.sessionIdentifier = this.sessionIdentifier;
+		clone.target = this.target;
+		clone.targetOwner = this.targetOwner;
+		clone.taskIdentifier = this.taskIdentifier;
+		clone.taskOID = this.taskOID;
+		clone.timestamp = this.timestamp;
+		return clone;
+	}
 
 	@Override
 	public String toString() {
@@ -267,6 +290,45 @@ public class AuditEventRecord {
 			return "null";
 		}
 		return object.toString();
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("AUDIT");
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Timestamp", formatTimestamp(timestamp), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Identifier", eventIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Session Identifier", sessionIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatObject(initiator), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatObject(target), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatObject(targetOwner), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Type", eventType, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Stage", eventStage, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Channel", channel, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Outcome", outcome, indent + 1);
+		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
+		if (deltas == null || deltas.isEmpty()) {
+			sb.append(" none");
+		} else {
+			sb.append(" ").append(deltas.size()).append(" deltas\n");
+			DebugUtil.debugDump(sb, deltas, indent + 2, false);
+		}
+		return sb.toString();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
 	}
 		
 }

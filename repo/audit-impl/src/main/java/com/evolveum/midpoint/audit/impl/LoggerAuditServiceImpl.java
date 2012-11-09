@@ -131,13 +131,13 @@ public class LoggerAuditServiceImpl implements AuditService {
 		return user.getOid()+"("+user.getName()+")";
 	}
 
-	private String formatDeltaSummary(Collection<ObjectDelta<?>> deltas) {
-		if (deltas == null) {
+	private String formatDeltaSummary(Collection<ObjectDelta<? extends ObjectType>> collection) {
+		if (collection == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("[");
 		
-		Iterator<ObjectDelta<?>> iterator = deltas.iterator();
+		Iterator<ObjectDelta<? extends ObjectType>> iterator = collection.iterator();
 		while (iterator.hasNext()) {
 			ObjectDelta<?> delta = iterator.next();
 			sb.append(delta.getOid()).append(":").append(delta.getChangeType());

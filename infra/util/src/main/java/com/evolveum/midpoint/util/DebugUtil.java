@@ -63,9 +63,19 @@ public class DebugUtil {
 
 	public static String debugDump(Collection<?> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getCollectionOpeningSymbol(dumpables));
-		for (Object item : dumpables) {
+		debugDump(sb, dumpables, indent, true);
+		return sb.toString();
+	}
+	
+	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols) {
+		if (openCloseSymbols) {
+			indentDebugDump(sb, indent);
+			sb.append(getCollectionOpeningSymbol(dumpables));
 			sb.append("\n");
+		}
+		Iterator<?> iterator = dumpables.iterator();
+		while (iterator.hasNext()) {
+			Object item = iterator.next();
 			if (item == null) {
 				indentDebugDump(sb, indent + 1);
 				sb.append("null");
@@ -75,12 +85,17 @@ public class DebugUtil {
 				indentDebugDump(sb, indent + 1);
 				sb.append(item.toString());
 			}
+			if (iterator.hasNext()) {
+				sb.append("\n");
+			}
 		}
-		if (!dumpables.isEmpty()) {
-			sb.append("\n");
+		if (openCloseSymbols) {
+			if (!dumpables.isEmpty()) {
+				sb.append("\n");
+			}
+			indentDebugDump(sb, indent);
+			sb.append(getCollectionClosingSymbol(dumpables));
 		}
-		sb.append(getCollectionClosingSymbol(dumpables));
-		return sb.toString();
 	}
 	
 	public static String debugDump(Object object, int indent) {
@@ -129,6 +144,11 @@ public class DebugUtil {
 			sb.append(" ");
 			sb.append(object.toString());
 		}
+	}
+	
+	public static void debugDumpWithLabelToStringLn(StringBuilder sb, String label, Object object, int indent) {
+		debugDumpWithLabelToString(sb, label, object, indent);
+		sb.append("\n");
 	}
 
 	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
