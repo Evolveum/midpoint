@@ -90,7 +90,7 @@ public class ObjectWrapper implements Serializable {
 		for (ContainerWrapper container : getContainers()) {
 			Class clazz = container.getItem().getCompileTimeClass();
 			if(clazz != null) {
-				if(!clazz.equals(UserType.class) || !clazz.equals(ResourceObjectShadowAttributesType.class)) {
+				if(clazz.equals(RoleType.class) || clazz.equals(ObjectType.class)) {
 					return true;
 				}
 			}
@@ -99,7 +99,6 @@ public class ObjectWrapper implements Serializable {
 			}
 			activation = container;
 			break;
-
 		}
         if (activation == null) {
             return false;
