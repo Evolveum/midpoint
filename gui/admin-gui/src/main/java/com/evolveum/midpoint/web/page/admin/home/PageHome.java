@@ -80,7 +80,7 @@ public class PageHome extends PageAdmin {
 	private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
 
-    private static final String ID_ORG_UNITS ="orgUnits";
+    private static final String ID_ORG_UNITS = "orgUnits";
     private static final String ID_ASSIGNED_ORG_UNITS = "assignedOrgUnits";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageHome.class);
@@ -178,7 +178,7 @@ public class PageHome extends PageAdmin {
         });
         orgUnits.setOutputMarkupId(true);
         accordion.getBodyContainer().add(orgUnits);
-        initAssignmentAccordionItem(orgUnits, "assignedOrgUnits", new PropertyModel(model, "orgAssignments"));
+        initAssignmentAccordionItem(orgUnits, ID_ASSIGNED_ORG_UNITS, new PropertyModel(model, "orgAssignments"));
 
 		AccordionItem accounts = new AccordionItem("myAccounts", new AbstractReadOnlyModel<String>() {
 
