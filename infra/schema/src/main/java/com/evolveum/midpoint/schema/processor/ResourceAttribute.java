@@ -46,6 +46,8 @@ import java.util.Set;
  */
 public class ResourceAttribute<T> extends PrismProperty<T> {
 
+    private static final long serialVersionUID = -6149194956029296486L;
+
     public ResourceAttribute(QName name, ResourceAttributeDefinition definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }

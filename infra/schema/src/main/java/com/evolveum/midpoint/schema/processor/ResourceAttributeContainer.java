@@ -49,8 +49,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * 
  */
 public final class ResourceAttributeContainer extends PrismContainer {
-	
-	/**
+
+    private static final long serialVersionUID = 8878851067509560312L;
+
+    /**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */

@@ -58,7 +58,9 @@ import java.util.Map;
  */
 public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, Serializable {
 
-	// The object should basically work without definition and prismContext. This is the
+    private static final long serialVersionUID = 510000191615288733L;
+
+    // The object should basically work without definition and prismContext. This is the
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
 	// It may not work perfectly, but basic things should work
     protected QName name;

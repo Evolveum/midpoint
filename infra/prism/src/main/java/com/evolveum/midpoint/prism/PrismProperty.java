@@ -70,6 +70,8 @@ import java.util.*;
  */
 public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 
+    private static final long serialVersionUID = 6843901365945935660L;
+
     private static final Trace LOGGER = TraceManager.getTrace(PrismProperty.class);
 
     public PrismProperty(QName name) {

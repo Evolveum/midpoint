@@ -72,6 +72,8 @@ import java.util.*;
  */
 public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable, Visitable, Serializable {
 
+    private static final long serialVersionUID = -528560467958335366L;
+
     private ChangeType changeType;
 
     /**

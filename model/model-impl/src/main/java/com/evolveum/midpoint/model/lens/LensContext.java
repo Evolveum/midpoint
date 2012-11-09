@@ -53,8 +53,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  *
  */
 public class LensContext<F extends ObjectType, P extends ObjectType> implements ModelContext<F, P> {
-	
-	private ModelState state = ModelState.INITIAL;
+
+    private static final long serialVersionUID = -778283437426659540L;
+
+    private ModelState state = ModelState.INITIAL;
 	
 	/**
      * Channel that is the source of primary change (GUI, live sync, import, ...)

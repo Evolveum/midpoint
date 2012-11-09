@@ -43,7 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O> {
 
-	private PrismObject<O> objectOld;
+    private static final long serialVersionUID = 1649567559396392861L;
+
+    private PrismObject<O> objectOld;
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
 	private ObjectDelta<O> secondaryDelta;

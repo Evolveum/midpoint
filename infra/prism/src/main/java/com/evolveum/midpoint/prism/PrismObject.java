@@ -64,7 +64,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
-	protected String oid;
+    private static final long serialVersionUID = 7321429132391159949L;
+
+    protected String oid;
 	protected String version;
 	private T objectable = null;
 
