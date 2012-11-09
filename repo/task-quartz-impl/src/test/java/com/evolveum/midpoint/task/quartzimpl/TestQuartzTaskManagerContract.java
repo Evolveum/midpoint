@@ -428,9 +428,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 //        AssertJUnit.assertEquals(newname, task001.getName());
         AssertJUnit.assertTrue(10 == task001.getProgress());
         AssertJUnit.assertNotNull(task001.getLastRunStartTimestamp());
-        AssertJUnit.assertTrue(currentTime == task001.getLastRunStartTimestamp());
+        AssertJUnit.assertEquals("Start time is not correct", (Long) (currentTime / 1000L), (Long) (task001.getLastRunStartTimestamp() / 1000L));   // e.g. MySQL cuts off millisecond information
         AssertJUnit.assertNotNull(task001.getLastRunFinishTimestamp());
-        AssertJUnit.assertTrue(currentTime1 == task001.getLastRunFinishTimestamp());
+        AssertJUnit.assertEquals("Finish time is not correct", (Long) (currentTime1 / 1000L), (Long) (task001.getLastRunFinishTimestamp() / 1000L));
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task001.getExclusivityStatus());
         AssertJUnit.assertEquals(TaskExecutionStatus.SUSPENDED, task001.getExecutionStatus());
         AssertJUnit.assertEquals("Handler after 2xPUSH is not OK", "http://no-handler.org/2", task001.getHandlerUri());
