@@ -98,6 +98,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_PREPARE_ACCOUNTS = DOT_CLASS + "getAccountsForSubmit";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+    private static final String OPERATION_SAVE = DOT_CLASS + "save";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -728,8 +729,9 @@ public class PageUser extends PageAdminUsers {
         setResponsePage(PageUsers.class);
     }
 
-    private void modifyAccounts(OperationResult result) {
-        LOGGER.debug("Modifying existing accounts.");
+    private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
+        List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {
@@ -743,24 +745,24 @@ public class PageUser extends PageAdminUsers {
                 if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
                     continue;
                 }
-                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
-
                 subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
-                Task task = createSimpleTask(OPERATION_MODIFY_ACCOUNT);
 
+                WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Modifying account:\n{}", new Object[]{delta.debugDump(3)});
                 }
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, subResult);
-                subResult.recomputeStatus();
+
+                deltas.add(delta);
+                subResult.recordSuccess();
             } catch (Exception ex) {
                 if (subResult != null) {
-                    subResult.recomputeStatus();
-                    subResult.recordFatalError("Modify account failed.", ex);
+                    subResult.recordFatalError("Couldn't compute account delta.", ex);
                 }
-                LoggingUtils.logException(LOGGER, "Couldn't modify account", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't compute account delta", ex);
             }
         }
+
+        return deltas;
     }
 
     private ArrayList<PrismObject> getAccountsForSubmit(OperationResult result,
@@ -976,11 +978,9 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void savePerformed(AjaxRequestTarget target) {
-        LOGGER.debug("Submit user.");
+        LOGGER.debug("Save user.");
 
-        OperationResult result = new OperationResult(OPERATION_SEND_TO_SUBMIT);
-        modifyAccounts(result);
-
+        OperationResult result = new OperationResult(OPERATION_SAVE);
         ObjectWrapper userWrapper = userModel.getObject();
         try {
             ObjectDelta delta = userWrapper.getObjectDelta();
@@ -1008,12 +1008,11 @@ public class PageUser extends PageAdminUsers {
                         LOGGER.trace("Delta before modify user:\n{}", new Object[]{delta.debugDump(3)});
                     }
 
-                    if (!delta.isEmpty()) {
-                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task,
-                                result);
-                    } else {
-                        result.recordSuccessIfUnknown();
-                    }
+                    List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                    deltas.addAll(accountDeltas);
+
+                    getModelService().executeChanges(deltas, null, task, result);
                     break;
                 // support for add/delete containers (e.g. delete credentials)
                 default:
@@ -1026,10 +1025,9 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
         }
         
-        
-        
 		if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
 			showResultInSession(result);
+            //todo refactor this...what is this for? why it's using some "shadow" param from result???
 			PrismObject<UserType> user = userWrapper.getObject();
 			UserType userType = user.asObjectable();
 			for (ObjectReferenceType ref : userType.getAccountRef()) {
@@ -1066,8 +1064,6 @@ public class PageUser extends PageAdminUsers {
    		}
    		return object;
    	}
-
-    
 
     private void submitPerformed(AjaxRequestTarget target) {
         LOGGER.debug("Submit user.");
