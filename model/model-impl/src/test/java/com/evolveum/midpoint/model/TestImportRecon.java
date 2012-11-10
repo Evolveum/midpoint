@@ -217,8 +217,20 @@ public class TestImportRecon extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Lets do some local changes on dummy resource
+        
+        // fullname has a strong outbound mapping, this change should be corrected
         DummyAccount guybrushDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         guybrushDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Dubrish Freepweed");
+        
+        // Weapon has a weak mapping, this change should be left as it is
+        guybrushDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Feather duster");
+        
+        // Drink is not tolerant. The extra values should be removed
+        guybrushDummyAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
+
+        // Quote is tolerant. The extra values should stay as it is
+        guybrushDummyAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I want to be a pirate!");
+
         
         // Calypso is protected, this should not reconcile
         DummyAccount calypsoDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
@@ -257,9 +269,18 @@ public class TestImportRecon extends AbstractModelIntegrationTest {
         assertNotNull("No guybrush", guybrush);
         assertAccounts(guybrush, 1);
         assertAccount(guybrush, RESOURCE_DUMMY_OID);
-        // Guybrush should be corrected back to real fullname
+        // Guybrushes fullname should be corrected back to real fullname
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Guybrush Threepwood");
+        // Guybrushes weapon should be left untouched
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, 
+        		"Feather duster");
+        // Guybrushes drink should be corrected
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        		"rum");
+        // Guybrushes quotes should be left untouched
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
+        		"Arr!", "I want to be a pirate!");
         
         PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
         assertNotNull("No rapp", rapp);

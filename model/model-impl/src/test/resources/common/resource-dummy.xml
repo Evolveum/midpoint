@@ -101,6 +101,8 @@
                   <xsd:element name="location" type="xsd:string"/>
                   <xsd:element name="loot" type="xsd:int"/>
                   <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -223,6 +225,28 @@
 							$user/extension/piracy:weapon
 						</path>
 					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<displayName>Drink</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>rum</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>Arr!</value>
+					</expression>
 				</outbound>
 			</attribute>
 			

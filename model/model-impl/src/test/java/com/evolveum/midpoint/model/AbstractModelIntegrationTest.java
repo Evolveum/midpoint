@@ -271,6 +271,16 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH = new ItemPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME);
 	
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME = "drink";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_DRINK_PATH = new ItemPath(
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_QNAME);
+
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH = new ItemPath(
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME);
+
 	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
 	
@@ -430,6 +440,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		accountObjectClass.add(lootAttrDef);
 		DummyAttributeDefinition weaponAttrDef = new DummyAttributeDefinition("weapon", String.class, false, true);
 		accountObjectClass.add(weaponAttrDef);
+		DummyAttributeDefinition drinkAttrDef = new DummyAttributeDefinition("drink", String.class, false, true);
+		accountObjectClass.add(drinkAttrDef);
+		DummyAttributeDefinition quoteAttrDef = new DummyAttributeDefinition("quote", String.class, false, true);
+		accountObjectClass.add(quoteAttrDef);
 	}
 
 	protected void postInitDummyResouce() {

@@ -126,6 +126,12 @@ public class DummyAccount {
 		checkSchema(name, values, "relace");
 		recordModify();
 	}
+	
+	public void addAttributeValue(String name, Object value) throws SchemaViolationException {
+		Collection<Object> values = new ArrayList<Object>(1);
+		values.add(value);
+		addAttributeValues(name, values);
+	}
 
 	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException {
 		Set<Object> currentValues = attributes.get(name);
