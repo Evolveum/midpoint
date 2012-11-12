@@ -26,7 +26,7 @@
     <form wicket:id="mainForm">
         <table>
             <tr>
-                <td><wicket:message key="pageTaskEdit.name"/></td>
+                <td width="350px"><wicket:message key="pageTaskEdit.name"/></td>
                 <td><input type="text" wicket:id="name"/></td>
             </tr>
             <tr>
@@ -53,7 +53,7 @@
        <table>
 	       	<tbody>
 	       		<tr>
-	                <td><wicket:message key="pageTaskEdit.recurring"/></td>
+	                <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTaskEdit.recurring"/></td>
 	                <td><input type="checkbox" wicket:id="recurring"/>
 	                	<small wicket:id="suspendReqRecurring" class="reqMessage"><br /><wicket:message key="pageTaskEdit.suspendReq"/></small>
 	                </td>
@@ -61,8 +61,8 @@
 	       	</tbody>
 			<tbody wicket:id="container">  
 				<tr wicket:id="boundContainer">
-				    <td style="vertical-align: top;"><wicket:message key="pageTaskEdit.bound"/></td>
-				    <td><input type="checkbox" wicket:id="bound"/><br />
+				    <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTaskEdit.bound"/></td>
+				    <td style="padding-bottom: 15px;"><input type="checkbox" wicket:id="bound"/>
        					<small><wicket:message key="pageTaskEdit.boundHelp"/></small>	
        					<small wicket:id="suspendReqBound" class="reqMessage"><br /><wicket:message key="pageTaskEdit.suspendReq"/></small>
 				    </td>
@@ -73,14 +73,14 @@
 				</tr>
 				<tr wicket:id="cronContainer">
 				    <td style="vertical-align: top;"><wicket:message key="pageTaskEdit.cronSpec"/></td>
-				    <td><input type="text" wicket:id="cron"/><br />
+				    <td style="padding-bottom: 15px;"><input type="text" wicket:id="cron"/> 
        					<small><wicket:message key="pageTaskEdit.cronHelp"/></small>
 				    </td>
 				</tr>
 			</tbody>
 			<tbody>            
 				<tr>
-				    <td><wicket:message key="pageTaskEdit.notStartBefore"/></td>
+				    <td width="350px"><wicket:message key="pageTaskEdit.notStartBefore"/></td>
 				    <td><span wicket:id="notStartBeforeField" /></td>
 				</tr>
 				<tr>
@@ -117,7 +117,7 @@
 	        </tr>
 	        -->
 	        <tr>
-                <td><wicket:message key="pageTaskEdit.threadStop"/></td>
+                <td width="350px"><wicket:message key="pageTaskEdit.threadStop"/></td>
                 <td><select wicket:id="threadStop"/></td>
             </tr>
         </table>
