@@ -160,7 +160,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-
+	
+	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-fake.xml";
+	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
+	
 	@Autowired(required = true)
 	protected ModelService modelService;
 	

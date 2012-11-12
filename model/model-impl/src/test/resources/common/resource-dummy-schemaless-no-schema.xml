@@ -34,6 +34,10 @@
 				<path>c:connectorType</path>
 					<value>com.evolveum.icf.dummy.connector.DummyConnector</value>
 				</equal>
+				<equal>
+					<path>connectorVersion</path>
+					<value>2.0</value>
+				</equal>
 			</and>
 		</filter>
 	</connectorRef>

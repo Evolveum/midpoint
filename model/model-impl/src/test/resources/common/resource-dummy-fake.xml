@@ -19,20 +19,38 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<connector oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd" 
+<resource oid="10000000-0000-0000-0000-00000000000f"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
-								  
-	<name>com.evolveum.icf.dummy.connector.DummyConnector</name>
-	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-	<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
-	<connectorVersion>2.0</connectorVersion>
-	<connectorBundle>com.evolveum.icf.dummy</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
-	<schema>
-		<!-- This is fake -->
-	</schema>
-</connector>
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Fake Dummy Resource</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>1.0.fake</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId/>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+</resource>

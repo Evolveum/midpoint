@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -220,23 +221,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
-//		Document doc = DOMUtil.getDocument();
-//
-//		Element connectorTypeElement = doc.createElementNS(
-//				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getNamespaceURI(),
-//				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getLocalPart());
-//		connectorTypeElement.setTextContent(connectorType);
-//
-//		// We have all the data, we can construct the filter now
-//		Element filter = QueryUtil.createEqualFilter(doc, null, connectorTypeElement);
 
 		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, connectorType);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-//		
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
-
-//		System.out.println("Query:\n"+DOMUtil.serializeDOMToString(query.getFilter())+"\n--");
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
 		if (connectors.size() != 1) {
 			throw new IllegalStateException("Cannot find connector type " + connectorType + ", got "
@@ -245,6 +232,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return connectors.get(0);
 	}
 
+	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
+			throws SchemaException {
+
+		EqualsFilter equalType = EqualsFilter.createEqual(ConnectorType.class, prismContext, ConnectorType.F_CONNECTOR_TYPE, connectorType);
+		EqualsFilter equalVersion = EqualsFilter.createEqual(ConnectorType.class, prismContext, ConnectorType.F_CONNECTOR_VERSION, connectorVersion);
+		AndFilter filter = AndFilter.createAnd(equalType, equalVersion);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, result);
+		if (connectors.size() != 1) {
+			throw new IllegalStateException("Cannot find connector type " + connectorType + ", got "
+					+ connectors);
+		}
+		return connectors.get(0);
+	}
+
+	
 	protected void fillInConnectorRef(PrismObject<ResourceType> resourcePrism, String connectorType, OperationResult result)
 			throws SchemaException {
 		ResourceType resource = resourcePrism.asObjectable();

@@ -54,6 +54,7 @@
 	</scm>
 	<modules>
 		<module>dummy-connector</module>
+		<module>dummy-connector-fake</module>
 		<module>dummy-resource</module>
 	</modules>
 	
