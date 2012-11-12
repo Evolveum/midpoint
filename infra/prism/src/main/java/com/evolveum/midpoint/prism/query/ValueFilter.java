@@ -7,17 +7,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 public abstract class ValueFilter extends ObjectFilter {
 	
-	private ItemPath path;
+	private ItemPath parentPath;
 	private ItemDefinition definition;
 	
-	public ValueFilter(ItemPath path, ItemDefinition definition){
-		this.path = path;
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition){
+		this.parentPath = parentPath;
 		this.definition = definition;
 	}
 	
-	public ValueFilter(ItemPath path, ItemDefinition definition, Element expression){
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, Element expression){
 		super(expression);
-		this.path = path;
+		this.parentPath = parentPath;
 		this.definition = definition;
 	}
 	
@@ -29,12 +29,12 @@ public abstract class ValueFilter extends ObjectFilter {
 		this.definition = definition;
 	}
 	
-	public ItemPath getPath() {
-		return path;
+	public ItemPath getParentPath() {
+		return parentPath;
 	}
 	
-	public void setPath(ItemPath path) {
-		this.path = path;
+	public void setParentPath(ItemPath path) {
+		this.parentPath = path;
 	}
 
 }

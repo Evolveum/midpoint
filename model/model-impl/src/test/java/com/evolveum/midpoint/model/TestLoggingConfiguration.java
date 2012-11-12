@@ -98,7 +98,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		LogfileTestTailer tailer = new LogfileTestTailer();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test001AddConfiguration");
 		OperationResult result = task.getResult();
 		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDelta.createAddDelta(systemConfiguration);		
@@ -128,7 +128,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		OperationResult result = task.getResult();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -145,7 +145,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 					systemConfigurationTypeDefinition, logging);
 		
 		// Modify directly in repository, so the logging code in model will not notice the change
-		repositoryService.modifyObject(SystemConfigurationType.class, AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
+		repositoryService.modifyObject(SystemConfigurationType.class, AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
 				modifications, result);
 		
 		// precondition
@@ -200,7 +200,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -211,7 +211,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		logging.getSubSystemLogger().add(modelSubSystemLogger);
 		
 		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
-				AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
+				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
 				logging);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 		
@@ -258,7 +258,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -272,7 +272,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		auditingConfigurationType.setDetails(false);
 		
 		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
-				AbstractModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
+				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
 				logging);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
 		
@@ -287,7 +287,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		display("TEST: Applied audit config, going to execute test change");
 		
 		// try do execute some change (add user object), it should be audited
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(AbstractModelIntegrationTest.USER_JACK_FILENAME));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.USER_JACK_FILENAME));
 		deltas = MiscSchemaUtil.createCollection(ObjectDelta.createAddDelta(user));
 		
 		modelService.executeChanges(deltas, null, task, result);

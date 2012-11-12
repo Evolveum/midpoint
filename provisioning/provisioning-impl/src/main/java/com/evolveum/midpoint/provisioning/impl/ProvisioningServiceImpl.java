@@ -242,19 +242,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			} catch (ObjectNotFoundException e) {
 				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				result.recordFatalError(e);
 				throw e;
 			} catch (CommunicationException e) {
 				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
-
+				result.recordFatalError(e);
 				throw e;
 
 			} catch (SchemaException e) {
 				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
-
+				result.recordFatalError(e);
 				throw e;
 			} catch (ConfigurationException e) {
 				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
-
+				result.recordFatalError(e);
 				throw e;
 			}
 
@@ -276,12 +277,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				return completeResource.asPrismObject();
 			} catch (ObjectNotFoundException ex) {
 				logFatalError(LOGGER, result, "Resource object not found", ex);
+				result.recordFatalError(ex);
 				throw ex;
 			} catch (SchemaException ex) {
 				logFatalError(LOGGER, result, "Schema violation", ex);
+				result.recordFatalError(ex);
 				throw ex;
 			} catch (CommunicationException ex) {
 				logFatalError(LOGGER, result, "Error communicating with resource", ex);
+				result.recordFatalError(ex);
 				throw ex;
 			}
 		} else {

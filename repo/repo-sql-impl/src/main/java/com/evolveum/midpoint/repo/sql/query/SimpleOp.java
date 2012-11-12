@@ -103,7 +103,7 @@ public class SimpleOp extends Op {
 		// validate(filter);
 
 		ValueFilter valueFilter = (ValueFilter) filter;
-		ItemPath propertyPath = valueFilter.getPath();
+		ItemPath propertyPath = valueFilter.getParentPath();
 
 		if (propertyPath != null) {
 			// at first we build criterions with aliases

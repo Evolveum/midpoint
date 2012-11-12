@@ -65,6 +65,7 @@ import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -298,7 +299,7 @@ public class OpenDJController {
 					if (subFile.isDirectory()) {
 						copyDirectory(subFile, new File(dst, subFile.getName()));
 					} else {
-						copyFile(subFile, new File(dst, subFile.getName()));
+						MiscUtil.copyFile(subFile, new File(dst, subFile.getName()));
 					}
 				}
 			} catch (Exception ex) {
@@ -306,27 +307,6 @@ public class OpenDJController {
 			}
 		}
 		LOGGER.debug("OpenDJ Extracted");
-	}
-
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-		if (!destFile.exists()) {
-			destFile.createNewFile();
-		}
-
-		FileChannel source = null;
-		FileChannel destination = null;
-		try {
-			source = new FileInputStream(sourceFile).getChannel();
-			destination = new FileOutputStream(destFile).getChannel();
-			destination.transferFrom(source, 0, source.size());
-		} finally {
-			if (source != null) {
-				source.close();
-			}
-			if (destination != null) {
-				destination.close();
-			}
-		}
 	}
 
 	/**
@@ -427,7 +407,7 @@ public class OpenDJController {
 				copyDirectory(new File(src, child), new File(dst, child));
 			}
 		} else {
-			copyFile(src, dst);
+			MiscUtil.copyFile(src, dst);
 		}
 	}
 

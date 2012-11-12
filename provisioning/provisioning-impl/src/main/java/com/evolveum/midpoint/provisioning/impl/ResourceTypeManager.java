@@ -746,7 +746,7 @@ public class ResourceTypeManager {
 			connector.search(type, objectClassDef, query, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
-			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);
+			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
 
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(

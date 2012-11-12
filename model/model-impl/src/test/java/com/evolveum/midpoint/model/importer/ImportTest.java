@@ -284,8 +284,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	
 	// Import the same thing again, this time with overwrite option. This should go well.
 	@Test
-	public void test005ImportUsersWithOverwrite() throws FileNotFoundException, ObjectNotFoundException,
-			SchemaException, SecurityViolationException {
+	public void test005ImportUsersWithOverwrite() throws Exception {
 		displayTestTile(this,"test005ImportUsersWithOverwrite");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
@@ -341,8 +340,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	
 	// Import the same thing again, with overwrite and also while keeping OIDs
 	@Test
-	public void test006ImportUsersWithOverwriteKeepOid() throws FileNotFoundException, ObjectNotFoundException,
-			SchemaException, SecurityViolationException {
+	public void test006ImportUsersWithOverwriteKeepOid() throws Exception {
 		displayTestTile(this,"test006ImportUsersWithOverwriteKeepOid");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();

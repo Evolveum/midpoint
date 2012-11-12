@@ -8,8 +8,10 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -68,6 +70,12 @@ public class RefFilter extends PropertyValueFilter{
 		}
 		return createReferenceEqual(path, itemDef, realValue);
 	}
+	
+	public static RefFilter createReferenceEqual(Class type, QName propertyName, PrismObject<? extends Objectable> targetObject) throws SchemaException {
+		PrismObjectDefinition objDef = targetObject.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		return createReferenceEqual(null, objDef, propertyName, targetObject.getOid());
+
+	}
 
 
 	@Override
@@ -86,10 +94,10 @@ public class RefFilter extends PropertyValueFilter{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("EQUALS: \n");
 		
-		if (getPath() != null){
+		if (getParentPath() != null){
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getPath().toString());
+			sb.append(getParentPath().toString());
 			sb.append("\n");
 		} 
 		DebugUtil.indentDebugDump(sb, indent+1);
@@ -120,8 +128,8 @@ public class RefFilter extends PropertyValueFilter{
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("REF: ");
-		if (getPath() != null){
-			sb.append(getPath().toString());
+		if (getParentPath() != null){
+			sb.append(getParentPath().toString());
 			sb.append(", ");
 		}
 		if (getDefinition() != null){

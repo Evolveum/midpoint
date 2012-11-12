@@ -561,7 +561,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<ObjectOperationOptions> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+            Collection<ObjectOperationOptions> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -597,15 +597,24 @@ public class ModelController implements ModelService, ModelInteractionService {
 					list = cacheRepositoryService.searchObjects(type, query, subResult);
 				}
 				subResult.recordSuccess();
-			} catch (Exception ex) {
-				String message;
-				if (ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW) || !searchInProvisioning) {
-					message = "Couldn't search objects in repository";
-				} else {
-					message = "Couldn't search objects in provisioning";
-				}
-				LoggingUtils.logException(LOGGER, message, ex);
-				subResult.recordFatalError(message, ex);
+			} catch (CommunicationException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				throw e;
+			} catch (ConfigurationException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				throw e;
+			} catch (ObjectNotFoundException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				throw e;
+			} catch (SchemaException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				throw e;
+			} catch (SecurityViolationException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				throw e;
+			} catch (RuntimeException e) {
+				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				throw e;
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(subResult.dump(false));
@@ -627,6 +636,18 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return list;
 	}
 
+
+	private void processSearchException(Exception e, Collection<ObjectOperationOption> rootOptions,
+			boolean searchInProvisioning, OperationResult result) {
+		String message;
+		if (ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW) || !searchInProvisioning) {
+			message = "Couldn't search objects in repository";
+		} else {
+			message = "Couldn't search objects in provisioning";
+		}
+		LoggingUtils.logException(LOGGER, message, e);
+		result.recordFatalError(message, e);
+	}
 
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,

@@ -51,7 +51,7 @@ import org.w3c.dom.Element;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -112,7 +112,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestImportRecon extends AbstractModelIntegrationTest {
+public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
 	public TestImportRecon() throws JAXBException {
 		super();

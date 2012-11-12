@@ -10,8 +10,10 @@ import org.apache.commons.lang.Validate;
 import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -55,10 +57,10 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		return new EqualsFilter(path, itemDef, expression);
 	}
 
-	public static EqualsFilter createEqual(ItemPath path, ItemDefinition item, Object realValue) {
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition item, Object realValue) {
 
 		if (realValue == null){
-			return createEqual(path, item, new PrismPropertyValue(null));
+			return createEqual(parentPath, item, new PrismPropertyValue(null));
 		}
 		if (List.class.isAssignableFrom(realValue.getClass())) {
 			List<PrismValue> prismValues = new ArrayList<PrismValue>();
@@ -70,14 +72,14 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 					prismValues.add(val);
 				}
 			}
-			return createEqual(path, item, prismValues);
+			return createEqual(parentPath, item, prismValues);
 		}
 		PrismPropertyValue value = new PrismPropertyValue(realValue);
-		return createEqual(path, item, value);
+		return createEqual(parentPath, item, value);
 	}
 
 	
-	public static EqualsFilter createEqual(ItemPath path, PrismContainerDefinition containerDef,
+	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
 			QName propertyName, PrismValue... values) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {
@@ -85,10 +87,10 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 					+ containerDef);
 		}
 
-		return createEqual(path, itemDef, values);
+		return createEqual(parentPath, itemDef, values);
 	}
 
-	public static EqualsFilter createEqual(ItemPath path, PrismContainerDefinition containerDef,
+	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
 			QName propertyName, Object realValue) throws SchemaException {
 		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
 		if (itemDef == null) {
@@ -96,15 +98,15 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 					+ containerDef);
 		}
 
-		return createEqual(path, itemDef, realValue);
+		return createEqual(parentPath, itemDef, realValue);
 	}
 
-	public static EqualsFilter createEqual(Class type, PrismContext prismContext, QName propertyName, Object realValue)
+	public static EqualsFilter createEqual(Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)
 			throws SchemaException {
-		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 		return createEqual(null, objDef, propertyName, realValue);
 	}
-
+	
 	@Override
 	public String dump() {
 		return debugDump(0);
@@ -121,10 +123,10 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("EQUALS: \n");
 		
-		if (getPath() != null){
+		if (getParentPath() != null){
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getPath().toString());
+			sb.append(getParentPath().toString());
 			sb.append("\n");
 		} 
 		DebugUtil.indentDebugDump(sb, indent+1);
@@ -154,8 +156,8 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("EQUALS: ");
-		if (getPath() != null){
-			sb.append(getPath().toString());
+		if (getParentPath() != null){
+			sb.append(getParentPath().toString());
 			sb.append(", ");
 		}
 		if (getDefinition() != null){

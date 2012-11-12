@@ -142,6 +142,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+            <groupId>org.forgerock.openicf.connectors.file</groupId>
+            <artifactId>openicf-csvfile-connector</artifactId>
+            <scope>test</scope>
+        </dependency>
+		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<scope>test</scope>

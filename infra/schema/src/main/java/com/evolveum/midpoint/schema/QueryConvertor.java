@@ -291,8 +291,8 @@ public class QueryConvertor {
 	private static Element createPathElement(ValueFilter filter, Document doc) {
 		Element path = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_PATH);
 		XPathHolder xpath = null;
-		if (filter.getPath() != null) {
-			xpath = new XPathHolder(new ItemPath(filter.getPath(), filter.getDefinition().getName()));
+		if (filter.getParentPath() != null) {
+			xpath = new XPathHolder(new ItemPath(filter.getParentPath(), filter.getDefinition().getName()));
 		} else {
 			xpath = new XPathHolder(filter.getDefinition().getName());
 		}

@@ -138,12 +138,18 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return originalResourceSchema.findObjectClassDefinition(objectClassQName);
 	}
 	
-	/**
-	 * If already refined, return the version created before
-	 */
+
+	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException {
+		return getRefinedSchema(resourceType, resourceType.asPrismObject().getPrismContext());
+	}
+
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
 		return getRefinedSchema(resource, prismContext);
+	}
+	
+	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
+		return getRefinedSchema(resource, resource.getPrismContext());
 	}
 	
 	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {

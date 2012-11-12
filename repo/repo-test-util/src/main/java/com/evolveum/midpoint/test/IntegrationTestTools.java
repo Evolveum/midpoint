@@ -515,11 +515,11 @@ public class IntegrationTestTools {
 				+ entry.toLDIFString());
 	}
 
-	public static void display(String message, PrismContainer propertyContainer) {
+	public static void display(String message, PrismContainer<?> propertyContainer) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(propertyContainer.dump());
+		System.out.println(propertyContainer == null ? "null" : propertyContainer.dump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" 
-				+ propertyContainer.dump());
+				+ (propertyContainer == null ? "null" : propertyContainer.dump()));
 	}
 	
 	public static void display(String title, OperationResult result) {

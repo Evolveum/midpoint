@@ -33,8 +33,8 @@ public class ValueOperation extends Operation {
 		OperationResult parentResult = new OperationResult("interpret");
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
-		if (valueFilter.getPath() != null && !valueFilter.getPath().isEmpty()
-				&& valueFilter.getPath().equals(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
+		if (valueFilter.getParentPath() != null && !valueFilter.getParentPath().isEmpty()
+				&& valueFilter.getParentPath().equals(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = UcfUtil.convertAttributeNameToIcf(propName, getInterpreter()

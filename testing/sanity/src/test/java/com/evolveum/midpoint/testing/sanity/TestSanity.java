@@ -2238,7 +2238,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 
     @Test
-    public void test060ListResourcesWithBrokenResource() throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+    public void test060ListResourcesWithBrokenResource() throws Exception {
         displayTestTile("test060ListResourcesWithBrokenResource");
 
         // GIVEN

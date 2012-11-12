@@ -40,7 +40,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -73,7 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSegregationOfDuties extends AbstractModelIntegrationTest {
+public class TestSegregationOfDuties extends AbstractInitializedModelIntegrationTest {
 	
 	public TestSegregationOfDuties() throws JAXBException {
 		super();

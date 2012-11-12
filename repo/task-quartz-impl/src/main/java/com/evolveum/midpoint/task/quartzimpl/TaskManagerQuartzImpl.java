@@ -193,7 +193,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public void postInit(OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + ".postInit");
+        OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + "postInit");
 
         if (!configuration.isTestMode()) {
             clusterManager.startClusterManagerThread();
@@ -203,6 +203,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         if (result.getLastSubresultStatus() != OperationResultStatus.SUCCESS) {
             throw new SystemException("Quartz task scheduler couldn't be started.");
         }
+        
+        result.computeStatus();
     }
 
     @PreDestroy

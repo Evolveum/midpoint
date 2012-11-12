@@ -50,7 +50,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -114,7 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestActivation extends AbstractModelIntegrationTest {
+public class TestActivation extends AbstractInitializedModelIntegrationTest {
 			
 	private static final ItemPath ACTIVATION_ENABLED_PATH = new ItemPath(UserType.F_ACTIVATION, 
 			ActivationType.F_ENABLED); 

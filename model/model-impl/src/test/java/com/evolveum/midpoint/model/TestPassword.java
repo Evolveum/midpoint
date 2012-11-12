@@ -50,7 +50,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -112,7 +112,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPassword extends AbstractModelIntegrationTest {
+public class TestPassword extends AbstractInitializedModelIntegrationTest {
 		
 	private static final String USER_PASSWORD_1_CLEAR = "d3adM3nT3llN0Tal3s";
 	private static final String USER_PASSWORD_2_CLEAR = "bl4ckP3arl";

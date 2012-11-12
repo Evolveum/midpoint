@@ -514,12 +514,15 @@ public interface ModelService {
 	 * @throws ObjectNotFoundException
 	 *             object required for a search was not found (e.g. resource
 	 *             definition)
+	 * @throws CommunicationException 
+	 * 				error communicating with the resource
+	 * @throws ConfigurationException 
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
 	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
         Collection<ObjectOperationOptions> options, Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
 	
 
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<ObjectOperationOptions> options,

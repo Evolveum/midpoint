@@ -36,7 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -64,7 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 		"classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentEvaluator extends AbstractModelIntegrationTest {
+public class TestAssignmentEvaluator extends AbstractInitializedModelIntegrationTest {
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;

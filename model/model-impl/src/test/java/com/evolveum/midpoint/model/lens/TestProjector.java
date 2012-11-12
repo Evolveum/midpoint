@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -111,7 +111,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestProjector extends AbstractModelIntegrationTest {
+public class TestProjector extends AbstractInitializedModelIntegrationTest {
 		
 	@Autowired(required = true)
 	private Projector projector;

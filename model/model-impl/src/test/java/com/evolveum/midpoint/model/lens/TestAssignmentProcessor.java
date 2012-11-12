@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
@@ -82,7 +82,7 @@ import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentProcessor extends AbstractModelIntegrationTest {
+public class TestAssignmentProcessor extends AbstractInitializedModelIntegrationTest {
 
     private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 

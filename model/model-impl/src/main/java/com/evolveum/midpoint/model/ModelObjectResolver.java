@@ -127,8 +127,10 @@ public class ModelObjectResolver implements ObjectResolver {
 			}
 
 		} catch (SystemException ex) {
+			result.recordFatalError(ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError(ex);
 			throw ex;
 		} catch (CommonException ex) {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
@@ -136,7 +138,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			result.recordFatalError(
 					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
-		} catch (Exception ex) {
+		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
 					oid, clazz);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
