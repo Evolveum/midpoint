@@ -559,30 +559,6 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	public ContainerDelta<V> createDelta(ItemPath path) {
     	return new ContainerDelta<V>(path, getDefinition());
 	}
-    
-    @Override
-	public void revive(PrismContext prismContext) {
-		if (this.prismContext != null) {
-			return;
-		}
-		super.revive(prismContext);
-		for (PrismContainerValue<V> pval: getValues()) {
-			pval.revive(prismContext);
-		}
-	}
-
-//	@Override
-//    public void serializeToDom(Node parentNode) throws SchemaException {
-//        if (parentNode == null) {
-//            throw new IllegalArgumentException("No parent node specified");
-//        }
-//        Element containerElement = DOMUtil.getDocument(parentNode).createElementNS(name.getNamespaceURI(), name.getLocalPart());
-//        parentNode.appendChild(containerElement);
-//        for (Item item : items) {
-//            item.serializeToDom(containerElement);
-//        }
-//    }
-
 
     public boolean isEmpty() {
         for(PrismContainerValue<V> pval : getValues()) {

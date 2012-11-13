@@ -325,7 +325,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	// This will get called from the superclass to init the repository
 	// It will be called only once
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 

@@ -89,7 +89,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 	}
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 //		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
 //		schemaRegistry.loadPrismSchemasFromDirectory(new File(SCHEMA_DIRECTORY_NAME));
 		

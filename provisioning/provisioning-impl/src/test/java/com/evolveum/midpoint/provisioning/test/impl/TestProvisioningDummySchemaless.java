@@ -140,7 +140,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	 */
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
 
 		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);

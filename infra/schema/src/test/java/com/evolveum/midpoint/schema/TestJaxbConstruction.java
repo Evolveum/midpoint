@@ -176,6 +176,89 @@ public class TestJaxbConstruction {
 		
 	}
 
+	@Test
+	public void testUserConstructionBeforeAdopt() throws Exception {
+		System.out.println("\n\n ===[ testUserConstructionBeforeAdopt ]===\n");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		UserType userType = new UserType();
+	
+		userType.setFullName(new PolyStringType("Čučoriedka"));
+		userType.setDescription("blah blah");
+		ExtensionType extension = new ExtensionType();
+		userType.setExtension(extension);
+				
+		AssignmentType assignmentType = new AssignmentType();
+		userType.getAssignment().add(assignmentType);
+
+		
+		// Assignment
+		ExtensionType assignmentExtension = new ExtensionType();
+		assignmentType.setExtension(assignmentExtension);
+		
+		
+		// accountRef/account
+		ObjectReferenceType accountRefType = new ObjectReferenceType();
+		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
+		Element filterElement = DOMUtil.getDocument().createElementNS(NS_EXTENSION, "fooFilter");
+		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
+		filter.setFilter(filterElement);
+		accountRefType.setFilter(filter);
+		userType.getAccountRef().add(accountRefType);
+		
+
+        AccountShadowType accountShadowType = new AccountShadowType();
+        accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
+        userType.getAccount().add(accountShadowType);
+
+		accountShadowType = new AccountShadowType();
+		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
+		userType.getAccount().add(accountShadowType);
+
+		// WHEN
+		prismContext.adopt(userType);
+		
+		// THEN
+		PrismObject<UserType> user = userType.asPrismObject();
+		assertNotNull("No object definition after adopt", user.getDefinition());
+		SchemaTestUtil.assertUserDefinition(user.getDefinition());
+		
+		// fullName: PolyString
+		PrismProperty<PolyString> fullNameProperty = user.findProperty(UserType.F_FULL_NAME);
+		user.checkConsistence();
+		user.assertDefinitions();
+		
+		
+		PolyString fullName = fullNameProperty.getRealValue();
+		assertEquals("Wrong fullName orig", "Čučoriedka", fullName.getOrig());
+		assertEquals("Wrong fullName norm", "cucoriedka", fullName.getNorm());
+		
+		PrismProperty<String> descriptionProperty = user.findProperty(UserType.F_DESCRIPTION);
+		assertEquals("Wrong description value", "blah blah", descriptionProperty.getRealValue());
+		
+		PrismContainer<Containerable> extensionContainer = user.findContainer(GenericObjectType.F_EXTENSION);
+		checkExtension(extensionContainer,"user extension");
+		checkExtension(extension,"user extension");
+		
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+        assertEquals("Wrong accountRef values", 2, accountRef.getValues().size());
+		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
+		
+        PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
+        Element prismFilterElement = accountRefVal0.getFilter();
+        assertNotNull("Filter have not passed", prismFilterElement);
+        assertEquals("Difference filter", filterElement, prismFilterElement);
+		
+		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
+
+		user.assertDefinitions();
+		user.checkConsistence();
+		
+	}
+
+
 	private void assertAccountRefs(UserType userType, String... accountOids) {
 		List<ObjectReferenceType> accountRefs = userType.getAccountRef();
 		assertEquals("Wrong number of accountRefs", accountOids.length, accountRefs.size());

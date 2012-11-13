@@ -90,8 +90,8 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 	private PrismObject<ResourceType> resource;
 	
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
-		super.initSystem(initResult);
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
 		LOGGER.trace("initSystem");
 		
 		modelService.postInit(initResult);

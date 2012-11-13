@@ -397,86 +397,87 @@ public class ShadowCache {
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
 
-		if (objectType instanceof ResourceObjectShadowType) {
-			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
-			if (resource == null) {
-				resource = getResource(shadow, parentResult);
+		if (!(objectType instanceof ResourceObjectShadowType)) {
+			throw new IllegalArgumentException("The object to modify is not a shadow, it is "+objectType);
+		}
+		ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
+		if (resource == null) {
+			resource = getResource(shadow, parentResult);
 
-			}
+		}
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.asPrismObject()
-						.dump());
-			}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.asPrismObject()
+					.dump());
+		}
 
-			Set<Operation> changes = new HashSet<Operation>();
-			addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
+		Set<Operation> changes = new HashSet<Operation>();
+		addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
-			}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
+		}
 
-			Set<PropertyModificationOperation> sideEffectChanges = null;
+		Set<PropertyModificationOperation> sideEffectChanges = null;
 
+		try {
+			sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
+					parentResult);
+			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
+		} catch (Exception ex) {
+			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it", new Object[]{ex.getClass(), ex.getMessage(), ex} );
+			parentResult.muteLastSubresultError();
+			shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
 			try {
-				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
-						parentResult);
-				modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
-			} catch (Exception ex) {
-				parentResult.muteLastSubresultError();
-				shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
-				try {
-					shadow = handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
-					LOGGER.trace("Original shadow oid (before compensating) {}, after compensating {}", oid, shadow.getOid());
-					parentResult.computeStatus();
+				shadow = handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
+				LOGGER.trace("Original shadow oid (before compensating) {}, after compensating {}", oid, shadow.getOid());
+				parentResult.computeStatus();
 //					if (!oid.equals(shadow.getOid())){
 //						LOGGER.trace("Changed original oid to {}", shadow.getOid());
 //						return shadow.getOid();
 //					}
 //					modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.DOWN, parentResult);
-				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("While compensating communication problem for modify operation got: "+ ex.getMessage(), ex);
-					throw new SystemException(e);
-				}
-				return shadow.getOid();
-
+			} catch (ObjectAlreadyExistsException e) {
+				parentResult.recordFatalError("While compensating communication problem for modify operation got: "+ ex.getMessage(), ex);
+				throw new SystemException(e);
 			}
+			return shadow.getOid();
 
-			Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
-			LOGGER.trace(
-					"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
-					DebugUtil.debugDump(shadowChanges));
-			if (shadowChanges != null && !shadowChanges.isEmpty()) {
-				try {
-					repositoryService.modifyObject(AccountShadowType.class, oid, shadowChanges, parentResult);
-					LOGGER.trace("Shadow changes processed successfully.");
-				} catch (ObjectAlreadyExistsException ex) {
-					throw new SystemException(ex);
-				}
-			}
+		}
 
-			if (isReconciled) {
-				LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successfull reconciliation.");
-				try {
-					addOrReplaceShadowToRepository(shadow, isReconciled, false, parentResult);
-					LOGGER.trace("Shadow cleaned up successfully.");
-				} catch (ObjectAlreadyExistsException ex) {
-					// should be never thrown
-				}
+		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
+		LOGGER.trace(
+				"Detected shadow changes. Start to modify shadow in the repository, applying modifications {}",
+				DebugUtil.debugDump(shadowChanges));
+		if (shadowChanges != null && !shadowChanges.isEmpty()) {
+			try {
+				repositoryService.modifyObject(AccountShadowType.class, oid, shadowChanges, parentResult);
+				LOGGER.trace("Shadow changes processed successfully.");
+			} catch (ObjectAlreadyExistsException ex) {
+				throw new SystemException(ex);
 			}
+		}
 
-			if (!sideEffectChanges.isEmpty()) {
-				// TODO: implement
-				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+		if (isReconciled) {
+			LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successfull reconciliation.");
+			try {
+				addOrReplaceShadowToRepository(shadow, isReconciled, false, parentResult);
+				LOGGER.trace("Shadow cleaned up successfully.");
+			} catch (ObjectAlreadyExistsException ex) {
+				// should be never thrown
 			}
+		}
+
+		if (!sideEffectChanges.isEmpty()) {
+			// TODO: implement
+			throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+		}
 //			try {
 //				
 //			} catch (ObjectAlreadyExistsException e) {
 //				throw new SystemException(e);
 //			}
-			parentResult.recordSuccess();
-			return oid;
-		}
+		parentResult.recordSuccess();
 		return oid;
 	}
 

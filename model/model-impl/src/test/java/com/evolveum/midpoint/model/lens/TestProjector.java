@@ -124,8 +124,8 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
-		super.initSystem(initResult);
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
 	}
 

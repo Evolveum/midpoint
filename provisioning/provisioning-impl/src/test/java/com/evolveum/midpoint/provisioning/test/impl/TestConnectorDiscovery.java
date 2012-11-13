@@ -42,6 +42,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -73,7 +74,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	private static Trace LOGGER = TraceManager.getTrace(TestConnectorDiscovery.class);
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
 	}
 		

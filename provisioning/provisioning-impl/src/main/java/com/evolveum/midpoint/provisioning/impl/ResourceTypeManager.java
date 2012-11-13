@@ -168,113 +168,17 @@ public class ResourceTypeManager {
 
 		ResourceType newResource = null;
 		ConnectorInstance connector = null;
+		try {
+			connector = getConnectorInstance(resource, false, result);
+		} catch (ObjectNotFoundException e) {
+			throw new ObjectNotFoundException("Error resolving connector reference in " + resource
+					+ ": Error creating connector instace: " + e.getMessage(), e);
+		}
 
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource
-
-			if (resourceSchema == null) { // unless it has been already pulled
-				LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
-				try {
-					connector = getConnectorInstance(resource, false, result);
-				} catch (ObjectNotFoundException e) {
-					throw new ObjectNotFoundException("Error resolving connector reference in " + resource
-							+ ": Error creating connector instace: " + e.getMessage(), e);
-				}
-				try {
-					// Fetch schema from connector, UCF will convert it to
-					// Schema Processor format and add all
-					// necessary annotations
-					resourceSchema = connector.getResourceSchema(result);
-
-				} catch (CommunicationException ex) {
-					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-					// Ignore the error. The resource is not complete but the upper layer code should deal with that
-					// Throwing an error will effectively break any operation with the resource (including delete).
-				} catch (GenericFrameworkException ex) {
-					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-					// Ignore the error. The resource is not complete but the upper layer code should deal with that
-					// Throwing an error will effectively break any operation with the resource (including delete).
-				} catch (ConfigurationException ex) {
-					LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-					// Ignore the error. The resource is not complete but the upper layer code should deal with that
-					// Throwing an error will effectively break any operation with the resource (including delete).
-				}
-				if (resourceSchema == null) {
-					LOGGER.warn("No resource schema generated for {}", resource);
-				} else {
-					LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
-						+ resourceSchema.getDefinitions().size() + " definitions");
-				}
-			}
 			
-			if (resourceSchema == null) {
-				// No not even bother to put this in the cache
-				return resource;
-			}
-
-			adjustSchemaForCapabilities(resource, resourceSchema);
-
-			Document xsdDoc = null;
-			try {
-				// Convert to XSD
-				LOGGER.trace("Serializing XSD resource schema for {} to DOM",
-						ObjectTypeUtil.toShortString(resource));
-
-				xsdDoc = resourceSchema.serializeToXsd();
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
-							ObjectTypeUtil.toShortString(resource), DOMUtil.serializeDOMToString(xsdDoc));
-				}
-
-			} catch (SchemaException e) {
-				throw new SchemaException("Error processing resource schema for "
-						+ ObjectTypeUtil.toShortString(resource) + ": " + e.getMessage(), e);
-			}
-
-			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
-			if (xsdElement == null) {
-				throw new SchemaException("No schema was generated for " + resource);
-			}
-			CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-
-			// Store generated schema into repository (modify the original
-			// Resource)
-			LOGGER.info("Storing generated schema in resource " + ObjectTypeUtil.toShortString(resource));
-
-			ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext,
-					ResourceType.class, ResourceType.F_SCHEMA);
-			PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<XmlSchemaType>();
-			schemaContainerDelta.setValueToReplace(cval);
-			PrismProperty<CachingMetadataType> cachingMetadataProperty = cval
-					.createProperty(XmlSchemaType.F_CACHING_METADATA);
-			cachingMetadataProperty.setRealValue(cachingMetadata);
-			PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
-			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
-
-			Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
-			modifications.add(schemaContainerDelta);
-
-            try {
-    			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
-            } catch (ObjectAlreadyExistsException ex) {
-                throw new SystemException(ex);
-            }
-
-			// Store generated schema into the resource (this will be kept in
-			// the in-memory cache)
-			ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
-			resource.getSchema().setCachingMetadata(cachingMetadata);
-			// Note: do not switch order of the operations. Storing schema in
-			// repo must happend first. The same
-			// DOM element is used here. Its ownership must remain with the
-			// in-memory resource
-
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Putting resource in cache:\n{}", resource.asPrismObject().dump());
-				LOGGER.trace("Schema:\n{}",
-						DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
-			}
+			completeSchema(resource, resourceSchema, connector, result);
 
 			newResource = resourceSchemaCache.put(resource);
 		}
@@ -286,7 +190,8 @@ public class ResourceTypeManager {
 
 		try {
 
-			addNativeCapabilities(newResource, connector, result);
+			completeCapabilities(newResource, connector, result);
+			
 		} catch (CommunicationException ex) {
 			// HACK: to not show the error message in the GUI
 			result.recordWarning("Cannot add native capabilities to resource object because the resource is unreachable. Resource object returned without native capabilities.");
@@ -301,6 +206,168 @@ public class ResourceTypeManager {
 
 		parentResult.recordSuccess();
 		return newResource;
+	}
+
+	private void completeSchema(ResourceType resource, ResourceSchema resourceSchema,
+			ConnectorInstance connector, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (resourceSchema == null) { // unless it has been already pulled
+			LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
+			
+			try {
+				// Fetch schema from connector, UCF will convert it to
+				// Schema Processor format and add all
+				// necessary annotations
+				resourceSchema = connector.getResourceSchema(result);
+
+			} catch (CommunicationException ex) {
+				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				// Throwing an error will effectively break any operation with the resource (including delete).
+			} catch (GenericFrameworkException ex) {
+				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				// Throwing an error will effectively break any operation with the resource (including delete).
+			} catch (ConfigurationException ex) {
+				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
+				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				// Throwing an error will effectively break any operation with the resource (including delete).
+			}
+			if (resourceSchema == null) {
+				LOGGER.warn("No resource schema generated for {}", resource);
+			} else {
+				LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
+					+ resourceSchema.getDefinitions().size() + " definitions");
+			}
+		}
+		
+		if (resourceSchema == null) {
+			// No not even bother to put this in the cache
+			return;
+		}
+
+		adjustSchemaForCapabilities(resource, resourceSchema);
+
+		Document xsdDoc = null;
+		try {
+			// Convert to XSD
+			LOGGER.trace("Serializing XSD resource schema for {} to DOM",
+					ObjectTypeUtil.toShortString(resource));
+
+			xsdDoc = resourceSchema.serializeToXsd();
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
+						ObjectTypeUtil.toShortString(resource), DOMUtil.serializeDOMToString(xsdDoc));
+			}
+
+		} catch (SchemaException e) {
+			throw new SchemaException("Error processing resource schema for "
+					+ ObjectTypeUtil.toShortString(resource) + ": " + e.getMessage(), e);
+		}
+
+		Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
+		if (xsdElement == null) {
+			throw new SchemaException("No schema was generated for " + resource);
+		}
+		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+
+		// Store generated schema into repository (modify the original
+		// Resource)
+		LOGGER.info("Storing generated schema in resource " + ObjectTypeUtil.toShortString(resource));
+
+		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext,
+				ResourceType.class, ResourceType.F_SCHEMA);
+		PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<XmlSchemaType>();
+		schemaContainerDelta.setValueToReplace(cval);
+		PrismProperty<CachingMetadataType> cachingMetadataProperty = cval
+				.createProperty(XmlSchemaType.F_CACHING_METADATA);
+		cachingMetadataProperty.setRealValue(cachingMetadata);
+		PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
+		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
+
+		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+		modifications.add(schemaContainerDelta);
+
+        try {
+			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+
+		// Store generated schema into the resource (this will be kept in
+		// the in-memory cache)
+		ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
+		resource.getSchema().setCachingMetadata(cachingMetadata);
+		// Note: do not switch order of the operations. Storing schema in
+		// repo must happend first. The same
+		// DOM element is used here. Its ownership must remain with the
+		// in-memory resource
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Putting resource in cache:\n{}", resource.asPrismObject().dump());
+			LOGGER.trace("Schema:\n{}",
+					DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
+		}
+	}
+	
+	/**
+	 * Add native capabilities to the provided resource. The native capabilities
+	 * are either reused from the cache or retrieved from the resource. Also make sure that the
+	 * capabilities are cached in the repo.
+	 */
+	private void completeCapabilities(ResourceType resource, ConnectorInstance connector,
+			OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException {
+
+		// This is not really clean now. We need to add caching metadata and
+		// things like that
+		// FIXME
+		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
+			return;
+		}
+
+		Collection<Object> capabilities = null;
+		try {
+
+			if (connector == null) {
+				connector = getConnectorInstance(resource, false, result);
+			}
+			capabilities = connector.getCapabilities(result);
+
+		} catch (CommunicationException ex) {
+			throw new CommunicationException("Cannot fetch resource native capabilities: " + ex.getMessage(),
+					ex);
+		} catch (GenericFrameworkException ex) {
+			throw new GenericConnectorException("Generic error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
+		} catch (ConfigurationException ex) {
+			throw new GenericConnectorException("Configuration error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
+		}
+		
+		CapabilitiesType capType = resource.getCapabilities();
+		if (capType == null) {
+			capType = new CapabilitiesType();
+			resource.setCapabilities(capType);
+		}
+		
+		if (capabilities != null) {
+			CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
+			capType.setNative(nativeCapType);
+			nativeCapType.getAny().addAll(capabilities);
+		}
+		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
+		capType.setCachingMetadata(cachingMetadata);
+		
+		// Make sure this is stored in repo
+		ObjectDelta<ResourceType> capabilitiesReplaceDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, resource.getOid(), 
+				ResourceType.F_CAPABILITIES, prismContext, capType);
+		
+        try {
+			repositoryService.modifyObject(ResourceType.class, resource.getOid(), capabilitiesReplaceDelta.getModifications(), result);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+		
 	}
 
 	/**
@@ -827,55 +894,6 @@ public class ResourceTypeManager {
 						+ def);
 			}
 		}
-	}
-
-	/**
-	 * Add native capabilities to the provided resource. The native capabilities
-	 * are either reused from the cache or retrieved from the resource.
-	 */
-	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector,
-			OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException {
-
-		// This is not really clean now. We need to add caching metadata and
-		// things like that
-		// FIXME
-		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
-			return;
-		}
-
-		Collection<Object> capabilities = null;
-		try {
-
-			if (connector == null) {
-				connector = getConnectorInstance(resource, false, result);
-			}
-			capabilities = connector.getCapabilities(result);
-
-		} catch (CommunicationException ex) {
-			throw new CommunicationException("Cannot fetch resource native capabilities: " + ex.getMessage(),
-					ex);
-		} catch (GenericFrameworkException ex) {
-			throw new GenericConnectorException("Generic error in connector " + connector + ": "
-					+ ex.getMessage(), ex);
-		} catch (ConfigurationException ex) {
-			throw new GenericConnectorException("Configuration error in connector " + connector + ": "
-					+ ex.getMessage(), ex);
-		}
-		
-		CapabilitiesType capType = resource.getCapabilities();
-		if (capType == null) {
-			capType = new CapabilitiesType();
-			resource.setCapabilities(capType);
-		}
-		
-		if (capabilities != null) {
-			CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
-			capType.setNative(nativeCapType);
-			nativeCapType.getAny().addAll(capabilities);
-		}
-		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
-		capType.setCachingMetadata(cachingMetadata);
-		
 	}
 
 	private ConnectorInstance getConnectorInstance(ResourceType resource, boolean forceFresh, OperationResult parentResult)

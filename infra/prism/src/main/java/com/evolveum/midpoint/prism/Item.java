@@ -529,6 +529,11 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	if (definition != null) {
     		definition.revive(prismContext);
     	}
+    	if (values != null) {
+    		for (V value: values) {
+    			value.revive(prismContext);
+    		}
+    	}
     }
 
     public abstract Item clone();

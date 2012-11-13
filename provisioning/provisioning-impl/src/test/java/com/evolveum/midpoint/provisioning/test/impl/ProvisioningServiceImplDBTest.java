@@ -7,6 +7,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -66,7 +67,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	 */
 	
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
 		addResourceFromFile(FILENAME_RESOURCE_DERBY, DB_TABLE_CONNECTOR_TYPE, initResult);
 	}

@@ -115,8 +115,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
-		super.initSystem(initResult);
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
 	}

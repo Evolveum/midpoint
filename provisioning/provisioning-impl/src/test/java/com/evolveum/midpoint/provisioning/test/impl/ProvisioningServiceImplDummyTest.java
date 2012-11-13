@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -95,6 +96,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -166,6 +168,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private ResourceType resourceType;
 	private static DummyResource dummyResource;
 	private static Task syncTask;
+	private CachingMetadataType capabilitiesCachingMetadataType;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
@@ -191,7 +194,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	 */
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
 		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
@@ -485,8 +488,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test006Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			JAXBException, ConfigurationException, SecurityViolationException {
+	public void test006Capabilities() throws Exception {
 		displayTestTile("test006Capabilities");
 
 		// GIVEN
@@ -521,6 +523,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No host in native script capability", capScript.getHost());
 		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
 		// TODO: better look inside
+		
+		capabilitiesCachingMetadataType = resourceType.getCapabilities().getCachingMetadata();
+		assertNotNull("No capabilities caching metadata", capabilitiesCachingMetadataType);
+		assertNotNull("No capabilities caching metadata timestamp", capabilitiesCachingMetadataType.getRetrievalTimestamp());
+		assertNotNull("No capabilities caching metadata serial number", capabilitiesCachingMetadataType.getSerialNumber());
 
 		// Check effective capabilites
 		capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
@@ -536,6 +543,59 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 			System.out.println("Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);
 		}
+	}
+	
+	/**
+	 * Check if the cached native capabilities were properly stored in the repo 
+	 */
+	@Test
+	public void test007CapabilitiesRepo() throws Exception {
+		displayTestTile("test007CapabilitiesRepo");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test007CapabilitiesRepo");
+
+		// WHEN
+		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);;
+
+		// THEN
+
+		// Check native capabilities
+		ResourceType resourceType = resource.asObjectable();
+		CapabilitiesType capabilitiesType = resourceType.getCapabilities();
+		assertNotNull("No capabilities in repo, the capabilities were not cached", capabilitiesType);
+		CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
+		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
+		System.out.println("resource: " + resourceType.asPrismObject().dump());
+		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
+		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
+		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+				CredentialsCapabilityType.class);
+		assertNotNull("password native capability not present", capCred.getPassword());
+		ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+				ActivationCapabilityType.class);
+		assertNotNull("native activation capability not present", capAct);
+		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
+		TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+				TestConnectionCapabilityType.class);
+		assertNotNull("native test capability not present", capTest);
+		ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+				ScriptCapabilityType.class);
+		assertNotNull("native script capability not present", capScript);
+		assertNotNull("No host in native script capability", capScript.getHost());
+		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
+		// TODO: better look inside
+
+		CachingMetadataType repoCapabilitiesCachingMetadataType = capabilitiesType.getCachingMetadata();
+		assertNotNull("No repo capabilities caching metadata", repoCapabilitiesCachingMetadataType);
+		assertNotNull("No repo capabilities caching metadata timestamp", repoCapabilitiesCachingMetadataType.getRetrievalTimestamp());
+		assertNotNull("No repo capabilities caching metadata serial number", repoCapabilitiesCachingMetadataType.getSerialNumber());
+		assertEquals("Repo capabilities caching metadata timestamp does not match previously returned value", 
+				capabilitiesCachingMetadataType.getRetrievalTimestamp(), repoCapabilitiesCachingMetadataType.getRetrievalTimestamp());
+		assertEquals("Repo capabilities caching metadata serial does not match previously returned value", 
+				capabilitiesCachingMetadataType.getSerialNumber(), repoCapabilitiesCachingMetadataType.getSerialNumber());
+
 	}
 
 	@Test
@@ -565,9 +625,27 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertTrue("Configurations not equivalent", configurationContainer.equivalent(configurationContainerAgain));
 
+		// Check resource schema caching
 		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
 		assertNotNull("No resource schema (again)", resourceSchemaAgain);
 		assertTrue("Resource schema was not cached", resourceSchema == resourceSchemaAgain);
+		
+		// Check capabilities caching
+		
+		CapabilitiesType capabilitiesType = resourceType.getCapabilities();
+		assertNotNull("No capabilities fetched from provisioning", capabilitiesType);
+		CachingMetadataType capCachingMetadataType = capabilitiesType.getCachingMetadata();
+		assertNotNull("No capabilities caching metadata fetched from provisioning", capCachingMetadataType);
+		CachingMetadataType capCachingMetadataTypeAgain = resourceTypeAgain.getCapabilities().getCachingMetadata();
+		assertEquals("Capabilities caching metadata serial number has changed", capCachingMetadataType.getSerialNumber(), 
+				capCachingMetadataTypeAgain.getSerialNumber());
+		assertEquals("Capabilities caching metadata timestamp has changed", capCachingMetadataType.getRetrievalTimestamp(), 
+				capCachingMetadataTypeAgain.getRetrievalTimestamp());
+		
+		// Rough test if everything is fine
+		ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(resource, resourceAgain);
+        display("Dummy resource diff", dummyResourceDiff);
+        assertTrue("The resource read again is not the same as the original. diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
 
 		// Now we stick our nose deep inside the provisioning impl. But we need
 		// to make sure that the
@@ -1064,8 +1142,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test121EnableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public void test121EnableAccount() throws Exception {
 		displayTestTile("test121EnableAccount");
 		// GIVEN
 
@@ -1100,8 +1177,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test122DisableAccount() throws FileNotFoundException, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public void test122DisableAccount() throws Exception {
 		displayTestTile("test122EnableAccount");
 		// GIVEN
 
@@ -1375,8 +1451,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void test502ModifyProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException, SecurityViolationException {
+	public void test502ModifyProtectedAccountShadow() throws Exception {
 		displayTestTile("test502ModifyProtectedAccountShadow");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()

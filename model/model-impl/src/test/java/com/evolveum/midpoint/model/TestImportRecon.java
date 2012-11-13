@@ -119,8 +119,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
-		super.initSystem(initResult);
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
 		
 		// Create an account that midPoint does not know about yet
 		addDummyAccount(dummyResource, USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");

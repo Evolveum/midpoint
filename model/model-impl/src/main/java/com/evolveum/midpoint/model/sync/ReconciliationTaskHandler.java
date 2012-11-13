@@ -332,7 +332,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	private void modifyObject(String oid, Collection<? extends ItemDelta> modifications,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException {
+			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 		try {
 			provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, parentResult);
 		} catch (ObjectNotFoundException e) {
@@ -351,6 +351,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			throw e;
 		} catch (SecurityViolationException e) {
 			parentResult.recordFatalError("Cannot modify object: security violation: " + e.getMessage(), e);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			parentResult.recordFatalError("Cannot modify object: conflict with another object: " + e.getMessage(), e);
 			throw e;
 		}
 	}

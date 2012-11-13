@@ -160,9 +160,121 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+		
+	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
+	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
+	
+	protected static final String USER_TEMPLATE_COMPLEX_FILENAME = COMMON_DIR_NAME + "/user-template-complex.xml";
+	protected static final String USER_TEMPLATE_COMPLEX_OID = "10000000-0000-0000-0000-000000000222";
+
+	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR_NAME + "/connector-ldap.xml";
+	
+	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
+	
+	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
+	protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
+	
+	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
+	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+	protected static final String RESOURCE_OPENDJ_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
+	
+	protected static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
+	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
+	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	
+	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/resource-dummy-red.xml";
+	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
+	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
+	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
+
+	protected static final String RESOURCE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-blue.xml";
+	protected static final String RESOURCE_DUMMY_BLUE_OID = "10000000-0000-0000-0000-000000000204";
+	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
+	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
+	
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_NAME + "/resource-dummy-schemaless-no-schema.xml";
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
+	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAMESPACE = MidPointConstants.NS_RI;
 	
 	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-fake.xml";
 	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
+
+	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
+	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
+
+	protected static final String ROLE_BETA_FILENAME = COMMON_DIR_NAME + "/role-beta.xml";
+	protected static final String ROLE_BETA_OID = "12345678-d34d-b33f-f00d-55555555bbbb";
+	
+	protected static final String ROLE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-pirate.xml";
+	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+
+	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
+	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
+	
+	protected static final String ROLE_DUMMIES_FILENAME = COMMON_DIR_NAME + "/role-dummies.xml";
+	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
+
+	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
+	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	protected static final String USER_JACK_USERNAME = "jack";
+
+	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_NAME + "/user-barbossa.xml";
+	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
+
+	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
+	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+	
+	// Largo does not have a full name set, employeeType=PIRATE
+	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
+	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
+	
+	// Rapp does not have a full name set, employeeType=COOK
+	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
+	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
+	protected static final String USER_RAPP_USERNAME = "rapp";
+
+	// Has null name, doesn not have given name, no employeeType
+	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
+	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
+	
+	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
+	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
+	
+	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy.xml";
+	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
+	
+	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-herman-dummy.xml";
+	public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
+	public static final String ACCOUNT_HERMAN_DUMMY_USERNAME = "ht";
+	
+	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-herman-opendj.xml";
+	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
+	
+	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-guybrush-dummy.xml";
+	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-guybrush-dummy.xml";
+	
+	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
+	
+	public static final String ACCOUNT_DAVIEJONES_DUMMY_USERNAME = "daviejones";
+	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
+	
+	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
+	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
+	
+	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME = "fullname";
+	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
+	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new ItemPath(
+			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
+
+	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
+	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
+	
+	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy.xml";
+	protected static final String TASK_RECONCILE_DUMMY_OID = "91919191-76e0-59e2-86d6-3d4f02d3dddd";
+
 	
 	@Autowired(required = true)
 	protected ModelService modelService;
@@ -193,7 +305,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	}
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 				
 		// System Configuration
@@ -678,6 +790,26 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return accounts.iterator().next();
 	}
 	
+	protected Collection<PrismObject<AccountShadowType>> listAccounts(PrismObject<ResourceType> resource, 
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+        
+        RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedAccountDefinition rAccount = rSchema.getDefaultAccountDefinition();
+        Collection<ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
+        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
+        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, 
+        		rAccount.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class, 
+        		ResourceObjectShadowType.F_RESOURCE_REF, resource);
+        AndFilter filter = AndFilter.createAnd(ocFilter, resourceRefFilter);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        
+		List<PrismObject<AccountShadowType>> accounts = modelService.searchObjects(AccountShadowType.class, query, null, task, result);
+		
+		return accounts;
+	}
+	
 	protected PrismObject<AccountShadowType> getAccount(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		return getAccount(accountOid, false);
 	}
@@ -844,6 +976,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 	
+	protected PrismObjectDefinition<ResourceType> getResourceDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+	}
+	
 	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
@@ -998,6 +1134,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
         PrismContainer<ActivationType> activationContainer = assignmentDeltaValue.findOrCreateContainer(AssignmentType.F_ACTIVATION);
         PrismContainerValue<ActivationType> emptyValue = new PrismContainerValue<ActivationType>();
 		activationContainer.add(emptyValue);		
+	}
+	
+	protected void addDummyAccount(DummyResource resource, String userId, String fullName) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, SchemaViolationException {
+		DummyAccount account = new DummyAccount(userId);
+		account.setEnabled(true);
+		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
+		resource.addAccount(account);
 	}
 	
 	protected Task createTask(String operationName) {

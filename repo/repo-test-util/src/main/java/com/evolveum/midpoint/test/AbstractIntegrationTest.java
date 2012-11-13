@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -107,8 +108,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 			PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 			LOGGER.trace("initSystemConditional: invoking initSystem");
-			OperationResult result = new OperationResult(this.getClass().getName() + ".initSystem");
-			initSystem(result);
+			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
+			OperationResult result = initTask.getResult();
+			initSystem(initTask, result);
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
 			IntegrationTestTools.assertSuccessOrWarning("initSystem failed (result)", result, 1);
@@ -124,7 +126,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		initializedClasses.add(this.getClass());
 	}
 
-	abstract public void initSystem(OperationResult initResult) throws Exception;
+	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
 
 //	@Deprecated
 //	protected PrismObject<ObjectType> addObjectFromFile(String filePath, OperationResult result) throws Exception {

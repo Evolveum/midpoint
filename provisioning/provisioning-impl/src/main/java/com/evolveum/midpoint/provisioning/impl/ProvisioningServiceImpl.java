@@ -732,7 +732,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ObjectAlreadyExistsException {
 
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
@@ -774,9 +774,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			
-			// calling shadow cache to modify object
-			oid = getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
+			if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
+				// calling shadow cache to modify object
+				oid = getShadowCache().modifyShadow(object.asObjectable(), null, oid, modifications, reconciled, scripts,
 					result);
+			} else {
+				cacheRepositoryService.modifyObject(type, oid, modifications, result);
+			}
 			result.computeStatus();
 
 		} catch (CommunicationException e) {
@@ -800,6 +804,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw e;
 		} catch (SecurityViolationException e) {
 			logFatalError(LOGGER, result, "Couldn't modify object: security violation: " + e.getMessage(), e);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			logFatalError(LOGGER, result, "Couldn't modify object: object after modification would conflict with another existing object: " + e.getMessage(), e);
 			throw e;
 		}
 

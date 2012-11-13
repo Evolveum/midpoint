@@ -87,7 +87,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	protected PrismContext prismContext;
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 	}
 	
 	@Test

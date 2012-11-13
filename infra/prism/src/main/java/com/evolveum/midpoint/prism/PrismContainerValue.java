@@ -879,7 +879,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		return itemDefinition;
 	}
 
+	@Override
 	public void revive(PrismContext prismContext) {
+		super.revive(prismContext);
 		for (Item<?> item: items) {
 			item.revive(prismContext);
 		}

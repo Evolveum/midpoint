@@ -291,10 +291,12 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
+	 * @throws ObjectAlreadyExistsException
+     *             if resulting object would have name which already exists in another object of the same type
 	 */
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ProvisioningScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
-			CommunicationException, ConfigurationException, SecurityViolationException;
+			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>

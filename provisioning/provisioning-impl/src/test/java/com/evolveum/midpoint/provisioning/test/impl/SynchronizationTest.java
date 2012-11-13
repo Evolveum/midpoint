@@ -92,7 +92,7 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
 	 */
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		assertNotNull(manager);
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, ResourceType.class, initResult).asObjectable();
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry

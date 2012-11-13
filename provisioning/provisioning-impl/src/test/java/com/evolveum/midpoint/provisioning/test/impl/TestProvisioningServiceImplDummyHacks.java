@@ -133,7 +133,7 @@ public class TestProvisioningServiceImplDummyHacks extends AbstractIntegrationTe
 	 */
 
 	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// DO NOT DO provisioningService.postInit(..)
 		// We want to avoid connector discovery and insert our own connector object
 //		provisioningService.postInit(initResult);

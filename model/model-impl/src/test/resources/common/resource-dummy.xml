@@ -30,19 +30,18 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<name>Dummy Resource</name>
-	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004"
-		type="c:ConnectorType">
+	<connectorRef type="c:ConnectorType">
 		<filter>
-			<and>
-				<equal>
-					<path>connectorType</path>
-					<value>com.evolveum.icf.dummy.connector.DummyConnector</value>
-				</equal>
-				<equal>
-					<path>connectorVersion</path>
-					<value>2.0</value>
-				</equal>
-			</and>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
@@ -254,10 +253,6 @@
 				</outbound>
 			</attribute>
 			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			
 			<credentials>
                 <password>
                     <outbound>
@@ -285,6 +280,10 @@
             		</outbound>
             	</enabled>
             </activation>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
             
             <protected>
             	<icfs:name>daviejones</icfs:name>
