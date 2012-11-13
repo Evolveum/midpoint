@@ -28,24 +28,31 @@ import java.util.List;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -329,6 +336,26 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		boundContainer.add(bound);
+		
+		final Image boundHelp = new Image("boundHelp", new PackageResourceReference(ImgResources.class,
+				ImgResources.TOOLTIP_INFO));
+		boundHelp.setOutputMarkupId(true);
+		boundHelp.add(new AttributeAppender("original-title", getString("pageTaskEdit.boundHelp")));
+		boundHelp.add(new AbstractDefaultAjaxBehavior() {
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				String js = "$('#"+ boundHelp.getMarkupId() +"').tipsy()";
+				response.renderOnDomReadyJavaScript(js);
+				super.renderHead(component, response);
+			}
+
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+			}
+		});
+		boundContainer.add(boundHelp);
+		
+		
 
 		TextField<Integer> interval = new TextField<Integer>("interval",
 				new PropertyModel<Integer>(model, "interval"));
@@ -336,7 +363,6 @@ public class PageTaskEdit extends PageAdminTasks {
 		interval.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isEnabled() {
-//                System.out.println("interval.isEnabled: isRunnableOrRunning = " + isRunnableOrRunning() + ", boundCheck: " + boundCheck.getObject());
 				return edit && (!isRunnableOrRunning() || !boundCheck.getObject());
 			}
 		});
@@ -352,6 +378,24 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		cronContainer.add(cron);
+		
+		final Image cronHelp = new Image("cronHelp", new PackageResourceReference(ImgResources.class,
+				ImgResources.TOOLTIP_INFO));
+		cronHelp.setOutputMarkupId(true);
+		cronHelp.add(new AttributeAppender("original-title", getString("pageTaskEdit.cronHelp")));
+		cronHelp.add(new AbstractDefaultAjaxBehavior() {
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				String js = "$('#"+ cronHelp.getMarkupId() +"').tipsy()";
+				response.renderOnDomReadyJavaScript(js);
+				super.renderHead(component, response);
+			}
+
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+			}
+		});
+		cronContainer.add(cronHelp);
 
 		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
 				new PropertyModel<Date>(model, "notStartBefore")) {

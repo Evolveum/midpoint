@@ -36,4 +36,6 @@ public class ImgResources {
     public static final String USER_SUIT = "user_suit.png";
     public static final String DRIVE = "drive.png";
     public static final String BUILDING = "building.png";
+    
+    public static final String TOOLTIP_INFO = "tooltip_info.png";
 }

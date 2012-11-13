@@ -55,16 +55,16 @@
 	       		<tr>
 	                <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTaskEdit.recurring"/></td>
 	                <td><input type="checkbox" wicket:id="recurring"/>
-	                	<small wicket:id="suspendReqRecurring" class="reqMessage"><br /><wicket:message key="pageTaskEdit.suspendReq"/></small>
+	                	<small wicket:id="suspendReqRecurring" class="reqMessage"> &nbsp;<wicket:message key="pageTaskEdit.suspendReq"/></small>
 	                </td>
 	            </tr>
 	       	</tbody>
 			<tbody wicket:id="container">  
 				<tr wicket:id="boundContainer">
 				    <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTaskEdit.bound"/></td>
-				    <td style="padding-bottom: 15px;"><input type="checkbox" wicket:id="bound"/>
-       					<small><wicket:message key="pageTaskEdit.boundHelp"/></small>	
-       					<small wicket:id="suspendReqBound" class="reqMessage"><br /><wicket:message key="pageTaskEdit.suspendReq"/></small>
+				    <td><input type="checkbox" wicket:id="bound"/>
+				    	<img class="tipsyComponent" wicket:id="boundHelp"/>
+       					<small wicket:id="suspendReqBound" class="reqMessage"> &nbsp;<wicket:message key="pageTaskEdit.suspendReq"/></small>
 				    </td>
 				</tr>
 				<tr wicket:id="intervalContainer">
@@ -73,9 +73,14 @@
 				</tr>
 				<tr wicket:id="cronContainer">
 				    <td style="vertical-align: top;"><wicket:message key="pageTaskEdit.cronSpec"/></td>
-				    <td style="padding-bottom: 15px;"><input type="text" wicket:id="cron"/> 
-       					<small><wicket:message key="pageTaskEdit.cronHelp"/></small>
-				    </td>
+				    <td><input type="text" wicket:id="cron"/>
+				    	<img class="tipsyComponent" wicket:id="cronHelp"/> 
+				    	<small>
+					    	<wicket:message key="pageTaskEdit.cronHelpLink" />
+					    	<a href="http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06"
+								target="_blank">tutorial</a>.
+						</small>
+					</td>
 				</tr>
 			</tbody>
 			<tbody>            
