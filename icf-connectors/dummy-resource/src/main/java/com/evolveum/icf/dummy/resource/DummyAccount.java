@@ -27,11 +27,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
+
 /**
  * @author Radovan Semancik
  *
  */
-public class DummyAccount {
+public class DummyAccount implements Dumpable, DebugDumpable {
 	
 	private String username;
 	private Map<String,Set<Object>> attributes;
@@ -222,6 +226,27 @@ public class DummyAccount {
 	public String toString() {
 		return "DummyAccount(username=" + username + ", attributes=" + attributes + ", enabled=" + enabled
 				+ ", password=" + password + ")";
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("DummyAccount: ").append(username).append("\n");
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Enabled", enabled, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Password", password, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "Attributes", attributes, indent + 1);
+		return sb.toString();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
 	}
 	
 }

@@ -126,7 +126,7 @@ public class DebugUtil {
 		}
 	}
 	
-	public static <K, V extends DebugDumpable> void debugDumpWithLabel(StringBuilder sb, String label, Map<K, V> map, int indent) {
+	public static <K, V> void debugDumpWithLabel(StringBuilder sb, String label, Map<K, V> map, int indent) {
 		debugDumpLabel(sb, label, indent);
 		if (map == null) {
 			sb.append(" null");

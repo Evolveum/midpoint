@@ -1281,6 +1281,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected void waitForTaskNextRun(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
 		Task origTask = taskManager.getTask(taskOid, waitResult);
+		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
 		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
 		Checker checker = new Checker() {
 			@Override
@@ -1295,7 +1296,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				if (freshTask.getLastRunFinishTimestamp() == null) {
 					return false;
 				}
-				return !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp);
+				if (freshTask.getLastRunStartTimestamp() == null) {
+					return false;
+				}
+				return !freshTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
+						&& !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
+						&& freshTask.getLastRunStartTimestamp() < freshTask.getLastRunFinishTimestamp();
 			}
 			@Override
 			public void timeout() {
