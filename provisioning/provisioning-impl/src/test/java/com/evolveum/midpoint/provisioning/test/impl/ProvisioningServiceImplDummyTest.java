@@ -643,6 +643,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 				capCachingMetadataTypeAgain.getRetrievalTimestamp());
 		
 		// Rough test if everything is fine
+		resource.asObjectable().setFetchResult(null);
+		resourceAgain.asObjectable().setFetchResult(null);
 		ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(resource, resourceAgain);
         display("Dummy resource diff", dummyResourceDiff);
         assertTrue("The resource read again is not the same as the original. diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
