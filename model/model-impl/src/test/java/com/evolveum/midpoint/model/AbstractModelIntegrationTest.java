@@ -583,10 +583,17 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		PrismAsserts.assertPropertyValue(property, expectedPropValues);
 	}
 	
-	
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
+		assertLinked(user, accountOid);
+	}
+	
+	protected void assertLinked(PrismObject<UserType> user, PrismObject<AccountShadowType> account) throws ObjectNotFoundException, SchemaException {
+		assertLinked(user, account.getOid());
+	}
+	
+	protected void assertLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
 		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 		boolean found = false; 
 		for (PrismReferenceValue val: accountRef.getValues()) {
@@ -594,7 +601,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 				found = true;
 			}
 		}
-		assertTrue("User "+userOid+" has not linked to account "+accountOid, found);
+		assertTrue("User "+user+" is not linked to account "+accountOid, found);
 	}
 	
 	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {

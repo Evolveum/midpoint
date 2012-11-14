@@ -145,7 +145,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		LOGGER.trace("LiveSyncTaskHandler.run stopping");
+		LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {})", resourceOid);
 		return runResult;
 	}
 

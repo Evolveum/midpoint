@@ -174,8 +174,22 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        assertNotNull("User mancomb was not created", userWally);
+        PrismObject<AccountShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummy);
+        display("Account mancomb", accountMancomb);
+        assertNotNull("No mancomb account shadow", accountMancomb);
+        assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_OID, 
+        		accountMancomb.asObjectable().getResourceRef().getOid());
+        
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        display("User mancomb", userMancomb);
+        assertNotNull("User mancomb was not created", userMancomb);
+        assertAccounts(userMancomb, 1);
+        
+        assertLinked(userMancomb, accountMancomb);
+        
+        users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after sync", users);
+        assertEquals("Unexpected number of users", 5, users.size());
                
 	}
 	
@@ -207,11 +221,6 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TestLiveSyncTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
-        // Preconditions
-        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Users before sync", users);
-        assertEquals("Unexpected number of users", 5, users.size());
                 
 		/// WHEN
         displayWhen(TEST_NAME);
@@ -221,8 +230,67 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // THEN
         displayThen(TEST_NAME);
         
+        PrismObject<AccountShadowType> accountWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
+        display("Account wally", accountWally);
+        assertNotNull("No wally account shadow", accountWally);
+        assertEquals("Wrong resourceRef in wally account", RESOURCE_DUMMY_BLUE_OID, 
+        		accountWally.asObjectable().getResourceRef().getOid());
+        
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
         assertNotNull("User wally was not created", userWally);
+        assertAccounts(userWally, 1);
+        
+        assertLinked(userWally, accountWally);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after sync", users);
+        assertEquals("Unexpected number of users", 6, users.size());
+	}
+	
+	/**
+	 * Add wally also to the other (default) dummy resource. This account should be linked to the existing user.
+	 */
+	@Test
+    public void test310AddDummyAccountWally() throws Exception {
+		final String TEST_NAME = "test310AddDummyAccountWally";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestLiveSyncTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                
+		/// WHEN
+        displayWhen(TEST_NAME);
+        addDummyAccount(dummyResource, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_OID, false);
+		
+        // THEN
+        displayThen(TEST_NAME);
+        
+        PrismObject<AccountShadowType> accountWallyDummy = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy);
+        display("Account wally (dummy)", accountWallyDummy);
+        assertNotNull("No wally account shadow (dummy)", accountWallyDummy);
+        assertEquals("Wrong resourceRef in wally account (dummy)", RESOURCE_DUMMY_OID, 
+        		accountWallyDummy.asObjectable().getResourceRef().getOid());
+        
+        PrismObject<AccountShadowType> accountWallyBlue = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
+        display("Account wally (blue)", accountWallyBlue);
+        assertNotNull("No wally account shadow (blue)", accountWallyBlue);
+        assertEquals("Wrong resourceRef in wally account (blue)", RESOURCE_DUMMY_BLUE_OID, 
+        		accountWallyBlue.asObjectable().getResourceRef().getOid());
+        
+        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
+        assertNotNull("User wally disappeared", userWally);
+        assertAccounts(userWally, 2);
+
+        assertLinked(userWally, accountWallyDummy);
+        assertLinked(userWally, accountWallyBlue);
+                
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after sync", users);
+        assertEquals("Unexpected number of users", 6, users.size());
                
 	}
 

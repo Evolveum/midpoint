@@ -374,7 +374,12 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	@Override
 	protected String additionalDumpDescription() {
-		return ", "+getOid();
+		StringBuilder sb = new StringBuilder();
+		sb.append(", ").append(getOid());
+		if (getVersion() != null) {
+			sb.append(" v").append(getVersion());
+		}
+		return sb.toString();
 	}
 
 //	public Node serializeToDom() throws SchemaException {

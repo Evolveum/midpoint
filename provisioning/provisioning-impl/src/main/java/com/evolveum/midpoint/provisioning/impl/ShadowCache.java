@@ -686,7 +686,7 @@ public class ShadowCache {
 			GenericFrameworkException, ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<AccountShadowType>> accountList = searchAccountByIdenifiers(change, parentResult);
+		List<PrismObject<AccountShadowType>> accountList = searchAccountByIdenifiers(change, resource, parentResult);
 
 		if (accountList.size() > 1) {
 			String message = "Found more than one account with the identifier " + change.getIdentifiers() + ".";
@@ -744,11 +744,11 @@ public class ShadowCache {
 		return newShadow;
 	}
 
-	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change, OperationResult parentResult)
+	private List<PrismObject<AccountShadowType>> searchAccountByIdenifiers(Change change, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
 		ObjectQuery query = ShadowCacheUtil
-				.createSearchShadowQuery(change.getIdentifiers(), prismContext, parentResult);
+				.createSearchShadowQuery(change.getIdentifiers(), resource, prismContext, parentResult);
 
 		List<PrismObject<AccountShadowType>> accountList = null;
 		try {

@@ -466,28 +466,7 @@ public class ShadowCacheUtil {
 	}
 
 	public static ObjectQuery createSearchShadowQuery(Collection<ResourceAttribute<?>> identifiers,
-			PrismContext prismContext, OperationResult parentResult) throws SchemaException {
-		// XPathHolder xpath = createXpathHolder();
-		// Document doc = DOMUtil.getDocument();
-		// List<Object> values = new ArrayList<Object>();
-		//
-		// for (PrismProperty<?> identifier : identifiers) {
-		// List<Element> elements =
-		// prismContext.getPrismDomProcessor().serializeItemToDom(identifier,
-		// doc);
-		// values.addAll(elements);
-		// }
-		//
-		// // TODO: fix for more than one identifier..The create equal filter
-		// must
-		// // be fixed first..
-		// if (values.size() > 1) {
-		// throw new
-		// UnsupportedOperationException("More than one identifier not supported yet.");
-		// }
-		//
-		// Object identifier = values.get(0);
-
+			ResourceType resource, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
 			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
@@ -498,6 +477,10 @@ public class ShadowCacheUtil {
 		if (conditions.size() < 1) {
 			throw new SchemaException("Identifier not specifier. Cannot create search query by identifier.");
 		}
+		
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class, 
+				ResourceObjectShadowType.F_RESOURCE_REF, resource.asPrismObject());
+		conditions.add(resourceRefFilter);
 
 		ObjectFilter filter = null;
 		if (conditions.size() > 1) {
@@ -506,16 +489,6 @@ public class ShadowCacheUtil {
 			filter = conditions.get(0);
 		}
 
-		// Element filter;
-		// try {
-		// filter = QueryUtil.createEqualFilter(doc, xpath, identifier);
-		// } catch (SchemaException e) {
-		// parentResult.recordFatalError(e);
-		// throw e;
-		// }
-//
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return query;
 	}
