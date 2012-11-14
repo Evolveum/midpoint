@@ -49,12 +49,11 @@ public class RResource extends RObject {
 	private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
 	@QueryAttribute(polyString = true)
 	private RPolyString name;
-	private RObjectReference connectorRef;
+    private REmbeddedReference connectorRef;
 	private String namespace;
 	private String configuration;
 	private String xmlSchema;
 	private String schemaHandling;
-	// private String nativeCapabilities;
 	private RCapabilities capabilities;
 	private String scripts;
 	private String synchronization;
@@ -68,25 +67,18 @@ public class RResource extends RObject {
 		return scripts;
 	}
 
-	// @Type(type = "org.hibernate.type.TextType")
 	@Embedded
 	public RCapabilities getCapabilities() {
 		return capabilities;
 	}
-
-	// @Type(type = "org.hibernate.type.TextType")
-	// public String getNativeCapabilities() {
-	// return nativeCapabilities;
-	// }
 
 	@Type(type = "org.hibernate.type.TextType")
 	public String getConfiguration() {
 		return configuration;
 	}
 
-	@OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public RObjectReference getConnectorRef() {
+    @Embedded
+	public REmbeddedReference getConnectorRef() {
 		return connectorRef;
 	}
 
@@ -161,7 +153,7 @@ public class RResource extends RObject {
 		this.xmlSchema = xmlSchema;
 	}
 
-	public void setConnectorRef(RObjectReference connectorRef) {
+	public void setConnectorRef(REmbeddedReference connectorRef) {
 		this.connectorRef = connectorRef;
 	}
 
@@ -210,10 +202,6 @@ public class RResource extends RObject {
 			return false;
 		if (namespace != null ? !namespace.equals(rResource.namespace) : rResource.namespace != null)
 			return false;
-		// if (nativeCapabilities != null ?
-		// !nativeCapabilities.equals(rResource.nativeCapabilities) :
-		// rResource.nativeCapabilities != null)
-		// return false;
 		if (schemaHandling != null ? !schemaHandling.equals(rResource.schemaHandling)
 				: rResource.schemaHandling != null)
 			return false;
@@ -236,8 +224,7 @@ public class RResource extends RObject {
 		result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
 		result = 31 * result + (xmlSchema != null ? xmlSchema.hashCode() : 0);
 		result = 31 * result + (schemaHandling != null ? schemaHandling.hashCode() : 0);
-		// result = 31 * result + (nativeCapabilities != null ?
-		// nativeCapabilities.hashCode() : 0);
+        result = 31 * result + (capabilities != null ? capabilities.hashCode() : 0);
 		result = 31 * result + (capabilities != null ? capabilities.hashCode() : 0);
 		result = 31 * result + (scripts != null ? scripts.hashCode() : 0);
 		result = 31 * result + (synchronization != null ? synchronization.hashCode() : 0);
@@ -291,7 +278,7 @@ public class RResource extends RObject {
 
 		repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 		repo.setNamespace(ResourceTypeUtil.getResourceNamespace(jaxb));
-		repo.setConnectorRef(RUtil.jaxbRefToRepo(jaxb.getConnectorRef(), repo, prismContext));
+		repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), prismContext));
 
 		if (jaxb.getConnector() != null) {
 			LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
