@@ -161,7 +161,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			Assert.assertNotNull(repositoryService, "Repository service is not initialized");
 			try{
-			repositoryService.addObject(object, result);
+			String oid = repositoryService.addObject(object, result);
+			object.setOid(oid);
 			} catch(ObjectAlreadyExistsException ex){
 				result.recordFatalError(ex.getMessage(), ex);
 				throw ex;

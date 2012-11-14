@@ -89,9 +89,6 @@ public class TestSynchronizationService extends AbstractInitializedModelIntegrat
 	@Autowired(required = true)
 	Clockwork clockwork;
 	
-	@Autowired(required = true)
-	TaskManager taskManager;
-
 	public TestSynchronizationService() throws JAXBException {
 		super();
 	}
@@ -108,6 +105,7 @@ public class TestSynchronizationService extends AbstractInitializedModelIntegrat
         clockwork.setDebugListener(mockListener);
         
         PrismObject<AccountShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
+        assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setUsername("jack");
         dummyAccount.setPassword("deadMenTellNoTales");
@@ -125,8 +123,8 @@ public class TestSynchronizationService extends AbstractInitializedModelIntegrat
         // THEN
         LensContext<UserType, AccountShadowType> context = mockListener.getLastSyncContext();
 
-        display("Resulting context", context);
-        assertNotNull("No resulting context", context);
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());

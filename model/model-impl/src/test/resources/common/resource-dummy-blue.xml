@@ -162,4 +162,35 @@
 		</accountType>
 	</schemaHandling>
 	
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<valueExpression>
+						<path>$account/attributes/icfs:name</path>
+					</valueExpression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	        </reaction>
+        </objectSynchronization>
+	</synchronization>
+	
 </resource>

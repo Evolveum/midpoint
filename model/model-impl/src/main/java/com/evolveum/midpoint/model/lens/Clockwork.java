@@ -110,6 +110,9 @@ public class Clockwork {
 			
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
+				if (debugListener != null) {
+					debugListener.beforeSync(context);
+				}
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.
 				audit(context, AuditEventStage.REQUEST, task, result);
@@ -135,6 +138,9 @@ public class Clockwork {
 					processSecondary(context, task, result);
 					break;
 				case FINAL:
+					if (debugListener != null) {
+						debugListener.afterSync(context);
+					}
 					return HookOperationMode.FOREGROUND;
 			}		
 			

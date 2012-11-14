@@ -274,6 +274,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy.xml";
 	protected static final String TASK_RECONCILE_DUMMY_OID = "91919191-76e0-59e2-86d6-3d4f02d3dddd";
+	
+	protected static final String TASK_LIVE_SYNC_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-dumy-livesync.xml";
+	protected static final String TASK_LIVE_SYNC_DUMMY_OID = "10000000-0000-0000-5555-555500000004";
+	
+	protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/task-dumy-blue-livesync.xml";
+	protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_OID = "10000000-0000-0000-5555-555500000204";
 
 	
 	@Autowired(required = true)
@@ -1224,6 +1230,81 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 			}
 		};
 		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+	
+	protected void waitForTaskStart(String taskOid, boolean checkSubresult) throws Exception {
+		waitForTaskStart(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+	}
+	
+	protected void waitForTaskStart(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskStart");
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				Task freshTask = taskManager.getTask(taskOid, waitResult);
+				OperationResult result = freshTask.getResult();
+				display("Check result", result);
+				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				if (isUknown(result, checkSubresult)) {
+					return false;
+				}
+				return freshTask.getLastRunStartTimestamp() != null;
+			}
+			@Override
+			public void timeout() {
+				try {
+					Task freshTask = taskManager.getTask(taskOid, waitResult);
+					OperationResult result = freshTask.getResult();
+					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+					assert false : "Timeout while waiting for "+freshTask+" to start. Last result "+result;
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				} catch (SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				}
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" start", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+	
+	protected void waitForTaskNextRun(String taskOid, boolean checkSubresult) throws Exception {
+		waitForTaskNextRun(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
+	}
+	
+	protected void waitForTaskNextRun(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
+		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
+		Task origTask = taskManager.getTask(taskOid, waitResult);
+		final Long origLastRunFinishTimestamp = origTask.getLastRunFinishTimestamp();
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				Task freshTask = taskManager.getTask(taskOid, waitResult);
+				OperationResult result = freshTask.getResult();
+				display("Check result", result);
+				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+				if (isUknown(result, checkSubresult)) {
+					return false;
+				}
+				if (freshTask.getLastRunFinishTimestamp() == null) {
+					return false;
+				}
+				return !freshTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp);
+			}
+			@Override
+			public void timeout() {
+				try {
+					Task freshTask = taskManager.getTask(taskOid, waitResult);
+					OperationResult result = freshTask.getResult();
+					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+					assert false : "Timeout while waiting for "+freshTask+" next run. Last result "+result;
+				} catch (ObjectNotFoundException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				} catch (SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e,e);
+				}
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" next run", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 	
 	private boolean isError(OperationResult result, boolean checkSubresult) {

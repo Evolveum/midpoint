@@ -69,7 +69,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	
 	@Override
 	public TaskRunResult run(Task task) {
-		LOGGER.trace("SynchronizationCycle.run starting");
+		LOGGER.trace("LiveSyncTaskHandler.run starting");
 		
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
@@ -145,7 +145,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		LOGGER.trace("SynchronizationCycle.run stopping");
+		LOGGER.trace("LiveSyncTaskHandler.run stopping");
 		return runResult;
 	}
 
