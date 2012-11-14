@@ -169,7 +169,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		// THEN
 		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result, 2);
+		assertSuccess("Import of "+IMPORT_RESOURCE_FILE+" has failed (result)", result, 2);
 
 		// Check import with fixed OID
 		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);

@@ -23,6 +23,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -30,17 +31,14 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ</name>
-	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
+	<connectorRef type="ConnectorType">
 	    <filter>
-			<and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-				<c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#ConnectorType" />
-				<c:equal>
-				<c:path>c:connectorType</c:path>
-					<c:value>org.identityconnectors.ldap.LdapConnector</c:value>
-				</c:equal>
-			</and>
+			<q:and>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+				</q:equal>
+			</q:and>
 		</filter>
 	</connectorRef>
 	<connectorConfiguration>
@@ -55,15 +53,7 @@
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
 			<icfcldap:credentials>
-				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
-					<ds:KeyInfo>
-						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-					</ds:KeyInfo>
-					<enc:CipherData>
-						<enc:CipherValue>lg0Z08KE4rsE8GGvQsTqSMD1v7Id/sQAGg8f8VaA2jvwnno2f6vBkZbsDuYK8p9Y</enc:CipherValue>
-					</enc:CipherData>
-				</enc:EncryptedData>
+				<c:clearValue>secret</c:clearValue>
 			</icfcldap:credentials>
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
@@ -222,23 +212,6 @@
 		</xsd:schema>
 	  </definition>
 	</schema>
-
-	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
-		Some tests work without running resource, generating fetching capabilities would fail. -->	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-		<native>
-	      <cap:credentials>
-	         <cap:password/>
-	      </cap:credentials>
-	      <cap:liveSync/>
-	      <cap:testConnection/>
-	      <cap:script>
-	         <cap:host>
-	            <cap:type>connector</cap:type>
-	         </cap:host>
-	      </cap:script>
-      </native>
-   </capabilities>
 	
 	<schemaHandling>
 		<accountType>
@@ -396,53 +369,58 @@
 			</activation>
 		</accountType>
 	</schemaHandling>
+	
+	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
+		Some tests work without running resource, generating fetching capabilities would fail. -->	
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+		<native>
+	      <cap:credentials>
+	         <cap:password/>
+	      </cap:credentials>
+	      <cap:liveSync/>
+	      <cap:testConnection/>
+	      <cap:script>
+	         <cap:host>
+	            <cap:type>connector</cap:type>
+	         </cap:host>
+	      </cap:script>
+      </native>
+   </capabilities>
+	
 	<synchronization>
 		<objectSynchronization>
 			<enabled>true</enabled>
 			<correlation>
-				<equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
-					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-					<path>.</path>
+				<q:equal>
+					<q:path>c:name</q:path>
 					<valueExpression>
-						<ref>c:name</ref>
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-								$c:account/c:attributes/dj:uid
+								$c:account/c:attributes/ri:uid
 							</code>
 						</script>
 					</valueExpression>
-				</equal>
+				</q:equal>
 			</correlation>
+			
 			<reaction>
-				<situation>confirmed</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser" />
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount" />
-			</reaction>
-			<reaction>
-				<situation>missing</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount" />
-			</reaction>
-			<reaction>
-				<situation>found</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount" />
-			</reaction>
-			<reaction>
-				<situation>unassigned</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount" />
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-					<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
-				</action>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount" />
-			</reaction>
+	            <situation>linked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	        </reaction>
+
 		</objectSynchronization>
 	</synchronization>
 </object>

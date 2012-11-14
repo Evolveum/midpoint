@@ -244,11 +244,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
 		
 		// Resources
-		resourceOpenDj = addObjectFromFile(RESOURCE_OPENDJ_FILENAME, ResourceType.class, initResult);
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		
-		importObjectFromFile(RESOURCE_DUMMY_FILENAME, initResult);
-		resourceDummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, initTask, initResult);
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		
 		resourceDummyRed = addObjectFromFile(RESOURCE_DUMMY_RED_FILENAME, ResourceType.class, initResult);

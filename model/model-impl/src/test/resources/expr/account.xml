@@ -2,49 +2,49 @@
 <object xsi:type="AccountShadowType" oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>3082e023-b777-38f5-9563-d86141806be5</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType" />
-	<objectClass xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">ns3:AccountObjectClass</objectClass>
+	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType" />
+	<objectClass xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">ns3:AccountObjectClass</objectClass>
 	<attributes>
-		<cn:cn xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:cn="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">Hector Barbossa</cn:cn>
+		<cn:cn xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:cn="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Hector Barbossa</cn:cn>
 		<name:name xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:name="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">uid=hbarbossa,ou=People,dc=example,dc=com</name:name>
-		<l:l xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:l="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">Caribbean</l:l>
+		<l:l xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:l="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Caribbean</l:l>
 		<userPassword:userPassword
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:userPassword="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">e1NTSEF9TGh3Qk5pNjlFU3hMTXFEaDFZZWc0dWY3bmg5cHV3NEZQOS9pMlE9PQ==</userPassword:userPassword>
-		<mail:mail xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:mail="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">captain.barbossa@example.com</mail:mail>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:userPassword="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">e1NTSEF9TGh3Qk5pNjlFU3hMTXFEaDFZZWc0dWY3bmg5cHV3NEZQOS9pMlE9PQ==</userPassword:userPassword>
+		<mail:mail xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:mail="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">captain.barbossa@example.com</mail:mail>
 		<givenName:givenName
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:givenName="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">Hector</givenName:givenName>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:givenName="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Hector</givenName:givenName>
 		<roomNumber:roomNumber
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:roomNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">111</roomNumber:roomNumber>
-		<uid:uid xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:uid="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">hbarbossa</uid:uid>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:roomNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">111</roomNumber:roomNumber>
+		<uid:uid xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:uid="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">hbarbossa</uid:uid>
 		<telephoneNumber:telephoneNumber
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:telephoneNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">+421 910 382734</telephoneNumber:telephoneNumber>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:telephoneNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">+421 910 382734</telephoneNumber:telephoneNumber>
 		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">organizationalPerson</objectClass:objectClass>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">organizationalPerson</objectClass:objectClass>
 		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">person</objectClass:objectClass>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">person</objectClass:objectClass>
 		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">inetOrgPerson</objectClass:objectClass>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">inetOrgPerson</objectClass:objectClass>
 		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">top</objectClass:objectClass>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">top</objectClass:objectClass>
 		<facsimileTelephoneNumber:facsimileTelephoneNumber
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:facsimileTelephoneNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">+1 408 555 1111</facsimileTelephoneNumber:facsimileTelephoneNumber>
+			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:facsimileTelephoneNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">+1 408 555 1111</facsimileTelephoneNumber:facsimileTelephoneNumber>
 		<uid:uid xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:uid="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">3082e023-b777-38f5-9563-d86141806be5</uid:uid>
-		<sn:sn xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:sn="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">Barbossa</sn:sn>
-		<o:o xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:o="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">Brethren Court</o:o>
+		<sn:sn xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:sn="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Barbossa</sn:sn>
+		<o:o xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+			xmlns:o="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Brethren Court</o:o>
 	</attributes>
 </object>

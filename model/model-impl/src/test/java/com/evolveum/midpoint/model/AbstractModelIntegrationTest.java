@@ -335,6 +335,13 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 	}
 	
+	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, String filename, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException {
+		importObjectFromFile(filename, result);
+		OperationResult importResult = result.getLastSubresult();
+		assertSuccess("Import of "+filename+" has failed", importResult);
+		return modelService.getObject(type, oid, null, task, result);
+	}
+	
 	protected LensContext<UserType, AccountShadowType> createUserAccountContext() {
 		return new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 	}

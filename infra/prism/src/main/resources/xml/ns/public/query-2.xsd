@@ -191,8 +191,7 @@
     <xsd:element name="path" type="t:XPathType">
         <xsd:annotation>
             <xsd:documentation>
-                XPath to the containing XML element for the queried property.
-                If not specified, defaults to "." (which is also the most usual value).
+                XPath to the XML element for the queried property.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
