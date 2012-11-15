@@ -272,11 +272,11 @@ public class TestMultiConnector extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test031TestFakeResource() throws Exception {
-        displayTestTile(this, "test031TestFakeResource");
+    public void test031TestDummyResource() throws Exception {
+        displayTestTile(this, "test031TestDummyResource");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test031TestFakeResource");
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test031TestDummyResource");
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -307,11 +307,11 @@ public class TestMultiConnector extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test100Upgrade() throws Exception {
-        displayTestTile(this, "test100Upgrade");
+    public void test100UpgradeModelAddDelete() throws Exception {
+        displayTestTile(this, "test100UpgradeModelAddDelete");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100Upgrade");
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100UpgradeModelAddDelete");
         OperationResult result = task.getResult();
         
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
@@ -334,6 +334,230 @@ public class TestMultiConnector extends AbstractModelIntegrationTest {
  		display("executeChanges result", result);
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
+        assertUpgrade(dummyResourceModelBefore);
+	}
+	
+		
+	@Test
+    public void test150DowngradeModelAddDelete() throws Exception {
+        displayTestTile(this, "test150DowngradeModelAddDelete");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test150DowngradeModelAddDelete");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaDel = ReferenceDelta.createModificationDelete(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyOid);
+        resourceDelta.addModification(connectorRefDeltaDel);
+        ReferenceDelta connectorRefDeltaAdd = ReferenceDelta.createModificationAdd(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyFakeOid);
+		resourceDelta.addModification(connectorRefDeltaAdd);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+        
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertDowngrade(dummyResourceModelBefore);        
+	}
+	
+	@Test
+    public void test200UpgradeModelReplace() throws Exception {
+        displayTestTile(this, "test200UpgradeModelReplace");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test200UpgradeModelReplace");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaReplace = ReferenceDelta.createModificationReplace(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyOid);
+		resourceDelta.addModification(connectorRefDeltaReplace);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+        
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertUpgrade(dummyResourceModelBefore);
+	}
+	
+		
+	@Test
+    public void test250DowngradeModelReplace() throws Exception {
+        displayTestTile(this, "test250DowngradeModelReplace");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test250DowngradeModelReplace");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaReplace = ReferenceDelta.createModificationReplace(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyFakeOid);
+		resourceDelta.addModification(connectorRefDeltaReplace);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+        
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertDowngrade(dummyResourceModelBefore);        
+	}
+	
+	@Test
+    public void test300UpgradeRawAddDelete() throws Exception {
+        displayTestTile(this, "test100UpgradeModelAddDelete");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test100UpgradeModelAddDelete");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaDel = ReferenceDelta.createModificationDelete(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyFakeOid);
+        resourceDelta.addModification(connectorRefDeltaDel);
+        ReferenceDelta connectorRefDeltaAdd = ReferenceDelta.createModificationAdd(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyOid);
+		resourceDelta.addModification(connectorRefDeltaAdd);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+        
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		
+		// WHEN
+        modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertUpgrade(dummyResourceModelBefore);
+	}
+	
+		
+	@Test
+    public void test350DowngradeRawAddDelete() throws Exception {
+        displayTestTile(this, "test150DowngradeModelAddDelete");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test150DowngradeModelAddDelete");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaDel = ReferenceDelta.createModificationDelete(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyOid);
+        resourceDelta.addModification(connectorRefDeltaDel);
+        ReferenceDelta connectorRefDeltaAdd = ReferenceDelta.createModificationAdd(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyFakeOid);
+		resourceDelta.addModification(connectorRefDeltaAdd);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+		
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		
+		// WHEN
+        modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertDowngrade(dummyResourceModelBefore);        
+	}
+	
+	@Test
+    public void test400UpgradeRawReplace() throws Exception {
+        displayTestTile(this, "test400UpgradeRawReplace");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test400UpgradeRawReplace");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaReplace = ReferenceDelta.createModificationReplace(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyOid);
+		resourceDelta.addModification(connectorRefDeltaReplace);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+		
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+        
+		// WHEN
+        modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertUpgrade(dummyResourceModelBefore);
+	}
+	
+		
+	@Test
+    public void test450DowngradeRawReplace() throws Exception {
+        displayTestTile(this, "test450DowngradeRawReplace");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".test450DowngradeRawReplace");
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
+        		prismContext);
+        ReferenceDelta connectorRefDeltaReplace = ReferenceDelta.createModificationReplace(ResourceType.F_CONNECTOR_REF, 
+        		getResourceDefinition(), connectorDummyFakeOid);
+		resourceDelta.addModification(connectorRefDeltaReplace);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+		
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+        
+		// WHEN
+        modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("executeChanges result", result);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertDowngrade(dummyResourceModelBefore);        
+	}
+
+	private void assertUpgrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertUpgrade");
+        OperationResult result = task.getResult();
+                
         // Check if the changes went well in the repo
         PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, result);
         display("Upgraded fake resource (repo)", repoResource);
@@ -357,11 +581,73 @@ public class TestMultiConnector extends AbstractModelIntegrationTest {
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(dummyResourceModelBefore, dummyResourceModelAfter);
         display("Dummy resource diff", dummyResourceDiff);
         assertTrue("Ha! Someone touched the other resource! Off with his head! diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
+        
+        testResources(3,3);
+	}
+
+	private void assertDowngrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertDowngrade");
+        OperationResult result = task.getResult();
+        // Check if the changes went well in the repo
+        PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, result);
+        display("Upgraded fake resource (repo)", repoResource);
+        assertNotNull("Null fake resource after getObject (repo)", repoResource);
+        assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (repo)", RESOURCE_DUMMY_FAKE_OID, repoResource.getOid());
+        assertEquals("Wrong connectorRef in fake resource (repo)", connectorDummyFakeOid, 
+        		repoResource.asObjectable().getConnectorRef().getOid());
+        
+        // Check if resource view of the model has changed as well
+        resourceDummyFake = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, null, task, result);
+        display("Upgraded fake resource (model)", resourceDummyFake);
+        assertNotNull("Null fake resource after getObject (model)", resourceDummyFake);
+        assertEquals("Oooops. The OID of fake resource mysteriously changed. Call the police! (model)", RESOURCE_DUMMY_FAKE_OID, resourceDummyFake.getOid());
+        assertEquals("Wrong connectorRef in fake resource (model)", connectorDummyFakeOid, 
+        		resourceDummyFake.asObjectable().getConnectorRef().getOid());
+        
+        // Check if the other resource is still untouched
+        PrismObject<ResourceType> dummyResourceModelAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        dummyResourceModelBefore.asObjectable().setFetchResult(null);
+        dummyResourceModelAfter.asObjectable().setFetchResult(null);
+        ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(dummyResourceModelBefore, dummyResourceModelAfter);
+        display("Dummy resource diff", dummyResourceDiff);
+        assertTrue("Ha! Someone touched the other resource! Off with his head! diff:"+dummyResourceDiff, dummyResourceDiff.isEmpty());
+        
+        testResources(3,1);
+	}
+
+	private void testResources(int numDummyAccounts, int numFakeAccounts) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".testResources");
+        
+        // We have to purge fake resource schema here. As the new connector provides a different schema
+        purgeResourceSchema(RESOURCE_DUMMY_FAKE_OID);
+        
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_FAKE_OID, task);
+ 		display("testResource fake result", testResult);
+        IntegrationTestTools.assertSuccess("testResource fake result", testResult);
+        
+        testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+ 		display("testResource dummy result", testResult);
+        IntegrationTestTools.assertSuccess("testResource dummy result", testResult);
+        
+        assertResourceAccounts(resourceDummy, numDummyAccounts);
+        assertResourceAccounts(resourceDummyFake, numFakeAccounts);
 	}
 	
-	// TODO: downgrade
-	// TODO: replace
-	// TODO: model.modify RAW
+	private void assertResourceAccounts(PrismObject<ResourceType> resource, int numAccounts) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(TestMultiConnector.class.getName() + ".assertResourceAccounts");
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        Collection<PrismObject<AccountShadowType>> accounts = listAccounts(resource, task, result);
+		
+		// THEN
+        result.computeStatus();
+ 		display("listAccounts result "+resource, result);
+        IntegrationTestTools.assertSuccess("listAccounts result "+resource, result);
+        
+        assertEquals("Unexpected number of accounts on "+resource+": "+accounts, numAccounts, accounts.size());
+	}
+
 
 	
 }

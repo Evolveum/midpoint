@@ -1169,6 +1169,21 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return task;
 	}
 	
+	protected void purgeResourceSchema(String resourceOid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".purgeResourceSchema");
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, resourceOid, ResourceType.F_SCHEMA, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+        
+        modelService.executeChanges(deltas, null, task, result);
+        
+        result.computeStatus();
+        assertSuccess(result);
+	}
+	
+	// TASKS
+	
 	protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
 		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
