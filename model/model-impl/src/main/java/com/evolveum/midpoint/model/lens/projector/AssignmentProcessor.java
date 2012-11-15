@@ -129,21 +129,21 @@ public class AssignmentProcessor {
                 	// mark all accounts as active, so they will be synchronized as expected
                     accCtx.setActive(true);
                     if (accCtx.getSynchronizationPolicyDecision() == null) {
-                    	SynchronizationPolicyDecision policyDecistion = null;
+                    	SynchronizationPolicyDecision syncIntent = null;
                     	if (accCtx.getSynchronizationIntent() != null) {
-                    		policyDecistion = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
+                    		syncIntent = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
                     	}
-                    	if (policyDecistion == null) {
+                    	if (syncIntent == null) {
 	                    	// guess policy decision
 	                    	if (accCtx.isAdd()) {
-	                    		policyDecistion = SynchronizationPolicyDecision.ADD;
+	                    		syncIntent = SynchronizationPolicyDecision.ADD;
 	                    	} else if (accCtx.isDelete()) {
-	                    		policyDecistion = SynchronizationPolicyDecision.DELETE;
+	                    		syncIntent = SynchronizationPolicyDecision.DELETE;
 	                    	} else {
-	                    		policyDecistion = SynchronizationPolicyDecision.KEEP;
+	                    		syncIntent = SynchronizationPolicyDecision.KEEP;
 	                    	}
                     	}
-                    	accCtx.setSynchronizationPolicyDecision(policyDecistion);
+                    	accCtx.setSynchronizationPolicyDecision(syncIntent);
                     }
                 }
 
@@ -152,6 +152,7 @@ public class AssignmentProcessor {
         }
         
         LensFocusContext<UserType> focusContext = context.getFocusContext();
+        ObjectDelta<UserType> focusDelta = focusContext.getDelta();
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
         if (focusContext.getObjectOld() != null) {
             PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectOld().findContainer(UserType.F_ASSIGNMENT);
@@ -193,10 +194,10 @@ public class AssignmentProcessor {
         context.setEvaluatedAssignmentTriple(evaluatedAssignmentTriple);
         
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
-        for (PrismContainerValue<AssignmentType> propertyValue : allAssignments) {
-            AssignmentType assignmentType = propertyValue.asContainerable();
+        for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
+            AssignmentType assignmentType = assignmentCVal.asContainerable();
             
-            boolean isAssignmentChanged = containsRealValue(changedAssignments,propertyValue);
+            boolean isAssignmentChanged = containsRealValue(changedAssignments,assignmentCVal);
             String assignmentPlacementDesc;
             if (isAssignmentChanged) {
             	assignmentPlacementDesc = "delta for "+source;
@@ -209,29 +210,37 @@ public class AssignmentProcessor {
             Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
             
             context.rememberResources(evaluatedAssignment.getResources(result));
-
-            // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-            if (isAssignmentChanged) {
-                // There was some change
-
-                if (assignmentDelta.isValueToAdd(propertyValue)) {
-                	if (containsRealValue(assignmentsOld, propertyValue)) {
-                		// Phantom add: adding assignment that is already there
-                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
-                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
-                	}
-                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
-                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
-                }
-                if (assignmentDelta.isValueToDelete(propertyValue)) {
-                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
-                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
-                }
-
+            
+            if (focusDelta != null && focusDelta.isDelete()) {
+            	
+            	collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+                evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+                
             } else {
-                // No change in assignment
-                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
-                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+
+	            // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
+	            if (isAssignmentChanged) {
+	                // There was some change
+	
+	                if (assignmentDelta.isValueToAdd(assignmentCVal)) {
+	                	if (containsRealValue(assignmentsOld, assignmentCVal)) {
+	                		// Phantom add: adding assignment that is already there
+	                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+	                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+	                	}
+	                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
+	                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
+	                }
+	                if (assignmentDelta.isValueToDelete(assignmentCVal)) {
+	                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+	                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+	                }
+	
+	            } else {
+	                // No change in assignment
+	                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+	            }
             }
         }
         

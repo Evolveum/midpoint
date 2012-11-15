@@ -63,6 +63,9 @@ public class SubmitResourceDto extends PageAdmin implements Serializable {
 	}
 
 	public String getResourceName() {
+		if (account == null) {
+			return "unknown";
+		}
 		PrismReference reference = account.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
 		if (reference == null || reference.isEmpty()) {
             return "unknown";

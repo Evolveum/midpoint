@@ -239,6 +239,8 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 	protected static final String USER_RAPP_USERNAME = "rapp";
+	
+	protected static final String USER_LECHUK_FILENAME = COMMON_DIR_NAME + "/user-lechuck.xml";
 
 	// Has null name, doesn not have given name, no employeeType
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
@@ -1004,6 +1006,25 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected PrismObjectDefinition<ResourceType> getResourceDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+	}
+	
+	protected PrismObject<UserType> getLeChuck() throws SchemaException {
+		return PrismTestUtil.parseObject(new File(USER_LECHUK_FILENAME));
+	}
+	
+	protected void fillinUser(PrismObject<UserType> user, String name, String fullName) {
+		user.asObjectable().setName(PrismTestUtil.createPolyStringType(name));
+		user.asObjectable().setFullName(PrismTestUtil.createPolyStringType(fullName));
+	}
+	
+	protected void fillinUserAssignmentAccountConstruction(PrismObject<UserType> user, String resourceOid) {
+		AssignmentType assignmentType = new AssignmentType();
+        AccountConstructionType accountConstruntion = new AccountConstructionType();
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.setOid(resourceOid);
+		accountConstruntion.setResourceRef(resourceRef );
+		assignmentType.setAccountConstruction(accountConstruntion );
+		user.asObjectable().getAssignment().add(assignmentType);
 	}
 	
 	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)

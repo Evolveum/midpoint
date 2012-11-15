@@ -398,7 +398,7 @@ public class InboundProcessor {
             RefinedAccountDefinition accountDefinition, LensContext<UserType,AccountShadowType> context, 
             OperationResult opResult) throws SchemaException {
     	
-        if (inboundMappingType == null || newUser == null) {
+        if (inboundMappingType == null || newUser == null || !accContext.isFullShadow()) {
             return;
         }
 

@@ -302,6 +302,9 @@ public class PrismAsserts {
 	}
 	
 	public static void assertNoItemDelta(ObjectDelta<?> userDelta, ItemPath propertyPath) {
+		if (userDelta == null) {
+			return;
+		}
 		assert !userDelta.hasItemDelta(propertyPath) : "Delta for item "+propertyPath+" present while not expecting it";
 	}
 	

@@ -135,6 +135,7 @@
             <class name="com.evolveum.midpoint.model.TestActivation"/>
             <class name="com.evolveum.midpoint.model.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.TestMultiConnector"/>
+            <class name="com.evolveum.midpoint.model.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.negative.TestBrokenCSV"/>
         </classes>
     </test>
