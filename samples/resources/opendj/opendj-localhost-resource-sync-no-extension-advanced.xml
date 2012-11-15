@@ -45,7 +45,7 @@ object.
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
 
-    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a3">
+    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 
         <!-- Resource name. It will be displayed in GUI.  -->
         <name>Localhost OpenDJ (no extension schema)</name>
@@ -567,7 +567,7 @@ object.
                 account type in the resource definition, as usual.
                 See http://wiki.evolveum.com/display/midPoint/Synchronization
             </description>
-            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a3" type="c:ResourceType"/>
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
             <intent>default</intent>
 
         </accountConstruction>
@@ -623,7 +623,7 @@ object.
 
         <exclusivityStatus>released</exclusivityStatus>
         <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a3" type="ResourceType"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>
