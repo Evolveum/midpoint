@@ -48,7 +48,7 @@ object.
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a3">
 
         <!-- Resource name. It will be displayed in GUI.  -->
-        <name>Localhost OpenDJ</name>
+        <name>Localhost OpenDJ (no extension schema)</name>
 
         <description>
             LDAP resource using an Identity Connector Framework LDAP connector. It contains configuration
