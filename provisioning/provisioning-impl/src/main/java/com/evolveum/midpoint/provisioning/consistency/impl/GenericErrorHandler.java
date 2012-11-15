@@ -139,8 +139,8 @@ public class GenericErrorHandler extends ErrorHandler{
 			return null;
 		default:
 			if (shadow.getOid() == null){
-				throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
-						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+				throw new GenericFrameworkException("Can't process shadow "
+						+ ObjectTypeUtil.toShortString(shadow) + ": Generic error in the connector: "+ex.getMessage(), ex);
 			}
 			
 			Collection<ItemDelta> modification = createAttemptModification(shadow, null);
