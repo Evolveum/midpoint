@@ -26,7 +26,7 @@
     <form wicket:id="mainForm">
         <table>
             <tr>
-                <td><wicket:message key="pageTask.type"/></td>
+                <td width="350px"><wicket:message key="pageTask.type"/></td>
                 <td><select wicket:id="category"/></td>
             </tr>
             <tr>
@@ -45,15 +45,15 @@
        <table>
 	  		<tbody>
 	            <tr>
-	                <td><wicket:message key="pageTask.recurring"/></td>
+	                <td width="350px"><wicket:message key="pageTask.recurring"/></td>
 	                <td><input type="checkbox" wicket:id="recurring"/></td>
 	            </tr>
 	        </tbody>
 			<tbody wicket:id="container">    
 				<tr wicket:id="boundContainer">
-				    <td style="vertical-align: top;"><wicket:message key="pageTask.bound"/></td>
-				    <td><input type="checkbox" wicket:id="bound"/><br />
-       					<small><wicket:message key="pageTask.boundHelp"/></small>	
+				    <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTask.bound"/></td>
+				    <td><input type="checkbox" wicket:id="bound"/>
+				    	<img class="tipsyComponent" wicket:id="boundHelp"/>
 				    </td>
 				</tr>
 				<tr wicket:id="intervalContainer">
@@ -62,14 +62,19 @@
 				</tr>
 				<tr wicket:id="cronContainer">
 				    <td style="vertical-align: top;"><wicket:message key="pageTask.cronSpec"/></td>
-				    <td><input type="text" wicket:id="cron"/><br />
-       					<small><wicket:message key="pageTask.cronHelp"/></small>
+				    <td><input type="text" wicket:id="cron"/>
+				    	<img class="tipsyComponent" wicket:id="cronHelp"/> 
+				    	<small>
+					    	<wicket:message key="pageTask.cronHelpLink" />
+					    	<a href="http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06"
+								target="_blank">tutorial</a>.
+						</small>
 				    </td>
 				</tr>
 			</tbody>
 			<tbody>            
 				<tr>
-				    <td><wicket:message key="pageTask.notStartBefore"/></td>
+				    <td width="350px"><wicket:message key="pageTask.notStartBefore"/></td>
 				    <td><span wicket:id="notStartBeforeField" /></td>
 				</tr>
 				<tr>
@@ -80,7 +85,7 @@
         </table>
         <table>
 	        <tr>
-	            <td><wicket:message key="pageTask.runUntilNodeDown"/></td>
+	            <td width="350px"><wicket:message key="pageTask.runUntilNodeDown"/></td>
 	            <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
 	        </tr>
         </table>
@@ -88,7 +93,7 @@
         <h2><wicket:message key="pageTask.advancedOption"/></h2>
         <table>
             <tr>
-                <td><wicket:message key="pageTask.createSuspended"/></td>
+                <td width="350px"><wicket:message key="pageTask.createSuspended"/></td>
                 <td><input type="checkbox" wicket:id="createSuspended"/></td>
             </tr>
             <tr>

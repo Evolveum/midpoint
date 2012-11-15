@@ -30,11 +30,16 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -43,10 +48,12 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -64,6 +71,7 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
@@ -242,6 +250,24 @@ public class PageTaskAdd extends PageAdminTasks {
 			}
 		};
 		boundContainer.add(bound);
+		
+		final Image boundHelp = new Image("boundHelp", new PackageResourceReference(ImgResources.class,
+				ImgResources.TOOLTIP_INFO));
+		boundHelp.setOutputMarkupId(true);
+		boundHelp.add(new AttributeAppender("original-title", getString("pageTask.boundHelp")));
+		boundHelp.add(new AbstractDefaultAjaxBehavior() {
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				String js = "$('#"+ boundHelp.getMarkupId() +"').tipsy()";
+				response.renderOnDomReadyJavaScript(js);
+				super.renderHead(component, response);
+			}
+
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+			}
+		});
+		boundContainer.add(boundHelp);
 
 		TextField<Integer> interval = new TextField<Integer>("interval",
 				new PropertyModel<Integer>(model, "interval"));
@@ -255,6 +281,24 @@ public class PageTaskAdd extends PageAdminTasks {
 //			cron.setRequired(true);
 //		}
 		cronContainer.add(cron);
+		
+		final Image cronHelp = new Image("cronHelp", new PackageResourceReference(ImgResources.class,
+				ImgResources.TOOLTIP_INFO));
+		cronHelp.setOutputMarkupId(true);
+		cronHelp.add(new AttributeAppender("original-title", getString("pageTask.cronHelp")));
+		cronHelp.add(new AbstractDefaultAjaxBehavior() {
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				String js = "$('#"+ cronHelp.getMarkupId() +"').tipsy()";
+				response.renderOnDomReadyJavaScript(js);
+				super.renderHead(component, response);
+			}
+
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+			}
+		});
+		cronContainer.add(cronHelp);
 
 		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
 				new PropertyModel<Date>(model, "notStartBefore")) {
