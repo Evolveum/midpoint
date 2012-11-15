@@ -67,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.AssertJUnit;
@@ -179,7 +180,7 @@ public class IntegrationTestTools {
 			fail(logmsg);
 		}
 		
-		if (result.isSuccess() || result.isHandledError()) {
+		if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
 			// OK ... expected error is as good as success
 		} else if (warningOk && result.getStatus() == OperationResultStatus.WARNING) {
 			// OK
@@ -562,6 +563,15 @@ public class IntegrationTestTools {
 		System.out.println(SchemaDebugUtil.prettyPrint(value));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" 
 				+ SchemaDebugUtil.prettyPrint(value));
+	}
+	
+	public static void display(String title, Throwable e) {
+		String stackTrace = ExceptionUtils.getStackTrace(e);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title + ": "+e.getClass() + " " + e.getMessage());
+		System.out.println(stackTrace);
+		LOGGER.debug("{}{}: {} {}\n{}", new Object[]{
+				OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(),
+				stackTrace});
 	}
 	
 	

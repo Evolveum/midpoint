@@ -477,7 +477,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
 		ObjectDelta<O> origDelta = getDelta();
 		if (policyDecision == SynchronizationPolicyDecision.ADD) {
-            if (origDelta.isModify()) {
+            if (origDelta == null || origDelta.isModify()) {
             	// We need to convert modify delta to ADD
             	ObjectDelta<O> addDelta = new ObjectDelta<O>(getObjectTypeClass(),
                 		ChangeType.ADD, getPrismContext());
@@ -489,8 +489,10 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
                 }
                 PrismObject<O> newAccount = (PrismObject<O>) rAccount.createBlankShadow();
                 addDelta.setObjectToAdd(newAccount);
-
-                addDelta.merge(origDelta);
+                
+                if (origDelta != null) {
+                	addDelta.merge(origDelta);
+                }
                 return addDelta;
             }
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {

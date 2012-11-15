@@ -122,97 +122,15 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnecti
 		"classpath:application-context-audit.xml", "classpath:application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml", "classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
-
-	private static final String TEST_DIR = "src/test/resources/impl/dummy/";
-
-	private static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
-	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	private static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	private static final String RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME = "fullname";
-	private static final QName RESOURCE_DUMMY_ATTR_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME);
-	private static final ItemPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);
-	private static final String RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME = "title";
-	private static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME);
-	private static final ItemPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
-
-	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
-	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
-	private static final String ACCOUNT_WILL_ICF_UID = "will";
-
-	private static final String ACCOUNT_DAEMON_USERNAME = "daemon";
-	private static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
-	private static final String ACCOUNT_DAEMON_FILENAME = TEST_DIR + "account-daemon.xml";
-
-	private static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
-
-	private static final String ACCOUNT_MORGAN_FILENAME = TEST_DIR + "account-morgan.xml";
-	private static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
-	private static final String ACCOUNT_MORGAN_NAME = "morgan";
-
-	private static final String FILENAME_ACCOUNT_SCRIPT = TEST_DIR + "account-script.xml";
-	private static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
-	private static final String FILENAME_ENABLE_ACCOUNT = TEST_DIR + "modify-will-enable.xml";
-	private static final String FILENAME_DISABLE_ACCOUNT = TEST_DIR + "modify-will-disable.xml";
-	private static final String FILENAME_MODIFY_ACCOUNT = TEST_DIR + "modify-will-fullname.xml";
-	private static final String FILENAME_SCRIPT_ADD = TEST_DIR + "script-add.xml";
-
-	private static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
+public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningServiceImplTest {
 
 	private static final String BLACKBEARD_USERNAME = "blackbeard";
 	private static final String DRAKE_USERNAME = "drake";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
 
-	private PrismObject<ResourceType> resource;
-	private ResourceType resourceType;
-	private static DummyResource dummyResource;
 	private static Task syncTask;
 	private CachingMetadataType capabilitiesCachingMetadataType;
-
-	@Autowired(required = true)
-	private ProvisioningService provisioningService;
-
-	// Used to make sure that the connector is cached
-	@Autowired(required = true)
-	private ConnectorTypeManager connectorTypeManager;
-
-	@Autowired(required = true)
-	private SynchornizationServiceMock syncServiceMock;
-
-	/**
-	 * @throws JAXBException
-	 */
-	public ProvisioningServiceImplDummyTest() throws JAXBException {
-		super();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
-	 */
-
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
-		resourceType = resource.asObjectable();
-
-		dummyResource = DummyResource.getInstance();
-		dummyResource.reset();
-		dummyResource.populateWithDefaultSchema();
-		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition(RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, String.class, false, true);
-		accountObjectClass.add(titleAttrDef);
-
-		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
-		dummyAccountDaemon.setEnabled(true);
-		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
-		dummyResource.addAccount(dummyAccountDaemon);
-
-		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, AccountShadowType.class, initResult);
-	}
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
@@ -1733,38 +1651,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		}
 
 		// TODO: check result
-	}
-
-	private void checkConsistency(PrismObject object) throws SchemaException {
-
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".checkConsistency");
-		
-
-//		QueryType query = new QueryType();
-//		Document doc = DOMUtil.getDocument();
-//		XPathHolder xpath = new XPathHolder(SchemaConstants.I_ATTRIBUTES);
-//		query.setFilter(QueryUtil.createEqualFilter(doc, xpath, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_WILL_ICF_UID));
-		ItemDefinition itemDef = ResourceObjectShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-//		ItemDefinition itemDef = object.getDefinition().findContainerDefinition(AccountShadowType.F_ATTRIBUTES).findItemDefinition(ConnectorFactoryIcfImpl.ICFS_UID);		
-		
-		LOGGER.info("item definition: {}", itemDef.dump());
-		
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(AccountShadowType.F_ATTRIBUTES), itemDef, ACCOUNT_WILL_ICF_UID);
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-		
-		System.out.println("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
-				+ query.dump());
-		display("Looking for shadows of \"" + ACCOUNT_WILL_ICF_UID + "\" with filter "
-				+ query.dump());
-
-		
-		List<PrismObject<AccountShadowType>> objects = repositoryService.searchObjects(AccountShadowType.class, query,
-				result);
-
-		
-		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_WILL_ICF_UID + "\"", 1, objects.size());
-
 	}
 
 }

@@ -635,6 +635,7 @@ public class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
+		LOGGER.debug("Handling provisioning excpetion {}:{}", new Object[]{ex.getClass(), ex.getMessage(), ex});
 		return handler.handleError(shadow, op, ex, parentResult);
 
 	}

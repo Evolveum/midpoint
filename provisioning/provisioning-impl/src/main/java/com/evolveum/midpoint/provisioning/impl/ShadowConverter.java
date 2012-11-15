@@ -931,19 +931,20 @@ public class ShadowConverter {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 
 		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		if (attributesContainer != null) {
-			if (attributesContainer instanceof ResourceAttributeContainer) {
-				if (attributesContainer.getDefinition() == null) {
-					ResourceAttributeContainerDefinition definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
-							objectClassDefinition, objectClassDefinition.getPrismContext());
-					attributesContainer.applyDefinition(definition);
-				}
-			} else {
-				// We need to convert <attributes> to ResourceAttributeContainer
-				ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
-						attributesContainer, objectClassDefinition);
-				shadow.getValue().replace(attributesContainer, convertedContainer);
+		if (attributesContainer == null || attributesContainer.isEmpty()) {
+			throw new SchemaException("No attributes in "+shadow);
+		}
+		if (attributesContainer instanceof ResourceAttributeContainer) {
+			if (attributesContainer.getDefinition() == null) {
+				ResourceAttributeContainerDefinition definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
+						objectClassDefinition, objectClassDefinition.getPrismContext());
+				attributesContainer.applyDefinition(definition);
 			}
+		} else {
+			// We need to convert <attributes> to ResourceAttributeContainer
+			ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
+					attributesContainer, objectClassDefinition);
+			shadow.getValue().replace(attributesContainer, convertedContainer);
 		}
 
 		return objectClassDefinition;
@@ -952,8 +953,11 @@ public class ShadowConverter {
 	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		QName objectClass = shadow.asObjectable().getObjectClass();
+		if (objectClass == null) {
+			throw new SchemaException("No objectclass definied in "+shadow);
+		}
+		
 		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(objectClass);
-
 		if (objectClassDefinition == null) {
 			// Unknown objectclass
 			throw new SchemaException("Object class " + objectClass

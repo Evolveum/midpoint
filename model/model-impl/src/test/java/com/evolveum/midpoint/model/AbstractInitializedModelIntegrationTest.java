@@ -191,12 +191,15 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 	protected PrismObject<ResourceType> resourceDummyRed;
 	protected ResourceType resourceDummyBlueType;
 	protected PrismObject<ResourceType> resourceDummyBlue;
+	protected ResourceType resourceDummyWhiteType;
+	protected PrismObject<ResourceType> resourceDummyWhite;
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
 	protected static DummyResource dummyResource;
 	protected static DummyResource dummyResourceRed;
 	protected static DummyResource dummyResourceBlue;
+	protected static DummyResource dummyResourceWhite;
 	
 	public AbstractInitializedModelIntegrationTest() {
 		super();
@@ -232,6 +235,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 		dummyResourceBlue.populateWithDefaultSchema();
 		extendDummySchema(dummyResourceBlue);
 		
+		dummyResourceWhite = DummyResource.getInstance(RESOURCE_DUMMY_WHITE_NAME);
+		dummyResourceWhite.reset();
+		dummyResourceWhite.populateWithDefaultSchema();
+		
 		postInitDummyResouce();
 		
 		// User Templates
@@ -256,6 +263,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
 		resourceDummySchemaless = addObjectFromFile(RESOURCE_DUMMY_SCHEMALESS_FILENAME, ResourceType.class, initResult);
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
+		
+		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
+		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);

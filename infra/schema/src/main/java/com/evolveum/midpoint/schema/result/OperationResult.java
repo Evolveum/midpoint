@@ -350,6 +350,10 @@ public class OperationResult implements Serializable, Dumpable {
 	public boolean isHandledError() {
 		return (status == OperationResultStatus.HANDLED_ERROR);
 	}
+	
+	public boolean isNotApplicable() {
+		return (status == OperationResultStatus.NOT_APPLICABLE);
+	}
 
 	/**
 	 * Computes operation result status based on subtask status and sets an

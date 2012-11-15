@@ -192,6 +192,12 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
 	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
 	
+	// White dummy resource has almost no configuration: no schema, no schemahandling, no synchronization, ...
+	protected static final String RESOURCE_DUMMY_WHITE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-white.xml";
+	protected static final String RESOURCE_DUMMY_WHITE_OID = "10000000-0000-0000-0000-000000000304";
+	protected static final String RESOURCE_DUMMY_WHITE_NAME = "white";
+	protected static final String RESOURCE_DUMMY_WHITE_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_NAME + "/resource-dummy-schemaless-no-schema.xml";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
