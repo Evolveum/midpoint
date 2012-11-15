@@ -29,8 +29,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<name>Dummy Resource Blue</name>
-	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004"
-		type="c:ConnectorType">
+	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
 				<q:equal>

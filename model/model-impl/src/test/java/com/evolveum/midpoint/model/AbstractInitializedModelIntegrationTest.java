@@ -256,14 +256,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 		
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
-		
-		resourceDummyRed = addObjectFromFile(RESOURCE_DUMMY_RED_FILENAME, ResourceType.class, initResult);
+		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILENAME, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
 		resourceDummyRedType = resourceDummyRed.asObjectable();
-		resourceDummyBlue = addObjectFromFile(RESOURCE_DUMMY_BLUE_FILENAME, ResourceType.class, initResult);
+		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLUE_FILENAME, RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
-		resourceDummySchemaless = addObjectFromFile(RESOURCE_DUMMY_SCHEMALESS_FILENAME, ResourceType.class, initResult);
+		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
-		
 		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
 		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
 

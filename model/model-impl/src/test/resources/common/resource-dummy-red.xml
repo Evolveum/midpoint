@@ -30,7 +30,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
 	<name>Dummy Resource Red</name>
-	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
+	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
 				<q:equal>
@@ -174,9 +174,6 @@
 			<dependency>
 				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			</dependency>
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
 			<credentials>
                 <password>
                     <outbound>
@@ -197,6 +194,9 @@
                     </outbound>            	
             	</enabled>
             </activation>
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
 		</accountType>
 	</schemaHandling>
 	

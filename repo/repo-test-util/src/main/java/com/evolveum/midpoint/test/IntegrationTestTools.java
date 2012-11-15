@@ -177,6 +177,7 @@ public class IntegrationTestTools {
 			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
 			LOGGER.error(logmsg);
 			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
 			fail(logmsg);
 		}
 		
@@ -188,6 +189,7 @@ public class IntegrationTestTools {
 			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
 			LOGGER.error(logmsg);
 			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
 			assert false : logmsg;	
 		}
 		
