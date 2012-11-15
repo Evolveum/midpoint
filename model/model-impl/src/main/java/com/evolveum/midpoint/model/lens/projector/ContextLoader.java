@@ -97,6 +97,8 @@ public class ContextLoader {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException {
 		
+		context.recompute();
+		
 		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 			preprocessProjectionContext(context, projectionContext, result);
 		}
@@ -157,17 +159,40 @@ public class ContextLoader {
 	private <F extends ObjectType, P extends ObjectType> void preprocessProjectionContext(LensContext<F,P> context, 
 			LensProjectionContext<P> projectionContext, OperationResult result) 
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		if (!ResourceObjectShadowType.class.isAssignableFrom(projectionContext.getObjectTypeClass())) {
+			return;
+		}
+		String resourceOid = null;
+		boolean isThombstone = false;
+		String intent = null;
 		ResourceShadowDiscriminator rsd = projectionContext.getResourceShadowDiscriminator();
 		if (rsd != null) {
-			ResourceType resource = projectionContext.getResource();
-			if (resource == null) {
-				resource = LensUtil.getResource(context, rsd.getResourceOid(), provisioningService, result);
-				projectionContext.setResource(resource);
-			}
-			String refinedIntent = LensUtil.refineAccountType(rsd.getIntent(), resource, prismContext);
-			rsd = new ResourceShadowDiscriminator(rsd.getResourceOid(), refinedIntent, rsd.isThombstone());
-			projectionContext.setResourceShadowDiscriminator(rsd);
+			resourceOid = rsd.getResourceOid();
+			isThombstone = rsd.isThombstone();
+			intent = rsd.getIntent();
 		}
+		if (resourceOid == null && projectionContext.getObjectOld() != null) {
+			resourceOid = ResourceObjectShadowUtil.getResourceOid((ResourceObjectShadowType) projectionContext.getObjectOld().asObjectable());
+		}
+		if (resourceOid == null && projectionContext.getObjectNew() != null) {
+			resourceOid = ResourceObjectShadowUtil.getResourceOid((ResourceObjectShadowType) projectionContext.getObjectNew().asObjectable());
+		}
+		// We still may not have resource OID here. E.g. in case of the delete when the account is not loaded yet. It is
+		// perhaps safe to skip this. It will be sorted out later.
+		if (resourceOid == null) {
+			return;
+		}
+		if (intent == null && projectionContext.getObjectNew() != null) {
+			intent = ((ResourceObjectShadowType) projectionContext.getObjectNew().asObjectable()).getIntent();
+		}
+		ResourceType resource = projectionContext.getResource();
+		if (resource == null) {
+			resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+			projectionContext.setResource(resource);
+		}
+		String refinedIntent = LensUtil.refineAccountType(intent, resource, prismContext);
+		rsd = new ResourceShadowDiscriminator(resourceOid, refinedIntent, isThombstone);
+		projectionContext.setResourceShadowDiscriminator(rsd);
 	}
 	
 	/** 
@@ -415,8 +440,28 @@ public class ContextLoader {
 					if (!account.hasCompleteDefinition()) {
 						provisioningService.applyDefinition(account, result);
 					}
-					// Create account context from embedded object
-					accountContext = createAccountContext(context, account, result);
+					// Check for conflicting change
+					accountContext = LensUtil.getAccountContext(context, account, provisioningService, prismContext, result);
+					if (accountContext != null) {
+						// There is already existing context for the same discriminator. Tolerate this only if
+						// the deltas match. It is an error otherwise.
+						ObjectDelta<AccountShadowType> primaryDelta = accountContext.getPrimaryDelta();
+						if (primaryDelta == null) {
+							throw new SchemaException("Attempt to add "+account+" to a user that already contains account of type '"+
+									accountContext.getResourceShadowDiscriminator().getIntent()+"' on "+accountContext.getResource());
+						}
+						if (!primaryDelta.isAdd()) {
+							throw new SchemaException("Conflicting changes in the context. " +
+									"Add of accountRef in the user delta with embedded object conflicts with explicit delta "+primaryDelta);
+						}
+						if (!account.equals(primaryDelta.getObjectToAdd())) {
+							throw new SchemaException("Conflicting changes in the context. " +
+									"Add of accountRef in the user delta with embedded object is not adding the same object as explicit delta "+primaryDelta);
+						}
+					} else {
+						// Create account context from embedded object
+						accountContext = createAccountContext(context, account, result);
+					}
 					// This is a new account that is to be added. So it should
 					// go to account primary delta
 					ObjectDelta<AccountShadowType> accountPrimaryDelta = account.createAddDelta();
@@ -627,9 +672,9 @@ public class ContextLoader {
 		return accountSyncContext;
 	}
 
-	private LensProjectionContext<AccountShadowType> findAccountContext(String oid, LensContext<UserType,AccountShadowType> context) {
+	private LensProjectionContext<AccountShadowType> findAccountContext(String accountOid, LensContext<UserType,AccountShadowType> context) {
 		for (LensProjectionContext<AccountShadowType> accContext : context.getProjectionContexts()) {
-			if (oid.equals(accContext.getOid())) {
+			if (accountOid.equals(accContext.getOid())) {
 				return accContext;
 			}
 		}

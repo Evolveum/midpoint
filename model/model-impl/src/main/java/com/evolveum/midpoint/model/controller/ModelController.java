@@ -436,6 +436,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDump(deltas));
+		}
+		
 		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>(deltas.size());
 		for (ObjectDelta delta : deltas){
 			clonedDeltas.add(delta.clone());
@@ -447,6 +451,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 		
 		projector.project(context, "preview", result);
 		context.distributeResource();
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Preview changes output:\n{}", context.dump());
+		}
 		
 		// TODO: ERROR HANDLING
 		result.computeStatus();

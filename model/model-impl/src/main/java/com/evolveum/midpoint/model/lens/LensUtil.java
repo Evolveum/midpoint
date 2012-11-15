@@ -92,15 +92,15 @@ public class LensUtil {
 	public static <F extends ObjectType, P extends ObjectType> ResourceType getResource(LensContext<F,P> context,
 			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		ResourceType resource = context.getResource(resourceOid);
-		if (resource == null) {
+		ResourceType resourceType = context.getResource(resourceOid);
+		if (resourceType == null) {
 			// Fetching from provisioning to take advantage of caching and
 			// pre-parsed schema
-			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result)
+			resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result)
 					.asObjectable();
-			context.rememberResource(resource);
+			context.rememberResource(resourceType);
 		}
-		return resource;
+		return resourceType;
 	}
 	
 	public static String refineAccountType(String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
@@ -110,6 +110,22 @@ public class LensUtil {
 			throw new SchemaException("No account definition for intent="+intent+" in "+resource);
 		}
 		return accountDefinition.getAccountTypeName();
+	}
+	
+	public static LensProjectionContext<AccountShadowType> getAccountContext(LensContext<UserType,AccountShadowType> context,
+			PrismObject<AccountShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		return getAccountContext(context, ResourceObjectShadowUtil.getResourceOid(equivalentAccount.asObjectable()), 
+				equivalentAccount.asObjectable().getIntent(), provisioningService, prismContext, result);
+	}
+	
+	public static LensProjectionContext<AccountShadowType> getAccountContext(LensContext<UserType,AccountShadowType> context,
+			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
+		String accountType = refineAccountType(intent, resource, prismContext);
+		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, accountType);
+		return context.findProjectionContext(rsd);
 	}
 	
 	public static LensProjectionContext<AccountShadowType> getOrCreateAccountContext(LensContext<UserType,AccountShadowType> context,
