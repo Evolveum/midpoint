@@ -98,6 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -318,8 +319,9 @@ public class TestMultiConnector extends AbstractModelIntegrationTest {
         
         ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID, 
         		prismContext);
+        PrismReference connectorRef = resourceDummyFake.findReference(ResourceType.F_CONNECTOR_REF);
         ReferenceDelta connectorRefDeltaDel = ReferenceDelta.createModificationDelete(ResourceType.F_CONNECTOR_REF, 
-        		getResourceDefinition(), connectorDummyFakeOid);
+        		getResourceDefinition(), connectorRef.getValue().clone());
         resourceDelta.addModification(connectorRefDeltaDel);
         ReferenceDelta connectorRefDeltaAdd = ReferenceDelta.createModificationAdd(ResourceType.F_CONNECTOR_REF, 
         		getResourceDefinition(), connectorDummyOid);
