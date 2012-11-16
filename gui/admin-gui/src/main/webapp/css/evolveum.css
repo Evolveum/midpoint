@@ -119,6 +119,17 @@ input:focus, .button:focus, select:focus, option:focus {
 	/* text-transform: capitalize; */
 }
 
+#bysy_indicator {
+  display: none;
+  background: url(../img/preloader.gif);
+  background-repeat: no-repeat;
+  width: 143px;
+  height: 28px;
+  float: right; 
+  margin: -1px 13px 0 0;
+}
+
+
 #header {
 	position: absolute;
 	left: 0px;
@@ -1009,3 +1020,4 @@ pre {
     font-size: 14px;
     background: #F2F2F2;
 }
+
