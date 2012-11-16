@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
-import com.sleepycat.bind.tuple.StringBinding;
 
 /**
  * 
