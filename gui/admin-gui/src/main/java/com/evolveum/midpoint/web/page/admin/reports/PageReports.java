@@ -40,22 +40,30 @@ import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -65,14 +73,18 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ajaxDownload.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -81,9 +93,14 @@ import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserFilterDto;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -95,17 +112,24 @@ public class PageReports extends PageAdminReports {
 	private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
 	private static final String DOT_CLASS = PageReports.class.getName() + ".";
 	private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
-	private LoadableModel<UserFilterDto> userFilterModel;
+	private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "getObjects";
+	private LoadableModel<UserFilterDto> userFilterDto;
 	private List listObject;
+	private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior;
 	@SpringBean(name = "sessionFactory")
     private SessionFactory sessionFactory;
 
 	public PageReports() {
-		userFilterModel = new LoadableModel<UserFilterDto>(false) {
+		userFilterDto = new LoadableModel<UserFilterDto>(false) {
 
 			@Override
 			protected UserFilterDto load() {
-				return new UserFilterDto();
+				UserFilterDto dto = new UserFilterDto();
+				List<PrismObject<ResourceType>> resourceList = createResourceListModel().getObject();
+				if(!resourceList.isEmpty()) {
+					dto.setResource(resourceList.get(0));
+				}
+				return dto;
 			}
 		};
 		initLayout();
@@ -115,14 +139,24 @@ public class PageReports extends PageAdminReports {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
+		ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream(true) {
+			@Override
+			protected byte[] initStream() {
+				return createReport();
+			}
+		};
+		ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
+		mainForm.add(ajaxDownloadBehavior);
+
 		OptionPanel option = new OptionPanel("option", createStringResource("pageReports.optionsTitle"),
 				getPage(), false);
 		option.setOutputMarkupId(true);
 		mainForm.add(option);
 
-		OptionItem diagnostics = new OptionItem("objectsType",
+		OptionItem objectsType = new OptionItem("objectsType",
 				createStringResource("pageReports.objectsType"));
-		option.getBodyContainer().add(diagnostics);
+		option.getBodyContainer().add(objectsType);
+		objectsType.setVisible(false);
 
 		DropDownChoice objectTypeChoice = new DropDownChoice("objectTypeChoice",
 				new AbstractReadOnlyModel<Class>() {
@@ -149,7 +183,7 @@ public class PageReports extends PageAdminReports {
 				super.onSelectionChanged(newSelection);
 			}
 		};
-		diagnostics.add(objectTypeChoice);
+		objectsType.add(objectTypeChoice);
 
 		OptionItem usersFilter = new OptionItem("usersFilter",
 				createStringResource("pageReports.usersFilter"), true);
@@ -159,6 +193,44 @@ public class PageReports extends PageAdminReports {
 		OptionContent content = new OptionContent("optionContent");
 		mainForm.add(content);
 		initTable(content, mainForm);
+
+		initButtons(mainForm);
+	}
+
+	private void initButtons(Form mainForm) {
+		AjaxLinkButton selectedReport = new AjaxLinkButton("selectedReport",
+				createStringResource("pageReports.button.selectedReport")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				List list = new ArrayList();
+				List<SelectableBean<ObjectType>> beans = WebMiscUtil.getSelectedData(getTable());
+				for (SelectableBean<ObjectType> bean : beans) {
+					list.add(bean.getValue());
+				}
+				if(!list.isEmpty()) {
+					listObject = list;
+					ajaxDownloadBehavior.initiate(target);
+				} else {
+					warn(getString("pageReports.message.nothingSelected"));
+			        target.add(getFeedbackPanel());
+			        target.add(getTable());
+				}
+				
+			}
+		};
+		mainForm.add(selectedReport);
+
+		AjaxLinkButton allReport = new AjaxLinkButton("allReport",
+				createStringResource("pageReports.button.allReport")) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				listObject = getObjects();
+				ajaxDownloadBehavior.initiate(target);
+			}
+		};
+		mainForm.add(allReport);
 	}
 
 	private IModel<List<Class>> createObjectListModel() {
@@ -198,17 +270,36 @@ public class PageReports extends PageAdminReports {
 
 	private void initSearch(OptionItem item) {
 		TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(
-				userFilterModel, "searchText"));
+				userFilterDto, "searchText"));
 		item.add(search);
 
 		ThreeStateCheckPanel activationCheck = new ThreeStateCheckPanel("activationEnabled",
-				new PropertyModel<Boolean>(userFilterModel, "activated"));
+				new PropertyModel<Boolean>(userFilterDto, "activated"));
 		activationCheck.setStyle("margin: 1px 1px 1px 6px;");
 		item.add(activationCheck);
+		activationCheck.setVisible(false);
+		
+		final Image resourceHelp = new Image("resourceHelp", new PackageResourceReference(ImgResources.class,
+				ImgResources.TOOLTIP_INFO));
+		resourceHelp.setOutputMarkupId(true);
+		resourceHelp.add(new AttributeAppender("original-title", getString("pageReports.resourceHelp")));
+		resourceHelp.add(new AbstractDefaultAjaxBehavior() {
+			@Override
+			public void renderHead(Component component, IHeaderResponse response) {
+				String js = "$('#"+ resourceHelp.getMarkupId() +"').tipsy()";
+				response.renderOnDomReadyJavaScript(js);
+				super.renderHead(component, response);
+			}
 
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+			}
+		});
+		item.add(resourceHelp);
+		
 		DropDownChoice resourceChoice = new DropDownChoice("resourceChoice",
-				new PropertyModel<PrismObject<ResourceType>>(userFilterModel, "resource"),
-				createResourceListModel(), new IChoiceRenderer<PrismObject<ResourceType>>() {
+				new PropertyModel<PrismObject<ResourceType>>(userFilterDto, "resource"),
+                createResourceListModel(), new IChoiceRenderer<PrismObject<ResourceType>>() {
 
 					@Override
 					public Object getDisplayValue(PrismObject<ResourceType> resource) {
@@ -219,8 +310,15 @@ public class PageReports extends PageAdminReports {
 					public String getIdValue(PrismObject<ResourceType> resource, int index) {
 						return Integer.toString(index);
 					}
-				});
-		resourceChoice.setNullValid(true);
+				}){
+
+					@Override
+					protected void onSelectionChanged(Object newSelection) {
+						userFilterDto.getObject().setResource((PrismObject<ResourceType>)newSelection);
+					}
+			
+		};
+		resourceChoice.setNullValid(false);
 		item.add(resourceChoice);
 
 		AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
@@ -256,7 +354,7 @@ public class PageReports extends PageAdminReports {
 
 	private void initTable(OptionContent content, Form mainForm) {
 		List<IColumn<SelectableBean>> columns = initColumns(mainForm);
-		TablePanel table = new TablePanel<SelectableBean>("reportsTable", new ObjectDataProvider(
+		TablePanel table = new TablePanel<SelectableBean>("reportsTable", new RepositoryObjectDataProvider(
 				PageReports.this, UserType.class), columns);
 		table.setOutputMarkupId(true);
 		content.getBodyContainer().add(table);
@@ -278,8 +376,7 @@ public class PageReports extends PageAdminReports {
 		ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
 		mainForm.add(ajaxDownloadBehavior);
 
-		column = new LinkColumn<SelectableBean>(createStringResource("pageReports.reportLink"), "fullName",
-				"value.fullName.orig") {
+		column = new LinkColumn<SelectableBean>(createStringResource("pageReports.reportLink"), "value.fullName.orig") {
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean> rowModel) {
@@ -299,7 +396,7 @@ public class PageReports extends PageAdminReports {
 	}
 
 	private ObjectQuery createQuery() {
-		UserFilterDto dto = userFilterModel.getObject();
+		UserFilterDto dto = userFilterDto.getObject();
 		ObjectQuery query = null;
 
 		try {
@@ -312,19 +409,19 @@ public class PageReports extends PageAdminReports {
 			if (!StringUtils.isEmpty(dto.getSearchText())) {
 				String normalizedString = normalizer.normalize(dto.getSearchText());
 				filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-						UserType.F_NAME, normalizedString));
+						UserType.F_FULL_NAME, normalizedString));
 			}
 
-			if (dto.isActivated() != null) {
-				filters.add(EqualsFilter.createEqual(UserType.class, getPrismContext(),
-						UserType.F_ACTIVATION, dto.isActivated()));
+//			if (dto.isActivated() != null) {
+//				filters.add(EqualsFilter.createEqual(UserType.class, getPrismContext(),
+//						UserType.F_ACTIVATION, dto.isActivated()));
+//
+//			}
 
-			}
-
-			if (dto.getResource() != null) {
-				filters.add(RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF,
-						getPrismContext(), dto.getResource().getOid()));
-			}
+//			if (dto.getResource() != null) {
+//				filters.add(RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF,
+//						getPrismContext(), dto.getResource().getOid()));
+//			}
 
 			if (filters.size() == 1) {
 				query = ObjectQuery.createObjectQuery(filters.get(0));
@@ -344,6 +441,18 @@ public class PageReports extends PageAdminReports {
 		OptionContent content = (OptionContent) get("mainForm:optionContent");
 		return (TablePanel) content.getBodyContainer().get("reportsTable");
 	}
+	
+	private DropDownChoice getResourceChoiceComponent() {
+		OptionPanel panel = (OptionPanel) get("mainForm:option");
+		OptionItem item = (OptionItem) panel.getBodyContainer().get("usersFilter");
+		return (DropDownChoice) item.getBodyContainer().get("resourceChoice");
+	}
+	
+	 private RepositoryObjectDataProvider<ObjectType> getTableDataProvider() {
+	        TablePanel tablePanel = getTable();
+	        DataTable table = tablePanel.getDataTable();
+	        return (RepositoryObjectDataProvider<ObjectType>) table.getDataProvider();
+	    }
 
 	private void searchPerformed(AjaxRequestTarget target) {
 		ObjectQuery query = createQuery();
@@ -351,24 +460,25 @@ public class PageReports extends PageAdminReports {
 
 		TablePanel panel = getTable();
 		DataTable table = panel.getDataTable();
-		ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-		provider.setQuery(query);
+		getTableDataProvider().setQuery(query);
 		table.setCurrentPage(0);
 		target.add(panel);
 	}
 
 	private void clearButtonPerformed(AjaxRequestTarget target) {
-		userFilterModel.reset();
+		userFilterDto.reset();
 		target.appendJavaScript("init()");
 		target.add(get("mainForm:option"));
 		searchPerformed(target);
 	}
 
 	private byte[] createReport() {
-		if(listObject == null || listObject.isEmpty()) {
-			//return null;
+		UserFilterDto dto = userFilterDto.getObject();
+		if (dto.getResource() == null) {
+			getSession().error(getString("pageReports.message.noResourceSelected"));
+			throw new RestartResponseException(PageReports.class);
 		}
-
+		
 
 		JasperDesign design;
 		JasperReport report = null;
@@ -387,12 +497,19 @@ public class PageReports extends PageAdminReports {
 				if (obj instanceof UserType){
 					user = (UserType) obj;
 					userNames.add(user.getName().getOrig());
+				} else if(obj instanceof PrismObject) {
+					PrismObject prism = (PrismObject) obj;
+					if(prism.getCompileTimeClass().equals(UserType.class)) {
+						user = (UserType) prism.asObjectable();
+						userNames.add(user.getName().getOrig());
+					}
 				}
 			}
 			
 			params.put("USER_NAME", userNames);
+			
 			//TODO: dynamically get resource..
-			params.put("RESOURCE_OID", "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2");
+			params.put("RESOURCE_OID", dto.getResource().getOid());
 
 			Session session = sessionFactory.openSession();
 			session.beginTransaction();
@@ -400,11 +517,43 @@ public class PageReports extends PageAdminReports {
 			jasperPrint = JasperFillManager.fillReport(report, params);
 			return JasperExportManager.exportReportToPdf(jasperPrint);
 		} catch (JRException ex) {
-			error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
+            getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
 			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
+			throw new RestartResponseException(PageReports.class);
 		}
-		return null;
 	}
+	
+	private List<PrismObject<ObjectType>> getObjects() {
+        ObjectQuery query = getTableDataProvider().getQuery();
+
+        ObjectQuery clonedQuery = null;
+        if (query != null) {
+            clonedQuery = new ObjectQuery();
+            clonedQuery.setFilter(query.getFilter());
+        }
+        Class<ObjectType> type = getTableDataProvider().getType();
+        if (type == null) {
+            type = ObjectType.class;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECT);
+        List<PrismObject<ObjectType>> objects = null;
+        try {
+			objects = getModelService().searchObjects(type, clonedQuery,
+					ObjectOperationOptions.createCollection(new ItemPath(), ObjectOperationOption.RAW),
+					createSimpleTask(OPERATION_SEARCH_OBJECT), result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        if (WebMiscUtil.showResultInPage(result)) {
+            showResult(result);
+        }
+
+        return objects != null ? objects : new ArrayList<PrismObject<ObjectType>>();
+    }
 	
 	public SessionFactory getSessionFactory() {
 		return sessionFactory;

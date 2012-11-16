@@ -242,15 +242,22 @@ function setupFunc() {
 	hideBusysign();
 	Wicket.Ajax.registerPreCallHandler(showBusysign);
 	Wicket.Ajax.registerPostCallHandler(hideBusysign);
-	Wicket.Ajax.registerFailureHandler(hideBusysign);
+	Wicket.Ajax.registerFailureHandler(showError);
 }
 
 function hideBusysign() {
 	document.getElementById('bysy_indicator').style.display = 'none';
+	document.getElementById('error_indicator').style.display = 'none';
+}
+
+function showError() {
+	document.getElementById('bysy_indicator').style.display = 'none';
+	document.getElementById('error_indicator').style.display = 'inline';
 }
 
 function showBusysign() {
 	document.getElementById('bysy_indicator').style.display = 'inline';
+	document.getElementById('error_indicator').style.display = 'none';
 }
 
 function clickFunc(eventData) {

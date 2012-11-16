@@ -129,6 +129,16 @@ input:focus, .button:focus, select:focus, option:focus {
   margin: -1px 13px 0 0;
 }
 
+#error_indicator {
+  display: none;
+  background: url(../img/preloader-error.gif);
+  background-repeat: no-repeat;
+  width: 143px;
+  height: 28px;
+  float: right; 
+  margin: -1px 13px 0 0;
+}
+
 
 #header {
 	position: absolute;
