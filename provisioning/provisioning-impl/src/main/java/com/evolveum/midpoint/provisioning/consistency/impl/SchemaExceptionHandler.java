@@ -38,7 +38,15 @@ public class SchemaExceptionHandler extends ErrorHandler{
 		}
 		
 		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
-		cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
+		
+		try {
+			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(),
+					modification, parentResult);
+		} catch (Exception e) {
+			//this should not happen. But if it happens, we should return original exception
+//			throw new SchemaException("Schema violation during processing shadow: "
+//					+ ObjectTypeUtil.toShortString(shadow) + ": " + ex.getMessage(), ex);
+		}
 		
 		throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 	}	
