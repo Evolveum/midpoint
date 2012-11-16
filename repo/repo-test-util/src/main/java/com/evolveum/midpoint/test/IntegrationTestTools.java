@@ -240,6 +240,54 @@ public class IntegrationTestTools {
 		}
 	}
 	
+	public static void assertWarning(String message, OperationResult result) {
+		assertWarning(message, result, -1, 0);
+	}
+	
+	private static void assertWarning(String message, OperationResult result, int stopLevel, int currentLevel) {
+		if (!checkResults) {
+			return;
+		}
+		hasWarningAssertSuccess(message, result, result, -1, 0);
+	}
+	
+	private static boolean hasWarningAssertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel) {
+		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
+			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
+			fail(logmsg);
+		}
+		
+		if (result.isWarning()) {
+			// Do not descent into warnings. There may be lions inside. Or errors.
+			return true;
+		}
+		
+		if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
+			// OK ... expected error is as good as success
+		} else {
+			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
+			LOGGER.error(logmsg);
+			LOGGER.trace(logmsg + "\n" + originalResult.dump());
+			System.out.println(logmsg + "\n" + originalResult.dump());
+			assert false : logmsg;	
+		}
+		
+		if (stopLevel == currentLevel) {
+			return false;
+		}
+		boolean hasWarning = false;
+		List<OperationResult> partialResults = result.getSubresults();
+		for (OperationResult subResult : partialResults) {
+			if (hasWarningAssertSuccess(message, subResult, originalResult, stopLevel, currentLevel + 1)) {
+				hasWarning = true;
+			}
+		}
+		return hasWarning;
+	}
+	
 	public static void assertInProgress(String message, OperationResult result) {
 		assertTrue("Expected result IN_PROGRESS but it was "+result.getStatus()+" in "+message,
 				result.getStatus() == OperationResultStatus.IN_PROGRESS);

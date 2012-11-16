@@ -280,7 +280,7 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 		display("getObject resource", resource);
 		result.computeStatus();
 		display("getObject result", result);
-		IntegrationTestTools.assertSuccess("getObject result", result);
+		IntegrationTestTools.assertWarning("getObject result", result);
 		
 		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
 		display("resource.fetchResult", fetchResult);
