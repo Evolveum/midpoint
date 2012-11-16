@@ -333,11 +333,22 @@
                 <artifactId>wicket-dnd</artifactId>
                 <version>0.5.0</version>
         </dependency>
+        <dependency>
+	<groupId>com.lowagie</groupId>
+	<artifactId>itext</artifactId>
+	<version>2.1.7</version>
+</dependency>
         <!-- Jasper reports -->
         <dependency>
-			<groupId>jasperreports</groupId>
+			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>3.5.3</version>
+			<version>4.7.0-e1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>4.0.1.Final</version>
+			<scope>compile</scope>
 		</dependency>
     </dependencies>
     <profiles>

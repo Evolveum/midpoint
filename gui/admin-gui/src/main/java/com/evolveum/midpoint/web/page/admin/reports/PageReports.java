@@ -25,16 +25,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletContext;
 
-import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.apache.commons.lang.StringUtils;
@@ -49,6 +51,9 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -59,6 +64,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -91,6 +97,8 @@ public class PageReports extends PageAdminReports {
 	private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
 	private LoadableModel<UserFilterDto> userFilterModel;
 	private List listObject;
+	@SpringBean(name = "sessionFactory")
+    private SessionFactory sessionFactory;
 
 	public PageReports() {
 		userFilterModel = new LoadableModel<UserFilterDto>(false) {
@@ -360,8 +368,7 @@ public class PageReports extends PageAdminReports {
 		if(listObject == null || listObject.isEmpty()) {
 			//return null;
 		}
-		HashMap<String, String> parameterMap = new HashMap<String, String>();
-		parameterMap.put("paramName", "Janko Hraško");
+
 
 		JasperDesign design;
 		JasperReport report = null;
@@ -370,14 +377,41 @@ public class PageReports extends PageAdminReports {
 		try {
             ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
 			// Loading template
-			design = JRXmlLoader.load(servletContext.getRealPath("/reports/Report.jrxml"));
+			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
 			report = JasperCompileManager.compileReport(design);
-			jasperPrint = JasperFillManager.fillReport(report, parameterMap, new JREmptyDataSource());
+			Map params = new HashMap();
+			
+			UserType user = null;
+			List userNames = new ArrayList();
+			for (Object obj : listObject){
+				if (obj instanceof UserType){
+					user = (UserType) obj;
+					userNames.add(user.getName().getOrig());
+				}
+			}
+			
+			params.put("USER_NAME", userNames);
+			//TODO: dynamically get resource..
+			params.put("RESOURCE_OID", "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2");
 
+			Session session = sessionFactory.openSession();
+			session.beginTransaction();
+			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+			jasperPrint = JasperFillManager.fillReport(report, params);
+			return JasperExportManager.exportReportToPdf(jasperPrint);
 		} catch (JRException ex) {
 			error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
 			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
 		}
-		return JasperReports.getData(jasperPrint);
+		return null;
 	}
+	
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+	
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+	
 }
