@@ -50,7 +50,8 @@ public class PasswordPolicyProcessor {
 		boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
 
 		if (!isValid) {
-			throw new PolicyViolationException("Provided password does not satisfy password policies.");
+//			result.computeStatus();
+			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
 
 		}
 
@@ -64,22 +65,6 @@ public class PasswordPolicyProcessor {
 		ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
 		
 		processPasswordPolicy(passwordPolicy, password, result);
-
-//		String passwordValue = determinePasswordValue(password);
-//		
-//		
-//		
-//		if (passwordValue == null || passwordPolicy == null) {
-//			LOGGER.trace("Skipping processing password policies. Password value or password policies not specified.");
-//			return;
-//		}
-//
-//		boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
-//
-//		if (!isValid) {
-//			throw new PolicyViolationException("Provided password does not satisfy password policies.");
-//
-//		}
 
 	}
 	

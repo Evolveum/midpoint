@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+import com.sleepycat.bind.tuple.StringBinding;
 
 /**
  * 
@@ -187,14 +188,19 @@ public class PasswordPolicyUtils {
 		normalize(pp);
 		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
+		StringBuilder message = new StringBuilder();
+		
 		// Test minimal length
 		if (lims.getMinLength() == null){
 			lims.setMinLength(0);
 		}
 		if (lims.getMinLength() > password.length()) {
+			String msg = "Required minimal size (" + lims.getMinLength() + ") of password is not met (password length: "
+							+ password.length() + ")";
 			ret.addSubresult(new OperationResult("Check global minimal length", OperationResultStatus.FATAL_ERROR,
-					"Required minimal size (" + lims.getMinLength() + ") of password is not met (password length: "
-							+ password.length() + ")"));
+					msg));
+			message.append(msg);
+			message.append("\n");
 		} else {
 			ret.addSubresult(new OperationResult("Check global minimal length. Minimal length of password OK.",
 					OperationResultStatus.SUCCESS, "PASSED"));
@@ -203,9 +209,12 @@ public class PasswordPolicyUtils {
 		// Test maximal length
 		if (lims.getMaxLength() != null) {
 			if (lims.getMaxLength() < password.length()) {
+				String msg = "Required maximal size (" + lims.getMaxLength()
+						+ ") of password was exceeded (password length: " + password.length() + ").";
 				ret.addSubresult(new OperationResult("Check global maximal length", OperationResultStatus.FATAL_ERROR,
-						"Required maximal size (" + lims.getMaxLength()
-								+ ") of password was exceeded (password length: " + password.length() + ")."));
+						msg));
+				message.append(msg);
+				message.append("\n");
 			} else {
 				ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
 						OperationResultStatus.SUCCESS, "PASSED"));
@@ -215,10 +224,13 @@ public class PasswordPolicyUtils {
 		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
 		if (lims.getMinUniqueChars() != null) {
 			if (lims.getMinUniqueChars() > tmp.size()) {
+				String msg = "Required minimal count of unique characters ("
+						+ lims.getMinUniqueChars()
+						+ ") in password are not met (unique characters in password " + tmp.size() + ")";
 				ret.addSubresult(new OperationResult("Check minimal count of unique chars",
-						OperationResultStatus.FATAL_ERROR, "Required minimal count of unique characters ("
-								+ lims.getMinUniqueChars()
-								+ ") in password are not met (unique characters in password " + tmp.size() + ")"));
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
 			} else {
 				ret.addSubresult(new OperationResult(
 						"Check minimal count of unique chars. Password satisfies minimal required unique characters.",
@@ -233,6 +245,9 @@ public class PasswordPolicyUtils {
 		
 		if (lims.getLimit() == null || lims.getLimit().isEmpty()){
 			ret.computeStatus();
+			if (ret.getStatus() == OperationResultStatus.FATAL_ERROR){
+				ret.recordFatalError(message.toString());
+			}
 			return ret;
 		}
 		for (StringLimitType l : lims.getLimit()) {
@@ -259,10 +274,13 @@ public class PasswordPolicyUtils {
 				l.setMinOccurs(0);
 			}
 			if (l.getMinOccurs() > count) {
+				String msg = "Required minimal occurence (" + l.getMinOccurs()
+						+ ") of characters in password is not met (occurence of characters in password "
+						+ count + ").";
 				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters",
-						OperationResultStatus.FATAL_ERROR, "Required minimal occurence (" + l.getMinOccurs()
-								+ ") of characters in password is not met (occurence of characters in password "
-								+ count + ")."));
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
 			} else {
 				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters in password OK.",
 						OperationResultStatus.SUCCESS, "PASSED"));
@@ -272,10 +290,13 @@ public class PasswordPolicyUtils {
 			if (l.getMaxOccurs() != null) {
 
 				if (l.getMaxOccurs() < count) {
+					String msg = "Required maximal occurence (" + l.getMaxOccurs()
+							+ ") of characters in password was exceeded (occurence of characters in password "
+							+ count + ").";
 					limitResult.addSubresult(new OperationResult("Check maximal occurence of characters",
-							OperationResultStatus.FATAL_ERROR, "Required maximal occurence (" + l.getMaxOccurs()
-									+ ") of characters in password was exceeded (occurence of characters in password "
-									+ count + ")."));
+							OperationResultStatus.FATAL_ERROR, msg));
+					message.append(msg);
+					message.append("\n");
 				} else {
 					limitResult.addSubresult(new OperationResult(
 							"Check maximal occurence of characters in password OK.", OperationResultStatus.SUCCESS,
@@ -287,9 +308,12 @@ public class PasswordPolicyUtils {
 				l.setMustBeFirst(false);
 			}
 			if (l.isMustBeFirst() && !validChars.contains(password.substring(0, 1))) {
+				String msg = "First character is not from allowed set. Allowed set: "
+						+ validChars.toString();
 				limitResult.addSubresult(new OperationResult("Check valid first char",
-						OperationResultStatus.FATAL_ERROR, "First character is not from allowed set. Allowed set: "
-								+ validChars.toString()));
+						OperationResultStatus.FATAL_ERROR, msg));
+				message.append(msg);
+				message.append("\n");
 			} else {
 				limitResult.addSubresult(new OperationResult("Check valid first char in password OK.",
 						OperationResultStatus.SUCCESS, "PASSED"));
@@ -307,15 +331,21 @@ public class PasswordPolicyUtils {
 			}
 		}
 		if (sb.length() > 0) {
+			String msg = "Characters [ " + sb
+					+ " ] are not allowed to be use in password";
 			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters",
-					OperationResultStatus.FATAL_ERROR, "Characters [ " + sb
-							+ " ] are not allowed to be use in password"));
+					OperationResultStatus.FATAL_ERROR, msg));
+			message.append(msg);
+			message.append("\n");
 		} else {
 			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters OK.",
 					OperationResultStatus.SUCCESS, "PASSED"));
 		}
 
 		ret.computeStatus();
+		if (ret.getStatus() == OperationResultStatus.FATAL_ERROR){
+			ret.recordFatalError(message.toString());
+		}
 		return ret;
 	}
 
