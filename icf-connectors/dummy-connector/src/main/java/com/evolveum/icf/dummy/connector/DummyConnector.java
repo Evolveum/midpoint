@@ -22,11 +22,16 @@ package com.evolveum.icf.dummy.connector;
 
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
 import static com.evolveum.icf.dummy.connector.Utils.*;
 
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -334,7 +339,17 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         // __ACCOUNT__ objectclass
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         
-        DummyObjectClass dummyAccountObjectClass = resource.getAccountObjectClass();
+        DummyObjectClass dummyAccountObjectClass;
+		try {
+			dummyAccountObjectClass = resource.getAccountObjectClass();
+		} catch (ConnectException e) {
+			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (FileNotFoundException e) {
+			throw new ConnectorIOException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			throw new ConnectorException(e.getMessage(), e);
+		} // DO NOT catch IllegalStateException, let it pass
+		
         for (DummyAttributeDefinition dummyAttrDef : dummyAccountObjectClass.getAttributeDefinitions()) {
         	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
         	attrBuilder.setMultiValued(dummyAttrDef.isMulti());

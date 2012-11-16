@@ -192,9 +192,11 @@ public class ResourceTypeManager {
 
 			completeCapabilities(newResource, connector, result);
 			
-		} catch (CommunicationException ex) {
-			// HACK: to not show the error message in the GUI
-			result.recordWarning("Cannot add native capabilities to resource object because the resource is unreachable. Resource object returned without native capabilities.");
+		} catch (Exception ex) {
+			// Catch the exceptions. There are not critical. We need to catch them all because the connector may
+			// throw even undocumented runtime exceptions.
+			// Even non-complete resource may still be usable. The fetchResult indicates that there was an error
+			result.recordWarning("Cannot add native capabilities to resource object. Resource object returned without native capabilities. Cause: "+ex.getMessage(), ex);
 			newResource.setFetchResult(parentResult.createOperationResultType());
 		}
 		result.recordSuccessIfUnknown();
@@ -215,21 +217,20 @@ public class ResourceTypeManager {
 			
 			try {
 				// Fetch schema from connector, UCF will convert it to
-				// Schema Processor format and add all
-				// necessary annotations
+				// Schema Processor format and add all necessary annotations
 				resourceSchema = connector.getResourceSchema(result);
 
-			} catch (CommunicationException ex) {
+			} catch (Exception ex) {
+				// Catch the exceptions. There are not critical. We need to catch them all because the connector may
+				// throw even undocumented runtime exceptions.
+				
 				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-				// Ignore the error. The resource is not complete but the upper layer code should deal with that
-				// Throwing an error will effectively break any operation with the resource (including delete).
-			} catch (GenericFrameworkException ex) {
-				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-				// Ignore the error. The resource is not complete but the upper layer code should deal with that
-				// Throwing an error will effectively break any operation with the resource (including delete).
-			} catch (ConfigurationException ex) {
-				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
-				// Ignore the error. The resource is not complete but the upper layer code should deal with that
+				
+				// Even non-complete resource may still be usable. The fetchResult indicates that there was an error
+				result.recordWarning("Cannot add native capabilities to resource object. Resource object returned without native capabilities. Cause: "+ex.getMessage(), ex);
+				resource.setFetchResult(result.createOperationResultType());
+				
+				// Otherwise ignore the error. The resource is not complete but the upper layer code should deal with that
 				// Throwing an error will effectively break any operation with the resource (including delete).
 			}
 			if (resourceSchema == null) {

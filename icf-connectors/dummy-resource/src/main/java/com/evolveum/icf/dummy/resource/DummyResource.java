@@ -19,6 +19,8 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -68,6 +70,8 @@ public class DummyResource {
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
 	private boolean enforceSchema = true;
+	
+	private BreakMode schemaBreakMode = BreakMode.NONE;
 	
 	// Following two properties are just copied from the connector
 	// configuration and can be checked later. They are otherwise
@@ -127,6 +131,14 @@ public class DummyResource {
 		this.enforceSchema = enforceSchema;
 	}
 
+	public BreakMode getSchemaBreakMode() {
+		return schemaBreakMode;
+	}
+
+	public void setSchemaBreakMode(BreakMode schemaBreakMode) {
+		this.schemaBreakMode = schemaBreakMode;
+	}
+
 	public String getUselessString() {
 		return uselessString;
 	}
@@ -143,8 +155,26 @@ public class DummyResource {
 		this.uselessGuardedString = uselessGuardedString;
 	}
 
-	public DummyObjectClass getAccountObjectClass() {
-		return accountObjectClass;
+	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException {
+		if (schemaBreakMode == BreakMode.NONE) {
+			return accountObjectClass;
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("The schema is not available (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("The schema file not found (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error fetching schema (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error fetching schema (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Schema is not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
+		
 	}
 
 	public Collection<DummyAccount> listAccounts() {

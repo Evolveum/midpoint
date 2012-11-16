@@ -31,6 +31,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
@@ -102,6 +103,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -124,12 +127,63 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	
-		@Test
-	public void test100AddAccountNullAttributes() throws Exception {
-		displayTestTile("test100AddAccountWithoutAttributes");
+	@Test
+	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
+		testGetResourceBrokenSchema(BreakMode.NETWORK, "test110GetResourceBrokenSchemaNetwork");
+	}
+	
+	@Test
+	public void test111GetResourceBrokenSchemaGeneric() throws Exception {
+		testGetResourceBrokenSchema(BreakMode.GENERIC, "test111GetResourceBrokenSchemaGeneric");
+	}
+	
+	@Test
+	public void test112GetResourceBrokenSchemaIo() throws Exception {
+		testGetResourceBrokenSchema(BreakMode.IO, "test112GetResourceBrokenSchemaIO");
+	}
+	
+	@Test
+	public void test113GetResourceBrokenSchemaRuntime() throws Exception {
+		testGetResourceBrokenSchema(BreakMode.RUNTIME, "test113GetResourceBrokenSchemaRuntime");
+	}
+	
+	public void testGetResourceBrokenSchema(BreakMode breakMode, String testName) throws Exception {
+		displayTestTile(testName);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test100AddAccountWithoutAttributes");
+				+ "."+testName);
+		
+		// precondition
+		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+		display("Repo resource (before)", repoResource);
+		PrismContainer<Containerable> schema = repoResource.findContainer(ResourceType.F_SCHEMA);
+		assertTrue("Schema found in resource before the test (precondition)", schema == null || schema.isEmpty());
+
+		dummyResource.setSchemaBreakMode(breakMode);
+		try {
+			
+			// WHEN
+			PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+			
+			// THEN
+			display("Resource with broken schema", resource);
+			OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+			assertNotNull("No fetch result", fetchResult);
+			assertFalse("Fetch result is unknown: "+fetchResult, fetchResult.getStatus().equals(OperationResultStatusType.UNKNOWN));
+			assertFalse("Fetch result successful but expected failure: "+fetchResult, fetchResult.getStatus().equals(OperationResultStatusType.SUCCESS));
+			
+		} finally {
+			dummyResource.setSchemaBreakMode(BreakMode.NONE);
+		}
+	}
+	
+	
+	@Test
+	public void test200AddAccountNullAttributes() throws Exception {
+		displayTestTile("test200AddAccountNullAttributes");
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
+				+ ".test200AddAccountNullAttributes");
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -152,11 +206,11 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 	}
 	
 	@Test
-	public void test101AddAccountEmptyAttributes() throws Exception {
-		displayTestTile("test101AddAccountEmptyAttributes");
+	public void test201AddAccountEmptyAttributes() throws Exception {
+		displayTestTile("test201AddAccountEmptyAttributes");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test101AddAccountEmptyAttributes");
+				+ ".test201AddAccountEmptyAttributes");
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -179,11 +233,11 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 	}
 	
 	@Test
-	public void test110AddAccountNoObjectclass() throws Exception {
-		displayTestTile("test110AddAccountNoObjectclass");
+	public void test210AddAccountNoObjectclass() throws Exception {
+		displayTestTile("test210AddAccountNoObjectclass");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test110AddAccountNoObjectclass");
+				+ ".test210AddAccountNoObjectclass");
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -206,11 +260,11 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 	}
 	
 	@Test
-	public void test120AddAccountNoResourceRef() throws Exception {
-		displayTestTile("test120AddAccountNoResourceRef");
+	public void test220AddAccountNoResourceRef() throws Exception {
+		displayTestTile("test220AddAccountNoResourceRef");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
-				+ ".test120AddAccountNoResourceRef");
+				+ ".test220AddAccountNoResourceRef");
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();

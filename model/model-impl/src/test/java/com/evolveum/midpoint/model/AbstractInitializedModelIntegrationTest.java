@@ -30,6 +30,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -292,7 +293,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 		resource.addAccount(account);
 	}
 
-	private void extendDummySchema(DummyResource dummyResource) {
+	private void extendDummySchema(DummyResource dummyResource) throws ConnectException, FileNotFoundException {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition("title", String.class, false, true);
 		accountObjectClass.add(titleAttrDef);

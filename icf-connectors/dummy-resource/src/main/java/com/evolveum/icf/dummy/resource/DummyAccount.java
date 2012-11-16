@@ -19,6 +19,7 @@
  */
 package com.evolveum.icf.dummy.resource;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -204,7 +205,13 @@ public class DummyAccount implements Dumpable, DebugDumpable {
 		if (resource == null || !resource.isEnforceSchema()) {
 			return;
 		}
-		DummyObjectClass accountObjectClass = resource.getAccountObjectClass();
+		DummyObjectClass accountObjectClass;
+		try {
+			accountObjectClass = resource.getAccountObjectClass();
+		} catch (Exception e) {
+			// No not enforce schema if the schema is broken (simulated)
+			return;
+		}
 		if (accountObjectClass == null) {
 			// Nothing to check
 			return;
