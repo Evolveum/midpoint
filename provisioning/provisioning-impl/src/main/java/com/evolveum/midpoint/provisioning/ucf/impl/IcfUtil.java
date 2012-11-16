@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NoPermissionException;
+import javax.naming.ServiceUnavailableException;
 import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.SchemaViolationException;
 
@@ -207,7 +208,13 @@ class IcfUtil {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
 			parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
 			return newEx;
-		} else if (ex instanceof SchemaViolationException) {
+		} else if (ex instanceof ServiceUnavailableException) {
+            // In some cases (e.g. JDK 1.6.0_31) this is thrown by LDAP connector and may be also throw by similar
+            // connectors
+            Exception newEx = new CommunicationException(createMessageFromAllExceptions("Communication error", ex));
+            parentResult.recordFatalError("Communication error: "+ex.getMessage(), newEx);
+            return newEx;
+        } else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex)); 
