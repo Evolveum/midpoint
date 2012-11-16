@@ -138,6 +138,44 @@ public class IntegrationTestTools {
 			assertSuccess(message, subResult);
 		}
 	}
+	
+	public static void assertWarning(String message, OperationResultType result) {
+		if (!checkResults) {
+			return;
+		}
+		assert hasWarningAssertSuccess(message, result) : message + ": does not have warning";
+	}
+	
+	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
+		boolean hasWarning = false;
+		// Ignore top-level if the operation name is not set
+		if (result.getOperation()!=null) {
+			if (result.getStatus() == OperationResultStatusType.WARNING) {
+				// Do not descent into warnings. There may be lions inside. Or errors.
+				return true;
+			} else {
+				if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
+					fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+				} 
+				if (result.getStatus() != OperationResultStatusType.SUCCESS && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE) {
+					fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
+				}
+			}
+		}
+		List<OperationResultType> partialResults = result.getPartialResults();
+		for (OperationResultType subResult : partialResults) {
+			if (subResult==null) {
+				fail(message+": null subresult under operation "+result.getOperation());
+			}
+			if (subResult.getOperation()==null) {
+				fail(message+": null subresult operation under operation "+result.getOperation());
+			}
+			if (hasWarningAssertSuccess(message, subResult)) {
+				hasWarning = true;
+			}
+		}
+		return hasWarning;
+	}
 
 	public static void assertSuccess(String message, OperationResult result) {
 		assertSuccess(message, result,-1);

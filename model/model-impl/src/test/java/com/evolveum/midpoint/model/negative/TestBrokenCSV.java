@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
@@ -72,8 +73,11 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 	private static final String TEST_DIR = "src/test/resources/negative";
 	private static final String TEST_TARGET_DIR = "target/test/negative";
 	
-	private static final String RESOURCE_CSVFILE_FILENAME = TEST_DIR + "/resource-csvfile-broken.xml";
-	private static final String RESOURCE_CSVFILE_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb";
+	private static final String RESOURCE_CSVFILE_BROKEN_FILENAME = TEST_DIR + "/resource-csvfile-broken.xml";
+	private static final String RESOURCE_CSVFILE_BROKEN_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb";
+	
+	private static final String RESOURCE_CSVFILE_NOTFOUND_FILENAME = TEST_DIR + "/resource-csvfile-notfound.xml";
+	private static final String RESOURCE_CSVFILE_NOTFOUND_OID = "ef2bc95b-76e0-48e2-86d6-f0f002d3f0f0";
 	
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_FILENAME = TEST_DIR + "/account-shadow-jack-csvfile.xml";
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
@@ -103,23 +107,25 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 		
 		MiscUtil.copyFile(new File(BROKEN_CSV_SOURCE_FILE_NAME), new File(BROKEN_CSV_TARGET_FILE_NAME));
 		
-		importObjectFromFile(RESOURCE_CSVFILE_FILENAME, initResult);
+		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
+		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
 		
 		addObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, AccountShadowType.class, initResult);
+		
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 	}
 	
 	@Test
-    public void test010TestResource() throws Exception {
-        displayTestTile(this, "test010TestResource");
+    public void test010TestResourceBroken() throws Exception {
+        displayTestTile(this, "test010TestResourceBroken");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test010TestResource");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test010TestResourceBroken");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
-		OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_OID, task);
+		OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_BROKEN_OID, task);
 		
 		// THEN
 		display("testResource result", testResult);
@@ -127,22 +133,25 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-    public void test020GetResource() throws Exception {
-        displayTestTile(this, "test020GetResource");
+    public void test020GetResourceBroken() throws Exception {
+        displayTestTile(this, "test020GetResourceBroken");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test020GetResource");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test020GetResourceBroken");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
-		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_OID, null, task, result);
+		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_BROKEN_OID, null, task, result);
 		
 		// THEN
 		display("getObject resource", resource);
 		result.computeStatus();
 		display("getObject result", result);
 		IntegrationTestTools.assertSuccess("getObject result", result);
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		IntegrationTestTools.assertSuccess("resource.fetchResult", fetchResult);
+		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
 	}
@@ -154,7 +163,6 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100GetAccountMurray");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         try {
 
@@ -179,7 +187,6 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccountMurrayNoFetch");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
         
@@ -202,7 +209,6 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountMurrayRaw");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
         
@@ -226,7 +232,6 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120SearchAccountByUsernameJack");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         try {
 
@@ -241,6 +246,48 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
             IntegrationTestTools.assertFailure("findAccountByUsername result", result);
         }
 		
+	}
+	
+	@Test
+    public void test210TestResourceNotFound() throws Exception {
+        displayTestTile(this, "test210TestResourceNotFound");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test210TestResourceNotFound");
+        OperationResult result = task.getResult();
+        
+        
+		// WHEN
+		OperationResult testResult = modelService.testResource(RESOURCE_CSVFILE_NOTFOUND_OID, task);
+		
+		// THEN
+		display("testResource result", testResult);
+        IntegrationTestTools.assertFailure("testResource result", testResult);
+	}
+	
+	@Test
+    public void test220GetResourceNotFound() throws Exception {
+        displayTestTile(this, "test220GetResourceNotFound");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test220GetResourceNotFound");
+        OperationResult result = task.getResult();
+        
+		// WHEN
+		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, null, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		IntegrationTestTools.assertSuccess("getObject result", result);
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		IntegrationTestTools.assertWarning("resource.fetchResult", fetchResult);
+		
+        // TODO: better asserts
+		assertNotNull("Null resource", resource);
 	}
 		
 
