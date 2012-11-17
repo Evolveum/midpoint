@@ -120,7 +120,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordHandledError("Could not create account on the resource, because "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online.");
+									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
 			
 			return shadow;
 		case MODIFY:
@@ -150,7 +150,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordHandledError("Could not apply modifications to account on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ ", because resource is unreachable. Modifications will be applied when the resource goes online.");
+									+ ", because resource is unreachable. Modifications will be applied when the resource goes online");
 			return shadow;
 		case DELETE:
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
@@ -161,7 +161,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			parentResult
 					.recordHandledError("Could not delete account from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
-									+ ", because resource is unreachable. Account will be delete when the resource goes online.");
+									+ ", because resource is unreachable. Account will be delete when the resource goes online");
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();
 			return shadow;
@@ -170,7 +170,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			// result..
 			parentResult.recordStatus(OperationResultStatus.HANDLED_ERROR, "Could not get account from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
-					+ ", because resource is unreachable. Returning shadow from the repository.");
+					+ ", because resource is unreachable. Returning shadow from the repository");
 			shadow.setFetchResult(parentResult.createOperationResultType());
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();

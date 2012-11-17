@@ -201,7 +201,7 @@ public class ObjectTypeUtil {
         builder.append(getShortTypeName(object));
         builder.append(": ");
         builder.append(object.getName());
-        builder.append("(OID:");
+        builder.append(" (OID:");
         builder.append(object.getOid());
         builder.append(")");
 

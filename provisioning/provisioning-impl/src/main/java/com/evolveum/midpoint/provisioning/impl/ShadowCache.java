@@ -635,7 +635,7 @@ public class ShadowCache {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		LOGGER.debug("Handling provisioning excpetion {}:{}", new Object[]{ex.getClass(), ex.getMessage(), ex});
+		LOGGER.debug("Handling provisioning exception {}:{}", new Object[]{ex.getClass(), ex.getMessage(), ex});
 		return handler.handleError(shadow, op, ex, parentResult);
 
 	}
@@ -645,7 +645,7 @@ public class ShadowCache {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			// result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
-			LOGGER.trace("Skiping creating script operation to execute. Scripts was not defined.");
+			LOGGER.trace("Skipping creating script operation to execute. Scripts was not defined.");
 			return;
 		}
 

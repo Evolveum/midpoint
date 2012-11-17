@@ -562,6 +562,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "addTask");
 		Task task = createTaskInstance(taskPrism, result);			// perhaps redundant, but it's more convenient to work with Task than with Task prism
+        if (task.getTaskIdentifier() == null) {
+            task.getTaskPrismObject().asObjectable().setTaskIdentifier(generateTaskIdentifier().toString());
+        }
 		String oid = addTaskToRepositoryAndQuartz(task, result);
         result.computeStatus();
         return oid;

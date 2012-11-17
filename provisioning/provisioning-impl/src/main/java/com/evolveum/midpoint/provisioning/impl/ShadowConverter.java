@@ -219,8 +219,8 @@ public class ShadowConverter {
 			applyAfterOperationAttributes(shadowType, resourceAttributesAfterAdd);
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
-					"Could not create account on the resource. Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
-			throw new CommunicationException("Error communitacing with the connector " + connector + ": "
+					"Could not create account on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Could not create account on the resource. Generic error in connector: " + ex.getMessage(), ex);
@@ -294,7 +294,7 @@ public class ShadowConverter {
 		} catch (CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-			throw new CommunicationException("Error communitacing with the connector " + connector + ": "
+			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
