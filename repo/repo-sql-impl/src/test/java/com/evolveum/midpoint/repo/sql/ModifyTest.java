@@ -72,7 +72,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(expectedExceptions = SystemException.class, enabled = false)
     public void test010ModifyWithExistingName() throws Exception {
-        LOGGER.info("=== [ modifyWithExistingName ] ===");
+    	System.out.println("====[ test010ModifyWithExistingName ]====");
+        LOGGER.info("=== [ test010ModifyWithExistingName ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -102,7 +103,8 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
     public void test020ModifyNotExistingUser() throws Exception {
-        LOGGER.info("=== [ modifyNotExistingUser ] ===");
+    	System.out.println("====[ test020ModifyNotExistingUser ]====");
+        LOGGER.info("=== [ test020ModifyNotExistingUser ] ===");
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
@@ -117,6 +119,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(enabled = false)
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
+    	System.out.println("====[ test030ModifyUserOnNonExistingAccountTest ]====");
         LOGGER.info("=== [ test030ModifyUserOnNonExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
@@ -152,6 +155,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(enabled = false)
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
+    	System.out.println("====[ test031ModifyUserOnExistingAccountTest ]====");
         LOGGER.info("=== [ test031ModifyUserOnExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
@@ -192,6 +196,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
+    	System.out.println("====[ test032ModifyTaskObjectRef ]====");
         LOGGER.info("=== [ test032ModifyTaskObjectRef ] ===");
 
         ClassMetadata metadata = factory.getClassMetadata(RTask.class);
@@ -279,6 +284,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     
     @Test
     public void testModifyUserAddRole() throws Exception{
+    	System.out.println("====[ testModifyUserAddRole ]====");
     	 LOGGER.info("=== [ testModifyUserAddRole ] ===");
     	OperationResult parentResult = new OperationResult("Modify user -> add roles");
     	String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
@@ -320,15 +326,22 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     
     @Test
     public void testModifyDeleteObjectChnageFromAccount() throws Exception{
+    	System.out.println("====[ testModifyDeleteObjectChnageFromAccount ]====");
     	OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
     	PrismObject<AccountShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/account-delete-object-change.xml"));
     	String oid = repositoryService.addObject(accShadow, parentResult);
+    	System.out.println("\nAcc shadow");
+    	System.out.println(accShadow.dump());
     	
     	accShadow.asObjectable().setObjectChange(null);
     	
     	PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+    	System.out.println("\nRepo shadow");
+    	System.out.println(repoShadow.dump());
+
     	ObjectDelta d = repoShadow.diff(accShadow);
-//    	System.out.println(d.dump());
+    	System.out.println("\nDelta");
+    	System.out.println(d.dump());
     	
     	repositoryService.modifyObject(AccountShadowType.class, oid, d.getModifications(), parentResult);
     	

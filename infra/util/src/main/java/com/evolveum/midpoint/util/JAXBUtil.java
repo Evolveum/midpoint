@@ -24,6 +24,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -242,6 +243,30 @@ public final class JAXBUtil {
 			}
 		}
 		return null;
+	}
+	
+	public static boolean compareElementList(List<Object> aList, List<Object> bList, boolean considerNamespacePrefixes) {
+		if (aList.size() != bList.size()) {
+			return false;
+		}
+		Iterator<Object> bIterator = bList.iterator();
+		for (Object a: aList) {
+			Object b = bIterator.next();
+			if (a instanceof Element) {
+				if (!(b instanceof Element)) {
+					return false;
+				}
+				if (!DOMUtil.compareElement((Element)a, (Element)b, considerNamespacePrefixes)) {
+					return false;
+				}
+			} else {
+				if (!a.equals(b)) {
+					return false;
+				}
+			}
+			
+		}
+		return true;
 	}
 
 }

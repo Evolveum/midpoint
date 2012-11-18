@@ -230,5 +230,55 @@ public class ObjectDeltaType implements Serializable {
         }
 
     }
+    
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((changeType == null) ? 0 : changeType.hashCode());
+		result = prime * result
+				+ ((modification == null) ? 0 : modification.hashCode());
+		result = prime * result
+				+ ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
+		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ObjectDeltaType other = (ObjectDeltaType) obj;
+		if (changeType != other.changeType)
+			return false;
+		if (modification == null) {
+			if (other.modification != null)
+				return false;
+		} else if (!modification.equals(other.modification))
+			return false;
+		if (objectToAdd == null) {
+			if (other.objectToAdd != null)
+				return false;
+		} else if (!objectToAdd.equals(other.objectToAdd))
+			return false;
+		if (oid == null) {
+			if (other.oid != null)
+				return false;
+		} else if (!oid.equals(other.oid))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "ObjectDeltaType(changeType=" + changeType + ", objectToAdd="
+				+ objectToAdd + ", oid=" + oid + ", modification="
+				+ modification + ")";
+	}
 
 }

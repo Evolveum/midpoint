@@ -871,6 +871,20 @@ public class DOMUtil {
 		}
 		return true;
 	}
+	
+	public static boolean compareElementList(List<Element> aList, List<Element> bList, boolean considerNamespacePrefixes) {
+		if (aList.size() != bList.size()) {
+			return false;
+		}
+		Iterator<Element> bIterator = bList.iterator();
+		for (Element a: aList) {
+			Element b = bIterator.next();
+			if (!compareElement(a, b, considerNamespacePrefixes)) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	private static boolean compareAttributes(NamedNodeMap a, NamedNodeMap b, boolean considerNamespacePrefixes) {
 		if (a==b) {

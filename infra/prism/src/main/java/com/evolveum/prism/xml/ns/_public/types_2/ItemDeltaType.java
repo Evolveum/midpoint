@@ -33,6 +33,9 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
+
 
 /**
  * 
@@ -226,6 +229,38 @@ public class ItemDeltaType implements Serializable, Cloneable {
 
             return value;
         }
+        
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((any == null) ? 0 : any.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Value other = (Value) obj;
+			if (any == null) {
+				if (other.any != null)
+					return false;
+			} else if (!JAXBUtil.compareElementList(any, other.any, false))
+				return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "Value(any=" + any + ")";
+		}
+        
+        
     }
 
     @Override
@@ -473,4 +508,46 @@ public class ItemDeltaType implements Serializable, Cloneable {
         }
         return null;
     }
+    
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime
+				* result
+				+ ((modificationType == null) ? 0 : modificationType.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ItemDeltaType other = (ItemDeltaType) obj;
+		if (modificationType != other.modificationType)
+			return false;
+		if (path == null) {
+			if (other.path != null)
+				return false;
+		} else if (!DOMUtil.compareElement(path, other.path, false))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "ItemDeltaType(modificationType=" + modificationType
+				+ ", path=" + path + ", value=" + value + ")";
+	}
+    
 }

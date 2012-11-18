@@ -17,6 +17,8 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlType;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.util.JAXBUtil;
+
 
 /**
  * <p>Java class for extension complex type.
@@ -75,5 +77,35 @@ public class Extension implements Serializable {
         }
         return this.any;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((any == null) ? 0 : any.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Extension other = (Extension) obj;
+		if (any == null) {
+			if (other.any != null)
+				return false;
+		} else if (!JAXBUtil.compareElementList(any, other.any, false))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Extension(any=" + any + ")";
+	}
 
 }
