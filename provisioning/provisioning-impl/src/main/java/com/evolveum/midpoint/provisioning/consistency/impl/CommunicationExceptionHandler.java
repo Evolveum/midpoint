@@ -95,8 +95,18 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		case ADD:
 			// if it is firt time, just store the whole account to the repo
 			if (shadow.getFailedOperationType() == null) {
+				ResourceType resource = shadow.getResource();
 				if (shadow.getName() == null) {
 					shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
+				}
+				if (shadow.getResourceRef() == null || shadow.getResourceRef().getOid() == null){
+					if (resource != null){
+					shadow.getResourceRef().setOid(shadow.getResource().getOid());
+					}
+				}
+				
+				if (shadow.getResourceRef() != null && resource != null){
+					shadow.setResource(null);
 				}
 				shadow.setAttemptNumber(getAttemptNumber(shadow));
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);

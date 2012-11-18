@@ -137,7 +137,7 @@ public class ShadowConverter {
 			throw ex;
 		}
 		
-		if (repoShadow.getObjectChange() != null){
+		if (repoShadow.getObjectChange() != null && repoShadow.getFailedOperationType() != null){
 			throw new GenericConnectorException("Found changes that have been not applied to the account yet. Trying to apply them now.");
 		}
 

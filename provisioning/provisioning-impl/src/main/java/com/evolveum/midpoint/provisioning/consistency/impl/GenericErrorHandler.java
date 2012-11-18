@@ -84,8 +84,10 @@ public class GenericErrorHandler extends ErrorHandler{
 					
 					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), null, result);
 				}
+				return shadow;
 			}
-			return shadow;
+			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 		case MODIFY:
 			if (shadow.getFailedOperationType() != null) {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
@@ -131,8 +133,11 @@ public class GenericErrorHandler extends ErrorHandler{
 					}
 
 				}
+				return shadow;
 			}
-			return shadow;
+			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+			
 		case DELETE:
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);
 			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
