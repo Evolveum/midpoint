@@ -316,9 +316,23 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     	UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
     	AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
     	
+    }
+    
+    @Test
+    public void testModifyDeleteObjectChnageFromAccount() throws Exception{
+    	OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
+    	PrismObject<AccountShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/account-delete-object-change.xml"));
+    	String oid = repositoryService.addObject(accShadow, parentResult);
     	
+    	accShadow.asObjectable().setObjectChange(null);
     	
+    	PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+    	ObjectDelta d = repoShadow.diff(accShadow);
+//    	System.out.println(d.dump());
     	
+    	repositoryService.modifyObject(AccountShadowType.class, oid, d.getModifications(), parentResult);
     	
+    	PrismObject<AccountShadowType> afterModify = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+    	AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
 }
