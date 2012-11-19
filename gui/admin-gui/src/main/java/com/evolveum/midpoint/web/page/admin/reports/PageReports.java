@@ -506,9 +506,8 @@ public class PageReports extends PageAdminReports {
 				}
 			}
 			
+			params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
 			params.put("USER_NAME", userNames);
-			
-			//TODO: dynamically get resource..
 			params.put("RESOURCE_OID", dto.getResource().getOid());
 
 			Session session = sessionFactory.openSession();
