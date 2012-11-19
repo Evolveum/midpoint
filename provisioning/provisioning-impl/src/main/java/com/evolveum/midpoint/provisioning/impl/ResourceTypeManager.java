@@ -155,7 +155,7 @@ public class ResourceTypeManager {
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..
-		OperationResult result = new OperationResult(ResourceTypeManager.class.getName() + ".completeResource.");
+		OperationResult result = parentResult.createSubresult(ResourceTypeManager.class.getName() + ".completeResource");
 		applyConnectorSchemaToResource(resource, result);
 
 		// Check presence of a schema
@@ -171,8 +171,13 @@ public class ResourceTypeManager {
 		try {
 			connector = getConnectorInstance(resource, false, result);
 		} catch (ObjectNotFoundException e) {
-			throw new ObjectNotFoundException("Error resolving connector reference in " + resource
-					+ ": Error creating connector instace: " + e.getMessage(), e);
+			String message = "Error resolving connector reference in " + resource
+								+ ": Error creating connector instace: " + e.getMessage();
+			// Catch the exceptions. There are not critical. We need to catch them all because the connector may
+			// throw even undocumented runtime exceptions.
+			// Even non-complete resource may still be usable. The fetchResult indicates that there was an error
+			result.recordPartialError(message, e);
+			return resource;
 		}
 
 		if (xsdElement == null) {
@@ -196,15 +201,9 @@ public class ResourceTypeManager {
 			// Catch the exceptions. There are not critical. We need to catch them all because the connector may
 			// throw even undocumented runtime exceptions.
 			// Even non-complete resource may still be usable. The fetchResult indicates that there was an error
-			result.recordWarning("Cannot add native capabilities to resource object. Resource object returned without native capabilities. Cause: "+ex.getMessage(), ex);
-			newResource.setFetchResult(parentResult.createOperationResultType());
+			result.recordPartialError("Cannot add native capabilities to resource object. Resource object returned without native capabilities. Cause: "+ex.getMessage(), ex);
 		}
 		result.recordSuccessIfUnknown();
-		if (result.isSuccess()) {
-			parentResult.addSubresult(result);
-
-		}
-		newResource.setFetchResult(result.createOperationResultType());
 
 		parentResult.recordSuccess();
 		return newResource;
@@ -226,12 +225,12 @@ public class ResourceTypeManager {
 				
 				LOGGER.error("Unable to complete {}: {}", new Object[]{resource, ex.getMessage(), ex});
 				
-				// Even non-complete resource may still be usable. The fetchResult indicates that there was an error
-				result.recordWarning("Cannot add native capabilities to resource object. Resource object returned without native capabilities. Cause: "+ex.getMessage(), ex);
-				resource.setFetchResult(result.createOperationResultType());
+				// Even non-complete resource may still be usable. The result indicates that there was an error
+				result.recordPartialError("Cannot add native capabilities to resource object. Resource object returned without native capabilities. Cause: "+ex.getMessage(), ex);
 				
 				// Otherwise ignore the error. The resource is not complete but the upper layer code should deal with that
 				// Throwing an error will effectively break any operation with the resource (including delete).
+				return;
 			}
 			if (resourceSchema == null) {
 				LOGGER.warn("No resource schema generated for {}", resource);

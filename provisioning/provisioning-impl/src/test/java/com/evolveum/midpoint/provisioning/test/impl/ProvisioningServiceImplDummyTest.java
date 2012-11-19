@@ -5,6 +5,7 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
@@ -150,6 +151,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, result).asObjectable();
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
+		
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
 
 		// Check connector schema
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connector, prismContext);
@@ -174,6 +179,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ObjectQuery(), result);
 
 		// THEN
+		result.computeStatus();
+		display("searchObjects result", result);
+		assertSuccess(result);
+
 		assertFalse("No connector found", connectors.isEmpty());
 		for (PrismObject<ConnectorType> connPrism : connectors) {
 			ConnectorType conn = connPrism.asObjectable();
@@ -221,6 +230,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 
 		// THEN
 		result.computeStatus();
+		display("discoverLocalConnectors result", result);
 		assertSuccess("discoverLocalConnectors failed", result);
 		assertTrue("Rediscovered something", discoverLocalConnectors.isEmpty());
 	}
@@ -293,6 +303,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		// WHEN
 		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		resourceType = resource.asObjectable();
+		
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No configuration container", configurationContainer);
@@ -323,8 +338,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			ConfigurationException {
 		displayTestTile("test005ParsedSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test005ParsedSchema");
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -351,8 +364,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			ConfigurationException {
 		displayTestTile("test006RefinedSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test006RefinedSchema");
 
 		// WHEN
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, prismContext);
@@ -418,6 +429,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				.asObjectable();
 
 		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
@@ -478,6 +492,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);;
 
 		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
 
 		// Check native capabilities
 		ResourceType resourceType = resource.asObjectable();
@@ -534,6 +551,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				null, result);
 
 		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
@@ -608,6 +629,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				null, result);
 
 		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceTypeAgain.getConnectorRef().getOid());
@@ -652,6 +677,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.applyDefinition(account, result);
 
 		// THEN
+		result.computeStatus();
+		display("applyDefinition result", result);
+		assertSuccess(result);
+
 		account.checkConsistence(true, true);
 		assertSuccess("applyDefinition(account) result", result);
 	}
@@ -672,6 +701,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.applyDefinition(delta, result);
 
 		// THEN
+		result.computeStatus();
+		display("applyDefinition result", result);
+		assertSuccess(result);
+
 		delta.checkConsistence(true, true, true);
 		assertSuccess("applyDefinition(add d, elta) result", result);
 	}
@@ -804,6 +837,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				result).asObjectable();
 
 		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
 		display("Retrieved account shadow", shadow);
 
 		assertNotNull("No dummy account", shadow);
@@ -832,6 +869,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				result).asObjectable();
 
 		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+
 		display("Retrieved account shadow", shadow);
 
 		assertNotNull("No dummy account", shadow);
@@ -862,6 +903,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.applyDefinition(accountDelta, result);
 
 		// THEN
+		result.computeStatus();
+		display("applyDefinition result", result);
+		assertSuccess(result);
+
 		accountDelta.checkConsistence(true, true, true);
 		assertSuccess("applyDefinition(modify delta) result", result);
 	}
@@ -882,27 +927,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		newAccount.setPassword("parrotMonster");
 		dummyResource.addAccount(newAccount);
 
-		// QueryType query = new QueryType();
-		// Document doc = DOMUtil.getDocument();
-		// query.setFilter(QueryUtil.createAndFilter(doc,
-		// QueryUtil.createEqualRefFilter(doc, null,
-		// SchemaConstants.I_RESOURCE_REF, RESOURCE_DUMMY_OID),
-		// QueryUtil.createEqualFilter(doc, null,
-		// SchemaConstants.I_OBJECT_CLASS, new
-		// QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-		// ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME)),
-		// QueryUtil.createEqualFilter(doc,
-		// null, SchemaConstants.C_NAME, "will")));
-
 		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
-//				ObjectQuery.createObjectQuery(AndFilter.createAnd(EqualsFilter.createReferenceEqual(
-//				ResourceObjectShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext,
-//				RESOURCE_DUMMY_OID), EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext,
-//				ResourceObjectShadowType.F_OBJECT_CLASS, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
-//						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))));
-		//, EqualsFilter.createEqual(
-			//	ResourceObjectShadowType.class, prismContext, new QName(resource.asObjectable().getNamespace(), "uid"), "will")));
 
 		final List<AccountShadowType> foundObjects = new ArrayList<AccountShadowType>();
 		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
@@ -923,6 +949,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
 
 		// THEN
+		result.computeStatus();
+		display("searchObjectsIterative result", result);
+		assertSuccess(result);
 
 		assertEquals(3, foundObjects.size());
 
@@ -951,8 +980,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType, prismContext);
 		display("All shadows query", query);
 
+		// WHEN
 		List<PrismObject<AccountShadowType>> allShadows = repositoryService.searchObjects(AccountShadowType.class,
 				query, result);
+		
+		// THEN
+		result.computeStatus();
+		display("searchObjects result", result);
+		assertSuccess(result);
+		
 		display("Found " + allShadows.size() + " shadows");
 
 		assertFalse("No shadows found", allShadows.isEmpty());
@@ -968,8 +1004,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
 		display("All shadows query", query);
 
+		// WHEN
 		List<PrismObject<AccountShadowType>> allShadows = provisioningService.searchObjects(AccountShadowType.class,
 				query, result);
+		
+		// THEN
+		result.computeStatus();
+		display("searchObjects result", result);
+		assertSuccess(result);
+		
 		display("Found " + allShadows.size() + " shadows");
 
 		assertFalse("No shadows found", allShadows.isEmpty());
@@ -986,7 +1029,14 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
 		display("All shadows query", query);
 
+		// WHEN
 		int count = provisioningService.countObjects(AccountShadowType.class, query, result);
+		
+		// THEN
+		result.computeStatus();
+		display("countObjects result", result);
+		assertSuccess(result);
+		
 		display("Found " + count + " shadows");
 
 		assertEquals("Wrong number of results", 3, count);
@@ -999,8 +1049,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test116SearchNullQueryResource");
 
+		// WHEN
 		List<PrismObject<ResourceType>> allResources = provisioningService.searchObjects(ResourceType.class,
 				new ObjectQuery(), result);
+		
+		// THEN
+		result.computeStatus();
+		display("searchObjects result", result);
+		assertSuccess(result);
+		
 		display("Found " + allResources.size() + " resources");
 
 		assertFalse("No resources found", allResources.isEmpty());
@@ -1014,52 +1071,20 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
 				+ ".test117CountNullQueryResource");
 
+		// WHEN
 		int count = provisioningService.countObjects(ResourceType.class, new ObjectQuery(), result);
+		
+		// THEN
+		result.computeStatus();
+		display("countObjects result", result);
+		assertSuccess(result);
+		
 		display("Counted " + count + " resources");
 
 		assertEquals("Wrong count", 1, count);
 	}
 
-	private void checkShadow(AccountShadowType shadow, OperationResult parentResult) {
-		checkShadow(shadow, parentResult, true);
-	}
-
-	private void checkShadow(AccountShadowType shadow, OperationResult parentResult, boolean fullShadow) {
-		shadow.asPrismObject().checkConsistence(true, true);
-		ObjectChecker<AccountShadowType> checker = createShadowChecker(fullShadow);
-		IntegrationTestTools.checkShadow(shadow, resourceType, repositoryService, checker, prismContext, parentResult);
-	}
-
-	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException {
-		ObjectChecker<AccountShadowType> checker = null;
-		IntegrationTestTools.checkAllShadows(resourceType, repositoryService, checker, prismContext);
-	}
-
-	private ObjectChecker<AccountShadowType> createShadowChecker(final boolean fullShadow) {
-		return new ObjectChecker<AccountShadowType>() {
-			@Override
-			public void check(AccountShadowType shadow) {
-				String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-						SchemaTestConstants.ICFS_NAME);
-				assertNotNull("No ICF NAME", icfName);
-				PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
-//				assertEquals("Wrong shadow name", shadow.getName(), icfName);
-				if (fullShadow) {
-					assertNotNull(
-							"Missing fullname attribute",
-							ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
-									new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
-					assertNotNull("no activation", shadow.getActivation());
-					assertNotNull("no activation/enabled", shadow.getActivation().isEnabled());
-					assertTrue("not enabled", shadow.getActivation().isEnabled());
-				}
-
-				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, ResourceAttributeDefinition.class);
-			}
-
-		};
-	}
+	
 
 	@Test
 	public void test121EnableAccount() throws Exception {
@@ -1090,6 +1115,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				delta.getModifications(), new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
@@ -1124,6 +1153,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
@@ -1147,6 +1180,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if activation was changed
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
@@ -1173,6 +1210,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate");
@@ -1195,6 +1236,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate", "Captain");
@@ -1217,6 +1262,10 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
@@ -1243,18 +1292,13 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 				new ProvisioningScriptsType(), result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
+		
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
-	}
-
-	
-	private <T> void assertDummyAttributeValues(String accountId, String attributeName, T... expectedValues) {
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
-		assertNotNull("No account '"+accountId+"'", dummyAccount);
-		Set<T> attributeValues = (Set<T>) dummyAccount.getAttributeValues(attributeName, expectedValues[0].getClass());
-		assertNotNull("No attribute "+attributeName+" in account "+accountId, attributeValues);
-		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in account "+accountId, attributeValues, expectedValues);
 	}
 
 	@Test
@@ -1308,15 +1352,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		}
 	}
 
-	@Test
-	public void test132ModifyScript() {
-		// TODO
-	}
-
-	@Test
-	public void test133DeleteScript() {
-		// TODO
-	}
+//	@Test
+//	public void test132ModifyScript() {
+//		// TODO
+//	}
+//
+//	@Test
+//	public void test133DeleteScript() {
+//		// TODO
+//	}
 
 	@Test
 	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
@@ -1346,7 +1390,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			AssertJUnit.fail("Expected security exception while adding 'daviejones' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			display("Expected exception", e);
 		}
+		
+		result.computeStatus();
+		display("addObject result (expected failure)", result);
+		assertFailure(result);
 
 //		checkConsistency();
 	}
@@ -1365,7 +1414,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			AssertJUnit.fail("Expected security exception while reading 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			display("Expected exception", e);
 		}
+		
+		result.computeStatus();
+		display("getObject result (expected failure)", result);
+		assertFailure(result);
 
 //		checkConsistency();
 	}
@@ -1393,7 +1447,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			display("Expected exception", e);
 		}
+		
+		result.computeStatus();
+		display("modifyObject result (expected failure)", result);
+		assertFailure(result);
 
 //		checkConsistency();
 	}
@@ -1412,7 +1471,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			display("Expected exception", e);
 		}
+		
+		result.computeStatus();
+		display("deleteObject result (expected failure)", result);
+		assertFailure(result);
 
 //		checkConsistency();
 	}
@@ -1436,6 +1500,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
 
 		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess(result);
 
 		// No change, no fun
 		assertFalse(syncServiceMock.wasCalled());
@@ -1464,7 +1531,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
 
 		// THEN
-
 		result.computeStatus();
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
@@ -1515,7 +1581,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
 
 		// THEN
-
 		result.computeStatus();
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
@@ -1569,7 +1634,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
 
 		// THEN
-
 		result.computeStatus();
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
@@ -1618,7 +1682,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
 
 		// THEN
-
 		result.computeStatus();
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
@@ -1649,8 +1712,59 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 		}
+		
+		result.computeStatus();
+		display("getObject result (expected failure)", result);
+		assertFailure(result);
+	}
+	
+	private void checkShadow(AccountShadowType shadow, OperationResult parentResult) {
+		checkShadow(shadow, parentResult, true);
+	}
 
-		// TODO: check result
+	private void checkShadow(AccountShadowType shadow, OperationResult parentResult, boolean fullShadow) {
+		shadow.asPrismObject().checkConsistence(true, true);
+		ObjectChecker<AccountShadowType> checker = createShadowChecker(fullShadow);
+		IntegrationTestTools.checkShadow(shadow, resourceType, repositoryService, checker, prismContext, parentResult);
+	}
+
+	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException {
+		ObjectChecker<AccountShadowType> checker = null;
+		IntegrationTestTools.checkAllShadows(resourceType, repositoryService, checker, prismContext);
+	}
+
+	private ObjectChecker<AccountShadowType> createShadowChecker(final boolean fullShadow) {
+		return new ObjectChecker<AccountShadowType>() {
+			@Override
+			public void check(AccountShadowType shadow) {
+				String icfName = ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
+						SchemaTestConstants.ICFS_NAME);
+				assertNotNull("No ICF NAME", icfName);
+				PrismAsserts.assertEqualsPolyString("Wrong shadow name", icfName, shadow.getName());
+//				assertEquals("Wrong shadow name", shadow.getName(), icfName);
+				if (fullShadow) {
+					assertNotNull(
+							"Missing fullname attribute",
+							ResourceObjectShadowUtil.getSingleStringAttributeValue(shadow,
+									new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "fullname")));
+					assertNotNull("no activation", shadow.getActivation());
+					assertNotNull("no activation/enabled", shadow.getActivation().isEnabled());
+					assertTrue("not enabled", shadow.getActivation().isEnabled());
+				}
+
+				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, ResourceAttributeDefinition.class);
+			}
+
+		};
+	}
+	
+	private <T> void assertDummyAttributeValues(String accountId, String attributeName, T... expectedValues) {
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
+		assertNotNull("No account '"+accountId+"'", dummyAccount);
+		Set<T> attributeValues = (Set<T>) dummyAccount.getAttributeValues(attributeName, expectedValues[0].getClass());
+		assertNotNull("No attribute "+attributeName+" in account "+accountId, attributeValues);
+		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in account "+accountId, attributeValues, expectedValues);
 	}
 
 }

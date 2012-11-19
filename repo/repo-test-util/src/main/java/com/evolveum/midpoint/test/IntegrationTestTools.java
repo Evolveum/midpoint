@@ -185,6 +185,10 @@ public class IntegrationTestTools {
 		assertTrue(message, result.isError());
 	}
 	
+	public static void assertFailure(OperationResult result) {
+		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), result.isError());
+	}
+	
 	/**
 	 * level=-1 - check all levels
 	 * level=0 - check only the top-level

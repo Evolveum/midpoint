@@ -199,6 +199,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			logFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);
 			throw ex;
 		}
+		
+		PrismObject<T> resultingObject = null;
 
 		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)|| 
 				ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
@@ -226,11 +228,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					throw e;
 				}
 			}
-			result.recordSuccess();
-			return repositoryObject;
-		}
-
-		if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
+			resultingObject = repositoryObject;
+			
+		} else if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
 			// TODO: optimization needed: avoid multiple "gets" of the same
 			// object
 
@@ -241,31 +241,31 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						(ResourceObjectShadowType) (repositoryObject.asObjectable()), result);
 
 			} catch (ObjectNotFoundException e) {
-				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				logFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 				result.recordFatalError(e);
 				throw e;
 			} catch (CommunicationException e) {
-				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				logFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 				result.recordFatalError(e);
 				throw e;
-
 			} catch (SchemaException e) {
-				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				logFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 				result.recordFatalError(e);
 				throw e;
 			} catch (ConfigurationException e) {
-				logFatalError(LOGGER, result, "Can't get obejct with oid " + oid + ". Reason " + e.getMessage(), e);
+				logFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
+				result.recordFatalError(e);
+				throw e;
+			} catch (SecurityViolationException e) {
+				logFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 				result.recordFatalError(e);
 				throw e;
 			}
+			
 
 			// TODO: object resolving
 
-			result.recordSuccess();
-			if (shadow == null){
-				return null;
-			}
-			return shadow.asPrismObject();
+			resultingObject = shadow.asPrismObject();
 
 		} else if (repositoryObject.canRepresent(ResourceType.class)) {
 			// Make sure that the object is complete, e.g. there is a (fresh)
@@ -273,8 +273,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 				ResourceType completeResource = getResourceTypeManager().completeResource(
 						(ResourceType) repositoryObject.asObjectable(), null, result);
-				result.recordSuccess();
-				return completeResource.asPrismObject();
+				resultingObject = completeResource.asPrismObject();
 			} catch (ObjectNotFoundException ex) {
 				logFatalError(LOGGER, result, "Resource object not found", ex);
 				result.recordFatalError(ex);
@@ -289,9 +288,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw ex;
 			}
 		} else {
-			result.recordSuccess();
-			return repositoryObject;
+			resultingObject = repositoryObject;
 		}
+		
+		result.computeStatus();
+		repositoryObject.asObjectable().setFetchResult(result.createOperationResultType());
+		return resultingObject;
 
 	}
 
@@ -655,43 +657,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 
-//	@Deprecated
-//	public <T extends ObjectType> int countObjects(Class<T> type, QueryType query, OperationResult parentResult)
-//			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-//			SecurityViolationException {
-//
-//		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".countObjects");
-//		result.addParam("objectType", type);
-//		result.addParam("query", query);
-//		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-//
-//		if (!ResourceObjectShadowType.class.isAssignableFrom(type)) {
-//			int count = getCacheRepositoryService().countObjects(type, query, parentResult);
-//			result.computeStatus();
-//			result.recordSuccessIfUnknown();
-//			return count;
-//		}
-//
-//		final Holder<Integer> countHolder = new Holder<Integer>(0);
-//
-//		final ResultHandler<T> handler = new ResultHandler<T>() {
-//
-//			@SuppressWarnings("unchecked")
-//			@Override
-//			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-//				int count = countHolder.getValue();
-//				count++;
-//				countHolder.setValue(count);
-//				return true;
-//			}
-//		};
-//
-//		searchObjectsIterative(type, query, null, handler, result);
-//		// TODO: better error handling
-//		result.computeStatus();
-//		return countHolder.getValue();
-//	}
-
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -818,7 +783,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
-		// TODO Auto-generated method stub
 
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -842,7 +806,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new ObjectNotFoundException(e.getMessage());
 		}
 
-		// TODO:check also others shadow objects
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 
 			try {
@@ -860,6 +823,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw new SchemaException(e.getMessage(), e);
 			} catch (ConfigurationException e) {
 				logFatalError(LOGGER, result, "Couldn't delete object: configuration problem: " + e.getMessage(), e);
+				throw e;
+			} catch (SecurityViolationException e) {
+				logFatalError(LOGGER, result, "Couldn't delete object: security violation: " + e.getMessage(), e);
 				throw e;
 			}
 

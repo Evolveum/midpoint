@@ -27,6 +27,8 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -281,7 +284,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 			throw new IllegalStateException(e.getMessage()+"; in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
 		}
 		if (object.getDefinition() == null) {
-			throw new IllegalStateException("No new "+getElementDesc()+" definition "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+			throw new IllegalStateException("No "+getElementDesc()+" definition "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 		}
     	O objectType = object.asObjectable();
     	if (objectType instanceof ResourceObjectShadowType) {
@@ -295,6 +298,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     		ResourceObjectShadowType shadowType = (ResourceObjectShadowType)objectType;
 	    	if (shadowType.getObjectClass() == null) {
 	    		throw new IllegalStateException("Null objectClass in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+	    	}
+	    	PrismContainer<Containerable> attributesContainer = object.findContainer(AccountShadowType.F_RESOURCE_REF);
+	    	if (attributesContainer != null) {
+	    		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
+	    			throw new IllegalStateException("The attributes element expected to be ResourceAttributeContainer but it is "
+	    					+attributesContainer.getClass()+" instead in "+getElementDesc()+" definition "+elementDesc+" in "+this 
+	    					+ (contextDesc == null ? "" : " in " +contextDesc));
+	    		}
 	    	}
     	}
     }

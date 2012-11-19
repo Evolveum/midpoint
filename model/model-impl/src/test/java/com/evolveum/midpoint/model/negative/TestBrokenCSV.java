@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model.negative;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -50,6 +52,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -73,11 +77,17 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 	private static final String TEST_DIR = "src/test/resources/negative";
 	private static final String TEST_TARGET_DIR = "target/test/negative";
 	
+	private static final String CONNECTOR_DUMMY_NOJARS_FILENAME = TEST_DIR + "/connector-dummy-nojars.xml";
+	private static final String CONNECTOR_DUMMY_NOJARS_OID = "cccccccc-cccc-cccc-cccc-666600660004";
+	
 	private static final String RESOURCE_CSVFILE_BROKEN_FILENAME = TEST_DIR + "/resource-csvfile-broken.xml";
 	private static final String RESOURCE_CSVFILE_BROKEN_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb";
 	
 	private static final String RESOURCE_CSVFILE_NOTFOUND_FILENAME = TEST_DIR + "/resource-csvfile-notfound.xml";
 	private static final String RESOURCE_CSVFILE_NOTFOUND_OID = "ef2bc95b-76e0-48e2-86d6-f0f002d3f0f0";
+	
+	private static final String RESOURCE_DUMMY_NOJARS_FILENAME = TEST_DIR + "/resource-dummy-nojars.xml";
+	private static final String RESOURCE_DUMMY_NOJARS_OID = "10000000-0000-0000-0000-666600660004";
 	
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_FILENAME = TEST_DIR + "/account-shadow-jack-csvfile.xml";
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
@@ -107,8 +117,11 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 		
 		MiscUtil.copyFile(new File(BROKEN_CSV_SOURCE_FILE_NAME), new File(BROKEN_CSV_TARGET_FILE_NAME));
 		
+		addObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILENAME, ConnectorType.class, initResult);
+		
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
+		importObjectFromFile(RESOURCE_DUMMY_NOJARS_FILENAME, initResult);
 		
 		addObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, AccountShadowType.class, initResult);
 		
@@ -280,15 +293,55 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 		display("getObject resource", resource);
 		result.computeStatus();
 		display("getObject result", result);
-		IntegrationTestTools.assertWarning("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 		
 		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
 		display("resource.fetchResult", fetchResult);
-		IntegrationTestTools.assertWarning("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
 		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
 	}
 		
+	
+	@Test
+    public void test310TestResourceNoJars() throws Exception {
+        displayTestTile(this, "test310TestResourceNoJars");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test310TestResourceNoJars");
+        
+		// WHEN
+		OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_NOJARS_OID, task);
+		
+		// THEN
+		display("testResource result", testResult);
+        IntegrationTestTools.assertFailure("testResource result", testResult);
+	}
+	
+	@Test
+    public void test320GetResourceNoJars() throws Exception {
+        displayTestTile(this, "test320GetResourceNoJars");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test320GetResourceNoJars");
+        OperationResult result = task.getResult();
+        
+		// WHEN
+		resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NOJARS_OID, null, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+		
+        // TODO: better asserts
+		assertNotNull("Null resource", resource);
+	}
 
 }

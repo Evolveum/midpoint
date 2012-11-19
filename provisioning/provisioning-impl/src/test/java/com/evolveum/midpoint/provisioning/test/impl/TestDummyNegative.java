@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -168,9 +169,14 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 			// THEN
 			display("Resource with broken schema", resource);
 			OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+			
+			result.computeStatus();
+			display("getObject result", result);
+			assertEquals("Unexpected result of getObject operation", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+			
 			assertNotNull("No fetch result", fetchResult);
-			assertFalse("Fetch result is unknown: "+fetchResult, fetchResult.getStatus().equals(OperationResultStatusType.UNKNOWN));
-			assertFalse("Fetch result successful but expected failure: "+fetchResult, fetchResult.getStatus().equals(OperationResultStatusType.SUCCESS));
+			display("fetchResult", fetchResult);
+			assertEquals("Unexpected result of fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
 			
 		} finally {
 			dummyResource.setSchemaBreakMode(BreakMode.NONE);
