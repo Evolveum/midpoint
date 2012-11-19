@@ -248,16 +248,19 @@ function setupFunc() {
 function hideBusysign() {
 	document.getElementById('bysy_indicator').style.display = 'none';
 	document.getElementById('error_indicator').style.display = 'none';
+	hideDisableOperationFormButtons();
 }
 
 function showError() {
 	document.getElementById('bysy_indicator').style.display = 'none';
 	document.getElementById('error_indicator').style.display = 'inline';
+	showDisableOperationFormButtons();
 }
 
 function showBusysign() {
 	document.getElementById('bysy_indicator').style.display = 'inline';
 	document.getElementById('error_indicator').style.display = 'none';
+	showDisableOperationFormButtons();
 }
 
 function clickFunc(eventData) {
@@ -300,4 +303,20 @@ if ((clickedElement.tagName.toUpperCase() == 'A'
 				|| clickedElement.type.toUpperCase() == 'SUBMIT' || clickedElement.type
 				.toUpperCase() == 'IMAGE')))) {
 	showBusysign();
+}
+
+function showDisableOperationFormButtons() {
+	var operationFormBlock = $(".operatingFormButtons");
+	var disablePanel = '<div class="disableOperationBlock" style="height: 100%; width: 100%; position: absolute; z-index: 4;"></div>';
+	operationFormBlock.append(disablePanel);
+	if(operationFormBlock.find(".operatingFormBlock").size() == 0) {
+		$(".disableOperationBlock").insertBefore($(".operatingFormButtons").find(".button:first"));
+	}
+	$(".operatingFormButtons").find(".button").css("opacity", .5);
+}
+
+function hideDisableOperationFormButtons() {
+	var disableOperationBlock = $(".disableOperationBlock");
+	$(".operatingFormButtons").find(".button").css("opacity", 1);
+	disableOperationBlock.remove();
 }
