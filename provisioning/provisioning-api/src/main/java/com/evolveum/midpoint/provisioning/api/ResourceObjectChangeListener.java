@@ -35,7 +35,12 @@ public interface ResourceObjectChangeListener {
 
 	/**
 	 * Submits notification about a specific change that happened on the
-	 * resource. The call should return without a major delay. It means that the
+	 * resource.
+	 * 
+	 * This describes the change that has already happened on the resource. The upper layers are
+	 * notified to take that change into an account (synchronize it).
+	 *  
+	 * The call should return without a major delay. It means that the
 	 * implementation can do calls to repository, but it should not
 	 * (synchronously) initiate a long-running process or provisioning request.
 	 * 
@@ -47,6 +52,23 @@ public interface ResourceObjectChangeListener {
 	 *            change description
 	 */
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
+	
+	/**
+	 * Submits notification about a failure to apply a change on resource.
+	 * 
+	 * This describes the change that should have been executed on the resource but that 
+	 * never happened because a failure was detected. The upper layers are
+	 * notified to take handle that failure (e.g. notify the administrator).
+	 * 
+	 * This should be called for operations that were done asynchronously and failed
+	 * to execute. It should NOT be called for synchronous operations. Direct return
+	 * value should be used instead.
+	 * 
+	 * The call should return without a major delay. It means that the
+	 * implementation can do calls to repository, but it should not
+	 * (synchronously) initiate a long-running process or provisioning request.
+	 */
+	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription, Task task, OperationResult parentResult);
 	
 	/**
 	 * Returns a short name of the listener for debugging purposes.

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -90,6 +91,35 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 					listener.notifyChange(change, task, parentResult);
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by object change listener {}: {}", new Object[]{
+							e.getClass(), listener.getName(), e.getMessage(), e });
+				}
+			}
+		} else {
+			LOGGER.warn("Change notification received but listener list is empty, there is nobody to get the message");
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription,
+			Task task, OperationResult parentResult) {
+		Validate.notNull(failureDescription, "Failure description of resource object shadow must not be null.");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("SYNCHRONIZATION failure notification\n{} ", failureDescription.dump());
+		}
+		
+		failureDescription.checkConsistence();
+		
+		if ((null != listeners) && (!listeners.isEmpty())) {
+			for (ResourceObjectChangeListener listener : listeners) {
+				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
+				try {
+					listener.notifyFailure(failureDescription, task, parentResult);
+				} catch (RuntimeException e) {
+					LOGGER.error("Exception {} thrown by object failure listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
 				}
 			}

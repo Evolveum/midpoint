@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -33,6 +34,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
+	private ResourceObjectShadowFailureDescription lastFailure = null;
 	private ObjectChecker changeChecker;
 
 	@Autowired(required=true)
@@ -124,6 +126,72 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 		// remember ...
 		callCount++;
 		lastChange = change;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription,
+			Task task, OperationResult parentResult) {
+		LOGGER.debug("Notify failure mock called with {}", failureDescription);
+
+		// Some basic sanity checks
+		assertNotNull("No failure", failureDescription);
+		assertNotNull("No task", task);
+		assertNotNull("No result", parentResult);
+
+		assertNotNull("Current shadow not present", failureDescription.getCurrentShadow());
+		assertNotNull("Delta not present", failureDescription.getObjectDelta());
+		if (failureDescription.getCurrentShadow() != null) {
+			ResourceObjectShadowType currentShadowType = failureDescription.getCurrentShadow().asObjectable();
+			if (currentShadowType != null) {
+				// not a useful check..the current shadow could be null
+				assertNotNull("Current shadow does not have an OID", failureDescription.getCurrentShadow().getOid());
+				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
+				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
+				assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil
+						.getAttributesContainer(currentShadowType).isEmpty());
+
+				// Check if the shadow is already present in repo
+				try {
+					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), new OperationResult("mockSyncService.notifyChange"));
+				} catch (Exception e) {
+					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
+							": "+e.getCause()+": "+e.getMessage());
+				}			
+				// Check resource
+				String resourceOid = ResourceObjectShadowUtil.getResourceOid(currentShadowType);
+				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
+				try {
+					repositoryService.getObject(ResourceType.class, resourceOid, new OperationResult("mockSyncService.notifyChange"));
+				} catch (Exception e) {
+					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
+							": "+e.getCause()+": "+e.getMessage());
+				}
+
+				if (failureDescription.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
+					AccountShadowType account = (AccountShadowType) failureDescription.getCurrentShadow().asObjectable();
+					assertNotNull("Current shadow does not have activation", account.getActivation());
+					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
+							.isEnabled());
+				} else {
+					// We don't support other types now
+					AssertJUnit.fail("Unexpected type of shadow " + failureDescription.getCurrentShadow().getClass());
+				}
+			}
+		}
+		if (failureDescription.getObjectDelta() != null) {
+			assertNotNull("Delta has null OID", failureDescription.getObjectDelta().getOid());
+		}
+		
+		if (changeChecker != null) {
+			changeChecker.check(failureDescription);
+		}
+
+		// remember ...
+		callCount++;
+		lastFailure = failureDescription;
 	}
 
 	public boolean wasCalled() {

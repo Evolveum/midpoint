@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -76,7 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UnknownJavaObjectTy
  * @author Radovan Semancik
  * 
  */
-public class OperationResult implements Serializable, Dumpable {
+public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
@@ -756,141 +757,7 @@ public class OperationResult implements Serializable, Dumpable {
 		return "R(" + operation + " " + status + " " + message + ")";
 	}
 
-	public String dump() {
-		return dump(true);
-	}
 
-	public String dump(boolean withStack) {
-		StringBuilder sb = new StringBuilder();
-		dumpIndent(sb, 0, withStack);
-		return sb.toString();
-	}
-
-	private void dumpIndent(StringBuilder sb, int indent, boolean printStackTrace) {
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
-		}
-		sb.append("*op* ");
-		sb.append(operation);
-		sb.append(", st: ");
-		sb.append(status);
-		sb.append(", msg: ");
-		sb.append(message);
-		if (count > 1) {
-			sb.append(" x");
-			sb.append(count);
-		}
-		sb.append("\n");
-		if (cause != null) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
-			sb.append("[cause]");
-			sb.append(cause.getClass().getSimpleName());
-			sb.append(":");
-			sb.append(cause.getMessage());
-			sb.append("\n");
-			if (printStackTrace) {
-				dumpStackTrace(sb, cause.getStackTrace(), indent + 4);
-				dumpInnerCauses(sb, cause.getCause(), indent + 3);
-			}
-		}
-
-		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
-			sb.append("[p]");
-			sb.append(entry.getKey());
-			sb.append("=");
-			sb.append(dumpEntry(entry.getValue()));
-			sb.append("\n");
-		}
-
-		for (Map.Entry<String, Object> entry : getContext().entrySet()) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
-			sb.append("[c]");
-			sb.append(entry.getKey());
-			sb.append("=");
-			sb.append(dumpEntry(entry.getValue()));
-			sb.append("\n");
-		}
-		
-		for (Map.Entry<String, Object> entry : getReturns().entrySet()) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
-			sb.append("[r]");
-			sb.append(entry.getKey());
-			sb.append("=");
-			sb.append(dumpEntry(entry.getValue()));
-			sb.append("\n");
-		}
-
-		for (String line : details) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
-			sb.append("[d]");
-			sb.append(line);
-			sb.append("\n");
-		}
-
-		for (OperationResult sub : getSubresults()) {
-			sub.dumpIndent(sb, indent + 1, printStackTrace);
-		}
-	}
-
-	private String dumpEntry(Object value) {
-		if (value instanceof Element) {
-			Element element = (Element)value;
-			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
-				try {
-					String cvalue = null;
-					if (value == null) {
-						cvalue = "null";
-					} else if (value instanceof Element) {
-						cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue((Element)value));
-					} else {
-						cvalue = SchemaDebugUtil.prettyPrint(value);
-					}
-					return cvalue;
-				} catch (Exception e) {
-					return "value: "+element.getTextContent();
-				}
-			}
-		}
-		return SchemaDebugUtil.prettyPrint(value);
-	}
-
-	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {
-		if (innerCause == null) {
-			return;
-		}
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
-		}
-		sb.append("Caused by ");
-		sb.append(innerCause.getClass().getName());
-		sb.append(": ");
-		sb.append(innerCause.getMessage());
-		sb.append("\n");
-		dumpStackTrace(sb, innerCause.getStackTrace(), indent + 1);
-		dumpInnerCauses(sb, innerCause.getCause(), indent);
-	}
-
-	private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
-		for (int i = 0; i < stackTrace.length; i++) {
-			for (int j = 0; j < indent; j++) {
-				sb.append(INDENT_STRING);
-			}
-			StackTraceElement element = stackTrace[i];
-			sb.append(element.toString());
-			sb.append("\n");
-		}
-	}
 
 	public static OperationResult createOperationResult(OperationResultType result) {
 		Validate.notNull(result, "Result type must not be null.");
@@ -1127,6 +994,154 @@ public class OperationResult implements Serializable, Dumpable {
 			}
 		}
 		return similar;
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		dumpIndent(sb, indent, true);
+		return sb.toString();
+	}
+	
+	public String dump() {
+		return dump(true);
+	}
+
+	public String dump(boolean withStack) {
+		StringBuilder sb = new StringBuilder();
+		dumpIndent(sb, 0, withStack);
+		return sb.toString();
+	}
+
+	private void dumpIndent(StringBuilder sb, int indent, boolean printStackTrace) {
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append("*op* ");
+		sb.append(operation);
+		sb.append(", st: ");
+		sb.append(status);
+		sb.append(", msg: ");
+		sb.append(message);
+		if (count > 1) {
+			sb.append(" x");
+			sb.append(count);
+		}
+		sb.append("\n");
+		if (cause != null) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[cause]");
+			sb.append(cause.getClass().getSimpleName());
+			sb.append(":");
+			sb.append(cause.getMessage());
+			sb.append("\n");
+			if (printStackTrace) {
+				dumpStackTrace(sb, cause.getStackTrace(), indent + 4);
+				dumpInnerCauses(sb, cause.getCause(), indent + 3);
+			}
+		}
+
+		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[p]");
+			sb.append(entry.getKey());
+			sb.append("=");
+			sb.append(dumpEntry(entry.getValue()));
+			sb.append("\n");
+		}
+
+		for (Map.Entry<String, Object> entry : getContext().entrySet()) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[c]");
+			sb.append(entry.getKey());
+			sb.append("=");
+			sb.append(dumpEntry(entry.getValue()));
+			sb.append("\n");
+		}
+		
+		for (Map.Entry<String, Object> entry : getReturns().entrySet()) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[r]");
+			sb.append(entry.getKey());
+			sb.append("=");
+			sb.append(dumpEntry(entry.getValue()));
+			sb.append("\n");
+		}
+
+		for (String line : details) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[d]");
+			sb.append(line);
+			sb.append("\n");
+		}
+
+		for (OperationResult sub : getSubresults()) {
+			sub.dumpIndent(sb, indent + 1, printStackTrace);
+		}
+	}
+
+	private String dumpEntry(Object value) {
+		if (value instanceof Element) {
+			Element element = (Element)value;
+			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
+				try {
+					String cvalue = null;
+					if (value == null) {
+						cvalue = "null";
+					} else if (value instanceof Element) {
+						cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue((Element)value));
+					} else {
+						cvalue = SchemaDebugUtil.prettyPrint(value);
+					}
+					return cvalue;
+				} catch (Exception e) {
+					return "value: "+element.getTextContent();
+				}
+			}
+		}
+		return SchemaDebugUtil.prettyPrint(value);
+	}
+
+	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {
+		if (innerCause == null) {
+			return;
+		}
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append("Caused by ");
+		sb.append(innerCause.getClass().getName());
+		sb.append(": ");
+		sb.append(innerCause.getMessage());
+		sb.append("\n");
+		dumpStackTrace(sb, innerCause.getStackTrace(), indent + 1);
+		dumpInnerCauses(sb, innerCause.getCause(), indent);
+	}
+
+	private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
+		for (int i = 0; i < stackTrace.length; i++) {
+			for (int j = 0; j < indent; j++) {
+				sb.append(INDENT_STRING);
+			}
+			StackTraceElement element = stackTrace[i];
+			sb.append(element.toString());
+			sb.append("\n");
+		}
 	}
 
 }

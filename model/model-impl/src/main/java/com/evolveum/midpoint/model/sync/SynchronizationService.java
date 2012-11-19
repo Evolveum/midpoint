@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -156,6 +157,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace(subResult.dump());
 			}
 		}
+	}
+	
+	@Override
+	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription,
+			Task task, OperationResult parentResult) {
+		Validate.notNull(failureDescription, "Resource object shadow failure description must not be null.");
+		Validate.notNull(failureDescription.getCurrentShadow(), "Current shadow in resource object shadow failure description must not be null.");
+		Validate.notNull(failureDescription.getObjectDelta(), "Delta in resource object shadow failure description must not be null.");
+		Validate.notNull(failureDescription.getResource(), "Resource in failure must not be null.");
+		Validate.notNull(parentResult, "Parent operation result must not be null.");
+		LOGGER.debug("SYNCHRONIZATION: received failure notifiation {}", failureDescription);
+		
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 	}
 
 	private boolean isSynchronizationEnabled(ObjectSynchronizationType synchronization) {
