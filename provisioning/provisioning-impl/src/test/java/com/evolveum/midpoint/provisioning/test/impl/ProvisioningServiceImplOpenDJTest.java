@@ -600,7 +600,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 			assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
 
-			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, result);
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
 
 			AccountShadowType objType = null;
 

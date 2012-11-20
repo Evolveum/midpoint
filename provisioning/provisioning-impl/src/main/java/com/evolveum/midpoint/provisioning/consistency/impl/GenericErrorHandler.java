@@ -13,6 +13,7 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -83,7 +84,7 @@ public class GenericErrorHandler extends ErrorHandler{
 					shadow = (T) shadowCache.getShadow(shadow.getClass(), shadow.getOid(), null, result);
 				} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
 					
-					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), null, result);
+					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), ObjectOperationOption.FORCE, null, result);
 				}
 				return shadow;
 			}

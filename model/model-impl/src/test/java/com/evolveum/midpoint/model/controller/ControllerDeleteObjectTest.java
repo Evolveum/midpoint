@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -157,7 +158,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ProvisioningScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ObjectOperationOption.class), any(ProvisioningScriptsType.class),
 				any(OperationResult.class));
 	}
 }

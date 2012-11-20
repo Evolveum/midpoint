@@ -60,6 +60,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -339,7 +340,7 @@ public class ShadowCache {
 //		repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 //	}
 
-	public void deleteShadow(ObjectType objectType, ProvisioningScriptsType scripts, ResourceType resource,
+	public void deleteShadow(ObjectType objectType, ObjectOperationOption option, ProvisioningScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException {
 
@@ -351,7 +352,14 @@ public class ShadowCache {
 			AccountShadowType accountShadow = (AccountShadowType) objectType;
 
 			if (resource == null) {
+				try{
 				resource = getResource(accountShadow, parentResult);
+				} catch (ObjectNotFoundException ex){
+					//if the force option is set, delete shadow from the repo although the resource does not exists..
+					if (option != null && ObjectOperationOption.FORCE == option){
+						getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(), parentResult);
+					}
+				}
 			}
 
 			LOGGER.trace("Deleting obeject {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),

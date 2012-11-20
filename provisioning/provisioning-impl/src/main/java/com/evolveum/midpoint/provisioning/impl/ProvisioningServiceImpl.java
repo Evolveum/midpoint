@@ -785,7 +785,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningScriptsType scripts,
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ObjectOperationOption option, ProvisioningScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
@@ -814,7 +814,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 
 			try {
-				getShadowCache().deleteShadow(object.asObjectable(), scripts, null, result);
+				getShadowCache().deleteShadow(object.asObjectable(), option, scripts, null, result);
 				result.recordSuccess();
 			} catch (CommunicationException e) {
 				logFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);

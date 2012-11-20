@@ -1469,7 +1469,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 
 		// WHEN
 		try {
-			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, null, result);
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected

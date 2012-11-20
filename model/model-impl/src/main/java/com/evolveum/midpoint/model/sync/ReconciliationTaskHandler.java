@@ -361,7 +361,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		try {
-			provisioningService.deleteObject(AccountShadowType.class, oid, null, parentResult);
+			provisioningService.deleteObject(AccountShadowType.class, oid, null, null, parentResult);
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError("Cannot delete object: object not found: " + e.getMessage(), e);
 			throw e;

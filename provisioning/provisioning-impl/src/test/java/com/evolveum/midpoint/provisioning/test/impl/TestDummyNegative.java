@@ -128,6 +128,8 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	
+	private static final String ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME = TEST_DIR + "account-elaine-resource-not-found.xml";
+	
 	@Test
 	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
 		testGetResourceBrokenSchema(BreakMode.NETWORK, "test110GetResourceBrokenSchemaNetwork");
@@ -285,6 +287,34 @@ public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest 
 			provisioningService.addObject(account, null, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
+		} catch (SchemaException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+
+	}
+	
+	@Test
+	public void test221DeleteAccountResourceNotFound() throws Exception {
+		displayTestTile("test220AddAccountNoResourceRef");
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
+				+ ".test220AddAccountNoResourceRef");
+
+		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, AccountShadowType.class);
+		PrismObject<AccountShadowType> account = accountType.asPrismObject();
+		account.checkConsistence();
+		
+//		accountType.setResourceRef(null);
+
+		display("Adding shadow", account);
+
+		try {
+			// WHEN
+			String oid = repositoryService.addObject(account, result);
+			
+			provisioningService.deleteObject(AccountShadowType.class, oid, ObjectOperationOption.FORCE, null, result);
+//			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected
 			display("Expected exception", e);

@@ -485,7 +485,7 @@ public class ChangeExecutor {
 
         try {
             // TODO: scripts
-            provisioning.deleteObject(objectTypeClass, oid, null, result);
+            provisioning.deleteObject(objectTypeClass, oid, null, null, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
