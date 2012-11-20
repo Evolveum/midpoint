@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -125,21 +126,24 @@ public class ChangeExecutor {
 	        	}
 	            ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
 	            
-	            if (accDelta == null || accDelta.isEmpty()) {
-	                if (LOGGER.isTraceEnabled()) {
-	                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
-	                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
-	                }
-	                if (focusContext != null) {
-	                	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
-	                }
-	                continue;
+	            if (accCtx.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN) {
+		            if (accDelta == null || accDelta.isEmpty()) {
+		                if (LOGGER.isTraceEnabled()) {
+		                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
+		                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
+		                }
+		                if (focusContext != null) {
+		                	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
+		                }
+		                continue;
+		            }
+		            
+		            executeChange(accDelta, accCtx, syncContext, task, result);
+		            
+		            // To make sure that the OID is set (e.g. after ADD operation)
+		            accCtx.setOid(accDelta.getOid());
 	            }
 	            
-	            executeChange(accDelta, accCtx, syncContext, task, result);
-	            
-	            // To make sure that the OID is set (e.g. after ADD operation)
-	            accCtx.setOid(accDelta.getOid());
 	            if (focusContext != null) {
 	            	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
 	            }
@@ -194,21 +198,25 @@ public class ChangeExecutor {
             throw new IllegalStateException("Account has null OID, this should not happen");
         }
 
-        if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK || accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE) {
+        if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK 
+        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
+        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
             // Link should NOT exist
-            for (ObjectReferenceType accountRef : userTypeNew.getAccountRef()) {
-                if (accountRef.getOid().equals(accountOid)) {
-                    // Linked, need to unlink
-                    unlinkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
-//                    LOGGER.trace("Start to update situation in account after unlinking it from the user.");
-//    				updateSituationInAccount(task, null, accountOid, result);
-//    				LOGGER.trace("Situation in the account was updated to {}.", "null");
-                }
-            }
+        	
+        	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_ACCOUNT_REF);
+        	if (accountRef != null) {
+        		for (PrismReferenceValue accountRefVal: accountRef.getValues()) {
+        			if (accountRefVal.getOid().equals(accountOid)) {
+                        // Linked, need to unlink
+                        unlinkAccount(userTypeNew.getOid(), accountRefVal, (LensFocusContext<UserType>) focusContext, task, result);
+                    }
+        		}
+        		
+        	}
             
             //update account situation only if the account was not deleted
 //			if (accCtx.getDelta() != null ) {
-				LOGGER.trace("Account unlinked from the user, updating also situation in account.");
+				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);
 				updateSituationInAccount(task, null, accountOid, result);
 				LOGGER.trace("Situation in the account was updated to {}.", "null");
 //			}
@@ -261,16 +269,13 @@ public class ChangeExecutor {
 		return userDefinition;
 	}
 
-	private void unlinkAccount(String userOid, String accountOid, LensElementContext<UserType> userContext, Task task, OperationResult result) throws
+	private void unlinkAccount(String userOid, PrismReferenceValue accountRef, LensElementContext<UserType> userContext, Task task, OperationResult result) throws
             ObjectNotFoundException, SchemaException {
 
-        LOGGER.trace("Unlinking account " + accountOid + " to user " + userOid);
-        PrismReferenceValue accountRef = new PrismReferenceValue();
-        accountRef.setOid(accountOid);
-        accountRef.setTargetType(AccountShadowType.COMPLEX_TYPE);
+        LOGGER.trace("Deleting accountRef " + accountRef + " from user " + userOid);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
-        		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef); 
+        		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef.clone()); 
         
         try {
             cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);

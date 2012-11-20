@@ -153,6 +153,12 @@ public class ReferenceDelta extends ItemDelta<PrismReferenceValue> {
     	PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
     	return createModificationAdd(refName, objectDefinition, refValue);
     }
+    
+    public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
+    		String targetOid) { 
+    	PrismReferenceValue refValue = new PrismReferenceValue(targetOid);
+		return createModificationAddCollection(type, refName, prismContext, refValue );
+    }
     	    
     public static <T extends Objectable> Collection<? extends ItemDelta> createModificationAddCollection(Class<T> type, QName refName, PrismContext prismContext,
     		PrismReferenceValue refValue) { 

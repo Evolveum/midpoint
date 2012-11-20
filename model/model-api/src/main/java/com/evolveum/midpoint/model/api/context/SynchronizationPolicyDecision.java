@@ -46,6 +46,13 @@ public enum SynchronizationPolicyDecision {
 	/**
 	 * Existing account that is going to be unlinked (but NOT deleted)
 	 */
-	UNLINK;
+	UNLINK,
+	
+	/**
+	 * The account is not usable. E.g. because the associated shadow does
+	 * not exist any more, resource does not exists any more, etc.
+	 * Such account link will be removed.
+	 */
+	BROKEN;
 
 }

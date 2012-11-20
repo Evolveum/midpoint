@@ -312,6 +312,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 	
 	public ResourceAccountTypeDefinitionType getResourceAccountTypeDefinitionType() {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
+			return null;
+		}
 		if (isShadow()) {
 	        ResourceAccountTypeDefinitionType def = ResourceTypeUtil.getResourceAccountTypeDefinitionType(
 	        		resource, resourceShadowDiscriminator.getIntent());
@@ -521,6 +524,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	public void checkConsistence(String contextDesc, boolean fresh) {
 		super.checkConsistence(contextDesc);
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
+			// OID is all we need for broken context
+			if (getOid() == null) {
+				throw new IllegalStateException("No OID in broken context in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+			}
+			return;
+		}
     	if (fresh) {
     		if (isShadow()) {
 	    		if (resource == null) {

@@ -357,6 +357,19 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	}
 
 	/**
+	 * Set all error status in this result and all subresults as handled.
+	 */
+	public void setErrorsHandled() {
+		if (isError()) {
+			setStatus(OperationResultStatus.HANDLED_ERROR);
+		}
+		for(OperationResult subresult: getSubresults()) {
+			subresult.setErrorsHandled();
+		}
+	}
+
+
+	/**
 	 * Computes operation result status based on subtask status and sets an
 	 * error message if the status is FATAL_ERROR.
 	 * 

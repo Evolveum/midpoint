@@ -24,6 +24,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -119,6 +121,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
+
+	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
 	
 	private String accountGuybrushDummyRedOid;
 	
@@ -312,6 +316,58 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, UserType.class);
         dummyAuditService.assertExecutionSuccess();
-	}	
+	}
+	
+	@Test
+    public void test200ModifyUserJackBrokenAccountRef() throws Exception {
+		final String TEST_NAME = "test200ModifyUserJackBrokenAccountRef";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        addBrokenAccountRef(USER_JACK_OID);
+                        
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
+        		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Magnificent Captain Jack Sparrow");
+        assertAccounts(USER_JACK_OID, 0);
+                
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+
+	/** 
+	 * Break the user in the repo by inserting accountRef that points nowhere. 
+	 */
+	private void addBrokenAccountRef(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		OperationResult result = new OperationResult(TestModelServiceContract.class.getName() + ".addBrokenAccountRef");
+		
+		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationAddCollection(UserType.class, 
+				UserType.F_ACCOUNT_REF, prismContext, NON_EXISTENT_ACCOUNT_OID);
+		repositoryService.modifyObject(UserType.class, userOid, modifications , result);
+		
+		result.computeStatus();
+		assertSuccess(result);
+	}
 
 }

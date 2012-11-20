@@ -51,6 +51,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -377,7 +378,16 @@ public class ContextLoader {
 				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
 				Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
-				account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
+				try {
+					account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
+				} catch (ObjectNotFoundException e) {
+					// Broken accountRef. We need to mark it for deletion
+					LensProjectionContext<AccountShadowType> accountContext = getOrCreateBrokenAccountContext(context, oid);
+					accountContext.setFresh(true);
+					OperationResult getObjectSubresult = result.getLastSubresult();
+					getObjectSubresult.setErrorsHandled();
+					continue;
+				}
 			} else {
 				// Make sure it has a proper definition. This may come from outside of the model.
 				provisioningService.applyDefinition(account, result);
@@ -684,6 +694,23 @@ public class ContextLoader {
 		return null;
 	}
 	
+	private LensProjectionContext<AccountShadowType> getOrCreateBrokenAccountContext(LensContext<UserType,AccountShadowType> context,
+			String brokenAccountOid) {
+		LensProjectionContext<AccountShadowType> accountContext = context.findProjectionContextByOid(brokenAccountOid);
+		if (accountContext != null) {
+			if (accountContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN) {
+				throw new SystemException("Account context for broken account OID="+brokenAccountOid+" exists but it is not marked" +
+						" as broken: "+accountContext);
+			}
+			return accountContext;
+		}
+		
+		accountContext = context.createProjectionContext(null);
+		accountContext.setOid(brokenAccountOid);
+		accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+		return accountContext;
+	}
+	
 	/**
 	 * Check reconcile flag in account sync context and set accountOld
      * variable if it's not set (from provisioning), load resource (if not set already), etc.
@@ -693,6 +720,10 @@ public class ContextLoader {
 			SecurityViolationException {
 
 		for (LensProjectionContext<P> projContext : context.getProjectionContexts()) {
+			
+			if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+				continue;
+			}
 			
 			// Remember OID before the object could be wiped
 			String projectionObjectOid = projContext.getOid();

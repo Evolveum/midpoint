@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -138,6 +139,9 @@ public class Projector {
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+		        		continue;
+		        	}
 		        	if (projectionContext.getWave() != context.getProjectionWave()) {
 		        		// Let's skip accounts that do not belong into this wave.
 		        		continue;
