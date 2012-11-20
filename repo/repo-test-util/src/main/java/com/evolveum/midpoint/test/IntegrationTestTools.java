@@ -825,5 +825,26 @@ public class IntegrationTestTools {
     	ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
     	ResourceObjectShadowUtil.applyResourceSchema(accountType.asPrismObject(), resourceSchema);
     }
+    
+    public static void assertInMessageRecursive(Throwable e, String substring) {
+    	assert hasInMessageRecursive(e, substring) : "The substring '"+substring+"' was NOT found in the message of exception "+e+" (including cause exceptions)";
+    }
+    
+    public static boolean hasInMessageRecursive(Throwable e, String substring) {
+    	if (e.getMessage().contains(substring)) {
+    		return true;
+    	}
+    	if (e.getCause() != null) {
+    		return hasInMessageRecursive(e.getCause(), substring);
+    	}
+    	return false;
+    }
+    
+    public static void assertNotInMessageRecursive(Throwable e, String substring) {
+    	assert !e.getMessage().contains(substring) : "The substring '"+substring+"' was found in the message of exception "+e+": "+e.getMessage();
+    	if (e.getCause() != null) {
+    		assertNotInMessageRecursive(e.getCause(), substring);
+    	}
+    }
 
 }

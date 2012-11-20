@@ -52,6 +52,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -76,10 +77,12 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -126,30 +129,46 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
 public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
-
-	// Let's reuse the resource definition from UCF tests ... for now
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
+	
+	private static final String COMMON_DIR_NAME = "src/test/resources/object";
+	private static final String TEST_DIR_NAME = "src/test/resources/impl";
+	
+	private static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
+	
+	private static final String ACCOUNT1_FILENAME = TEST_DIR_NAME + "/account1.xml";
 	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
-	private static final String FILENAME_ACCOUNT_NEW = "src/test/resources/impl/account-new.xml";
+	
+	private static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
 	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
-	private static final String FILENAME_ACCOUNT_BAD = "src/test/resources/impl/account-bad.xml";
+	
+	private static final String ACCOUNT_BAD_FILENAME = TEST_DIR_NAME + "/account-bad.xml";
 	private static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
-	private static final String FILENAME_ACCOUNT_MODIFY = "src/test/resources/impl/account-modify.xml";
+	
+	private static final String ACCOUNT_MODIFY_FILENAME = TEST_DIR_NAME + "/account-modify.xml";
 	private static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
-	private static final String FILENAME_ACCOUNT_MODIFY_PASSWORD = "src/test/resources/impl/account-modify-password.xml";
+	
+	private static final String ACCOUNT_MODIFY_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-modify-password.xml";
 	private static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
-	private static final String FILENAME_ACCOUNT_DELETE = "src/test/resources/impl/account-delete.xml";
+	
+	private static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
 	private static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
-	private static final String FILENAME_ACCOUNT_SEARCH_ITERATIVE = "src/test/resources/impl/account-search-iterative.xml";
+	
+	private static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
 	private static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
-	private static final String FILENAME_ACCOUNT_SEARCH = "src/test/resources/impl/account-search.xml";
+	
+	private static final String ACCOUNT_SEARCH_FILENAME = TEST_DIR_NAME + "/account-search.xml";
 	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
-	private static final String FILENAME_ACCOUNT_NEW_WITH_PASSWORD = "src/test/resources/impl/account-new-with-password.xml";;
+	
+	private static final String ACCOUNT_NEW_WITH_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-new-with-password.xml";;
 	private static final String ACCOUNT_NEW_WITH_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222124422";
-	private static final String FILENAME_ACCOUNT_DISABLE_SIMULATED = "src/test/resources/impl/account-disable-simulated-opendj.xml";
+	
+	private static final String ACCOUNT_DISABLE_SIMULATED_FILENAME = TEST_DIR_NAME + "/account-disable-simulated-opendj.xml";
 	private static final String ACCOUNT_DISABLE_SIMULATED_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa";
+	
+	private static final String ACCOUNT_NO_SN_FILENAME = TEST_DIR_NAME + "/account-opendj-no-sn.xml";
+	private static final String ACCOUNT_NO_SN_OID = "c0c010c0-d34d-beef-f33d-113222123444";
+	
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
@@ -178,9 +197,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		PrismObject<ResourceType> resource = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, LDAP_CONNECTOR_TYPE, initResult);
+		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(FILENAME_ACCOUNT_BAD, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_BAD_FILENAME, AccountShadowType.class, initResult);
 	}
 	
 	@BeforeClass
@@ -379,7 +398,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test007GetObject");
 		try {
 
-			AccountShadowType objectToAdd = parseObjectTypeFromFile(FILENAME_ACCOUNT1, AccountShadowType.class);
+			AccountShadowType objectToAdd = parseObjectTypeFromFile(ACCOUNT1_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 			System.out.println(objectToAdd.asPrismObject().dump());
@@ -502,7 +521,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test010AddObject");
 
 		try {
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_NEW, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -573,7 +592,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test012DeleteObject");
 
 		try {
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_DELETE, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_DELETE_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -626,7 +645,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		try {
 
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_MODIFY, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -704,7 +723,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		try {
 
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_MODIFY_PASSWORD, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_PASSWORD_FILENAME, AccountShadowType.class);
 
 			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
 
@@ -769,7 +788,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				+ ".test015AddObjectWithPassword");
 
 		try {
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_NEW_WITH_PASSWORD, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -893,7 +912,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+"test017DisableAccount");
 		try {
 
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_DISABLE_SIMULATED, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -959,7 +978,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".searchObjectsIterativeTest");
 		try {
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE, AccountShadowType.class);
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -1009,14 +1028,14 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void testSearchObjects() throws Exception {
-		displayTestTile("testSearchObjects");
+	public void test201SearchObjects() throws Exception {
+		displayTestTile("test201SearchObjects");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".searchObjectsTest");
+				+ ".test201SearchObjects");
 
 		try {
-			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_SEARCH, AccountShadowType.class); 
+			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, AccountShadowType.class); 
 				//unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
@@ -1057,21 +1076,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void testSearchObjectsCompexFilter() throws Exception {
-		displayTestTile("testSearchObjects");
+	public void test202SearchObjectsCompexFilter() throws Exception {
+		displayTestTile("test202SearchObjectsCompexFilter");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".searchObjectsTest");
+				+ ".test202SearchObjectsCompexFilter");
 
 		try {
-//			AccountShadowType object = parseObjectTypeFromFile(FILENAME_ACCOUNT_SEARCH, AccountShadowType.class); 
-//				//unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
 			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-complex-filter.xml"), 
 					QueryType.class);
@@ -1103,42 +1114,66 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		}
 	}
 	
-	public void testAddObjectObjectAlreadyExist() throws Exception{
+	/**
+	 * The exception comes from the resource. There is no shadow for this object.
+	 */
+	@Test
+	public void test300AddObjectObjectAlreadyExistResource() throws Exception{
+		displayTestTile("test300AddObjectObjectAlreadyExistResource");
+		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test010AddObject");
-
+				+ ".test300AddObjectObjectAlreadyExist");
+		
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NEW_FILENAME));
+		display("Account to add", account);
+		
 		try {
-			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
-
-			System.out.println(SchemaDebugUtil.prettyPrint(object));
-			System.out.println(object.asPrismObject().dump());
-
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+			// WHEN
+			provisioningService.addObject(account, null, result);
 			
-			String addedObjectOid2 = provisioningService.addObject(object.asPrismObject(), null, result);
-			assertEquals(ACCOUNT_NEW_OID, addedObjectOid2);
-
-			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					result).asObjectable();
-			assertEquals("will", accountType.getName());
-
-			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-					null, result).asObjectable();
-			assertEquals("will", provisioningAccountType.getName());
-		} finally {
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-			} catch (Exception ex) {
-			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-			} catch (Exception ex) {
-			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_OID, result);
-			} catch (Exception ex) {
-			}
+			AssertJUnit.fail("Expected addObject operation to fail but it was successful");
+			
+		} catch (ObjectAlreadyExistsException e) {
+			// This is expected
+			display("Expected exception", e);
+			
+			// The exception should originate from the LDAP layers
+			IntegrationTestTools.assertInMessageRecursive(e, "LDAP");
 		}
+		
+		// TODO: search to check that the shadow with the same NAME exists (search for OID will not do)
+
 	}
+	
+	@Test
+	public void test310AddObjectNoSn() throws Exception{
+		displayTestTile("test310AddObjectNoSn");
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test300AddObjectObjectAlreadyExist");
+
+		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));
+		display("Account to add", account);
+		
+		try {
+			// WHEN
+			provisioningService.addObject(account, null, result);
+			
+			AssertJUnit.fail("Expected addObject operation to fail but it was successful");
+			
+		} catch (SchemaException e) {
+			// This is expected
+			display("Expected exception", e);
+			
+			// This error should be detectable before it reaches a resource. Therefore we check that the
+			// cause was not a LDAP exception
+			
+			// MID-1007
+//			IntegrationTestTools.assertNotInMessageRecursive(e, "LDAP");
+		}
+		
+		// TODO: search to check that the shadow with the same NAME exists (search for OID will not do)
+
+	}
+	
 }
