@@ -6,6 +6,7 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.engine.util.JRProperties;
 
 import org.apache.wicket.request.resource.ByteArrayResource;
 
@@ -18,6 +19,7 @@ public class JasperReports extends ByteArrayResource {
 
 	public static byte[] getData(JasperPrint print) {
 		JRPdfExporter exporter = new JRPdfExporter();
+		exporter.setParameter(JRExporterParameter.CHARACTER_ENCODING, "UTF-8");
 
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		exporter.setParameter(JRExporterParameter.JASPER_PRINT, print);

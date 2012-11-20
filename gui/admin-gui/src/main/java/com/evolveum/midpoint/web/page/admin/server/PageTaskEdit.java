@@ -154,6 +154,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		SortableDataProvider<OperationResult> provider = new ListDataProvider<OperationResult>(this,
 				new PropertyModel<List<OperationResult>>(model, "opResult"));
 		TablePanel result = new TablePanel<OperationResult>("operationResult", provider, initResultColumns());
+		result.setStyle("padding-top: 0px;");
 		result.setShowPaging(false);
 		result.setOutputMarkupId(true);
 		mainForm.add(result);

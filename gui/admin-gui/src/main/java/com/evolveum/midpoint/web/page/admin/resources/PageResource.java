@@ -100,18 +100,6 @@ public class PageResource extends PageAdminResources {
                 initCapabilities(resource.asObjectable()));
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                String name = model.getObject().getName();
-                return new StringResourceModel("page.title", PageResource.this, null, null, name).getString();
-            }
-        };
-    }
-
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
@@ -340,7 +328,7 @@ public class PageResource extends PageAdminResources {
 
         WebMarkupContainer connectors = (WebMarkupContainer) get("mainForm:connectors");
         target.add(connectors);
-
+        
         if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
@@ -363,7 +351,7 @@ public class PageResource extends PageAdminResources {
         }
 
         result.computeStatus();
-
+        
         showResult(result);
         target.add(getFeedbackPanel());
     }
