@@ -280,10 +280,11 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 	
 	@Test
     public void test220GetResourceNotFound() throws Exception {
-        displayTestTile(this, "test220GetResourceNotFound");
+		final String TEST_NAME = "test220GetResourceNotFound";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test220GetResourceNotFound");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -301,6 +302,37 @@ public class TestBrokenCSV extends AbstractModelIntegrationTest {
 		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
+	}
+	
+	@Test
+    public void test221GetResourceNotFoundResolveConnector() throws Exception {
+		final String TEST_NAME = "test221GetResourceNotFoundResolveConnector";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		Collection<ObjectOperationOptions> options = 
+				ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR_REF, ObjectOperationOption.RESOLVE);
+		
+		// WHEN
+		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, options, task, result);
+		
+		// THEN
+		display("getObject resource", resource);
+		result.computeStatus();
+		display("getObject result", result);
+		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+		display("resource.fetchResult", fetchResult);
+		assertEquals("Expected partial errror in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+		
+        // TODO: better asserts
+		assertNotNull("Null resource", resource);
+		
+		assertNotNull("Connector was not resolved", resource.asObjectable().getConnector());
 	}
 		
 	

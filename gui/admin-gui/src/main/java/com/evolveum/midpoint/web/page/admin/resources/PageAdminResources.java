@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.PageDisabledVisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
@@ -55,6 +57,8 @@ public class PageAdminResources extends PageAdmin {
 
     private static final String DOT_CLASS = PageAdminResources.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    
+    protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
 
     @Override
     public List<BottomMenuItem> getBottomMenuItems() {
@@ -108,9 +112,14 @@ public class PageAdminResources extends PageAdmin {
         try {
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
             StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
+            LOGGER.trace("getObject(resorce) oid={}, options={}", resourceOid.toString(), options);
             resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task, result);
-            
             result.recomputeStatus();
+            
+            if (LOGGER.isTraceEnabled()) {
+            	LOGGER.trace("getObject(resorce) result\n:{}", result.dump());
+            }
+            
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get resource.", ex);
         }
