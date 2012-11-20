@@ -54,9 +54,10 @@ public class GenericErrorHandler extends ErrorHandler{
 		result.addParam("currentOperation", op);
 		result.addParam("reconciled", true);
 		
+		
 		switch (op) {
 		case GET:
-			if (shadow.getResource().getOperationalState() != null && AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus()){
+			if (shadow.isDead() || shadow.getResource().getOperationalState() != null && AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus()){
 				parentResult.computeStatus("Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				parentResult.muteError();
 				shadow.setFetchResult(parentResult.createOperationResultType());

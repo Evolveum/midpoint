@@ -57,6 +57,18 @@ public class ResourceObjectShadowUtil {
 		return attributesContainer.getIdentifiers();	
 	}
 	
+	public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(ResourceObjectShadowType shadowType) {
+		return getSecondaryIdentifiers(shadowType.asPrismObject());
+	}
+	
+	public static Collection<ResourceAttribute<?>> getSecondaryIdentifiers(PrismObject<? extends ResourceObjectShadowType> shadow) {
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		if (attributesContainer == null) {
+			return null;
+		}
+		return attributesContainer.getSecondaryIdentifiers();	
+	}
+	
 	public static Collection<ResourceAttribute<?>> getAttributes(ResourceObjectShadowType shadowType) {
 		return getAttributes(shadowType.asPrismObject());
 	}

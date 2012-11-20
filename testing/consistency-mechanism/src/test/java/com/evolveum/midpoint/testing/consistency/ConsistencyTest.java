@@ -20,15 +20,16 @@
  */
 package com.evolveum.midpoint.testing.consistency;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
+//import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -230,6 +231,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 	private static final String USER_E_FILENAME = "src/test/resources/repo/user-e.xml";
 	private static final String USER_E_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
+	
+	private static final String USER_ELAINE_FILENAME = "src/test/resources/repo/user-elaine.xml";
+	private static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
 
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = "src/test/resources/repo/account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
@@ -249,8 +253,9 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DENIELS_FILENAME = "src/test/resources/request/user-modify-add-account-deniels.xml";
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-add-account-communication-problem.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-linked.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_UNLINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-unlinked.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-linked.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-unlinked.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-communication-problem.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
 	private static final String REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT = "src/test/resources/request/account-guybrush-modify-attributes.xml";
@@ -261,6 +266,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private static final String TASK_OPENDJ_RECONCILIATION_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
+	private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
 
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -928,7 +934,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertEquals(0, user.asObjectable().getAccountRef().size());
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
-				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_LINKED_OPENDJ_FILENAME,
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME,
 				ObjectModificationType.class);
 
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
@@ -1002,7 +1008,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		applySyncSettings(syncSettings);
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
-				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXIST_UNLINKED_OPENDJ_FILENAME,
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME,
 				ObjectModificationType.class);
 
 		ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
@@ -1448,8 +1454,78 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull("Fetch result was not set in the shadow.", account.getFetchResult());
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	@Test
-	public void test025reconciliation() throws Exception {
+	public void test025addObjectCommunicationProblemAlreadyExists() throws Exception{
+		
+		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
+		
+		openDJController.start();
+	
+		Entry entry = openDJController.addEntryFromLdifFile(LDIF_ELAINE_FILENAME);
+		SearchResultEntry searchResult = openDJController.searchByUid("elaine");
+		OpenDJController.assertAttribute(searchResult, "l", "Caribbean");
+		OpenDJController.assertAttribute(searchResult, "givenName", "Elaine");
+		OpenDJController.assertAttribute(searchResult, "sn", "Marley");
+		OpenDJController.assertAttribute(searchResult, "cn", "Elaine Marley");
+		OpenDJController.assertAttribute(searchResult, "mail", "governor.marley@deep.in.the.caribbean.com");
+		OpenDJController.assertAttribute(searchResult, "employeeType", "governor");
+		OpenDJController.assertAttribute(searchResult, "title", "Governor");
+		String dn = searchResult.getDN().toString();
+		assertEquals("DN attribute " + dn + " not equals", dn, "uid=elaine,ou=people,dc=example,dc=com");
+
+		openDJController.stop();
+		
+		
+		testAddUserToRepo("add user - test025 account already exists communication problem", USER_ELAINE_FILENAME,
+				USER_ELAINE_OID);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_ELAINE_OID, parentResult);
+		assertNotNull(user);
+		assertEquals(0, user.asObjectable().getAccountRef().size());
+
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
+		applySyncSettings(syncSettings);
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME,
+				ObjectModificationType.class);
+
+		ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta<UserType> modifyDelta = ObjectDelta.createModifyDelta(USER_ELAINE_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		
+		// WHEN
+//		displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, parentResult);
+		PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_ELAINE_OID, parentResult);
+		assertNotNull(repoUser);
+		assertEquals("user does not contain reference to shadow", 1, repoUser.asObjectable().getAccountRef().size());
+		String shadowOid = repoUser.asObjectable().getAccountRef().get(0).getOid();
+		PrismObject<AccountShadowType> shadow = modelService.getObject(AccountShadowType.class, shadowOid, null, task, parentResult);
+		assertNotNull("Shadow must not be null", shadow);
+		AccountShadowType shadowType = shadow.asObjectable();
+		assertEquals("Failed operation type must not be null.", FailedOperationTypeType.ADD, shadowType.getFailedOperationType());
+		assertNotNull("Result in the shadow must not be null", shadowType.getResult());
+		assertNotNull("Resource ref in the shadow must not be null", shadowType.getResourceRef());
+		assertEquals("Resource in the shadow not same as actual resource.", resourceTypeOpenDjrepo.getOid(), shadowType.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(shadowType, resourceTypeOpenDjrepo, "sn", "Marley");
+		assertAttribute(shadowType, resourceTypeOpenDjrepo, "cn", "Elaine Marley");
+		assertAttribute(shadowType, resourceTypeOpenDjrepo, "givenName", "Elaine");
+		assertAttribute(shadowType, resourceTypeOpenDjrepo, "uid", "elaine");
+	
+	}
+	
+	
+	@Test
+	public void test026reconciliation() throws Exception {
 
 		displayTestTile("test025 reconciliation");
 
@@ -1567,11 +1643,12 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		displayJaxb("shadow from the repository: ", modifiedAccount, AccountShadowType.COMPLEX_TYPE);
 		assertNull("Expected that FailedOperationType is null, but isn't",
 				modifiedAccount.getFailedOperationType());
-		assertNull(addedAccount.getResult());
-
+		assertNull("result in the modified account after reconciliation must be null.", modifiedAccount.getResult());
+		
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
+		
 		// check if the account was deleted during the reconciliation process
 		try {
 			modelService.getObject(AccountShadowType.class, ACCOUNT_DENIELS_OID, null, null, result);
@@ -1582,7 +1659,25 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 			}
 
 		}
+		
+		UserType userElaine = repositoryService.getObject(UserType.class, USER_ELAINE_OID, result).asObjectable();
+		assertNotNull(userElaine);
+		assertEquals("elaine must have only one reference ont he account", 1, userElaine.getAccountRef().size());
+		String accountElaineRefOid = userElaine.getAccountRef().get(0).getOid();
+		AccountShadowType elaineAccount = modelService.getObject(AccountShadowType.class, accountElaineRefOid,
+				null, null, result).asObjectable();
+		assertNotNull(elaineAccount);
+		displayJaxb("shadow from the repository: ", elaineAccount, AccountShadowType.COMPLEX_TYPE);
+		assertNull("Expected that FailedOperationType is null, but isn't",
+				elaineAccount.getFailedOperationType());
+		assertNull("result in the modified account after reconciliation must be null.", elaineAccount.getResult());
+		assertIcfsNameAttribute(elaineAccount, "uid=elaine,ou=people,dc=example,dc=com");
+//		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
+//		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+
 	}
+	
+	
 	
 	@Test
 	public void test999Shutdown() throws Exception {

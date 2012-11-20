@@ -1,4 +1,4 @@
-dn: uid=elaine,ou=People,dc=example,dc=com
+dn: uid=elaine,ou=people,dc=example,dc=com
 uid: elaine
 cn: Elaine Marley
 sn: Marley
