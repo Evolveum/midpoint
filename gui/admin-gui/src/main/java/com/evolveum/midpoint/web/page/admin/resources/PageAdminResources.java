@@ -109,8 +109,8 @@ public class PageAdminResources extends PageAdmin {
             Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
             StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
             resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task, result);
-
-            result.recordSuccess();
+            
+            result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get resource.", ex);
         }
