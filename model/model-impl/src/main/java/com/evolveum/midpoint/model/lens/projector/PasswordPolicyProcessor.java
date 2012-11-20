@@ -42,15 +42,19 @@ public class PasswordPolicyProcessor {
 			throws PolicyViolationException, SchemaException {
 
 		String passwordValue = determinePasswordValue(password);
-		if (passwordValue == null || passwordPolicy == null) {
+		if (passwordPolicy == null) {
 			LOGGER.trace("Skipping processing password policies. Password value or password policies not specified.");
 			return;
+		}
+		
+		if (password == null || password.isEmpty()){
+			throw new PolicyViolationException("Provided password is empty.");
 		}
 
 		boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
 
 		if (!isValid) {
-//			result.computeStatus();
+//			String message = result.getMessage() !=null ? result.getMessage() : result.computeStatus();
 			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
 
 		}
