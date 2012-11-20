@@ -30,4 +30,11 @@
     <givenName>Largo</givenName>
     <familyName>LaGrande</familyName>
 	<employeeType>PIRATE</employeeType>
+	 <credentials>
+        <password>
+        	<value>
+	            <clearValue>dead123</clearValue>
+            </value>
+        </password>
+    </credentials>
 </user>

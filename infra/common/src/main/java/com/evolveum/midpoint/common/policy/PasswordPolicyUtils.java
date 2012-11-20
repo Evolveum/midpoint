@@ -243,7 +243,12 @@ public class PasswordPolicyUtils {
 		ArrayList<String> passwd = StringPolicyUtils.stringTokenizer(password);
 		
 		if (lims.getLimit() == null || lims.getLimit().isEmpty()){
-			ret.computeStatus(message.toString());
+			if (message.toString() == null || message.toString().isEmpty()){
+				ret.computeStatus();
+			} else {
+				ret.computeStatus(message.toString());
+				
+			}
 			
 			return ret;
 		}
@@ -339,7 +344,12 @@ public class PasswordPolicyUtils {
 					OperationResultStatus.SUCCESS, "PASSED"));
 		}
 
-		ret.computeStatus(message.toString());
+		if (message.toString() == null || message.toString().isEmpty()){
+			ret.computeStatus();
+		} else {
+			ret.computeStatus(message.toString());
+			
+		}
 		
 		return ret;
 	}
