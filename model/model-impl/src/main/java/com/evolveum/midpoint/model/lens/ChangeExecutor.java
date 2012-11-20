@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.lens;
 
 import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
 
@@ -27,10 +27,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
-import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensElementContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -103,7 +99,7 @@ public class ChangeExecutor {
     }
 
     public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
     	
     	OperationResult result = parentResult.createSubresult(ChangeExecutor.class+".executeChanges");
     	
@@ -184,7 +180,7 @@ public class ChangeExecutor {
      */
     private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject,
     		LensFocusContext<F> focusContext, LensProjectionContext<P> accCtx,
-    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, RewindException {
     	if (prismObject == null) {
     		return;
     	}
@@ -290,7 +286,7 @@ public class ChangeExecutor {
 
     }
 	
-    private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
+    private void updateSituationInAccount(Task task, SynchronizationSituationType situation, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, RewindException{
 
     	OperationResult result = new OperationResult("Updating situation in account (Model)");
     	result.addParam("situation", situation);
@@ -331,7 +327,7 @@ public class ChangeExecutor {
 	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
     	void executeChange(ObjectDelta<T> objectDelta, LensElementContext<T> objectContext, LensContext<F,P> context, Task task, OperationResult result) 
     			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
-    			ConfigurationException, SecurityViolationException {
+    			ConfigurationException, SecurityViolationException, RewindException {
     	
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
@@ -376,7 +372,7 @@ public class ChangeExecutor {
 	}
 
     private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 
         PrismObject<T> objectToAdd = change.getObjectToAdd();
 
@@ -423,7 +419,7 @@ public class ChangeExecutor {
     }
 
     private <T extends ObjectType> void executeModification(ObjectDelta<T> change, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, RewindException {
         if (change.isEmpty()) {
             // Nothing to do
             return;
@@ -456,7 +452,7 @@ public class ChangeExecutor {
 
     private String addProvisioningObject(PrismObject<? extends ObjectType> object, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 
         if (object.canRepresent(ResourceObjectShadowType.class)) {
             ResourceObjectShadowType shadow = (ResourceObjectShadowType) object.asObjectable();
@@ -473,7 +469,7 @@ public class ChangeExecutor {
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {
-            throw ex;
+            throw new RewindException(ex);
         } catch (CommunicationException ex) {
             throw ex;
         } catch (ConfigurationException e) {
@@ -498,7 +494,7 @@ public class ChangeExecutor {
     }
 
     private String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
-            Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException {
+            Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, RewindException {
 
         try {
             // TODO: scripts

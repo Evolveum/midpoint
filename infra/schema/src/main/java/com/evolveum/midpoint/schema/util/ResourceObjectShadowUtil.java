@@ -30,6 +30,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -243,6 +246,41 @@ public class ResourceObjectShadowUtil {
 			return null;
 		}
 		return attribute.getRealValues(type);
+	}
+
+	public static void checkConsistency(PrismObject<? extends ResourceObjectShadowType> shadow, String desc) {
+		PrismReference resourceRef = shadow.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
+    	if (resourceRef == null) {
+    		throw new IllegalStateException("No resourceRef in "+desc);
+    	}
+    	if (StringUtils.isBlank(resourceRef.getOid())) {
+    		throw new IllegalStateException("Null or empty OID in resourceRef in "+desc);
+    	}
+		ResourceObjectShadowType shadowType = shadow.asObjectable();
+    	if (shadowType.getObjectClass() == null) {
+    		throw new IllegalStateException("Null objectClass in "+desc);
+    	}
+    	PrismContainer<ResourceObjectShadowAttributesType> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+    	if (attributesContainer != null) {
+    		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
+    			throw new IllegalStateException("The attributes element expected to be ResourceAttributeContainer but it is "
+    					+attributesContainer.getClass()+" instead in "+desc);
+    		}
+    		checkConsistency(attributesContainer.getDefinition(), " container definition in "+desc); 
+    	}
+    	
+    	PrismContainerDefinition<ResourceObjectShadowAttributesType> attributesDefinition = shadow.getDefinition().findContainerDefinition(AccountShadowType.F_ATTRIBUTES);
+    	checkConsistency(attributesDefinition, " object definition in "+desc);
+	}
+	
+	public static void checkConsistency(PrismContainerDefinition<ResourceObjectShadowAttributesType> attributesDefinition, String desc) {
+		if (attributesDefinition == null) {
+    		throw new IllegalStateException("No definition for <attributes> in "+desc);
+    	}
+    	if (!(attributesDefinition instanceof ResourceAttributeContainerDefinition)) {
+    		throw new IllegalStateException("The attributes element definition expected to be ResourceAttributeContainerDefinition but it is "
+					+attributesDefinition.getClass()+" instead in "+desc);
+    	}
 	}
 	
 }

@@ -25,9 +25,12 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -929,24 +932,35 @@ public class ShadowConverter {
 	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(
 			PrismObject<T> shadow, ResourceType resource) throws SchemaException {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
+		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
+				objectClassDefinition, objectClassDefinition.getPrismContext());
 
 		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null || attributesContainer.isEmpty()) {
-			throw new SchemaException("No attributes in "+shadow);
-		}
-		if (attributesContainer instanceof ResourceAttributeContainer) {
-			if (attributesContainer.getDefinition() == null) {
-				ResourceAttributeContainerDefinition definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
-						objectClassDefinition, objectClassDefinition.getPrismContext());
-				attributesContainer.applyDefinition(definition);
+		if (attributesContainer != null) {
+			if (attributesContainer instanceof ResourceAttributeContainer) {
+				if (attributesContainer.getDefinition() == null) {
+					attributesContainer.applyDefinition(attributesContainerDefinition);
+				}
+			} else {
+				// We need to convert <attributes> to ResourceAttributeContainer
+				ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
+						attributesContainer, objectClassDefinition);
+				shadow.getValue().replace(attributesContainer, convertedContainer);
 			}
-		} else {
-			// We need to convert <attributes> to ResourceAttributeContainer
-			ResourceAttributeContainer convertedContainer = ResourceAttributeContainer.convertFromContainer(
-					attributesContainer, objectClassDefinition);
-			shadow.getValue().replace(attributesContainer, convertedContainer);
 		}
+		
+		// We also need to replace the entire object definition to inject correct object class definition here
+		// If we don't do this then the patch (delta.applyTo) will not work correctly because it will not be able to
+		// create the attribute container if needed.
 
+		PrismObjectDefinition<T> objectDefinition = shadow.getDefinition();
+		PrismContainerDefinition<ResourceObjectShadowAttributesType> origAttrContainerDef = objectDefinition.findContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (origAttrContainerDef == null || !(origAttrContainerDef instanceof ResourceAttributeContainerDefinition)) {
+			PrismObjectDefinition<T> clonedDefinition = objectDefinition.cloneWithReplacedDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
+					attributesContainerDefinition);
+			shadow.setDefinition(clonedDefinition);
+		}
+		
 		return objectClassDefinition;
 	}
 

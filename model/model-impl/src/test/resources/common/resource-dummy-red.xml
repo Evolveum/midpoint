@@ -194,9 +194,6 @@
                     </outbound>            	
             	</enabled>
             </activation>
-            <iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
 		</accountType>
 	</schemaHandling>
 	

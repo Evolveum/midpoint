@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -249,21 +250,26 @@ public class ShadowCache {
 
 	}
 
-	public String addShadow(ResourceObjectShadowType shadow, boolean isReconciled, ProvisioningScriptsType scripts,
+	public String addShadow(ResourceObjectShadowType shadowType, boolean isReconciled, ProvisioningScriptsType scripts,
 			ResourceType resource, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 
-		Validate.notNull(shadow, "Object to add must not be null.");
+		Validate.notNull(shadowType, "Object to add must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start adding shadow object:\n{}", shadow.asPrismObject().dump());
+			LOGGER.trace("Start adding shadow object:\n{}", shadowType.asPrismObject().dump());
 			LOGGER.trace("Scripts: {}",
-					SchemaDebugUtil.dumpJaxbObject(scripts, "scripts", shadow.asPrismObject().getPrismContext()));
+					SchemaDebugUtil.dumpJaxbObject(scripts, "scripts", shadowType.asPrismObject().getPrismContext()));
+		}
+		
+		PrismContainer<?> attributesContainer = shadowType.asPrismObject().findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null || attributesContainer.isEmpty()) {
+			throw new SchemaException("Attempt to add shadow without any attributes: "+shadowType);
 		}
 
 		if (resource == null) {
-			resource = getResource(shadow, parentResult);
+			resource = getResource(shadowType, parentResult);
 		}
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -274,17 +280,17 @@ public class ShadowCache {
 //				+ ".addShadow");
 
 		try {
-			shadow = shadowConverter.addShadow(resource, shadow, additionalOperations, isReconciled,
+			shadowType = shadowConverter.addShadow(resource, shadowType, additionalOperations, isReconciled,
 					parentResult);
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
 			parentResult.muteLastSubresultError();
-			shadow = extendShadow(shadow, FailedOperationTypeType.ADD, parentResult, resource, null);
-			shadow = handleError(ex, shadow, FailedOperation.ADD, parentResult);
-			return shadow.getOid();
+			shadowType = extendShadow(shadowType, FailedOperationTypeType.ADD, parentResult, resource, null);
+			shadowType = handleError(ex, shadowType, FailedOperation.ADD, parentResult);
+			return shadowType.getOid();
 		}
 
-		if (shadow == null) {
+		if (shadowType == null) {
 			parentResult
 					.recordFatalError("Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
 			throw new IllegalStateException(
@@ -294,13 +300,13 @@ public class ShadowCache {
 		LOGGER.trace("Adding object with identifiers to the repository.");
 
 		LOGGER.trace("Reconciled shadow: {}", isReconciled);
-		addOrReplaceShadowToRepository(shadow, isReconciled, parentResult.isError(), parentResult);
+		addOrReplaceShadowToRepository(shadowType, isReconciled, parentResult.isError(), parentResult);
 
 		LOGGER.trace("Object added to the repository successfully.");
 
 		parentResult.recordSuccess();
 		
-		return shadow.getOid();
+		return shadowType.getOid();
 
 	}
 

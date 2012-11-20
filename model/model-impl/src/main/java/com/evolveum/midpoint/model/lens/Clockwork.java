@@ -31,7 +31,6 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -49,6 +48,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -59,6 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  */
 @Component
 public class Clockwork {
+	
+	public static final int MAX_REWIND_ATTEMPTS = 2;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
@@ -86,7 +88,7 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
-	public <F extends ObjectType, P extends ObjectType> HookOperationMode run(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> HookOperationMode run(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) {
 			context.checkConsistence();
 		}
@@ -104,7 +106,7 @@ public class Clockwork {
         return click(context, task, result);
 	}
 	
-	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		
 		try {
 			
@@ -213,18 +215,18 @@ public class Clockwork {
 		context.setState(ModelState.SECONDARY);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
 		}
-		// execute current wave and go to the next wave
+		
 		changeExecutor.executeChanges(context, task, result);
 		
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
-		// TODO: attempts
 		context.incrementExecutionWave();
+
 		// Force recompute for next wave
 		context.rot();
 		
@@ -285,6 +287,18 @@ public class Clockwork {
 		auditService.audit(auditRecord, task);
 		// We need to clean up so these deltas will not be audited again in next wave
 		context.clearExecutedDeltas();
+	}
+	
+	public static void throwException(Throwable e) throws ObjectAlreadyExistsException, ObjectNotFoundException {
+		if (e instanceof ObjectAlreadyExistsException) {
+			throw (ObjectAlreadyExistsException)e;
+		} else if (e instanceof ObjectNotFoundException) {
+			throw (ObjectNotFoundException)e;
+		} else if (e instanceof SystemException) {
+			throw (SystemException)e;
+		} else {
+			throw new SystemException("Unexpected exception "+e.getClass()+" "+e.getMessage(), e);
+		}
 	}
 	
 }

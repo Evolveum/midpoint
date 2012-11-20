@@ -665,11 +665,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	
 	@Test
 	public void test020ApplyDefinitionShadow() throws Exception {
-		displayTestTile("test020ApplyDefinitionShadow");
+		final String TEST_NAME = "test020ApplyDefinitionShadow";
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test020ApplyDefinitionShadow");
+				+ "." + TEST_NAME);
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
 
@@ -682,6 +683,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		assertSuccess(result);
 
 		account.checkConsistence(true, true);
+		ResourceObjectShadowUtil.checkConsistency(account, TEST_NAME);
 		assertSuccess("applyDefinition(account) result", result);
 	}
 
@@ -1722,10 +1724,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		checkShadow(shadow, parentResult, true);
 	}
 
-	private void checkShadow(AccountShadowType shadow, OperationResult parentResult, boolean fullShadow) {
-		shadow.asPrismObject().checkConsistence(true, true);
+	private void checkShadow(AccountShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
+		shadowType.asPrismObject().checkConsistence(true, true);
+		ResourceObjectShadowUtil.checkConsistency(shadowType.asPrismObject(), parentResult.getOperation());
 		ObjectChecker<AccountShadowType> checker = createShadowChecker(fullShadow);
-		IntegrationTestTools.checkShadow(shadow, resourceType, repositoryService, checker, prismContext, parentResult);
+		IntegrationTestTools.checkShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
 	}
 
 	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,

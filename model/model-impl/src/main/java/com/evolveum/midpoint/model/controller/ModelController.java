@@ -45,7 +45,6 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -56,10 +55,12 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
+import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
@@ -337,34 +338,53 @@ public class ModelController implements ModelService, ModelInteractionService {
 				for (ObjectDelta delta : deltas){
 					clonedDeltas.add(delta.clone());
 				}
-				// Normal processing
-				LensContext<?, ?> context = LensUtil.objectDeltasToContext(deltas, provisioning, prismContext, task, result);
-				clockwork.run(context, task, result);
+				
+				int rewindAttempts = 0;
+				while (true) {
+					RewindException rewindException = null;
+					LensContext<?, ?> context = LensUtil.objectDeltasToContext(deltas, provisioning, prismContext, task, result);
+					try {
+						
+						clockwork.run(context, task, result);
+						
+						// No rewind exception, the execution was acceptable
+						break;
+						
+					} catch (RewindException e) {
+						rewindException = e;
+						LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
+						rewindAttempts++;
+						if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
+							result.recordFatalError(rewindException.getCause());
+							Clockwork.throwException(rewindException.getCause());
+						}
+						result.muteLastSubresultError();						
+					}
+				}
 			}
+			
+			result.computeStatus();
 
             if (result.isInProgress()) {       // todo fix this hack (computeStatus does not take the root-level status into account, but clockwork.run sets "in-progress" flag just at the root level)
-                result.computeStatus();
                 if (result.isSuccess()) {
                     result.recordInProgress();
                 }
-            } else {
-			    result.computeStatus();
             }
 			
 		} catch (ObjectAlreadyExistsException e) {
-			try {
-				//TODO: log reset operation, maybe add new result informing about the situation
-				result.muteLastSubresultError();
-				LOGGER.trace("Reseting add operation, recomputing user and his accounts.");
-				LensContext<?, ?> context = LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
-				clockwork.run(context, task, result);
-				result.computeStatus();
-			} catch (SystemException ex){
-				result.recordFatalError(e);
-				throw e;
-			}
-			//result.recordFatalError(e);
-			//throw e;
+//			try {
+//				//TODO: log reset operation, maybe add new result informing about the situation
+//				result.muteLastSubresultError();
+//				LOGGER.trace("Reseting add operation, recomputing user and his accounts.");
+//				LensContext<?, ?> context = LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
+//				clockwork.run(context, task, result);
+//				result.computeStatus();
+//			} catch (SystemException ex){
+//				result.recordFatalError(e);
+//				throw e;
+//			}
+			result.recordFatalError(e);
+			throw e;
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e);
 			throw e;

@@ -68,7 +68,8 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 		// Some basic sanity checks
 		assertNotNull("No change", change);
 		assertNotNull("No task", task);
-		assertNotNull("No result", parentResult);
+		assertNotNull("No resource", change.getResource());
+		assertNotNull("No parent result", parentResult);
 
 		assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
 				|| change.getObjectDelta() != null);
@@ -139,7 +140,9 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 		// Some basic sanity checks
 		assertNotNull("No failure", failureDescription);
 		assertNotNull("No task", task);
-		assertNotNull("No result", parentResult);
+		assertNotNull("No result", failureDescription.getResult());
+		assertNotNull("No resource", failureDescription.getResource());
+		assertNotNull("No parent result", parentResult);
 
 		assertNotNull("Current shadow not present", failureDescription.getCurrentShadow());
 		assertNotNull("Delta not present", failureDescription.getObjectDelta());

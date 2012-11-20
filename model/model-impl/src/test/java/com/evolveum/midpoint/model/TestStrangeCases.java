@@ -120,10 +120,93 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 	
+	private String accountGuybrushDummyRedOid;
+	
 	public TestStrangeCases() throws JAXBException {
 		super();
 	}
 	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult)
+			throws Exception {
+		super.initSystem(initTask, initResult);
+		
+		addDummyAccount(dummyResourceRed, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Monkey Island");
+		
+		PrismObject<AccountShadowType> accountGuybrushDummyRed = addObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, AccountShadowType.class, initResult);
+		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
+	}
+
+	@Test
+    public void test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict() throws Exception {
+		final String TEST_NAME = "test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME));
+        // Remove the attributes. This will allow outbound mapping to take place instead.
+        account.removeContainer(AccountShadowType.F_ATTRIBUTES);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		dummyAuditService.clear();
+        
+		try {
+			
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+			
+		} catch (ObjectAlreadyExistsException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+				
+		// Check accountRef
+		PrismObject<UserType> userGuybrush = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        UserType userGuybrushType = userGuybrush.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userGuybrushType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userGuybrushType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
+        
+        // Check account in dummy resource
+        assertDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        
+        result.computeStatus();
+        display("executeChanges result", result);
+        IntegrationTestTools.assertFailure("executeChanges result", result);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
+        assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        
+	}
+
 	@Test
     public void test180DeleteHalfAssignmentFromUser() throws Exception {
 		String TEST_NAME = "test180DeleteHalfAssignmentFromUser";

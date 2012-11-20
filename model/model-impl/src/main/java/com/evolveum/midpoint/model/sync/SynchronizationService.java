@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.model.sync;
 
+import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +67,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -123,11 +126,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult) {
-		Validate.notNull(change, "Resource object shadow change description must not be null.");
-		Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
-				"Object delta and current shadow are null. At least one must be provided.");
-		Validate.notNull(change.getResource(), "Resource in change must not be null.");
+		validate(change);
 		Validate.notNull(parentResult, "Parent operation result must not be null.");
+		
 		LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
@@ -159,6 +160,23 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 	}
 	
+	private void validate(ResourceObjectShadowChangeDescription change) {
+		Validate.notNull(change, "Resource object shadow change description must not be null.");
+		Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
+				"Object delta and current shadow are null. At least one must be provided.");
+		Validate.notNull(change.getResource(), "Resource in change must not be null.");
+		
+		if (CONSISTENCY_CHECKS) {
+			if (change.getCurrentShadow() != null) {
+				change.getCurrentShadow().checkConsistence();
+				ResourceObjectShadowUtil.checkConsistency(change.getCurrentShadow(), "current shadow in change description");
+			}
+			if (change.getObjectDelta() != null) {
+				change.getObjectDelta().checkConsistence();
+			}
+		}
+	}
+
 	@Override
 	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription,
 			Task task, OperationResult parentResult) {
@@ -166,8 +184,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		Validate.notNull(failureDescription.getCurrentShadow(), "Current shadow in resource object shadow failure description must not be null.");
 		Validate.notNull(failureDescription.getObjectDelta(), "Delta in resource object shadow failure description must not be null.");
 		Validate.notNull(failureDescription.getResource(), "Resource in failure must not be null.");
+		Validate.notNull(failureDescription.getResult(), "Result in failure description must not be null.");
 		Validate.notNull(parentResult, "Parent operation result must not be null.");
+		
 		LOGGER.debug("SYNCHRONIZATION: received failure notifiation {}", failureDescription);
+		
+		LOGGER.error("Provisioning error: {}", failureDescription.getResult().getMessage());
 		
 		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 	}

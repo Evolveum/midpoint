@@ -22,8 +22,8 @@
 package com.evolveum.midpoint.model.sync;
 
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.prism.PrismContext;

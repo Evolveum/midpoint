@@ -27,11 +27,13 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.ChangeExecutor;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.lens.RewindException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -221,25 +223,42 @@ public class RecomputeTaskHandler implements TaskHandler {
 	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Reconciling user {}", user);
+		LOGGER.trace("Recomputing user {}", user);
 		
-		LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
-		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
-		focusContext.setObjectOld(user);
-		focusContext.setOid(user.getOid());
-
-		syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
-		syncContext.setDoReconciliationForAllProjections(true);
 		
-		clockwork.run(syncContext, task, result);
-		
-		LOGGER.trace("Reconciling of user {}: context:\n{}", user,syncContext.dump());
-		
-		changeExecutor.executeChanges(syncContext, task, result);
+		int rewindAttempts = 0;
+		while (true) {
+			RewindException rewindException = null;
+			
+			LensContext<UserType, AccountShadowType> syncContext = new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
+			LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
+			focusContext.setObjectOld(user);
+			focusContext.setOid(user.getOid());
+			syncContext.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+			syncContext.setDoReconciliationForAllProjections(true);
+			
+			try {
+				
+				LOGGER.trace("Recomputing of user {}: context:\n{}", user,syncContext.dump());
+				
+				clockwork.run(syncContext, task, result);
+				
+				LOGGER.trace("Recomputing of user {}: {}", user,result.getStatus());
+				
+				// No rewind exception, the execution was acceptable
+				break;
+				
+			} catch (RewindException e) {
+				rewindException = e;
+				LOGGER.debug("Rewind caused by {} (attempt {})", new Object[]{ e.getCause(), rewindAttempts, e.getCause()});
+				rewindAttempts++;
+			}
+			if (rewindAttempts >= Clockwork.MAX_REWIND_ATTEMPTS) {
+				Clockwork.throwException(rewindException.getCause());
+			}
+		}
 		
 		// TODO: process result
-		
-		LOGGER.trace("Reconciling of user {}: {}", user,result.getStatus());
 	}
 
 	@Override

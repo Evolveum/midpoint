@@ -276,7 +276,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		Element resourceFilter = QueryUtil.createEqualRefFilter(doc, null, ResourceObjectShadowType.F_RESOURCE_REF,
 				shadow.getResourceRef().getOid());
 		Element objectClassFilter = QueryUtil.createEqualFilter(doc, null, ResourceObjectShadowType.F_OBJECT_CLASS,
-				ResourceObjectShadowUtil.getObjectClassDefinition(shadow).getComplexTypeDefinition().getTypeName());
+				shadow.getObjectClass());
 		Element filter = QueryUtil
 				.createAndFilter(doc, new Element[] { nameFilter, resourceFilter, objectClassFilter });
 		return QueryUtil.createQuery(filter);

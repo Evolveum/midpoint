@@ -221,7 +221,7 @@ public class TestClockwork extends AbstractInitializedModelIntegrationTest {
                 
     }
 	
-	private void assignAccountToJackAsync(String testName, boolean serialize) throws SchemaException, ObjectNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ClassNotFoundException {
+	private void assignAccountToJackAsync(String testName, boolean serialize) throws SchemaException, ObjectNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ClassNotFoundException, RewindException {
 		displayTestTile(this, testName);
 		
 		// GIVEN
@@ -305,7 +305,7 @@ public class TestClockwork extends AbstractInitializedModelIntegrationTest {
         return context;
 	}
 
-	private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
 		LensContext<UserType, AccountShadowType> context = createUserAccountContext();
 		OperationResult result = task.getResult();

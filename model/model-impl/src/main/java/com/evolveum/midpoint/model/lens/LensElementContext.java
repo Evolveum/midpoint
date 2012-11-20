@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -37,9 +38,12 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -246,67 +250,50 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     		checkConsistence(getObjectOld(), "old "+getElementDesc() , contextDesc);
     	}
     	if (primaryDelta != null) {
-    		try {
-    			primaryDelta.checkConsistence(false, true, true);
-    		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
-			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
-			}
+    		checkConsistence(primaryDelta, false, getElementDesc()+" primary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc));
     	}
     	if (secondaryDelta != null) {
-    		try {
-	    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
-	    		boolean requireOid = isRequireSecondardyDeltaOid();
-	    		secondaryDelta.checkConsistence(requireOid, true, true);
-    		} catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
-			} catch (IllegalStateException e) {
-				throw new IllegalStateException(e.getMessage()+"; in "+getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
-			}
-
+    		boolean requireOid = isRequireSecondardyDeltaOid();
+    		// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
+    		checkConsistence(secondaryDelta, requireOid, getElementDesc()+" secondary delta in "+this + (contextDesc == null ? "" : " in " +contextDesc));
     	}
     	if (getObjectNew() != null) {
     		checkConsistence(getObjectNew(), "new "+getElementDesc(), contextDesc);
     	}
 	}
 	
+	private void checkConsistence(ObjectDelta<O> delta, boolean requireOid, String contextDesc) {
+		try {
+			delta.checkConsistence(requireOid, true, true);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException(e.getMessage()+"; in "+contextDesc, e);
+		} catch (IllegalStateException e) {
+			throw new IllegalStateException(e.getMessage()+"; in "+contextDesc, e);
+		}
+		if (delta.isAdd()) {
+			checkConsistence(delta.getObjectToAdd(), "add object", contextDesc);
+		}
+	}
+
 	protected boolean isRequireSecondardyDeltaOid() {
 		return primaryDelta == null;
 	}
 	
 	protected void checkConsistence(PrismObject<O> object, String elementDesc, String contextDesc) {
+		String desc = elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc);
     	try {
     		object.checkConsistence(true);
     	} catch (IllegalArgumentException e) {
-			throw new IllegalArgumentException(e.getMessage()+"; in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
+			throw new IllegalArgumentException(e.getMessage()+"; in "+desc, e);
 		} catch (IllegalStateException e) {
-			throw new IllegalStateException(e.getMessage()+"; in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc), e);
+			throw new IllegalStateException(e.getMessage()+"; in "+desc, e);
 		}
 		if (object.getDefinition() == null) {
-			throw new IllegalStateException("No "+getElementDesc()+" definition "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+			throw new IllegalStateException("No "+getElementDesc()+" definition "+desc);
 		}
     	O objectType = object.asObjectable();
     	if (objectType instanceof ResourceObjectShadowType) {
-    		PrismReference resourceRef = object.findReference(AccountShadowType.F_RESOURCE_REF);
-        	if (resourceRef == null) {
-        		throw new IllegalStateException("No resourceRef in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-        	}
-        	if (StringUtils.isBlank(resourceRef.getOid())) {
-        		throw new IllegalStateException("Null or empty OID in resourceRef in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-        	}
-    		ResourceObjectShadowType shadowType = (ResourceObjectShadowType)objectType;
-	    	if (shadowType.getObjectClass() == null) {
-	    		throw new IllegalStateException("Null objectClass in "+elementDesc+" in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-	    	}
-	    	PrismContainer<Containerable> attributesContainer = object.findContainer(AccountShadowType.F_RESOURCE_REF);
-	    	if (attributesContainer != null) {
-	    		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
-	    			throw new IllegalStateException("The attributes element expected to be ResourceAttributeContainer but it is "
-	    					+attributesContainer.getClass()+" instead in "+getElementDesc()+" definition "+elementDesc+" in "+this 
-	    					+ (contextDesc == null ? "" : " in " +contextDesc));
-	    		}
-	    	}
+    		ResourceObjectShadowUtil.checkConsistency((PrismObject<? extends ResourceObjectShadowType>) object, desc);
     	}
     }
 	

@@ -250,6 +250,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	
 	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy.xml";
+	public static final String ACCOUNT_JACK_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy-red.xml";
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
 	
 	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-herman-dummy.xml";
@@ -263,6 +264,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-guybrush-dummy.xml";
+	public static final String ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-guybrush-dummy-red.xml";
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 	
@@ -399,6 +401,7 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected void fillContextWithAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename, OperationResult result) throws SchemaException,
 	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
+		provisioningService.applyDefinition(account, result);
 		fillContextWithAccount(context, account, result);
 	}
 

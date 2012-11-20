@@ -146,7 +146,12 @@ public class ContextLoader {
     	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		
         checkProjectionContexts(context, result);
+        
+        if (CONSISTENCY_CHECKS) context.checkConsistence();
+        
         context.recompute();
+        
+        if (CONSISTENCY_CHECKS) context.checkConsistence();
         
         LensUtil.traceContext(LOGGER, activityDescription, "load", false, context, false);
 
@@ -340,6 +345,8 @@ public class ContextLoader {
 		if (CONSISTENCY_CHECKS) context.checkConsistence();
 
 		loadAccountContextsSync(context, result);
+		
+		if (CONSISTENCY_CHECKS) context.checkConsistence();
 	}
 
 	/**
@@ -371,6 +378,9 @@ public class ContextLoader {
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
 				Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
 				account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
+			} else {
+				// Make sure it has a proper definition. This may come from outside of the model.
+				provisioningService.applyDefinition(account, result);
 			}
 			LensProjectionContext<AccountShadowType> accountContext = getOrCreateAccountContext(context, account, result);
 			if (accountContext.getSynchronizationIntent() == null) {
@@ -396,7 +406,7 @@ public class ContextLoader {
 		if (userPrimaryDelta == null) {
 			return;
 		}
-
+		
 		ReferenceDelta accountRefDelta;
 		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
 			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(
@@ -416,14 +426,14 @@ public class ContextLoader {
 			// delete, all existing account are already marked for delete
 			return;
 		}
-
+		
 		if (accountRefDelta.isReplace()) {
 			// process "replace" by distributing values to delete and add
 			accountRefDelta = (ReferenceDelta) accountRefDelta.clone();
 			PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
 			accountRefDelta.distributeReplace(accountRef == null ? null : accountRef.getValues());
 		}
-
+		
 		if (accountRefDelta.getValuesToAdd() != null) {
 			for (PrismReferenceValue refVal : accountRefDelta.getValuesToAdd()) {
 				String oid = refVal.getOid();
@@ -437,9 +447,8 @@ public class ContextLoader {
 						throw new SchemaException("Null or empty OID in account reference " + refVal + " in "
 								+ user);
 					}
-					if (!account.hasCompleteDefinition()) {
-						provisioningService.applyDefinition(account, result);
-					}
+					provisioningService.applyDefinition(account, result);
+					if (CONSISTENCY_CHECKS) ResourceObjectShadowUtil.checkConsistency(account, "account from "+accountRefDelta);
 					// Check for conflicting change
 					accountContext = LensUtil.getAccountContext(context, account, provisioningService, prismContext, result);
 					if (accountContext != null) {
@@ -507,7 +516,7 @@ public class ContextLoader {
 				accountContext.setFresh(true);
 			}
 		}
-
+		
 		if (accountRefDelta.getValuesToDelete() != null) {
 			for (PrismReferenceValue refVal : accountRefDelta.getValuesToDelete()) {
 				String oid = refVal.getOid();
@@ -544,7 +553,7 @@ public class ContextLoader {
 				accountContext.setFresh(true);
 			}
 		}
-
+		
 		// remove the accountRefs without oid. These will get into the way now.
 		// The accounts
 		// are in the context now and will be linked at the end of the process
@@ -552,16 +561,9 @@ public class ContextLoader {
 		// We need to make sure this happens on the real primary user delta
 
 		if (userPrimaryDelta.getChangeType() == ChangeType.ADD) {
-//			PrismReference accountRef = userPrimaryDelta.getObjectToAdd().findReference(
-//					UserType.F_ACCOUNT_REF);
-//			pruneOidlessReferences(accountRef.getValues());
 			userPrimaryDelta.getObjectToAdd().removeReference(UserType.F_ACCOUNT_REF);
 		} else if (userPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
 			userPrimaryDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
-//			accountRefDelta = userPrimaryDelta.findReferenceModification(UserType.F_ACCOUNT_REF);
-//			pruneOidlessReferences(accountRefDelta.getValuesToAdd());
-//			pruneOidlessReferences(accountRefDelta.getValuesToReplace());
-//			pruneOidlessReferences(accountRefDelta.getValuesToDelete());
 		}
 
 	}
@@ -760,7 +762,6 @@ public class ContextLoader {
 						
 					}
 				}
-				
 				
 				// Load resource
 				if (resourceType == null) {

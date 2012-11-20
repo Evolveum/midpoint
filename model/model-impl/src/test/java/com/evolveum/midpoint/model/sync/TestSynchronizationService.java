@@ -105,6 +105,7 @@ public class TestSynchronizationService extends AbstractInitializedModelIntegrat
         clockwork.setDebugListener(mockListener);
         
         PrismObject<AccountShadowType> accountShadowJack = addObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, AccountShadowType.class, result);
+        provisioningService.applyDefinition(accountShadowJack, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setUsername("jack");

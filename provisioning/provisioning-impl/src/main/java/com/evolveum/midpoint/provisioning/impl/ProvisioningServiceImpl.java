@@ -204,6 +204,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)|| 
 				ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
+			
+			// We have what we came for here. We have already got it from the repo.
+			// Except if that is a shadow then we want to apply definition before returning it.
+			
 			if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
 				try {
 					applyDefinition((PrismObject<ResourceObjectShadowType>)repositoryObject, result);
@@ -211,8 +215,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
 						// This is (almost) OK in raw. We want to get whatever is available, even if it violates
 						// the schema
+						LOGGER.warn("Repository object {} violates the schema: {}", new Object[]{repositoryObject, e.getMessage(), e});
 						result.recordWarning(e);
-						return repositoryObject;
 					} else {
 						result.recordFatalError(e);
 						throw e;
@@ -228,6 +232,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					throw e;
 				}
 			}
+			
 			resultingObject = repositoryObject;
 			
 		} else if (repositoryObject.canRepresent(ResourceObjectShadowType.class)) {
