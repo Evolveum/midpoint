@@ -243,10 +243,8 @@ public class PasswordPolicyUtils {
 		ArrayList<String> passwd = StringPolicyUtils.stringTokenizer(password);
 		
 		if (lims.getLimit() == null || lims.getLimit().isEmpty()){
-			ret.computeStatus();
-			if (ret.getStatus() == OperationResultStatus.FATAL_ERROR){
-				ret.recordFatalError(message.toString());
-			}
+			ret.computeStatus(message.toString());
+			
 			return ret;
 		}
 		for (StringLimitType l : lims.getLimit()) {
@@ -341,10 +339,8 @@ public class PasswordPolicyUtils {
 					OperationResultStatus.SUCCESS, "PASSED"));
 		}
 
-		ret.computeStatus();
-		if (ret.getStatus() == OperationResultStatus.FATAL_ERROR){
-			ret.recordFatalError(message.toString());
-		}
+		ret.computeStatus(message.toString());
+		
 		return ret;
 	}
 

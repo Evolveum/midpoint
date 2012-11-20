@@ -54,7 +54,7 @@ public class PasswordPolicyProcessor {
 		boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
 
 		if (!isValid) {
-//			String message = result.getMessage() !=null ? result.getMessage() : result.computeStatus();
+			result.computeStatus();
 			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
 
 		}
