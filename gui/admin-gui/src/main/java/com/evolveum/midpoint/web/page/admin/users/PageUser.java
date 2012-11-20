@@ -1021,8 +1021,8 @@ public class PageUser extends PageAdminUsers {
 
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't submit user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+            result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+            LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
         }
         
 		if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
@@ -1112,8 +1112,8 @@ public class PageUser extends PageAdminUsers {
 
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't submit user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
+            result.recordFatalError(getString("pageUser.message.cantSubmitUser"), ex);
+            LoggingUtils.logException(LOGGER, getString("pageUser.message.cantSubmitUser"), ex);
         }
 
         if (result.isSuccess() || result.isHandledError()) {

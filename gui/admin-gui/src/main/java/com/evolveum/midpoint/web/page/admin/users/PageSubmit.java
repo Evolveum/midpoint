@@ -620,8 +620,8 @@ public class PageSubmit extends PageAdmin {
 
 			result.recomputeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't save user.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't save user", ex);
+			result.recordFatalError(getString("pageSubmit.message.cantCreateUser"), ex);
+			LoggingUtils.logException(LOGGER, getString("pageSubmit.message.cantCreateUser"), ex);
 		}
 
 		if (!result.isSuccess() && !result.isInProgress()) {
