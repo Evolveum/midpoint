@@ -394,6 +394,26 @@ object.
 					</expression>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:employeeType</ref>
+				<displayName>Employee Type</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<source>
+						<path>$user/employeeType</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:departmentNumber</ref>
+				<displayName>Department Number</displayName>
+				<tolerant>true</tolerant>
+				<outbound>
+					<source>
+						<path>$user/organizationalUnit</path>
+					</source>
+				</outbound>
+			</attribute>
 			
             <credentials>
                 <password>
