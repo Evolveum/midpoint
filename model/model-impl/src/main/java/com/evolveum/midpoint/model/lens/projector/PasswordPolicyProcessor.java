@@ -103,23 +103,16 @@ public class PasswordPolicyProcessor {
 	}
 	
 	<F extends ObjectType, P extends ObjectType> void processPasswordPolicy(LensProjectionContext<AccountShadowType> projectionContext, LensContext<F,P> context, OperationResult result) throws SchemaException, PolicyViolationException{
-		PrismProperty<PasswordType> password = getPassword(projectionContext);
 		
-		ValuePolicyType passwordPolicy = projectionContext.getEffectivePasswordPolicy();
-		
-		processPasswordPolicy(passwordPolicy, password, result);
-	}
-
-	private PrismProperty<PasswordType> getPassword(LensProjectionContext<AccountShadowType> projectionContext) throws SchemaException{
-		ObjectDelta accountDelta = projectionContext.getDelta();
+ObjectDelta accountDelta = projectionContext.getDelta();
 		
 		if (accountDelta == null){
 			LOGGER.trace("Skipping processing password policies. User delta not specified.");
-			return null;
+			return;
 		}
 		
 		if (ChangeType.DELETE == accountDelta.getChangeType()){
-			return null;
+			return;
 		}
 		
 		PrismObject<AccountShadowType> accountShadow = null;
@@ -142,14 +135,59 @@ public class PasswordPolicyProcessor {
 				}
 				if (passwordValueDelta == null) {
 					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-					return null;
+					return;
 				}
 				password = passwordValueDelta.getPropertyNew();
 			}
 		}
 
-		return password;
+//		PrismProperty<PasswordType> password = getPassword(projectionContext);
+		
+		ValuePolicyType passwordPolicy = projectionContext.getEffectivePasswordPolicy();
+		
+		processPasswordPolicy(passwordPolicy, password, result);
 	}
+
+//	private PrismProperty<PasswordType> getPassword(LensProjectionContext<AccountShadowType> projectionContext) throws SchemaException{
+//		ObjectDelta accountDelta = projectionContext.getDelta();
+//		
+//		if (accountDelta == null){
+//			LOGGER.trace("Skipping processing password policies. User delta not specified.");
+//			return null;
+//		}
+//		
+//		if (ChangeType.DELETE == accountDelta.getChangeType()){
+//			return null;
+//		}
+//		
+//		PrismObject<AccountShadowType> accountShadow = null;
+//		PrismProperty<PasswordType> password = null;
+//		if (ChangeType.ADD == accountDelta.getChangeType()){
+//			accountShadow = accountDelta.getObjectToAdd();
+//			if (accountShadow != null){
+//				password = accountShadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+//				
+//			}
+//		}
+//		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
+//			PropertyDelta<PasswordType> passwordValueDelta = null;
+//			if (accountDelta != null) {
+//				passwordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+//				// Modification sanity check
+//				if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
+//						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+//					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
+//				}
+//				if (passwordValueDelta == null) {
+//					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
+//					return null;
+//				}
+//				password = passwordValueDelta.getPropertyNew();
+//			}
+//		}
+//
+//		return password;
+//	}
 	
 //	private PrismProperty<PasswordType> getPassword(LensFocusContext<UserType> focusContext)
 //			throws SchemaException {
