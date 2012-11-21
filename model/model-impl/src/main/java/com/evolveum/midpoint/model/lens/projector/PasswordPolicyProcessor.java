@@ -64,7 +64,37 @@ public class PasswordPolicyProcessor {
 	<F extends ObjectType, P extends ObjectType> void processPasswordPolicy(LensFocusContext<UserType> focusContext, LensContext<F,P> context, OperationResult result)
 			throws PolicyViolationException, SchemaException {
 		
-		PrismProperty<PasswordType> password = getPassword(focusContext);
+//		PrismProperty<PasswordType> password = getPassword(focusContext);
+		ObjectDelta userDelta = focusContext.getDelta();
+
+		if (userDelta == null) {
+			LOGGER.trace("Skipping processing password policies. User delta not specified.");
+			return;
+		}
+
+		PrismProperty<PasswordType> password = null;
+		PrismObject<UserType> user = null;
+		if (ChangeType.ADD == userDelta.getChangeType()) {
+			user = focusContext.getDelta().getObjectToAdd();
+			if (user != null) {
+				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+			}
+		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
+			PropertyDelta<PasswordType> passwordValueDelta = null;
+			if (userDelta != null) {
+				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+				// Modification sanity check
+				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
+						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
+				}
+				if (passwordValueDelta == null) {
+					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
+					return ;
+				}
+				password = passwordValueDelta.getPropertyNew();
+			}
+		}
 		
 		ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
 		
@@ -121,42 +151,42 @@ public class PasswordPolicyProcessor {
 		return password;
 	}
 	
-	private PrismProperty<PasswordType> getPassword(LensFocusContext<UserType> focusContext)
-			throws SchemaException {
-		
-
-		ObjectDelta userDelta = focusContext.getDelta();
-
-		if (userDelta == null) {
-			LOGGER.trace("Skipping processing password policies. User delta not specified.");
-			return null;
-		}
-
-		PrismProperty<PasswordType> password = null;
-		PrismObject<UserType> user = null;
-		if (ChangeType.ADD == userDelta.getChangeType()) {
-			user = focusContext.getDelta().getObjectToAdd();
-			if (user != null) {
-				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-			}
-		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
-			PropertyDelta<PasswordType> passwordValueDelta = null;
-			if (userDelta != null) {
-				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-				// Modification sanity check
-				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
-						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
-				}
-				if (passwordValueDelta == null) {
-					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-					return null;
-				}
-				password = passwordValueDelta.getPropertyNew();
-			}
-		}
-		return password;
-	}
+//	private PrismProperty<PasswordType> getPassword(LensFocusContext<UserType> focusContext)
+//			throws SchemaException {
+//		
+//
+//		ObjectDelta userDelta = focusContext.getDelta();
+//
+//		if (userDelta == null) {
+//			LOGGER.trace("Skipping processing password policies. User delta not specified.");
+//			return null;
+//		}
+//
+//		PrismProperty<PasswordType> password = null;
+//		PrismObject<UserType> user = null;
+//		if (ChangeType.ADD == userDelta.getChangeType()) {
+//			user = focusContext.getDelta().getObjectToAdd();
+//			if (user != null) {
+//				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+//			}
+//		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
+//			PropertyDelta<PasswordType> passwordValueDelta = null;
+//			if (userDelta != null) {
+//				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+//				// Modification sanity check
+//				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
+//						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
+//					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
+//				}
+//				if (passwordValueDelta == null) {
+//					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
+//					return null;
+//				}
+//				password = passwordValueDelta.getPropertyNew();
+//			}
+//		}
+//		return password;
+//	}
 
 	
 	private String determinePasswordValue(PrismProperty<PasswordType> password) {
