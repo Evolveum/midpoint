@@ -238,15 +238,15 @@ function initMessages() {
 
 	$(".messagePanel .errorStack").click(function(){
 		var idBlock = $(this).attr("id");
-		var text = "";
 		if($("#"+idBlock+"_content").css("display") === "none"){
-			text = $(this).text().replace("SHOW","HIDE");
+			$(this).find(".showStackText").hide();
+			$(this).find(".hideStackText").show();
 			$("#"+idBlock+"_content").show();
 		} else {
+			$(this).find(".showStackText").show();
+			$(this).find(".hideStackText").hide();
 			$("#"+idBlock+"_content").hide();
-			text = $(this).text().replace("HIDE","SHOW");
 		}
-		$(this).text(text);
 	});
 	
 	$(".tempMessage .messages-succ").css("opacity", .95);

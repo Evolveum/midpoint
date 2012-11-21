@@ -259,7 +259,7 @@ input:focus, .button:focus, select:focus, option:focus {
 }
 
 .sortedTable table thead th {
-	padding: 0px 10px;
+	padding: 5px 10px;
 	text-transform: capitalize;
 	font-size: 13px;
 	border-bottom: 1px solid #BBBBBB;

@@ -642,3 +642,7 @@ ul.tempMessagesTop .messages-exp {
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+.hideStackText {
+	display: none;
+}

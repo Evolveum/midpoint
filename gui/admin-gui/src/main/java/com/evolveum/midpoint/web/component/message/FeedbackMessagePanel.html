@@ -58,10 +58,11 @@
     <div wicket:id="content" class="messages-content">
     	<ul style="margin-top: 5px; min-height: 20px;">
 	    	<li>
-	    		<div wicket:id="errorStackContainer" style="display:inline-block; width: 100%;">
+	    		<div wicket:id="errorStackContainer" style="display:inline-block;">
 		    		<span class="message-info">
 			            <span wicket:id="errorStack" class="errorStack">
-			                <wicket:message key="feedbackMessagePanel.showStack"/>
+			                <span class="showStackText"><wicket:message key="feedbackMessagePanel.showStack"/></span>
+			                <span class="hideStackText"><wicket:message key="feedbackMessagePanel.hideStack"/></span>
 			            </span>
 			        </span>
 			        <div wicket:id="errorStackContent" class="errorStack-content">
