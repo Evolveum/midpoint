@@ -120,6 +120,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
 	
 	private static String accountOid;
+	private static String userCharlesOid;
 	
 	public TestModelServiceContract() throws JAXBException {
 		super();
@@ -1415,6 +1416,92 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
+	 * This basically tests for correct auditing.
+	 */
+	@Test
+    public void test220AddUserCharlesRaw() throws Exception {
+		final String TEST_NAME = "test220AddUserCharlesRaw";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+
+        PrismObject<UserType> user = getLeChuck();
+        user.asObjectable().setName(PrismTestUtil.createPolyStringType("charles"));
+        user.asObjectable().setFullName(PrismTestUtil.createPolyStringType("Charles L. Charles"));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);                
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		
+		// WHEN
+		modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername("charles");
+        assertNotNull("No charles", userAfter);
+        userCharlesOid = userAfter.getOid();
+        
+		// Check shadow
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
+	 * This basically tests for correct auditing.
+	 */
+	@Test
+    public void test221DeleteUserCharlesRaw() throws Exception {
+		final String TEST_NAME = "test221DeleteUserCharlesRaw";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userCharlesOid, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);                
+		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		
+		// WHEN
+		modelService.executeChanges(deltas, options, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userAfter = findUserByUsername("charles");
+        assertNull("Charles is not gone", userAfter);
+        
+		// Check shadow
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
