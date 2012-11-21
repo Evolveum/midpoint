@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,11 +38,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.RestartResponseException;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -86,22 +89,25 @@ public class ObjectWrapper implements Serializable {
 	
 	public boolean getEnableStatus() {
 		ContainerWrapper activation = null;
-		ItemPath activationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);
+		String containerName = "";
+		ItemPath resourceActivationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);
 		for (ContainerWrapper container : getContainers()) {
+			containerName = container.getObject().getDisplayName();
 			Class clazz = container.getItem().getCompileTimeClass();
 			if(clazz != null) {
 				if(clazz.equals(RoleType.class) || clazz.equals(ObjectType.class)) {
 					return true;
 				}
 			}
-			if (container.getPath() == null || !container.getPath().equals(activationPath)) {
+			if (container.getPath() == null || !container.getPath().equals(resourceActivationPath)) {
 				continue;
+			} else if(container.getPath().equals(resourceActivationPath)) {
+				activation = container;
+				break;
 			}
-			activation = container;
-			break;
 		}
         if (activation == null) {
-            return false;
+        	return true;
         }
         
         PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ENABLED);
