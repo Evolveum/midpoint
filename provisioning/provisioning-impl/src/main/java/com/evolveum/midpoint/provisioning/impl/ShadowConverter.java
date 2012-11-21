@@ -657,10 +657,14 @@ public class ShadowConverter {
 		if (shadow instanceof AccountShadowType) {
 			if (((AccountShadowType) shadow).getActivation() != null && shadow.getActivation().isEnabled() != null) {
 				if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-					ResourceAttribute activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
-							objectClassDefinition, result);
 					ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(
 							shadow, resource, result);
+					if (enableDisable == null) {
+						throw new SchemaException("Attempt to change activation/enabled on "+resource+" that has neither native" +
+								" nor simulated activation capability");
+					}
+					ResourceAttribute activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
+							objectClassDefinition, result);
 					boolean enabled = shadow.getActivation().isEnabled().booleanValue();
 					if (enabled) {
 						activationSimulateAttribute.add(getEnableValue(enableDisable));
