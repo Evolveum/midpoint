@@ -128,78 +128,13 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
+public class TestOpenDJ extends AbstractOpenDJTest {
 	
-	private static final String COMMON_DIR_NAME = "src/test/resources/object";
-	private static final String TEST_DIR_NAME = "src/test/resources/impl";
-	
-	private static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
-	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	
-	private static final String ACCOUNT1_FILENAME = TEST_DIR_NAME + "/account1.xml";
-	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
-	
-	private static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
-	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
-	
-	private static final String ACCOUNT_BAD_FILENAME = TEST_DIR_NAME + "/account-bad.xml";
-	private static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
-	
-	private static final String ACCOUNT_MODIFY_FILENAME = TEST_DIR_NAME + "/account-modify.xml";
-	private static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
-	
-	private static final String ACCOUNT_MODIFY_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-modify-password.xml";
-	private static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
-	
-	private static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
-	private static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
-	
-	private static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
-	private static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
-	
-	private static final String ACCOUNT_SEARCH_FILENAME = TEST_DIR_NAME + "/account-search.xml";
-	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
-	
-	private static final String ACCOUNT_NEW_WITH_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-new-with-password.xml";;
-	private static final String ACCOUNT_NEW_WITH_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222124422";
-	
-	private static final String ACCOUNT_DISABLE_SIMULATED_FILENAME = TEST_DIR_NAME + "/account-disable-simulated-opendj.xml";
-	private static final String ACCOUNT_DISABLE_SIMULATED_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa";
-	
-	private static final String ACCOUNT_NO_SN_FILENAME = TEST_DIR_NAME + "/account-opendj-no-sn.xml";
-	private static final String ACCOUNT_NO_SN_OID = "c0c010c0-d34d-beef-f33d-113222123444";
-	
-	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
-	private static final String LDAP_CONNECTOR_TYPE = "org.identityconnectors.ldap.LdapConnector";
-
-	@Autowired
-	private ProvisioningService provisioningService;
-	@Autowired
-	private ConnectorTypeManager connectorTypeManager;
-	@Autowired(required = true)
-	private ConnectorFactory connectorFactoryIcfImpl;
-	
-	private PrismObject<ResourceType> resource;
-	private PrismObject<ConnectorType> connector;
-
-	private static Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplOpenDJTest.class);
-
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
-	}
-
-	public void setRepositoryService(RepositoryService repositoryService) {
-		this.repositoryService = repositoryService;
-	}
+	private static Trace LOGGER = TraceManager.getTrace(TestOpenDJ.class);
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		provisioningService.postInit(initResult);
-		PrismObject<ResourceType> resource = addResourceFromFile(RESOURCE_OPENDJ_FILENAME, LDAP_CONNECTOR_TYPE, initResult);
-//		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(ACCOUNT_BAD_FILENAME, AccountShadowType.class, initResult);
+		super.initSystem(initTask, initResult);
 	}
 	
 	@BeforeClass
@@ -222,26 +157,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		LOGGER.info("STOP:  ProvisioningServiceImplOpenDJTest");
 		LOGGER.info("------------------------------------------------------------------------------");
 	}
-	
-	@AfterMethod
-	public void shutdownUcf() throws Exception {
-
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".shutdownUcf");
-		try {
-			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-		} catch (Exception e) {
-		}
-//		try {
-//			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//		} catch (Exception e) {
-//		}
-//		try {
-//			repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-//		} catch (Exception e) {
-//		}
-	}
-			
+				
 	/**
 	 * This should be the very first test that works with the resource.
 	 * 
@@ -253,7 +169,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test003Connection() throws Exception {
 		displayTestTile("test003Connection");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test003Connection");
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, result).asObjectable();
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
 		assertNotNull("No connector ref OID",resourceTypeBefore.getConnectorRef().getOid());
@@ -301,7 +217,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test004ResourceAndConnectorCaching() throws Exception {
 		displayTestTile("test004ResourceAndConnectorCaching");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ResourceAndConnectorCaching");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test004ResourceAndConnectorCaching");
 		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		ResourceType resourceType = resource.asObjectable();
 		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
@@ -341,7 +257,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		displayTestTile("test005Capabilities");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test005Capabilities");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test005Capabilities");
 
 		// WHEN
 		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
@@ -380,7 +296,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test006ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
 		displayTestTile("test006ListResourceObjects");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test006ListResourceObjects");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test006ListResourceObjects");
 		// WHEN
 		List<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
 				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
@@ -394,7 +310,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test007GetObject() throws Exception {
 		displayTestTile("test007GetObject");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test007GetObject");
 		try {
 
@@ -437,7 +353,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test008GetObjectNotFoundRepo() throws Exception {
 		displayTestTile("test008GetObjectNotFoundRepo");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test008GetObjectNotFoundRepo");
 
 		try {
@@ -479,7 +395,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test009GetObjectNotFoundResource() throws Exception {
 		displayTestTile("test009GetObjectNotFoundResource");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test009GetObjectNotFoundResource");
 
 		try {
@@ -517,7 +433,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test010AddObject() throws Exception {
 		displayTestTile("test010AddObject");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test010AddObject");
 
 		try {
@@ -559,7 +475,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test011AddObjectNull() throws Exception {
 		displayTestTile("test011AddObjectNull");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test011AddObjectNull");
 
 		String addedObjectOid = null;
@@ -588,7 +504,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test012DeleteObject() throws Exception {
 		displayTestTile("test012DeleteObject");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test012DeleteObject");
 
 		try {
@@ -640,7 +556,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test013ModifyObject() throws Exception {
 		displayTestTile("test013ModifyObject");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test013ModifyObject");
 
 		try {
@@ -718,7 +634,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test014ChangePassword() throws Exception {
 		displayTestTile("test014ChangePassword");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test014ChangePassword");
 
 		try {
@@ -784,7 +700,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test015AddObjectWithPassword() throws Exception {
 		displayTestTile("test015AddObjectWithPassword");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test015AddObjectWithPassword");
 
 		try {
@@ -847,7 +763,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
         // GIVEN
         try{
-        OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName() + ".test016SearchAccountsIterative");
+        OperationResult result = new OperationResult(TestOpenDJ.class.getName() + ".test016SearchAccountsIterative");
 
         final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
         QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
@@ -909,7 +825,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	@Test
 	public void test017DisableAccount() throws Exception{
 		display("test017DisableAccount");
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+"test017DisableAccount");
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+"test017DisableAccount");
 		try {
 
 			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, AccountShadowType.class);
@@ -975,7 +891,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test200SearchObjectsIterative() throws Exception {
 		displayTestTile("test200SearchObjectsIterative");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".searchObjectsIterativeTest");
 		try {
 			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, AccountShadowType.class);
@@ -1031,7 +947,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test201SearchObjects() throws Exception {
 		displayTestTile("test201SearchObjects");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test201SearchObjects");
 
 		try {
@@ -1079,7 +995,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test202SearchObjectsCompexFilter() throws Exception {
 		displayTestTile("test202SearchObjectsCompexFilter");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test202SearchObjectsCompexFilter");
 
 		try {
@@ -1121,7 +1037,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test300AddObjectObjectAlreadyExistResource() throws Exception{
 		displayTestTile("test300AddObjectObjectAlreadyExistResource");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 		
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NEW_FILENAME));
@@ -1149,7 +1065,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	public void test310AddObjectNoSn() throws Exception{
 		displayTestTile("test310AddObjectNoSn");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test300AddObjectObjectAlreadyExist");
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));

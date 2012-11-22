@@ -89,7 +89,7 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
+public class TestCsvFile extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_CSV = "src/test/resources/object/resource-csv.xml";
 	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
@@ -99,7 +99,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 	private static final String CSV_SOURCE_FILE_PATH = "src/test/resources/midpoint-flatfile.csv";
 	private static final String CSV_TARGET_FILE_PATH = "target/midpoint-flatfile.csv";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplCsvTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestCsvFile.class);
 
 	private PrismObject<ResourceType> resource;
 	private ResourceType resourceType;
@@ -111,7 +111,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 	/**
 	 * @throws JAXBException
 	 */
-	public ProvisioningServiceImplCsvTest() throws JAXBException {
+	public TestCsvFile() throws JAXBException {
 		super();
 	}
 
@@ -137,7 +137,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplCsvTest.class.getName()
+		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test000Integrity");
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
@@ -163,7 +163,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test003Connection");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplCsvTest.class.getName()
+		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
@@ -212,7 +212,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		displayTestTile("test004Configuration");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplCsvTest.class.getName()
+		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test004Configuration");
 
 		// WHEN
@@ -235,7 +235,7 @@ public class ProvisioningServiceImplCsvTest extends AbstractIntegrationTest {
 	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		displayTestTile("test005ParsedSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplCsvTest.class.getName()
+		OperationResult result = new OperationResult(TestCsvFile.class.getName()
 				+ ".test005ParsedSchema");
 
 		// THEN

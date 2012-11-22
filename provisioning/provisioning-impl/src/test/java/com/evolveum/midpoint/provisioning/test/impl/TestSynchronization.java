@@ -38,10 +38,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-task.xml",
+        "classpath:application-context-audit.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
-public class SynchronizationTest extends AbstractIntegrationTest {
+@DirtiesContext
+public class TestSynchronization extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";
 	private static final String FILENAME_LDAP_CONNECTOR = "src/test/resources/ucf/connector-ldap.xml";
@@ -51,29 +53,15 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 	private static final String FILENAME_USER_ADMIN = "src/test/resources/impl/admin.xml";
 
 	private ResourceType resource;
+	
 	@Autowired
 	private ConnectorFactory manager;
+	
 	@Autowired
 	private ProvisioningService provisioningService;
 
-	 @Autowired
-	 ResourceObjectChangeListener syncServiceMock;
-
-	public TaskManager getTaskManager() {
-		return taskManager;
-	}
-
-	public void setTaskManager(TaskManager taskManager) {
-		this.taskManager = taskManager;
-	}
-
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
-	}
-
-	public void setRepositoryService(RepositoryService repositoryService) {
-		this.repositoryService = repositoryService;
-	}
+	@Autowired
+	private ResourceObjectChangeListener syncServiceMock;
 
 	@BeforeClass
 	public static void startLdap() throws Exception {
@@ -100,10 +88,11 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 		assertNotNull(provisioningService);
 	}
 
-	@Test
+	// TODO: MID-1031
+	@Test(enabled=false)
 	public void testSynchronization() throws Exception {
 
-		final OperationResult result = new OperationResult(SynchronizationTest.class.getName()
+		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ ".synchronizationTest");
 
 		try {
@@ -120,13 +109,15 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 			final Task syncCycle = taskManager.getTask(SYNC_TASK_OID, result);
 			AssertJUnit.assertNotNull(syncCycle);
 
-		AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
+			AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
 
 			AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
 					addOperation.getResultCode());
 
-
+			// WHEN
 			provisioningService.synchronize(resource.getOid(), syncCycle, result);
+			
+			// THEN
 			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
 			
 			assertEquals("Synchronization service was not called.", true, mock.wasCalled());
@@ -136,21 +127,5 @@ public class SynchronizationTest extends AbstractIntegrationTest {
 		}
 	}
 
-	public ConnectorFactory getManager() {
-		return manager;
-	}
-
-	public void setManager(ConnectorFactory manager) {
-		this.manager = manager;
-	}
-
-
-	public ProvisioningService getProvisioningService() {
-		return provisioningService;
-	}
-
-	public void setProvisioningService(ProvisioningService provisioningService) {
-		this.provisioningService = provisioningService;
-	}
 
 }

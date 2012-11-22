@@ -91,7 +91,7 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class TestProvisioningServiceImplDummyHacks extends AbstractIntegrationTest {
+public class TestDummyHacks extends AbstractIntegrationTest {
 	
 	private static final String TEST_DIR = "src/test/resources/impl/dummy-hacks/";
 
@@ -100,7 +100,7 @@ public class TestProvisioningServiceImplDummyHacks extends AbstractIntegrationTe
 	private static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";	
 		
-	private static final Trace LOGGER = TraceManager.getTrace(TestProvisioningServiceImplDummyHacks.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestDummyHacks.class);
 
 	private PrismObject<ConnectorType> connector;
 	private PrismObject<ResourceType> resource;
@@ -122,7 +122,7 @@ public class TestProvisioningServiceImplDummyHacks extends AbstractIntegrationTe
 	/**
 	 * @throws JAXBException
 	 */
-	public TestProvisioningServiceImplDummyHacks() throws JAXBException {
+	public TestDummyHacks() throws JAXBException {
 		super();
 	}
 
@@ -160,7 +160,7 @@ public class TestProvisioningServiceImplDummyHacks extends AbstractIntegrationTe
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test003Connection");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningServiceImplDummyHacks.class.getName()
+		OperationResult result = new OperationResult(TestDummyHacks.class.getName()
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,

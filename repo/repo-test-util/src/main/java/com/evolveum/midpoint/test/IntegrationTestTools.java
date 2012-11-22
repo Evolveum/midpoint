@@ -189,6 +189,12 @@ public class IntegrationTestTools {
 		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), result.isError());
 	}
 	
+	public static void assertFailure(OperationResultType result) {
+		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), 
+				OperationResultStatusType.FATAL_ERROR == result.getStatus() || 
+				OperationResultStatusType.PARTIAL_ERROR == result.getStatus()) ;
+	}
+	
 	/**
 	 * level=-1 - check all levels
 	 * level=0 - check only the top-level

@@ -124,7 +124,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnecti
 		"classpath:application-context-audit.xml", "classpath:application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml", "classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class TestDummyNegative extends AbstractDummyProvisioningServiceImplTest {
+public class TestDummyNegative extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	

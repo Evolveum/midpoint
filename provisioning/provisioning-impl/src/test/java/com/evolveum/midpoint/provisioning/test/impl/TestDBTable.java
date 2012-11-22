@@ -46,7 +46,7 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
+public class TestDBTable extends AbstractIntegrationTest {
 	
 	private static final String FILENAME_RESOURCE_DERBY = "src/test/resources/object/resource-derby.xml";
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
@@ -54,7 +54,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	private static final String DB_TABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
 	
-	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDBTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestDBTable.class);
 
 	private static DerbyController derbyController = new DerbyController();
 	
@@ -93,7 +93,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test000Integrity");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()+".test000Integrity");
+		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test000Integrity");
 		
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
@@ -105,7 +105,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	@Test
 	public void test001Connection() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test001Connection");
-		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()+".test001Connection");
+		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test001Connection");
 		
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID);
 		
@@ -120,7 +120,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	public void test002AddAccount() throws Exception {
 		displayTestTile("test002AddAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()
+		OperationResult result = new OperationResult(TestDBTable.class.getName()
 				+ ".test002AddAccount");
 
 		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT, AccountShadowType.class);

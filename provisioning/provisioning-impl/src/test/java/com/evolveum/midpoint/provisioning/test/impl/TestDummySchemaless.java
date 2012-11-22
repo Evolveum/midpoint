@@ -95,7 +95,7 @@ import static org.testng.AssertJUnit.*;
 		"classpath:application-context-audit.xml", "classpath:application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml", "classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
+public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	private static final String TEST_DIR = "src/test/resources/impl/dummy-schemaless/";
 
@@ -113,7 +113,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	private static final String ACCOUNT_WILL_ICF_UID = "will";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestProvisioningDummySchemaless.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestDummySchemaless.class);
 
 	private PrismObject<ResourceType> resourceSchemaless;
 	private ResourceType resourceTypeSchemaless;
@@ -129,7 +129,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	/**
 	 * @throws JAXBException
 	 */
-	public TestProvisioningDummySchemaless() throws JAXBException {
+	public TestDummySchemaless() throws JAXBException {
 		super();
 	}
 
@@ -168,7 +168,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 		assertNotNull("Resource is null", resourceSchemaless);
 		assertNotNull("ResourceType is null", resourceTypeSchemaless);
 
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test000Integrity");
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, result)
@@ -195,7 +195,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	public void test003ConnectionSchemaless() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test003ConnectionSchemaless");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test003ConnectionSchemaless");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, result)
@@ -233,7 +233,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 			ConfigurationException {
 		displayTestTile("test005ParsedSchemaSchemaless");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test005ParsedSchemaSchemaless");
 
 		// THEN
@@ -252,7 +252,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	public void test006GetObjectSchemaless() throws Exception {
 		displayTestTile("test006GetObjectSchemaless");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test006GetObjectSchemaless");
 
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
@@ -273,7 +273,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	public void test103ConnectionStaticSchema() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test103ConnectionStaticSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test003ConnectionSchemaless");
 
 		// Check that there a schema before test (pre-condition)
@@ -309,7 +309,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 			ConfigurationException {
 		displayTestTile("test105ParsedSchemaStaticSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test105ParsedSchemaStaticSchema");
 
 		// THEN
@@ -329,7 +329,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	public void test106GetObjectStaticSchema() throws Exception {
 		displayTestTile("test106GetObjectStaticSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(TestProvisioningDummySchemaless.class.getName()
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
 				+ ".test106GetObjectStaticSchema");
 
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, result);
@@ -352,7 +352,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 		displayTestTile("test107Capabilities");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test107Capabilities");
 
 		// WHEN
@@ -407,7 +407,7 @@ public class TestProvisioningDummySchemaless extends AbstractIntegrationTest {
 	public void test200AddAccount() throws Exception {
 		displayTestTile("test110AddAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test110AddAccount");
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);

@@ -123,12 +123,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnecti
 		"classpath:application-context-audit.xml", "classpath:application-context-repository.xml",
 		"classpath:application-context-repo-cache.xml", "classpath:application-context-configuration-test.xml" })
 @DirtiesContext
-public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningServiceImplTest {
+public class TestDummy extends AbstractDummyTest {
 
 	private static final String BLACKBEARD_USERNAME = "blackbeard";
 	private static final String DRAKE_USERNAME = "drake";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
 
 	private static Task syncTask;
 	private CachingMetadataType capabilitiesCachingMetadataType;
@@ -142,7 +142,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test000Integrity");
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result)
@@ -171,7 +171,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test001Connectors() throws SchemaException {
 		displayTestTile("test001Connectors");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test001Connectors");
 
 		// WHEN
@@ -222,7 +222,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test002ConnectorRediscovery() {
 		displayTestTile("test002ConnectorRediscovery");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test002ConnectorRediscovery");
 
 		// WHEN
@@ -246,7 +246,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test003Connection");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result)
@@ -297,7 +297,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			ConfigurationException, SecurityViolationException {
 		displayTestTile("test004Configuration");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test004Configuration");
 
 		// WHEN
@@ -421,7 +421,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test006Capabilities");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test006Capabilities");
 
 		// WHEN
@@ -485,7 +485,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test007CapabilitiesRepo");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test007CapabilitiesRepo");
 
 		// WHEN
@@ -538,7 +538,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test010ResourceAndConnectorCaching");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test010ResourceAndConnectorCaching");
 		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
 				resourceType, false, result);
@@ -597,7 +597,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works.
-		OperationResult testResult = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult testResult = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test010ResourceAndConnectorCaching.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
@@ -616,7 +616,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test011ResourceAndConnectorCachingForceFresh");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh");
 		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
 				resourceType, false, result);
@@ -655,7 +655,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works
-		OperationResult testResult = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult testResult = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh.test");
 		configuredConnectorInstanceAgain.test(testResult);
 		testResult.computeStatus();
@@ -669,7 +669,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
@@ -692,7 +692,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test021ApplyDefinitionAddDelta");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test021ApplyDefinitionAddDelta");
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
@@ -718,7 +718,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test100AddAccount() throws Exception {
 		displayTestTile("test110AddAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test110AddAccount");
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
@@ -774,7 +774,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test101AddAccountWithoutName() throws Exception {
 		displayTestTile("test101AddAccountWithoutName");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test101AddAccountWithoutName");
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_MORGAN_FILENAME, AccountShadowType.class);
@@ -831,7 +831,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		try{
 		displayTestTile("test102GetAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test102GetAccount");
 
 		// WHEN
@@ -860,7 +860,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			ConfigurationException, SecurityViolationException {
 		displayTestTile("test102GetAccountNoFetch");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test102GetAccountNoFetch");
 
 		Collection<ObjectOperationOption> options = ObjectOperationOption
@@ -889,7 +889,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test105ApplyDefinitionModifyDelta");
 
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test105ApplyDefinitionModifyDelta");
 
 		// TODO
@@ -917,7 +917,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test112SeachIterative() throws Exception {
 		displayTestTile("test112SeachIterative");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test112SeachIterative");
 
 		// Make sure there is an account on resource that the provisioning has
@@ -977,7 +977,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test113SearchAllShadowsInRepository() throws Exception {
 		displayTestTile("test113SearchAllShadowsInRepository");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test113SearchAllShadowsInRepository");
 		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType, prismContext);
 		display("All shadows query", query);
@@ -1000,7 +1000,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test114SearchAllShadows() throws Exception {
 		displayTestTile("test114SearchAllShadows");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test114SearchAllShadows");
 		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
@@ -1025,7 +1025,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test115countAllShadows() throws Exception {
 		displayTestTile("test115countAllShadows");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test115countAllShadows");
 		ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType,
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
@@ -1048,7 +1048,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test116SearchNullQueryResource() throws Exception {
 		displayTestTile("test116SearchNullQueryResource");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test116SearchNullQueryResource");
 
 		// WHEN
@@ -1070,7 +1070,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test117CountNullQueryResource() throws Exception {
 		displayTestTile("test117CountNullQueryResource");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test117CountNullQueryResource");
 
 		// WHEN
@@ -1093,7 +1093,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test121EnableAccount");
 		// GIVEN
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test121EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null,
@@ -1132,7 +1132,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 		displayTestTile("test122EnableAccount");
 		// GIVEN
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test122EnableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null,
@@ -1169,7 +1169,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test123ModifyObjectReplace() throws Exception {
 		displayTestTile("test123ModifyObjectReplace");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test123ModifyObjectReplace");
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, 
@@ -1199,7 +1199,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test124ModifyObjectAddPirate() throws Exception {
 		displayTestTile("test124ModifyObjectAddPirate");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test124ModifyObjectAddPirate");
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
@@ -1225,7 +1225,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test125ModifyObjectAddCaptain() throws Exception {
 		displayTestTile("test125ModifyObjectAddCaptain");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test125ModifyObjectAddCaptain");
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
@@ -1251,7 +1251,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test126ModifyObjectDeletePirate() throws Exception {
 		displayTestTile("test126ModifyObjectDeletePirate");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test126ModifyObjectDeletePirate");
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class, 
@@ -1281,7 +1281,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test127ModifyObjectAddCaptainAgain() throws Exception {
 		displayTestTile("test127ModifyObjectAddCaptainAgain");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test127ModifyObjectAddCaptainAgain");
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
@@ -1309,7 +1309,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			SecurityViolationException {
 		displayTestTile("test131AddScript");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test131AddScript");
 
 		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
@@ -1369,7 +1369,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 		displayTestTile("test500AddProtectedAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test500AddProtectedAccount");
 
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -1407,7 +1407,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			SchemaException, ConfigurationException, SecurityViolationException {
 		displayTestTile("test501GetProtectedAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test501GetProtectedAccount");
 
 		// WHEN
@@ -1430,7 +1430,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test502ModifyProtectedAccountShadow() throws Exception {
 		displayTestTile("test502ModifyProtectedAccountShadow");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test502ModifyProtectedAccountShadow");
 
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
@@ -1464,7 +1464,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			SchemaException, ConfigurationException, SecurityViolationException {
 		displayTestTile("test503DeleteProtectedAccountShadow");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test503DeleteProtectedAccountShadow");
 
 		// WHEN
@@ -1488,12 +1488,12 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException {
 		displayTestTile("test800LiveSyncInit");
-		syncTask = taskManager.createTaskInstance(ProvisioningServiceImplDummyTest.class.getName() + ".syncTask");
+		syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
 		syncServiceMock.reset();
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test800LiveSyncInit");
 
 		// Dry run to remember the current sync token in the task instance.
@@ -1516,7 +1516,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test801LiveSyncAddBlackbeard() throws Exception {
 		displayTestTile("test801LiveSyncAddBlackbeard");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test801LiveSyncAddBlackbeard");
 
 		syncServiceMock.reset();
@@ -1569,7 +1569,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test802LiveSyncModifyBlackbeard() throws Exception {
 		displayTestTile("test802LiveSyncModifyBlackbeard");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test802LiveSyncModifyBlackbeard");
 
 		syncServiceMock.reset();
@@ -1619,7 +1619,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test803LiveSyncAddDrake() throws Exception {
 		displayTestTile("test803LiveSyncAddDrake");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test803LiveSyncAddDrake");
 
 		syncServiceMock.reset();
@@ -1672,7 +1672,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 	public void test810LiveSyncModifyProtectedAccount() throws Exception {
 		displayTestTile("test810LiveSyncModifyProtectedAccount");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test810LiveSyncModifyProtectedAccount");
 
 		syncServiceMock.reset();
@@ -1702,7 +1702,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractDummyProvisioningS
 			ConfigurationException, SecurityViolationException {
 		displayTestTile("test901FailResourceNotFound");
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test901FailResourceNotFound");
 
 		// WHEN

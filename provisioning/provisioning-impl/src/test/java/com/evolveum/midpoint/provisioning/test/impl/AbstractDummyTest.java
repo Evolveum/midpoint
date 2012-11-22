@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  * @author semancik
  *
  */
-public abstract class AbstractDummyProvisioningServiceImplTest extends AbstractIntegrationTest {
+public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected static final String TEST_DIR = "src/test/resources/impl/dummy/";
 	
@@ -95,7 +95,7 @@ public abstract class AbstractDummyProvisioningServiceImplTest extends AbstractI
 	
 	protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyProvisioningServiceImplTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyTest.class);
 	
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
