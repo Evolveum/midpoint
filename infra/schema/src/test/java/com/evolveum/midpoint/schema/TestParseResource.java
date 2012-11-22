@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.prism.*;
@@ -69,6 +70,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestParseResource {
 	
 	public static final File RESOURCE_FILE = new File("src/test/resources/common/resource-opendj.xml");
+	public static final File RESOURCE_SIMPLE_FILE = new File("src/test/resources/common/resource-opendj-simple.xml");
 	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
@@ -93,7 +95,24 @@ public class TestParseResource {
 		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
 		
-		assertResource(resource, true, true);
+		assertResource(resource, true, true, false);
+	}
+	
+	@Test
+	public void testParseResourceFileSimple() throws Exception {
+		System.out.println("===[ testParseResourceFileSimple ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		// WHEN
+		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_SIMPLE_FILE);
+		
+		// THEN
+		System.out.println("Parsed resource:");
+		System.out.println(resource.dump());
+		
+		assertResource(resource, true, true, true);
 	}
 
 	@Test
@@ -113,7 +132,27 @@ public class TestParseResource {
 		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
 		
-		assertResource(resource, true, true);
+		assertResource(resource, true, true, false);
+	}
+	
+	@Test
+	public void testParseResourceDomSimple() throws Exception {
+		System.out.println("===[ testParseResourceDomSimple ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		Document document = DOMUtil.parseFile(RESOURCE_SIMPLE_FILE);
+		Element resourceElement = DOMUtil.getFirstChildElement(document);
+		
+		// WHEN
+		PrismObject<ResourceType> resource = prismContext.parseObject(resourceElement);
+		
+		// THEN
+		System.out.println("Parsed resource:");
+		System.out.println(resource.dump());
+		
+		assertResource(resource, true, true, true);
 	}
 
 	@Test
@@ -129,7 +168,23 @@ public class TestParseResource {
 		
 		// THEN
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
-		assertResource(resourceType.asPrismObject(), false, true);
+		assertResource(resourceType.asPrismObject(), false, true, false);
+	}
+	
+	@Test
+	public void testPrismParseJaxbSimple() throws JAXBException, SchemaException, SAXException, IOException {
+		System.out.println("===[ testPrismParseJaxbSimple ]===");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		
+		// WHEN
+		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_SIMPLE_FILE, ResourceType.class);
+		
+		// THEN
+		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
+		assertResource(resourceType.asPrismObject(), false, true, true);
 	}
 	
 	/**
@@ -149,7 +204,7 @@ public class TestParseResource {
 		
 		// THEN
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
-		assertResource(resourceType.asPrismObject(), false, true);
+		assertResource(resourceType.asPrismObject(), false, true, false);
 	}
 	
 	/**
@@ -169,7 +224,7 @@ public class TestParseResource {
 		
 		// THEN
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
-		assertResource(resourceType.asPrismObject(), false, true);
+		assertResource(resourceType.asPrismObject(), false, true, false);
 	}
 
 	/**
@@ -189,7 +244,7 @@ public class TestParseResource {
 		
 		// THEN
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
-		assertResource(resourceType.asPrismObject(), false, true);
+		assertResource(resourceType.asPrismObject(), false, true, false);
 	}
 
 	
@@ -205,7 +260,7 @@ public class TestParseResource {
 		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
 		
-		assertResource(resource, true, false);
+		assertResource(resource, true, false, false);
 		
 		// SERIALIZE
 		
@@ -222,7 +277,7 @@ public class TestParseResource {
 		System.out.println(reparsedResource.dump());
 		
 		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
-		assertResource(resource, true, false);
+		assertResource(resource, true, false, false);
 		
 		PrismProperty<Element> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
 		Element definitionElement = definitionProperty.getValue().getValue();
@@ -255,7 +310,7 @@ public class TestParseResource {
 		
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
 				
-		assertResource(resource, true, false);
+		assertResource(resource, true, false, false);
 		
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		
@@ -285,12 +340,13 @@ public class TestParseResource {
 		
 	}
 	
-	private void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence, boolean checkJaxb) throws SchemaException, JAXBException {
+	private void assertResource(PrismObject<ResourceType> resource, boolean checkConsistence, boolean checkJaxb, boolean isSimple) 
+			throws SchemaException, JAXBException {
 		if (checkConsistence) {
 			resource.checkConsistence();
 		}
-		assertResourcePrism(resource);
-		assertResourceJaxb(resource.asObjectable());
+		assertResourcePrism(resource, isSimple);
+		assertResourceJaxb(resource.asObjectable(), isSimple);
 		
 		if (checkJaxb) {
 			serializeDom(resource);
@@ -298,7 +354,7 @@ public class TestParseResource {
 		}
 	}
 
-	private void assertResourcePrism(PrismObject<ResourceType> resource) {
+	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) {
 		assertEquals("Wrong oid (prism)", RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
@@ -311,8 +367,11 @@ public class TestParseResource {
 
 		assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Embedded Test OpenDJ"));
 		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);		
-		assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
-		assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
+		
+		if (!isSimple) {
+			assertPropertyValue(resource, "namespace", RESOURCE_NAMESPACE);
+			assertPropertyDefinition(resource, "namespace", DOMUtil.XSD_ANYURI, 0, 1);
+		}
 		
 		PrismReference connectorRef = resource.findReference(ResourceType.F_CONNECTOR_REF);
 		assertNotNull("No connectorRef", connectorRef);
@@ -326,7 +385,7 @@ public class TestParseResource {
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
 		List<Item<?>> configItems = configContainerValue.getItems();
-		assertEquals("Wrong number of config items", 4, configItems.size());
+		assertEquals("Wrong number of config items", isSimple ? 1 : 4, configItems.size());
 		
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No icfcldap:configurationProperties container", ldapConfigPropertiesContainer);
@@ -335,12 +394,30 @@ public class TestParseResource {
 		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
 		List<Item<?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
+		
+		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+		if (isSimple) {
+			assertNull("Schema sneaked in", schemaContainer);
+		} else {
+			assertNotNull("No schema container", schemaContainer);
+		}
+		
+		PrismProperty<?> schemaHandlingProperty = resource.findProperty(ResourceType.F_SCHEMA_HANDLING);
+		if (isSimple) {
+			assertNull("SchemaHandling sneaked in", schemaHandlingProperty);
+		} else {
+			assertNotNull("No schemaHandling property", schemaHandlingProperty);
+		}
 	}
 	
-	private void assertResourceJaxb(ResourceType resourceType) {
+	private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) {
 		assertEquals("Wrong oid (JAXB)", RESOURCE_OID, resourceType.getOid());
 		assertEquals("Wrong name (JAXB)", PrismTestUtil.createPolyStringType("Embedded Test OpenDJ"), resourceType.getName());
-		assertEquals("Wrong namespace (JAXB)", RESOURCE_NAMESPACE, ResourceTypeUtil.getResourceNamespace(resourceType));
+		String expectedNamespace = RESOURCE_NAMESPACE;
+		if (isSimple) {
+			expectedNamespace = MidPointConstants.NS_RI;
+		}
+		assertEquals("Wrong namespace (JAXB)", expectedNamespace, ResourceTypeUtil.getResourceNamespace(resourceType));
 		
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
 		assertNotNull("No connectorRef (JAXB)", connectorRef);
@@ -351,20 +428,25 @@ public class TestParseResource {
     	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
     	
     	XmlSchemaType xmlSchemaType = resourceType.getSchema();
-    	assertNotNull("No schema element (JAXB)", xmlSchemaType);
-    	XmlSchemaType.Definition definition = xmlSchemaType.getDefinition();
-    	assertNotNull("No definition element in schema (JAXB)", definition);
-    	List<Element> anyElements = definition.getAny();
-    	assertNotNull("Null element list in definition element in schema (JAXB)", anyElements);
-    	assertFalse("Empty element list in definition element in schema (JAXB)", anyElements.isEmpty());
-		
-		SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
-		assertNotNull("No schema handling (JAXB)", schemaHandling);
-		for(ResourceAccountTypeDefinitionType accountType: schemaHandling.getAccountType()) {
-			String name = accountType.getName();
-			assertNotNull("Account type without a name", name);
-			assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
-		}
+    	SchemaHandlingType schemaHandling = resourceType.getSchemaHandling();
+    	if (isSimple) {
+    		assertNull("Schema sneaked in", xmlSchemaType);
+    		assertNull("SchemaHandling sneaked in", schemaHandling);
+    	} else {
+	    	assertNotNull("No schema element (JAXB)", xmlSchemaType);
+	    	XmlSchemaType.Definition definition = xmlSchemaType.getDefinition();
+	    	assertNotNull("No definition element in schema (JAXB)", definition);
+	    	List<Element> anyElements = definition.getAny();
+	    	assertNotNull("Null element list in definition element in schema (JAXB)", anyElements);
+	    	assertFalse("Empty element list in definition element in schema (JAXB)", anyElements.isEmpty());
+			
+			assertNotNull("No schema handling (JAXB)", schemaHandling);
+			for(ResourceAccountTypeDefinitionType accountType: schemaHandling.getAccountType()) {
+				String name = accountType.getName();
+				assertNotNull("Account type without a name", name);
+				assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
+			}
+    	}
 	}
 	
 	// Try to serialize it to DOM using just DOM processor. See if it does not fail.
