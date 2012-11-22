@@ -276,7 +276,7 @@ public class RResource extends RObject {
 		RObject.copyFromJAXB(jaxb, repo, prismContext);
 
 		repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-		repo.setNamespace(ResourceTypeUtil.getResourceNamespace(jaxb));
+		repo.setNamespace(jaxb.getNamespace());
 		repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), prismContext));
 
 		if (jaxb.getConnector() != null) {

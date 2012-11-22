@@ -171,10 +171,10 @@ public abstract class RObject extends RContainer {
 			RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
 		}
 
-		if (repo.getParentOrgRef() != null) {
-			jaxb.getParentOrgRef().addAll(RUtil.safeSetParentOrgRefToList(repo.getParentOrgRef(), prismContext));
+        List orgRefs = RUtil.safeSetParentOrgRefToList(repo.getParentOrgRef(), prismContext);
+		if (!orgRefs.isEmpty()) {
+			jaxb.getParentOrgRef().addAll(orgRefs);
 		}
-		
 	}
 
 	public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)

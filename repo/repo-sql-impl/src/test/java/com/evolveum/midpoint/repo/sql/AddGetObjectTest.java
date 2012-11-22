@@ -43,9 +43,11 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -180,12 +182,20 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 					continue;
 				}
 
-				count += delta.getModifications().size();
-				if (delta.getModifications().size() > 0) {
-					if (delta.getModifications().size() == 1){
-						ItemDelta d = (ItemDelta) delta.getModifications().iterator().next();
-						
-						if (AccountShadowType.F_DEAD.equals(d.getName())){
+                int newCount = newObject.getValue().getItems().size();
+                int oldCount = object.getValue().getItems().size();
+                if (newCount != oldCount) {
+                    AssertJUnit.assertEquals("Items count in object '" + object.findProperty(ObjectType.F_NAME)
+                            + "' are different, loaded from file has '" + oldCount + "' items, from repository has '"
+                            + newCount + "' items.", oldCount, newCount);
+                }
+
+                count += delta.getModifications().size();
+                if (delta.getModifications().size() > 0) {
+                    if (delta.getModifications().size() == 1) {
+                        ItemDelta d = (ItemDelta) delta.getModifications().iterator().next();
+
+                        if (AccountShadowType.F_DEAD.equals(d.getName())){
 							count -= delta.getModifications().size();
 							continue;
 						}

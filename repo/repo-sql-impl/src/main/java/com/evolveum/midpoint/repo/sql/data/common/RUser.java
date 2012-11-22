@@ -37,6 +37,7 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -479,8 +480,15 @@ public class RUser extends RObject {
             jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
         }
 
-        jaxb.getEmployeeType().addAll(RUtil.safeSetToList(repo.getEmployeeType()));
-        jaxb.getOrganizationalUnit().addAll(RUtil.safeSetPolyToList(repo.getOrganizationalUnit()));
+        List types = RUtil.safeSetToList(repo.getEmployeeType());
+        if (!types.isEmpty()) {
+            jaxb.getEmployeeType().addAll(types);
+        }
+
+        List units = RUtil.safeSetPolyToList(repo.getOrganizationalUnit());
+        if (!units.isEmpty()) {
+            jaxb.getOrganizationalUnit().addAll(units);
+        }
 
         for (RObjectReference repoRef : repo.getAccountRefs()) {
             jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
