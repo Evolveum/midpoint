@@ -151,7 +151,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	
 	protected static PrismSchema parse(Element element, EntityResolver resolver, PrismSchema schema, String shortDescription, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
-			throw new IllegalArgumentException("Schema DOM element must not be null.");
+			throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
 		}
 
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();

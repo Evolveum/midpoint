@@ -129,8 +129,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
 	
-			// WORK IN PROGRESS
-	@Test(enabled=false)
+	@Test
 	public void test003Connection() throws Exception {
 		displayTestTile("test003Connection");
 

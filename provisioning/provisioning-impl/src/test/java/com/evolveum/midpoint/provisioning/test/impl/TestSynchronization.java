@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
@@ -52,7 +55,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/ucf/will.ldif";
 	private static final String FILENAME_USER_ADMIN = "src/test/resources/impl/admin.xml";
 
-	private ResourceType resource;
+	private ResourceType resourceType;
 	
 	@Autowired
 	private ConnectorFactory manager;
@@ -82,23 +85,49 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		assertNotNull(manager);
-		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ, ResourceType.class, initResult).asObjectable();
+		// let provisioning discover the connectors
+		provisioningService.postInit(initResult);
+		
+		resourceType = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, "org.identityconnectors.ldap.LdapConnector", initResult).asObjectable();
+		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
 		addObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);
-		assertNotNull(provisioningService);
+	}
+	
+	@Test
+	public void test010Sanity() throws Exception {
+		final String TEST_NAME = "test010Sanity";
+		displayTestTile(TEST_NAME);
+		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
+				+ "." + TEST_NAME);
+
+		// WHEN
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceType.getOid(), null, result);
+		
+		// THEN
+		assertNotNull("Resource is null", resource);
+		display("getObject(resource)", resource);
+		
+		result.computeStatus();
+		display("getObject(resource) result", result);
+		assertSuccess(result);
+		
+		// Make sure these were generated
+		assertNotNull("No resource schema", resource.asObjectable().getSchema());
+		assertNotNull("No native capabilities", resource.asObjectable().getCapabilities().getNative());
+
 	}
 
-	// TODO: MID-1031
-	@Test(enabled=false)
-	public void testSynchronization() throws Exception {
-
+	@Test
+	public void test100Synchronization() throws Exception {
+		final String TEST_NAME = "test100Synchronization";
+		displayTestTile(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
-				+ ".synchronizationTest");
+				+ "." + TEST_NAME);
 
 		try {
 
 			addObjectFromFile(FILENAME_SYNC_TASK, TaskType.class, result);
-			addObjectFromFile(FILENAME_LDAP_CONNECTOR, ConnectorType.class, result);
 
 			// create add change in embeded LDAP
 			LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);
@@ -115,7 +144,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 					addOperation.getResultCode());
 
 			// WHEN
-			provisioningService.synchronize(resource.getOid(), syncCycle, result);
+			provisioningService.synchronize(resourceType.getOid(), syncCycle, result);
 			
 			// THEN
 			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
