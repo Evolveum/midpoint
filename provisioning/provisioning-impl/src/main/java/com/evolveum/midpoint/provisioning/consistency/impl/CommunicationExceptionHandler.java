@@ -94,8 +94,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		switch (op) {
 		case ADD:
 			// if it is firt time, just store the whole account to the repo
+			ResourceType resource = shadow.getResource();
 			if (shadow.getFailedOperationType() == null) {
-				ResourceType resource = shadow.getResource();
+//				ResourceType resource = shadow.getResource();
 				if (shadow.getName() == null) {
 					shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
 				}
@@ -129,7 +130,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			operationResult.computeStatus();
 			parentResult
 					.recordHandledError("Could not create account on the resource, because "
-									+ ObjectTypeUtil.toShortString(shadow.getResource())
+									+ ObjectTypeUtil.toShortString(resource)
 									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
 			
 			return shadow;
