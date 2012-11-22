@@ -23,10 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -77,6 +74,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,11 +175,12 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 
 				Class<? extends ObjectType> clazz = object.getCompileTimeClass();
 				PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), result);
+                checkContainersSize(newObject, object);
+
 				ObjectDelta delta = object.diff(newObject);
 				if (delta == null) {
 					continue;
 				}
-                checkItemsCount(newObject, object);
 
                 count += delta.getModifications().size();
                 if (delta.getModifications().size() > 0) {
@@ -205,16 +204,58 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
 	}
 
-    private void checkItemsCount(PrismObject newObject, PrismObject oldObject) {
-        int newCount = newObject.getValue().getItems().size();
-        int oldCount = oldObject.getValue().getItems().size();
-        if (newCount != oldCount) {
-            AssertJUnit.assertEquals("Items count in object '" + oldObject.findProperty(ObjectType.F_NAME)
-                    + "' are different, loaded from file has '" + oldCount + "' items, from repository has '"
-                    + newCount + "' items.", oldCount, newCount);
+    private void checkContainerValuesSize(QName parentName, PrismContainerValue newValue, PrismContainerValue oldValue) {
+        LOGGER.info("Checking: " + parentName);
+        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "'",
+                oldValue.getItems().size(), newValue.getItems().size());
+
+        List<QName> checked = new ArrayList<QName>();
+
+        for (Item item : (List<Item>) newValue.getItems()) {
+            if (!(item instanceof PrismContainer)) {
+                continue;
+            }
+
+            PrismContainer newContainer = (PrismContainer) item;
+            PrismContainer oldContainer = oldValue.findContainer(newContainer.getName());
+            AssertJUnit.assertNotNull("Container '" + newContainer.getName() + "' doesn't exist.", oldContainer);
+
+            checkContainersSize(newContainer, oldContainer);
+            checked.add(oldContainer.getName());
         }
 
-        //todo improve check
+        for (Item item : (List<Item>) oldValue.getItems()) {
+            if (!(item instanceof PrismContainer) || checked.contains(item.getName())) {
+                continue;
+            }
+
+            PrismContainer oldContainer = (PrismContainer) item;
+            PrismContainer newContainer = newValue.findContainer(oldContainer.getName());
+            checkContainersSize(newContainer, oldContainer);
+        }
+    }
+
+    private void checkContainersSize(PrismContainer newContainer, PrismContainer oldContainer) {
+        AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
+
+        List<String> checked = new ArrayList<String>();
+        List<PrismContainerValue> newValues = newContainer.getValues();
+        for (PrismContainerValue value : newValues) {
+            PrismContainerValue oldValue = oldContainer.getValue(value.getId());
+
+            checkContainerValuesSize(newContainer.getName(), value, oldValue);
+            checked.add(value.getId());
+        }
+
+        List<PrismContainerValue> oldValues = oldContainer.getValues();
+        for (PrismContainerValue value : oldValues) {
+            if (checked.contains(value.getId())) {
+                continue;
+            }
+
+            PrismContainerValue newValue = newContainer.getValue(value.getId());
+            checkContainerValuesSize(newContainer.getName(), newValue, value);
+        }
     }
 
 	@Test
@@ -275,7 +316,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituationDescription().get(0).getSituation());
 		AssertJUnit.assertEquals("syncChannel", repoShadow.getSynchronizationSituationDescription().get(0).getChannel());
 	}
-	
+
 	@Test
 	public void addGetSystemConfigFile() throws Exception {
 		LOGGER.info("===[ addGetPasswordPolicy ]===");
@@ -289,14 +330,14 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertEquals(pwdPolicyOid, oid);
 		PrismObject<ValuePolicyType> repoPasswordPolicy = repositoryService.getObject(ValuePolicyType.class, oid, result);
 		AssertJUnit.assertNotNull(repoPasswordPolicy);
-		
+
 		String systemCongigOid = "00000000-0000-0000-0000-000000000001";
 		PrismObject<AccountShadowType> fileSystemConfig = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
 		LOGGER.info("System config from file: {}", fileSystemConfig.dump());
 		oid = repositoryService.addObject(fileSystemConfig, result);
 		AssertJUnit.assertNotNull(oid);
 		AssertJUnit.assertEquals(systemCongigOid, oid);
-		
+
 		PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, result);
 //		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
 		LOGGER.info("System config from repo: {}", repoSystemConfig.dump());
@@ -324,5 +365,5 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 				.getOrgRootRef().get(1).getOid());
 	}
 
-	
+
 }
