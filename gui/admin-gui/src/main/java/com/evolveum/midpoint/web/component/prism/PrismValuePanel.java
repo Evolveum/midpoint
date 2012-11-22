@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.threeStateCheckBox.ThreeStateCheckBox
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
@@ -281,6 +282,11 @@ public class PrismValuePanel extends Panel {
             panel = new ThreeStateCheckPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
+            
+            PrismPropertyDefinition def = property.getDefinition();
+            if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
+                panel.getBaseFormComponent().setRequired(true);
+            }
         } else {
             Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
             if (type != null && type.isPrimitive()) {
@@ -288,11 +294,6 @@ public class PrismValuePanel extends Panel {
             }
             panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression),
                     type);
-
-            PrismPropertyDefinition def = property.getDefinition();
-            if (ObjectType.F_NAME.equals(def.getName())) {
-                panel.getBaseFormComponent().setRequired(true);
-            }
         }
 
         return panel;
