@@ -634,6 +634,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	public void removeProperty(ItemPath propertyPath) {
 		removeItem(propertyPath, PrismProperty.class);
 	}
+	
+	public void removeContainer(QName containerName) {
+		removeContainer(new ItemPath(containerName));
+    }
+    
+	public void removeContainer(ItemPath itemPath) {
+		removeItem(itemPath, PrismContainer.class);
+	}
 
 	// Expects that "self" path is NOT present in propPath
 	<I extends Item<?>> void removeItem(ItemPath propPath, Class<I> itemType) {

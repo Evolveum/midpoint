@@ -215,10 +215,7 @@ public final class PrismForJAXBUtil {
         try {
 	        PrismContainer<T> fieldContainer = null;
 	        if (fieldContainerValue == null) {
-	            fieldContainer = parent.findOrCreateContainer(fieldName);
-	            if (fieldContainer != null) {
-	                fieldContainer.clear();
-	            }
+	        	parent.removeContainer(fieldName);
 	        } else {
 	        	if (fieldContainerValue.getParent() != null && fieldContainerValue.getParent() != parent) {
 	        		// This value is already part of another prism. We need to clone it to add it here.

@@ -50,12 +50,15 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -427,6 +430,76 @@ public class TestJaxbConstruction {
         assertNotNull(item);
         object.asPrismObject().checkConsistence();
     }
+    
+    @Test
+	public void testResourceConstruction() throws Exception {
+		System.out.println("\n\n ===[ testResourceConstruction ]===\n");
+		
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		
+		ResourceType resourceType = new ResourceType();
+		prismContext.adopt(resourceType);
+		
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		assertNotNull("No object definition after adopt", resource.getDefinition());
+		
+		// name: PolyString
+		resourceType.setName(new PolyStringType("Môj risórs"));
+		PrismProperty<PolyString> fullNameProperty = resource.findProperty(ResourceType.F_NAME);
+		PolyString fullName = fullNameProperty.getRealValue();
+		assertEquals("Wrong name orig", "Môj risórs", fullName.getOrig());
+		assertEquals("Wrong name norm", "moj risors", fullName.getNorm());
+		
+		// description: setting null value
+		resourceType.setDescription(null);
+		PrismProperty<String> descriptionProperty = resource.findProperty(UserType.F_DESCRIPTION);
+		assertNull("Unexpected description property "+descriptionProperty, descriptionProperty);
+		
+		// description: setting null value
+		resourceType.setDescription("blah blah");
+		descriptionProperty = resource.findProperty(UserType.F_DESCRIPTION);
+		assertEquals("Wrong description value", "blah blah", descriptionProperty.getRealValue());
+		
+		// description: resetting null value
+		resourceType.setDescription(null);
+		descriptionProperty = resource.findProperty(UserType.F_DESCRIPTION);
+		assertNull("Unexpected description property (after reset) "+descriptionProperty, descriptionProperty);
+		
+		// Extension
+		ExtensionType extension = new ExtensionType();
+		resourceType.setExtension(extension);
+		
+		resource.checkConsistence();
+				
+		PrismContainer<Containerable> extensionContainer = resource.findContainer(GenericObjectType.F_EXTENSION);
+		checkExtension(extensionContainer,"resource extension after setExtension");
+		checkExtension(extension,"resource extension after setExtension");
+		
+		// Schema
+		XmlSchemaType xmlSchemaType = new XmlSchemaType();
+		CachingMetadataType cachingMetadata = new CachingMetadataType();
+		cachingMetadata.setSerialNumber("serial123");
+		xmlSchemaType.setCachingMetadata(cachingMetadata);
+		
+		resourceType.setSchema(xmlSchemaType);
+		
+		Definition schemaDefinition = new Definition();
+		Element xsdSchemaElement = DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT); 
+		schemaDefinition.getAny().add(xsdSchemaElement);
+		xmlSchemaType.setDefinition(schemaDefinition);
+
+		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+		assertNotNull("No schema container", schemaContainer);
+		
+		// TODO
+		
+		// Schema: null
+		resourceType.setSchema(null);
+		schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+		assertNull("Unexpected schema container", schemaContainer);
+				
+	}
     
 	private void checkExtension(PrismContainer<Containerable> extensionContainer, String sourceDescription) {
 		assertNotNull("No extension container in "+sourceDescription+" (prism)", extensionContainer);
