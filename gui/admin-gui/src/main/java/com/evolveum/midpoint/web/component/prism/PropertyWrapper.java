@@ -104,25 +104,34 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
-        PrismPropertyDefinition definition = property.getDefinition();
         if (values.isEmpty()) {
-            PrismPropertyValue value;
-            if (ProtectedStringType.COMPLEX_TYPE.equals(definition.getTypeName())) {
-                values.add(new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
-                        new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED));
-            } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
-                values.add(new ValueWrapper(this, new PrismPropertyValue(new PolyString(null)),
-                        new PrismPropertyValue(new PolyString(null)), ValueStatus.ADDED));
-            } else if (isThisPropertyActivationEnabled()) {
-                value = new PrismPropertyValue(true);
-                values.add(new ValueWrapper(this, value, new PrismPropertyValue(null), ValueStatus.ADDED));
-            } else {
-                value = new PrismPropertyValue(null);
-                values.add(new ValueWrapper(this, value, ValueStatus.ADDED));
-            }
+            values.add(createValue());
         }
 
         return values;
+    }
+
+    public void addValue() {
+        getValues().add(createValue());
+    }
+
+    public ValueWrapper createValue() {
+        PrismPropertyDefinition definition = property.getDefinition();
+
+        ValueWrapper wrapper;
+        if (ProtectedStringType.COMPLEX_TYPE.equals(definition.getTypeName())) {
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
+                    new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED);
+        } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString(null)),
+                    new PrismPropertyValue(new PolyString(null)), ValueStatus.ADDED);
+        } else if (isThisPropertyActivationEnabled()) {
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(true), new PrismPropertyValue(null), ValueStatus.ADDED);
+        } else {
+            wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
+        }
+
+        return wrapper;
     }
 
     private boolean isThisPropertyActivationEnabled() {

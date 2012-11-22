@@ -301,9 +301,7 @@ public class PrismValuePanel extends Panel {
     private void addValue(AjaxRequestTarget target) {
         ValueWrapper wrapper = model.getObject();
         PropertyWrapper propertyWrapper = wrapper.getProperty();
-
-        List<ValueWrapper> values = propertyWrapper.getValues();
-        values.add(new ValueWrapper(propertyWrapper, new PrismPropertyValue(null), ValueStatus.ADDED));
+        propertyWrapper.addValue();
 
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
