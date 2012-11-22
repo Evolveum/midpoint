@@ -367,10 +367,12 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("Account", acct);
 		
 		result.computeStatus();
+		display("getObject result", result);
 		assertEquals("Expected result partial error but was "+result.getStatus(), 
 				OperationResultStatus.PARTIAL_ERROR, result.getStatus());
 		
 		OperationResultType fetchResult = acct.asObjectable().getFetchResult();
+		display("getObject fetchResult", fetchResult);
 		assertEquals("Expected fetchResult partial error but was "+result.getStatus(), 
 				OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
 	}
