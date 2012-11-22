@@ -44,5 +44,9 @@ public class ImportConstants {
 	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA, "objectclass");
 
 	public static final QName FILENAME_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA, "filename");
+
+    public static final QName ENDPOINT_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA, "endpoint");
+
+    public static final QName ROUTE_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA, "route");
 	
 }

@@ -215,9 +215,10 @@ public class ObjectImporter {
 
         try {
 
-            repository.addObject(object, result);
-            if (object.canRepresent(TaskType.class))
-            	taskManager.onTaskCreate(object.getOid(), result);
+            String oid = repository.addObject(object, result);
+            if (object.canRepresent(TaskType.class)) {
+            	taskManager.onTaskCreate(oid, result);
+            }
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {

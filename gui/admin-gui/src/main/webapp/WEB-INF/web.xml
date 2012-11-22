@@ -38,6 +38,7 @@
             classpath:application-context-audit.xml,
             classpath:application-context-model.xml,
             classpath*:application-context-workflow.xml,
+            classpath:application-context-camel-imports.xml,
             /WEB-INF/application-context-webapp.xml,
             /WEB-INF/application-context-security.xml,
             /WEB-INF/application-context-init.xml

@@ -340,8 +340,9 @@ mainCycle:
 					LOGGER.error("Tightly bound task " + task + " has no scheduling interval specified.");
 					break;
 				}
-				
-				long sleepFor = task.getLastRunStartTimestamp() + (interval.intValue() * 1000) - System.currentTimeMillis();
+
+                long lastRunStartTime = task.getLastRunStartTimestamp() == null ? 0 : task.getLastRunStartTimestamp();
+				long sleepFor = lastRunStartTime + (interval.intValue() * 1000) - System.currentTimeMillis();
 				if (sleepFor < 0)
 					sleepFor = 0;
 				
