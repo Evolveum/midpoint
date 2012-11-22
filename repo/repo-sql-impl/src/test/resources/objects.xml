@@ -612,6 +612,41 @@
 
     </resource>
 
+    <resource>
+
+        <name>Localhost OpenDJ Simple</name>
+
+        <connectorRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="ConnectorType">
+        </connectorRef>
+
+        <connectorConfiguration
+                xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+
+            <!-- Configuration specific for the LDAP connector -->
+            <icfc:configurationProperties>
+                <icfcldap:port>1389</icfcldap:port>
+                <icfcldap:host>localhost</icfcldap:host>
+
+                <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+                <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+                <icfcldap:credentials>
+                    <clearValue>secret</clearValue>
+                </icfcldap:credentials>
+                <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
+                </icfcldap:modifiersNamesToFilterOut>
+                <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+
+                <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+                <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+            </icfc:configurationProperties>
+
+
+        </connectorConfiguration>
+
+    </resource>
+
+
     <userTemplate>
         <name>Default User Template</name>
         <description>
