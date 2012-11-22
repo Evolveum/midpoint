@@ -87,7 +87,7 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
     }
 
     private String fixLength(String input) {
-        if (input == null && input.length() <= MAX_LENGTH) {
+        if (input == null || input.length() <= MAX_LENGTH) {
             return input;
         }
 
