@@ -454,7 +454,8 @@ public interface ModelService {
 	 *             error communicating with the resource
 	 */
 	List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, 
+			ConfigurationException, SecurityViolationException;
 
 	/**
 	 * <p>

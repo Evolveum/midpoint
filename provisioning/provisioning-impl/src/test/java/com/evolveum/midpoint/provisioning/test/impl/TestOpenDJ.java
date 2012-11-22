@@ -293,7 +293,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 	
 	
 	@Test
-	public void test006ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
+	public void test006ListResourceObjects() throws Exception {
 		displayTestTile("test006ListResourceObjects");
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()+".test006ListResourceObjects");

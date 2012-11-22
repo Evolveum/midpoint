@@ -671,6 +671,10 @@ public class ResourceTypeManager {
 			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);
 			throw new ConfigurationException("Unable to parse resource schema: " + e.getMessage(), e);
 		}
+		
+		if (schema == null) {
+			return null;
+		}
 
 		checkSchema(schema);
 
@@ -729,8 +733,8 @@ public class ResourceTypeManager {
 		final ResourceSchema schema = getResourceSchema(resourceType, parentResult);
 
 		if (schema == null) {
-			parentResult.recordFatalError("Can't get resource schema.");
-			throw new IllegalArgumentException("Can't get resource schema.");
+			parentResult.recordFatalError("No schema for "+resourceType);
+			throw new ConfigurationException("No schema for "+resourceType);
 		}
 
 		ObjectClassComplexTypeDefinition objectClassDef = schema.findObjectClassDefinition(objectClass);
@@ -815,6 +819,11 @@ public class ResourceTypeManager {
 					parentResult.recordFatalError("Schema error: " + e.getMessage(), e);
 					LOGGER.error("Schema error: {}", e.getMessage(), e);
 					return false;
+				} catch (ConfigurationException e) {
+					// TODO: better error handling
+					parentResult.recordFatalError("Configuration error: " + e.getMessage(), e);
+					LOGGER.error("Configuration error: {}", e.getMessage(), e);
+					return false;
 				}
 
 				return handler.handle(resultShadowType);
@@ -887,9 +896,10 @@ public class ResourceTypeManager {
 	 * @return current unchanged shadow object that corresponds to provided
 	 *         resource object or null if the object does not exist
 	 * @throws SchemaException
+	 * @throws ConfigurationException 
 	 */
 	private <T extends ResourceObjectShadowType> T lookupShadowInRepository(Class<T> type, T resourceShadow,
-			ResourceType resource, OperationResult parentResult) throws SchemaException {
+			ResourceType resource, OperationResult parentResult) throws SchemaException, ConfigurationException {
 
 		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
 				parentResult);
@@ -926,7 +936,7 @@ public class ResourceTypeManager {
 	}
 
 	private <T extends ResourceObjectShadowType> T lookupShadowAccordingToName(Class<T> type, T resourceShadow,
-			ResourceType resource, OperationResult parentResult) throws SchemaException {
+			ResourceType resource, OperationResult parentResult) throws SchemaException, ConfigurationException {
 
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ResourceObjectShadowUtil.getSecondaryIdentifiers(resourceShadow);
 		ResourceAttribute secondaryIdentifier = null;

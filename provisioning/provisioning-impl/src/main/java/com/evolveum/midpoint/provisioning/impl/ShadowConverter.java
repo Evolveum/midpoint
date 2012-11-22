@@ -901,19 +901,19 @@ public class ShadowConverter {
 	}
 	
 	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
-			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
+			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException, ConfigurationException {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(discriminator, resource);
 		return applyAttributesDefinition(delta, objectClassDefinition, resource);
 	}
 	
 	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
-			PrismObject<T> shadow, ResourceType resource) throws SchemaException {
+			PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 		return applyAttributesDefinition(delta, objectClassDefinition, resource);
 	}
 
 	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(ObjectDelta<T> delta, 
-			ObjectClassComplexTypeDefinition objectClassDefinition, ResourceType resource) throws SchemaException {
+			ObjectClassComplexTypeDefinition objectClassDefinition, ResourceType resource) throws SchemaException, ConfigurationException {
 		if (delta.isAdd()) {
 			applyAttributesDefinition(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
@@ -934,7 +934,7 @@ public class ShadowConverter {
 	}
 
 	public <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition applyAttributesDefinition(
-			PrismObject<T> shadow, ResourceType resource) throws SchemaException {
+			PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		ObjectClassComplexTypeDefinition objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 		ResourceAttributeContainerDefinition attributesContainerDefinition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES,
 				objectClassDefinition, objectClassDefinition.getPrismContext());
@@ -968,8 +968,11 @@ public class ShadowConverter {
 		return objectClassDefinition;
 	}
 
-	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException {
+	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(PrismObject<T> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		if (schema == null) {
+			throw new ConfigurationException("No schema definied for "+resource);
+		}
 		QName objectClass = shadow.asObjectable().getObjectClass();
 		if (objectClass == null) {
 			throw new SchemaException("No objectclass definied in "+shadow);

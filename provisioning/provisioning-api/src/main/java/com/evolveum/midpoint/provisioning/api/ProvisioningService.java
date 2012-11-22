@@ -390,7 +390,7 @@ public interface ProvisioningService {
 	 * @throws CommunicationException error communicating with the resource
 	 */
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
 	 * Applies appropriate definition to the shadow delta.

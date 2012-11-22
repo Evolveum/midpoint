@@ -67,9 +67,11 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String TEST_DIR_NAME = "src/test/resources/impl";
 	
 	protected static final String RESOURCE_OPENDJ_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj.xml";
+	protected static final String RESOURCE_OPENDJ_INITIALIZED_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj-initialized.xml";
 	protected static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
 	protected static final String ACCOUNT1_FILENAME = TEST_DIR_NAME + "/account1.xml";
+	protected static final String ACCOUNT1_REPO_FILENAME = TEST_DIR_NAME + "/account1-repo.xml";
 	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
 	protected static final String ACCOUNT_NEW_FILENAME = TEST_DIR_NAME + "/account-new.xml";
@@ -103,6 +105,7 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_NO_SN_OID = "c0c010c0-d34d-beef-f33d-113222123444";
 	
 	protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+	
 	protected static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	protected static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
 	protected static final String LDAP_CONNECTOR_TYPE = "org.identityconnectors.ldap.LdapConnector";

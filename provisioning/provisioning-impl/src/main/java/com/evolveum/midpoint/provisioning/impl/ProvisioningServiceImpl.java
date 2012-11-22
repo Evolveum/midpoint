@@ -889,7 +889,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".listResourceObjects");
@@ -932,7 +932,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			resourceTypeManager.listShadows(resource.asObjectable(), objectClass, shadowHandler, false, result);
 		} catch (ConfigurationException ex) {
 			parentResult.recordFatalError(ex.getMessage(), ex);
-			throw new CommunicationException("Error in the configuration: " + ex.getMessage(), ex);
+			throw ex;
 		}
 		return objectList;
 	}

@@ -72,6 +72,7 @@ import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -97,6 +98,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
@@ -125,6 +128,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		addObjectFromFile(ACCOUNT1_REPO_FILENAME, AccountShadowType.class, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
@@ -215,100 +220,189 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 	}
 	
-//	@Test
-//	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-//		displayTestTile("test005Capabilities");
-//
-//		// GIVEN
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+".test005Capabilities");
-//
-//		// WHEN
-//		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
-//		
-//		// THEN
-//		display("Resource from provisioninig", resource);
-//		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
-//		
-//		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
-//		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
-//        assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
-//        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
-//        assertNotNull("credentials capability not found",capCred);
-//        assertNotNull("password capability not present",capCred.getPassword());
-//        // Connector cannot do activation, this should be null
-//        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
-//        assertNull("Found activation capability while not expecting it",capAct);
-//        
-//        List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
-//        for (Object capability : effectiveCapabilities) {
-//        	System.out.println("Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
-//        }
-//        
-//        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
-//        assertNotNull("credentials effective capability not found",capCred);
-//        assertNotNull("password effective capability not found",capCred.getPassword());
-//        // Although connector does not support activation, the resource specifies a way how to simulate it.
-//        // Therefore the following should succeed
-//        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
-//        assertNotNull("activation capability not found",capAct);
-//        
-//	}
-//	
-//	
-//	@Test
-//	public void test006ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
-//		displayTestTile("test006ListResourceObjects");
-//		// GIVEN
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+".test006ListResourceObjects");
-//		// WHEN
-//		List<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
-//				RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
-//		// THEN
-//		assertNotNull(objectList);
-//		assertFalse("Empty list returned",objectList.isEmpty());
-//		display("Resource object list "+RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,objectList);
-//	}
-//
-//	@Test
-//	public void test007GetObject() throws Exception {
-//		displayTestTile("test007GetObject");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test007GetObject");
-//		try {
-//
-//			AccountShadowType objectToAdd = parseObjectTypeFromFile(ACCOUNT1_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
-//			System.out.println(objectToAdd.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT1_OID, addedObjectOid);
-//			PropertyReferenceListType resolve = new PropertyReferenceListType();
-//
-//			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
-//
-//			assertNotNull(acct);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(acct));
-//			System.out.println(acct.asPrismObject().dump());
-//			
-//			PrismAsserts.assertEqualsPolyString("Name not equals.", "jbond", acct.getName());
-////			assertEquals("jbond", acct.getName());
-//			
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//		// TODO: check values
-//	}
-//
+	/**
+	 * This goes to local repo, therefore the expected result is ObjectNotFound.
+	 * We know that the shadow does not exist. 
+	 */
+	@Test
+	public void test110GetObjectNoShadow() throws Exception {
+		final String TEST_NAME = "test110GetObjectNoShadow";
+		displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		try {
+			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			
+			AssertJUnit.fail("getObject succeeded unexpectedly");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+
+	/**
+	 * This is using the shadow to go to the resource. But it cannot as OpenDJ is down.
+	 * It even cannot fetch schema. If there is no schema it does not even know how to process
+	 * identifiers in the shadow. Therefore the expected result is ConfigurationException.
+	 * It must not be ObjectNotFound as we do NOT know that the shadow does not exist. 
+	 */
+	@Test
+	public void test111GetObjectShadow() throws Exception {
+		final String TEST_NAME = "test111GetObjectShadow";
+		displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+				
+		try {
+
+			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, null, result).asObjectable();
+
+			AssertJUnit.fail("getObject succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+	
+	@Test
+	public void test120ListResourceObjects() throws Exception {
+		final String TEST_NAME = "test120ListResourceObjects";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+		
+		try {
+			// WHEN
+			List<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
+					RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
+			
+			AssertJUnit.fail("listResourceObjects succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+
+	
+	// Now lets replace the resource with one that has schema and capabilities. And re-run some of the tests.
+	// OpenDJ is still down so the results should be the same. But the code may take a different path if
+	// schema is present.
+	
+	@Test
+	public void test500ReplaceResource() throws Exception {
+		final String TEST_NAME = "test500ReplaceResource";
+		displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		// Delete should work fine even though OpenDJ is down
+		provisioningService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, result);
+		
+		result.computeStatus();
+		assertSuccess(result);
+		
+		resource = addResourceFromFile(RESOURCE_OPENDJ_INITIALIZED_FILENAME, LDAP_CONNECTOR_TYPE, result);
+
+		result.computeStatus();
+		assertSuccess(result);
+
+	}
+	
+	/**
+	 * This goes to local repo, therefore the expected result is ObjectNotFound.
+	 * We know that the shadow does not exist. 
+	 */
+	@Test
+	public void test510GetObjectNoShadow() throws Exception {
+		final String TEST_NAME = "test510GetObjectNoShadow";
+		displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		try {
+			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, NON_EXISTENT_OID, null, result).asObjectable();
+			
+			AssertJUnit.fail("getObject succeeded unexpectedly");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+
+	/**
+	 * This is using the shadow to go to the resource. But it cannot as OpenDJ is down. 
+	 * Therefore the expected result is CommunicationException. It must not be ObjectNotFound as 
+	 * we do NOT know that the shadow does not exist.
+	 * Provisioning should return a repo shadow and indicate the result both in operation result and
+	 * in fetchResult in the returned shadow.
+	 */
+	@Test
+	public void test511GetObjectShadow() throws Exception {
+		final String TEST_NAME = "test511GetObjectShadow";
+		displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+				
+		PrismObject<AccountShadowType> acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, null, result);
+
+		display("Account", acct);
+		
+		result.computeStatus();
+		assertEquals("Expected result partial error but was "+result.getStatus(), 
+				OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		
+		OperationResultType fetchResult = acct.asObjectable().getFetchResult();
+		assertEquals("Expected fetchResult partial error but was "+result.getStatus(), 
+				OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+	}
+
+	/**
+	 * This is using the shadow to go to the resource. But it cannot as OpenDJ is down. 
+	 * Therefore the expected result is CommunicationException. It must not be ObjectNotFound as 
+	 * we do NOT know that the shadow does not exist. 
+	 */
+	@Test
+	public void test520ListResourceObjects() throws Exception {
+		final String TEST_NAME = "test520ListResourceObjects";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+		
+		try {
+			// WHEN
+			List<PrismObject<? extends ResourceObjectShadowType>> objectList = provisioningService.listResourceObjects(
+					RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
+			
+			AssertJUnit.fail("listResourceObjects succeeded unexpectedly");
+		} catch (CommunicationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+
 //	/**
 //	 * Let's try to fetch object that does not exist in the repository.
 //	 */
