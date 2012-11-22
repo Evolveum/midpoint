@@ -18,8 +18,6 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_org",
-        indexes = {@Index(name = "iOrgName", columnNames = "name_norm")})
 public class ROrg extends RObject {
 
     @QueryAttribute(polyString = true)

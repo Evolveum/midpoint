@@ -52,8 +52,7 @@ import java.util.Set;
                 @Index(name = "iLocality", columnNames = "locality_norm"),
                 @Index(name = "iAdditionalName", columnNames = "additionalName_norm"),
                 @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_norm"),
-                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm"),
-                @Index(name = "iUserName", columnNames = "name_norm")})
+                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_norm")})
 @ForeignKey(name = "fk_user")
 public class RUser extends RObject {
 

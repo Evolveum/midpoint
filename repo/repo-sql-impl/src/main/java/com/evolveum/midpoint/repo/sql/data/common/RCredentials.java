@@ -35,6 +35,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Lob;
 
 /**
  * @author lazyman
@@ -54,6 +55,7 @@ public class RCredentials {
         this.allowedIdmAdminGuiAccess = allowedIdmAdminGuiAccess;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     @Column(name = "passwordXml", nullable = true)
     public String getPassword() {

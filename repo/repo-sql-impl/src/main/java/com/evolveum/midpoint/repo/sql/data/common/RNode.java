@@ -38,8 +38,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @Entity
 @ForeignKey(name = "fk_node")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_node",
-        indexes = {@Index(name = "iNodeName", columnNames = "name_norm")})
 public class RNode extends RObject {
 
     @QueryAttribute(polyString = true)

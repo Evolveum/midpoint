@@ -60,6 +60,7 @@ public class REmbeddedReference implements Serializable {
         return targetOid;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getDescription() {
         return description;
@@ -70,6 +71,7 @@ public class REmbeddedReference implements Serializable {
         return type;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getFilter() {
         return filter;

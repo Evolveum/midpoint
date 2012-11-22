@@ -123,7 +123,7 @@ public class RResourceObjectShadow extends RObject {
         return failedOperationType;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     @Column(nullable = true)
     public String getObjectChange() {
         return objectChange;
@@ -136,7 +136,7 @@ public class RResourceObjectShadow extends RObject {
     
     @ElementCollection
     @ForeignKey(name = "fk_shadow_sync_situation")
-    @CollectionTable(name = "m_shadow_sync_situation_description", joinColumns = {
+    @CollectionTable(name = "m_sync_situation_description", joinColumns = {
             @JoinColumn(name = "shadow_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "shadow_id", referencedColumnName = "id")
     })

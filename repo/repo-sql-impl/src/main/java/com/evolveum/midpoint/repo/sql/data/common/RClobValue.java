@@ -48,9 +48,7 @@ public class RClobValue extends RValue<String> {
         setValue(value);
     }
 
-    //@Type(type = "org.hibernate.type.MaterializedClobType")
-    @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     @Override
     public String getValue() {
         return value;

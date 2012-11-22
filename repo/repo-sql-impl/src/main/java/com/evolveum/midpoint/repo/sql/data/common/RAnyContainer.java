@@ -120,9 +120,6 @@ public class RAnyContainer implements Serializable {
     @CollectionTable(name = "m_any_clob", joinColumns =
             {@JoinColumn(name = "owner_id"), @JoinColumn(name = "owner_oid"), @JoinColumn(name = "ownerType")})
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    does not help...
-//    @Lob
-//    @Type(type = "org.hibernate.type.TextType")
     public Set<RClobValue> getClobs() {
         return clobs;
     }

@@ -97,7 +97,8 @@ public abstract class RObject extends RContainer {
 		this.ancestors = ancestors;
 	}
 
-	@Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
 	public String getDescription() {
 		return description;
 	}

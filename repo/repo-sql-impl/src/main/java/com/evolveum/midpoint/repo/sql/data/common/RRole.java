@@ -43,8 +43,6 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_role")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_role",
-        indexes = {@Index(name = "iRoleName", columnNames = "name_norm")})
 public class RRole extends RObject {
 
 	@QueryAttribute(polyString = true)
@@ -61,7 +59,7 @@ public class RRole extends RObject {
     }
 
     @Column(nullable = true)
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getApprovalSchema() {
         return approvalSchema;
     }

@@ -32,6 +32,16 @@ import org.apache.commons.lang.StringUtils;
  */
 public class SqlRepositoryConfiguration {
 
+    public static final String PROPERTY_BASE_DIR = "baseDir";
+    public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
+    public static final String PROPERTY_EMBEDDED = "embedded";
+    public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
+    public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
+    public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
+    public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
+    public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
+    public static final String PROPERTY_JDBC_URL = "jdbcUrl";
+
     //embedded configuration
     private boolean embedded = true;
     private boolean asServer;

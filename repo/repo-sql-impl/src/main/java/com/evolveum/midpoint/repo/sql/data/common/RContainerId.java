@@ -81,6 +81,6 @@ public class RContainerId implements Serializable {
 
     @Override
     public String toString() {
-        return "RContainerId[" + oid + ", " + id + "]";
+        return "RContainerId{" + oid + ", " + id + "}";
     }
 }

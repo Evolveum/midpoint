@@ -97,7 +97,7 @@ public class RConnector extends RObject {
         return targetSystemType;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getXmlSchema() {
         return xmlSchema;
     }

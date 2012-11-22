@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -76,6 +75,7 @@ public class RExclusion extends RContainer implements ROwnable  {
         return ownerOid;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getDescription() {
         return description;

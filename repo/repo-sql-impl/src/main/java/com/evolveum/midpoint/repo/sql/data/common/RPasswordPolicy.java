@@ -41,8 +41,6 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_password_policy")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_password_policy",
-        indexes = {@Index(name = "iPasswordPolicyName", columnNames = "name_norm")})
 public class RPasswordPolicy extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -50,7 +48,7 @@ public class RPasswordPolicy extends RObject {
     private String lifetime;
     private String stringPolicy;
 
-    @Type(type = "org.hibernate.type.MaterializedClobType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getLifetime() {
         return lifetime;
     }
@@ -59,7 +57,7 @@ public class RPasswordPolicy extends RObject {
         this.lifetime = lifetime;
     }
 
-    @Type(type = "org.hibernate.type.MaterializedClobType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getStringPolicy() {
         return stringPolicy;
     }

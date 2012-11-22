@@ -32,6 +32,7 @@ import org.hibernate.cfg.EJB3NamingStrategy;
 public class MidPointNamingStrategy extends EJB3NamingStrategy {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointNamingStrategy.class);
+    private static final int MAX_LENGTH = 30;
 
     @Override
     public String classToTableName(String className) {
@@ -44,6 +45,8 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
         ), "_");
 
         String result = "m_" + name.toLowerCase();
+        result = fixLength(result);
+
         LOGGER.trace("classToTableName {} to {}", new Object[]{className, result});
         return result;
     }
@@ -61,6 +64,8 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
                 result = propertyName.replaceAll("\\.", "_");
             }
         }
+        result = fixLength(result);
+
         LOGGER.trace("logicalColumnName {} {} to {}", new Object[]{columnName, propertyName, result});
         return result;
     }
@@ -74,9 +79,36 @@ public class MidPointNamingStrategy extends EJB3NamingStrategy {
             //credentials and activation are embedded and doesn't need to be qualified
             result = super.propertyToColumnName(propertyName);
         }
+        result = fixLength(result);
 
         LOGGER.trace("propertyToColumnName {} to {} (original: {})",
                 new Object[]{propertyName, result, super.propertyToColumnName(propertyName)});
+        return result;
+    }
+
+    private String fixLength(String input) {
+        if (input == null && input.length() <= MAX_LENGTH) {
+            return input;
+        }
+
+        String result = input;
+        String[] array = input.split("_");
+        for (int i = 0; i < array.length; i++) {
+            int length = array[i].length();
+            String lengthStr = Integer.toString(length);
+
+            if (length < lengthStr.length()) {
+                continue;
+            }
+
+            array[i] = array[i].charAt(0) + lengthStr;
+
+            result = StringUtils.join(array, "_");
+            if (result.length() < MAX_LENGTH) {
+                break;
+            }
+        }
+
         return result;
     }
 }

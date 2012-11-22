@@ -40,8 +40,6 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_connector_host")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_connector_host",
-        indexes = {@Index(name = "iConnectorHostName", columnNames = "name_norm")})
 public class RConnectorHost extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -52,7 +50,7 @@ public class RConnectorHost extends RObject {
     private Boolean protectConnection;
     private Integer timeout;
 
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getSharedSecret() {
         return sharedSecret;
     }

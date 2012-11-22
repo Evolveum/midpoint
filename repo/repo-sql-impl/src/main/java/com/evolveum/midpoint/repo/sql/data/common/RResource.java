@@ -43,7 +43,6 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name_norm" }))
-@org.hibernate.annotations.Table(appliesTo = "m_resource", indexes = { @Index(name = "iResourceName", columnNames = "name_norm") })
 public class RResource extends RObject {
 
 	private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
@@ -62,7 +61,7 @@ public class RResource extends RObject {
 	private RAvailabilityStatusType lastAvailabilityStatus;
 	private ROperationalState operationalState;
 
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getScripts() {
 		return scripts;
 	}
@@ -72,7 +71,7 @@ public class RResource extends RObject {
 		return capabilities;
 	}
 
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getConfiguration() {
 		return configuration;
 	}
@@ -82,17 +81,17 @@ public class RResource extends RObject {
 		return connectorRef;
 	}
 
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getXmlSchema() {
 		return xmlSchema;
 	}
 
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getSchemaHandling() {
 		return schemaHandling;
 	}
 
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getSynchronization() {
 		return synchronization;
 	}
@@ -105,7 +104,7 @@ public class RResource extends RObject {
 		return lastAvailabilityStatus;
 	}
 
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getConsistency() {
 		return consistency;
 	}

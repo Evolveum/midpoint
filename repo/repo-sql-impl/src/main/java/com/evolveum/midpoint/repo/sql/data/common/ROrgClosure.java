@@ -12,6 +12,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 /**
@@ -52,7 +53,7 @@ public class ROrgClosure implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY, optional=true)
 	@JoinColumns({ @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid"),
 			@JoinColumn(name = "ancestor_id", referencedColumnName = "id") })
-//	@Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @ForeignKey(name = "fk_ancestor")
 	public RObject getAncestor() {
 		return ancestor;
 	}
@@ -65,7 +66,7 @@ public class ROrgClosure implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY, optional=true)
 	@JoinColumns({ @JoinColumn(name = "descendant_oid", referencedColumnName = "oid"),
 		@JoinColumn(name = "descendant_id", referencedColumnName = "id") })
-//	 @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @ForeignKey(name = "fk_descendant")
 	public RObject getDescendant() {
 		return descendant;
 	}

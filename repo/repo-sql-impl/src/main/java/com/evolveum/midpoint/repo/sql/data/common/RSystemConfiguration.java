@@ -46,8 +46,6 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_system_configuration")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
-        indexes = {@Index(name = "iSystemConfigurationName", columnNames = "name_norm")})
 public class RSystemConfiguration extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RSystemConfiguration.class);
@@ -61,6 +59,7 @@ public class RSystemConfiguration extends RObject {
     private RObjectReference defaultUserTemplateRef;
     private String connectorFramework;
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getConnectorFramework() {
         return connectorFramework;
@@ -92,16 +91,19 @@ public class RSystemConfiguration extends RObject {
         return defaultUserTemplateRef;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getGlobalAccountSynchronizationSettings() {
         return globalAccountSynchronizationSettings;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getLogging() {
         return logging;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getModelHooks() {
         return modelHooks;

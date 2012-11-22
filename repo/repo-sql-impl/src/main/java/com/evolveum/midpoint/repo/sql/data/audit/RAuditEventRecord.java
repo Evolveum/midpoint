@@ -75,6 +75,7 @@ public class RAuditEventRecord implements Serializable {
     @ForeignKey(name = "fk_audit_delta")
     @CollectionTable(name = "m_audit_delta")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public Set<String> getDeltas() {
         return deltas;
@@ -104,6 +105,7 @@ public class RAuditEventRecord implements Serializable {
         return id;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getInitiator() {
         return initiator;
@@ -118,12 +120,13 @@ public class RAuditEventRecord implements Serializable {
         return sessionIdentifier;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getTarget() {
         return target;
     }
 
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getTargetOwner() {
         return targetOwner;
     }

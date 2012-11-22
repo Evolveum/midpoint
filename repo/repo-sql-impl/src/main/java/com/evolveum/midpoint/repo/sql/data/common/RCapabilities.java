@@ -2,6 +2,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Lob;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import org.apache.commons.lang.StringUtils;
@@ -25,19 +26,19 @@ public class RCapabilities {
 	private String configured;
 
     @Column(nullable = true)
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getCachingMetadata() {
         return cachingMetadata;
     }
 
     @Column(nullable = true)
-	@Type(type = "org.hibernate.type.TextType")
+	@Lob @Type(type = "org.hibernate.type.TextType")
 	public String getNative() {
 		return _native;
 	}
 
     @Column(nullable = true)
-    @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = "org.hibernate.type.TextType")
     public String getConfigured() {
         return configured;
     }

@@ -37,8 +37,6 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_generic_object")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_generic_object",
-        indexes = {@Index(name = "iGenericObjectName", columnNames = "name_norm")})
 public class RGenericObject extends RObject {
 
     @QueryAttribute(polyString = true)

@@ -39,8 +39,6 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_user_template")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_user_template",
-        indexes = {@Index(name = "iUserTemplateName", columnNames = "name_norm")})
 public class RUserTemplate extends RObject {
 
     @QueryAttribute(polyString = true)
@@ -48,12 +46,14 @@ public class RUserTemplate extends RObject {
     private String propertyConstruction;
     private String accountConstruction;
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     @Column(nullable = true)
     public String getAccountConstruction() {
         return accountConstruction;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     @Column(nullable = true)
     public String getPropertyConstruction() {

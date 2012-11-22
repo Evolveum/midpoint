@@ -113,11 +113,13 @@ public class RAssignment extends RContainer implements ROwnable {
         return activation;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getAccountConstruction() {
         return accountConstruction;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getDescription() {
         return description;

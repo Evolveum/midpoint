@@ -59,17 +59,10 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
         org.hibernate.cfg.Configuration configuration = new Configuration();
         configuration.setNamingStrategy(new MidPointNamingStrategy());
         configuration.setProperties(sessionFactory.getHibernateProperties());
+        System.out.println("Dialect: " + sessionFactory.getHibernateProperties().getProperty("hibernate.dialect"));
 
-        File dir = new File("./src/main/java/com/evolveum/midpoint/repo/sql/data/common");
-        File[] files = dir.listFiles();
-        for (File file : files) {
-            if (file.isDirectory() || !file.getName().endsWith("java")) {
-                continue;
-            }
-            String className = "com.evolveum.midpoint.repo.sql.data.common."
-                    + file.getName().substring(0, file.getName().length() - 5);
-            configuration.addAnnotatedClass(Class.forName(className));
-        }
+        addAnnotatedClasses("com/evolveum/midpoint/repo/sql/data/common", configuration);
+        addAnnotatedClasses("com/evolveum/midpoint/repo/sql/data/audit", configuration);
 
         configuration.addPackage("com.evolveum.midpoint.repo.sql.type");
 
@@ -77,5 +70,21 @@ public class SpringApplicationContextTest extends AbstractTestNGSpringContextTes
         export.setOutputFile("./target/schema.sql");
         export.setDelimiter(";");
         export.execute(true, false, false, true);
+    }
+
+    private void addAnnotatedClasses(String packagePath, Configuration configuration) throws ClassNotFoundException {
+        File parent = new File("./src/main/java");
+        File dir = new File(parent, packagePath);
+        File[] files = dir.listFiles();
+
+        String packageName = packagePath.replaceAll("/", ".") + ".";
+
+        for (File file : files) {
+            if (file.isDirectory() || !file.getName().endsWith("java")) {
+                continue;
+            }
+            String className = packageName + file.getName().substring(0, file.getName().length() - 5);
+            configuration.addAnnotatedClass(Class.forName(className));
+        }
     }
 }

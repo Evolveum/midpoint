@@ -114,17 +114,20 @@ public class RTask extends RObject {
         return parent;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     @Column(nullable = true)
     public String getModelOperationState() {
         return modelOperationState;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     public String getOtherHandlersUriStack() {
         return otherHandlersUriStack;
     }
 
+    @Lob
     @Type(type = "org.hibernate.type.TextType")
     @Column(nullable = true)
     public String getSchedule() {
