@@ -181,14 +181,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 				if (delta == null) {
 					continue;
 				}
-
-                int newCount = newObject.getValue().getItems().size();
-                int oldCount = object.getValue().getItems().size();
-                if (newCount != oldCount) {
-                    AssertJUnit.assertEquals("Items count in object '" + object.findProperty(ObjectType.F_NAME)
-                            + "' are different, loaded from file has '" + oldCount + "' items, from repository has '"
-                            + newCount + "' items.", oldCount, newCount);
-                }
+                checkItemsCount(newObject, object);
 
                 count += delta.getModifications().size();
                 if (delta.getModifications().size() > 0) {
@@ -205,12 +198,24 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 					LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
 				}
 			} catch (Exception ex) {
-				LOGGER.error("Exception occured", ex);
+				LOGGER.error("Exception occurred", ex);
 			}
 		}
 
 		AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
 	}
+
+    private void checkItemsCount(PrismObject newObject, PrismObject oldObject) {
+        int newCount = newObject.getValue().getItems().size();
+        int oldCount = oldObject.getValue().getItems().size();
+        if (newCount != oldCount) {
+            AssertJUnit.assertEquals("Items count in object '" + oldObject.findProperty(ObjectType.F_NAME)
+                    + "' are different, loaded from file has '" + oldCount + "' items, from repository has '"
+                    + newCount + "' items.", oldCount, newCount);
+        }
+
+        //todo improve check
+    }
 
 	@Test
 	public void addUserWithAssignmentExtension() throws Exception {

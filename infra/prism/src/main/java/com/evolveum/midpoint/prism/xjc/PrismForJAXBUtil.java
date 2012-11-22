@@ -303,10 +303,11 @@ public final class PrismForJAXBUtil {
     		reference.add(value);
     	} else {
             if (value == null) {
-                reference.getValue().setOid(null);
-                reference.getValue().setTargetType(null);
-                reference.getValue().setFilter(null);
-                reference.getValue().setDescription(null);
+                parentValue.remove(reference);
+//                reference.getValue().setOid(null);
+//                reference.getValue().setTargetType(null);
+//                reference.getValue().setFilter(null);
+//                reference.getValue().setDescription(null);
 	        } else {
                 reference.getValue().setOid(value.getOid());
                 reference.getValue().setTargetType(value.getTargetType());

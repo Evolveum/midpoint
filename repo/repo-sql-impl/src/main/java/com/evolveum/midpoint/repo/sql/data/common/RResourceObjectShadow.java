@@ -282,9 +282,12 @@ public class RResourceObjectShadow extends RObject {
         	jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSyncType());
         }
         
-        	jaxb.setDead(repo.isDead());
-       
-        jaxb.getSynchronizationSituationDescription().addAll(RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription()));
+        jaxb.setDead(repo.isDead());
+
+        List situations = RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription());
+        if (!situations.isEmpty()) {
+            jaxb.getSynchronizationSituationDescription().addAll(situations);
+        }
 
         try {
             jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
@@ -326,11 +329,11 @@ public class RResourceObjectShadow extends RObject {
         repo.setSynchronizationSituationDescription(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
         repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
         repo.setAttemptNumber(jaxb.getAttemptNumber());
-        if (jaxb.isDead() == null){
-        	repo.setDead(false);
-        }else {
+//        if (jaxb.isDead() == null){
+//        	repo.setDead(false);
+//        }else {
         	repo.setDead(jaxb.isDead());
-        }
+//        }
         repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));
 
         if (jaxb.getResource() != null) {

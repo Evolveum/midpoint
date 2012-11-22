@@ -36,6 +36,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -205,7 +206,10 @@ public class RConnector extends RObject {
                 jaxb.setConnectorHostRef(repo.getConnectorHostRef().toJAXB(prismContext));
             }
 
-            jaxb.getTargetSystemType().addAll(RUtil.safeSetToList(repo.getTargetSystemType()));
+            List types = RUtil.safeSetToList(repo.getTargetSystemType());
+            if (!types.isEmpty()) {
+                jaxb.getTargetSystemType().addAll(types);
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
