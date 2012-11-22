@@ -446,25 +446,38 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 				}
 				return;
 			}
+			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
+				newStatus = OperationResultStatus.PARTIAL_ERROR;
+//				if (message == null) {
+//					message = sub.getMessage();
+//				} else {
+//					message = message + ": " + sub.getMessage();
+//				}
+				newMessage = sub.getMessage();
+//				newMessage = sub.getMessage();
+//				return;
+			}
+			if (newStatus != OperationResultStatus.PARTIAL_ERROR){
 			if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
-				status = OperationResultStatus.HANDLED_ERROR;
-				if (message == null) {
-					message = sub.getMessage();
-				} else {
-					message = message + ": " + sub.getMessage();
-				}
-				return;
+				newStatus = OperationResultStatus.HANDLED_ERROR;
+//				if (message == null) {
+					newMessage = sub.getMessage();
+//				} else {
+//					message = message + ": " + sub.getMessage();
+//				}
+//				return;
+			}
 			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
-					&& sub.getStatus() != OperationResultStatus.HANDLED_ERROR
+//					&& sub.getStatus() != OperationResultStatus.HANDLED_ERROR
 					&& sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}
-			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
-				newStatus = OperationResultStatus.PARTIAL_ERROR;
-				newMessage = sub.getMessage();
-			}
-			if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
+//			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
+//				newStatus = OperationResultStatus.PARTIAL_ERROR;
+//				newMessage = sub.getMessage();
+//			}
+			if (newStatus != OperationResultStatus.HANDLED_ERROR) {
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
 					newMessage = sub.getMessage();

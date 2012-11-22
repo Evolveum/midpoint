@@ -179,12 +179,12 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		case GET:
 			// nothing to do, just return the shadow from the repo and set fetch
 			// result..
-			parentResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Could not get account from the resource "
+			operationResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Could not get account from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
 					+ ", because resource is unreachable. Returning shadow from the repository");
-			shadow.setFetchResult(parentResult.createOperationResultType());
+			shadow.setFetchResult(operationResult.createOperationResultType());
 //			operationResult.recordSuccess();
-			operationResult.computeStatus();
+//			operationResult.computeStatus();
 			return shadow;
 		default:
 			throw new CommunicationException(ex);

@@ -103,6 +103,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -1286,6 +1287,10 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		modelService.executeChanges(deltas, null, task, result);
 //		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
 
+		result.computeStatus();
+		display("add object communication problem result: ", result);
+		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		
 		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
 				USER_E_OID, result);
 		assertNotNull(userAferModifyOperation);
@@ -1294,8 +1299,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				accountRefs.size());
 
 		String accountOid = accountRefs.get(0).getOid();
-		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
-				result).asObjectable();
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid, result).asObjectable();
 		assertNotNull(faieldAccount);
 		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
 		assertEquals("Failed operation saved with account differt from  the expected value.",
@@ -1308,6 +1312,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "e");
 		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "e");
 		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "e");
+		
+		
 
 	}
 

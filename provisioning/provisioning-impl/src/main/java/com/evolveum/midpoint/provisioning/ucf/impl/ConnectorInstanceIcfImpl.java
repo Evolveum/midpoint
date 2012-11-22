@@ -1489,14 +1489,29 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			SchemaException ex = (SchemaException) inex.getCause();
 			throw ex;
 		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex, icfResult);
+			result.computeStatus();
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+			}
 			// ICF interface does not specify exceptions or other error
 			// conditions.
 			// Therefore this kind of heavy artillery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
-			icfResult.recordFatalError(ex);
-			result.recordFatalError("ICF invocation failed");
+//			icfResult.recordFatalError(ex);
+//			result.recordFatalError("ICF invocation failed");
 			// This is fatal. No point in continuing.
-			throw new GenericFrameworkException(ex);
+//			throw new GenericFrameworkException(ex);
 		}
 
 		if (result.isUnknown()) {
