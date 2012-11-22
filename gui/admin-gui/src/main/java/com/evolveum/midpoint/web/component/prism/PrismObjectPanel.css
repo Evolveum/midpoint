@@ -200,7 +200,10 @@ div.objectForm .tableForm .tableFormBody .objectFormButtons {
 	width: 43px;
 }
 
-div.objectForm .tableForm .tableFormBody .objectFormAddButton:hover, div.objectForm .tableForm .tableFormBody .objectFormDeleteButton:hover {
+div.objectForm .tableForm .tableFormBody .objectFormAddButton:hover, 
+div.objectForm .tableForm .tableFormBody .objectFormAddButton:focus, 
+div.objectForm .tableForm .tableFormBody .objectFormDeleteButton:hover,
+div.objectForm .tableForm .tableFormBody .objectFormDeleteButton:focus {
 	-webkit-box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
 	-moz-box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
 	box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);

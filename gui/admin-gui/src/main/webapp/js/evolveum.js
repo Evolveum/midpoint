@@ -21,6 +21,7 @@
 
 var objectFormHelpContainer = null;
 var interval = 0;
+var ajaxError = 0;
 
 window.onload = setupFunc;
 $(document).ready(function(){
@@ -128,6 +129,10 @@ function init() {
 			$("#xmlExport").hide();
 		}
 	});
+    
+    $(".operatingFormButtons .button, .top-menu a").click(function(){
+    	showDisableOperationFormButtons();
+    });
 }
 
 function showLeftMenu() {
@@ -249,18 +254,21 @@ function hideBusysign() {
 	document.getElementById('bysy_indicator').style.display = 'none';
 	document.getElementById('error_indicator').style.display = 'none';
 	hideDisableOperationFormButtons();
+	ajaxError = 0;
 }
 
 function showError() {
 	document.getElementById('bysy_indicator').style.display = 'none';
 	document.getElementById('error_indicator').style.display = 'inline';
 	showDisableOperationFormButtons();
+	ajaxError = 1;
 }
 
 function showBusysign() {
-	document.getElementById('bysy_indicator').style.display = 'inline';
-	document.getElementById('error_indicator').style.display = 'none';
-	showDisableOperationFormButtons();
+	if(ajaxError != 1) {
+		document.getElementById('bysy_indicator').style.display = 'inline';
+		document.getElementById('error_indicator').style.display = 'none';
+	}
 }
 
 function clickFunc(eventData) {
@@ -312,11 +320,13 @@ function showDisableOperationFormButtons() {
 	if(operationFormBlock.find(".operatingFormBlock").size() == 0) {
 		$(".disableOperationBlock").insertBefore($(".operatingFormButtons").find(".button:first"));
 	}
-	$(".operatingFormButtons").find(".button").css("opacity", .5);
+	//$(".operatingFormButtons").find(".button").css("opacity", .5);
+	$(".operatingFormButtons").css("opacity", .5);
 }
 
 function hideDisableOperationFormButtons() {
 	var disableOperationBlock = $(".disableOperationBlock");
-	$(".operatingFormButtons").find(".button").css("opacity", 1);
+	$(".operatingFormButtons").css("opacity", 1);
+	//$(".operatingFormButtons").find(".button").css("opacity", 1);
 	disableOperationBlock.remove();
 }

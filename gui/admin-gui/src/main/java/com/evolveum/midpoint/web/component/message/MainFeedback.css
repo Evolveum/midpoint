@@ -522,6 +522,7 @@ div.messages-topException {
     padding-top: 5px;
     clear: both;
     font-weight: normal;
+    width: 98%;
 }
 
 ul.messagesTop .messages-topMessage {
