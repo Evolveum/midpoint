@@ -1025,7 +1025,7 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
         }
         
-		if (result.isSuccess() || result.isHandledError() || result.isInProgress() || result.isWarning()) {
+		if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
 			showResultInSession(result);
             //todo refactor this...what is this for? why it's using some "shadow" param from result???
 			PrismObject<UserType> user = userWrapper.getObject();

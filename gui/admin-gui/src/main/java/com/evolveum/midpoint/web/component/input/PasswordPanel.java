@@ -26,6 +26,8 @@ import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -52,18 +54,31 @@ public class PasswordPanel extends InputPanel {
     }
 
     private void initLayout(IModel<String> model) {
-        PasswordTextField password1 = new PasswordTextField(ID_PASSWORD_ONE, model);
+        final PasswordTextField password1 = new PasswordTextField(ID_PASSWORD_ONE, model);
         password1.setRequired(false);
         password1.setResetPassword(false);
+        password1.setOutputMarkupId(true);
         add(password1);
 
         final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<String>());
         password2.setRequired(false);
         password2.setResetPassword(false);
+        password2.setOutputMarkupId(true);
         add(password2);
         
-        //TODO fix validation
-        password1.add(new PasswordValidator(password1, password2));
+        password1.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+			
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				boolean required = false;
+				if(!StringUtils.isEmpty(password1.getModel().getObject())) {
+					required = true;
+				}
+				password2.setRequired(required);
+				target.add(password2);
+			}
+		});
+        password2.add(new PasswordValidator(password1, password2));
     }
 
     @Override

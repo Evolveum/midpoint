@@ -259,11 +259,12 @@ public class PrismValuePanel extends Panel {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
 
-            if (form != null) {
-                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur"); 
-                // TODO fix validation
-                formComponent.add(validator);
-            }
+            // Validation occurs when submitting the form
+//            if (form != null) {
+//                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur"); 
+//                 
+//                formComponent.add(validator);
+//            }
         }
         return component;
     }

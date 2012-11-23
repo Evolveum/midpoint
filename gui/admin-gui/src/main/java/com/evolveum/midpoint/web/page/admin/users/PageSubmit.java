@@ -624,7 +624,7 @@ public class PageSubmit extends PageAdmin {
 			LoggingUtils.logException(LOGGER, getString("pageSubmit.message.cantCreateUser"), ex);
 		}
 
-		if (result.isError()) {
+		if (!result.isSuccess()) {
 			showResult(result);
 			target.add(getFeedbackPanel());
 		} else {
