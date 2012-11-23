@@ -120,32 +120,33 @@ public class ModifyUserAction extends BaseAction {
         OperationResult subResult = result.createSubresult(actionName);
         if (StringUtils.isEmpty(userOid)) {
             String message = "Can't modify user, user oid is empty or null.";
-            subResult.computeStatus(message);
+            subResult.recordFatalError(message);
             throw new SynchronizationException(message);
         }
 
         UserType userType = getUser(userOid, subResult);
         if (userType == null) {
             String message = "Can't find user with oid '" + userOid + "'.";
-            subResult.computeStatus(message);
+            subResult.recordFatalError(message);
             throw new SynchronizationException(message);
         }
 
         LensContext<UserType, AccountShadowType> context = null;
+        LensProjectionContext<AccountShadowType> accountContext = null;
         try {
             context = createSyncContext(userType, change.getResource().asObjectable(), change);
-
-            LensProjectionContext<AccountShadowType> accountContext = createAccountLensContext(context, change,
+            accountContext = createAccountLensContext(context, change,
                     getAccountSynchronizationIntent(), getAccountActivationDecision());
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
             }
         } catch (Exception ex) {
+        	subResult.recordFatalError("Couldn't update account sync context in modify user action: "+ex.getMessage(), ex);
             throw new SynchronizationException("Couldn't update account sync context in modify user action.", ex);
-        } finally {
-            subResult.recomputeStatus("Couldn't update account sync context in modify user action.");
         }
+        
+        updateContextBeforeSync(context, accountContext);
 
         try {
             synchronizeUser(context, task, subResult);
@@ -165,7 +166,15 @@ public class ModifyUserAction extends BaseAction {
         return userOid;
     }
 
-    private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
+    /**
+	 * A chance to update the context before a sync is executed. For use in subclasses.
+	 */
+	protected void updateContextBeforeSync(LensContext<UserType, AccountShadowType> context, 
+			LensProjectionContext<AccountShadowType> accountContext) {
+		// Nothing to do here
+	}
+
+	private Class<? extends ResourceObjectShadowType> getClassFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getObjectDelta() != null) {
             return change.getObjectDelta().getObjectTypeClass();
         }
