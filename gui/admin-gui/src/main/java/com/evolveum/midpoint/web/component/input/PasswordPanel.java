@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.form.Form;
@@ -59,8 +61,9 @@ public class PasswordPanel extends InputPanel {
         password2.setRequired(false);
         password2.setResetPassword(false);
         add(password2);
-
-        password2.add(new PasswordValidator(password1, password2));
+        
+        //TODO fix validation
+        password1.add(new PasswordValidator(password1, password2));
     }
 
     @Override

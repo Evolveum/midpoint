@@ -271,8 +271,10 @@ function showBusysign() {
 	}
 }
 
+var clickedElement = null;
+
 function clickFunc(eventData) {
-	var clickedElement = (window.event) ? event.srcElement : eventData.target;
+	clickedElement = (window.event) ? event.srcElement : eventData.target;
 	if (clickedElement.tagName.toUpperCase() == 'BUTTON'
 			|| clickedElement.tagName.toUpperCase() == 'A'
 			|| clickedElement.parentNode.tagName.toUpperCase() == 'A'
@@ -283,7 +285,8 @@ function clickFunc(eventData) {
 	}
 }
 
-if ((clickedElement.tagName.toUpperCase() == 'A'
+if(clickedElement != null) {
+	if ((clickedElement.tagName.toUpperCase() == 'A'
 		&& ((clickedElement.target == null) || (clickedElement.target.length <= 0))
 		&& (clickedElement.href.lastIndexOf('#') != (clickedElement.href.length - 1))
 		&& (!('nobusy' in clickedElement))
@@ -311,7 +314,9 @@ if ((clickedElement.tagName.toUpperCase() == 'A'
 				|| clickedElement.type.toUpperCase() == 'SUBMIT' || clickedElement.type
 				.toUpperCase() == 'IMAGE')))) {
 	showBusysign();
+	}
 }
+
 
 function showDisableOperationFormButtons() {
 	var operationFormBlock = $(".operatingFormButtons");

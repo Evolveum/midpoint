@@ -43,6 +43,7 @@ import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -259,11 +260,11 @@ public class PrismValuePanel extends Panel {
             }
 
             if (form != null) {
-                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur");
+                AjaxFormValidatingBehavior validator = new AjaxFormValidatingBehavior(form, "onBlur"); 
+                // TODO fix validation
                 formComponent.add(validator);
             }
         }
-
         return component;
     }
 
