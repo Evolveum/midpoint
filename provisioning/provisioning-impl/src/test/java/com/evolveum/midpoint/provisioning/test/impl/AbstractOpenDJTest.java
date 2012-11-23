@@ -81,12 +81,14 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	protected static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	
 	protected static final String ACCOUNT_MODIFY_FILENAME = TEST_DIR_NAME + "/account-modify.xml";
+	protected static final String ACCOUNT_MODIFY_REPO_FILENAME = TEST_DIR_NAME + "/account-modify-repo.xml";
 	protected static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
 	
 	protected static final String ACCOUNT_MODIFY_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-modify-password.xml";
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	
 	protected static final String ACCOUNT_DELETE_FILENAME = TEST_DIR_NAME + "/account-delete.xml";
+	protected static final String ACCOUNT_DELETE_REPO_FILENAME = TEST_DIR_NAME + "/account-delete-repo.xml";
 	protected static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";

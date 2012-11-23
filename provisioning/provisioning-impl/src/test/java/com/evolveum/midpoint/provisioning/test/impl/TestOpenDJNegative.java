@@ -97,6 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
@@ -130,6 +131,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		super.initSystem(initTask, initResult);
 		
 		addObjectFromFile(ACCOUNT1_REPO_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_DELETE_REPO_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_MODIFY_REPO_FILENAME, AccountShadowType.class, initResult);
 	}
 	
 // We are NOT starting OpenDJ here. We want to see the blood .. err ... errors
@@ -322,11 +325,64 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertFailure(result);
 	}
 
+	
+	@Test
+	public void test140DeleteObject() throws Exception {
+		final String TEST_NAME = "test140DeleteObject";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		try {
+
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
+
+			AssertJUnit.fail("addObject succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+
+	}
+	
+	@Test
+	public void test150ModifyObject() throws Exception {
+		final String TEST_NAME = "test150ModifyObject";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
+				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
+		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+		display("Object change",delta);
+		
+		try {
+
+			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
+					delta.getModifications(), null, result);
+			
+			AssertJUnit.fail("addObject succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
 
 	
+	// =========================================================================================================
 	// Now lets replace the resource with one that has schema and capabilities. And re-run some of the tests.
 	// OpenDJ is still down so the results should be the same. But the code may take a different path if
 	// schema is present.
+	// =========================================================================================================
 	
 	@Test
 	public void test500ReplaceResource() throws Exception {
@@ -432,8 +488,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertFailure(result);
 	}
 	
-	// WORK IN PROGRESS
-	@Test(enabled=false)
+	@Test
 	public void test530AddObject() throws Exception {
 		final String TEST_NAME = "test530AddObject";
 		displayTestTile(TEST_NAME);
@@ -451,102 +506,103 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		// THEN
 		result.computeStatus();
 		display("addObject result", result);
+		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
-		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+		AccountShadowType repoAccountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 				result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
-//			assertEquals("will", accountType.getName());
+		display("repo shadow", repoAccountType);
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", repoAccountType.getName());
+		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, repoAccountType.getFailedOperationType());
+		OperationResultType repoResult = repoAccountType.getResult();
+		assertNotNull("No result in shadow (repo)", repoResult);
+		assertFailure("Result in shadow (repo)", repoResult);
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 				null, result).asObjectable();
-//			assertEquals("will", provisioningAccountType.getName());
+		display("provisioning shadow", provisioningAccountType);
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, provisioningAccountType.getFailedOperationType());
+		OperationResultType provisioningResult = provisioningAccountType.getResult();
+		assertNotNull("No result in shadow (repo)", provisioningResult);
+		assertFailure("Result in shadow (repo)", provisioningResult);
+
+	}
+	
+	@Test
+	public void test540DeleteObject() throws Exception {
+		final String TEST_NAME = "test540DeleteObject";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		// WHEN
+		provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
+
+		// THEN
+		result.computeStatus();
+		display("deleteObject result", result);
+		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		
+		AccountShadowType repoAccountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
+				result).asObjectable();
+		display("repo shadow", repoAccountType);
+		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, repoAccountType.getFailedOperationType());
+		OperationResultType repoResult = repoAccountType.getResult();
+		assertNotNull("No result in shadow (repo)", repoResult);
+		assertFailure("Result in shadow (repo)", repoResult);
+
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
+				null, result).asObjectable();
+		display("provisioning shadow", provisioningAccountType);
+		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, provisioningAccountType.getFailedOperationType());
+		OperationResultType provisioningResult = provisioningAccountType.getResult();
+		assertNotNull("No result in shadow (repo)", provisioningResult);
+		assertFailure("Result in shadow (repo)", provisioningResult);		
 	}
 
-//
-//	
-//	@Test
-//	public void test011AddObjectNull() throws Exception {
-//		displayTestTile("test011AddObjectNull");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test011AddObjectNull");
-//
-//		String addedObjectOid = null;
-//		
-//		try {
-//		
-//			addedObjectOid = provisioningService.addObject(null, null, result);
-//			Assert.fail("Expected IllegalArgumentException but haven't got one.");
-//		} catch(IllegalArgumentException ex){
-//			assertEquals("Object to add must not be null.", ex.getMessage());
-//			assertNull(addedObjectOid);
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//	}
-//
-//	
-//	@Test
-//	public void test012DeleteObject() throws Exception {
-//		displayTestTile("test012DeleteObject");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test012DeleteObject");
-//
-//		try {
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_DELETE_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
-//
-//			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
-//
-//			AccountShadowType objType = null;
-//
-//			try {
-//				objType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
-//						null, result).asObjectable();
-//				Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
-//			} catch (ObjectNotFoundException ex) {
-//				System.out.println("Catched ObjectNotFoundException.");
-//				assertNull(objType);
-//			}
-//
-//			try {
-//				objType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID,
-//						result).asObjectable();
-//				// objType = container.getObject();
-//				Assert.fail("Expected exception, but haven't got one.");
-//			} catch (Exception ex) {
-//				assertNull(objType);
-//                assertEquals(ex.getClass(), ObjectNotFoundException.class);
-//                assertTrue(ex.getMessage().contains(ACCOUNT_DELETE_OID));
-//			}
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//
-//	}
-//
+	@Test
+	public void test550ModifyObject() throws Exception {
+		final String TEST_NAME = "test150ModifyObject";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
+				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
+		ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+		display("Object change",delta);
+		
+		provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
+				delta.getModifications(), null, result);
+		
+	
+		// THEN
+		result.computeStatus();
+		display("deleteObject result", result);
+		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		
+		AccountShadowType repoAccountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_MODIFY_OID,
+				result).asObjectable();
+		display("repo shadow", repoAccountType);
+		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, repoAccountType.getFailedOperationType());
+		OperationResultType repoResult = repoAccountType.getResult();
+		assertNotNull("No result in shadow (repo)", repoResult);
+		assertFailure("Result in shadow (repo)", repoResult);
+
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_MODIFY_OID,
+				null, result).asObjectable();
+		display("provisioning shadow", provisioningAccountType);
+		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, provisioningAccountType.getFailedOperationType());
+		OperationResultType provisioningResult = provisioningAccountType.getResult();
+		assertNotNull("No result in shadow (repo)", provisioningResult);
+		assertFailure("Result in shadow (repo)", provisioningResult);
+		
+	}
+
 //	@Test
 //	public void test013ModifyObject() throws Exception {
 //		displayTestTile("test013ModifyObject");
