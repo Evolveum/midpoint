@@ -295,6 +295,33 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		result.computeStatus();
 		assertFailure(result);
 	}
+	
+	@Test
+	public void test130AddObject() throws Exception {
+		final String TEST_NAME = "test130AddObject";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+		AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, AccountShadowType.class);
+
+		display("Account to add", object);
+
+		try {
+			// WHEN
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			
+			AssertJUnit.fail("addObject succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+
 
 	
 	// Now lets replace the resource with one that has schema and capabilities. And re-run some of the tests.
@@ -404,130 +431,39 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		result.computeStatus();
 		assertFailure(result);
 	}
+	
+	// WORK IN PROGRESS
+	@Test(enabled=false)
+	public void test530AddObject() throws Exception {
+		final String TEST_NAME = "test530AddObject";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
 
-//	/**
-//	 * Let's try to fetch object that does not exist in the repository.
-//	 */
-//	@Test
-//	public void test008GetObjectNotFoundRepo() throws Exception {
-//		displayTestTile("test008GetObjectNotFoundRepo");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test008GetObjectNotFoundRepo");
-//
-//		try {
-//			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, null, result).asObjectable();
-//			Assert.fail("Expected exception, but haven't got one");
-//		} catch (ObjectNotFoundException e) {
-//			// This is expected
-//
-//			// Just to close the top-level result.
-//			result.recordFatalError("Error :-)");
-//
-//			System.out.println("NOT FOUND REPO result:");
-//			System.out.println(result.dump());
-//
-//			assertFalse(result.hasUnknownStatus());
-//			// TODO: check result
-//		} catch (CommunicationException e) {
-//			Assert.fail("Expected ObjectNotFoundException, but got" + e);
-//		} catch (SchemaException e) {
-//			Assert.fail("Expected ObjectNotFoundException, but got" + e);
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//
-//	}
-//
-//	/**
-//	 * Let's try to fetch object that does exit in the repository but does not
-//	 * exist in the resource.
-//	 */
-//	@Test
-//	public void test009GetObjectNotFoundResource() throws Exception {
-//		displayTestTile("test009GetObjectNotFoundResource");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test009GetObjectNotFoundResource");
-//
-//		try {
-//			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, null, result).asObjectable();
-//			Assert.fail("Expected exception, but haven't got one");
-//		} catch (ObjectNotFoundException e) {
-//			// This is expected
-//
-//			// Just to close the top-level result.
-//			result.recordFatalError("Error :-)");
-//
-//			System.out.println("NOT FOUND RESOURCE result:");
-//			System.out.println(result.dump());
-//
-//			assertFalse(result.hasUnknownStatus());
-//			// TODO: check result
-//		} catch (CommunicationException e) {
-//			Assert.fail("Expected ObjectNotFoundException, but got" + e);
-//		} catch (SchemaException e) {
-//			Assert.fail("Expected ObjectNotFoundException, but got" + e);
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//
-//	}
-//
-//	@Test
-//	public void test010AddObject() throws Exception {
-//		displayTestTile("test010AddObject");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test010AddObject");
-//
-//		try {
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
-//
-//			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-//					result).asObjectable();
-//			PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
-////			assertEquals("will", accountType.getName());
-//
-//			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
-//					null, result).asObjectable();
-////			assertEquals("will", provisioningAccountType.getName());
-//			PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//	}
+		AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, AccountShadowType.class);
+
+		display("Account to add", object);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+		
+		// THEN
+		result.computeStatus();
+		display("addObject result", result);
+		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+
+		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+				result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
+//			assertEquals("will", accountType.getName());
+
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
+				null, result).asObjectable();
+//			assertEquals("will", provisioningAccountType.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+	}
+
 //
 //	
 //	@Test
