@@ -465,12 +465,59 @@ public class ModelController implements ModelService, ModelInteractionService {
 			clonedDeltas.add(delta.clone());
 		}
 		
-		//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F, P> context = (LensContext<F, P>) LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
+		LensContext<F, P> context = null;
 		
-		projector.project(context, "preview", result);
-		context.distributeResource();
+		try {
+			
+			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
+			context = (LensContext<F, P>) LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
+			
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
+			}
+		
+			
+			projector.project(context, "preview", result);
+			context.distributeResource();
+			
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (ObjectAlreadyExistsException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (ExpressionEvaluationException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (PolicyViolationException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			LOGGER.error("model.previewChanges failed: {}", e.getMessage(), e);
+			throw e;
+		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Preview changes output:\n{}", context.dump());
