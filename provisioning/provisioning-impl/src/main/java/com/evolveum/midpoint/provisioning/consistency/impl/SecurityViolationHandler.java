@@ -37,7 +37,11 @@ public class SecurityViolationHandler extends ErrorHandler{
 		}
 		
 		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
+		try{
 		cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
+		} catch (Exception e) {
+			//this should not happen. But if it happens, we should return original exception
+		}
 		
 		throw new SecurityViolationException("Security violation during processing shadow " + ObjectTypeUtil.toShortString(shadow) +": "+ ex.getMessage(), ex);
 	}	

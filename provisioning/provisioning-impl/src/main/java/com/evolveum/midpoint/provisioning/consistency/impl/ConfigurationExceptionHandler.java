@@ -35,7 +35,12 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 		}
 		
 		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
-		cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
+		try {
+			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(),
+					modification, parentResult);
+		} catch (Exception e) {
+			//this should not happen. But if it happens, we should return original exception
+		}
 		
 		throw new ConfigurationException("Configuration error: "+ex.getMessage(), ex);
 	}
