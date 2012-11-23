@@ -443,6 +443,29 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		result.computeStatus();
 		assertFailure(result);
 	}
+	
+	@Test
+	public void test190Synchronize() throws Exception {
+		final String TEST_NAME = "test190Synhronize";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		try {
+
+			provisioningService.synchronize(RESOURCE_OPENDJ_OID, task, result);
+			
+			AssertJUnit.fail("addObject succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
 
 	
 	// =========================================================================================================
@@ -736,5 +759,29 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertFailure("Result in shadow (repo)", provisioningResult);
 		
 	}
+	
+	@Test
+	public void test590Synchronize() throws Exception {
+		final String TEST_NAME = "test590Synhronize";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		try {
+
+			provisioningService.synchronize(RESOURCE_OPENDJ_OID, task, result);
+			
+			AssertJUnit.fail("addObject succeeded unexpectedly");
+		} catch (CommunicationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+	}
+
 	
 }

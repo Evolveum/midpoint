@@ -1277,28 +1277,51 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public PrismProperty deserializeToken(Object serializedToken) {
+	public PrismProperty<?> deserializeToken(Object serializedToken) {
 		return createTokenProperty(serializedToken);
 	}
 
 	@Override
-	public PrismProperty fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
+	public PrismProperty<?> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-				+ ".deleteObject");
+				+ ".fetchCurrentToken");
 		result.addParam("objectClass", objectClass);
 
-		ObjectClass objClass = objectClassToIcf(objectClass);
-
-		SyncToken syncToken = icfConnectorFacade.getLatestSyncToken(objClass);
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
+		icfResult.addContext("connector", icfConnectorFacade);
+		icfResult.addParam("icfObjectClass", icfObjectClass);
+		
+		SyncToken syncToken = null;
+		try {
+			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
+			icfResult.recordSuccess();
+			icfResult.addReturn("syncToken", syncToken.getValue());
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex, icfResult);
+			result.computeStatus();
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
+			}
+		}
 
 		if (syncToken == null) {
 			result.recordFatalError("No token found");
 			throw new IllegalArgumentException("No token found.");
 		}
 
-		PrismProperty property = getToken(syncToken);
+		PrismProperty<?> property = getToken(syncToken);
 		result.recordSuccess();
 		return property;
 	}

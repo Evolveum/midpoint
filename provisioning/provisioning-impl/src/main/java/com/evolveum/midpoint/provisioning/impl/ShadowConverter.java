@@ -446,8 +446,10 @@ public class ShadowConverter {
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-//		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resourceType, prismContext);
 		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resourceType, parentResult);
+		if (resourceSchema == null) {
+			throw new ConfigurationException("No schema for "+resourceType);
+		}
 		// This is a HACK. It should not work only for default account, but also
 		// for other objectclasses (FIXME)
 		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
