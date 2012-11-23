@@ -173,7 +173,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public PrismContainerValue getNewValue() throws SchemaException {
         //this removes activation element if it's empty
         ActivationType activation = newAssignment.getActivation();
-        if (activation.asPrismContainerValue().isEmpty()) {
+        if (activation == null || activation.asPrismContainerValue().isEmpty()) {
             newAssignment.setActivation(null);
         }
 
