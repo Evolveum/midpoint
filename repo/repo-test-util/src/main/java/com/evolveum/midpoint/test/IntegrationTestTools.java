@@ -59,6 +59,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -601,7 +602,13 @@ public class IntegrationTestTools {
 				+ ObjectTypeUtil.dump(o));
 	}
 
-	public static void display(String message, Collection<? extends ObjectType> collection) {
+	public static void display(String message, Collection collection) {
+		String dump = DebugUtil.dump(collection);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message + "\n" + dump);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" + dump);
+	}
+
+	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		for (ObjectType o : collection) {
@@ -611,7 +618,7 @@ public class IntegrationTestTools {
 			LOGGER.debug(OBJECT_LIST_SEPARATOR);			
 		}
 	}
-	
+
 	public static void display(String title, Entry entry) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(entry.toLDIFString());

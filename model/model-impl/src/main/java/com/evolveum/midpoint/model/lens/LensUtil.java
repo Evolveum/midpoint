@@ -187,17 +187,15 @@ public class LensUtil {
 		for (ObjectDelta<P> projectionDelta: projectionDeltas) {
 			LensProjectionContext<P> projectionContext = context.createProjectionContext();
 			projectionContext.setPrimaryDelta(projectionDelta);
-			if (!projectionDelta.hasCompleteDefinition()) {
-				// We are little bit more liberal regarding projection deltas. 
-				if (ResourceObjectShadowType.class.isAssignableFrom(projectionClass)) {
-					// If the deltas represent shadows we tolerate missing attribute definitions.
-					// We try to add the definitions by calling provisioning
-					provisioningService.applyDefinition((ObjectDelta<? extends ResourceObjectShadowType>)projectionDelta, result);
-				} else {
-					// This check will fail giving a better information what's wrong then just throwing an exception here.
-					projectionDelta.checkConsistence(false, true, true);
-				}
-			}
+			// We are little bit more liberal regarding projection deltas. 
+			if (ResourceObjectShadowType.class.isAssignableFrom(projectionClass)) {
+				// If the deltas represent shadows we tolerate missing attribute definitions.
+				// We try to add the definitions by calling provisioning
+				provisioningService.applyDefinition((ObjectDelta<? extends ResourceObjectShadowType>)projectionDelta, result);
+			} else {
+				// This check will fail giving a better information what's wrong then just throwing an exception here.
+				projectionDelta.checkConsistence(false, true, true);
+			}		
 			if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
 				ShadowDiscriminatorObjectDelta<P> shadowDelta = (ShadowDiscriminatorObjectDelta<P>)projectionDelta;
 				projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
