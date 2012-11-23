@@ -79,9 +79,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
 		Validate.notNull(shadow, "Shadow must not be null.");
-		for (OperationResult subRes : parentResult.getSubresults()) {
-			subRes.muteError();
-		}
+		
 		OperationResult operationResult = parentResult.createSubresult("Compensation for communication problem. Operation: " + op.name());
 		operationResult.addParam("shadow", shadow);
 		operationResult.addParam("currentOperation", op);
@@ -127,6 +125,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			}
 			// if the shadow was successfully stored in the repo, just mute the
 			// error
+			for (OperationResult subRes : parentResult.getSubresults()) {
+				subRes.muteError();
+			}
 			operationResult.computeStatus();
 			parentResult
 					.recordHandledError("Could not create account on the resource, because "
@@ -157,6 +158,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 					}
 				}
 			}
+			for (OperationResult subRes : parentResult.getSubresults()) {
+				subRes.muteError();
+			}
 			operationResult.computeStatus();
 			parentResult
 					.recordHandledError("Could not apply modifications to account on the "
@@ -169,6 +173,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 			getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 					operationResult);
+			for (OperationResult subRes : parentResult.getSubresults()) {
+				subRes.muteError();
+			}
 			parentResult
 					.recordHandledError("Could not delete account from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
@@ -179,6 +186,9 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		case GET:
 			// nothing to do, just return the shadow from the repo and set fetch
 			// result..
+			for (OperationResult subRes : parentResult.getSubresults()) {
+				subRes.muteError();
+			}
 			operationResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Could not get account from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
 					+ ", because resource is unreachable. Returning shadow from the repository");

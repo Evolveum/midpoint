@@ -285,7 +285,7 @@ public class ShadowCache {
 					parentResult);
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
-			parentResult.muteLastSubresultError();
+//			parentResult.muteLastSubresultError();
 			shadowType = extendShadow(shadowType, FailedOperationTypeType.ADD, parentResult, resource, null);
 			shadowType = handleError(ex, shadowType, FailedOperation.ADD, parentResult);
 			return shadowType.getOid();
@@ -440,7 +440,7 @@ public class ShadowCache {
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);
 		} catch (Exception ex) {
 			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it", new Object[]{ex.getClass(), ex.getMessage(), ex} );
-			parentResult.muteLastSubresultError();
+//			parentResult.muteLastSubresultError();
 			shadow = extendShadow(shadow, FailedOperationTypeType.MODIFY, parentResult, resource, modifications);
 			try {
 				shadow = handleError(ex, shadow, FailedOperation.MODIFY, parentResult);
@@ -613,7 +613,11 @@ public class ShadowCache {
 			OperationResult shadowResult, ResourceType resource, Collection<? extends ItemDelta> modifications)
 			throws SchemaException {
 		
+		//do not set result in the shadow in case of get operation, it will resilted to misleading information
+		//by get operation we do not modify the result in the shadow, so only fetch result in this case needs to be set
+		if (FailedOperationTypeType.GET != failedOperation){
 		shadow.setResult(shadowResult.createOperationResultType());
+		}
 		shadow.setResource(resource);
 
 		// if (shadow.getFailedOperationType() == null) {

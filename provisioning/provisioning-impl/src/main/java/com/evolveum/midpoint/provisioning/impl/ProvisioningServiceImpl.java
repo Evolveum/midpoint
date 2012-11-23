@@ -831,7 +831,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			try {
 				getShadowCache().deleteShadow(object.asObjectable(), option, scripts, null, result);
-				result.recordSuccess();
+//				result.recordSuccess();
 			} catch (CommunicationException e) {
 				logFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
 				throw new CommunicationException(e.getMessage(), e);
@@ -864,7 +864,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		LOGGER.trace("**PROVISIONING: Finished deleting object.");
 
-		result.recordSuccess();
+		result.computeStatus();
 	}
 
 	@Override
