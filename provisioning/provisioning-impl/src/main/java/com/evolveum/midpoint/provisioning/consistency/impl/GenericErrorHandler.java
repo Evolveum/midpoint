@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
@@ -59,12 +61,12 @@ public class GenericErrorHandler extends ErrorHandler{
 		switch (op) {
 		case GET:
 			if ((shadow.isDead() != null && shadow.isDead()) || shadow.getResource().getOperationalState() != null && AvailabilityStatusType.DOWN == shadow.getResource().getOperationalState().getLastAvailabilityStatus()){
-//				parentResult.computeStatus("Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-//				if (parentResult.isError()) {
-//					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
-//				}
-				result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-				shadow.setFetchResult(result.createOperationResultType());
+				parentResult.computeStatus("Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+				if (parentResult.isError()) {
+					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
+				}
+				parentResult.recordStatus(OperationResultStatus.HANDLED_ERROR, "Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+				shadow.setFetchResult(parentResult.createOperationResultType());
 				return shadow;
 			}
 			
@@ -107,6 +109,7 @@ public class GenericErrorHandler extends ErrorHandler{
 								.asPrismObject().getDefinition());
 					}
 
+					PropertyDelta.applyTo(modifications, shadow.asPrismObject());
 					provisioningService.addObject(shadow.asPrismObject(), null, result);
 					// if (oid != null){
 					// shadow = shadowCache.getShadow(AccountShadowType.class,
@@ -114,15 +117,15 @@ public class GenericErrorHandler extends ErrorHandler{
 					// }
 					result.computeStatus();
 
-					if (result.isSuccess()) {
+					if (!result.isSuccess()) {
 						// we assume, that the account was successfully
 						// created,
 						// so apply also modifications to the resource
 						// account
-						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null,
-								result);
-						result.computeStatus();
-					} else {
+//						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null,
+//								result);
+//						result.computeStatus();
+//					} else {
 						// account wasn't created, probably resource is
 						// still
 						// down, or there is other reason.just save the
