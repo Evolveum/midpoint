@@ -34,6 +34,10 @@ public class SqlRepositoryConfiguration {
 
     public static final String PROPERTY_BASE_DIR = "baseDir";
     public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
+    public static final String PROPERTY_AS_SERVER = "asServer";
+    public static final String PROPERTY_PORT = "port";
+    public static final String PROPERTY_FILE_NAME = "fileName";
+    public static final String PROPERTY_TCP_SSL = "tcpSSL";
     public static final String PROPERTY_EMBEDDED = "embedded";
     public static final String PROPERTY_DRIVER_CLASS_NAME = "driverClassName";
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
