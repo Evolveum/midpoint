@@ -564,7 +564,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		final List<PrismObject<T>> objListType = new ArrayList<PrismObject<T>>();
 
 		final ResultHandler<T> handler = new ResultHandler<T>() {
-
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
@@ -572,8 +571,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		searchObjectsIterative(type, query, handler, result);
-		// TODO: better error handling
+		try {
+			searchObjectsIterative(type, query, handler, result);
+		} catch (ConfigurationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (CommunicationException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		}
+		
 		result.computeStatus();
 		return objListType;
 	}

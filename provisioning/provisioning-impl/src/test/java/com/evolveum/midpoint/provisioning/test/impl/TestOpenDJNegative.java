@@ -300,6 +300,73 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	}
 	
 	@Test
+	public void test121SearchAccounts() throws SchemaException, ObjectNotFoundException,
+          CommunicationException, ConfigurationException, SecurityViolationException, Exception {
+		final String TEST_NAME = "test121SearchAccounts";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+      final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+
+      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      
+      try {
+    	  
+	      // WHEN
+	      provisioningService.searchObjects(AccountShadowType.class, query, result);
+	      
+	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		display(result);
+		assertFailure(result);
+  	}
+	
+	@Test
+	public void test122SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
+          CommunicationException, ConfigurationException, SecurityViolationException, Exception {
+		final String TEST_NAME = "test122SearchAccountsIterative";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+      final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+
+      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      
+      ResultHandler handler = new ResultHandler<ObjectType>() {
+          @Override
+          public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
+        	  AssertJUnit.fail("handler called unexpectedly");
+        	  return false;
+          }
+      };
+
+      try {
+    	  
+	      // WHEN
+	      provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
+	      
+	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
+		} catch (ConfigurationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+  	}
+	
+	@Test
 	public void test130AddObject() throws Exception {
 		final String TEST_NAME = "test130AddObject";
 		displayTestTile(TEST_NAME);
@@ -489,6 +556,73 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	}
 	
 	@Test
+	public void test521SearchAccounts() throws SchemaException, ObjectNotFoundException,
+          CommunicationException, ConfigurationException, SecurityViolationException, Exception {
+		final String TEST_NAME = "test521SearchAccounts";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+      final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+
+      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      
+      try {
+    	  
+	      // WHEN
+	      provisioningService.searchObjects(AccountShadowType.class, query, result);
+	      
+	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
+		} catch (CommunicationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		assertFailure(result);
+  	}
+	
+	@Test
+	public void test522SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
+          CommunicationException, ConfigurationException, SecurityViolationException, Exception {
+		final String TEST_NAME = "test522SearchAccountsIterative";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
+				+ "." + TEST_NAME);
+
+      final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+      QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
+
+      ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
+      
+      ResultHandler handler = new ResultHandler<ObjectType>() {
+          @Override
+          public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
+        	  AssertJUnit.fail("handler called unexpectedly");
+        	  return false;
+          }
+      };
+
+      try {
+    	  
+	      // WHEN
+	      provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
+	      
+	      AssertJUnit.fail("searchObjectsIterative succeeded unexpectedly");
+		} catch (CommunicationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		display(result);
+		assertFailure(result);
+  	}
+	
+	@Test
 	public void test530AddObject() throws Exception {
 		final String TEST_NAME = "test530AddObject";
 		displayTestTile(TEST_NAME);
@@ -602,545 +736,5 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		assertFailure("Result in shadow (repo)", provisioningResult);
 		
 	}
-
-//	@Test
-//	public void test013ModifyObject() throws Exception {
-//		displayTestTile("test013ModifyObject");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test013ModifyObject");
-//
-//		try {
-//
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
-//
-//			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-//					new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
-//			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
-//			display("Object change",delta);
-//
-//			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-//					delta.getModifications(), null, result);
-//			
-//			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-//					ACCOUNT_MODIFY_OID, null, result).asObjectable();
-//			
-//			display("Object after change",accountType);
-//
-////			String changedSn = null;
-////			String uid = null;
-////			for (Object e : accountType.getAttributes().getAny()) {
-////				if ("sn".equals(JAXBUtil.getElementQName(e).getLocalPart())) {
-////					changedSn = ((Element)e).getTextContent();
-////				}
-////				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
-////					uid = ((Element)e).getTextContent();
-////				}
-////
-////			}
-//			
-//			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
-//			List<Object> snValues = ResourceObjectShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
-//			
-//			assertNotNull(snValues);
-//			assertFalse("Surname attributes must not be empty", snValues.isEmpty());
-//			assertEquals(1, snValues.size());
-//			
-//			String changedSn = (String) snValues.get(0);
-//			
-//			assertNotNull(uid);
-//			
-//			// Check if object was modified in LDAP
-//			
-//			SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);			
-//			display("LDAP account", response);
-//			
-//			OpenDJController.assertAttribute(response, "sn", "First");
-//			assertEquals("First", changedSn);
-//			
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//
-//	}
-//
-//	@Test
-//	public void test014ChangePassword() throws Exception {
-//		displayTestTile("test014ChangePassword");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test014ChangePassword");
-//
-//		try {
-//
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_PASSWORD_FILENAME, AccountShadowType.class);
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//
-//			assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
-//			
-//			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-//					ACCOUNT_MODIFY_PASSWORD_OID, null, result).asObjectable();
-//			
-//			display("Object before password change",accountType);
-//			
-//			String uid = null;
-//			uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
-//			assertNotNull(uid);
-//			
-//			SearchResultEntry entryBefore = openDJController.searchAndAssertByEntryUuid(uid);			
-//			display("LDAP account before", entryBefore);
-//
-//			String passwordBefore = OpenDJController.getAttributeValue(entryBefore, "userPassword");
-//			assertNull("Unexpected password before change",passwordBefore);
-//			
-//			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-//					new File("src/test/resources/impl/account-change-password.xml"), ObjectModificationType.class);
-//			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
-//			display("Object change",delta);
-//
-//			// WHEN
-//			provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), null, result);
-//
-//			// THEN
-//			
-//			// Check if object was modified in LDAP
-//			
-//			SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
-//			display("LDAP account after", entryAfter);
-//
-//			String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
-//			assertNotNull("The password was not changed",passwordAfter);
-//			
-//			System.out.println("Changed password: "+passwordAfter);
-//
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_PASSWORD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//	}
-//
-//	@Test
-//	public void test015AddObjectWithPassword() throws Exception {
-//		displayTestTile("test015AddObjectWithPassword");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test015AddObjectWithPassword");
-//
-//		try {
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
-//
-//			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-//					result).asObjectable();
-////			assertEquals("lechuck", accountType.getName());
-//			PrismAsserts.assertEqualsPolyString("Name not equal.", "lechuck", accountType.getName());
-//
-//			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
-//					null, result).asObjectable();
-//			PrismAsserts.assertEqualsPolyString("Name not equal.", "lechuck", provisioningAccountType.getName());
-////			assertEquals("lechuck", provisioningAccountType.getName());
-//			
-//			String uid = null;
-//			for (Object e : accountType.getAttributes().getAny()) {
-//				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
-//					uid = ((Element)e).getTextContent();
-//				}
-//			}
-//			assertNotNull(uid);
-//			
-//			// Check if object was created in LDAP and that there is a password
-//			
-//			SearchResultEntry entryAfter = openDJController.searchAndAssertByEntryUuid(uid);			
-//			display("LDAP account after", entryAfter);
-//
-//			String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
-//			assertNotNull("The password was not changed",passwordAfter);
-//			
-//			System.out.println("Account password: "+passwordAfter);
-//			
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//	}
-//	
-//	@Test
-//    public void test016SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-//            CommunicationException, ConfigurationException, SecurityViolationException, Exception {
-//        displayTestTile("test016SearchAccountsIterative");
-//
-//        // GIVEN
-//        try{
-//        OperationResult result = new OperationResult(TestOpenDJNegative.class.getName() + ".test016SearchAccountsIterative");
-//
-//        final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
-//        QName objectClass = new QName(resourceNamespace, "AccountObjectClass");
-////        QueryType query = QueryUtil.createResourceAndAccountQuery(resource.asObjectable(), objectClass, null);
-//
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
-////        AndFilter and = AndFilter.createAnd(Ref.createReferenceEqual(AccountShadowType.class, ResourceObjectShadowType.F_RESOURCE_REF, prismContext, resource.getOid()),
-////        		EqualsFilter.createEqual(AccountShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, objectClass));
-////        ObjectQuery query = ObjectQuery.createObjectQuery(and);
-//        
-//        final Collection<ObjectType> objects = new HashSet<ObjectType>();
-//
-//        ResultHandler handler = new ResultHandler<ObjectType>() {
-//
-//            @Override
-//            public boolean handle(PrismObject<ObjectType> prismObject, OperationResult parentResult) {
-//                ObjectType objectType = prismObject.asObjectable();
-//                objects.add(objectType);
-//
-//                display("Found object", objectType);
-//
-//                assertTrue(objectType instanceof AccountShadowType);
-//                AccountShadowType shadow = (AccountShadowType) objectType;
-//                assertNotNull(shadow.getOid());
-//                assertNotNull(shadow.getName());
-//                assertEquals(new QName(resourceNamespace, "AccountObjectClass"), shadow.getObjectClass());
-//                assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
-//                String icfUid = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "uid"));
-//                assertNotNull("No ICF UID", icfUid);
-//                String icfName = getAttributeValue(shadow, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "name"));
-//                assertNotNull("No ICF NAME", icfName);
-//                PrismAsserts.assertEqualsPolyString("Wrong shadow name.", icfName, shadow.getName());
-////                assertEquals("Wrong shadow name", shadow.getName(), icfName);
-//                assertNotNull("Missing LDAP uid", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
-//                assertNotNull("Missing LDAP cn", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
-//                assertNotNull("Missing LDAP sn", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));
-//                assertNotNull("Missing activation", shadow.getActivation());
-//                assertNotNull("Missing activation/enabled", shadow.getActivation().isEnabled());
-//                assertTrue("Not enabled", shadow.getActivation().isEnabled());
-//                return true;
-//            }
-//        };
-//
-//        // WHEN
-//
-//      
-//        provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, result);
-//        
-//        display("Count", objects.size());
-//        } catch(Exception ex){
-//        	LOGGER.info("ERROR: {}", ex.getMessage(), ex);
-//        	throw ex;
-//        }
-//        // THEN
-//
-//        
-//    }
-//
-//	@Test
-//	public void test017DisableAccount() throws Exception{
-//		display("test017DisableAccount");
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()+"test017DisableAccount");
-//		try {
-//
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
-//			
-//
-//			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-//					new File("src/test/resources/impl/disable-account-simulated.xml"), ObjectModificationType.class);
-//			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
-//			display("Object change",delta);
-//
-//			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-//					delta.getModifications(), null, result);
-//			
-//			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
-//					ACCOUNT_DISABLE_SIMULATED_OID, null, result).asObjectable();
-//			
-//			display("Object after change",accountType);
-//			
-////			assertFalse("Account was not disabled.", accountType.getActivation().isEnabled());
-//			
-//			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
-//
-//			
-//			assertNotNull(uid);
-//			
-//			// Check if object was modified in LDAP
-//			
-//			SearchResultEntry response = openDJController.searchAndAssertByEntryUuid(uid);
-//			display("LDAP account", response);
-//			
-//			String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
-//			assertNotNull(disabled);
-//
-//	        System.out.println("ds-pwp-account-disabled after change: " + disabled);
-//
-//	        assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", disabled);
-//			
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_DISABLE_SIMULATED_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//
-//
-//	}
-//	
-//	@Test
-//	public void test200SearchObjectsIterative() throws Exception {
-//		displayTestTile("test200SearchObjectsIterative");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".searchObjectsIterativeTest");
-//		try {
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, AccountShadowType.class);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
-//
-//			final List<AccountShadowType> objectTypeList = new ArrayList<AccountShadowType>();
-//
-//			QueryType queryType = PrismTestUtil.unmarshalObject(new File(
-//					"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
-//			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
-//			
-//			provisioningService.searchObjectsIterative(AccountShadowType.class, query, new ResultHandler<AccountShadowType>() {
-//
-//				@Override
-//				public boolean handle(PrismObject<AccountShadowType> object, OperationResult parentResult) {
-//
-//					return objectTypeList.add(object.asObjectable());
-//				}
-//			}, result);
-//
-//			// TODO: check result
-//			System.out.println("ObjectType list size: " + objectTypeList.size());
-//
-//			for (ObjectType objType : objectTypeList) {
-//				if (objType == null) {
-//					System.out.println("Object not found in repo");
-//				} else {
-//					System.out.println("obj name: " + objType.getName());
-//				}
-//			}
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_ITERATIVE_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//	}
-//
-//	@Test
-//	public void test201SearchObjects() throws Exception {
-//		displayTestTile("test201SearchObjects");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test201SearchObjects");
-//
-//		try {
-//			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, AccountShadowType.class); 
-//				//unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
-//
-//			System.out.println(SchemaDebugUtil.prettyPrint(object));
-//			System.out.println(object.asPrismObject().dump());
-//
-//			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
-//			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
-//
-//			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
-//					QueryType.class);
-//			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
-//
-//			List<PrismObject<AccountShadowType>> objListType = 
-//				provisioningService.searchObjects(AccountShadowType.class, query, result);
-//			
-//			for (PrismObject<AccountShadowType> objType : objListType) {
-//				if (objType == null) {
-//					System.out.println("Object not found in repository.");
-//				} else {
-//					System.out.println("found object: " + objType.asObjectable().getName());
-//				}
-//			}
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			//do not delete the account to search, it will be used in the next test
-////			try {
-////				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_OID, result);
-////			} catch (Exception ex) {
-////			}
-//		}
-//	}
-//
-//	@Test
-//	public void test202SearchObjectsCompexFilter() throws Exception {
-//		displayTestTile("test202SearchObjectsCompexFilter");
-//
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test202SearchObjectsCompexFilter");
-//
-//		try {
-//
-//			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-complex-filter.xml"), 
-//					QueryType.class);
-//			ObjectQuery query = QueryConvertor.createObjectQuery(AccountShadowType.class, queryType, prismContext);
-//
-//			List<PrismObject<AccountShadowType>> objListType = 
-//				provisioningService.searchObjects(AccountShadowType.class, query, result);
-//			
-//			for (PrismObject<AccountShadowType> objType : objListType) {
-//				if (objType == null) {
-//					System.out.println("Object not found in repository.");
-//				} else {
-//					System.out.println("found object: " + objType.asObjectable().getName());
-//				}
-//			}
-//		} finally {
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-//			} catch (Exception ex) {
-//			}
-//			try {
-//				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_OID, result);
-//			} catch (Exception ex) {
-//			}
-//		}
-//	}
-//	
-//	/**
-//	 * The exception comes from the resource. There is no shadow for this object.
-//	 */
-//	@Test
-//	public void test300AddObjectObjectAlreadyExistResource() throws Exception{
-//		displayTestTile("test300AddObjectObjectAlreadyExistResource");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test300AddObjectObjectAlreadyExist");
-//		
-//		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NEW_FILENAME));
-//		display("Account to add", account);
-//		
-//		try {
-//			// WHEN
-//			provisioningService.addObject(account, null, result);
-//			
-//			AssertJUnit.fail("Expected addObject operation to fail but it was successful");
-//			
-//		} catch (ObjectAlreadyExistsException e) {
-//			// This is expected
-//			display("Expected exception", e);
-//			
-//			// The exception should originate from the LDAP layers
-//			IntegrationTestTools.assertInMessageRecursive(e, "LDAP");
-//		}
-//		
-//		// TODO: search to check that the shadow with the same NAME exists (search for OID will not do)
-//
-//	}
-//	
-//	@Test
-//	public void test310AddObjectNoSn() throws Exception{
-//		displayTestTile("test310AddObjectNoSn");
-//		
-//		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
-//				+ ".test300AddObjectObjectAlreadyExist");
-//
-//		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));
-//		display("Account to add", account);
-//		
-//		try {
-//			// WHEN
-//			provisioningService.addObject(account, null, result);
-//			
-//			AssertJUnit.fail("Expected addObject operation to fail but it was successful");
-//			
-//		} catch (SchemaException e) {
-//			// This is expected
-//			display("Expected exception", e);
-//			
-//			// This error should be detectable before it reaches a resource. Therefore we check that the
-//			// cause was not a LDAP exception
-//			
-//			// MID-1007
-////			IntegrationTestTools.assertNotInMessageRecursive(e, "LDAP");
-//		}
-//		
-//		// TODO: search to check that the shadow with the same NAME exists (search for OID will not do)
-//
-//	}
 	
 }

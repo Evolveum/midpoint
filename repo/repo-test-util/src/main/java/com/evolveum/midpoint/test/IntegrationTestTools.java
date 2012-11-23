@@ -626,6 +626,10 @@ public class IntegrationTestTools {
 				+ (propertyContainer == null ? "null" : propertyContainer.dump()));
 	}
 	
+	public static void display(OperationResult result) {
+		display("Result of "+result.getOperation(), result);
+	}
+	
 	public static void display(String title, OperationResult result) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(result.dump());
