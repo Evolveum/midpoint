@@ -104,12 +104,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test001JackAssignRolePirate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test001JackAssignRolePirate");
+    public void test001JackAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test001JackAssignRolePirate";
+        displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test001JackAssignRolePirate");
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -130,9 +129,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	 */
 	@Test
     public void test002JackModifyUserLocality() throws Exception {
-        displayTestTile(this, "test002JackModifyUserLocality");
+		final String TEST_NAME = "test002JackModifyUserLocality";
+        displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test002JackModifyUserLocality");
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -147,12 +147,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test010UnAssignRolePirate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test010UnAssignRolePirate");
-        
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test010UnAssignRolePirate");
+    public void test010UnAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test010UnAssignRolePirate";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
                
         // WHEN
@@ -163,7 +162,6 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 
-	
 	@Test
     public void test100JackAssignRolePirateWhileAlreadyHasAccount() throws Exception {
         displayTestTile(this, "test100JackAssignRolePirateWhileAlreadyHasAccount");
@@ -200,8 +198,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
-        assertAccounts(USER_JACK_OID, 1);
-        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 1);
+        assertAccounts(userJack, 1);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
@@ -211,12 +212,15 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	
+	
 	@Test
-    public void test110JackAssignAccountImplicitIntent() throws Exception {
-        displayTestTile(this, "test110JackAssignAccountImplicitIntent");
+    public void test101JackAssignAccountImplicitIntent() throws Exception {
+		final String TEST_NAME = "test101JackAssignAccountImplicitIntent";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110JackAssignAccountImplicitIntent");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		        
         // Precondition (simplified)
@@ -226,8 +230,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
         
         // THEN
-        assertAccounts(USER_JACK_OID, 1);
-        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 2);
+        assertAccounts(userJack, 1);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
@@ -235,11 +242,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test111JackAssignAccountExplicitIntent() throws Exception {
-        displayTestTile(this, "test111JackAssignAccountExplicitIntent");
+    public void test102JackAssignAccountExplicitIntent() throws Exception {
+		final String TEST_NAME = "test102JackAssignAccountExplicitIntent";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111JackAssignAccountExplicitIntent");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         		        
         // Precondition (simplified)
@@ -249,12 +257,174 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
         
         // THEN
-        assertAccounts(USER_JACK_OID, 1);
-        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 3);
+        assertAccounts(userJack, 1);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
         
+	}
+	
+	@Test
+    public void test107UnAssignAccountImplicitIntent() throws Exception {
+		final String TEST_NAME = "test107UnAssignAccountImplicitIntent";
+        displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+               
+        // WHEN
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 2);
+        assertAccounts(userJack, 1);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+	}
+	
+	@Test
+    public void test108UnAssignAccountExplicitIntent() throws Exception {
+		final String TEST_NAME = "test108UnAssignAccountExplicitIntent";
+        displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+               
+        // WHEN
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 1);
+        assertAccounts(userJack, 1);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+	}
+	
+	@Test
+    public void test109UnAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test109UnAssignRolePirate";
+        displayTestTile(this, TEST_NAME);
+        
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+               
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignments(userJack, 0);
+        assertNoDummyAccount("jack");
+	}
+	
+	@Test
+    public void test501JackAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test501JackAssignRolePirate";
+        displayTestTile(this, TEST_NAME);
+        
+        // IMPORTANT: Changing the assignment policy
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+	}
+	
+	/**
+	 * We modify Jack's "locality". As this is assigned by expression in the role to the dummy account, the account should
+	 * be updated as well. 
+	 */
+	@Test
+    public void test502JackModifyUserLocality() throws Exception {
+		final String TEST_NAME = "test502JackModifyUserLocality";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Isla de Muerta"));
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+	}
+	
+	/**
+	 * Assignment policy is POSITIVE, therefore the account should remain.
+	 */
+	@Test
+    public void test510UnAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test510UnAssignRolePirate";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+               
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignedNoRole(userJack);
+
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
+	}
+	
+	/**
+	 * This should go fine without any policy violation error.
+	 */
+	@Test
+    public void test511DeleteAccount() throws Exception {
+		final String TEST_NAME = "test511DeleteAccount";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();
+        
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_ACCOUNT_REF, prismContext, accountOid);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+        
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignedNoRole(userJack);
+        assertNoDummyAccount("jack");
 	}
 
 }
