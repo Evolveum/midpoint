@@ -187,7 +187,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 				UserType.F_ACCOUNT_REF, prismContext, account);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		
+		// We need to switch off the encorcement for this opertation. Otherwise we won't be able to create the account
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		modelService.executeChanges(deltas, null, task, result);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		        
         // Precondition (simplified)
         assertDummyAccount("jack", "Jack Sparrow", true);

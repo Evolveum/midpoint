@@ -614,7 +614,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test250GuybrushInboundFromDelta");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
@@ -646,7 +646,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         displayTestTile(this, "test251GuybrushInboundFromAbsolute");
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test251GuybrushInboundFromAbsolute");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
         try{
         	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
@@ -708,7 +708,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test300ReconcileGuybrushDummy");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
         // Change the guybrush account on dummy resource directly. This creates inconsistency.
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -719,6 +719,8 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         context.setDoReconciliationForAllProjections(true);
+        
+        display("Guybrush account before: ", dummyAccount);
 
         display("Input context", context);
 
@@ -750,6 +752,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
         PropertyDelta<String> fullnameDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        assertNotNull("No fullname Delta in account secondary delta", fullnameDelta);
         PrismAsserts.assertReplace(fullnameDelta, "Guybrush Threepwood");
         PrismAsserts.assertOrigin(fullnameDelta, OriginType.RECONCILIATION);
         PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));

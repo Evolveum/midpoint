@@ -21,15 +21,6 @@
 package com.evolveum.midpoint.testing.consistency;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.displayWhen;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.displayThen;
-//import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -305,8 +296,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	
 	public ConsistencyTest() throws JAXBException {
 		super();
-		// TODO: fix this
-		// IntegrationTestTools.checkResults = false;
 	}
 
 	@BeforeMethod
@@ -363,6 +352,8 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		// addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
 		// addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
 		addObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
+		
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 	}
 
 	/**
@@ -746,13 +737,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		checkRepoOpenDjResource();
 		assertCache();
 
-		// IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-		applySyncSettings(syncSettings);
-
-		assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(modifyUserRequest,
 				ObjectModificationType.class);
 
@@ -941,10 +925,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
 				PrismTestUtil.getPrismContext());
 
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-		applySyncSettings(syncSettings);
-
 		//check if the jackie account already exists on the resource
 		UserType jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, parentResult).asObjectable();
 		assertNotNull(jackUser);
@@ -1003,10 +983,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_WILL_OID, parentResult);
 		assertNotNull(user);
 		assertEquals(0, user.asObjectable().getAccountRef().size());
-
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-		applySyncSettings(syncSettings);
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME,
@@ -1068,13 +1044,11 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_GUYBRUSH_OID, delta.getModifications(), UserType.class, prismContext);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
-//		modelService.modifyObject(UserType.class, USER_GUYBRUSH_OID, delta.getModifications(), task,
-//				parentResult);
 
+		// WHEN
 		ObjectDelta deleteDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, prismContext);
 		deltas = createDeltaCollection(deleteDelta);
 		modelService.executeChanges(deltas, null, task, parentResult);
-//		modelService.deleteObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, task, parentResult);
 
 		try {
 			repositoryService.getObject(AccountShadowType.class, ACCOUNT_GUYBRUSH_OID, parentResult);
@@ -1162,10 +1136,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				+ user.asObjectable().getAccountRef().size() + " reference", 1, user.asObjectable()
 				.getAccountRef().size());
 
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-		applySyncSettings(syncSettings);
-
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT, ObjectModificationType.class);
 
@@ -1228,10 +1198,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertEquals("Expecting that user has one account reference, but found "
 				+ user.asObjectable().getAccountRef().size() + " reference", 1, user.asObjectable()
 				.getAccountRef().size());
-
-//		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-//		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-//		applySyncSettings(syncSettings);
 
 		Task task = taskManager.createTaskInstance();
 
@@ -1490,10 +1456,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_ELAINE_OID, parentResult);
 		assertNotNull(user);
 		assertEquals(0, user.asObjectable().getAccountRef().size());
-
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-		syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
-		applySyncSettings(syncSettings);
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
 				REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME,
@@ -1794,26 +1756,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		if (RepositoryCache.exists()) {
 			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
 		}
-	}
-
-	private void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
-			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-
-		Collection<? extends ItemDelta> modifications = PropertyDelta
-				.createModificationReplacePropertyCollection(
-						SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS,
-						objectDefinition, syncSettings);
-
-		OperationResult result = new OperationResult("Aplying sync settings");
-
-		repositoryService.modifyObject(SystemConfigurationType.class,
-				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
-		display("Aplying sync settings result", result);
-		result.computeStatus();
-		assertSuccess("Aplying sync settings failed (result)", result);
 	}
 
 	private void assertSyncSettingsAssignmentPolicyEnforcement(

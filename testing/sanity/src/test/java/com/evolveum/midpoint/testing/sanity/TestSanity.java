@@ -248,6 +248,8 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
 	private static final QName MY_DEAD = new QName(NS_MY, "dead");
 
+	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 1000;
+
     /**
      * Unmarshalled resource definition to reach the embedded OpenDJ instance.
      * Used for convenience - the tests method may find it handy.
@@ -2283,6 +2285,11 @@ public class TestSanity extends AbstractIntegrationTest {
         // previous tests
         
         checkAllShadows();
+        
+        // IMPORTANT! Assignment enforcement is POSITIVE now
+        setAssignmentEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
+        // This is not redundant. It checks that the previous command set the policy correctly
+        assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.POSITIVE);
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test100Synchronization");
@@ -3321,7 +3328,7 @@ public class TestSanity extends AbstractIntegrationTest {
             public void timeout() {
                 // No reaction, the test will fail right after return from this
             }
-        }, timeout);
+        }, timeout, WAIT_FOR_LOOP_SLEEP_MILIS);
     }
 
     private void importObjectFromFile(String filename, OperationResult parentResult) throws FileNotFoundException {
@@ -3345,27 +3352,6 @@ public class TestSanity extends AbstractIntegrationTest {
         syncSettings.setAssignmentPolicyEnforcement(enforcementType);
         applySyncSettings(syncSettings);
 	}
-
-    private void applySyncSettings(AccountSynchronizationSettingsType syncSettings) throws ObjectNotFoundException,
-            SchemaException, ObjectAlreadyExistsException {
-        
-        PrismObjectDefinition<SystemConfigurationType> objectDefinition = 
-        	prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-        
-        Collection<? extends ItemDelta> modifications = 
-        	PropertyDelta.createModificationReplacePropertyCollection(
-        			SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, 
-        			objectDefinition, 
-        			syncSettings);
-
-        OperationResult result = new OperationResult("Aplying sync settings");
-        
-		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
-        		modifications, result);
-        display("Aplying sync settings result", result);
-        result.computeStatus();
-        assertSuccess("Aplying sync settings failed (result)", result);
-    }
 
     private void assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType assignmentPolicy) throws
             ObjectNotFoundException, SchemaException {

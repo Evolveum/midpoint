@@ -337,11 +337,21 @@ public class AssignmentProcessor {
 	/**
 	 * Set policy decisions for the accounts that does not have it already
 	 */
-	private void finishProplicyDecisions(LensContext<UserType,AccountShadowType> context) {
+	private void finishProplicyDecisions(LensContext<UserType,AccountShadowType> context) throws PolicyViolationException {
 		for (LensProjectionContext<AccountShadowType> accountContext: context.getProjectionContexts()) {
 			if (accountContext.getSynchronizationPolicyDecision() != null) {
 				// already have decision
 				continue;
+			}
+			AssignmentPolicyEnforcementType enforcementType = accountContext.getAssignmentPolicyEnforcementType();
+			if (enforcementType == AssignmentPolicyEnforcementType.FULL && !accountContext.isAssigned()) {
+				if (accountContext.isAdd()) {
+					throw new PolicyViolationException("Attempt to add account "+accountContext.getResourceShadowDiscriminator()
+							+" while the account synchronization enforcement policy is FULL and the account is not assigned");
+				} else {
+					accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+					return;
+				}
 			}
 			if (accountContext.getSynchronizationIntent() != null) {
 				SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationIntent().toSynchronizationPolicyDecision();

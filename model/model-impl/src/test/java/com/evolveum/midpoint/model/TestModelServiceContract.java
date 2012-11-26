@@ -1174,6 +1174,62 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionSuccess();
 	}
 
+	@Test
+    public void test150ModifyUserAddAccountFullEnforcement() throws Exception {
+		final String TEST_NAME = "test150ModifyUserAddAccountFullEnforcement";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		dummyAuditService.clear();
+        
+		try {
+		
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+			
+			AssertJUnit.fail("Unexpected executeChanges success");
+		} catch (PolicyViolationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertFailure("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check that shadow was not created
+        assertNoAccountShadow(accountOid);
+        
+        // Check that dummy resource account was not created
+        assertNoDummyAccount("jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
+        assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+	}
 	
 	/**
 	 * We try to both assign an account and modify that account in one operation.
@@ -1384,7 +1440,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Use custom channel to trigger a special outbound mapping
         task.setChannel("http://pirates.net/avast");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));

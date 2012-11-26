@@ -19,8 +19,6 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<!-- Object modification description that is changing user "guybrush" by deleting a new role (using assignment) -->
-
 <objectModification
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'

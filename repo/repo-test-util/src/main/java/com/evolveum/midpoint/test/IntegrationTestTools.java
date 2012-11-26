@@ -550,7 +550,7 @@ public class IntegrationTestTools {
 			boolean done = checker.check();
 			if (done) {
 				System.out.println("... done");
-				LOGGER.debug(LOG_MESSAGE_PREFIX + "... done " + message);
+				LOGGER.trace(LOG_MESSAGE_PREFIX + "... done " + message);
 				return;
 			}
 			Thread.sleep(sleepInterval);

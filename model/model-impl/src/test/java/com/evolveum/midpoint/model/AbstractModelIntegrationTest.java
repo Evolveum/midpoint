@@ -1030,53 +1030,6 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		user.asObjectable().getAssignment().add(assignmentType);
 	}
 	
-	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
-			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-
-		Collection<? extends ItemDelta> modifications = PropertyDelta
-				.createModificationReplacePropertyCollection(
-						SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS,
-						objectDefinition, syncSettings);
-
-		OperationResult result = new OperationResult("Aplying sync settings");
-
-		repositoryService.modifyObject(SystemConfigurationType.class,
-				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
-		display("Aplying sync settings result", result);
-		result.computeStatus();
-		assertSuccess("Aplying sync settings failed (result)", result);
-	}
-	
-	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".getSystemConfiguration");
-		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
-		result.computeStatus();
-		assertSuccess("getObject(systemConfig) not success", result);
-		return sysConf.asObjectable();
-	}
-	
-	protected void assumeAssignmentPolicy(AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		SystemConfigurationType systemConfiguration = getSystemConfiguration();
-		AssignmentPolicyEnforcementType currentPolicy = getAssignmentPolicyEnforcementType(systemConfiguration);
-		if (currentPolicy == policy) {
-			return;
-		}
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        syncSettings.setAssignmentPolicyEnforcement(policy);
-        applySyncSettings(syncSettings);
-	}
-	
-	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
-		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
-		if (globalAccountSynchronizationSettings == null) {
-			return null;
-		}
-		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
-	}
-	
 	protected void setDefaultUserTemplate(String userTemplateOid)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 

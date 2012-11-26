@@ -169,6 +169,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 			// WHEN
 			modelService.executeChanges(deltas, null, task, result);
 			
+			AssertJUnit.fail("Unexpected executeChanges success");
 		} catch (ObjectAlreadyExistsException e) {
 			// This is expected
 			display("Expected exception", e);

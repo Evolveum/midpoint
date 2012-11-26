@@ -350,7 +350,7 @@ public class TestModelServiceContractDeprecated extends AbstractInitializedModel
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContractDeprecated.class.getName() + ".test150AddUserBlackbeardWithAccount");
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
                 

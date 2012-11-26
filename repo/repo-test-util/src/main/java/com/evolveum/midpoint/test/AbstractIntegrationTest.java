@@ -24,6 +24,9 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -41,6 +44,7 @@ import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,10 +61,12 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -261,6 +267,53 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		resource.getConnectorRef().setOid(connector.getOid());
 		resource.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+	}
+	
+	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getSystemConfiguration");
+		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
+		result.computeStatus();
+		assertSuccess("getObject(systemConfig) not success", result);
+		return sysConf.asObjectable();
+	}
+	
+	protected void assumeAssignmentPolicy(AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		SystemConfigurationType systemConfiguration = getSystemConfiguration();
+		AssignmentPolicyEnforcementType currentPolicy = getAssignmentPolicyEnforcementType(systemConfiguration);
+		if (currentPolicy == policy) {
+			return;
+		}
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(policy);
+        applySyncSettings(syncSettings);
+	}
+	
+	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
+		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfiguration.getGlobalAccountSynchronizationSettings();
+		if (globalAccountSynchronizationSettings == null) {
+			return null;
+		}
+		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
+	}
+	
+	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+
+		Collection<? extends ItemDelta> modifications = PropertyDelta
+				.createModificationReplacePropertyCollection(
+						SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS,
+						objectDefinition, syncSettings);
+
+		OperationResult result = new OperationResult("Aplying sync settings");
+
+		repositoryService.modifyObject(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
+		display("Aplying sync settings result", result);
+		result.computeStatus();
+		assertSuccess("Aplying sync settings failed (result)", result);
 	}
 
 }

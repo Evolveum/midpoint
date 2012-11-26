@@ -5311,6 +5311,8 @@
                         Assignements will be enforced only in a positive manner.
                         E.i. If a non-existing account is assigned it will be created.
                         If existing account is not assigned it will NOT be removed.
+                        
+                        This is the default policy of no other policy is set.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="POSITIVE"/>
