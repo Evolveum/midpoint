@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -60,6 +61,8 @@ import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
@@ -369,6 +372,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			return accountPasswordPolicy;
 		}
 		return getLensContext().getGlobalPasswordPolicy();
+	}
+	
+	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
+		// TODO: per-resource assignment enforcement
+		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
+		AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
+		return globalAssignmentPolicyEnforcement;
 	}
 
 	/**
@@ -813,6 +823,5 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	public String toString() {
 		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() + ")";
 	}
-
 
 }

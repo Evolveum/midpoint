@@ -47,6 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOp
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -212,6 +214,19 @@ public class MiscSchemaUtil {
 			intent2 = SchemaConstants.INTENT_DEFAULT;
 		}
 		return intent1.equals(intent2);
+	}
+
+	public static AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(
+			AccountSynchronizationSettingsType accountSynchronizationSettings) {
+		if (accountSynchronizationSettings == null) {
+			// default
+			return AssignmentPolicyEnforcementType.POSITIVE;
+		}
+		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
+		if (assignmentPolicyEnforcement == null) {
+			return AssignmentPolicyEnforcementType.POSITIVE;
+		}
+		return assignmentPolicyEnforcement;
 	}
 
 }

@@ -5305,6 +5305,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="positive">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Assignements will be enforced only in a positive manner.
+                        E.i. If a non-existing account is assigned it will be created.
+                        If existing account is not assigned it will NOT be removed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POSITIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="mark">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5312,6 +5324,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="legalize">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Legalize all existing accounts by creating missing assignments.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LEGALIZE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

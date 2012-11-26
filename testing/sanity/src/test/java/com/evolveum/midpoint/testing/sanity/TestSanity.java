@@ -771,10 +771,8 @@ public class TestSanity extends AbstractIntegrationTest {
         assertCache();
 
         // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
-        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        syncSettings.setAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
-        applySyncSettings(syncSettings);
-
+        setAssignmentEnforcement(AssignmentPolicyEnforcementType.NONE);
+        // This is not redundant. It checks that the previous command set the policy correctly
         assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -1630,9 +1628,10 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
 
-        // IMPORTANT! Assignment enforcement is back to default (FULL)
-        AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        applySyncSettings(syncSettings);
+        // IMPORTANT! Assignment enforcement is FULL now
+        setAssignmentEnforcement(AssignmentPolicyEnforcementType.FULL);
+        // This is not redundant. It checks that the previous command set the policy correctly
+        assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.FULL);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_GUYBRUSH_FILE);
         UserType userType = user.asObjectable();
@@ -3340,6 +3339,12 @@ public class TestSanity extends AbstractIntegrationTest {
             AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
         }
     }
+    
+    private void setAssignmentEnforcement(AssignmentPolicyEnforcementType enforcementType) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(enforcementType);
+        applySyncSettings(syncSettings);
+	}
 
     private void applySyncSettings(AccountSynchronizationSettingsType syncSettings) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException {

@@ -96,6 +96,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		super();
 	}
 	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult)
+			throws Exception {
+		super.initSystem(initTask, initResult);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+	}
+
 	@Test
     public void test001JackAssignRolePirate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
     		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 

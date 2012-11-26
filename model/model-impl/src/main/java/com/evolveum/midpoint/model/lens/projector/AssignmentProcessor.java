@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -118,37 +119,35 @@ public class AssignmentProcessor {
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
-        if (accountSynchronizationSettings != null) {	
-            AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
-            if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
-                // No assignment processing
-                LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
+        AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(accountSynchronizationSettings);
+        if (globalAssignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
+            // No assignment processing
+            LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
 
-                // We need to fake assignment processing a bit ...
-                for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
-                	// mark all accounts as active, so they will be synchronized as expected
-                    accCtx.setActive(true);
-                    if (accCtx.getSynchronizationPolicyDecision() == null) {
-                    	SynchronizationPolicyDecision syncIntent = null;
-                    	if (accCtx.getSynchronizationIntent() != null) {
-                    		syncIntent = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
+            // We need to fake assignment processing a bit ...
+            for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
+            	// mark all accounts as active, so they will be synchronized as expected
+                accCtx.setActive(true);
+                if (accCtx.getSynchronizationPolicyDecision() == null) {
+                	SynchronizationPolicyDecision syncIntent = null;
+                	if (accCtx.getSynchronizationIntent() != null) {
+                		syncIntent = accCtx.getSynchronizationIntent().toSynchronizationPolicyDecision();
+                	}
+                	if (syncIntent == null) {
+                    	// guess policy decision
+                    	if (accCtx.isAdd()) {
+                    		syncIntent = SynchronizationPolicyDecision.ADD;
+                    	} else if (accCtx.isDelete()) {
+                    		syncIntent = SynchronizationPolicyDecision.DELETE;
+                    	} else {
+                    		syncIntent = SynchronizationPolicyDecision.KEEP;
                     	}
-                    	if (syncIntent == null) {
-	                    	// guess policy decision
-	                    	if (accCtx.isAdd()) {
-	                    		syncIntent = SynchronizationPolicyDecision.ADD;
-	                    	} else if (accCtx.isDelete()) {
-	                    		syncIntent = SynchronizationPolicyDecision.DELETE;
-	                    	} else {
-	                    		syncIntent = SynchronizationPolicyDecision.KEEP;
-	                    	}
-                    	}
-                    	accCtx.setSynchronizationPolicyDecision(syncIntent);
-                    }
+                	}
+                	accCtx.setSynchronizationPolicyDecision(syncIntent);
                 }
-
-                return;
             }
+
+            return;
         }
         
         LensFocusContext<UserType> focusContext = context.getFocusContext();
@@ -302,10 +301,16 @@ public class AssignmentProcessor {
             } else if (minusAccountMap.containsKey(rat)) {
             	if (accountExists(context,rat)) {
             		LensProjectionContext<AccountShadowType> accountContext = LensUtil.getOrCreateAccountContext(context, rat);
-                	accountContext.setAssigned(false);
-                	accountContext.setActive(false);
-                    // Account removed
-                    markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
+            		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountContext.getAssignmentPolicyEnforcementType();
+            		// TODO: check for MARK and LEGALIZE enforcement policies
+            		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL) {
+	                	accountContext.setAssigned(false);
+	                	accountContext.setActive(false);
+	                    // Account removed
+	                    markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
+            		} else {
+            			markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
+            		}
             	} else {
             		// We have to delete something that is not there. Nothing to do.
             	}

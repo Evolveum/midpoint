@@ -82,6 +82,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -107,8 +108,14 @@ public class TestClockwork extends AbstractInitializedModelIntegrationTest {
 	public TestClockwork() throws JAXBException {
 		super();
 	}
-	
 		
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult)
+			throws Exception {
+		super.initSystem(initTask, initResult);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+	}
+
 	@Test
     public void test020AssignAccountToJackSync() throws Exception {
         displayTestTile(this, "test020AssignAccountToJackSync");
