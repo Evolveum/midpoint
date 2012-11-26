@@ -25,13 +25,17 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -48,6 +52,7 @@ import java.util.List;
         "../../../../../application-context-configuration-sql-test.xml"})
 public class DeleteTest extends AbstractTestNGSpringContextTests {
 
+    private static final File TEST_DIR = new File("src/test/resources/");
     private static final Trace LOGGER = TraceManager.getTrace(DeleteTest.class);
 
     @Autowired(required = true)
@@ -82,5 +87,17 @@ public class DeleteTest extends AbstractTestNGSpringContextTests {
 
             repositoryService.deleteObject(object.getCompileTimeClass(), oids.get(i), result);
         }
+    }
+
+    @Test
+    public void delete0002() throws Exception {
+        PrismObject<SystemConfigurationType> configuration = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
+
+        OperationResult result = new OperationResult("add system configuration");
+        final String oid = repositoryService.addObject(configuration, result);
+        repositoryService.deleteObject(SystemConfigurationType.class, oid, result);
+        result.recomputeStatus();
+
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 }

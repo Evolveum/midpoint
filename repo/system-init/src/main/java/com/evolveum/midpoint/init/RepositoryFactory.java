@@ -61,6 +61,8 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
         Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
         try {
             String className = getFactoryClassName(config);
+            LOGGER.info("Repository factory class name from configuration '{}'.", new Object[]{className});
+
             Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
             factory = getFactory(clazz);
             factory.init(config);
@@ -86,7 +88,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
 
     private RepositoryServiceFactory getFactory(Class<RepositoryServiceFactory> clazz) throws
             RepositoryServiceFactoryException {
-        LOGGER.info("Getting factory '{}'", new Object[]{clazz.getName()});
+        LOGGER.info("Getting factory bean '{}'", new Object[]{clazz.getName()});
         return applicationContext.getBean(clazz);
     }
 

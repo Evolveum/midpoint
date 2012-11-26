@@ -332,7 +332,7 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(repoPasswordPolicy);
 
 		String systemCongigOid = "00000000-0000-0000-0000-000000000001";
-		PrismObject<AccountShadowType> fileSystemConfig = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
+		PrismObject<SystemConfigurationType> fileSystemConfig = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
 		LOGGER.info("System config from file: {}", fileSystemConfig.dump());
 		oid = repositoryService.addObject(fileSystemConfig, result);
 		AssertJUnit.assertNotNull(oid);

@@ -20,11 +20,12 @@
   ~ Portions Copyrighted 2011 [name of copyright owner]
   -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>SystemConfiguration</name>
-<!--     <globalPasswordPolicyRef  oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/> -->
-<orgRootRef oid="10000000-0000-0000-0000-000000000003" type="c:OrgType"/>
-<orgRootRef oid="20000000-0000-0000-0000-000000000003" type="c:OrgType"/>
+    <!--     <globalPasswordPolicyRef  oid="00000000-0000-0000-0000-000000000003" type="c:ValuePolicyType"/> -->
+    <orgRootRef oid="10000000-0000-0000-0000-000000000003" type="c:OrgType"/>
+    <orgRootRef oid="20000000-0000-0000-0000-000000000003" type="c:OrgType"/>
     <logging>
         <appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
