@@ -87,7 +87,7 @@ public class ObjectWrapper implements Serializable {
 		return headerStatus;
 	}
 	
-	public boolean getEnableStatus() {
+	public Boolean getEnableStatus() {
 		ContainerWrapper activation = null;
 		String containerName = "";
 		ItemPath resourceActivationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);

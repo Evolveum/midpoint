@@ -92,7 +92,7 @@ public class PrismObjectPanel extends Panel {
             @Override
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
-                if(!wrapper.getEnableStatus()) {
+                if(wrapper.getEnableStatus() != null && !wrapper.getEnableStatus()) {
                 	return "disable";
                 }
                 return "";
