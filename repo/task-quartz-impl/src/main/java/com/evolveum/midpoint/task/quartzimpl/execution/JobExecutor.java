@@ -420,15 +420,15 @@ mainCycle:
 	}
 	
 	private void logRunStart() {
-		LOGGER.debug("Task thread run STARTING "+task);
+		LOGGER.trace("Task thread run STARTING "+task);
 	}
 	
 	private void logRunFinish() {
-		LOGGER.debug("Task thread run FINISHED " + task);
+		LOGGER.trace("Task thread run FINISHED " + task);
 	}
     
 	private void recordCycleRunStart(OperationResult result) {
-		LOGGER.debug("Task cycle run STARTING "+task);
+		LOGGER.trace("Task cycle run STARTING "+task);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
             if (task.getCategory() == null) {
@@ -446,7 +446,7 @@ mainCycle:
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, OperationResult result) {
-		LOGGER.debug("Task cycle run FINISHED " + task);
+		LOGGER.trace("Task cycle run FINISHED " + task);
 		try {
             task.setProgress(runResult.getProgress());
             task.setLastRunFinishTimestamp(System.currentTimeMillis());

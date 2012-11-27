@@ -373,7 +373,7 @@ public class Validator {
 			}
 			
 			if (verbose) {
-				LOGGER.debug("Processing OID " + objectType.getOid());
+				LOGGER.trace("Processing OID " + objectType.getOid());
 			}
 
 			objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);

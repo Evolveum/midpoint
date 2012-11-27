@@ -202,7 +202,7 @@ public class ShadowConverter {
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}",
+				LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n additional operations:\n{}",
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
 								SchemaDebugUtil.debugDump(additionalOperations) });
 			}
@@ -215,7 +215,7 @@ public class ShadowConverter {
 			if (LOGGER.isDebugEnabled()) {
 				// TODO: reduce only to new/different attributes. Dump all
 				// attributes on trace level only
-				LOGGER.debug("Connector ADD successful, returned attributes:\n{}",
+				LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
 						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
 			}
 
@@ -278,7 +278,7 @@ public class ShadowConverter {
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(
-						"Connector for resource {}\n DELETE object, object class {}, identified by:\n{}\n additional operations:\n{}",
+						"PROVISIONING DELETE operation on resource {}\n DELETE object, object class {}, identified by:\n{}\n additional operations:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), shadow.getObjectClass(),
 								SchemaDebugUtil.debugDump(identifiers),
 								SchemaDebugUtil.debugDump(additionalOperations) });
@@ -286,7 +286,7 @@ public class ShadowConverter {
 
 			connector.deleteObject(objectClassDefinition, additionalOperations, identifiers, parentResult);
 
-			LOGGER.debug("Connector DELETE successful");
+			LOGGER.debug("PROVISIONING DELETE successful");
 			parentResult.recordSuccess();
 
 		} catch (ObjectNotFoundException ex) {
@@ -397,7 +397,7 @@ public class ShadowConverter {
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(
-						"Connector for resource {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
+						"PROVISIONING MODIFY operation on resource {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
 						new Object[] { ObjectTypeUtil.toShortString(resource), shadow.getObjectClass(),
 								SchemaDebugUtil.debugDump(identifiers), SchemaDebugUtil.debugDump(operations) });
 			}
@@ -406,7 +406,7 @@ public class ShadowConverter {
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
 					parentResult);
 
-			LOGGER.debug("Connector MODIFY successful, side-effect changes {}",
+			LOGGER.debug("PROVISIONING MODIFY successful, side-effect changes {}",
 					SchemaDebugUtil.debugDump(sideEffectChanges));
 
 		} catch (ObjectNotFoundException ex) {
@@ -781,7 +781,7 @@ public class ShadowConverter {
 			return null;
 		}
 		QName enableAttributeName = enableDisable.getAttribute();
-		LOGGER.debug("Simulated attribute name: {}", enableAttributeName);
+		LOGGER.trace("Simulated attribute name: {}", enableAttributeName);
 		if (enableAttributeName == null) {
 			result.recordWarning("Resource "
 							+ ObjectTypeUtil.toShortString(resource)

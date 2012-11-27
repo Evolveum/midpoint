@@ -48,13 +48,13 @@
 		</target>
 	</mapping>
     
-	<!-- Unconditional automatic assignment of Blue Dummy resource -->
+	<!-- Unconditional automatic assignment of OpenDJ resource -->
     <mapping>
     	<expression>
             <value>
             	<assignment>
 					<accountConstruction>
-						<resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
+						<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
 					</accountConstruction>
 				</assignment>
             </value>    	
