@@ -353,6 +353,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw new ObjectAlreadyExistsException(ex);
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
+				result.recordFatalError(ex.getMessage(), ex);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);

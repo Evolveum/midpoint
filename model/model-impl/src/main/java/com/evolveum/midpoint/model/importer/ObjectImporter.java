@@ -245,6 +245,10 @@ public class ObjectImporter {
                 result.recordFatalError("Object already exists", e);
                 throw e;
             }
+            
+        } catch (SchemaException ex){
+        	result.computeStatus();
+        	throw ex;
         }
     }
 
