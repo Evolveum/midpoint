@@ -1231,6 +1231,123 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
 	
+	@Test
+    public void test152ModifyUserAddAndAssignAccountPositiveEnforcement() throws Exception {
+		final String TEST_NAME = "test152ModifyUserAddAndAssignAccountPositiveEnforcement";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		
+		dummyAuditService.clear();
+        
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+			
+		// THEN
+		// Check accountRef
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userJackType.getAccountRef().get(0);
+        accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
+        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        
+        // Check account in dummy resource
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
+        assertEquals("Wrong number of execution deltas", 3, auditExecution0Deltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
+	 * Assignment enforcement is set to POSITIVE for this test as it was for the previous test.
+	 * Now we will explicitly delete the account.
+	 */
+	@Test
+    public void test159ModifyUserJackUnassignAndDeleteAccount() throws Exception {
+        displayTestTile(this, "test159ModifyUserJackUnassignAndDeleteAccount");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        dummyAuditService.clear();
+        
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setOid(accountOid);
+		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+		userDelta.addModification(accountRefDelta);
+        
+		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
+		
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+        
+        // Check is shadow is gone
+        assertNoAccountShadow(accountOid);
+        
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
 	/**
 	 * We try to both assign an account and modify that account in one operation.
 	 * Some changes should be reflected to account (e.g.  weapon) as the mapping is weak, other should be
