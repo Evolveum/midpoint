@@ -8,49 +8,49 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 public class OrgFilter extends ObjectFilter {
 
-	private PrismReferenceValue orgRef;
-	private String minDepth;
-	private String maxDepth;
+	private PrismReferenceValue baseOrgRef;
+	private Integer minDepth;
+	private Integer maxDepth;
 
-	public OrgFilter(PrismReferenceValue orgRef, String minDepth, String maxDepth) {
-		this.orgRef = orgRef;
+	public OrgFilter(PrismReferenceValue baseOrgRef, Integer minDepth, Integer maxDepth) {
+		this.baseOrgRef = baseOrgRef;
 		this.minDepth = minDepth;
 		this.maxDepth = maxDepth;
 	}
 
-	public static OrgFilter createOrg(PrismReferenceValue orgRef, String minDepth, String maxDepth) {
-		return new OrgFilter(orgRef, minDepth, maxDepth);
+	public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Integer minDepth, Integer maxDepth) {
+		return new OrgFilter(baseOrgRef, minDepth, maxDepth);
 	}
 
-	public static OrgFilter createOrg(String orgRef, String minDepth, String maxDepth) {
-		return new OrgFilter(new PrismReferenceValue(orgRef), minDepth, maxDepth);
+	public static OrgFilter createOrg(String baseOrgOid, Integer minDepth, Integer maxDepth) {
+		return new OrgFilter(new PrismReferenceValue(baseOrgOid), minDepth, maxDepth);
 	}
 
-	public static OrgFilter createOrg(String orgRef) {
-		return new OrgFilter(new PrismReferenceValue(orgRef), null, null);
+	public static OrgFilter createOrg(String baseOrgRef) {
+		return new OrgFilter(new PrismReferenceValue(baseOrgRef), null, null);
 	}
 	
 	public PrismReferenceValue getOrgRef() {
-		return orgRef;
+		return baseOrgRef;
 	}
 
-	public void setOrgRef(PrismReferenceValue orgRef) {
-		this.orgRef = orgRef;
+	public void setOrgRef(PrismReferenceValue baseOrgRef) {
+		this.baseOrgRef = baseOrgRef;
 	}
 
-	public String getMinDepth() {
+	public Integer getMinDepth() {
 		return minDepth;
 	}
 
-	public void setMinDepth(String minDepth) {
+	public void setMinDepth(Integer minDepth) {
 		this.minDepth = minDepth;
 	}
 
-	public String getMaxDepth() {
+	public Integer getMaxDepth() {
 		return maxDepth;
 	}
 
-	public void setMaxDepth(String maxDepth) {
+	public void setMaxDepth(Integer maxDepth) {
 		this.maxDepth = maxDepth;
 	}
 	

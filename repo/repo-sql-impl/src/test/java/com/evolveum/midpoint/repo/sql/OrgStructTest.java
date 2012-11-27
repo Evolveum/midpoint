@@ -371,7 +371,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
 //		QueryType query = QueryUtil.createQuery(filter);
 //		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(QUERY_ORG_STRUCT_ORG_DEPTH), QueryType.class);
-		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, "1"));
+		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001", null, 1));
 //		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		// List<>
 		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);

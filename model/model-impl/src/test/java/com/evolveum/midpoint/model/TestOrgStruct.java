@@ -94,12 +94,20 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test001JackAssignScummBar() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test001JackAssignScummBar");
+    public void test001OrgStructSanity() throws Exception {
+		final String TEST_NAME = "test001OrgStructSanity";
+        displayTestTile(this, TEST_NAME);
+        
+        // WHEN
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test101JackAssignScummBar() throws Exception {
+		final String TEST_NAME = "test101JackAssignScummBar";
+        displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + ".test001JackAssignScummBar");
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -110,15 +118,17 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
         assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
 	}
 
 	@Test
-    public void test002JackUnassignScummBar() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test002JackUnassignScummBar");
+    public void test102JackUnassignScummBar() throws Exception {
+		final String TEST_NAME = "test102JackUnassignScummBar";
+        displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + ".test002JackUnassignScummBar");
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -129,6 +139,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedNoOrg(userJack);
         assertHasNoOrg(userJack);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
 	}
 
 }

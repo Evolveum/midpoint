@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -274,14 +275,14 @@ public class QueryConvertor {
 		Element minDepth = null;
 		if (filter.getMinDepth() != null) {
 			minDepth = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MIN_DEPTH);
-			minDepth.setTextContent(filter.getMinDepth());
+			minDepth.setTextContent(XsdTypeMapper.multiplicityToString(filter.getMinDepth()));
 			org.appendChild(minDepth);
 		}
 
 		Element maxDepth = null;
 		if (filter.getMaxDepth() != null) {
 			maxDepth = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MAX_DEPTH);
-			maxDepth.setTextContent(filter.getMaxDepth());
+			maxDepth.setTextContent(XsdTypeMapper.multiplicityToString(filter.getMaxDepth()));
 			org.appendChild(maxDepth);
 		}
 
@@ -545,15 +546,15 @@ public class QueryConvertor {
 
 		Element minDepth = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MIN_DEPTH);
 
-		String min = null;
+		Integer min = null;
 		if (minDepth != null) {
-			min = minDepth.getTextContent();
+			min = XsdTypeMapper.multiplicityToInteger(minDepth.getTextContent());
 		}
 
 		Element maxDepth = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MAX_DEPTH);
-		String max = null;
+		Integer max = null;
 		if (maxDepth != null) {
-			max = maxDepth.getTextContent();
+			max = XsdTypeMapper.multiplicityToInteger(maxDepth.getTextContent());
 		}
 
 		return OrgFilter.createOrg(orgOid, min, max);

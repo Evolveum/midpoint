@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -475,7 +476,7 @@ class DomToSchemaProcessor {
 			Element maxOccursAnnotation = SchemaProcessorUtil.getAnnotationElement(annotation, A_MAX_OCCURS);
 			if (maxOccursAnnotation != null) {
 				String maxOccursString = maxOccursAnnotation.getTextContent();
-				int maxOccurs = Integer.parseInt(maxOccursString);
+				int maxOccurs = XsdTypeMapper.multiplicityToInteger(maxOccursString);
 				itemDef.setMaxOccurs(maxOccurs);
 			} else {
 				itemDef.setMaxOccurs(-1);

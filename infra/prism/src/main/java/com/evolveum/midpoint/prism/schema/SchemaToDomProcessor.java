@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -633,11 +634,7 @@ public class SchemaToDomProcessor {
 		if (attrValue == 1) {
 			return;
 		}
-		if (attrValue < 0) {
-			setAttribute(element, attrName, "unbounded");
-		} else {
-			setAttribute(element, attrName, Integer.toString(attrValue));
-		}
+		setAttribute(element, attrName, XsdTypeMapper.multiplicityToString(attrValue));
 	}
 
 	/**

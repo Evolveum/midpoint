@@ -49,13 +49,9 @@ public class TreeOp extends Op {
 
 		String orgRefOid = org.getOrgRef().getOid();
 
-		Integer maxDepth = null;
-		if (org.getMaxDepth() != null && !("unbounded").equals(org.getMaxDepth())) {
-			try {
-				maxDepth = Integer.valueOf(org.getMaxDepth());
-			} catch (NumberFormatException ex) {
-				throw new QueryException("Bad value specified for max depth in search query. Expected integer value.");
-			}
+		Integer maxDepth = org.getMaxDepth();
+		if (maxDepth != null && maxDepth < 0) {
+			maxDepth = null;
 		}
 
 		if (maxDepth == null) {

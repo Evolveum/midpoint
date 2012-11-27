@@ -277,7 +277,7 @@ public class BookmarkableFolderContent extends Content {
 		OrgStructDto newOrgModel = null;
 		List<PrismObject<ObjectType>> orgUnitList;
 
-		OrgFilter orgFilter = OrgFilter.createOrg(parent.getOid(), null, "1");
+		OrgFilter orgFilter = OrgFilter.createOrg(parent.getOid(), null, 1);
 		ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
 
 		try {

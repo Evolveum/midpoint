@@ -84,7 +84,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -171,6 +173,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH = new ItemPath(
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME);
 
+	private static final Object NUM_FUNCTIONAL_ORGS = 6;
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 	
@@ -180,6 +183,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 	
 	protected MockClockworkHook mockClockworkHook;
+	protected boolean verbose = true;
 		
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
@@ -477,4 +481,27 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 		
 	}
 	
+	protected void assertMonkeyIslandOrgSanity() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractInitializedModelIntegrationTest.class.getName() + ".assertMonkeyIslandOrgSanity");
+        OperationResult result = task.getResult();
+        
+        PrismObject<OrgType> orgGovernorOffice = modelService.getObject(OrgType.class, ORG_GOVERNOR_OFFICE_OID, null, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+        OrgType orgGovernorOfficeType = orgGovernorOffice.asObjectable();
+        assertEquals("Wrong governor office name", PrismTestUtil.createPolyStringType("F0001"), orgGovernorOfficeType.getName());
+        
+        List<PrismObject<OrgType>> governorSubOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, 1, task, result);
+        if (verbose) display("governor suborgs", governorSubOrgs);
+        assertEquals("Unexpected number of governor suborgs", 3, governorSubOrgs.size());
+        
+        List<PrismObject<OrgType>> functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, null, task, result);
+        if (verbose) display("functional orgs (null)", functionalOrgs);
+        assertEquals("Unexpected number of functional orgs (null)", NUM_FUNCTIONAL_ORGS, functionalOrgs.size());
+        
+        functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, -1, task, result);
+        if (verbose) display("functional orgs (-1)", functionalOrgs);
+        assertEquals("Unexpected number of functional orgs (-1)", NUM_FUNCTIONAL_ORGS, functionalOrgs.size());
+	}
+     	
 }

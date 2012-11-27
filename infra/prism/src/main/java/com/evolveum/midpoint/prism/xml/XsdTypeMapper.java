@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -60,6 +61,7 @@ public class XsdTypeMapper {
     private static Map<QName, Class> xsdToJavaTypeMap;
 
     private static final Trace LOGGER = TraceManager.getTrace(XsdTypeMapper.class);
+	private static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
     private static void initTypeMap() throws IOException, ClassNotFoundException {
 
@@ -141,7 +143,6 @@ public class XsdTypeMapper {
         return null;
     }
     
-
     public static Class toJavaType(QName xsdType) {
         Class javaType = xsdToJavaTypeMap.get(xsdType);
         if (javaType == null) {
@@ -153,6 +154,26 @@ public class XsdTypeMapper {
         }
         return javaType;
     }
+    
+    public static String multiplicityToString(Integer integer) {
+		if (integer == null) {
+			return null;
+		}
+		if (integer < 0) {
+			return MULTIPLICITY_UNBOUNDED;
+		}
+		return integer.toString();
+	}
+
+	public static Integer multiplicityToInteger(String string) {
+		if (string == null || StringUtils.isEmpty(string)) {
+			return null;
+		}
+		if (MULTIPLICITY_UNBOUNDED.equals(string)) {
+			return -1;
+		}
+		return Integer.valueOf(string);
+	}
 
     static {
         try {
