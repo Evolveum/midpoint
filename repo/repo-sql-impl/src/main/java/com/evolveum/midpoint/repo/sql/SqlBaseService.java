@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -213,11 +214,20 @@ public class SqlBaseService {
     }
 
     protected void rollbackTransaction(Session session, Exception ex, OperationResult result, boolean fatal) {
-        if (ex != null && result != null) {
+        String message = ex != null ? ex.getMessage() : "null";
+        rollbackTransaction(session, ex, message, result, fatal);
+    }
+
+    protected void rollbackTransaction(Session session, Exception ex, String message, OperationResult result, boolean fatal) {
+        if (StringUtils.isEmpty(message) && ex != null) {
+            message = ex.getMessage();
+        }
+
+        if (result != null) {
             if (fatal) {
-                result.recordFatalError(ex.getMessage(), ex);
+                result.recordFatalError(message, ex);
             } else {
-                result.recordHandledError(ex.getMessage());
+                result.recordHandledError(message);
             }
         }
     	 

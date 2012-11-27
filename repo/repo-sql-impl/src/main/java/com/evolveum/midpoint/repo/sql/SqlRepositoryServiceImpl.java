@@ -161,8 +161,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw ex;
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
-				result.recordFatalError(
-						"Schema error while getting object with oid: " + oid + ". Reason: " + ex.getMessage(), ex);
+                rollbackTransaction(session, ex, "Schema error while getting object with oid: "
+                        + oid + ". Reason: " + ex.getMessage(), result, true);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);
@@ -353,7 +353,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw new ObjectAlreadyExistsException(ex);
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
-				result.recordFatalError(ex.getMessage(), ex);
+                rollbackTransaction(session, ex, result, true);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);
@@ -659,6 +659,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw ex;
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
+                rollbackTransaction(session, ex, result, true);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);
@@ -766,6 +767,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw new ObjectAlreadyExistsException(ex);
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
+                rollbackTransaction(session, ex, result, true);
 				throw (SchemaException) ex;
 			}
 			handleGeneralException(ex, session, result);
