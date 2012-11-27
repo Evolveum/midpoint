@@ -793,8 +793,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 						PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
 						RObject rObjectToModify = createDataObjectFromJAXB(orgType);
+						if (orgType.getClass().isAssignableFrom(OrgType.class)){
+						
 						List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
 						refillHierarchy(rObjectToModify, objectsToRecompute, session);
+						} else{
+							deleteHierarchy(rObjectToModify, session);
+						}
 					}
 					// List<RObject> objectsToRecompute =
 					// deleteFromHierarchy(createDataObjectFromJAXB(orgType),

@@ -6,6 +6,7 @@ import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.w3c.dom.Element;
 
@@ -55,6 +56,7 @@ public class TreeOp extends Op {
 		}
 
 		if (maxDepth == null) {
+			
 			return Restrictions.eq(ANCESTOR_OID, orgRefOid);
 		} else {
 			Conjunction conjunction = Restrictions.conjunction();
@@ -73,7 +75,7 @@ public class TreeOp extends Op {
 		// create subcriteria on the ROgrClosure table to search through org
 		// struct
 		pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
-				.createAlias(ANCESTOR, ANCESTOR_ALIAS);
+				.createAlias(ANCESTOR, ANCESTOR_ALIAS).setProjection(Projections.groupProperty(CLOSURE_ALIAS+".descendant"));
 
 	}
 }
