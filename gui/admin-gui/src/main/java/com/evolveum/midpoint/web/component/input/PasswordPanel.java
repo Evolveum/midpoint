@@ -58,12 +58,14 @@ public class PasswordPanel extends InputPanel {
         password1.setRequired(false);
         password1.setResetPassword(false);
         password1.setOutputMarkupId(true);
+        password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(password1);
 
         final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<String>());
         password2.setRequired(false);
         password2.setResetPassword(false);
         password2.setOutputMarkupId(true);
+        password2.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(password2);
         
         password1.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
@@ -76,9 +78,11 @@ public class PasswordPanel extends InputPanel {
 				}
 				password2.setRequired(required);
 				target.add(password2);
+				target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
 			}
 		});
         password2.add(new PasswordValidator(password1, password2));
+        
     }
 
     @Override
@@ -120,6 +124,17 @@ public class PasswordPanel extends InputPanel {
             if (!equal) {
                 error(p1.newValidatable(), "passwordPanel.error");
             }
+        }
+    }
+    
+    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+
+        public EmptyOnBlurAjaxFormUpdatingBehaviour() {
+            super("onBlur");
+        }
+
+        @Override
+        protected void onUpdate(AjaxRequestTarget target) {
         }
     }
 }
