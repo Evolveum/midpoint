@@ -174,6 +174,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
 			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_QNAME);
 
 	private static final Object NUM_FUNCTIONAL_ORGS = 6;
+	private static final Object NUM_PROJECT_ORGS = 3;
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 	
@@ -502,6 +503,18 @@ public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegr
         functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, -1, task, result);
         if (verbose) display("functional orgs (-1)", functionalOrgs);
         assertEquals("Unexpected number of functional orgs (-1)", NUM_FUNCTIONAL_ORGS, functionalOrgs.size());
+        
+        List<PrismObject<OrgType>> prootSubOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, 1, task, result);
+        if (verbose) display("project root suborgs", prootSubOrgs);
+        assertEquals("Unexpected number of governor suborgs", 2, prootSubOrgs.size());
+        
+        List<PrismObject<OrgType>> projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, null, task, result);
+        if (verbose) display("project orgs (null)", projectOrgs);
+        assertEquals("Unexpected number of functional orgs (null)", NUM_PROJECT_ORGS, projectOrgs.size());
+        
+        projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, -1, task, result);
+        if (verbose) display("project orgs (-1)", projectOrgs);
+        assertEquals("Unexpected number of functional orgs (-1)", NUM_PROJECT_ORGS, projectOrgs.size());
 	}
      	
 }
