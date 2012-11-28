@@ -982,6 +982,10 @@ public class PageUser extends PageAdminUsers {
 
         OperationResult result = new OperationResult(OPERATION_SAVE);
         ObjectWrapper userWrapper = userModel.getObject();
+        //todo: improve, userAdded variable is quickfix for MID-1006
+        //redirecting to user list page everytime user is created in repository during user add in gui,
+        //and we're not taking care about account/assignment create errors (error message is still displayed)
+        boolean userAdded = false;
         try {
             ObjectDelta delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
@@ -999,6 +1003,8 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+
+                    userAdded = StringUtils.isNotEmpty(delta.getOid());
                     break;
                 case MODIFYING:
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
@@ -1025,7 +1031,7 @@ public class PageUser extends PageAdminUsers {
             LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
         }
         
-		if (result.isSuccess() || result.isHandledError() || result.isInProgress()) {
+		if (userAdded || result.isSuccess() || result.isHandledError() || result.isInProgress()) {
 			showResultInSession(result);
             //todo refactor this...what is this for? why it's using some "shadow" param from result???
 			PrismObject<UserType> user = userWrapper.getObject();
