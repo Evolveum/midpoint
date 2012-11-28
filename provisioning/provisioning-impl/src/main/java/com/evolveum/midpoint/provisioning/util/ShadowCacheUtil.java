@@ -252,7 +252,7 @@ public class ShadowCacheUtil {
 			values = activationProperty.getRealValues(Object.class);
 		}
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
-		LOGGER.debug(
+		LOGGER.trace(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
 				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
@@ -269,7 +269,7 @@ public class ShadowCacheUtil {
 		QName enableDisableAttribute = activationCapability.getEnableDisable().getAttribute();
 		List<Object> values = ResourceObjectShadowUtil.getAttributeValues(shadow, enableDisableAttribute);
 		ActivationType activation = convertFromSimulatedActivationValues(resource, values, parentResult);
-		LOGGER.debug(
+		LOGGER.trace(
 				"Detected simulated activation attribute {} on {} with value {}, resolved into {}",
 				new Object[] { SchemaDebugUtil.prettyPrint(activationCapability.getEnableDisable().getAttribute()),
 						ObjectTypeUtil.toShortString(resource), values,
