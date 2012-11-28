@@ -825,7 +825,7 @@ public class PageUser extends PageAdminUsers {
             AssignmentType assignment = new AssignmentType();
             PrismContainerValue value = assDto.getNewValue();
             assignment.setupContainerValue(value);
-            userType.getAssignment().add(assignment);
+            userType.getAssignment().add(assignment.clone());
 
             value.applyDefinition(assignmentDef, false);
             //todo remove this block [lazyman] after model is updated - it has to remove resource from accountConstruction
