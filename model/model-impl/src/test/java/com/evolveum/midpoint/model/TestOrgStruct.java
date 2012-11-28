@@ -143,5 +143,89 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
+	
+	/**
+	 * Assign jack to both functional and project orgstruct.
+	 */
+	@Test
+    public void test201JackAssignScummBarAndSaveElaine() throws Exception {
+		final String TEST_NAME = "test201JackAssignScummBarAndSaveElaine";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
+        assignOrg(USER_JACK_OID, ORG_SAVE_ELAINE_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
+        assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID);
+        assertAssignments(userJack, 2);
+        assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
+        assertHasOrg(userJack, ORG_SAVE_ELAINE_OID);
+        assertHasOrgs(userJack, 2);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	/**
+	 * Assign jack to functional orgstruct again.
+	 */
+	@Test
+    public void test202JackAssignMinistryOfOffense() throws Exception {
+		final String TEST_NAME = "test202JackAssignMinistryOfOffense";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_OFFENSE_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
+        assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignments(userJack, 3);
+        assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
+        assertHasOrg(userJack, ORG_SAVE_ELAINE_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, 3);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test207JackUnAssignScummBar() throws Exception {
+		final String TEST_NAME = "test207JackUnAssignScummBar";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignments(userJack, 2);
+        assertHasOrg(userJack, ORG_SAVE_ELAINE_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, 2);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
 
 }

@@ -284,7 +284,9 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
+	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
 	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
+	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
 	
 	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy.xml";
 	protected static final String TASK_RECONCILE_DUMMY_OID = "91919191-76e0-59e2-86d6-3d4f02d3dddd";
@@ -937,6 +939,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected void assertHasNoOrg(PrismObject<UserType> user) {
 		MidPointAsserts.assertHasNoOrg(user);
+	}
+	
+	protected void assertHasOrgs(PrismObject<UserType> user, int expectedNumber) {
+		MidPointAsserts.assertHasOrgs(user, expectedNumber);
 	}
 
 	protected void assertAssignments(PrismObject<UserType> user, int expectedNumber) {

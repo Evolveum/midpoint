@@ -81,4 +81,9 @@ public class MidPointAsserts {
 		assertTrue(user + " does have orgs "+user.asObjectable().getParentOrgRef()+" while not expecting them", user.asObjectable().getParentOrgRef().isEmpty());
 	}
 
+	public static void assertHasOrgs(PrismObject<UserType> user, int expectedNumber) {
+		UserType userType = user.asObjectable();
+		assertEquals("Unexepected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
+	}
+
 }
