@@ -89,7 +89,7 @@ public class ROrgClosure implements Serializable {
 		int result = ancestor != null ? ancestor.hashCode() : 0;
 		result = 31 * result + (descendant != null ? descendant.hashCode() : 0);
 		result = 31 * result + depth;
-		result = 31 * result + ((id == null) ? 0 : id.hashCode());
+//		result = 31 * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
 
@@ -109,8 +109,8 @@ public class ROrgClosure implements Serializable {
 			return false;
 		if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null)
 			return false;
-		if (id != null ? !id.equals(that.id) : that.id != null)
-			return false;
+//		if (id != null ? !id.equals(that.id) : that.id != null)
+//			return false;
 
 		return true;
 	}
