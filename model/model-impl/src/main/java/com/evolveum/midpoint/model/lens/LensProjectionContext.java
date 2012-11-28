@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -138,7 +139,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
     private transient Collection<ResourceShadowDiscriminatorType> dependencies = null;
     
-    private transient Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes;
     
     private ValuePolicyType accountPasswordPolicy;
 
@@ -306,11 +307,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.outboundAccountConstruction = outboundAccountConstruction;
 	}
 
-    public Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> getSqueezedAttributes() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> getSqueezedAttributes() {
 		return squeezedAttributes;
 	}
 
-	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes) {
+	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes) {
 		this.squeezedAttributes = squeezedAttributes;
 	}
 	
@@ -621,18 +622,19 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		clone.wave = this.wave;
 	}
 
-	private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> cloneSqueezedAttributes() {
+	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> cloneSqueezedAttributes() {
 		if (squeezedAttributes == null) {
 			return null;
 		}
-		Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> clonedMap = new HashMap<QName, DeltaSetTriple<PropertyValueWithOrigin>>();
-		Cloner<PropertyValueWithOrigin> cloner = new Cloner<PropertyValueWithOrigin>() {
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> clonedMap 
+		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>>();
+		Cloner<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> cloner = new Cloner<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>() {
 			@Override
-			public PropertyValueWithOrigin clone(PropertyValueWithOrigin original) {
+			public ItemValueWithOrigin<? extends PrismPropertyValue<?>> clone(ItemValueWithOrigin<? extends PrismPropertyValue<?>> original) {
 				return original.clone();
 			}
 		};
-		for (Entry<QName, DeltaSetTriple<PropertyValueWithOrigin>> entry: squeezedAttributes.entrySet()) {
+		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry: squeezedAttributes.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
 		}
 		return clonedMap;
@@ -658,7 +660,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			}
 		}
 		if (squeezedAttributes != null) {
-			DeltaSetTriple<PropertyValueWithOrigin> attrTriple = squeezedAttributes.get(attributeName);
+			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> attrTriple = squeezedAttributes.get(attributeName);
 			if (attrTriple != null && !attrTriple.isEmpty()) {
 				return true;
 			}

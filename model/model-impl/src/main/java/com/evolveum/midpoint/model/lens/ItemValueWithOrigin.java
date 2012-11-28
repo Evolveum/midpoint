@@ -19,8 +19,14 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -29,21 +35,21 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author semancik
  *
  */
-public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
+public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, DebugDumpable {
 	
-	private PrismPropertyValue<?> propertyValue;
-	private Mapping<?> mapping;
+	private V propertyValue;
+	private Mapping<V> mapping;
 	private AccountConstruction accountConstruction;
 	
-	public PropertyValueWithOrigin(PrismPropertyValue<?> propertyValue,
-			Mapping<?> mapping, AccountConstruction accountConstruction) {
+	public ItemValueWithOrigin(V propertyValue,
+			Mapping<V> mapping, AccountConstruction accountConstruction) {
 		super();
 		this.propertyValue = propertyValue;
 		this.mapping = mapping;
 		this.accountConstruction = accountConstruction;
 	}
 	
-	public PrismPropertyValue<?> getPropertyValue() {
+	public V getPropertyValue() {
 		return propertyValue;
 	}
 	
@@ -55,27 +61,51 @@ public class PropertyValueWithOrigin implements Dumpable, DebugDumpable {
 		return accountConstruction;
 	}
 
-	public boolean equalsRealValue(PrismPropertyValue<?> pvalue) {
+	public boolean equalsRealValue(V pvalue) {
 		if (propertyValue == null) {
 			return false;
 		}
 		return propertyValue.equalsRealValue(pvalue);
 	}
 	
-	public PropertyValueWithOrigin clone() {
-		PropertyValueWithOrigin clone = new PropertyValueWithOrigin(propertyValue, mapping, accountConstruction);
+	public ItemValueWithOrigin<V> clone() {
+		ItemValueWithOrigin<V> clone = new ItemValueWithOrigin<V>(propertyValue, mapping, accountConstruction);
 		copyValues(clone);
 		return clone;
 	}
 
-	protected void copyValues(PropertyValueWithOrigin clone) {
+	protected void copyValues(ItemValueWithOrigin<V> clone) {
 		if (this.propertyValue != null) {
-			clone.propertyValue = this.propertyValue.clone();
+			clone.propertyValue = (V) this.propertyValue.clone();
 		}
 		if (this.mapping != null) {
 			clone.mapping = this.mapping.clone();
 		}
 		clone.accountConstruction = this.accountConstruction;
+	}
+	
+	public static <V extends PrismValue> DeltaSetTriple<ItemValueWithOrigin<V>> createOutputTriple(Mapping<V> mapping) {
+		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
+		if (outputTriple == null) {
+			return null;
+		}
+		Collection<ItemValueWithOrigin<V>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
+		Collection<ItemValueWithOrigin<V>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
+		Collection<ItemValueWithOrigin<V>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
+		DeltaSetTriple<ItemValueWithOrigin<V>> ivwoTriple = new DeltaSetTriple<ItemValueWithOrigin<V>>(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
+		return ivwoTriple;
+	}
+	
+	private static <V extends PrismValue> Collection<ItemValueWithOrigin<V>> convertSet(Collection<V> valueSet, Mapping<V> mapping) {
+		if (valueSet == null) {
+			return null;
+		}
+		Collection<ItemValueWithOrigin<V>> ivwoSet = new ArrayList<ItemValueWithOrigin<V>>(valueSet.size());
+		for (V value: valueSet) {
+			ItemValueWithOrigin<V> ivwo = new ItemValueWithOrigin<V>(value, mapping, null);
+			ivwoSet.add(ivwo);
+		}
+		return ivwoSet;
 	}
 
 	@Override

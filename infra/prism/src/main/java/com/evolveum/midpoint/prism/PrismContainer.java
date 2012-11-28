@@ -352,7 +352,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		}
     }
     
-    public Item<?> findItem(ItemPath propPath) {
+    public <X extends PrismValue> Item<X> findItem(ItemPath propPath) {
     	try {
 			return findCreateItem(propPath, Item.class, null, false);
 		} catch (SchemaException e) {

@@ -21,31 +21,44 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -240,5 +253,131 @@ public class LensUtil {
 		}
 		return null;
 	}
+	
+	// TODO: check for single-value
+	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
+    		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
+    		ItemDelta<V> apropriItemDelta, PrismContainer<?> itemContainer,
+    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException {
+    	
+		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
+		
+		Item<V> itemExisting = null;
+		if (itemContainer != null) {
+            itemExisting = itemContainer.findItem(itemPath);
+		}
+		
+        Collection<V> allValues = collectAllValues(triple);
+        for (V value : allValues) {
+            Collection<ItemValueWithOrigin<V>> zeroPvwos =
+                    collectPvwosFromSet(value, triple.getZeroSet());
+            if (!zeroPvwos.isEmpty() && !addUnchangedValues) {
+                // Value unchanged, nothing to do
+                LOGGER.trace("Value {} unchanged, doing nothing", value);
+                continue;
+            }
+            Collection<ItemValueWithOrigin<V>> plusPvwos =
+                    collectPvwosFromSet(value, triple.getPlusSet());
+            Collection<ItemValueWithOrigin<V>> minusPvwos =
+                    collectPvwosFromSet(value, triple.getMinusSet());
+            if (!plusPvwos.isEmpty() && !minusPvwos.isEmpty()) {
+                // Value added and removed. Ergo no change.
+                LOGGER.trace("Value {} added and removed, doing nothing", value);
+                continue;
+            }
+            
+            Mapping<?> exclusiveMapping = null;
+            Collection<ItemValueWithOrigin<V>> pvwosToAdd = null;
+            if (addUnchangedValues) {
+                pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
+            } else {
+                pvwosToAdd = plusPvwos;
+            }
+
+            if (!pvwosToAdd.isEmpty()) {
+            	boolean initialOnly = true;
+                for (ItemValueWithOrigin pvwoToAdd : pvwosToAdd) {
+                    Mapping<?> mapping = pvwoToAdd.getMapping();
+                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
+                        initialOnly = false;
+                    }
+                    if (mapping.isExclusive()) {
+                        if (exclusiveMapping == null) {
+                            exclusiveMapping = mapping;
+                        } else {
+                            String message = "Exclusion conflict in " + contextDescription + ", item " + itemPath +
+                                    ", conflicting constructions: " + exclusiveMapping + " and " + mapping;
+                            LOGGER.error(message);
+                            throw new ExpressionEvaluationException(message);
+                        }
+                    }
+                }
+                if (initialOnly) {
+                    if (itemExisting != null && !itemExisting.isEmpty()) {
+                        // There is already a value, skip this
+                        LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping it", value, itemPath);
+                        continue;
+                    }
+                }
+                if (filterExistingValues && hasValue(itemExisting, value)) {
+                	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value", value, itemPath);
+                	continue;
+                }
+                LOGGER.trace("Value {} added to delta for item {}", value, itemPath);
+                itemDelta.addValueToAdd((V)value.clone());
+            }
+
+            if (!minusPvwos.isEmpty()) {
+                if (filterExistingValues && !hasValue(itemExisting, value)) {
+                	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value", value, itemPath);
+                	continue;
+                }
+                LOGGER.trace("Value {} deleted to delta for item {}", value, itemPath);
+                itemDelta.addValueToDelete((V)value.clone());
+            }
+        }
+        
+        return itemDelta;
+        
+    }
+	
+	private static <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue) {
+		if (existingUserItem == null) {
+			return false;
+		}
+		return existingUserItem.contains(newValue, true);
+	}
+	
+	private static <V extends PrismValue> Collection<V> collectAllValues(DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple) {
+        Collection<V> allValues = new HashSet<V>();
+        collectAllValuesFromSet(allValues, triple.getZeroSet());
+        collectAllValuesFromSet(allValues, triple.getPlusSet());
+        collectAllValuesFromSet(allValues, triple.getMinusSet());
+        return allValues;
+    }
+
+    private static <V extends PrismValue> void collectAllValuesFromSet(Collection<V> allValues,
+            Collection<? extends ItemValueWithOrigin<V>> collection) {
+        if (collection == null) {
+            return;
+        }
+        for (ItemValueWithOrigin<V> pvwo : collection) {
+        	V pval = pvwo.getPropertyValue();
+        	if (!PrismValue.containsRealValue(allValues, pval)) {
+        		allValues.add(pval);
+        	}
+        }
+    }
+    
+    private static <V extends PrismValue> Collection<ItemValueWithOrigin<V>> collectPvwosFromSet(V pvalue,
+            Collection<? extends ItemValueWithOrigin<V>> deltaSet) {
+    	Collection<ItemValueWithOrigin<V>> pvwos = new ArrayList<ItemValueWithOrigin<V>>();
+        for (ItemValueWithOrigin<V> setPvwo : deltaSet) {
+        	if (setPvwo.equalsRealValue(pvalue)) {
+        		pvwos.add(setPvwo);
+        	}
+        }
+        return pvwos;
+    }
 
 }

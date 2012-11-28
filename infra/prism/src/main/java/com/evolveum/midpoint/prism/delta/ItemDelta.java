@@ -581,6 +581,32 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
     		return clone;
     	}
     }
+    
+    public void validate() throws SchemaException {
+    	validate(null);
+    }
+    
+    public void validate(String contextDescription) throws SchemaException {
+    	if (definition == null) {
+    		throw new IllegalStateException("Attempt to validate delta without a definition: "+this);
+    	}
+    	if (definition.isSingleValue()) {
+    		if (valuesToAdd != null && valuesToAdd.size() > 1) {
+    			throw new SchemaException("Attempt to add "+valuesToAdd.size()+" values to a single-valued item "+getPath() +
+    					(contextDescription == null ? "" : " in "+contextDescription));
+    		}
+    		if (valuesToReplace != null && valuesToReplace.size() > 1) {
+    			throw new SchemaException("Attempt to replace "+valuesToAdd.size()+" values to a single-valued item "+getPath() +
+    					(contextDescription == null ? "" : " in "+contextDescription));
+    		}
+    	}
+    	if (definition.isMandatory()) {
+    		if (valuesToReplace != null && valuesToReplace.isEmpty()) {
+    			throw new SchemaException("Attempt to clear all values of a mandatory item "+getPath() +
+    					(contextDescription == null ? "" : " in "+contextDescription));
+    		}
+    	}
+    }
 
 	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
 		checkConsistence(deltas, false, false);

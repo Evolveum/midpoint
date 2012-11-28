@@ -31,7 +31,9 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.PropertyValueWithOrigin;
+import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
+import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -126,7 +129,7 @@ public class ConsolidationProcessor {
     		LensProjectionContext<AccountShadowType> accCtx,
             boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
-    	Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedAttributes = sqeezeAttributes(accCtx); 
+    	Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes = sqeezeAttributes(accCtx); 
     	accCtx.setSqueezedAttributes(squeezedAttributes);
         
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
@@ -141,101 +144,36 @@ public class ConsolidationProcessor {
 
         ItemPath parentPath = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
-        for (Map.Entry<QName, DeltaSetTriple<PropertyValueWithOrigin>> entry : squeezedAttributes.entrySet()) {
+        for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
             QName attributeName = entry.getKey();
-            DeltaSetTriple<PropertyValueWithOrigin> triple = entry.getValue();
+            DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> triple = entry.getValue();
 
-            PropertyDelta<?> propDelta = null;
-
-            LOGGER.trace("Consolidating (modify) account {}, attribute {}", rat, attributeName);
-
-            PrismContainer<?> attributesPropertyContainer = null;
-            if (accCtx.getObjectNew() != null) {
-                attributesPropertyContainer = accCtx.getObjectNew().findContainer(SchemaConstants.I_ATTRIBUTES);
-            }
-
-            Collection<PrismPropertyValue<?>> allValues = collectAllValues(triple);
-            for (PrismPropertyValue<?> value : allValues) {
-                Collection<PropertyValueWithOrigin> zeroPvwos =
-                        collectPvwosFromSet(value, triple.getZeroSet());
-                if (!zeroPvwos.isEmpty() && !addUnchangedValues) {
-                    // Value unchanged, nothing to do
-                    LOGGER.trace("Value {} unchanged, doing nothing", value);
-                    continue;
-                }
-                Collection<PropertyValueWithOrigin> plusPvwos =
-                        collectPvwosFromSet(value, triple.getPlusSet());
-                Collection<PropertyValueWithOrigin> minusPvwos =
-                        collectPvwosFromSet(value, triple.getMinusSet());
-                if (!plusPvwos.isEmpty() && !minusPvwos.isEmpty()) {
-                    // Value added and removed. Ergo no change.
-                    LOGGER.trace("Value {} added and removed, doing nothing", value);
-                    continue;
-                }
-                RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
-                if (propDelta == null) {
-                    propDelta = new PropertyDelta(parentPath, attributeName, attributeDefinition);
-                } else {
-                	// Make sure that the delta has refined attr def. Otherwise overrides will not work well.
-                	propDelta.setDefinition(attributeDefinition);
-                }
-
-                Mapping<?> exclusiveMapping = null;
-                Collection<PropertyValueWithOrigin> pvwosToAdd = null;
-                if (addUnchangedValues) {
-                    pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
-                } else {
-                    pvwosToAdd = plusPvwos;
-                }
-
-                if (!pvwosToAdd.isEmpty()) {
-                	boolean initialOnly = true;
-                    for (PropertyValueWithOrigin pvwoToAdd : pvwosToAdd) {
-                        Mapping<?> mapping = pvwoToAdd.getMapping();
-                        if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                            initialOnly = false;
-                        }
-                        if (mapping.isExclusive()) {
-                            if (exclusiveMapping == null) {
-                                exclusiveMapping = mapping;
-                            } else {
-                                String message = "Exclusion conflict in account " + rat + ", attribute " + attributeName +
-                                        ", conflicting constructions: " + exclusiveMapping + " and " + mapping;
-                                LOGGER.error(message);
-                                throw new ExpressionEvaluationException(message);
-                            }
-                        }
-                    }
-                    if (initialOnly) {
-                        if (attributesPropertyContainer != null) {
-                            PrismProperty attributeNew = attributesPropertyContainer.findProperty(attributeName);
-                            if (attributeNew != null && !attributeNew.isEmpty()) {
-                                // There is already a value, skip this
-                                LOGGER.trace("Value {} is initial and the attribute already has a value, skipping it", value);
-                                continue;
-                            }
-                        }
-                    }
-                    LOGGER.trace("Value {} added", value);
-                    propDelta.addValueToAdd((PrismPropertyValue)value.clone());
-                }
-
-                if (!minusPvwos.isEmpty()) {
-                    LOGGER.trace("Value {} deleted", value);
-                    propDelta.addValueToDelete((PrismPropertyValue)value.clone());
-                }
-            }
-
+            LOGGER.trace("Consolidating account {}, attribute {}", rat, attributeName);
+                        
+            RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
+            
+            // TODO
+            PropertyDelta<?> existingAttributeDelta = null;
+            
+			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
+					new ItemPath(SchemaConstants.I_ATTRIBUTES, attributeName), 
+					(DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
+            		addUnchangedValues, false, "account " + rat);
+            
             propDelta = consolidateWithSync(accCtx, propDelta);
 
-            if (propDelta != null) {
+            if (propDelta != null && !propDelta.isEmpty()) {
             	propDelta.simplify();
+            	propDelta.validate();
                 objectDelta.addModification(propDelta);
             }
+            
         }
 
         return objectDelta;
     }
+    
+    
 
 	private void consolidateValuesAddAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {
@@ -396,40 +334,9 @@ public class ConsolidationProcessor {
         }
     }
 
-    private Collection<PrismPropertyValue<?>> collectAllValues(DeltaSetTriple<PropertyValueWithOrigin> triple) {
-        Collection<PrismPropertyValue<?>> allValues = new HashSet<PrismPropertyValue<?>>();
-        collectAllValuesFromSet(allValues, triple.getZeroSet());
-        collectAllValuesFromSet(allValues, triple.getPlusSet());
-        collectAllValuesFromSet(allValues, triple.getMinusSet());
-        return allValues;
-    }
-
-    private void collectAllValuesFromSet(Collection<PrismPropertyValue<?>> allValues,
-            Collection<PropertyValueWithOrigin> collection) {
-        if (collection == null) {
-            return;
-        }
-        for (PropertyValueWithOrigin pvwo : collection) {
-        	PrismPropertyValue<?> pval = pvwo.getPropertyValue();
-        	if (!PrismValue.containsRealValue(allValues, pval)) {
-        		allValues.add(pval);
-        	}
-        }
-    }
-
-    private Collection<PropertyValueWithOrigin> collectPvwosFromSet(PrismPropertyValue<?> pvalue,
-            Collection<PropertyValueWithOrigin> deltaSet) {
-    	Collection<PropertyValueWithOrigin> pvwos = new ArrayList<PropertyValueWithOrigin>();
-        for (PropertyValueWithOrigin setPvwo : deltaSet) {
-        	if (setPvwo.equalsRealValue(pvalue)) {
-        		pvwos.add(setPvwo);
-        	}
-        }
-        return pvwos;
-    }
-    
-	private Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> sqeezeAttributes(LensProjectionContext<AccountShadowType> accCtx) {
-		Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap = new HashMap<QName, DeltaSetTriple<PropertyValueWithOrigin>>();
+	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> sqeezeAttributes(LensProjectionContext<AccountShadowType> accCtx) {
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap 
+						= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>>();
 		if (accCtx.getAccountConstructionDeltaSetTriple() != null) {
 			sqeezeAttributesFromAccountConstructionTriple(squeezedMap, accCtx.getAccountConstructionDeltaSetTriple());		
 		}
@@ -447,7 +354,7 @@ public class ConsolidationProcessor {
 	}
 
 	private void sqeezeAttributesFromAccountConstructionTriple(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
 		// Zero account constructions go normally, plus to plus, minus to minus
 		sqeezeAttributesFromAccountConstructionSet(squeezedMap, accountConstructionDeltaSetTriple.getZeroSet());
@@ -458,7 +365,7 @@ public class ConsolidationProcessor {
 	}
 
 	private void sqeezeAttributesFromAccountConstructionSet(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			Collection<PrismPropertyValue<AccountConstruction>> accountConstructionSet) {
 		if (accountConstructionSet == null) {
 			return;
@@ -469,7 +376,7 @@ public class ConsolidationProcessor {
 	}
 	
 	private void sqeezeAttributesFromAccountConstructionSetNonminusToPlus(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			Collection<PrismPropertyValue<AccountConstruction>> accountConstructionSet) {
 		if (accountConstructionSet == null) {
 			return;
@@ -480,7 +387,7 @@ public class ConsolidationProcessor {
 	}
 	
 	private void sqeezeAttributesFromAccountConstructionSetNonminusToMinus(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			Collection<PrismPropertyValue<AccountConstruction>> accountConstructionSet) {
 		if (accountConstructionSet == null) {
 			return;
@@ -491,14 +398,14 @@ public class ConsolidationProcessor {
 	}
 
 	private void sqeezeAttributesFromAccountConstruction(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			AccountConstruction accountConstruction) {
 		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
 				continue;
 			}
-			DeltaSetTriple<PropertyValueWithOrigin> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
+			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
 			convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), vc, accountConstruction);
 			convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getPlusSet(), vc, accountConstruction);
 			convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getMinusSet(), vc, accountConstruction);
@@ -506,14 +413,14 @@ public class ConsolidationProcessor {
 	}
 	
 	private void sqeezeAttributesFromAccountConstructionNonminusToPlus(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			AccountConstruction accountConstruction) {
 		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
 				continue;
 			}
-			DeltaSetTriple<PropertyValueWithOrigin> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
+			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
 			convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getPlusSet(), vc, accountConstruction);
 			convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getPlusSet(), vc, accountConstruction);
 			// Ignore minus set
@@ -521,35 +428,36 @@ public class ConsolidationProcessor {
 	}
 
 	private void sqeezeAttributesFromAccountConstructionNonminusToMinus(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
 			AccountConstruction accountConstruction) {
 		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeConstructions()) {
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
 				continue;
 			}
-			DeltaSetTriple<PropertyValueWithOrigin> squeezeTriple = getSqueezeMapTriple(squeezedMap, vc.getItemName());
+			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> squeezeTriple 
+													= getSqueezeMapTriple(squeezedMap, vc.getItemName());
 			convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), vc, accountConstruction);
 			convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), vc, accountConstruction);
 		}
 	}
 
 	private void convertSqueezeSet(Collection<? extends PrismPropertyValue<?>> fromSet,
-			Collection<PropertyValueWithOrigin> toSet,
+			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> toSet,
 			Mapping<? extends PrismPropertyValue<?>> valueConstruction, AccountConstruction accountConstruction) {
 		if (fromSet != null) {
-			for (PrismPropertyValue<?> from: fromSet) {
-				PropertyValueWithOrigin pvwo = new PropertyValueWithOrigin(from, valueConstruction, accountConstruction);
+			for (PrismValue from: fromSet) {
+				ItemValueWithOrigin<PrismPropertyValue<?>> pvwo = new ItemValueWithOrigin(from, valueConstruction, accountConstruction);
 				toSet.add(pvwo);
 			}
 		}
 	}
 
-	private DeltaSetTriple<PropertyValueWithOrigin> getSqueezeMapTriple(
-			Map<QName, DeltaSetTriple<PropertyValueWithOrigin>> squeezedMap, QName itemName) {
-		DeltaSetTriple<PropertyValueWithOrigin> triple = squeezedMap.get(itemName);
+	private DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> getSqueezeMapTriple(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap, QName itemName) {
+		DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> triple = squeezedMap.get(itemName);
 		if (triple == null) {
-			triple = new DeltaSetTriple<PropertyValueWithOrigin>();
+			triple = new DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>();
 			squeezedMap.put(itemName, triple);
 		}
 		return triple;

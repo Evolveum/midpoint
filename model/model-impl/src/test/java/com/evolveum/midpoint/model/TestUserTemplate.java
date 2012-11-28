@@ -109,6 +109,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
 	private static String accountOid;
+	private static String jackEmployeeNumber;
 	
 	public TestUserTemplate() throws JAXBException {
 		super();
@@ -151,11 +152,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test101ModifyUserEmployeeType() throws Exception {
-        displayTestTile(this, "test101ModifyUserEmployeeType");
+    public void test101ModifyUserEmployeeTypePirate() throws Exception {
+		final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test101ModifyUserEmployeeType");
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
     
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
@@ -180,7 +182,41 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
         
-        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", GenerateExpressionEvaluator.DEFAULT_LENGTH, userJackType.getEmployeeNumber().length());
+        jackEmployeeNumber = userJackType.getEmployeeNumber();
+        assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
+        		GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
+	}
+	
+	@Test
+    public void test102ModifyUserEmployeeTypeBartender() throws Exception {
+		final String TEST_NAME = "test102ModifyUserEmployeeTypeBartender";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, prismContext, "BARTENDER");
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 1);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        
+        assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
 	
 	@Test

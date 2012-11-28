@@ -20,10 +20,15 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -36,8 +41,10 @@ import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -47,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -152,8 +160,27 @@ public class UserPolicyProcessor {
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 		ObjectDelta<UserType> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
 		ObjectDeltaObject<UserType> userOdo = focusContext.getObjectDeltaObject();
+		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+		
+		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
+			= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
+		
 		for (MappingType mappingType : userTemplate.getMapping()) {
-			ItemDelta<PrismValue> itemDelta = evaluateMapping(context, mappingType, userTemplate, userOdo, result);
+			collectTripleFromMapping(context, mappingType, userTemplate, userOdo, outputTripleMap, result);
+		}
+		
+		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
+			ItemPath itemPath = entry.getKey();
+			DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
+			
+			// TODO
+			ItemDelta<? extends PrismValue> apropriItemDelta = null;
+			
+			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple, userDefinition.findItemDefinition(itemPath),
+					apropriItemDelta, userOdo.getNewObject(), true, true, "user template "+userTemplate);
+			
+			itemDelta.simplify();
+			itemDelta.validate("user template "+userTemplate);
 			
 			if (itemDelta != null && !itemDelta.isEmpty()) {
 				if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
@@ -171,7 +198,30 @@ public class UserPolicyProcessor {
 
 	}
 
-	private <V extends PrismValue> ItemDelta<V> evaluateMapping(final LensContext<UserType, AccountShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
+	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, AccountShadowType> context, 
+			MappingType mappingType, UserTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
+			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, OperationResult result) 
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
+		Mapping<V> mapping = evaluateMapping(context, mappingType, userTemplate, userOdo, result);
+		if (mapping == null) {
+			return;
+		}
+		ItemPath itemPath = mapping.getOutputPath();
+		DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+		if (outputTriple == null) {
+			return;
+		}
+		DeltaSetTriple<ItemValueWithOrigin<V>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V>>) outputTripleMap.get(itemPath);
+		if (mapTriple == null) {
+			outputTripleMap.put(itemPath, outputTriple);
+		} else {
+			mapTriple.merge(outputTriple);
+		}
+		
+	}
+	
+	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, AccountShadowType> context, final MappingType mappingType, UserTemplateType userTemplate, 
 			ObjectDeltaObject<UserType> userOdo, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"user template mapping in " + userTemplate
@@ -246,38 +296,8 @@ public class UserPolicyProcessor {
 		mapping.setStringPolicyResolver(stringPolicyResolver);
 
 		mapping.evaluate(result);
-
-		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
-		ItemDelta<V> itemDelta = null;
-		if (outputTriple != null) {
-			itemDelta = mapping.createEmptyDelta(itemPath);
-			Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
-			if (outputDefinition.isMultiValue()) {
-				for (V value: nonNegativeValues) {
-					if (!hasValue(existingUserItem, value)) {
-						itemDelta.addValueToAdd((V) value.clone());
-					}
-				}
-				// TODO: remove values
-			} else {
-				if (nonNegativeValues.size() > 1) {
-					throw new SchemaException("Attempt to store "+nonNegativeValues.size()+" values in single-valued user property "+itemPath);
-				}
-				if (nonNegativeValues.size() == 0) {
-					if (existingUserItem != null && !existingUserItem.isEmpty()) {
-						// Empty set in replace value will cause the property to remove all existing values.
-						itemDelta.setValuesToReplace(nonNegativeValues);
-					}
-				} else {
-					V value = nonNegativeValues.iterator().next();
-					if (!hasValue(existingUserItem, value)) {
-						itemDelta.setValueToReplace((V) value.clone());
-					}
-				}
-			}
-		}
-
-		return itemDelta;
+		
+		return mapping;
 	}
 
 

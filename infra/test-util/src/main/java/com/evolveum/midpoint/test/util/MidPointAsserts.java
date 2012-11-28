@@ -55,6 +55,20 @@ public class MidPointAsserts {
 		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
 	}
 	
+	public static void assertNotAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
+		UserType userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			ObjectReferenceType targetRef = assignmentType.getTargetRef();
+			if (targetRef != null) {
+				if (refType.equals(targetRef.getType())) {
+					if (targetOid.equals(targetRef.getOid())) {
+						AssertJUnit.fail(user + " does have assigned "+refType.getLocalPart()+" "+targetOid+" while not expecting it");
+					}
+				}
+			}
+		}
+	}
+	
 	public static void assertAssignments(PrismObject<UserType> user, int expectedNumber) {
 		UserType userType = user.asObjectable();
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
@@ -62,6 +76,10 @@ public class MidPointAsserts {
 	
 	public static void assertAssignedRole(PrismObject<UserType> user, String roleOid) {
 		assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
+	}
+	
+	public static void assertNotAssignedRole(PrismObject<UserType> user, String roleOid) {
+		assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
 	
 	public static void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
