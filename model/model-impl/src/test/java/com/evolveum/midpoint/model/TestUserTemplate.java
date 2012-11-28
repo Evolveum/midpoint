@@ -190,6 +190,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess(result);
         
+        assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
+        
         jackEmployeeNumber = userJackType.getEmployeeNumber();
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
@@ -231,6 +233,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess(result);
         
+        assertEquals("Wrong costCenter", "B666", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
 	
@@ -266,6 +269,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         assertSuccess(result);
         
+        assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
 	
