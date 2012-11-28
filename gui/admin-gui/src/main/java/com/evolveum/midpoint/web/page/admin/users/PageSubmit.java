@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -84,12 +85,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 /**
  * @author mserbak
@@ -104,14 +99,14 @@ public class PageSubmit extends PageAdmin {
 	private AccountChangesDto accountChangesDto;
 	private ModelContext previewChanges;
 	private Collection<ObjectDelta<? extends ObjectType>> deltasChanges;
-	private ObjectDelta delta;
+	private ObjectDelta<UserType> delta;
 
 	private List<SubmitAccountDto> accountsChangesList;
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
 	public PageSubmit(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
-			ObjectDelta userDelta, ArrayList<PrismObject> accountsBeforeModify) {
+			ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify) {
 		if (previewChanges == null || allDeltas == null || userDelta == null) {
 			getSession().error(getString("pageSubmit.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
@@ -624,12 +619,13 @@ public class PageSubmit extends PageAdmin {
 			LoggingUtils.logException(LOGGER, getString("pageSubmit.message.cantCreateUser"), ex);
 		}
 
-		if (!result.isSuccess()) {
-			showResult(result);
-			target.add(getFeedbackPanel());
+        boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
+        if (userAdded || result.isSuccess() || result.isHandledError() || result.isInProgress()) {
+            showResultInSession(result);
+            setResponsePage(PageUsers.class);
 		} else {
-			showResultInSession(result);
-			setResponsePage(PageUsers.class);
+            showResult(result);
+            target.add(getFeedbackPanel());
 		}
 	}
 

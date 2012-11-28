@@ -982,12 +982,12 @@ public class PageUser extends PageAdminUsers {
 
         OperationResult result = new OperationResult(OPERATION_SAVE);
         ObjectWrapper userWrapper = userModel.getObject();
-        //todo: improve, userAdded variable is quickfix for MID-1006
+        //todo: improve, delta variable is quickfix for MID-1006
         //redirecting to user list page everytime user is created in repository during user add in gui,
         //and we're not taking care about account/assignment create errors (error message is still displayed)
-        boolean userAdded = false;
+        ObjectDelta delta = null;
         try {
-            ObjectDelta delta = userWrapper.getObjectDelta();
+            delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
@@ -1003,8 +1003,6 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-
-                    userAdded = StringUtils.isNotEmpty(delta.getOid());
                     break;
                 case MODIFYING:
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
@@ -1030,7 +1028,8 @@ public class PageUser extends PageAdminUsers {
             result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
             LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
         }
-        
+
+        boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
 		if (userAdded || result.isSuccess() || result.isHandledError() || result.isInProgress()) {
 			showResultInSession(result);
             //todo refactor this...what is this for? why it's using some "shadow" param from result???
