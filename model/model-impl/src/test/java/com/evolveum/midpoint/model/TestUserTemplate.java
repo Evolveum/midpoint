@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
@@ -147,6 +149,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userJack);
         assertAssignments(userJack, 1);
         
+        result.computeStatus();
+        assertSuccess(result);
+        
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
 	}
@@ -182,14 +187,56 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
         
+        result.computeStatus();
+        assertSuccess(result);
+        
         jackEmployeeNumber = userJackType.getEmployeeNumber();
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
 	}
 	
+	/**
+	 * Switch employeeType from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
+	 * true. For the same role assignement value. So nothing should be changed.
+	 */
 	@Test
-    public void test102ModifyUserEmployeeTypeBartender() throws Exception {
-		final String TEST_NAME = "test102ModifyUserEmployeeTypeBartender";
+    public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
+		final String TEST_NAME = "test102ModifyUserEmployeeTypeBuccaneer";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, prismContext, "BUCCANEER");
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+		
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 2);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 2, userJackType.getAccountRef().size());
+        
+        result.computeStatus();
+        assertSuccess(result);
+        
+        assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
+	}
+	
+	@Test
+    public void test103ModifyUserEmployeeTypeBartender() throws Exception {
+		final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -215,6 +262,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        
+        result.computeStatus();
+        assertSuccess(result);
         
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
@@ -246,6 +296,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         UserType userAfterType = userAfter.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userAfterType.getAccountRef().size());
+        
+        result.computeStatus();
+        assertSuccess(result);
         
         assertEquals("Unexpected value of employeeNumber, maybe it was generated and should not be?", 
         		"D3ADB33F", userAfterType.getEmployeeNumber());
@@ -281,6 +334,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userAfterType = userAfter.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userAfterType.getAccountRef().size());
         
+        result.computeStatus();
+        assertSuccess(result);
+        
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
 	}
@@ -315,6 +371,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userAfterType = userAfter.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userAfterType.getAccountRef().size());
         
+        result.computeStatus();
+        assertSuccess(result);
+        
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
 	}
@@ -345,6 +404,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		}
 
 		// TODO: check on resource
+		
+		result.computeStatus();
+        assertFailure(result);
 	}
 	
 }

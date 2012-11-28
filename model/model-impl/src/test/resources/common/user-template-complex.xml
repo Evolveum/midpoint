@@ -88,6 +88,31 @@
 		</condition>
     </mapping>
     
+    <!-- This is quite a stupid way how to add the same role for many values of user property.
+         A single mapping with a condition that has an '||' operator internally will be more efficient.
+         But this is using this way to check for situation in which the same value is added and removed at the same time. -->
+    <mapping>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
+            <value>
+            	<assignment>
+					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+				</assignment>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            	<code>employeeType == 'BUCCANEER'</code>
+            </script>
+		</condition>
+    </mapping>
+    
     <!-- Automatically generate employee number if there is none (note the "initial" flag) -->
     <mapping>
     	<strength>weak</strength>
