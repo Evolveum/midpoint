@@ -24,6 +24,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -96,10 +99,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	 */
 	@Test
     public void test100UserJackAssignBlankAccount() throws Exception {
-        displayTestTile(this, "test100UserJackAssignBlankAccount");
+		final String TEST_NAME = "test100UserJackAssignBlankAccount";
+        displayTestTile(this, "TEST_NAME");
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100UserJackAssignBlankAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
@@ -117,6 +122,53 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         	// This is expected
         	display("Expected exception", e);
         }
+        
+        result.computeStatus();
+        assertFailure(result);
+		
+	}
+	
+	/**
+	 * The "while" resource has no outbound mapping and there is also no mapping in the assignment. Therefore
+	 * this results in account without any attributes. It should fail.
+	 */
+	@Test
+    public void test101AddUserCharlesAssignBlankAccount() throws Exception {
+		final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
+        displayTestTile(this, "TEST_NAME");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> userCharles = getLeChuck();
+        fillinUser(userCharles, "charles", "Charles L. Charles");
+        fillinUserAssignmentAccountConstruction(userCharles, RESOURCE_DUMMY_WHITE_OID);
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userCharles);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
+        try {
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+			
+			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
+        } catch (SchemaException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
+        
+        result.computeStatus();
+        assertFailure(result);
+        
+        // Even though the operation failed the addition of a user should be successful. Let's check if user was really added.
+        String userOid = userDelta.getOid();
+        assertNotNull("No user OID in delta after operation", userOid);
+        
+        PrismObject<UserType> userAfter = getUser(userOid);
+        assertUser(userAfter, userOid, "charles", "Charles L. Charles", null, null);
 		
 	}
 		
