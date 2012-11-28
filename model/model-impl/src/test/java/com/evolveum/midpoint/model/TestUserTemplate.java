@@ -273,6 +273,46 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
 	}
 	
+	/**
+	 * Cost center has two mappings. Strong mapping should not be applied here as the condition is false.
+	 * The weak mapping should be overridden by the change we try here.
+	 */
+	@Test
+    public void test104ModifyUserCostCenter() throws Exception {
+		final String TEST_NAME = "test104ModifyUserCostCenter";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+    
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+        		USER_JACK_OID, UserType.F_COST_CENTER, prismContext, "X000");
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignments(userJack, 1);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getAccountRef().size());
+        
+        result.computeStatus();
+        assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
+	}
+	
 	@Test
     public void test200AddUserRapp() throws Exception {
         displayTestTile(this, "test100ModifyUserGivenName");
