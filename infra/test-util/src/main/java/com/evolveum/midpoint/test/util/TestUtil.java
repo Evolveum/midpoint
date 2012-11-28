@@ -30,7 +30,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 
 import java.util.Arrays;
@@ -42,6 +45,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -54,6 +58,10 @@ import static org.testng.AssertJUnit.assertEquals;
  * @author Radovan Semancik
  */
 public class TestUtil {
+	
+	public static final int MAX_EXCEPTION_MESSAGE_LENGTH = 500;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(TestUtil.class);
 
     public static <T> void assertPropertyValueSetEquals(Collection<PrismPropertyValue<T>> actual, T... expected) {
         Set<T> set = new HashSet<T>();
@@ -119,4 +127,12 @@ public class TestUtil {
 		AssertJUnit.fail("No element with name "+elementQName);
 	}
 
+	public static void assertExceptionSanity(ObjectAlreadyExistsException e) {
+		LOGGER.debug("Excpetion (expected)", e, e);
+		System.out.println("Excpetion (expected)");
+		System.out.println(ExceptionUtils.getFullStackTrace(e));
+		assert !e.getMessage().isEmpty() : "Empty exception message";
+		assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
+				+e.getMessage().length()+" characters): "+e.getMessage();
+	}
 }

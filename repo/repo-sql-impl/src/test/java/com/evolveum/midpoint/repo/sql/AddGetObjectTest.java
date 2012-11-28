@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Session;
@@ -125,23 +127,37 @@ public class AddGetObjectTest extends AbstractTestNGSpringContextTests {
 		stats.logSummary();
 	}
 
-	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
+	@Test
 	public void addSameName() throws Exception {
 		final File user = new File("./src/test/resources/objects-user.xml");
 		addGetCompare(user);
-		addGetCompare(user);
+		try {
+			// WHEN
+			addGetCompare(user);
+			
+			assert false : "Unexpected success";
+		} catch (ObjectAlreadyExistsException e) {
+			TestUtil.assertExceptionSanity(e);
+		}
 	}
 
-	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
+	@Test
 	public void addGetDSEESyncDoubleTest() throws Exception {
 		final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
 		if (!OBJECTS_FILE.exists()) {
 			LOGGER.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
 					new Object[] { OBJECTS_FILE.getPath() });
-			throw new ObjectAlreadyExistsException();
+			return;
 		}
 		addGetCompare(OBJECTS_FILE);
-		addGetCompare(OBJECTS_FILE);
+		try {
+			// WHEN
+			addGetCompare(OBJECTS_FILE);
+			
+			assert false : "Unexpected success";
+		} catch (ObjectAlreadyExistsException e) {
+			TestUtil.assertExceptionSanity(e);
+		}
 	}
 
 	@Test

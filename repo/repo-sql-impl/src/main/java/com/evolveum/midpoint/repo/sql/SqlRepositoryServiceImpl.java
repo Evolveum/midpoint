@@ -91,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
+	private static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
 
 	private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid)
 			throws ObjectNotFoundException, SchemaException, DtoTranslationException {
@@ -350,7 +351,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (StringUtils.isEmpty(originalOid)) {
 				object.setOid(null);
 			}
-			throw new ObjectAlreadyExistsException(ex);
+			String constraintName = ex.getConstraintName();
+			// Breaker to avoid long unreadable messages
+			if (constraintName != null && constraintName.length() > MAX_CONSTRAINT_NAME_LENGTH) {
+				constraintName = null;
+			}
+			throw new ObjectAlreadyExistsException("Conflicting object already exists" 
+					+ (constraintName == null ? "" : " (violated constraint '"+constraintName+"')"), ex);
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {
                 rollbackTransaction(session, ex, result, true);
