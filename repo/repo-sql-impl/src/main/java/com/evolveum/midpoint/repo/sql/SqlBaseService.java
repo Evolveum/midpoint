@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.PessimisticLockException;
+import org.hibernate.QueryTimeoutException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.GenericJDBCException;
@@ -132,6 +133,9 @@ public class SqlBaseService {
             SQLException sqlException = findSqlException(ex);
             boolean serializationCodeFound = sqlException != null && (sqlException.getErrorCode() == 50200 || sqlException.getErrorCode() == 40001 ||
                     "40001".equals(sqlException.getSQLState()) || "40P01".equals(sqlException.getSQLState()));
+
+            //oracle 08177 code check (serialization problem
+            serializationCodeFound = serializationCodeFound || (sqlException != null) && (sqlException.getErrorCode() == 8177);
 
             if (!serializationCodeFound) {
                 // to be sure that we won't miss anything related to deadlocks, here is an ugly hack that checks it (with some probability...)
@@ -249,6 +253,18 @@ public class SqlBaseService {
     }
 
     protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
+        //fix for ORA-08177 can't serialize access for this transaction
+        if (ex instanceof QueryTimeoutException) {
+            if (ex.getCause() != null && !(ex.getCause() instanceof SQLException)) {
+                SQLException sqlEx = (SQLException) ex.getCause();
+                if (sqlEx.getErrorCode() == 8177) {
+                    //todo improve exception handling, maybe "javax.persistence.query.timeout" property can be used
+                    rollbackTransaction(session);
+                    throw (QueryTimeoutException)ex;
+                }
+            }
+        }
+
         rollbackTransaction(session, ex, result, true);
         if (ex instanceof GenericJDBCException) {
             //fix for table timeout lock in H2, this exception will be wrapped as system exception
