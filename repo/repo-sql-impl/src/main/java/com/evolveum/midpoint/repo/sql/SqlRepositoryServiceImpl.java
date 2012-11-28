@@ -808,6 +808,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 						refillHierarchy(rObjectToModify, objectsToRecompute, session);
 						} else{
 							deleteHierarchy(rObjectToModify, session);
+							if (orgType.getParentOrgRef()!= null && !orgType.getParentOrgRef().isEmpty()){
+								for (ObjectReferenceType orgRef : orgType.getParentOrgRef()){
+									fillTransitiveHierarchy(rObjectToModify, orgRef.getOid(), session);
+								}
+							}
 						}
 					}
 					// List<RObject> objectsToRecompute =

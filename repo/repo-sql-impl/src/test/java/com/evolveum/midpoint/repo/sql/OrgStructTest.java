@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -192,15 +193,15 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 
 		repositoryService.modifyObject(OrgType.class, MODIFY_ORG_ADD_REF_OID, delta.getModifications(), opResult);
 
-		LOGGER.info("==>after modify - add<==");
-		results = session.createQuery("from ROrgClosure").list();
-		LOGGER.info("==============CLOSURE TABLE==========");
-		AssertJUnit.assertEquals(67, results.size());
-		for (ROrgClosure o : results) {
-			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
-					o.getDescendant().toJAXB(prismContext), o.getDepth() });
-
-		}
+//		LOGGER.info("==>after modify - add<==");
+//		results = session.createQuery("from ROrgClosure").list();
+//		LOGGER.info("==============CLOSURE TABLE==========");
+//		AssertJUnit.assertEquals(67, results.size());
+//		for (ROrgClosure o : results) {
+//			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
+//					o.getDescendant().toJAXB(prismContext), o.getDepth() });
+//
+//		}
 
 		criteria = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
 				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
@@ -299,7 +300,8 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		}
 		session.close();
 	}
-
+	
+	
 	@Test
 	public void test005deleteOrg() throws Exception {
 		LOGGER.info("===[ deleteOrgStruct ]===");
@@ -417,5 +419,43 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		}
 
 	}
+	
+	@Test
+	public void test009modifyOrgStructRemoveUser() throws Exception {
+		LOGGER.info("===[ modify remove org ref from user ]===");
+		OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
+		// test modification of org ref in another org type..
+//		ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_ADD_USER_FILENAME),
+//				ObjectModificationType.class);
+//		ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+
+		PrismReferenceValue prv = new PrismReferenceValue("00000000-8888-6666-0000-100000000006");
+		prv.setTargetType(OrgType.COMPLEX_TYPE);
+		ObjectDelta delta = ObjectDelta.createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF, prismContext, prv);
+		repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
+
+//		Session session = factory.openSession();
+//		LOGGER.info("==>after modify - add user to org<==");
+//		List<ROrgClosure> results = session.createQuery("from ROrgClosure").list();
+//		AssertJUnit.assertEquals(56, results.size());
+//		LOGGER.info("==============CLOSURE TABLE==========");
+//		for (ROrgClosure o : results) {
+//			LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
+//					o.getDescendant().toJAXB(prismContext), o.getDepth() });
+//
+//		}
+//		session.close();
+		
+		UserType userElaine = repositoryService.getObject(UserType.class, ELAINE_OID, opResult).asObjectable();
+		LOGGER.trace("elaine's og refs");
+		for (ObjectReferenceType ort : userElaine.getParentOrgRef()){
+			LOGGER.trace("{}",ort);
+			if (ort.getOid().equals("00000000-8888-6666-0000-100000000006")){
+				AssertJUnit.fail("expected that elain does not have reference on the org with oid: 00000000-8888-6666-0000-100000000006");
+			}
+		}
+		
+	}
+
 
 }
