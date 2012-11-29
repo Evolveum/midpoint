@@ -49,7 +49,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.TestProjector;
-import com.evolveum.midpoint.model.test.util.mock.MockLensDebugListener;
+import com.evolveum.midpoint.model.util.mock.MockLensDebugListener;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;

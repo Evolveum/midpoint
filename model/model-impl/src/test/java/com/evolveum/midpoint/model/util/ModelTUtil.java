@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.test.util;
+package com.evolveum.midpoint.model.util;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;

@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.test.util.LogfileTestTailer;
+import com.evolveum.midpoint.model.util.LogfileTestTailer;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

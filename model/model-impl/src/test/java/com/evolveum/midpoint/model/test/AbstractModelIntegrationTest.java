@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011 Evolveum
+ * Copyright (c) 2012 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -15,9 +15,9 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2012 [name of copyright owner]
  */
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.test;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -61,7 +61,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.test.util.mock.MockClockworkHook;
+import com.evolveum.midpoint.model.util.mock.MockClockworkHook;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
@@ -143,9 +143,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
- * @author semancik
+ * Abstract framework for an integration test that is placed on top of a model API.
+ * This provides complete environment that the test should need, e.g model service instance, repository, provisionig,
+ * dummy auditing, etc. It also implements lots of useful methods to make writing the tests easier.
+ *  
+ * @author Radovan Semancik
  *
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
@@ -160,6 +165,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected ModelInteractionService modelInteractionService;
+	
+	@Autowired(required = true)
+	protected ModelPortType modelWeb;
 	
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;

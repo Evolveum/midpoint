@@ -51,8 +51,8 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.test.util.ModelTUtil;
-import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
+import com.evolveum.midpoint.model.util.ModelTUtil;
+import com.evolveum.midpoint.model.util.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;

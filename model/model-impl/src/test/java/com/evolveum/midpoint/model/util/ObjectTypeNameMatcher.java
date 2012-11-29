@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model.test.util.mock;
+package com.evolveum.midpoint.model.util;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;

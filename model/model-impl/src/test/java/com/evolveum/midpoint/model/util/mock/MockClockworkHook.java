@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.test.util.mock;
+package com.evolveum.midpoint.model.util.mock;
 
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
