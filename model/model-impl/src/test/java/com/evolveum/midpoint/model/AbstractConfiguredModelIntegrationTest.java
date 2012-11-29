@@ -533,4 +533,13 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		return task;
 	}
 	
+	/**
+	 * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
+	 * existing user values. 
+	 */
+	protected void breakAssignmentDelta(LensContext<UserType, AccountShadowType> context) throws SchemaException {
+        LensFocusContext<UserType> focusContext = context.getFocusContext();
+        ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
+        breakAssignmentDelta(userPrimaryDelta);		
+	}
 }

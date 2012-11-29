@@ -54,6 +54,7 @@
 	</scm>
 	<modules>
 		<module>model-api</module>
+		<module>model-test</module>
 		<module>model-impl</module>
         <module>workflow</module>
 	</modules>
