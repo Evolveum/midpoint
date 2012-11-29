@@ -47,6 +47,7 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -235,6 +236,8 @@ public class UserPolicyProcessor {
 		mapping.setTargetContext(getUserDefinition());
 		mapping.setRootNode(userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		mapping.setOriginType(OriginType.USER_POLICY);
+		mapping.setOriginObject(userTemplate);
 
 		ItemDefinition outputDefinition = mapping.getOutputDefinition();
 		ItemPath itemPath = mapping.getOutputPath();

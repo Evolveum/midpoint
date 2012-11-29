@@ -204,7 +204,7 @@ public class ShadowConverter {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n additional operations:\n{}",
 						new Object[] { resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
-								SchemaDebugUtil.debugDump(additionalOperations) });
+								SchemaDebugUtil.debugDump(additionalOperations,2) });
 			}
 			ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
 					.getObjectClassDefinition(shadowType);

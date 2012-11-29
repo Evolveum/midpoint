@@ -187,7 +187,7 @@ public class ModifyUserAction extends BaseAction {
     }
 
     private LensContext<UserType, AccountShadowType> createSyncContext(UserType user, ResourceType resource, ResourceObjectShadowChangeDescription change) throws SchemaException {
-        LOGGER.debug("Creating sync context.");
+        LOGGER.trace("Creating sync context.");
 
         PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByType(
                 SchemaConstants.I_USER_TYPE);
@@ -200,12 +200,12 @@ public class ModifyUserAction extends BaseAction {
 
         //check and update activation if necessary
         if (userActivationDecision == null) {
-            LOGGER.debug("User activation decision not defined, skipping activation check.");
+            LOGGER.trace("User activation decision not defined, skipping activation check.");
             return context;
         }
 
         PrismProperty enable = oldUser.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ENABLE);
-        LOGGER.debug("User activation defined, activation property found {}", enable);
+        LOGGER.trace("User activation defined, activation property found {}", enable);
 
         PrismPropertyValue<Boolean> value = enable.getValue(Boolean.class);
         if (value != null) {

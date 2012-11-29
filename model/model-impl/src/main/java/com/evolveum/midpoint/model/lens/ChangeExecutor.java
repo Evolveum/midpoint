@@ -344,36 +344,60 @@ public class ChangeExecutor {
         }
         
     	if (LOGGER.isTraceEnabled()) {
-    		logDeltaExecution(objectDelta, context);
+    		logDeltaExecution(objectDelta, context, null);
     	}
 
-        if (objectDelta.getChangeType() == ChangeType.ADD) {
-            executeAddition(objectDelta, result);
-
-        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
-            executeModification(objectDelta, result);
-
-        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
-            executeDeletion(objectDelta, result);
-        }
+    	try {
+    	
+	        if (objectDelta.getChangeType() == ChangeType.ADD) {
+	            executeAddition(objectDelta, result);
+	
+	        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
+	            executeModification(objectDelta, result);
+	
+	        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
+	            executeDeletion(objectDelta, result);
+	        }
+	        
+	        objectContext.addToExecutedDeltas(objectDelta.clone());
         
-        objectContext.addToExecutedDeltas(objectDelta.clone());
+    	} finally {
         
+	        if (LOGGER.isDebugEnabled()) {
+	        	if (LOGGER.isTraceEnabled()) {
+	        		LOGGER.trace("EXECUTION result {}", result.getLastSubresult());
+	        	} else {
+	        		// Execution of deltas was not logged yet
+	        		logDeltaExecution(objectDelta, context, result.getLastSubresult());
+	        	}
+	    	}
+    	}
     }
 	
 	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
-				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F,P> context) {
+				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F,P> context, OperationResult result) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("---[ EXECUTE delta of ").append(objectDelta.getObjectTypeClass().getSimpleName());
+		sb.append("---[ ");
+		if (result == null) {
+			sb.append("Going to EXECUTE");
+		} else {
+			sb.append("EXECUTED");
+		}
+		sb.append(" delta of ").append(objectDelta.getObjectTypeClass().getSimpleName());
 		sb.append(" ]---------------------\n");
 		DebugUtil.debugDumpLabel(sb, "Channel", 0);
 		sb.append(" ").append(context.getChannel()).append("\n");
 		DebugUtil.debugDumpLabel(sb, "Wave", 0);
 		sb.append(" ").append(context.getExecutionWave()).append("\n");
 		sb.append(objectDelta.dump());
+		sb.append("\n");
+		if (result != null) {
+			DebugUtil.debugDumpLabel(sb, "Result", 0);
+			sb.append(" ").append(result.getStatus()).append(": ").append(result.getMessage());
+		}
 		sb.append("\n--------------------------------------------------");
 		
-		LOGGER.trace("\n{}", sb);
+		LOGGER.debug("\n{}", sb);
 	}
 
     private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, OperationResult result) throws ObjectAlreadyExistsException,

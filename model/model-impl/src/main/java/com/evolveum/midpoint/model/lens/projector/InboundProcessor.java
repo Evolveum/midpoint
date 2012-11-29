@@ -151,7 +151,7 @@ public class InboundProcessor {
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	
         if (aPrioriDelta == null && accContext.getObjectOld() == null) {
-            LOGGER.debug("Nothing to process in inbound, both a priori delta and account old were null.");
+            LOGGER.trace("Nothing to process in inbound, both a priori delta and account old were null.");
             return;
         }
 
@@ -172,7 +172,7 @@ public class InboundProcessor {
 
             RefinedAttributeDefinition attrDef = accountDefinition.getAttributeDefinition(accountAttributeName);
             List<MappingType> inboundMappingTypes = attrDef.getInboundMappingTypes();
-            LOGGER.debug("Processing inbound for {} in {}; ({} mappings)", new Object[]{
+            LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", new Object[]{
             		PrettyPrinter.prettyPrint(accountAttributeName), accContext.getResourceShadowDiscriminator(), (inboundMappingTypes != null ? inboundMappingTypes.size() : 0)});
 
             for (MappingType inboundMappingType : inboundMappingTypes) {

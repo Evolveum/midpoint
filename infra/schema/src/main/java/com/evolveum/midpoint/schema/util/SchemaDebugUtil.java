@@ -74,12 +74,16 @@ public class SchemaDebugUtil {
 	
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
+		indentDebugDump(sb, indent);
 		sb.append(getCollectionOpeningSymbol(dumpables));
-		sb.append("\n");
-		for (DebugDumpable dd : dumpables) {
-			sb.append(dd.debugDump(indent + 1));
+		if (!dumpables.isEmpty()) {		
+			sb.append("\n");
+			for (DebugDumpable dd : dumpables) {
+				sb.append(dd.debugDump(indent + 1));
+			}
+			sb.append("\n");
+			indentDebugDump(sb, indent);
 		}
-		sb.append("\n");
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}

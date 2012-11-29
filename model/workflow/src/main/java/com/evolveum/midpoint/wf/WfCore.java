@@ -79,7 +79,7 @@ public class WfCore {
     HookOperationMode executeProcessStartIfNeeded(ModelContext context, Task task, OperationResult result) {
 
         for (ProcessWrapper wrapper : wfHook.getWrappers()) {
-            LOGGER.debug("Trying wrapper: " + wrapper.getClass().getName());
+            LOGGER.trace("Trying wrapper: " + wrapper.getClass().getName());
             StartProcessInstruction startCommand = wrapper.startProcessIfNeeded(context, task, result);
             if (startCommand != null) {
                 LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
@@ -94,7 +94,7 @@ public class WfCore {
             }
         }
 
-        LOGGER.debug("No wrapper served this request, returning the FOREGROUND flag.");
+        LOGGER.trace("No wrapper served this request, returning the FOREGROUND flag.");
         return HookOperationMode.FOREGROUND;
     }
 
