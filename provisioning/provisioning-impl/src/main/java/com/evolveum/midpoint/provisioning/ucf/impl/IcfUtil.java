@@ -12,7 +12,9 @@ import java.util.Set;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NoPermissionException;
 import javax.naming.ServiceUnavailableException;
+import javax.naming.directory.AttributeInUseException;
 import javax.naming.directory.InvalidAttributeValueException;
+import javax.naming.directory.NoSuchAttributeException;
 import javax.naming.directory.SchemaViolationException;
 
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
@@ -253,6 +255,15 @@ class IcfUtil {
 		} else if (ex instanceof NoPermissionException){
 			Exception newEx = new SecurityViolationException(createMessageFromAllExceptions(null,ex));
 			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
+			return newEx;
+		} else if (ex instanceof AttributeInUseException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, ex));
+			parentResult.recordFatalError("Attribute in use: "+ex.getMessage(), newEx);
+			return newEx;
+
+		} else if (ex instanceof NoSuchAttributeException) {
+			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, ex));
+			parentResult.recordFatalError("No such attribute: "+ex.getMessage(), newEx);
 			return newEx;
 		}
 		if (ex.getCause() == null) {

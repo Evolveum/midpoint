@@ -435,6 +435,22 @@ public class ShadowCache {
 		Set<PropertyModificationOperation> sideEffectChanges = null;
 
 		try {
+			ObjectDelta mergedDelta = null;
+			if (!isReconciled) {
+				
+				if (shadow.getObjectChange() != null) {
+					ObjectDeltaType deltaType = shadow.getObjectChange();
+					Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
+							deltaType.getModification(), shadow.asPrismObject().getDefinition());
+					mergedDelta = ObjectDelta.union(ObjectDelta.createModifyDelta(oid, modifications,
+							AccountShadowType.class, prismContext), ObjectDelta.createModifyDelta(oid,
+							pendingModifications, AccountShadowType.class, prismContext));
+				}
+			}
+			if (mergedDelta != null ){
+				modifications = mergedDelta.getModifications();
+			}
+			
 			sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes, oid, modifications,
 					parentResult);
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.UP, parentResult);

@@ -130,7 +130,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			}
 			operationResult.computeStatus();
 			parentResult
-					.recordHandledError("Could not create account on the resource, because "
+					.recordHandledError("Could not create account=" +shadow.getName().getOrig()+" on the resource, because "
 									+ ObjectTypeUtil.toShortString(resource)
 									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
 			
@@ -163,7 +163,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			}
 			operationResult.computeStatus();
 			parentResult
-					.recordHandledError("Could not apply modifications to account on the "
+					.recordHandledError("Could not apply modifications to "+ObjectTypeUtil.toShortString(shadow)+" on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", because resource is unreachable. Modifications will be applied when the resource goes online");
 			return shadow;
@@ -177,7 +177,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				subRes.muteError();
 			}
 			parentResult
-					.recordHandledError("Could not delete account from the resource "
+					.recordHandledError("Could not delete " +ObjectTypeUtil.getShortTypeName(shadow)+ " from the resource "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", because resource is unreachable. Account will be delete when the resource goes online");
 //			operationResult.recordSuccess();
@@ -189,7 +189,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			for (OperationResult subRes : parentResult.getSubresults()) {
 				subRes.muteError();
 			}
-			operationResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Could not get account from the resource "
+			operationResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Could not get "+ObjectTypeUtil.toShortString(shadow)+" from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
 					+ ", because resource is unreachable. Returning shadow from the repository");
 			shadow.setFetchResult(operationResult.createOperationResultType());

@@ -140,8 +140,12 @@ public class ShadowConverter {
 			throw ex;
 		}
 		
-		if (repoShadow.getObjectChange() != null && repoShadow.getFailedOperationType() != null){
-			throw new GenericConnectorException("Found changes that have been not applied to the account yet. Trying to apply them now.");
+		//try to apply changes to the account only if the resource if UP
+		if (repoShadow.getObjectChange() != null && repoShadow.getFailedOperationType() != null
+				&& resource.getOperationalState() != null
+				&& resource.getOperationalState().getLastAvailabilityStatus() == AvailabilityStatusType.UP) {
+			throw new GenericConnectorException(
+					"Found changes that have been not applied to the account yet. Trying to apply them now.");
 		}
 
 		Collection<? extends ResourceAttribute<?>> attributes = ResourceObjectShadowUtil
@@ -329,22 +333,22 @@ public class ShadowConverter {
 					+ objectClassDefinition + ": " + identifiers);
 		}
 		
-		ObjectDelta mergedDelta = null;
-		if (shadow.getObjectChange() != null) {
-			ObjectDeltaType deltaType = shadow.getObjectChange();
-			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-					deltaType.getModification(), shadow.asPrismObject().getDefinition());
-			mergedDelta = ObjectDelta.union(
-					ObjectDelta.createModifyDelta(oid, objectChanges, AccountShadowType.class, prismContext),
-					ObjectDelta.createModifyDelta(oid, pendingModifications, AccountShadowType.class, prismContext));
-		}
+//		ObjectDelta mergedDelta = null;
+//		if (shadow.getObjectChange() != null) {
+//			ObjectDeltaType deltaType = shadow.getObjectChange();
+//			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
+//					deltaType.getModification(), shadow.asPrismObject().getDefinition());
+//			mergedDelta = ObjectDelta.union(
+//					ObjectDelta.createModifyDelta(oid, objectChanges, AccountShadowType.class, prismContext),
+//					ObjectDelta.createModifyDelta(oid, pendingModifications, AccountShadowType.class, prismContext));
+//		}
 
-		if (mergedDelta == null) {
+//		if (mergedDelta == null) {
 			getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition);
-		} else {
-			getAttributeChanges(mergedDelta.getModifications(), operations, resource, shadow,
-					resourceAttributeDefinition);
-		}
+//		} else {
+//			getAttributeChanges(mergedDelta.getModifications(), operations, resource, shadow,
+//					resourceAttributeDefinition);
+//		}
 		
 		if (shadow.getFetchResult() != null){
 			parentResult.addParam("shadow", shadow);
