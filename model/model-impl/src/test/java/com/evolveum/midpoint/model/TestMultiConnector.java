@@ -119,7 +119,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestMultiConnector extends AbstractModelIntegrationTest {
+public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 			
 	private String connectorDummyOid;
 	private String connectorDummyFakeOid;

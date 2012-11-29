@@ -223,8 +223,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         
-        PrismObject<UserType> userOtis = getLeChuck();
-        fillinUser(userOtis, "otis", "Otis");
+        PrismObject<UserType> userOtis = createUser("otis", "Otis");
         fillinUserAssignmentAccountConstruction(userOtis, RESOURCE_DUMMY_OID);
 		
 		display("Half-assigned user", userOtis);
@@ -277,8 +276,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         
-        PrismObject<UserType> userNavigator = getLeChuck();
-        fillinUser(userNavigator, "navigator", "Head of the Navigator");
+        PrismObject<UserType> userNavigator = createUser("navigator", "Head of the Navigator");
         fillinUserAssignmentAccountConstruction(userNavigator, RESOURCE_DUMMY_OID);
 		
 		display("Half-assigned user", userNavigator);

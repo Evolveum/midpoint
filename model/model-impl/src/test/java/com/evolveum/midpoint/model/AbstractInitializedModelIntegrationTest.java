@@ -146,7 +146,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author semancik
  *
  */
-public class AbstractInitializedModelIntegrationTest extends AbstractModelIntegrationTest {
+public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredModelIntegrationTest {
 	
 	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME = "location";
 	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME);

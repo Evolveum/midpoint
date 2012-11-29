@@ -1671,9 +1671,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
 
-        PrismObject<UserType> user = getLeChuck();
-        user.asObjectable().setName(PrismTestUtil.createPolyStringType("charles"));
-        user.asObjectable().setFullName(PrismTestUtil.createPolyStringType("Charles L. Charles"));
+        PrismObject<UserType> user = createUser("charles", "Charles L. Charles");
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);                
 		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);

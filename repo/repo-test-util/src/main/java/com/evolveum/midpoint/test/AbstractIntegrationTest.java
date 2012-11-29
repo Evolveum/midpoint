@@ -75,6 +75,9 @@ import static org.testng.AssertJUnit.assertNotNull;
  * 
  */
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
+	
+	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
+	protected static final String DEFAULT_ACCOUNT_TYPE = "default";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 

@@ -39,7 +39,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.model.TestModelServiceContract;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -143,8 +143,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         
-        PrismObject<UserType> userCharles = getLeChuck();
-        fillinUser(userCharles, "charles", "Charles L. Charles");
+        PrismObject<UserType> userCharles = createUser("charles", "Charles L. Charles");
         fillinUserAssignmentAccountConstruction(userCharles, RESOURCE_DUMMY_WHITE_OID);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userCharles);

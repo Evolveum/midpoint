@@ -148,156 +148,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author semancik
  *
  */
-public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
-	
-	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
-	
-	protected static final String DEFAULT_ACCOUNT_TYPE = "default";
+public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
 	private static final int DEFAULT_TASK_WAIT_TIMEOUT = 10000;
 	private static final long DEFAULT_TASK_SLEEP_TIME = 200;
-	
-	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
-	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-		
-	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
-	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
-	
-	protected static final String USER_TEMPLATE_COMPLEX_FILENAME = COMMON_DIR_NAME + "/user-template-complex.xml";
-	protected static final String USER_TEMPLATE_COMPLEX_OID = "10000000-0000-0000-0000-000000000222";
-
-	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR_NAME + "/connector-ldap.xml";
-	
-	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
-	
-	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
+			
 	protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
-	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
-	
-	protected static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
-	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
-	
-	protected static final String RESOURCE_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/resource-dummy-red.xml";
-	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
-	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
-	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
-
-	protected static final String RESOURCE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-blue.xml";
-	protected static final String RESOURCE_DUMMY_BLUE_OID = "10000000-0000-0000-0000-000000000204";
-	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
-	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
-	
-	// White dummy resource has almost no configuration: no schema, no schemahandling, no synchronization, ...
-	protected static final String RESOURCE_DUMMY_WHITE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-white.xml";
-	protected static final String RESOURCE_DUMMY_WHITE_OID = "10000000-0000-0000-0000-000000000304";
-	protected static final String RESOURCE_DUMMY_WHITE_NAME = "white";
-	protected static final String RESOURCE_DUMMY_WHITE_NAMESPACE = MidPointConstants.NS_RI;
-	
-	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_NAME + "/resource-dummy-schemaless-no-schema.xml";
-	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
-	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
-	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAMESPACE = MidPointConstants.NS_RI;
-	
-	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-fake.xml";
-	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
-
-	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
-	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
-
-	protected static final String ROLE_BETA_FILENAME = COMMON_DIR_NAME + "/role-beta.xml";
-	protected static final String ROLE_BETA_OID = "12345678-d34d-b33f-f00d-55555555bbbb";
-	
-	protected static final String ROLE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-pirate.xml";
-	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
-
-	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
-	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
-	
-	protected static final String ROLE_DUMMIES_FILENAME = COMMON_DIR_NAME + "/role-dummies.xml";
-	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
-
-	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
-	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	protected static final String USER_JACK_USERNAME = "jack";
-
-	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_NAME + "/user-barbossa.xml";
-	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
-
-	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
-	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
-	
-	// Largo does not have a full name set, employeeType=PIRATE
-	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
-	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
-	
-	// Rapp does not have a full name set, employeeType=COOK
-	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
-	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
-	protected static final String USER_RAPP_USERNAME = "rapp";
-	
-	protected static final String USER_LECHUK_FILENAME = COMMON_DIR_NAME + "/user-lechuck.xml";
-
-	// Has null name, doesn not have given name, no employeeType
-	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
-	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
-	
-	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
-	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
-	
-	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy.xml";
-	public static final String ACCOUNT_JACK_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy-red.xml";
-	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
-	
-	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-herman-dummy.xml";
-	public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
-	public static final String ACCOUNT_HERMAN_DUMMY_USERNAME = "ht";
-	
-	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-herman-opendj.xml";
-	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
-	
-	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-guybrush-dummy.xml";
-	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
-	public static final String ACCOUNT_GUYBRUSH_DUMMY_USERNAME = "guybrush";
-	public static final String ACCOUNT_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-guybrush-dummy.xml";
-	public static final String ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-guybrush-dummy-red.xml";
-	
-	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
-	
-	public static final String ACCOUNT_DAVIEJONES_DUMMY_USERNAME = "daviejones";
-	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
-	
-	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
-	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
-	
-	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME = "fullname";
-	protected static final QName DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
-	protected static final ItemPath DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH = new ItemPath(
-			AccountShadowType.F_ATTRIBUTES, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME);
-
-	protected static final String ORG_MONKEY_ISLAND_FILENAME = COMMON_DIR_NAME + "/org-monkey-island.xml";
-	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
-	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
-	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
-	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
-	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
-	
-	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy.xml";
-	protected static final String TASK_RECONCILE_DUMMY_OID = "91919191-76e0-59e2-86d6-3d4f02d3dddd";
-	
-	protected static final String TASK_LIVE_SYNC_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-dumy-livesync.xml";
-	protected static final String TASK_LIVE_SYNC_DUMMY_OID = "10000000-0000-0000-5555-555500000004";
-	
-	protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/task-dumy-blue-livesync.xml";
-	protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_OID = "10000000-0000-0000-5555-555500000204";
-
-	
+		
 	@Autowired(required = true)
 	protected ModelService modelService;
 	
@@ -318,29 +175,10 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 	
 	protected DummyAuditService dummyAuditService;
 	
-	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
-	
-	protected PrismObject<UserType> userAdministrator;
-		
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
+			
 	public AbstractModelIntegrationTest() {
 		super();
-	}
-
-	@Override
-	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
-		LOGGER.trace("initSystem");
-				
-		// System Configuration
-		try {
-			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
-		
-		// Users
-		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		
 	}
 		
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {
@@ -363,225 +201,18 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		assertSuccess("Import of "+filename+" has failed", importResult);
 		return modelService.getObject(type, oid, null, task, result);
 	}
-	
-	protected LensContext<UserType, AccountShadowType> createUserAccountContext() {
-		return new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
-	}
-	
-	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		focusContext.setObjectOld(user);
-	}
-	
-	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, String userOid, OperationResult result) throws SchemaException,
-			ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-        fillContextWithUser(context, user);
-    }
-	
-	protected void fillContextWithUserFromFile(LensContext<UserType, AccountShadowType> context, String filename) throws SchemaException,
-	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(filename));
-		fillContextWithUser(context, user);
-	}
-	
-	protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType, AccountShadowType> context, OperationResult result) throws SchemaException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyAddDelta(UserType.class, null, prismContext);
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		focusContext.setPrimaryDelta(userDelta);
-	}
-	
-	protected void fillContextWithAddUserDelta(LensContext<UserType, AccountShadowType> context, PrismObject<UserType> user) throws SchemaException {
-		ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		focusContext.setPrimaryDelta(userDelta);
-	}
-
-	protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, String accountOid, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-        provisioningService.applyDefinition(account, result);
-        fillContextWithAccount(context, account, result);
-	}
-
-	protected void fillContextWithAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename, OperationResult result) throws SchemaException,
-	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
-		provisioningService.applyDefinition(account, result);
-		fillContextWithAccount(context, account, result);
-	}
-
-    protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, PrismObject<AccountShadowType> account, OperationResult result) throws SchemaException,
-		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	AccountShadowType accountType = account.asObjectable();
-        String resourceOid = accountType.getResourceRef().getOid();
-        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
-        applyResourceSchema(accountType, resourceType);
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ResourceObjectShadowUtil.getIntent(accountType));
-        LensProjectionContext<AccountShadowType> accountSyncContext = context.findOrCreateProjectionContext(rat);
-        accountSyncContext.setOid(account.getOid());
-		accountSyncContext.setObjectOld(account);
-		accountSyncContext.setResource(resourceType);
-		context.rememberResource(resourceType);
-    }
-    
-    protected void makeImportSyncDelta(LensProjectionContext<AccountShadowType> accContext) {
-    	PrismObject<AccountShadowType> syncAccountToAdd = accContext.getObjectOld().clone();
-    	ObjectDelta<AccountShadowType> syncDelta = ObjectDelta.createAddDelta(syncAccountToAdd);
-    	accContext.setSyncDelta(syncDelta);
-    }
-    
+	    
     /**
      * This is not the real thing. It is just for the tests. 
      */
     protected void applyResourceSchema(AccountShadowType accountType, ResourceType resourceType) throws SchemaException {
     	IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
     }
-
-	protected ObjectDelta<UserType> addModificationToContext(LensContext<UserType, AccountShadowType> context, String filename) throws JAXBException,
-			SchemaException, FileNotFoundException {
-	    ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
-	    ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
-	    LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-	    focusContext.addPrimaryDelta(userDelta);
-	    return userDelta;
-	}
-	
-	
-	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, 
-			QName propertyName, Object... propertyValues) throws SchemaException {
-		return addModificationToContextReplaceUserProperty(context, new ItemPath(propertyName), propertyValues);
-	}
-	
-	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(LensContext<UserType, AccountShadowType> context, 
-			ItemPath propertyPath, Object... propertyValues) throws SchemaException {
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, focusContext.getObjectOld().getOid(), 
-				propertyPath, prismContext, propertyValues);
-		focusContext.addPrimaryDelta(userDelta);
-	    return userDelta;
-	}
-	
-	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename) 
-			throws JAXBException, SchemaException, FileNotFoundException {
-		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddReference(UserType.class, focusContext.getObjectOld().getOid(),
-				UserType.F_ACCOUNT_REF, prismContext, account);
-		focusContext.addPrimaryDelta(userDelta);
-		return userDelta;
-	}
-
-	protected ObjectDelta<AccountShadowType> addModificationToContextDeleteAccount(LensContext<UserType, AccountShadowType> context, 
-			String accountOid) 
-			throws SchemaException, FileNotFoundException {
-		LensProjectionContext<AccountShadowType> accountCtx = context.findProjectionContextByOid(accountOid);
-		ObjectDelta<AccountShadowType> deleteAccountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
-		accountCtx.addPrimaryDelta(deleteAccountDelta);
-		return deleteAccountDelta;
-	}
-
-	protected <T> ObjectDelta<AccountShadowType> addModificationToContextReplaceAccountAttribute(LensContext<UserType, AccountShadowType> context, String accountOid, 
-			String attributeLocalName, T... propertyValues) throws SchemaException {
-		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContextByOid(accountOid);		
-		ObjectDelta<AccountShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
-		accCtx.addPrimaryDelta(accountDelta);
-	    return accountDelta;
-	}
-	
-	protected <T> ObjectDelta<AccountShadowType> addSyncModificationToContextReplaceAccountAttribute(LensContext<UserType, AccountShadowType> context, String accountOid, 
-			String attributeLocalName, T... propertyValues) throws SchemaException {
-		LensProjectionContext<AccountShadowType> accCtx = context.findProjectionContextByOid(accountOid);		
-		ObjectDelta<AccountShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
-		accCtx.addAccountSyncDelta(accountDelta);
-	    return accountDelta;
-	}
-
-	protected <T> ObjectDelta<AccountShadowType> createAccountDelta(LensProjectionContext<AccountShadowType> accCtx, String accountOid, 
-			String attributeLocalName, T... propertyValues) throws SchemaException {
-		ResourceType resourceType = accCtx.getResource();
-		QName attrQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeLocalName);
-		ItemPath attrPath = new ItemPath(AccountShadowType.F_ATTRIBUTES, attrQName);
-		RefinedAccountDefinition refinedAccountDefinition = accCtx.getRefinedAccountDefinition();
-		RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
-		assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
-		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createEmptyModifyDelta(AccountShadowType.class, accountOid, prismContext);
-		PropertyDelta<T> attrDelta = new PropertyDelta<T>(attrPath, attrDef);
-		attrDelta.setValuesToReplace(PrismPropertyValue.createCollection(propertyValues));
-		accountDelta.addModification(attrDelta);
-		return accountDelta;
-	}
-	
-	protected void assertNoUserPrimaryDelta(LensContext<UserType, AccountShadowType> context) {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
-		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-		if (userPrimaryDelta == null) {
-			return;
-		}
-		assertTrue("User primary delta is not empty", userPrimaryDelta.isEmpty());
-	}
-
-	protected void assertUserPrimaryDelta(LensContext<UserType, AccountShadowType> context) {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
-		ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-		assertNotNull("User primary delta is null", userPrimaryDelta);
-		assertFalse("User primary delta is empty", userPrimaryDelta.isEmpty());
-	}
-	
-	protected void assertNoUserSecondaryDelta(LensContext<UserType, AccountShadowType> context) throws SchemaException {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
-		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
-		if (userSecondaryDelta == null) {
-			return;
-		}
-		assertTrue("User secondary delta is not empty", userSecondaryDelta.isEmpty());
-	}
-
-	protected void assertUserSecondaryDelta(LensContext<UserType, AccountShadowType> context) throws SchemaException {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
-		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
-		assertNotNull("User secondary delta is null", userSecondaryDelta);
-		assertFalse("User secondary delta is empty", userSecondaryDelta.isEmpty());
-	}
-	
-	protected void assertUserModificationSanity(LensContext<UserType, AccountShadowType> context) throws JAXBException {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
-	    PrismObject<UserType> userOld = focusContext.getObjectOld();
-	    if (userOld == null) {
-	    	return;
-	    }
-	    ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-	    if (userPrimaryDelta != null) {
-		    assertEquals("No OID in userOld", userOld.getOid(), userPrimaryDelta.getOid());
-		    assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
-		    assertNull(userPrimaryDelta.getObjectToAdd());
-		    for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
-		        if (itemMod.getValuesToDelete() != null) {
-		            Item property = userOld.findItem(itemMod.getPath());
-		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
-		            for (Object valueToDelete : itemMod.getValuesToDelete()) {
-		                if (!property.containsRealValue((PrismValue) valueToDelete)) {
-		                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
-		                    display("Deleted value", valueToDelete);
-		                    display("HASHCODE: " + valueToDelete.hashCode());
-		                    for (Object value : property.getValues()) {
-		                        display("Existing value", value);
-		                        display("EQUALS: " + valueToDelete.equals(value));
-		                        display("HASHCODE: " + value.hashCode());
-		                    }
-		                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
-		                }
-		            }
-		        }
-		
-		    }
-	    }
-	}
 		
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
-		assertEquals("Wrong jack OID (prism)", oid, user.getOid());
+		assertEquals("Wrong "+user+" OID (prism)", oid, user.getOid());
 		UserType userType = user.asObjectable();
-		assertEquals("Wrong jack OID (jaxb)", oid, userType.getOid());
+		assertEquals("Wrong "+user+" OID (jaxb)", oid, userType.getOid());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
 		PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
@@ -1025,8 +656,11 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 	}
 	
-	protected PrismObject<UserType> getLeChuck() throws SchemaException {
-		return PrismTestUtil.parseObject(new File(USER_LECHUK_FILENAME));
+	protected PrismObject<UserType> createUser(String name, String fullName) throws SchemaException {
+		PrismObject<UserType> user = getUserDefinition().instantiate();
+		user.asObjectable().setName(PrismTestUtil.createPolyStringType(name));
+		user.asObjectable().setFullName(PrismTestUtil.createPolyStringType(fullName));
+		return user;
 	}
 	
 	protected void fillinUser(PrismObject<UserType> user, String name, String fullName) {
@@ -1153,18 +787,6 @@ public class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		activationContainer.add(emptyValue);		
 	}
 	
-	protected void addDummyAccount(DummyResource resource, String userId, String fullName) throws com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, SchemaViolationException {
-		DummyAccount account = new DummyAccount(userId);
-		account.setEnabled(true);
-		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, fullName);
-		resource.addAccount(account);
-	}
-	
-	protected Task createTask(String operationName) {
-		Task task = taskManager.createTaskInstance(operationName);
-		task.setOwner(userAdministrator);
-		return task;
-	}
 	
 	protected void purgeResourceSchema(String resourceOid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".purgeResourceSchema");

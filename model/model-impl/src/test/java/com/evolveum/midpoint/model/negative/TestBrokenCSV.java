@@ -35,7 +35,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.model.TestModelServiceContract;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -72,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
         "classpath:application-context-task.xml",
 		"classpath:application-context-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestBrokenCSV extends AbstractModelIntegrationTest {
+public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	private static final String TEST_DIR = "src/test/resources/negative";
 	private static final String TEST_TARGET_DIR = "target/test/negative";
