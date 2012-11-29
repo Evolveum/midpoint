@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -115,8 +116,8 @@ import static org.testng.AssertJUnit.*;
  * GUI. Therefore the test cases are selected to pass through most of the
  * components.
  * <p/>
- * It is using mock BaseX repository and embedded OpenDJ instance as a testing
- * resource. The BaseX repository is instantiated from the Spring context in the
+ * It is using embedded H2 repository and embedded OpenDJ instance as a testing
+ * resource. The repository is instantiated from the Spring context in the
  * same way as all other components. OpenDJ instance is started explicitly using
  * BeforeClass method. Appropriate resource definition to reach the OpenDJ
  * instance is provided in the test data and is inserted in the repository as
@@ -133,11 +134,9 @@ import static org.testng.AssertJUnit.*;
         "classpath:application-context-repo-cache.xml",
         "classpath:application-context-configuration-test.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSanity extends AbstractIntegrationTest {
+public class TestSanity extends AbstractModelIntegrationTest {
 
 	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
-	
-    private static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -264,22 +263,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
     private int lastSyncToken;
     
-    /**
-     * The instance of ModelService. This is the interface that we will test.
-     */
-    @Autowired(required = true)
-    private ModelPortType modelWeb;
-    @Autowired(required = true)
-    private ModelService modelService;
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-    @Autowired(required = true)
-    private PrismContext prismContext;
-
     public TestSanity() throws JAXBException {
         super();
-        // TODO: fix this
-        //IntegrationTestTools.checkResults = false;
     }
 
     @BeforeMethod
@@ -377,7 +362,7 @@ public class TestSanity extends AbstractIntegrationTest {
         assertNotNull("No my:shipState definition", shipStateDefinition);
         assertEquals("Wrong maxOccurs in my:shipState definition", 1, shipStateDefinition.getMaxOccurs());
         
-        assertCache();
+        assertNoRepoCache();
 
         Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test000Integrity");
         OperationResult result = task.getResult();
@@ -388,7 +373,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Imported OpenDJ resource (repository)", openDjResource);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 
-        assertCache();
+        assertNoRepoCache();
 
         String ldapConnectorOid = openDjResource.asObjectable().getConnectorRef().getOid();
         PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, result);
@@ -399,7 +384,7 @@ public class TestSanity extends AbstractIntegrationTest {
         PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
         AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
 
-        assertCache();
+        assertNoRepoCache();
 
         String dbConnectorOid = derbyResource.asObjectable().getConnectorRef().getOid();
         PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, result);
@@ -428,14 +413,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
 
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
 
         // THEN
 
-        assertCache();
+        assertNoRepoCache();
 
         displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
@@ -446,7 +431,7 @@ public class TestSanity extends AbstractIntegrationTest {
         PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, opResult);
         resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
 
-        assertCache();
+        assertNoRepoCache();
         assertEquals(RESOURCE_OPENDJ_OID, resourceTypeOpenDjrepo.getOid());
         display("Initialized OpenDJ resource (respository)", resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
@@ -605,14 +590,14 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
 
         checkRepoDerbyResource();
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.testResource(RESOURCE_DERBY_OID);
 
         // THEN
 
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
         assertSuccess("testResource has failed", result.getPartialResults().get(0));
@@ -623,7 +608,7 @@ public class TestSanity extends AbstractIntegrationTest {
         resourceDerby = rObject.asObjectable();
         checkDerbyResource(rObject, "repository(after test)");
 
-        assertCache();
+        assertNoRepoCache();
         assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
         display("Initialized Derby resource (respository)", resourceDerby);
         assertNotNull("Resource schema was not generated", resourceDerby.getSchema());
@@ -656,7 +641,7 @@ public class TestSanity extends AbstractIntegrationTest {
         
         checkRepoOpenDjResource();
 
-        assertCache();
+        assertNoRepoCache();
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
@@ -671,7 +656,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // THEN
         display("Resource", resource);
 
-        assertCache();
+        assertNoRepoCache();
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> capabilities = nativeCapabilities.getAny();
@@ -718,7 +703,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
         checkRepoOpenDjResource();
-        assertCache();
+        assertNoRepoCache();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
         UserType userType = user.asObjectable();
@@ -739,7 +724,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // THEN
 
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("addObject has failed", resultHolder.value);
 
@@ -770,7 +755,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
         checkRepoOpenDjResource();
-        assertCache();
+        assertNoRepoCache();
 
         // IMPORTANT! SWITCHING OFF ASSIGNMENT ENFORCEMENT HERE!
         setAssignmentEnforcement(AssignmentPolicyEnforcementType.NONE);
@@ -784,7 +769,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -846,7 +831,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Use getObject to test fetch of complete shadow
 
-        assertCache();
+        assertNoRepoCache();
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
@@ -857,7 +842,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 options, objectHolder, resultHolder);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
@@ -895,7 +880,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
 
         checkRepoDerbyResource();
-        assertCache();
+        assertNoRepoCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectModificationType.class);
@@ -904,7 +889,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -971,7 +956,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // Use getObject to test fetch of complete shadow
 
-        assertCache();
+        assertNoRepoCache();
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
@@ -982,7 +967,7 @@ public class TestSanity extends AbstractIntegrationTest {
                 options, objectHolder, resultHolder);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
@@ -1004,7 +989,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
         checkRepoOpenDjResource();
-        assertCache();
+        assertNoRepoCache();
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<UserType> userHolder = new Holder<UserType>();
@@ -1091,7 +1076,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test020ModifyUser");
         // GIVEN
 
-        assertCache();
+        assertNoRepoCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME, ObjectModificationType.class);
@@ -1100,7 +1085,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1173,13 +1158,13 @@ public class TestSanity extends AbstractIntegrationTest {
                 REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectModificationType.class);
 
         System.out.println("In modification: " + objectChange.getModification().get(0).getValue().getAny().get(0));
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1267,13 +1252,13 @@ public class TestSanity extends AbstractIntegrationTest {
         System.out.println("ds-pwp-account-disabled before change: " + pwpAccountDisabled);
         System.out.println();
         assertNull(pwpAccountDisabled);
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1317,14 +1302,14 @@ public class TestSanity extends AbstractIntegrationTest {
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         OperationOptionsType options = new OperationOptionsType();
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
@@ -1379,13 +1364,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME, ObjectModificationType.class);
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1430,14 +1415,14 @@ public class TestSanity extends AbstractIntegrationTest {
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         OperationOptionsType options = new OperationOptionsType();
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("getObject has failed", resultHolder.value);
 
@@ -1502,13 +1487,13 @@ public class TestSanity extends AbstractIntegrationTest {
         modificationDeleteAccountRef.setValue(modificationValue);
         objectChange.getModification().add(modificationDeleteAccountRef);
         displayJaxb("modifyObject input", objectChange, new QName(SchemaConstants.NS_C, "change"));
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1540,13 +1525,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
 
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.deleteObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("deleteObject has failed", result);
 
@@ -1583,13 +1568,13 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test049DeleteUser");
         // GIVEN
 
-        assertCache();
+        assertNoRepoCache();
 
         // WHEN
         OperationResultType result = modelWeb.deleteObject(ObjectTypes.USER.getObjectTypeUri(), USER_JACK_OID);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("deleteObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("deleteObject has failed", result);
 
@@ -1644,11 +1629,11 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
         Holder<String> oidHolder = new Holder<String>();
-        assertCache();
+        assertNoRepoCache();
 
         modelWeb.addObject(userType, oidHolder, resultHolder);
 
-        assertCache();
+        assertNoRepoCache();
         assertSuccess("addObject has failed", resultHolder.value);
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -1658,7 +1643,7 @@ public class TestSanity extends AbstractIntegrationTest {
         result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1725,7 +1710,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // GIVEN
 
-        assertCache();
+        assertNoRepoCache();
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<UserType> userHolder = new Holder<UserType>();
@@ -1759,7 +1744,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1841,7 +1826,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1921,7 +1906,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -1971,7 +1956,7 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
         Holder<String> oidHolder = new Holder<String>();
-        assertCache();
+        assertNoRepoCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME, ObjectModificationType.class);
@@ -1987,7 +1972,7 @@ public class TestSanity extends AbstractIntegrationTest {
         	// TODO: check if the fault is the right one
         }
 
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -2014,7 +1999,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
 
         OperationResultType result = new OperationResultType();
-        assertCache();
+        assertNoRepoCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME, ObjectModificationType.class);
@@ -2023,7 +2008,7 @@ public class TestSanity extends AbstractIntegrationTest {
         result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -2097,7 +2082,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
 
         OperationResultType result = new OperationResultType();
-        assertCache();
+        assertNoRepoCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME, ObjectModificationType.class);
@@ -2106,7 +2091,7 @@ public class TestSanity extends AbstractIntegrationTest {
         result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         assertSuccess("modifyObject has failed", result);
 
@@ -2185,7 +2170,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
 
         OperationResultType result = new OperationResultType();
-        assertCache();
+        assertNoRepoCache();
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME, ObjectModificationType.class);
@@ -2194,7 +2179,7 @@ public class TestSanity extends AbstractIntegrationTest {
         result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
       
         //TODO TODO TODO TODO operation result from repostiory.getObject is unknown...find out why..
@@ -2455,7 +2440,7 @@ public class TestSanity extends AbstractIntegrationTest {
         displayTestTile("test103LiveSyncLink");
 
         // GIVEN
-        assertCache();
+        assertNoRepoCache();
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_E_LINK_ACTION_FILE);
         UserType userType = user.asObjectable();
         final String userOid = userType.getOid();
@@ -2468,7 +2453,7 @@ public class TestSanity extends AbstractIntegrationTest {
         display("Adding user object", userType);
         modelWeb.addObject(userType, oidHolder, resultHolder);
         //check results
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
         assertSuccess("addObject has failed", resultHolder.value);
         AssertJUnit.assertEquals(userOid, oidHolder.value);
@@ -2602,7 +2587,7 @@ public class TestSanity extends AbstractIntegrationTest {
         // GIVEN
         
         checkAllShadows();
-        assertCache();
+        assertNoRepoCache();
 
         OperationResult result = new OperationResult(TestSanity.class.getName()
                 + ".test200ImportFromResource");
@@ -2620,7 +2605,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
         // THEN
 
-        assertCache();
+        assertNoRepoCache();
         displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
         AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
         // Convert the returned TaskType to a more usable Task
@@ -2648,11 +2633,11 @@ public class TestSanity extends AbstractIntegrationTest {
                 Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
                 Holder<ObjectType> objectHolder = new Holder<ObjectType>();
                 OperationResult opResult = new OperationResult("import check");
-                assertCache();
+                assertNoRepoCache();
                 OperationOptionsType options = new OperationOptionsType();
                 modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
                         options, objectHolder, resultHolder);
-                assertCache();
+                assertNoRepoCache();
                 //				display("getObject result (wait loop)",resultHolder.value);
                 assertSuccess("getObject has failed", resultHolder.value);
                 Task task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), opResult);
@@ -2679,12 +2664,12 @@ public class TestSanity extends AbstractIntegrationTest {
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         OperationOptionsType options = new OperationOptionsType();
-        assertCache();
+        assertNoRepoCache();
 
         modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
                 options, objectHolder, resultHolder);
 
-        assertCache();
+        assertNoRepoCache();
         assertSuccess("getObject has failed", resultHolder.value);
         task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), result);
 
@@ -2753,12 +2738,12 @@ public class TestSanity extends AbstractIntegrationTest {
         }
 
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-        assertCache();
+        assertNoRepoCache();
 
         modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, null,
                 listHolder, resultHolder);
 
-        assertCache();
+        assertNoRepoCache();
         ObjectListType uobjects = listHolder.value;
         assertSuccess("listObjects has failed", resultHolder.value);
         AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
@@ -3279,11 +3264,11 @@ public class TestSanity extends AbstractIntegrationTest {
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-        assertCache();
+        assertNoRepoCache();
 
         modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, listHolder, resultHolder);
 
-        assertCache();
+        assertNoRepoCache();
         ObjectListType objects = listHolder.value;
         assertSuccess("searchObjects has failed", resultHolder.value);
         AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
@@ -3331,22 +3316,6 @@ public class TestSanity extends AbstractIntegrationTest {
         }, timeout, WAIT_FOR_LOOP_SLEEP_MILIS);
     }
 
-    private void importObjectFromFile(String filename, OperationResult parentResult) throws FileNotFoundException {
-    	OperationResult result = parentResult.createSubresult(TestSanity.class.getName()+".importObjectFromFile");
-    	result.addParam("file", filename);
-        LOGGER.trace("importObjectFromFile: {}", filename);
-        Task task = taskManager.createTaskInstance();
-        FileInputStream stream = new FileInputStream(filename);
-        modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
-        result.computeStatus();
-    }
-
-    private void assertCache() {
-        if (RepositoryCache.exists()) {
-            AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
-        }
-    }
-    
     private void setAssignmentEnforcement(AssignmentPolicyEnforcementType enforcementType) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
         syncSettings.setAssignmentPolicyEnforcement(enforcementType);

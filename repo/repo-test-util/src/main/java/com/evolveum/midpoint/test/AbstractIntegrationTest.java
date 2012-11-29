@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -54,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -78,6 +80,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected static final String COMMON_DIR_NAME = "src/test/resources/common";
 	protected static final String DEFAULT_ACCOUNT_TYPE = "default";
+	
+	protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 
@@ -318,5 +322,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		assertSuccess("Aplying sync settings failed (result)", result);
 	}
+	
+	protected void assertNoRepoCache() {
+		if (RepositoryCache.exists()) {
+			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
+		}
+	}
+
 
 }

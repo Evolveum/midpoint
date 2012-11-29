@@ -64,6 +64,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -146,20 +147,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCa
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
- * Sanity test suite.
- * <p/>
- * It tests the very basic representative test cases. It does not try to be
- * complete. It rather should be quick to execute and pass through the most
- * representative cases. It should test all the system components except for
- * GUI. Therefore the test cases are selected to pass through most of the
- * components.
- * <p/>
- * It is using mock BaseX repository and embedded OpenDJ instance as a testing
- * resource. The BaseX repository is instantiated from the Spring context in the
- * same way as all other components. OpenDJ instance is started explicitly using
- * BeforeClass method. Appropriate resource definition to reach the OpenDJ
- * instance is provided in the test data and is inserted in the repository as
- * part of test initialization.
+ * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.
  * 
  * @author Katarina Valalikova
  */
@@ -170,9 +158,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 		"classpath:application-context-repo-cache.xml",
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class ConsistencyTest extends AbstractIntegrationTest {
-
-	private static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
+public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -278,21 +264,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private static String originalJacksPassword;
 
 	// private int lastSyncToken;
-
-	/**
-	 * The instance of ModelService. This is the interface that we will test.
-	 */
-	@Autowired(required = true)
-	private ModelPortType modelWeb;
-	@Autowired(required = true)
-	private ModelService modelService;
-	@Autowired(required = true)
-	private ProvisioningService provisioningService;
-	@Autowired(required = true)
-	private PrismContext prismContext;
-	@Autowired(required = true)
-	private TaskManager taskManager;
-	
 	
 	public ConsistencyTest() throws JAXBException {
 		super();
@@ -402,7 +373,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull("No my:shipState definition", shipStateDefinition);
 		assertEquals("Wrong maxOccurs in my:shipState definition", 1, shipStateDefinition.getMaxOccurs());
 
-		assertCache();
+		assertNoRepoCache();
 
 		OperationResult result = new OperationResult(ConsistencyTest.class.getName() + ".test000Integrity");
 
@@ -412,7 +383,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				RESOURCE_OPENDJ_OID, result);
 		display("Imported OpenDJ resource (repository)", openDjResource);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
-		assertCache();
+		assertNoRepoCache();
 
 		String ldapConnectorOid = openDjResource.asObjectable().getConnectorRef().getOid();
 		PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class,
@@ -461,14 +432,14 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		// GIVEN
 
-		assertCache();
+		assertNoRepoCache();
 
 		// WHEN
 		OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
 
 		// THEN
 
-		assertCache();
+		assertNoRepoCache();
 
 		displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
@@ -481,7 +452,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				RESOURCE_OPENDJ_OID, opResult);
 		resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
 
-		assertCache();
+		assertNoRepoCache();
 		assertEquals(RESOURCE_OPENDJ_OID, resourceTypeOpenDjrepo.getOid());
 		display("Initialized OpenDJ resource (respository)", resourceTypeOpenDjrepo);
 		assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
@@ -664,7 +635,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 
 		checkRepoOpenDjResource();
-		assertCache();
+		assertNoRepoCache();
 
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(fileName));
 		UserType userType = user.asObjectable();
@@ -690,7 +661,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		// THEN
 
-		assertCache();
+		assertNoRepoCache();
 		// displayJaxb("addObject result:", resultHolder.value,
 		// SchemaConstants.C_RESULT);
 		// assertSuccess("addObject has failed", result);
@@ -735,7 +706,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 	private OperationResultType modifyUserAddAccount(String modifyUserRequest) throws FileNotFoundException,
 			JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
 		checkRepoOpenDjResource();
-		assertCache();
+		assertNoRepoCache();
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(modifyUserRequest,
 				ObjectModificationType.class);
@@ -744,7 +715,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
 		// THEN
-		assertCache();
+		assertNoRepoCache();
 		return result;
 	}
 
@@ -847,7 +818,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 
 		// Use getObject to test fetch of complete shadow
 
-		assertCache();
+		assertNoRepoCache();
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
@@ -860,7 +831,7 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 				objectHolder, resultHolder);
 
 		// THEN
-		assertCache();
+		assertNoRepoCache();
 		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
 		assertSuccess("getObject has failed", resultHolder.value);
 
@@ -1692,86 +1663,6 @@ public class ConsistencyTest extends AbstractIntegrationTest {
 		assertNotNull(uid);
 
 		return uid;
-	}
-
-	private AccountShadowType searchAccountByOid(final String accountOid) throws Exception {
-		OperationResultType resultType = new OperationResultType();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-		Holder<ObjectType> accountHolder = new Holder<ObjectType>();
-		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountOid,
-				null, accountHolder, resultHolder);
-		ObjectType object = accountHolder.value;
-		assertSuccess("searchObjects has failed", resultHolder.value);
-		assertNotNull("Account is null", object);
-
-		if (!(object instanceof AccountShadowType)) {
-			fail("Object is not account.");
-		}
-		AccountShadowType account = (AccountShadowType) object;
-		assertEquals(accountOid, account.getOid());
-
-		return account;
-	}
-
-	private UserType searchUserByName(String name) throws Exception {
-		Document doc = DOMUtil.getDocument();
-		Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
-				SchemaConstants.C_NAME.getLocalPart());
-		nameElement.setTextContent(name);
-		Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
-
-		QueryType query = new QueryType();
-		query.setFilter(filter);
-		OperationResultType resultType = new OperationResultType();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-		Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
-		assertCache();
-
-		modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, listHolder, resultHolder);
-
-		assertCache();
-		ObjectListType objects = listHolder.value;
-		assertSuccess("searchObjects has failed", resultHolder.value);
-		AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
-		UserType user = (UserType) objects.getObject().get(0);
-
-		AssertJUnit.assertEquals(user.getName(), name);
-
-		return user;
-	}
-
-	private void importObjectFromFile(String filename, OperationResult parentResult)
-			throws FileNotFoundException {
-		OperationResult result = parentResult.createSubresult(ConsistencyTest.class.getName()
-				+ ".importObjectFromFile");
-		result.addParam("file", filename);
-		LOGGER.trace("importObjectFromFile: {}", filename);
-		Task task = taskManager.createTaskInstance();
-		FileInputStream stream = new FileInputStream(filename);
-		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
-		result.computeStatus();
-	}
-
-	private void assertCache() {
-		if (RepositoryCache.exists()) {
-			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
-		}
-	}
-
-	private void assertSyncSettingsAssignmentPolicyEnforcement(
-			AssignmentPolicyEnforcementType assignmentPolicy) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult("Asserting sync settings");
-		PrismObject<SystemConfigurationType> systemConfigurationType = repositoryService.getObject(
-				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), result);
-		result.computeStatus();
-		assertSuccess("Asserting sync settings failed (result)", result);
-		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = systemConfigurationType
-				.asObjectable().getGlobalAccountSynchronizationSettings();
-		assertNotNull("globalAccountSynchronizationSettings is null", globalAccountSynchronizationSettings);
-		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = globalAccountSynchronizationSettings
-				.getAssignmentPolicyEnforcement();
-		assertNotNull("assignmentPolicyEnforcement is null", assignmentPolicyEnforcement);
-		assertEquals("Assignment policy mismatch", assignmentPolicy, assignmentPolicyEnforcement);
 	}
 
 }
