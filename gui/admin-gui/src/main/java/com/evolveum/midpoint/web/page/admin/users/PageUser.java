@@ -1002,7 +1002,9 @@ public class PageUser extends PageAdminUsers {
                         LOGGER.trace("Delta before add user:\n{}", new Object[]{delta.debugDump(3)});
                     }
 
-                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                    if (!delta.isEmpty()) {
+                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                    }
                     break;
                 case MODIFYING:
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
@@ -1013,10 +1015,19 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
-                    Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
-                    deltas.addAll(accountDeltas);
+                    Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+                    if (!delta.isEmpty()) {
+                        deltas.add(delta);
+                    }
+                    for (ObjectDelta accDelta : accountDeltas) {
+                        if (!accDelta.isEmpty()) {
+                            deltas.add(accDelta);
+                        }
+                    }
 
-                    getModelService().executeChanges(deltas, null, task, result);
+                    if (!deltas.isEmpty()) {
+                        getModelService().executeChanges(deltas, null, task, result);
+                    }
                     break;
                 // support for add/delete containers (e.g. delete credentials)
                 default:
