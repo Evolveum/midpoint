@@ -103,6 +103,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
@@ -1473,82 +1474,77 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	}
 	
-	
+	/**
+	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
+	 * OpenDJ. The account should be linked.
+	 */
 	@Test
-	public void test026reconciliation() throws Exception {
+    public void test100AddUserMorganWithAssignment() throws Exception {
+		final String TEST_NAME = "test100AddUserMorganWithAssignment";
+        displayTestTile(this, TEST_NAME);
 
-		displayTestTile("test025 reconciliation");
-
-		final OperationResult result = new OperationResult("reconciliation");
-
-		// start openDJ first
-		openDJController.start();
+        // GIVEN
+        
+        openDJController.start();
 		assertTrue(EmbeddedUtils.isRunning());
-
-		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
-
-		// We need to wait for a sync interval, so the task scanner has a chance
-		// to pick up this
-		// task
-
-		waitFor("Waiting for task to finish first run", new Checker() {
-			public boolean check() throws ObjectNotFoundException, SchemaException {
-				Task task = taskManager.getTask(TASK_OPENDJ_RECONCILIATION_OID, result);
-				display("Task while waiting for task manager to pick up the task", task);
-				// wait until the task is finished
-				return task.getLastRunFinishTimestamp() != null;
-				// if (TaskExclusivityStatus.CLAIMED ==
-				// task.getExclusivityStatus()) { we cannot check exclusivity
-				// status for now
-				// // wait until the first run is finished
-				// if (task.getLastRunFinishTimestamp() == null) {
-				// return false;
-				// }
-				// return true;
-				// }
-				// return false;
-			}
-
-			@Override
-			public void timeout() {
-				// No reaction, the test will fail right after return from this
-			}
-		}, 180000);
-
-		Task task = taskManager.getTask(TASK_OPENDJ_RECONCILIATION_OID, result);
+		
+        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
+        display("Entry from LDIF", entry);
+        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_MORGAN_FILENAME));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
+		// WHEN
+        displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
 		result.computeStatus();
-		display("getTask result", result);
-		assertSuccess("getTask has failed", result);
-		AssertJUnit.assertNotNull(task);
-		display("Task after pickup", task);
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertShadowRepo(accountShadow, accountOid, "morgan", resourceTypeOpenDjrepo);
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan", resourceTypeOpenDjrepo);
+        
+        // TODO: check OpenDJ Account        
+	}
+	
+	
+	// This should run last. It starts a task that may interfere with other tests
+	@Test
+	public void test800Reconciliation() throws Exception {
+		final String TEST_NAME = "test800Reconciliation";
+        displayTestTile(this, TEST_NAME);
 
-		PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, TASK_OPENDJ_RECONCILIATION_OID,
-				result);
-		display("Task after pickup in the repository", o.asObjectable());
+		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 
-		// .. it should be running
-//		AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+		// precondition
+		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
+		display("Jack before", userJack);
+		
+		// WHEN
+		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 30000);
 
-		// .. and claimed
-		// AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED,
-		// task.getExclusivityStatus());
-
-		// .. and last run should not be zero
-		assertNotNull("Null last run start in recon task", task.getLastRunStartTimestamp());
-		AssertJUnit.assertFalse("Zero last run start in recon task", task.getLastRunStartTimestamp()
-				.longValue() == 0);
-		assertNotNull("Null last run finish in recon task", task.getLastRunFinishTimestamp());
-		AssertJUnit.assertFalse("Zero last run finish in recon task", task.getLastRunFinishTimestamp()
-				.longValue() == 0);
-
-		// The progress should be 0, as there were no changes yet
-		AssertJUnit.assertEquals(0, task.getProgress());
-
-		// Test for presence of a result. It should be there and it should
-		// indicate success
-		OperationResult taskResult = task.getResult();
-		AssertJUnit.assertNotNull(taskResult);
-
+		// THEN
+		
 		// STOP the task. We don't need it any more and we don't want to give it
 		// a chance to run more than once
 		taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
@@ -1583,9 +1579,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertAttribute(addedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
 		// check if the account was modified during reconciliation process
-		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
+		userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
+		display("Jack after", userJack);
 		assertNotNull(userJack);
-		assertEquals(1, userJack.getAccountRef().size());
+		assertEquals("Wrong number of jack's accounts", 1, userJack.getAccountRef().size());
 		String accountRefOid = userJack.getAccountRef().get(0).getOid();
 		AccountShadowType modifiedAccount = modelService.getObject(AccountShadowType.class, accountRefOid,
 				null, null, result).asObjectable();
@@ -1626,54 +1623,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
 	}
-	
-	/**
-	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
-	 * OpenDJ. The account should be linked.
-	 */
-	@Test
-    public void test100AddUserMorganWithAssignment() throws Exception {
-		final String TEST_NAME = "test100AddUserMorganWithAssignment";
-        displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-        dummyAuditService.clear();
-        
-        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
-        display("Entry from LDIF", entry);
-        
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_MORGAN_FILENAME));
-        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-                
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
-		
-		// THEN
-		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
-        
-		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
-        UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
-        String accountOid = accountRefType.getOid();
-        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-        
-		// Check shadow
-        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
-        assertShadowRepo(accountShadow, accountOid, "morgan", resourceTypeOpenDjrepo);
-        
-        // Check account
-        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan", resourceTypeOpenDjrepo);
-        
-        // TODO: check OpenDJ Account        
-	}
-	
 	
 	@Test
 	public void test999Shutdown() throws Exception {

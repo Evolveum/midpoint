@@ -950,6 +950,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			public boolean check() throws Exception {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
+//				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp) 
+//						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
 				display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
 				if (isUknown(result, checkSubresult)) {
@@ -980,6 +982,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		};
 		IntegrationTestTools.waitFor("Waiting for task "+taskOid+" next run", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+	
+	private String longTimeToString(Long longTime) {
+		if (longTime == null) {
+			return "null";
+		}
+		return longTime.toString();
 	}
 	
 	private boolean isError(OperationResult result, boolean checkSubresult) {
