@@ -299,6 +299,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	@Override
 	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		super.initSystem(initTask, initResult);
 				
 		// System Configuration
 		try {

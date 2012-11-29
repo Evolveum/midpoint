@@ -136,52 +136,53 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSanity extends AbstractModelIntegrationTest {
 
+	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
 	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
 
-    private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
+    private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 
-    private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/resource-opendj.xml";
+    private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-    private static final String RESOURCE_DERBY_FILENAME = "src/test/resources/repo/resource-derby.xml";
+    private static final String RESOURCE_DERBY_FILENAME = REPO_DIR_NAME + "resource-derby.xml";
     private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 
-    private static final String RESOURCE_BROKEN_FILENAME = "src/test/resources/repo/resource-broken.xml";
+    private static final String RESOURCE_BROKEN_FILENAME = REPO_DIR_NAME + "resource-broken.xml";
     private static final String RESOURCE_BROKEN_OID = "ef2bc95b-76e0-59e2-ffff-ffffffffffff";
 
     private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector";
     private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
     
-    private static final String CONNECTOR_BROKEN_FILENAME = "src/test/resources/repo/connector-broken.xml";
+    private static final String CONNECTOR_BROKEN_FILENAME = REPO_DIR_NAME + "connector-broken.xml";
     private static final String CONNECTOR_BROKEN_OID = "cccccccc-76e0-59e2-ffff-ffffffffffff";
 
-    private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/task-opendj-sync.xml";
+    private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync.xml";
     private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
-    private static final String TASK_USER_RECOMPUTE_FILENAME = "src/test/resources/repo/task-user-recompute.xml";
+    private static final String TASK_USER_RECOMPUTE_FILENAME = REPO_DIR_NAME + "task-user-recompute.xml";
     private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 
-    private static final String TASK_OPENDJ_RECON_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
+    private static final String TASK_OPENDJ_RECON_FILENAME = REPO_DIR_NAME + "task-opendj-reconciliation.xml";
     private static final String TASK_OPENDJ_RECON_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
-    private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
+    private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 
-    private static final String USER_TEMPLATE_FILENAME = "src/test/resources/repo/user-template.xml";
+    private static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
     private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
-    private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/repo/user-administrator.xml";
+    private static final String USER_ADMINISTRATOR_FILENAME = REPO_DIR_NAME + "user-administrator.xml";
     private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
-    private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
+    private static final String USER_JACK_FILENAME = REPO_DIR_NAME + "user-jack.xml";
     private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
     private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
     private static final String USER_JACK_LDAP_UID = "jack";
     private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
             + "," + OPENDJ_PEOPLE_SUFFIX;
 
-    private static final String USER_GUYBRUSH_FILENAME = "src/test/resources/repo/user-guybrush.xml";
+    private static final String USER_GUYBRUSH_FILENAME = REPO_DIR_NAME + "user-guybrush.xml";
     private static final File USER_GUYBRUSH_FILE = new File(USER_GUYBRUSH_FILENAME);
     private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
     private static final String USER_GUYBRUSH_USERNAME = "guybrush";
@@ -189,20 +190,20 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String USER_GUYBRUSH_LDAP_DN = "uid=" + USER_GUYBRUSH_LDAP_UID
             + "," + OPENDJ_PEOPLE_SUFFIX;
 
-    private static final String USER_E_LINK_ACTION_FILENAME = "src/test/resources/repo/user-e.xml";
+    private static final String USER_E_LINK_ACTION_FILENAME = REPO_DIR_NAME + "user-e.xml";
     private static final File USER_E_LINK_ACTION_FILE = new File(USER_E_LINK_ACTION_FILENAME);
     private static final String LDIF_E_FILENAME_LINK = "src/test/resources/request/e-create.ldif";
 
-    private static final String ROLE_PIRATE_FILENAME = "src/test/resources/repo/role-pirate.xml";
+    private static final String ROLE_PIRATE_FILENAME = REPO_DIR_NAME + "role-pirate.xml";
     private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
 
-    private static final String ROLE_SAILOR_FILENAME = "src/test/resources/repo/role-sailor.xml";
+    private static final String ROLE_SAILOR_FILENAME = REPO_DIR_NAME + "role-sailor.xml";
     private static final String ROLE_SAILOR_OID = "12345678-d34d-b33f-f00d-987955553535";
 
-    private static final String ROLE_CAPTAIN_FILENAME = "src/test/resources/repo/role-captain.xml";
+    private static final String ROLE_CAPTAIN_FILENAME = REPO_DIR_NAME + "role-captain.xml";
     private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 
-    private static final String ROLE_JUDGE_FILENAME = "src/test/resources/repo/role-judge.xml";
+    private static final String ROLE_JUDGE_FILENAME = REPO_DIR_NAME + "role-judge.xml";
     private static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
     
     private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = REQUEST_DIR_NAME + "user-modify-add-account.xml";
@@ -288,6 +289,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     // It will be called only once
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         LOGGER.trace("initSystem");
+        super.initSystem(initTask, initResult);
+        
         addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
         // This should discover the connectors

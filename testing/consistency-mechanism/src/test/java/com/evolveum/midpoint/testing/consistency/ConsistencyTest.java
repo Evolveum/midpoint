@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -74,6 +75,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -159,73 +161,79 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 		"classpath:application-context-configuration-test.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ConsistencyTest extends AbstractModelIntegrationTest {
+	
+	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
+	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
 
-	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
+	private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 
-	private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/resource-opendj.xml";
+	private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector";
 	private static final String CONNECTOR_DBTABLE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
 
-	private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/task-opendj-sync.xml";
+	private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync.xml";
 	private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
-	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
+	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
 	private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 
-	private static final String USER_TEMPLATE_FILENAME = "src/test/resources/repo/user-template.xml";
+	private static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
 	private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
-	private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/repo/user-administrator.xml";
+	private static final String USER_ADMINISTRATOR_FILENAME = REPO_DIR_NAME + "user-administrator.xml";
 	private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
-	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
+	private static final String USER_JACK_FILENAME = REPO_DIR_NAME + "user-jack.xml";
 	// private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
-	private static final String USER_DENIELS_FILENAME = "src/test/resources/repo/user-deniels.xml";
+	private static final String USER_DENIELS_FILENAME = REPO_DIR_NAME + "user-deniels.xml";
 	// private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
 	private static final String USER_DENIELS_OID = "c0c010c0-d34d-b33f-f00d-222111111111";
 
-	private static final String USER_JACK2_FILENAME = "src/test/resources/repo/user-jack2.xml";
+	private static final String USER_JACK2_FILENAME = REPO_DIR_NAME + "user-jack2.xml";
 	private static final String USER_JACK2_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
 
-	private static final String USER_WILL_FILENAME = "src/test/resources/repo/user-will.xml";
+	private static final String USER_WILL_FILENAME = REPO_DIR_NAME + "user-will.xml";
 	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111115555";
 
 	private static final String USER_JACK_LDAP_UID = "jackie";
 	private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 
-	private static final String USER_GUYBRUSH_FILENAME = "src/test/resources/repo/user-guybrush.xml";
+	private static final String USER_GUYBRUSH_FILENAME = REPO_DIR_NAME + "user-guybrush.xml";
 	private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
 
-	private static final String USER_GUYBRUSH_NOT_FOUND_FILENAME = "src/test/resources/repo/user-guybrush-modify-not-found.xml";
+	private static final String USER_GUYBRUSH_NOT_FOUND_FILENAME = REPO_DIR_NAME + "user-guybrush-modify-not-found.xml";
 	private static final String USER_GUYBRUSH_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111111333";
 	
-	private static final String USER_HECTOR_NOT_FOUND_FILENAME = "src/test/resources/repo/user-hector.xml";
+	private static final String USER_HECTOR_NOT_FOUND_FILENAME = REPO_DIR_NAME + "user-hector.xml";
 	private static final String USER_HECTOR_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111222333";	
 
-	private static final String USER_E_FILENAME = "src/test/resources/repo/user-e.xml";
+	private static final String USER_E_FILENAME = REPO_DIR_NAME + "user-e.xml";
 	private static final String USER_E_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
 	
-	private static final String USER_ELAINE_FILENAME = "src/test/resources/repo/user-elaine.xml";
+	private static final String USER_ELAINE_FILENAME = REPO_DIR_NAME + "user-elaine.xml";
 	private static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
+	
+	private static final String USER_MORGAN_FILENAME = REQUEST_DIR_NAME + "user-morgan.xml";
+	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
 
-	private static final String ACCOUNT_GUYBRUSH_FILENAME = "src/test/resources/repo/account-guybrush.xml";
+	private static final String ACCOUNT_GUYBRUSH_FILENAME = REPO_DIR_NAME + "account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
 	
-	private static final String ACCOUNT_HECTOR_FILENAME = "src/test/resources/repo/account-hector-not-found.xml";
+	private static final String ACCOUNT_HECTOR_FILENAME = REPO_DIR_NAME + "account-hector-not-found.xml";
 	private static final String ACCOUNT_HECTOR_OID = "a0c010c0-d34d-b33f-f00d-111111222333";
 
-	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME = "src/test/resources/repo/account-guybrush-not-found.xml";
+	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILENAME = REPO_DIR_NAME + "account-guybrush-not-found.xml";
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID = "a0c010c0-d34d-b33f-f00d-111111111333";
 
-	private static final String ACCOUNT_DENIELS_FILENAME = "src/test/resources/repo/account-deniels.xml";
+	private static final String ACCOUNT_DENIELS_FILENAME = REPO_DIR_NAME + "account-deniels.xml";
 	private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
 
-	private static final String ROLE_CAPTAIN_FILENAME = "src/test/resources/repo/role-captain.xml";
+	private static final String ROLE_CAPTAIN_FILENAME = REPO_DIR_NAME + "role-captain.xml";
 	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
@@ -245,6 +253,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
 	private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
+	private static final String LDIF_MORGAN_FILENAME = "src/test/resources/request/morgan.ldif";
 
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -294,6 +303,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	// It will be called only once
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
+		super.initSystem(initTask, initResult);
+		
 		addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
 		// This should discover the connectors
@@ -1616,6 +1627,52 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	}
 	
+	/**
+	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
+	 * OpenDJ. The account should be linked.
+	 */
+	@Test
+    public void test100AddUserMorganWithAssignment() throws Exception {
+		final String TEST_NAME = "test100AddUserMorganWithAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
+        display("Entry from LDIF", entry);
+        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_MORGAN_FILENAME));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertShadowRepo(accountShadow, accountOid, "morgan", resourceTypeOpenDjrepo);
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan", resourceTypeOpenDjrepo);
+        
+        // TODO: check OpenDJ Account        
+	}
 	
 	
 	@Test

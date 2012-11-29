@@ -215,11 +215,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		LOGGER.trace("initSystem");
+		super.initSystem(initTask, initResult);
 		
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
-		
-		dummyAuditService = DummyAuditService.getInstance();
 		
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
@@ -382,26 +381,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 	
 	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {
-		assertDummyCommon(accountShadow, oid, username);
-		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
-		List<Item<?>> attributes = attributesContainer.getValue().getItems();
-		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
-	}	
+		assertShadowRepo(accountShadow, oid, username, resourceDummyType);
+	}
 	
 	protected void assertDummyShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname) {
-		assertDummyCommon(accountShadow, oid, username);
-		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceDummyType, RefinedAttributeDefinition.class);
-	}
-
-	private void assertDummyCommon(PrismObject<AccountShadowType> accountShadow, String oid, String username) {
-		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
-		AccountShadowType accountShadowType = accountShadow.asObjectable();
-		assertEquals("Account shadow OID mismatch (jaxb)", oid, accountShadowType.getOid());
-		assertEquals("Account shadow objectclass", new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"), accountShadowType.getObjectClass());
-		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
-		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
-		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
-		// TODO: assert name and UID
+		assertShadowModel(accountShadow, oid, username, fullname, resourceDummyType);
 	}
 
 	protected DummyAccount getDummyAccount(String dummyInstanceName, String username) {

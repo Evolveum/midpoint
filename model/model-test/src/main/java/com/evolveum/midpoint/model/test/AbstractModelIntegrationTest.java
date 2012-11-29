@@ -183,6 +183,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		super();
 	}
 		
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		LOGGER.trace("initSystem");
+		dummyAuditService = DummyAuditService.getInstance();
+	}
+
 	protected void importObjectFromFile(String filename) throws FileNotFoundException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".importObjectFromFile");
 		importObjectFromFile(filename, result);
@@ -797,6 +803,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectFilter filter = OrgFilter.createOrg(baseOrgOid, minDepth, maxDepth);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
+	}
+    
+    protected void assertShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertShadowCommon(accountShadow, oid, username, resourceType);
+		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		List<Item<?>> attributes = attributesContainer.getValue().getItems();
+		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
+	}	
+	
+	protected void assertShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname, ResourceType resourceType) {
+		assertShadowCommon(accountShadow, oid, username, resourceType);
+		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
+	}
+
+	private void assertShadowCommon(PrismObject<AccountShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
+		AccountShadowType accountShadowType = accountShadow.asObjectable();
+		assertEquals("Account shadow OID mismatch (jaxb)", oid, accountShadowType.getOid());
+		assertEquals("Account shadow objectclass", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass"), accountShadowType.getObjectClass());
+		assertEquals("Account shadow resourceRef OID", resourceType.getOid(), accountShadow.asObjectable().getResourceRef().getOid());
+		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(AccountShadowType.F_ATTRIBUTES);
+		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
+		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
+		// TODO: assert name and UID
 	}
 	
 	// TASKS
