@@ -1536,7 +1536,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 
+		// TODO: remove this if the previous test is enabled
+		openDJController.start();
+		
 		// precondition
+		assertTrue(EmbeddedUtils.isRunning());
 		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, result).asObjectable();
 		display("Jack before", userJack);
 		
