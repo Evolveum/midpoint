@@ -47,6 +47,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -591,12 +592,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
-        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), 
-        		ACCOUNT_SHADOW_GUYBRUSH_OID);
-		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		display("Input deltas: ", userDelta);
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+		display("Input deltas: ", deltas);
                 
 		// WHEN
         ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
@@ -614,16 +613,19 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);
-		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
-		ModelProjectionContext<AccountShadowType> accContext = projectionContexts.iterator().next();
+		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
+		
+		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
 		assertNotNull("Null model projection context", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
-		assertNull("Unexpected account primary delta", accountPrimaryDelta);
-
+		assertNotNull("No account primary delta", accountPrimaryDelta);
+		
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+        
+		// TODO TODO TODO
 	}
 
 }

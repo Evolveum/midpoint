@@ -346,7 +346,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, true);
-        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, ACTIVATION_ENABLED_PATH, false);        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
+        		ACTIVATION_ENABLED_PATH, false);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         
@@ -418,7 +419,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ENABLED_PATH, false);
         
-        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, ACTIVATION_ENABLED_PATH, true);        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy, 
+        		ACTIVATION_ENABLED_PATH, true);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         

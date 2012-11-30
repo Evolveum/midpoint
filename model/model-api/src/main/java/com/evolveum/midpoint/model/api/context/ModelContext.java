@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.api.context;
 import java.io.Serializable;
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -37,5 +38,7 @@ public interface ModelContext<F extends ObjectType, P extends ObjectType> extend
 	public ModelElementContext<F> getFocusContext();
 	
 	public Collection<? extends ModelProjectionContext<P>> getProjectionContexts();
+	
+	public ModelProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat);
 	
 }

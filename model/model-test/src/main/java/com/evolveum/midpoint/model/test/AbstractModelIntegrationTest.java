@@ -79,6 +79,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -292,10 +294,35 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 	
-	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, accountOid, propertyName, prismContext, newRealValue);
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid, 
+			PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttributeQName(resource, attributeName), newRealValue);
 	}
 	
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid, 
+			PrismObject<ResourceType> resource, QName attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		return createModifyAccountShadowReplaceDelta(accountOid, resource, new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName), newRealValue);
+	}
+	
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath attributePath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, ((NameItemPathSegment)attributePath.last()).getName());
+		if (attributeDefinition == null) {
+			throw new SchemaException("No definition for attribute "+ attributePath+ " in " + resource);
+		}
+		PropertyDelta<?> attributeDelta = PropertyDelta.createModificationReplaceProperty(attributePath, attributeDefinition, newRealValue);
+		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, AccountShadowType.class, prismContext);
+		return accountDelta;
+	}
+	
+	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		if (refinedSchema == null) {
+			throw new SchemaException("No refined schema for "+resource);
+		}
+		RefinedAccountDefinition accountDefinition = refinedSchema.getDefaultAccountDefinition();
+		return accountDefinition.findAttributeDefinition(attributeName);
+	}
+
 	protected ObjectDelta<AccountShadowType> createModifyAccountShadowAddDelta(String accountOid, ItemPath propertyName, Object... newRealValue) {
 		return ObjectDelta.createModificationAddProperty(AccountShadowType.class, accountOid, propertyName, prismContext, newRealValue);
 	}
@@ -317,9 +344,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void modifyAccountShadowReplace(String accountOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<AccountShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountOid, propertyPath, newRealValue);
+		PrismObject<AccountShadowType> shadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+		String resourceOid = shadow.asObjectable().getResourceRef().getOid();
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceOid, null, result);
+		ObjectDelta<AccountShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountOid, resource, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -827,6 +857,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		// TODO: assert name and UID
+	}
+	
+	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {
+		String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
+		return new QName(resourceNamespace, attributeLocalName);
 	}
 	
 	// TASKS

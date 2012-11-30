@@ -335,7 +335,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
         ProtectedStringType userPasswordPs5 = new ProtectedStringType();
         userPasswordPs5.setClearValue(USER_PASSWORD_5_CLEAR);
-        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, PASSWORD_VALUE_PATH, userPasswordPs5);        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
+        		PASSWORD_VALUE_PATH, userPasswordPs5);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
                         
@@ -414,7 +415,8 @@ public class TestPassword extends AbstractInitializedModelIntegrationTest {
         
         ProtectedStringType userPasswordPs2 = new ProtectedStringType();
         userPasswordPs2.setClearValue(USER_PASSWORD_2_CLEAR);
-        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, PASSWORD_VALUE_PATH, userPasswordPs2);        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountRedOid, resourceDummy,
+        		PASSWORD_VALUE_PATH, userPasswordPs2);        
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
                         

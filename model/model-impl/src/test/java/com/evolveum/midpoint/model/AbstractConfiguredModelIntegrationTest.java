@@ -270,16 +270,16 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_DAVIEJONES_DUMMY_USERNAME = "daviejones";
 	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy-red.xml";
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220104000e";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy.xml";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
 	
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy-blue.xml";
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID = "c0c010c0-d34d-b33f-f00d-22220204000e";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy-red.xml";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID = "c0c010c0-d34d-b33f-f00d-22220104000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_RED_USERNAME = USER_ELAINE_USERNAME;
 
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy.xml";
-	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy-blue.xml";
+	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID = "c0c010c0-d34d-b33f-f00d-22220204000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_BLUE_USERNAME = USER_ELAINE_USERNAME;
 	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";

@@ -853,6 +853,13 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return objectDelta;
     }
     
+    public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, ItemDelta modification,
+    		Class<T> objectTypeClass, PrismContext prismContext) {
+    	Collection modifications = new ArrayList<ItemDelta>(1);
+    	modifications.add(modification);
+    	return createModifyDelta(oid, modifications, objectTypeClass, prismContext);
+    }
+    
     public static <T extends Objectable> ObjectDelta<T> createModifyDelta(String oid, Collection<? extends ItemDelta> modifications,
     		Class<T> objectTypeClass, PrismContext prismContext) {
     	ObjectDelta<T> objectDelta = new ObjectDelta<T>(objectTypeClass, ChangeType.MODIFY, prismContext);
