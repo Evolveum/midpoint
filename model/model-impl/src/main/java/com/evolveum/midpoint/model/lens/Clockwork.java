@@ -271,7 +271,7 @@ public class Clockwork {
 		}
 		auditRecord.setChannel(context.getChannel());
 		if (stage == AuditEventStage.REQUEST) {
-			auditRecord.addDeltas(MiscSchemaUtil.cloneCollection(context.getAllChanges()));
+			auditRecord.addDeltas(MiscSchemaUtil.cloneObjectDeltaCollection(context.getAllChanges()));
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setResult(result);
 			auditRecord.setOutcome(result.getComputeStatus());
@@ -280,7 +280,7 @@ public class Clockwork {
 				// No deltas, nothing to audit in this wave
 				return;
 			}
-			auditRecord.addDeltas(MiscSchemaUtil.cloneCollection(executedDeltas));
+			auditRecord.addDeltas(MiscSchemaUtil.cloneObjectDeltaCollection(executedDeltas));
 		} else {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}

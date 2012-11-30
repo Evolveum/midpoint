@@ -253,7 +253,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
-		clone.deltas = MiscSchemaUtil.cloneCollection(this.deltas);
+		clone.deltas = MiscSchemaUtil.cloneObjectDeltaCollection(this.deltas);
 		clone.eventIdentifier = this.eventIdentifier;
 		clone.eventStage = this.eventStage;
 		clone.eventType = this.eventType;

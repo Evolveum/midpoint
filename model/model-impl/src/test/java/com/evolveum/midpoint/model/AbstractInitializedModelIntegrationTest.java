@@ -213,7 +213,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 		

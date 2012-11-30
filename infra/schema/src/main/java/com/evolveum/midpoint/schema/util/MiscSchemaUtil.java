@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
@@ -187,13 +188,25 @@ public class MiscSchemaUtil {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
 
-	public static Collection<ObjectDelta<? extends ObjectType>> cloneCollection(
+	public static Collection<ObjectDelta<? extends ObjectType>> cloneObjectDeltaCollection(
 			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
 		if (origCollection == null) {
 			return null;
 		}
 		Collection<ObjectDelta<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDelta<? extends ObjectType>>(origCollection.size());
 		for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
+			clonedCollection.add(origDelta.clone());
+		}
+		return clonedCollection;
+	}
+	
+	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneObjectDeltaOperationCollection(
+			Collection<ObjectDeltaOperation<? extends ObjectType>> origCollection) {
+		if (origCollection == null) {
+			return null;
+		}
+		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
+		for (ObjectDeltaOperation<? extends ObjectType> origDelta: origCollection) {
 			clonedCollection.add(origDelta.clone());
 		}
 		return clonedCollection;

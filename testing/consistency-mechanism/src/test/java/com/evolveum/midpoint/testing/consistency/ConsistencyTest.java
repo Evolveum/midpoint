@@ -1478,7 +1478,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
 	 * OpenDJ. The account should be linked.
 	 */
-	@Test
+	// DISABLED because MID-1056
+	@Test(enabled=false)
     public void test100AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test100AddUserMorganWithAssignment";
         displayTestTile(this, TEST_NAME);
