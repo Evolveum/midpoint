@@ -355,7 +355,7 @@ public class ShadowConverter {
 		}
 		
 		if (operations.isEmpty()){
-			LOGGER.info("No modifications for connector object specified. Skipping processing.");
+			LOGGER.trace("No modifications for connector object specified. Skipping processing of modifyShadow.");
 			parentResult.recordSuccess();
 			return new HashSet<PropertyModificationOperation>();
 		}

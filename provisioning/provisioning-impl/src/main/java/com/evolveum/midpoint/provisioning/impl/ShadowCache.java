@@ -668,8 +668,10 @@ public class ShadowCache {
 			parentResult.recordFatalError("Error without a handler. Reason: " + ex.getMessage(), ex);
 			throw new SystemException(ex.getMessage(), ex);
 		}
-
-		LOGGER.debug("Handling provisioning exception {}:{}", new Object[]{ex.getClass(), ex.getMessage(), ex});
+ 
+		LOGGER.debug("Handling provisioning exception {}:{}", new Object[]{ex.getClass(), ex.getMessage()});
+		LOGGER.trace("Handling provisioning exception {}:{}", new Object[]{ex.getClass(), ex.getMessage(), ex});
+		
 		return handler.handleError(shadow, op, ex, parentResult);
 
 	}
