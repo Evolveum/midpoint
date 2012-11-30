@@ -189,6 +189,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
 	protected UserType userTypeGuybrush;
+	protected UserType userTypeElaine;
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 	protected ResourceType resourceDummyType;
@@ -223,12 +224,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
 		extendDummySchema(dummyResource);
-		
-		addDummyAccount(dummyResource, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
-		addDummyAccount(dummyResource, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
-		addDummyAccount(dummyResource, ACCOUNT_DAVIEJONES_DUMMY_USERNAME, "Davie Jones", "Davie Jones' Locker");
-		addDummyAccount(dummyResource, ACCOUNT_CALYPSO_DUMMY_USERNAME, "Tia Dalma", "Pantano River");
-		
+					
 		dummyResourceRed = DummyResource.getInstance(RESOURCE_DUMMY_RED_NAME);
 		dummyResourceRed.reset();
 		dummyResourceRed.populateWithDefaultSchema();
@@ -244,6 +240,15 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceWhite.populateWithDefaultSchema();
 		
 		postInitDummyResouce();
+		
+		addDummyAccount(dummyResource, ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
+		addDummyAccount(dummyResource, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
+		addDummyAccount(dummyResource, ACCOUNT_DAVIEJONES_DUMMY_USERNAME, "Davie Jones", "Davie Jones' Locker");
+		addDummyAccount(dummyResource, ACCOUNT_CALYPSO_DUMMY_USERNAME, "Tia Dalma", "Pantano River");
+		
+		addDummyAccount(dummyResource, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
+		addDummyAccount(dummyResourceRed, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
+		addDummyAccount(dummyResourceBlue, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
 		
 		// User Templates
 		addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
@@ -272,11 +277,15 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);
 		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, AccountShadowType.class, initResult);
 		
 		// Users
 		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeBarbossa = addObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = addObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeElaine = addObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();
 		
 		// Roles
 		addObjectFromFile(ROLE_PIRATE_FILENAME, RoleType.class, initResult);

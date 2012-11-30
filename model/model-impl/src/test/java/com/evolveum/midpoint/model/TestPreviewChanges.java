@@ -375,7 +375,73 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		doPreviewFail(deltas, task, result);
 	}
+	
+	private void doPreview(Collection<ObjectDelta<? extends ObjectType>> deltas, 
+			ObjectChecker<ModelContext<UserType,AccountShadowType>> checker, Task task, OperationResult result) 
+					throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		display("Input deltas: ", deltas);
+        
+		// WHEN
+		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+		
+		// THEN
+		display("Preview context", modelContext);
+		checker.check(modelContext);
+	}
+	
+	private void doPreviewFail(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) 
+					throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+		display("Input deltas: ", deltas);
+        
+		try {
+			// WHEN
+			ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+			
+			AssertJUnit.fail("Expected exception, but it haven't come");
+		} catch (SchemaException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+	}
+	
+	private void assertAddAccount(ModelContext<UserType, AccountShadowType> modelContext) {
+		assertNotNull("Null model context", modelContext);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+		assertNull("Unexpected focus secondary delta"+focusContext.getSecondaryDelta(), focusContext.getSecondaryDelta());
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
+		ModelProjectionContext<AccountShadowType> accContext = projectionContexts.iterator().next();
+		assertNotNull("Null model projection context", accContext);
+		
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+        assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
+        PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
+        assertNotNull("No object in account primary add delta", accountToAddPrimary);
+        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
+                accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
+        PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
+        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
 
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        PropertyDelta<String> fullNameDelta = accountSecondaryDelta.findPropertyDelta(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
+        PrismAsserts.assertReplace(fullNameDelta, "Jack Sparrow");
+        PrismAsserts.assertOrigin(fullNameDelta, OriginType.OUTBOUND);
+
+        PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
+        IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
+        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");	
+	}
+	
+	
 	@Test
     public void test200ModifyUserDeleteAccount() throws Exception {
 		final String TEST_NAME = "test200ModifyUserDeleteAccount";
@@ -511,43 +577,40 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNull("Unexpected account secondary delta", accountSecondaryDelta);
 	}
 	
-	private void doPreview(Collection<ObjectDelta<? extends ObjectType>> deltas, 
-			ObjectChecker<ModelContext<UserType,AccountShadowType>> checker, Task task, OperationResult result) 
-					throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		display("Input deltas: ", deltas);
+	// MAPPING TESTS
+	// following tests mostly check correct functions of mappings
+		
+		
+	@Test
+    public void test300ModifyAccount() throws Exception {
+        final String TEST_NAME = "test300ModifyAccount";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_GUYBRUSH_OID, prismContext);
+        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), 
+        		ACCOUNT_SHADOW_GUYBRUSH_OID);
+		userDelta.addModification(accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		display("Input deltas: ", userDelta);
+                
 		// WHEN
-		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
 		
 		// THEN
-		display("Preview context", modelContext);
-		checker.check(modelContext);
-	}
-	
-	private void doPreviewFail(Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) 
-					throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-		display("Input deltas: ", deltas);
-        
-		try {
-			// WHEN
-			ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
-			
-			AssertJUnit.fail("Expected exception, but it haven't come");
-		} catch (SchemaException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
-	}
-	
-	private void assertAddAccount(ModelContext<UserType, AccountShadowType> modelContext) {
+        display("Preview context", modelContext);
 		assertNotNull("Null model context", modelContext);
 		
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
 		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
-		assertNull("Unexpected focus secondary delta"+focusContext.getSecondaryDelta(), focusContext.getSecondaryDelta());
+		
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		assertNull("Unexpected focus secondary delta: "+focusContext.getSecondaryDelta(), userSecondaryDelta);
 		
 		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);
@@ -555,26 +618,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ModelProjectionContext<AccountShadowType> accContext = projectionContexts.iterator().next();
 		assertNotNull("Null model projection context", accContext);
 		
-		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
-        assertEquals(ChangeType.ADD, accountPrimaryDelta.getChangeType());
-        PrismObject<AccountShadowType> accountToAddPrimary = accountPrimaryDelta.getObjectToAdd();
-        assertNotNull("No object in account primary add delta", accountToAddPrimary);
-        assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
-                accountToAddPrimary.findProperty(AccountShadowType.F_OBJECT_CLASS).getRealValue());
-        PrismReference resourceRef = accountToAddPrimary.findReference(AccountShadowType.F_RESOURCE_REF);
-        assertEquals(resourceDummyType.getOid(), resourceRef.getOid());
+		assertNull("Unexpected account primary delta", accountPrimaryDelta);
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        PropertyDelta<String> fullNameDelta = accountSecondaryDelta.findPropertyDelta(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
-        PrismAsserts.assertReplace(fullNameDelta, "Jack Sparrow");
-        PrismAsserts.assertOrigin(fullNameDelta, OriginType.OUTBOUND);
-
-        PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
-        IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
-        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");	
+        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
 	}
-
 
 }

@@ -165,7 +165,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users before sync", users);
-        assertEquals("Unexpected number of users", 4, users.size());
+        assertEquals("Unexpected number of users", 5, users.size());
                 
 		/// WHEN
         displayWhen(TEST_NAME);
@@ -190,7 +190,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after sync", users);
-        assertEquals("Unexpected number of users", 5, users.size());
+        assertEquals("Unexpected number of users", 6, users.size());
                
 	}
 	
@@ -248,7 +248,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after sync", users);
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
 	}
 	
 	/**
@@ -305,7 +305,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after sync", users);
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
                
 	}
 	
@@ -378,7 +378,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
                 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after sync", users);
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
         
 	}
 

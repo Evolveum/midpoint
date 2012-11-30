@@ -144,7 +144,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users before import", users);
-        assertEquals("Unexpected number of users", 5, users.size());
+        assertEquals("Unexpected number of users", 6, users.size());
         
         PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
         assertNotNull("No rapp", rapp);
@@ -167,7 +167,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
         
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
         
         PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
         assertNotNull("No admin", admin);
@@ -250,7 +250,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
         
-        assertEquals("Unexpected number of users", 6, users.size());
+        assertEquals("Unexpected number of users", 7, users.size());
         
         PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
         assertNotNull("No admin", admin);
