@@ -1004,6 +1004,8 @@ public class PageUser extends PageAdminUsers {
 
                     if (!delta.isEmpty()) {
                         getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                    } else {
+                        result.recordSuccess();
                     }
                     break;
                 case MODIFYING:
@@ -1027,6 +1029,8 @@ public class PageUser extends PageAdminUsers {
 
                     if (!deltas.isEmpty()) {
                         getModelService().executeChanges(deltas, null, task, result);
+                    } else {
+                        result.recordSuccess();
                     }
                     break;
                 // support for add/delete containers (e.g. delete credentials)
