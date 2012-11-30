@@ -420,7 +420,8 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 
 	}
 	
-	@Test
+	// MID-1065
+	@Test(enabled=false)
 	public void test009modifyOrgStructRemoveUser() throws Exception {
 		LOGGER.info("===[ modify remove org ref from user ]===");
 		OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");

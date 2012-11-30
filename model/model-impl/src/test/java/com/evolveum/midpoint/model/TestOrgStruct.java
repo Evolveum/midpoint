@@ -203,7 +203,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
 	}
 	
-	@Test
+	// MID-1065
+	@Test(enabled=false)
     public void test207JackUnAssignScummBar() throws Exception {
 		final String TEST_NAME = "test207JackUnAssignScummBar";
         displayTestTile(this, TEST_NAME);
