@@ -112,13 +112,15 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		switch (op) {
 		case DELETE:
 			LOGGER.trace("Deleting sahdow from the repostiory.");
+			for (OperationResult subResult : parentResult.getSubresults()){
+				subResult.muteError();
+			}
 			cacheRepositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), result);
-			result.recordStatus(
-					OperationResultStatus.HANDLED_ERROR,
-					"Account was not found on the "
+			parentResult.recordHandledError("Account was not found on the "
 							+ ObjectTypeUtil.toShortString(shadow.getResource())
 							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
 			LOGGER.trace("Shadow deleted from the repository. Inconsistencies are now removed.");
+			result.computeStatus();
 			return null;
 		case MODIFY:
 			LOGGER.trace("Starting discovery to find out if the account should exist or not.");
@@ -215,6 +217,9 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				}
 //			}
 			
+			for (OperationResult subResult : parentResult.getSubresults()){
+				subResult.muteError();
+			}
 			if (oid != null) {
 				shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
 				parentResult.recordHandledError("Account was re-created by the discovery.");
