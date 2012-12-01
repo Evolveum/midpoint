@@ -60,8 +60,8 @@ public abstract class RObject extends RContainer {
 	@ElementCollection
 	@ForeignKey(name = "fk_object_org_ref")
 	@CollectionTable(name = "m_object_org_ref", joinColumns = {
-			@JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-			@JoinColumn(name = "user_id", referencedColumnName = "id") })
+			@JoinColumn(name = "object_oid", referencedColumnName = "oid"),
+			@JoinColumn(name = "object_id", referencedColumnName = "id") })
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
 	public Set<REmbeddedReference> getParentOrgRef() {
 		return parentOrgRef;
@@ -171,7 +171,7 @@ public abstract class RObject extends RContainer {
 			RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
 		}
 
-        List orgRefs = RUtil.safeSetParentOrgRefToList(repo.getParentOrgRef(), prismContext);
+        List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
 		if (!orgRefs.isEmpty()) {
 			jaxb.getParentOrgRef().addAll(orgRefs);
 		}

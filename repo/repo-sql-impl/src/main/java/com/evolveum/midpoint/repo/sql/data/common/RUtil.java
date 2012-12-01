@@ -175,21 +175,7 @@ public final class RUtil {
         return list;
     }
     
-    public static List<ObjectReferenceType> safeSetParentOrgRefToList(Set<REmbeddedReference> set, PrismContext prismContext) {
-        if (set == null || set.isEmpty()) {
-            return new ArrayList<ObjectReferenceType>();
-        }
-
-        List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
-        for (REmbeddedReference str : set) {
-        	ObjectReferenceType ort = new ObjectReferenceType();
-        	REmbeddedReference.copyToJAXB(str, ort, prismContext);
-            list.add(ort);
-        }
-        return list;
-    }
-    
-    public static List<ObjectReferenceType> safeSetApproverRefToList(Set<REmbeddedReference> set, PrismContext prismContext) {
+    public static List<ObjectReferenceType> safeSetReferencesToList(Set<REmbeddedReference> set, PrismContext prismContext) {
         if (set == null || set.isEmpty()) {
             return new ArrayList<ObjectReferenceType>();
         }

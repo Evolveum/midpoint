@@ -101,7 +101,7 @@ public class RResourceBussinesConfiguration {
 				jaxb.setAdministrativeState(repo.getAdministrativeState().getAdministrativeState());
 			}
 			if (repo.getApproverRef() != null) {
-				jaxb.getApproverRef().addAll(RUtil.safeSetApproverRefToList(repo.getApproverRef(), prismContext));
+				jaxb.getApproverRef().addAll(RUtil.safeSetReferencesToList(repo.getApproverRef(), prismContext));
 			}
 		} catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
