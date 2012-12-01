@@ -2,22 +2,19 @@ package com.evolveum.midpoint.repo.sql;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import com.evolveum.midpoint.repo.sql.data.common.*;
+import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,16 +25,10 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -216,7 +207,6 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		ancestors.add("00000000-8888-6666-0000-100000000002");
 
 		for (String ancestorOid : ancestors) {
-			
 
 			criteria = session.createCriteria(ROrgClosure.class);
 			Criteria ancCriteria = criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
@@ -245,10 +235,9 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 					depth = 1;
 				} else if (ancestorOid.equals("00000000-8888-6666-0000-100000000002")){
 					depth = 1;
-				} 
+				}
 				AssertJUnit.assertEquals(depth, results.get(0).getDepth());
 			}
-			
 		}
 		session.close();
 	}
@@ -300,8 +289,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		}
 		session.close();
 	}
-	
-	
+
 	@Test
 	public void test005deleteOrg() throws Exception {
 		LOGGER.info("===[ deleteOrgStruct ]===");
@@ -342,10 +330,10 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //		QueryType query = QueryUtil.createQuery(filter);
 
 		// List<>
-		
+
 //		ObjectQuery objectQuery = QueryConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg("00000000-8888-6666-0000-100000000001"));
-		
+
 		List<PrismObject<ObjectType>> resultss = repositoryService.searchObjects(ObjectType.class, objectQuery, parentResult);
 		for (PrismObject<ObjectType> u : resultss) {
 
@@ -419,9 +407,8 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 		}
 
 	}
-	
-	// MID-1065
-	@Test(enabled=false)
+
+	@Test
 	public void test009modifyOrgStructRemoveUser() throws Exception {
 		LOGGER.info("===[ modify remove org ref from user ]===");
 		OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
@@ -446,7 +433,7 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 //
 //		}
 //		session.close();
-		
+
 		UserType userElaine = repositoryService.getObject(UserType.class, ELAINE_OID, opResult).asObjectable();
 		LOGGER.trace("elaine's og refs");
 		for (ObjectReferenceType ort : userElaine.getParentOrgRef()){
@@ -455,8 +442,94 @@ public class OrgStructTest extends AbstractTestNGSpringContextTests {
 				AssertJUnit.fail("expected that elain does not have reference on the org with oid: 00000000-8888-6666-0000-100000000006");
 			}
 		}
-		
+
 	}
 
 
+    @Test
+    public void megaSimpleOrgTest() {
+        RUser user = new RUser();
+        user.setName(new RPolyString("vilko", "vilko"));
+        Set<REmbeddedReference> refs = new HashSet<REmbeddedReference>();
+        refs.add(createRef("1", null, null));
+        refs.add(createRef("1", "namespace", "localpart"));
+        refs.add(createRef("6", null,null));
+        user.setParentOrgRef(refs);
+
+        Session session = factory.openSession();
+        session.beginTransaction();
+        RContainerId id = (RContainerId) session.save(user);
+        session.getTransaction().commit();
+        session.close();
+
+        user = getUser(id.getOid(), 3);
+        //todo asserts
+
+        user = new RUser();
+        user.setId(0L);
+        user.setOid(id.getOid());
+        user.setName(new RPolyString("vilko", "vilko"));
+        refs = new HashSet<REmbeddedReference>();
+        refs.add(createRef("1", null, null));
+        refs.add(createRef("1", "namespace", "localpart"));
+        user.setParentOrgRef(refs);
+
+//        session = factory.openSession();
+//        session.beginTransaction();
+//        SQLQuery query = session.createSQLQuery("delete from m_object_org_ref where object_id=? and object_oid=? and description=? and filter=? and localPart=? and namespace=? and targetOid=? and type=?");
+//        query.setParameter(0, 0L);
+//        query.setParameter(1, id.getOid());
+//        query.setParameter(2, null, TextType.INSTANCE);
+//        query.setParameter(3, null, TextType.INSTANCE);
+//        query.setParameter(4, null, StringType.INSTANCE);
+//        query.setParameter(5, null, StringType.INSTANCE);
+//        query.setParameter(6, "6");
+//        query.setParameter(7, 16);
+//
+//        int count = query.executeUpdate();
+//        System.out.println(">>>>>>>>>>>>>>>>>> " + count);
+//
+//        session.getTransaction().commit();
+//        session.close();
+
+
+        session = factory.openSession();
+        session.beginTransaction();
+        session.merge(user);
+        session.getTransaction().commit();
+        session.close();
+
+        user = getUser(id.getOid(), 2);
+        //todo asserts
+    }
+
+    private RUser getUser(String oid, int count) {
+        Session session = factory.openSession();
+        session.beginTransaction();
+        RUser user = (RUser) session.get(RUser.class, new RContainerId(0L, oid));
+        AssertJUnit.assertEquals(count, user.getParentOrgRef().size());
+
+        session.getTransaction().commit();
+        session.close();
+
+        return user;
+    }
+
+    private REmbeddedReference createRef(String targetOid, String namespace, String localpart) {
+        REmbeddedReference ref = new REmbeddedReference();
+        ref.setTargetOid(targetOid);
+        ref.setType(RContainerType.ORG);
+        if (namespace != null && localpart != null) {
+            ref.setRelationLocalPart(localpart);
+            ref.setRelationNamespace(namespace);
+        }
+
+//        if (ref.getRelation() == null) {
+//            ref.setRelation(new RQName(new QName("a", "b")));
+//        }
+//        ref.setDescription("description");
+//        ref.setFilter("filter");
+
+        return ref;
+    }
 }

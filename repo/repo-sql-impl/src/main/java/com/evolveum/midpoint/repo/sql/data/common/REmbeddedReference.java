@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -34,6 +33,7 @@ import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
 import javax.persistence.*;
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -45,14 +45,19 @@ public class REmbeddedReference implements Serializable {
     //target
     private String targetOid;
     //other fields
-    private String description;
-    private String filter;
+    private String description = "";
+    private String filter = "";
     private RContainerType type;
-    private RQName relation;
+    //relation qname
+    private String relationNamespace = "";
+    private String relationLocalPart = "";
 
-    @Embedded
-    public RQName getRelation() {
-        return relation;
+    public String getRelationLocalPart() {
+        return relationLocalPart;
+    }
+
+    public String getRelationNamespace() {
+        return relationNamespace;
     }
 
     @Column(length = 36, insertable = true, updatable = true, nullable = true)
@@ -77,8 +82,12 @@ public class REmbeddedReference implements Serializable {
         return filter;
     }
 
-    public void setRelation(RQName relation) {
-        this.relation = relation;
+    public void setRelationLocalPart(String relationLocalPart) {
+        this.relationLocalPart = relationLocalPart;
+    }
+
+    public void setRelationNamespace(String relationNamespace) {
+        this.relationNamespace = relationNamespace;
     }
 
     public void setDescription(String description) {
@@ -109,7 +118,10 @@ public class REmbeddedReference implements Serializable {
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null)
             return false;
         if (type != that.type) return false;
-        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
+        if (relationLocalPart != null ? !relationLocalPart.equals(that.relationLocalPart) : that.relationLocalPart != null)
+            return false;
+        if (relationNamespace != null ? !relationNamespace.equals(that.relationNamespace) : that.relationNamespace != null)
+            return false;
 
         return true;
     }
@@ -119,7 +131,9 @@ public class REmbeddedReference implements Serializable {
         int result = description != null ? description.hashCode() : 0;
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
+        result = 31 * result + (relationLocalPart != null ? relationLocalPart.hashCode() : 0);
+        result = 31 * result + (relationNamespace != null ? relationNamespace.hashCode() : 0);
+
         return result;
     }
 
@@ -132,10 +146,12 @@ public class REmbeddedReference implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setDescription(repo.getDescription());
+        if (StringUtils.isNotEmpty(repo.getDescription())) {
+            jaxb.setDescription(repo.getDescription());
+        }
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
-        if (repo.getRelation() != null) {
-            jaxb.setRelation(repo.getRelation().toQName());
+        if (StringUtils.isNotEmpty(repo.getRelationLocalPart()) && StringUtils.isNotEmpty(repo.getRelationNamespace())) {
+            jaxb.setRelation(new QName(repo.getRelationNamespace(), repo.getRelationLocalPart()));
         }
         if (StringUtils.isNotEmpty(repo.getTargetOid())) {
             jaxb.setOid(repo.getTargetOid());
@@ -154,10 +170,13 @@ public class REmbeddedReference implements Serializable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setDescription(jaxb.getDescription());
+        if (jaxb.getDescription() != null) {
+            repo.setDescription(jaxb.getDescription());
+        }
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
         if (jaxb.getRelation() != null) {
-            repo.setRelation(new RQName(jaxb.getRelation()));
+            repo.setRelationNamespace(jaxb.getRelation().getNamespaceURI());
+            repo.setRelationLocalPart(jaxb.getRelation().getLocalPart());
         }
 
         repo.setTargetOid(jaxb.getOid());

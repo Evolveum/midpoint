@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+       default-lazy-init="true" default-autowire="byName">
+
+    <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
+        <property name="jdbcUrl" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
+        <property name="user" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
+        <property name="password" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
+
+        <property name="acquireIncrement" value="3"/>
+        <property name="minPoolSize" value="8"/>
+        <property name="maxPoolSize" value="20"/>
+        <property name="idleConnectionTestPeriod" value="1800"/>
+        <property name="connectionTesterClassName" value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester" />
+        <property name="connectionCustomizerClassName"
+                  value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer"/>
+    </bean>
+
+    <!-- Hibernate session factory -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+          depends-on="sqlDataSource">
+
+        <property name="dataSource">
+            <ref bean="sqlDataSource"/>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">#{sqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
+                <!--<prop key="hibernate.show_sql">true</prop>-->
+                <!--<prop key="hibernate.format_sql">true</prop>-->
+                <prop key="hibernate.hbm2ddl.auto">#{sqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
+                <prop key="hibernate.id.new_generator_mappings">true</prop>
+            </props>
+        </property>
+        <property name="namingStrategy">
+            <bean class="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy"/>
+        </property>
+        <property name="annotatedPackages">
+            <list>
+                <value>com.evolveum.midpoint.repo.sql.type</value>
+            </list>
+        </property>
+        <property name="packagesToScan">
+            <list>
+                <value>com.evolveum.midpoint.repo.sql.data.common</value>
+                <value>com.evolveum.midpoint.repo.sql.data.audit</value>
+            </list>
+        </property>
+    </bean>
+</beans>
