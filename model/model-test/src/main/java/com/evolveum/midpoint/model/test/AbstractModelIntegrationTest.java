@@ -304,14 +304,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return createModifyAccountShadowReplaceDelta(accountOid, resource, new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName), newRealValue);
 	}
 	
-	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath attributePath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, ((NameItemPathSegment)attributePath.last()).getName());
-		if (attributeDefinition == null) {
-			throw new SchemaException("No definition for attribute "+ attributePath+ " in " + resource);
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		if (AccountShadowType.F_ATTRIBUTES.equals(ItemPath.getName(itemPath.first()))) {
+			PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, ((NameItemPathSegment)itemPath.last()).getName());
+			if (attributeDefinition == null) {
+				throw new SchemaException("No definition for attribute "+ itemPath+ " in " + resource);
+			}
+			PropertyDelta<?> attributeDelta = PropertyDelta.createModificationReplaceProperty(itemPath, attributeDefinition, newRealValue);
+			ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, AccountShadowType.class, prismContext);
+			return accountDelta;
+		} else {
+			ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(
+					AccountShadowType.class, accountOid, itemPath, prismContext, newRealValue);
+			return accountDelta;
 		}
-		PropertyDelta<?> attributeDelta = PropertyDelta.createModificationReplaceProperty(attributePath, attributeDefinition, newRealValue);
-		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, AccountShadowType.class, prismContext);
-		return accountDelta;
 	}
 	
 	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {
