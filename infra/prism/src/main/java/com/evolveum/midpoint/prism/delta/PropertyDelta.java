@@ -278,6 +278,28 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		propertyDelta.setValuesToReplace(pValues);
     	return propertyDelta;
     }
+    
+    public static <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, 
+    		T... propertyValues) {
+    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition);
+    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
+    	for (T val: propertyValues) {
+    		pValues.add(new PrismPropertyValue<T>(val));
+    	}
+		propertyDelta.addValuesToAdd(pValues);
+    	return propertyDelta;
+    }
+    
+    public static <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition, 
+    		T... propertyValues) {
+    	PropertyDelta<T> propertyDelta = new PropertyDelta<T>(propertyPath, propertyDefinition);
+    	Collection<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>(propertyValues.length);
+    	for (T val: propertyValues) {
+    		pValues.add(new PrismPropertyValue<T>(val));
+    	}
+		propertyDelta.addValuesToDelete(pValues);
+    	return propertyDelta;
+    }
 
     /**
      * Convenience method for quick creation of object deltas that replace a single object property. This is used quite often

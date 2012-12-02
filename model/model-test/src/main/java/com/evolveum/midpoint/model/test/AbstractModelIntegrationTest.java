@@ -294,6 +294,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 	
+	protected ObjectDelta<AccountShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
+		return ObjectDelta.createEmptyModifyDelta(AccountShadowType.class, accountOid, prismContext);
+	}
+	
 	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceAttributeDelta(String accountOid, 
 			PrismObject<ResourceType> resource, String attributeName, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		return createModifyAccountShadowReplaceAttributeDelta(accountOid, resource, getAttributeQName(resource, attributeName), newRealValue);
@@ -306,11 +310,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ObjectDelta<AccountShadowType> createModifyAccountShadowReplaceDelta(String accountOid, PrismObject<ResourceType> resource, ItemPath itemPath, Object... newRealValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		if (AccountShadowType.F_ATTRIBUTES.equals(ItemPath.getName(itemPath.first()))) {
-			PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, ((NameItemPathSegment)itemPath.last()).getName());
-			if (attributeDefinition == null) {
-				throw new SchemaException("No definition for attribute "+ itemPath+ " in " + resource);
-			}
-			PropertyDelta<?> attributeDelta = PropertyDelta.createModificationReplaceProperty(itemPath, attributeDefinition, newRealValue);
+			PropertyDelta<?> attributeDelta = createAttributeReplaceDelta(resource, ((NameItemPathSegment)itemPath.last()).getName(), newRealValue);
 			ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModifyDelta(accountOid, attributeDelta, AccountShadowType.class, prismContext);
 			return accountDelta;
 		} else {
@@ -318,6 +318,45 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					AccountShadowType.class, accountOid, itemPath, prismContext, newRealValue);
 			return accountDelta;
 		}
+	}
+	
+	protected <T> PropertyDelta<T> createAttributeReplaceDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
+		return createAttributeReplaceDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
+	}
+	
+	protected <T> PropertyDelta<T> createAttributeReplaceDelta(PrismObject<ResourceType> resource, QName attributeQName, T... newRealValue) throws SchemaException {
+		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, attributeQName);
+		if (attributeDefinition == null) {
+			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
+		}
+		return PropertyDelta.createModificationReplaceProperty(new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeQName),
+				attributeDefinition, newRealValue);
+	}
+	
+	protected <T> PropertyDelta<T> createAttributeAddDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
+		return createAttributeAddDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
+	}
+	
+	protected <T> PropertyDelta<T> createAttributeAddDelta(PrismObject<ResourceType> resource, QName attributeQName, T... newRealValue) throws SchemaException {
+		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, attributeQName);
+		if (attributeDefinition == null) {
+			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
+		}
+		return PropertyDelta.createModificationAddProperty(new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeQName),
+				attributeDefinition, newRealValue);
+	}
+	
+	protected <T> PropertyDelta<T> createAttributeDeleteDelta(PrismObject<ResourceType> resource, String attributeLocalName, T... newRealValue) throws SchemaException {
+		return createAttributeDeleteDelta(resource, getAttributeQName(resource, attributeLocalName), newRealValue);
+	}
+	
+	protected <T> PropertyDelta<T> createAttributeDeleteDelta(PrismObject<ResourceType> resource, QName attributeQName, T... newRealValue) throws SchemaException {
+		PrismPropertyDefinition attributeDefinition = getAttributeDefinition(resource, attributeQName);
+		if (attributeDefinition == null) {
+			throw new SchemaException("No definition for attribute "+ attributeQName+ " in " + resource);
+		}
+		return PropertyDelta.createModificationDeleteProperty(new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeQName),
+				attributeDefinition, newRealValue);
 	}
 	
 	protected ResourceAttributeDefinition getAttributeDefinition(PrismObject<ResourceType> resource, QName attributeName) throws SchemaException {

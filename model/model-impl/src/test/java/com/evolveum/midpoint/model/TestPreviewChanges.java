@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -615,7 +616,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("Null model projection context list", projectionContexts);
 		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 		
-		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
 		assertNotNull("Null model projection context", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -624,6 +626,113 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
 		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
 				getAttributePath(resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Threepwood");
+		
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+	}
+	
+	@Test
+    public void test400ModifyElaineAccountDummyRedReplace() throws Exception {
+        final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, resourceDummyRed, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+		display("Input deltas: ", deltas);
+                
+		// WHEN
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+		
+		// THEN
+        display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+		
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		// Caused by inbound
+		assertNotNull("No focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
+		PrismAsserts.assertModifications(userSecondaryDelta, 1);
+		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
+		
+		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
+		assertNotNull("Null model projection context", accContext);
+		
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+		assertNotNull("No account primary delta", accountPrimaryDelta);
+		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
+				getAttributePath(resourceDummyRed, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Threepwood");
+		
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+	}
+	
+	@Test
+    public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
+        final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
+        PropertyDelta<String> fullnameDelta = createAttributeAddDelta(resourceDummyRed, 
+        		DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
+        fullnameDelta.addValueToDelete(new PrismPropertyValue<String>("Elaine Marley"));
+        accountDelta.addModification(fullnameDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
+		display("Input deltas: ", deltas);
+                
+		// WHEN
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+		
+		// THEN
+        display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+		
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		// Caused by inbound
+		assertNotNull("No focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
+		PrismAsserts.assertModifications(userSecondaryDelta, 1);
+		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
+		
+		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
+		assertNotNull("Null model projection context", accContext);
+		
+		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+		assertNotNull("No account primary delta", accountPrimaryDelta);
+		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
+		PrismAsserts.assertPropertyAdd(accountPrimaryDelta, 
+				getAttributePath(resourceDummyRed, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Threepwood");
+		PrismAsserts.assertPropertyDelete(accountPrimaryDelta, 
+				getAttributePath(resourceDummyRed, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Marley");
 		
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta", accountSecondaryDelta);

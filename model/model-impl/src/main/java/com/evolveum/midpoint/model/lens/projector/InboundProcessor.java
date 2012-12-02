@@ -311,7 +311,10 @@ public class InboundProcessor {
 	            for (PrismPropertyValue<U> value : triple.getMinusSet()) {
 	
 	                if (targetUserProperty == null || targetUserProperty.hasRealValue(value)) {
-	                    outputUserPropertydelta.addValueToDelete(value);
+	                	if (!outputUserPropertydelta.isReplace()) {
+	                		// This is not needed if we are going to replace. In fact it might cause an error.
+	                		outputUserPropertydelta.addValueToDelete(value);
+	                	}
 	                }
 	            }
 	        }
