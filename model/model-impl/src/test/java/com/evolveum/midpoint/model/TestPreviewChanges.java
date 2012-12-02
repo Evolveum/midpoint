@@ -583,8 +583,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		
 	@Test
-    public void test300ModifyAccount() throws Exception {
-        final String TEST_NAME = "test300ModifyAccount";
+    public void test300ModifyElaineAccountDummyReplace() throws Exception {
+        final String TEST_NAME = "test300ModifyElaineAccountDummyReplace";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -621,11 +621,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
 		assertNotNull("No account primary delta", accountPrimaryDelta);
+		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
+				getAttributePath(resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Threepwood");
 		
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta", accountSecondaryDelta);
-        
-		// TODO TODO TODO
 	}
 
 }

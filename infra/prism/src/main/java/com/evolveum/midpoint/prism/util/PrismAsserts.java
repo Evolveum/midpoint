@@ -239,8 +239,26 @@ public class PrismAsserts {
 	
 	// DELTA asserts
 	
-	public static void assertPropertyReplace(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta<Object> propertyDelta = userDelta.findPropertyDelta(propertyName);
+	public static void assertModifications(ObjectDelta<?> objectDelta, int expectedNumberOfModifications) {
+		assertIsModify(objectDelta);
+		assert objectDelta.getModifications().size() == expectedNumberOfModifications : "Wrong number of modifications in object delta "
+					+ objectDelta + ". Expected "+expectedNumberOfModifications+", was "+objectDelta.getModifications().size();
+	}
+
+	public static void assertIsModify(ObjectDelta<?> objectDelta) {
+		assert objectDelta.isModify() : "Expected that object delta "+objectDelta+" is MODIFY, but it is "+objectDelta.getChangeType();
+	}
+	
+	public static void assertIsAdd(ObjectDelta<?> objectDelta) {
+		assert objectDelta.isAdd() : "Expected that object delta "+objectDelta+" is ADD, but it is "+objectDelta.getChangeType();
+	}
+	
+	public static void assertIsDelete(ObjectDelta<?> objectDelta) {
+		assert objectDelta.isDelete() : "Expected that object delta "+objectDelta+" is DELETE, but it is "+objectDelta.getChangeType();
+	}
+
+	public static void assertPropertyReplace(ObjectDelta<?> objectDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta<Object> propertyDelta = objectDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertReplace(propertyDelta, expectedValues);
 	}
@@ -249,14 +267,14 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
-	public static void assertPropertyAdd(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
+	public static void assertPropertyAdd(ObjectDelta<?> objectDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta propertyDelta = objectDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyName, "add", propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
-	public static void assertPropertyDelete(ObjectDelta<?> userDelta, QName propertyName, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyName);
+	public static void assertPropertyDelete(ObjectDelta<?> objectDelta, QName propertyName, Object... expectedValues) {
+		PropertyDelta propertyDelta = objectDelta.findPropertyDelta(propertyName);
 		assertNotNull("Property delta for "+propertyName+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyName, "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}

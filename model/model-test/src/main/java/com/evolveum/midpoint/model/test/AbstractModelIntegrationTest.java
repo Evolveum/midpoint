@@ -870,6 +870,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return new QName(resourceNamespace, attributeLocalName);
 	}
 	
+	protected ItemPath getAttributePath(PrismObject<ResourceType> resource, String attributeLocalName) {
+		return new ItemPath(AccountShadowType.F_ATTRIBUTES, getAttributeQName(resource, attributeLocalName));
+	}
+	
 	// TASKS
 	
 	protected void waitForTaskFinish(Task task, boolean checkSubresult) throws Exception {
