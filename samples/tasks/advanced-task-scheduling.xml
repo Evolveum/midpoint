@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+
+<!--
+
+This file provides a set of tasks for demo/testing midPoint task suspension, resuming, deletion features.
+
+Used for test scenarios (http://wiki.evolveum.com/display/midPoint/Test+Scenarios)
+so please do not edit unless you know what you are doing.
+
+-->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:noop="http://midpoint.evolveum.com/repo/noop-handler-1"
+        >
+
+    <task oid="00000005-0000-0000-0000-123450000001">
+        <name>Task1: cron-like (every 5 seconds)</name>
+		<extension>
+			<noop:delay xsi:type="xsd:int">1000</noop:delay>	<!--  delay simulates a non-interruptible processing -->
+			<noop:steps xsi:type="xsd:int">4</noop:steps>		<!--  at the end of each step, the NoOp handler looks for shutdown signal -->
+		</extension>
+        <taskIdentifier>10000005-0000-0000-0000-123450000001</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <category>Demo</category>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <cronLikePattern>*/5 * * * * ?</cronLikePattern>
+        </schedule>
+    </task>
+
+    <task oid="00000005-0000-0000-0000-123450000002">
+        <name>Task2: cron-like (every 5 minutes)</name>
+        <extension>
+            <noop:delay xsi:type="xsd:int">1000</noop:delay>	<!--  delay simulates a non-interruptible processing -->
+            <noop:steps xsi:type="xsd:int">60</noop:steps>		<!--  at the end of each step, the NoOp handler looks for shutdown signal -->
+        </extension>
+        <taskIdentifier>10000005-0000-0000-0000-123450000002</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <category>Demo</category>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <cronLikePattern>0 */5 * * * ?</cronLikePattern>
+        </schedule>
+    </task>
+
+    <task oid="00000005-0000-0000-0000-123450000003">
+        <name>Task3: only in selected time interval</name>
+        <extension>
+            <noop:delay xsi:type="xsd:int">1000</noop:delay>	<!--  delay simulates a non-interruptible processing -->
+            <noop:steps xsi:type="xsd:int">5</noop:steps>		<!--  at the end of each step, the NoOp handler looks for shutdown signal -->
+        </extension>
+        <taskIdentifier>10000005-0000-0000-0000-123450000003</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <category>Demo</category>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <earliestStartTime>2012-12-03T19:35:00+01:00</earliestStartTime>
+            <latestStartTime>2012-12-03T19:36:00+01:00</latestStartTime>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+    <task oid="00000005-0000-0000-0000-123450000004">
+        <name>Task4: reschedule on misfire</name>
+        <extension>
+            <noop:delay xsi:type="xsd:int">1000</noop:delay>	<!--  delay simulates a non-interruptible processing -->
+            <noop:steps xsi:type="xsd:int">60</noop:steps>		<!--  at the end of each step, the NoOp handler looks for shutdown signal -->
+        </extension>
+        <taskIdentifier>10000005-0000-0000-0000-123450000004</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <category>Demo</category>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <interval>300</interval>
+            <misfireAction>reschedule</misfireAction>
+        </schedule>
+    </task>
+
+    <task oid="00000005-0000-0000-0000-123450000005">
+        <name>Task5: execute immediately on misfire</name>
+        <extension>
+            <noop:delay xsi:type="xsd:int">1000</noop:delay>	<!--  delay simulates a non-interruptible processing -->
+            <noop:steps xsi:type="xsd:int">60</noop:steps>		<!--  at the end of each step, the NoOp handler looks for shutdown signal -->
+        </extension>
+        <taskIdentifier>10000005-0000-0000-0000-123450000005</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <exclusivityStatus>released</exclusivityStatus>
+        <category>Demo</category>
+        <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
+        <recurrence>recurring</recurrence>
+        <binding>loose</binding>
+        <schedule>
+            <interval>300</interval>
+            <misfireAction>executeImmediately</misfireAction>
+        </schedule>
+    </task>
+
+</objects>

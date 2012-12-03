@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvi
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.WfDataAccessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -294,6 +296,11 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
 
         showResult(result);
+
+        ProcessInstanceDtoProvider provider = (ProcessInstanceDtoProvider) getTable().getDataTable().getDataProvider();
+        provider.clearCache();
+        ProcessInstanceDtoProvider provider2 = (ProcessInstanceDtoProvider) getFinishedTable().getDataTable().getDataProvider();
+        provider2.clearCache();
 
         //refresh feedback and table
         target.add(getFeedbackPanel());

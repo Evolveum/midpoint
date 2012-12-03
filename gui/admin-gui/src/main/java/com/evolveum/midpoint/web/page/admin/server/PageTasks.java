@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -760,6 +762,9 @@ public class PageTasks extends PageAdminTasks {
 
         showResult(result);
 
+        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
         //refresh feedback and table
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
@@ -1040,6 +1045,9 @@ public class PageTasks extends PageAdminTasks {
         if (result.isSuccess()) {
             result.recordStatus(OperationResultStatus.SUCCESS, "Selected node(s) have been successfully deleted.");
         }
+
+        NodeDtoProvider provider = (NodeDtoProvider) getNodeTable().getDataTable().getDataProvider();
+        provider.clearCache();
 
         showResult(result);
 
