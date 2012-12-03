@@ -107,7 +107,7 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 			if (task.isCycle()) {
-				executeRecurrentTask(handler, executionResult);
+				executeRecurrentTask(handler);
 			} else if (task.isSingle()) {
 				executeSingleTask(handler, executionResult);
 			} else {
@@ -262,12 +262,17 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 	
-	private void executeRecurrentTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
+	private void executeRecurrentTask(TaskHandler handler) throws JobExecutionException {
 
 		try {
 
 mainCycle:
+
 			while (task.canRun()) {
+
+                // executionResult should be initialized here (inside the loop), because for long-running tightly-bound
+                // recurring tasks it would otherwise bloat indefinitely
+                OperationResult executionResult = createOperationResult("executeTaskRun");
 
                 if (!task.stillCanStart()) {
                     LOGGER.trace("CycleRunner loop: task latest start time ({}) has elapsed, exiting the execution cycle. Task = {}", task.getSchedule().getLatestStartTime(), task);
