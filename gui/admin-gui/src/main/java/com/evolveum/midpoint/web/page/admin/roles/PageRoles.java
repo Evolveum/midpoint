@@ -64,13 +64,14 @@ public class PageRoles extends PageAdminRoles {
     private static final String OPERATION_DELETE_ROLES = DOT_CLASS + "deleteRoles";
 
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
+    private static final String ID_MAIN_FORM = "mainForm";
 
     public PageRoles() {
         initLayout();
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
         List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
@@ -127,12 +128,16 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private TablePanel getRoleTable() {
-        return (TablePanel) get("mainForm:table");
+        return (TablePanel) get(ID_MAIN_FORM + ":table");
+    }
+
+    private ObjectDataProvider<RoleType> getRoleDataProvider() {
+        DataTable table = getRoleTable().getDataTable();
+        return (ObjectDataProvider<RoleType>) table.getDataProvider();
     }
 
     private List<RoleType> getSelectedRoles() {
-        DataTable table = getRoleTable().getDataTable();
-        ObjectDataProvider<RoleType> provider = (ObjectDataProvider<RoleType>) table.getDataProvider();
+        ObjectDataProvider<RoleType> provider = getRoleDataProvider();
 
         List<SelectableBean<RoleType>> rows = provider.getAvailableData();
         List<RoleType> selected = new ArrayList<RoleType>();
@@ -181,7 +186,7 @@ public class PageRoles extends PageAdminRoles {
             result.recordStatus(OperationResultStatus.SUCCESS, "The role(s) have been successfully deleted.");
         }
 
-        ObjectDataProvider provider = (ObjectDataProvider) getRoleTable().getDataTable().getDataProvider();
+        ObjectDataProvider provider = getRoleDataProvider();
         provider.clearCache();
         
         showResult(result);

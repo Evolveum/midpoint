@@ -143,6 +143,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     public void clearCache() {
         cache.clear();
+        availableData.clear();
     }
 
     public int getCacheCleanupThreshold() {
