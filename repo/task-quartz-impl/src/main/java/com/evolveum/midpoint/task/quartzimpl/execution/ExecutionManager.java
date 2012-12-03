@@ -80,6 +80,9 @@ public class ExecutionManager {
         } else {
             remoteNodesManager.stopRemoteScheduler(nodeIdentifier, result);
         }
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
     }
 
     public boolean stopSchedulersAndTasks(List<String> nodeList, long timeToWait, OperationResult parentResult) {

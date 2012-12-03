@@ -213,6 +213,7 @@ public class RemoteNodesManager {
                 QuartzSchedulerMBean mbeanProxy = getMBeanProxy(nodeName, mbsc);
                 if (mbeanProxy != null) {
                     mbeanProxy.standby();
+                    result.recordSuccess();
                 } else {
                     result.recordWarning("Cannot stop the scheduler on node " + nodeName + " at " + address + " because the JMX object for scheduler cannot be found on that node.");
                 }

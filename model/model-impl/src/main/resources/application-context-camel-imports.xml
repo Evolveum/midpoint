@@ -41,11 +41,13 @@
             <bean ref="importProcessor" />
         </route>
         -->
+        <!--
         <route id="file1" autoStartup="false">
             <from uri="file:~/midpoint-import?antInclude=*.xml&amp;charset=utf-8" />
             <bean ref="importProcessor" />
             <to uri="file:~/midpoint-import/results?charset=utf-8" />
         </route>
+        -->
 
     </camelContext>
 

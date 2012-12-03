@@ -43,9 +43,9 @@
 	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
 	<recurrence>recurring</recurrence>
-	<binding>tight</binding>
+	<binding>loose</binding>
 	<schedule>
-		<interval>5</interval>
+		<interval>3600</interval>
 	</schedule>
 
 </task>

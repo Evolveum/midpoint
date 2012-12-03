@@ -349,7 +349,7 @@ public class NodeRegistrar {
     }
 
     boolean isUp(NodeType n) {
-        return n.getLastCheckInTime() != null &&
+        return n.isRunning() && n.getLastCheckInTime() != null &&
                 (System.currentTimeMillis() - n.getLastCheckInTime().toGregorianCalendar().getTimeInMillis())
                         <= (taskManager.getConfiguration().getNodeTimeout() * 1000L);
     }
