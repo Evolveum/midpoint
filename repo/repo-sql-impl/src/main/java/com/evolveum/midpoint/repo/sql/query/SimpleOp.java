@@ -367,7 +367,7 @@ public class SimpleOp extends Op {
 		for (ItemPathSegment segment : path.getSegments()) {
 			def = definition.findDefinition(ItemPath.getName(segment));
 			if (!def.isEntity()) {
-				throw new QueryException("Can't query attribute in attribute.");
+				throw new QueryException("Can't query attribute in attribute. Full path was '" + path + "'.");
 			} else {
 				definition = (EntityDefinition) def;
 			}
@@ -411,7 +411,7 @@ public class SimpleOp extends Op {
 			if (definition == null || !definition.isEntity()) {
 				throw new QueryException("This definition '" + definition + "' is not entity definition, "
 						+ "we can't query attribute in attribute. Please check your path in query, or query "
-						+ "entity/attribute mappings.");
+						+ "entity/attribute mappings. Full path was '" + path + "'.");
 			}
 
 			EntityDefinition entityDefinition = (EntityDefinition) definition;
