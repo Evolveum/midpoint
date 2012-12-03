@@ -41,6 +41,9 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
     <http pattern="/wicket/resource/**" security="none"/>
 
     <http create-session="never" auto-config="true" use-expressions="true">
+        <!-- todo move reports to WEB-INF or even better probably to midpoint.home folder -->
+        <intercept-url pattern="/reports/**" access="denyAll"/>
+
         <intercept-url pattern="/j_spring_security_check" access="permitAll"/>
         <intercept-url pattern="/spring_security_login" access="permitAll"/>
         <intercept-url pattern="/login" access="permitAll"/>
