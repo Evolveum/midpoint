@@ -25,6 +25,10 @@
 
 This file provides a set of tasks for demo/testing midPoint multi-node and HA features.
 
+Used for test scenarios (http://wiki.evolveum.com/display/midPoint/Test+Scenarios)
+so please do not edit unless you know what you are doing.
+
+
 -->
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
