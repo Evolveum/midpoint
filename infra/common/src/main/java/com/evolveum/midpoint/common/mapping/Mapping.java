@@ -278,11 +278,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	
 	public MappingStrengthType getStrength() {
 		if (mappingType == null) {
-			return MappingStrengthType.STRONG;
+			return MappingStrengthType.NORMAL;
 		}
 		MappingStrengthType value = mappingType.getStrength();
 		if (value == null) {
-			value = MappingStrengthType.STRONG;
+			value = MappingStrengthType.NORMAL;
 		}
 		return value;
 	}

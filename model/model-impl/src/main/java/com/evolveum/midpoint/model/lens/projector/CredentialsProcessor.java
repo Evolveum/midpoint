@@ -171,7 +171,7 @@ public class CredentialsProcessor {
 		passwordMapping.setOriginType(OriginType.OUTBOUND);
 		passwordMapping.setOriginObject(accCtx.getResource());
 		
-		if (passwordMapping.getStrength() == MappingStrengthType.WEAK) {
+		if (passwordMapping.getStrength() != MappingStrengthType.STRONG) {
         	if (accountPasswordValueDelta != null && !accountPasswordValueDelta.isEmpty()) {
         		return;
         	}

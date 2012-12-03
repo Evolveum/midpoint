@@ -156,7 +156,7 @@ public class ActivationProcessor {
         Source<PrismPropertyValue<Boolean>> source = new Source<PrismPropertyValue<Boolean>>(sourceIdi, ExpressionConstants.VAR_INPUT);
 		enabledMapping.setDefaultSource(source);
 		
-		if (enabledMapping.getStrength() == MappingStrengthType.WEAK) {
+		if (enabledMapping.getStrength() != MappingStrengthType.STRONG) {
         	if (accountEnabledValueDelta != null && !accountEnabledValueDelta.isEmpty()) {
         		return;
         	}

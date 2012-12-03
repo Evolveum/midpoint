@@ -299,7 +299,7 @@ public class LensUtil {
             	boolean initialOnly = true;
                 for (ItemValueWithOrigin pvwoToAdd : pvwosToAdd) {
                     Mapping<?> mapping = pvwoToAdd.getMapping();
-                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
+                    if (mapping.getStrength() != MappingStrengthType.WEAK) {
                         initialOnly = false;
                     }
                     if (mapping.isExclusive()) {

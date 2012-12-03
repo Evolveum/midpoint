@@ -224,7 +224,7 @@ public class InboundProcessor {
 	}
 
 	private boolean checkWeakSkip(Mapping<?> inbound, PrismObject<UserType> newUser) throws SchemaException {
-        if (inbound.getStrength() == MappingStrengthType.STRONG) {
+        if (inbound.getStrength() != MappingStrengthType.WEAK) {
         	return false;
         }
         PrismProperty<?> property = newUser.findProperty(inbound.getOutputPath());
@@ -261,7 +261,7 @@ public class InboundProcessor {
 		mapping.setOriginObject(resource);
     	
     	if (checkWeakSkip(mapping, newUser)) {
-            LOGGER.trace("Skipping because of initial flag.");
+            LOGGER.trace("Skipping because of weak mapping type");
             return null;
         }
         
