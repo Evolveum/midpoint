@@ -383,9 +383,9 @@ public class IntegrationTestTools {
 		assertNotEmpty(qname.getLocalPart());
 	}
 
-	public static <T> void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name,
+	public static <T> void assertAttribute(ResourceObjectShadowType shadow, ResourceType resource, String name,
 			T... expectedValues) {
-		assertAttribute("Wrong attribute " + name + " in shadow", repoShadow,
+		assertAttribute("Wrong attribute " + name + " in "+shadow, shadow,
 				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), expectedValues);
 	}
 	
@@ -418,7 +418,7 @@ public class IntegrationTestTools {
 				}
 			}
 			if (!found) {
-				fail(message + ": Unexpected value "+actualValue+"; has "+actualValues);
+				fail(message + ": Unexpected value "+actualValue+"; expected "+expectedValues+"; has "+actualValues);
 			}
 		}
 	}

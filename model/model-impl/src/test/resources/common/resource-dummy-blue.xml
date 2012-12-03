@@ -19,6 +19,9 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
+<!-- BLUE dummy resource for testing. It is used in multi-resource tests. It also
+     has mostly WEAK mappings, therefore it is used in weak mapping tests. -->
+
 <resource oid="10000000-0000-0000-0000-000000000204"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -145,11 +148,13 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
+					<strength>weak</strength>
 					<source>
 						<path>$user/fullName</path>
 					</source>
 				</outbound>
 				<inbound>
+					<strength>weak</strength>
 					<target>
 						<path>$c:user/c:fullName</path>
 					</target>

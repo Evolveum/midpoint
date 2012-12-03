@@ -375,15 +375,14 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 			sb.append(DebugDumpable.INDENT_STRING);
 		}
 		sb.append(toString());
-		sb.append("\n");
 		for (Definition def : getDefinitions()) {
+			sb.append("\n");
 			if (def instanceof ResourceAttributeDefinition) {
 				ResourceAttributeDefinition attrDef = (ResourceAttributeDefinition)def;
 				sb.append(attrDef.debugDump(indent+1));
 				if (attrDef.isIdentifier(this)) {
 					sb.deleteCharAt(sb.length()-1);
 					sb.append(" id");
-					sb.append("\n");
 				}
 			} else {
 				sb.append(def.debugDump(indent+1));

@@ -294,6 +294,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return ObjectDelta.createModificationAddProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
 	}
 	
+	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
+		PrismObject<AccountShadowType> account = getAccountShadowDefinition().instantiate();
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		account.asObjectable().setResourceRef(resourceRef);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		account.asObjectable().setObjectClass(refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition().getTypeName());
+		
+		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+		accountRefVal.setObject(account);
+		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
+		userDelta.addModification(accountDelta);
+		
+		return userDelta;
+	}
+	
 	protected ObjectDelta<AccountShadowType> createModifyAccountShadowEmptyDelta(String accountOid) {
 		return ObjectDelta.createEmptyModifyDelta(AccountShadowType.class, accountOid, prismContext);
 	}
@@ -737,6 +754,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected PrismObjectDefinition<ResourceType> getResourceDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+	}
+	
+	protected PrismObjectDefinition<AccountShadowType> getAccountShadowDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
 	}
 	
 	protected PrismObject<UserType> createUser(String name, String fullName) throws SchemaException {

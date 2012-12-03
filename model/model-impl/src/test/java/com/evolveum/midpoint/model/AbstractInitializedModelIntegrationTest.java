@@ -200,6 +200,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected PrismObject<ResourceType> resourceDummyBlue;
 	protected ResourceType resourceDummyWhiteType;
 	protected PrismObject<ResourceType> resourceDummyWhite;
+	protected ResourceType resourceDummyGreenType;
+	protected PrismObject<ResourceType> resourceDummyGreen;
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
 	
@@ -207,6 +209,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected static DummyResource dummyResourceRed;
 	protected static DummyResource dummyResourceBlue;
 	protected static DummyResource dummyResourceWhite;
+	protected static DummyResource dummyResourceGreen;
 	
 	public AbstractInitializedModelIntegrationTest() {
 		super();
@@ -238,6 +241,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceWhite = DummyResource.getInstance(RESOURCE_DUMMY_WHITE_NAME);
 		dummyResourceWhite.reset();
 		dummyResourceWhite.populateWithDefaultSchema();
+		
+		dummyResourceGreen = DummyResource.getInstance(RESOURCE_DUMMY_GREEN_NAME);
+		dummyResourceGreen.reset();
+		dummyResourceGreen.populateWithDefaultSchema();
+		extendDummySchema(dummyResourceGreen);
 		
 		postInitDummyResouce();
 		
@@ -273,6 +281,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
 		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
 		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
+		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
+		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);

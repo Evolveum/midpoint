@@ -1737,14 +1737,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		T shadow = shadowPrism.asObjectable();
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
 				.findOrCreateContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		ResourceAttributeContainerDefinition attributesDefinition = attributesContainer.getDefinition();
-		shadow.setObjectClass(attributesDefinition.getTypeName());
+		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
+		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
-		LOGGER.trace("Resource attribute container definition {}.", attributesDefinition.dump());
+		LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.dump());
 
 		// Uid is always there
 		Uid uid = co.getUid();
-		ResourceAttribute<?> uidRoa = createUidAttribute(uid, getUidDefinition(attributesDefinition));
+		ResourceAttribute<?> uidRoa = createUidAttribute(uid, getUidDefinition(attributesContainerDefinition));
 		attributesContainer.getValue().add(uidRoa);
 
 		for (Attribute icfAttr : co.getAttributes()) {
@@ -1781,10 +1781,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
 
-			ResourceAttributeDefinition attributeDefinition = attributesDefinition.findAttributeDefinition(qname);
+			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
 
 			if (attributeDefinition == null) {
-				throw new SchemaException("Unknown attribute "+qname+". Cannot create definition. Original ICF name: "+icfAttr.getName(), qname);
+				throw new SchemaException("Unknown attribute "+qname+" in definition of object class "+attributesContainerDefinition.getTypeName()+". Original ICF name: "+icfAttr.getName(), qname);
 			}
 
 			ResourceAttribute resourceAttribute = attributeDefinition.instantiate(qname);

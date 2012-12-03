@@ -91,7 +91,7 @@ public class PrismAsserts {
 		PrismProperty<T> property = containerValue.findProperty(propQName);
 		assertNotNull("Property " + propQName + " not found in " + containerValue.getParent(), property);
 		assertSame("Wrong parent for property " + property, containerValue, property.getParent());
-		assertPropertyValue(property, realPropValues);
+		assertPropertyValueDesc(property, containerValue.getParent().toString(), realPropValues);
 	}
 	
 	public static <T> void assertPropertyValue(PrismContainer<?> container, ItemPath propPath, T... realPropValues) {
@@ -103,14 +103,19 @@ public class PrismAsserts {
 	public static <T> void assertPropertyValue(PrismContainerValue<?> containerValue, ItemPath propPath, T... realPropValues) {
 		PrismProperty<T> property = containerValue.findProperty(propPath);
 		assertNotNull("Property " + propPath + " not found in " + containerValue.getParent(), property);
-		assertPropertyValue(property, realPropValues);
+		assertPropertyValueDesc(property, containerValue.getParent().toString(), realPropValues);
+	}
+	
+	public static <T> void assertPropertyValue(PrismProperty<T> property, T... expectedPropValues) {
+		assertPropertyValueDesc(property, null, expectedPropValues);
 	}
 		
-	public static <T> void assertPropertyValue(PrismProperty<T> property, T... expectedPropValues) {
+	public static <T> void assertPropertyValueDesc(PrismProperty<T> property, String contextDescrition, T... expectedPropValues) {
 		Collection<PrismPropertyValue<T>> pvals = property.getValues();
 		QName propQName = property.getName();
 		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
-		assertSet("property "+propQName, "value", pvals, expectedPropValues);
+		assertSet("property "+propQName + (contextDescrition == null ? "" : " in " + contextDescrition), 
+				"value", pvals, expectedPropValues);
 	}
 	
 	public static <T> void assertPropertyValues(String message, Collection<T> expected, Collection<PrismPropertyValue<T>> results) {
@@ -279,8 +284,8 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyName, "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
-	public static void assertPropertyReplace(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
+	public static <T> void assertPropertyReplace(ObjectDelta<?> userDelta, ItemPath propertyPath, T... expectedValues) {
+		PropertyDelta<T> propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
@@ -581,7 +586,8 @@ public class PrismAsserts {
 				}
 			}
 			if (!found) {
-				fail("Unexpected value "+actualPValue+" in " + inMessage + "; has "+actualPValues);
+				fail("Unexpected value "+actualPValue+" in " + inMessage + "; expected (real values) "
+						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualPValues);
 			}
 		}
 	}

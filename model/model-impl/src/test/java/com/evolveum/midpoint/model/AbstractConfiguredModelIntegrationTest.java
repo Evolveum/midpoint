@@ -193,6 +193,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_WHITE_NAME = "white";
 	protected static final String RESOURCE_DUMMY_WHITE_NAMESPACE = MidPointConstants.NS_RI;
 	
+	// Green dummy resource is authoritative
+	protected static final String RESOURCE_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/resource-dummy-green.xml";
+	protected static final String RESOURCE_DUMMY_GREEN_OID = "10000000-0000-0000-0000-000000000404";
+	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";
+	protected static final String RESOURCE_DUMMY_GREEN_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR_NAME + "/resource-dummy-schemaless-no-schema.xml";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_NAME = "schemaless";
@@ -306,6 +312,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/task-dumy-blue-livesync.xml";
 	protected static final String TASK_LIVE_SYNC_DUMMY_BLUE_OID = "10000000-0000-0000-5555-555500000204";
 	
+	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/task-dumy-green-livesync.xml";
+	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_OID = "10000000-0000-0000-5555-555500000404";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	
 	protected PrismObject<UserType> userAdministrator;
@@ -336,15 +345,16 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		return new LensContext<UserType, AccountShadowType>(UserType.class, AccountShadowType.class, prismContext);
 	}
 	
-	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {
+	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType, AccountShadowType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {
 		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
 		focusContext.setObjectOld(user);
+		return focusContext;
 	}
 	
-	protected void fillContextWithUser(LensContext<UserType, AccountShadowType> context, String userOid, OperationResult result) throws SchemaException,
+	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType, AccountShadowType> context, String userOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, result);
-        fillContextWithUser(context, user);
+        return fillContextWithUser(context, user);
     }
 	
 	protected void fillContextWithUserFromFile(LensContext<UserType, AccountShadowType> context, String filename) throws SchemaException,
@@ -365,21 +375,21 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		focusContext.setPrimaryDelta(userDelta);
 	}
 
-	protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, String accountOid, OperationResult result) throws SchemaException,
+	protected LensProjectionContext<AccountShadowType> fillContextWithAccount(LensContext<UserType, AccountShadowType> context, String accountOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<AccountShadowType> account = repositoryService.getObject(AccountShadowType.class, accountOid, result);
         provisioningService.applyDefinition(account, result);
-        fillContextWithAccount(context, account, result);
+        return fillContextWithAccount(context, account, result);
 	}
 
-	protected void fillContextWithAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename, OperationResult result) throws SchemaException,
+	protected LensProjectionContext<AccountShadowType> fillContextWithAccountFromFile(LensContext<UserType, AccountShadowType> context, String filename, OperationResult result) throws SchemaException,
 	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(filename));
 		provisioningService.applyDefinition(account, result);
-		fillContextWithAccount(context, account, result);
+		return fillContextWithAccount(context, account, result);
 	}
 
-    protected void fillContextWithAccount(LensContext<UserType, AccountShadowType> context, PrismObject<AccountShadowType> account, OperationResult result) throws SchemaException,
+    protected LensProjectionContext<AccountShadowType> fillContextWithAccount(LensContext<UserType, AccountShadowType> context, PrismObject<AccountShadowType> account, OperationResult result) throws SchemaException,
 		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	AccountShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
@@ -391,6 +401,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		accountSyncContext.setObjectOld(account);
 		accountSyncContext.setResource(resourceType);
 		context.rememberResource(resourceType);
+		return accountSyncContext;
     }
     
     protected void makeImportSyncDelta(LensProjectionContext<AccountShadowType> accContext) {

@@ -383,13 +383,15 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     /**
-     * Semi-deep clone.
+     * Deep clone.
      */
     public ObjectDelta<T> clone() {
         ObjectDelta<T> clone = new ObjectDelta<T>(this.objectTypeClass, this.changeType, this.prismContext);
         clone.oid = this.oid;
         clone.modifications = createEmptyModifications();
-        clone.modifications.addAll((Collection)this.modifications);
+        for (ItemDelta<?> thisModification: this.modifications) {
+        	((Collection)clone.modifications).add(thisModification.clone());
+        }
         if (this.objectToAdd == null) {
             clone.objectToAdd = null;
         } else {
@@ -985,7 +987,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     		objectToAdd.revive(prismContext);
     	}
     	if (modifications != null) {
-    		for (ItemDelta modification: modifications) {
+    		for (ItemDelta<?> modification: modifications) {
     			modification.revive(prismContext);
     		}
     	}
@@ -996,7 +998,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     		objectToAdd.applyDefinition(objectDefinition, force);
     	}
     	if (modifications != null) {
-    		for (ItemDelta modification: modifications) {
+    		for (ItemDelta<?> modification: modifications) {
     			ItemPath path = modification.getPath();
     			ItemDefinition itemDefinition = objectDefinition.findItemDefinition(path);
     			modification.applyDefinition(itemDefinition, force);
@@ -1005,6 +1007,54 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
 
     @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((changeType == null) ? 0 : changeType.hashCode());
+		result = prime * result
+				+ ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
+		result = prime * result
+				+ ((objectTypeClass == null) ? 0 : objectTypeClass.hashCode());
+		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ObjectDelta<?> other = (ObjectDelta<?>) obj;
+		if (changeType != other.changeType)
+			return false;
+		if (modifications == null) {
+			if (other.modifications != null)
+				return false;
+		} else if (!MiscUtil.unorderedCollectionEquals(this.modifications,other.modifications))
+			return false;
+		if (objectToAdd == null) {
+			if (other.objectToAdd != null)
+				return false;
+		} else if (!objectToAdd.equals(other.objectToAdd))
+			return false;
+		if (objectTypeClass == null) {
+			if (other.objectTypeClass != null)
+				return false;
+		} else if (!objectTypeClass.equals(other.objectTypeClass))
+			return false;
+		if (oid == null) {
+			if (other.oid != null)
+				return false;
+		} else if (!oid.equals(other.oid))
+			return false;
+		return true;
+	}
+
+	@Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(debugName());

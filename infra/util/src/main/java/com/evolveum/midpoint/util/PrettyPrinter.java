@@ -23,6 +23,7 @@ package com.evolveum.midpoint.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -210,6 +211,10 @@ public class PrettyPrinter {
 		return sb.toString();
 	}
 
+	public static String prettyPrint(Object[] value) {
+		return prettyPrint(Arrays.asList(value));
+	}
+	
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";

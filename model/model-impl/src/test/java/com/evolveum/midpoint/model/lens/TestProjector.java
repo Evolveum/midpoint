@@ -37,6 +37,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.eclipse.jetty.security.MappedLoginService.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -45,6 +46,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -75,6 +77,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -130,23 +133,107 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test000Sanity() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+    public void test000Sanity() throws Exception {
         displayTestTile(this, "test000Sanity");
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
         
         assertDummyRefinedSchemaSanity(refinedSchema);
         
+        assertNoJackShadow();
 	}
 	
 	@Test
-    public void test010AddAccountToJackDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test010AddAccountToJackDirect");
+    public void test010BasicContextOperations() throws Exception {
+		final String TEST_NAME = "test010BasicContextOperations";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test010AddAccountToJackDirect");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
+        LensProjectionContext<AccountShadowType> accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        
+        // User deltas
+        ObjectDelta<UserType> userDeltaPrimary = createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME, 
+        		PrismTestUtil.createPolyString("Elaine Threepwood"));
+        ObjectDelta<UserType> userDeltaPrimaryClone = userDeltaPrimary.clone();
+        ObjectDelta<UserType> userDeltaSecondary = createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME, 
+        		PrismTestUtil.createPolyString("Elaine LeChuck"));
+        ObjectDelta<UserType> userDeltaSecondaryClone = userDeltaSecondary.clone();
+        focusContext.setPrimaryDelta(userDeltaPrimary);
+        focusContext.setSecondaryDelta(userDeltaSecondary, 0);
+        
+        // Account Deltas
+        ObjectDelta<AccountShadowType> accountDeltaPrimary = createModifyAccountShadowReplaceAttributeDelta(
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie Marley");
+        ObjectDelta<AccountShadowType> accountDeltaPrimaryClone = accountDeltaPrimary.clone();
+        assert accountDeltaPrimaryClone != accountDeltaPrimary : "clone is not cloning";
+        assert accountDeltaPrimaryClone.getModifications() != accountDeltaPrimary.getModifications() : "clone is not cloning (modifications)";
+        ObjectDelta<AccountShadowType> accountDeltaSecondary = createModifyAccountShadowReplaceAttributeDelta(
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie LeChuck");
+        ObjectDelta<AccountShadowType> accountDeltaSecondaryClone = accountDeltaSecondary.clone();
+        accountContext.setPrimaryDelta(accountDeltaPrimary);
+        accountContext.setSecondaryDelta(accountDeltaSecondary);
+		
+        display("Context before", context);
+        
+        // WHEN: checkConsistence
+        context.checkConsistence();
+        
+        display("Context after checkConsistence", context);
+        
+        assert focusContext == context.getFocusContext() : "focus context delta replaced";
+        assert focusContext.getPrimaryDelta() == userDeltaPrimary : "focus primary delta replaced";
+        assert userDeltaPrimaryClone.equals(userDeltaPrimary) : "focus primary delta changed";
+        
+        ObjectDelta<UserType> focusSecondaryDelta = focusContext.getSecondaryDelta();
+        display("Focus secondary delta", focusSecondaryDelta);
+        display("Orig user secondary delta", userDeltaSecondaryClone);
+        assert focusSecondaryDelta.equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
+        
+        assert accountContext == context.findProjectionContext(new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null))
+        		: "wrong account context";
+        assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
+        assert accountDeltaPrimaryClone.equals(accountDeltaPrimary) : "account primary delta changed";
+        assert accountContext.getSecondaryDelta() == accountDeltaSecondary : "account secondary delta replaced";
+        assert accountDeltaSecondaryClone.equals(accountDeltaSecondary) : "account secondary delta changed";
+        
+        // WHEN: recompute
+        context.recompute();
+        
+        display("Context after recompute", context);
+        
+        assert focusContext == context.getFocusContext() : "focus context delta replaced";
+        assert focusContext.getPrimaryDelta() == userDeltaPrimary : "focus primary delta replaced";
+        
+        focusSecondaryDelta = focusContext.getSecondaryDelta();
+        display("Focus secondary delta", focusSecondaryDelta);
+        display("Orig user secondary delta", userDeltaSecondaryClone);
+        assert focusSecondaryDelta.equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
+        
+        assert accountContext == context.findProjectionContext(new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null))
+        		: "wrong account context";
+        assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
+        display("Orig account primary delta", accountDeltaPrimaryClone);
+        display("Account primary delta after recompute", accountDeltaPrimary);
+        assert accountDeltaPrimaryClone.equals(accountDeltaPrimary) : "account primary delta changed";
+        assert accountContext.getSecondaryDelta() == accountDeltaSecondary : "account secondary delta replaced";
+        assert accountDeltaSecondaryClone.equals(accountDeltaSecondary) : "account secondary delta changed";
+        
+	}
+
+	
+	@Test
+    public void test100AddAccountToJackDirect() throws Exception {
+		final String TEST_NAME = "test100AddAccountToJackDirect";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -200,11 +287,12 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test020AssignAccountToJack() throws Exception {
-        displayTestTile(this, "test020AssignAccountToJack");
+    public void test110AssignAccountToJack() throws Exception {
+		final String TEST_NAME = "test110AssignAccountToJack";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test020AssignAccountToJack");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -227,11 +315,12 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	 * Same sa previous test but the deltas are slightly broken.
 	 */
 	@Test
-    public void test021AssignAccountToJackBroken() throws Exception {
-        displayTestTile(this, "test021AssignAccountToJackBroken");
+    public void test111AssignAccountToJackBroken() throws Exception {
+		final String TEST_NAME = "test111AssignAccountToJackBroken";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test021AssignAccountToJackBroken");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -285,11 +374,12 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	 * Let's try if the "l" gets updated if we update barbosa's locality.
 	 */
 	@Test
-    public void test050ModifyUserBarbossaLocality() throws Exception {
-        displayTestTile(this, "test050ModifyUserBarbossaLocality");
+    public void test250ModifyUserBarbossaLocality() throws Exception {
+		final String TEST_NAME = "test250ModifyUserBarbossaLocality";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test050ModifyUserBarbossaLocality");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -335,11 +425,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	 * Let's try if the "cn" gets updated if we update barbosa's fullName. Also check if delta is replace.
 	 */
 	@Test
-    public void test051ModifyUserBarbossaFullname() throws Exception {
-        displayTestTile(this, "test051ModifyUserBarbossaFullname");
+    public void test251ModifyUserBarbossaFullname() throws Exception {
+		final String TEST_NAME = "test251ModifyUserBarbossaFullname";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test051ModifyUserBarbossaFullname");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -383,11 +475,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	 * Let's disable user, the account should be disabled as well.
 	 */
 	@Test
-    public void test053ModifyUserBarbossaDisable() throws Exception {
-        displayTestTile(this, "test053ModifyUserBarbossaDisable");
+    public void test253ModifyUserBarbossaDisable() throws Exception {
+		final String TEST_NAME = "test253ModifyUserBarbossaDisable";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test053ModifyUserBarbossaDisable");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -432,11 +526,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	 * Let's try to delete assigned account. It should end up with a policy violation error.
 	 */
 	@Test
-    public void test055DeleteBarbossaOpenDjAccount() throws Exception {
-        displayTestTile(this, "test055DeleteBarbossaOpenDjAccount");
+    public void test255DeleteBarbossaOpenDjAccount() throws Exception {
+		final String TEST_NAME = "test255DeleteBarbossaOpenDjAccount";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test055DeleteBarbossaOpenDjAccount");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -467,12 +563,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
     }
 	
 	@Test
-    public void test101AssignConflictingAccountToJack() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test101AssignConflictingAccountToJack");
+    public void test301AssignConflictingAccountToJack() throws Exception {
+		final String TEST_NAME = "test301AssignConflictingAccountToJack";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test101AssignConflictingAccountToJack");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -515,11 +612,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test200ImportHermanDummy() throws Exception {
-        displayTestTile(this, "test200ImportHermanDummy");
+    public void test400ImportHermanDummy() throws Exception {
+		final String TEST_NAME = "test400ImportHermanDummy";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test200ImportHermanDummy");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -563,11 +662,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
     }
 	
 	@Test
-    public void test201ImportHermanOpenDj() throws Exception {
-        displayTestTile(this, "test201ImportHermanOpenDj");
+    public void test401ImportHermanOpenDj() throws Exception {
+		final String TEST_NAME = "test401ImportHermanOpenDj";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test201ImportHermanOpenDj");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -608,11 +709,12 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
     }
 	
 	@Test
-    public void test250GuybrushInboundFromDelta() throws Exception {
-        displayTestTile(this, "test250GuybrushInboundFromDelta");
+    public void test450GuybrushInboundFromDelta() throws Exception {
+		final String TEST_NAME = "test450GuybrushInboundFromDelta";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test250GuybrushInboundFromDelta");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -642,9 +744,12 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
     }
 
 	@Test
-    public void test251GuybrushInboundFromAbsolute() throws Exception {
-        displayTestTile(this, "test251GuybrushInboundFromAbsolute");
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test251GuybrushInboundFromAbsolute");
+    public void test451GuybrushInboundFromAbsolute() throws Exception {
+		final String TEST_NAME = "test451GuybrushInboundFromAbsolute";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -702,11 +807,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 
 	
 	@Test
-    public void test300ReconcileGuybrushDummy() throws Exception {
-        displayTestTile(this, "test300ReconcileGuybrushDummy");
+    public void test500ReconcileGuybrushDummy() throws Exception {
+		final String TEST_NAME = "test500ReconcileGuybrushDummy";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test300ReconcileGuybrushDummy");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -765,11 +872,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 	 * Let's add user without a fullname. The expression in user template should compute it.
 	 */
 	@Test
-    public void test400AddLargo() throws Exception {
-        displayTestTile(this, "test400AddLargo");
+    public void test600AddLargo() throws Exception {
+		final String TEST_NAME = "test600AddLargo";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test400AddLargo");
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -797,5 +906,11 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         		PrismTestUtil.createPolyString("Largo LaGrande"));
         
     }
+
+	
+	private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<AccountShadowType> jackAccount = findAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME, resourceDummy);
+        assertNull("Found jack's shadow!", jackAccount);
+	}
 
 }
