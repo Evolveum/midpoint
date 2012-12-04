@@ -439,10 +439,12 @@ public class ShadowCache {
 			if (!isReconciled) {
 				
 				if (shadow.getObjectChange() != null) {
+					
 					ObjectDeltaType deltaType = shadow.getObjectChange();
 					Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
 							deltaType.getModification(), shadow.asPrismObject().getDefinition());
-					mergedDelta = ObjectDelta.union(ObjectDelta.createModifyDelta(oid, modifications,
+					
+					mergedDelta = ObjectDelta.summarize(ObjectDelta.createModifyDelta(oid, modifications,
 							AccountShadowType.class, prismContext), ObjectDelta.createModifyDelta(oid,
 							pendingModifications, AccountShadowType.class, prismContext));
 				}
