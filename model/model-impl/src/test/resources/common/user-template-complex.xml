@@ -67,6 +67,7 @@
     
     <!-- RB-RBAC functionality. The Pirate role is automatically assigned based on the value of employeeType property -->
     <mapping>
+    	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
     	</source>
@@ -90,6 +91,7 @@
     
     <!-- copied the same mapping twice to check that it won't cause problems -->
     <mapping>
+    	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
     	</source>
@@ -115,6 +117,7 @@
          A single mapping with a condition that has an '||' operator internally will be more efficient.
          But this is using this way to check for situation in which the same value is added and removed at the same time. -->
     <mapping>
+    	<authoritative>true</authoritative>
     	<source>
     		<path>employeeType</path>
     	</source>
@@ -147,6 +150,7 @@
     </mapping>
 
     <mapping>
+    	<authoritative>true</authoritative>
     	<strength>strong</strength>
     	<source>
     		<path>employeeType</path>

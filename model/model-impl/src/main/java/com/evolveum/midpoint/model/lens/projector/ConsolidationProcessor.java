@@ -141,6 +141,7 @@ public class ConsolidationProcessor {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
+        ObjectDelta<AccountShadowType> existingDelta = accCtx.getDelta();
 
         ItemPath parentPath = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
@@ -152,8 +153,11 @@ public class ConsolidationProcessor {
                         
             RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
             
-            // TODO
             PropertyDelta<?> existingAttributeDelta = null;
+            if (existingDelta != null ) {
+            	existingAttributeDelta = existingDelta.findPropertyDelta(
+            		new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName));
+            }
             
 			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
 					new ItemPath(SchemaConstants.I_ATTRIBUTES, attributeName), 
@@ -172,8 +176,6 @@ public class ConsolidationProcessor {
 
         return objectDelta;
     }
-    
-    
 
 	private void consolidateValuesAddAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException {

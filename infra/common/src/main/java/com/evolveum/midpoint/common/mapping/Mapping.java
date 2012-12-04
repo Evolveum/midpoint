@@ -289,11 +289,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	public boolean isAuthoritative() {
 		if (mappingType == null) {
-			return false;
+			return true;
 		}
 		Boolean value = mappingType.isAuthoritative();
 		if (value == null) {
-			value = false;
+			value = true;
 		}
 		return value;
 	}

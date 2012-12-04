@@ -245,11 +245,18 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
 	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
 	
-	// Elaine has account on all the resources where she can have an account
+	// Elaine has account on the dummy resources (default, red, blue)
 	// The accounts are also assigned
 	static final String USER_ELAINE_FILENAME = COMMON_DIR_NAME + "/user-elaine.xml";
 	protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
 	protected static final String USER_ELAINE_USERNAME = "elaine";
+	
+	// Captain Kate Capsize does not exist in the repo. This user is designed to be added. 
+	// She has account on dummy resources (default, red, blue)
+	// The accounts are also assigned
+	static final String USER_CAPSIZE_FILENAME = COMMON_DIR_NAME + "/user-capsize.xml";
+	protected static final String USER_CAPSIZE_OID = "c0c010c0-d34d-b33f-f00d-11c1c1c1c11c";
+	protected static final String USER_CAPSIZE_USERNAME = "capsize";
 	
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
 	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";

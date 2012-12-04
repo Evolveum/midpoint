@@ -908,7 +908,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
 	}	
 	
-	protected void assertShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname, ResourceType resourceType) {
+	protected void assertShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
 		assertShadowCommon(accountShadow, oid, username, resourceType);
 		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
 	}

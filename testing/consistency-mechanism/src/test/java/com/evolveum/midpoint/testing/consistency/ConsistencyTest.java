@@ -1522,7 +1522,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
         // Check account
         PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan", resourceTypeOpenDjrepo);
+        assertShadowModel(accountModel, accountOid, "morgan", resourceTypeOpenDjrepo);
         
         // TODO: check OpenDJ Account        
 	}

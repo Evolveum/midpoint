@@ -256,6 +256,7 @@ public class PrismAsserts {
 	
 	public static void assertIsAdd(ObjectDelta<?> objectDelta) {
 		assert objectDelta.isAdd() : "Expected that object delta "+objectDelta+" is ADD, but it is "+objectDelta.getChangeType();
+		assert objectDelta.getObjectToAdd() != null : "Object to add is null in add delta " + objectDelta;
 	}
 	
 	public static void assertIsDelete(ObjectDelta<?> objectDelta) {

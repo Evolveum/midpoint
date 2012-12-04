@@ -1389,10 +1389,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check account
         PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Jack Sparrow");
+        assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
         
         // Check account in dummy resource
-        assertDummyAccount(USER_JACK_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
@@ -1571,10 +1571,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
-		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
-        UserType userMorganType = userMorgan.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
-        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+		PrismObject<UserType> userBlackbeard = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
+        UserType userBlackbeardType = userBlackbeard.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userBlackbeardType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userBlackbeardType.getAccountRef().get(0);
         String accountOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
         

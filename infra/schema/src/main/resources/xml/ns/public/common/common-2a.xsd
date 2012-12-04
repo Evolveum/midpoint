@@ -3236,7 +3236,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="false">
+            <xsd:element name="authoritative" minOccurs="0" type="xsd:boolean" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO

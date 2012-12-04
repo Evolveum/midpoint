@@ -403,7 +403,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 	
 	protected void assertDummyShadowModel(PrismObject<AccountShadowType> accountShadow, String oid, String username, String fullname) {
-		assertShadowModel(accountShadow, oid, username, fullname, resourceDummyType);
+		assertShadowModel(accountShadow, oid, username, resourceDummyType);
+		IntegrationTestTools.assertAttribute(accountShadow, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, fullname);
 	}
 
 	protected DummyAccount getDummyAccount(String dummyInstanceName, String username) {

@@ -296,19 +296,21 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     /**
      * Top-level path is assumed.
      */
-    public PropertyDelta findPropertyDelta(QName propertyName) {
+    public <X> PropertyDelta<X> findPropertyDelta(QName propertyName) {
         return findPropertyDelta(new ItemPath(propertyName));
     }
 
-    public PropertyDelta findPropertyDelta(ItemPath parentPath, QName propertyName) {
+    public <X> PropertyDelta<X> findPropertyDelta(ItemPath parentPath, QName propertyName) {
         return findPropertyDelta(new ItemPath(parentPath, propertyName));
     }
     
-    public PropertyDelta findPropertyDelta(ItemPath propertyPath) {
+    @SuppressWarnings("unchecked")
+	public <X> PropertyDelta<X> findPropertyDelta(ItemPath propertyPath) {
     	return findItemDelta(propertyPath, PropertyDelta.class, PrismProperty.class);
     }
     
-    public <X extends Containerable> ContainerDelta<X> findContainerDelta(ItemPath propertyPath) {
+    @SuppressWarnings("unchecked")
+	public <X extends Containerable> ContainerDelta<X> findContainerDelta(ItemPath propertyPath) {
     	return findItemDelta(propertyPath, ContainerDelta.class, PrismContainer.class);
     }
 
