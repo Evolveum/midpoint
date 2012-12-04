@@ -184,7 +184,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 	
 	protected MockClockworkHook mockClockworkHook;
-	protected boolean verbose = true;
+	protected boolean verbose = false;
 		
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
