@@ -132,7 +132,6 @@ public class TestDelta {
 		System.out.println("\n\n===[ testObjectDeltaUnionMetadata ]===\n");
 		// GIVEN
 		
-		//Delta
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
     			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
     	
@@ -166,6 +165,102 @@ public class TestDelta {
         assertEquals("Unexcted value in valuesToAdd in fullName delta after union", 
         		PrismTestUtil.createPolyString("baz"), valueToAdd.getValue());
 	}
+	
+	@Test
+    public void testObjectDeltaSummarizeModifyAdd() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyAdd ]===\n");
+		// GIVEN
+		
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("foo"));
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("bar"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaSum = ObjectDelta.summarize(userDelta1, userDelta2);
+        
+        // THEN
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaSum.getOid());
+        PrismAsserts.assertIsModify(userDeltaSum);
+        PrismAsserts.assertModifications(userDeltaSum, 1);
+        PropertyDelta<PolyString> namesDeltaUnion = userDeltaSum.findPropertyDelta(UserType.F_ADDITIONAL_NAMES);
+        assertNotNull("No additionalNames delta after summarize", namesDeltaUnion);
+        PrismAsserts.assertAdd(namesDeltaUnion, PrismTestUtil.createPolyString("foo"), PrismTestUtil.createPolyString("bar"));
+    }
+	
+	@Test
+    public void testObjectDeltaSummarizeModifyReplace() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyReplace ]===\n");
+		// GIVEN
+		
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("foo"));
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("bar"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaSum = ObjectDelta.summarize(userDelta1, userDelta2);
+        
+        // THEN
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaSum.getOid());
+        PrismAsserts.assertIsModify(userDeltaSum);
+        PrismAsserts.assertModifications(userDeltaSum, 1);
+        PropertyDelta<PolyString> fullNameDeltaUnion = userDeltaSum.findPropertyDelta(UserType.F_FULL_NAME);
+        assertNotNull("No fullName delta after summarize", fullNameDeltaUnion);
+        PrismAsserts.assertReplace(fullNameDeltaUnion, PrismTestUtil.createPolyString("bar"));
+    }
+	
+	@Test
+    public void testObjectDeltaSummarizeModifyMix() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyMix ]===\n");
+		// GIVEN
+		
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("foo"));
+    	ObjectDelta<UserType> userDelta3 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("bar"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaSum = ObjectDelta.summarize(userDelta1, userDelta2, userDelta3);
+        
+        // THEN
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaSum.getOid());
+        PrismAsserts.assertIsModify(userDeltaSum);
+        PrismAsserts.assertModifications(userDeltaSum, 1);
+        PropertyDelta<PolyString> namesDeltaUnion = userDeltaSum.findPropertyDelta(UserType.F_ADDITIONAL_NAMES);
+        assertNotNull("No additionalNames delta after summarize", namesDeltaUnion);
+        PrismAsserts.assertReplace(namesDeltaUnion, PrismTestUtil.createPolyString("foo"), PrismTestUtil.createPolyString("bar"));
+    }
+	
+	@Test
+    public void testObjectDeltaSummarizeAddModifyMix() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaSummarizeAddModifyMix ]===\n");
+		// GIVEN
+		
+		PrismObject<UserType> user = createUser();
+		ObjectDelta<UserType> userDelta0 = ObjectDelta.createAddDelta(user);
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("foo"));
+    	ObjectDelta<UserType> userDelta3 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("bar"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaSum = ObjectDelta.summarize(userDelta0, userDelta1, userDelta2, userDelta3);
+        
+        // THEN
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaSum.getOid());
+        PrismAsserts.assertIsAdd(userDeltaSum);
+        PrismObject<UserType> userSum = userDeltaSum.getObjectToAdd();
+        assert user != userSum : "User was not clonned";
+        PrismAsserts.assertPropertyValue(userSum, UserType.F_ADDITIONAL_NAMES, 
+        		PrismTestUtil.createPolyString("foo"), PrismTestUtil.createPolyString("bar"));
+        // TODO
+    }
+	
 
 	public PrismObject<UserType> createUser() throws SchemaException {
 		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();

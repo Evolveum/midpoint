@@ -404,7 +404,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 
     /**
      * Merge provided delta into this delta.
-     * This delta is assumed to be chronologically earlier.
+     * This delta is assumed to be chronologically earlier, delta in the parameter is assumed to come chronologicaly later.
      */
     public void merge(ObjectDelta<T> deltaToMerge) throws SchemaException {
         if (changeType == ChangeType.ADD) {
@@ -439,10 +439,39 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             }
         }
     }
+    
+    /**
+     * Returns a delta that is a "sum" of all the deltas in the collection.
+     * The deltas as processed as an ORDERED sequence. Therefore it correctly processes item overwrites and so on.
+     * It also means that if there is an ADD delta it has to be first. 
+     */
+    public static <T extends Objectable> ObjectDelta<T> summarize(ObjectDelta<T>... deltas) throws SchemaException {
+    	return summarize(Arrays.asList(deltas));
+    }
+    
+    /**
+     * Returns a delta that is a "sum" of all the deltas in the collection.
+     * The deltas as processed as an ORDERED sequence. Therefore it correctly processes item overwrites and so on.
+     * It also means that if there is an ADD delta it has to be first. 
+     */
+    public static <T extends Objectable> ObjectDelta<T> summarize(List<ObjectDelta<T>> deltas) throws SchemaException {
+    	if (deltas == null || deltas.isEmpty()) {
+    		return null;
+    	}
+    	Iterator<ObjectDelta<T>> iterator = deltas.iterator();
+    	ObjectDelta<T> sumDelta = iterator.next().clone();
+    	while (iterator.hasNext()) {
+    		ObjectDelta<T> nextDelta = iterator.next();
+    		sumDelta.merge(nextDelta);
+    	}
+    	return sumDelta;
+    }
 
     /**
      * Union of several object deltas. The deltas are merged to create a single delta
      * that contains changes from all the deltas.
+     * 
+     * Union works on UNORDERED deltas.
      */
     public static <T extends Objectable> ObjectDelta<T> union(ObjectDelta<T>... deltas) throws SchemaException {
         List<ObjectDelta<T>> modifyDeltas = new ArrayList<ObjectDelta<T>>(deltas.length);
