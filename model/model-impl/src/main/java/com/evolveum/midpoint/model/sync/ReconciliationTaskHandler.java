@@ -35,7 +35,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -237,21 +241,24 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		LOGGER.debug("Repository reconciliation starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
-//		QueryType query = QueryUtil.createQuery(QueryUtil.createEqualFilter(DOMUtil.getDocument(), null,
-//		AccountShadowType.F_FAILED_OPERATION_TYPE, "!=null"));
+
+
+		NotFilter notNull = NotFilter.createNot(createFailedOpFilter(null));
+		ObjectQuery query =	ObjectQuery.createObjectQuery(notNull); 
+
 		List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(
-				AccountShadowType.class, new ObjectQuery(), opResult);
+				AccountShadowType.class, query, opResult);
 
 		LOGGER.trace("Found {} accounts that were not successfully proccessed.", shadows.size());
 		for (PrismObject<AccountShadowType> shadow : shadows) {
-
-			// if (shadow.asObjectable().getAttemptNumber().intValue() >
-			// MAX_ITERATIONS){
-			// normalizeShadow(shadow, result);
-			// }
-			if (shadow.asObjectable().getFailedOperationType() == null){
-				continue;
-			}
+//
+//			// if (shadow.asObjectable().getAttemptNumber().intValue() >
+//			// MAX_ITERATIONS){
+//			// normalizeShadow(shadow, result);
+//			// }
+//			if (shadow.asObjectable().getFailedOperationType() == null){
+//				continue;
+//			}
 
 			try {
 				retryFailedOperation(shadow.asObjectable(), opResult);
@@ -276,9 +283,16 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	//
 	// }
 
+	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{
+		return EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_FAILED_OPERATION_TYPE, failedOp);
+	}
+	
 	private void retryFailedOperation(AccountShadowType shadow, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
 			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+		if (shadow.getFailedOperationType() == null){
+			return;
+		}
 		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
 			LOGGER.debug("Re-adding {}", shadow);
 			addObject(shadow.asPrismObject(), parentResult);

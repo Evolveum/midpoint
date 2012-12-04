@@ -466,21 +466,33 @@ This is now the only account type that midPoint can work with. -->
                     </inbound>
                 </password>
             </credentials>
-
-            <activation>
+            
+             <activation>
                 <enabled>
-                    <outbound>
-                        <expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
+                    <outbound/>
                     <inbound>
-                    	<expression>
-                    		<asIs/>
-                    	</expression>
+                    	<strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
                     </inbound>
                 </enabled>
             </activation>
+
+<!--             <activation> -->
+<!--                 <enabled> -->
+<!--                     <outbound> -->
+<!--                         <expression> -->
+<!--                         	<asIs/> -->
+<!--                         </expression> -->
+<!--                     </outbound> -->
+<!--                     <inbound> -->
+<!--                     	<expression> -->
+<!--                     		<asIs/> -->
+<!--                     	</expression> -->
+<!--                     </inbound> -->
+<!--                 </enabled> -->
+<!--             </activation> -->
 <iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
@@ -504,9 +516,9 @@ This is now the only account type that midPoint can work with. -->
 		</configured>
     </capabilities>
     
-    <consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
-	</consistency>
+<!--     <consistency> -->
+<!-- 		<avoidDuplicateValues>true</avoidDuplicateValues> -->
+<!-- 	</consistency> -->
 
     <!--
         Synchronization section describes the synchronization policy, timing,

@@ -46,6 +46,7 @@
 			<c:assignment>
 				<c:accountConstruction>
 					<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+					<intent>default</intent>
 				</c:accountConstruction>
 			</c:assignment>
 

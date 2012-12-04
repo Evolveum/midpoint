@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -136,7 +137,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			
 			return shadow;
 		case MODIFY:
-			if (shadow.getFailedOperationType() == null) {
+			if (shadow.getFailedOperationType() == null || shadow.getFailedOperationType() == FailedOperationTypeType.MODIFY) {
 
 				shadow.setFailedOperationType(FailedOperationTypeType.MODIFY);
 				Collection<ItemDelta> modifications = createShadowModification(shadow);
@@ -220,7 +221,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		}
 	}
 	
-	private <T extends ResourceObjectShadowType> Collection<ItemDelta> createShadowModification(T shadow) {
+	private <T extends ResourceObjectShadowType> Collection<ItemDelta> createShadowModification(T shadow) throws ObjectNotFoundException, SchemaException {
 		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
 
 		PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()

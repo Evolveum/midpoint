@@ -68,6 +68,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -80,6 +81,8 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -148,6 +151,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
  * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.
@@ -1474,6 +1478,77 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	}
 	
+	@Test
+	public void test026modifyObjectTwoTimesCommunicationProblem() throws Exception{
+		final String TEST_NAME = "test026modifyObjectTwoTimesCommunicationProblem";
+        displayTestTile(this, TEST_NAME);
+        
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_JACK2_OID, parentResult);
+		assertNotNull(user);
+		UserType userType = user.asObjectable();
+		assertNotNull(userType.getAccountRef());
+		
+		
+//		PrismObjectDefinition accountDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+//		assertNotNull("Account definition must not be null.", accountDef);
+		
+//		PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION, accountDef, true);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+//		modifications.add(delta);
+		
+		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), user.getDefinition(), new PolyString("jackNew2"));
+		modifications.add(fullNameDelta);
+		
+		PrismPropertyValue enabledUserAction = new PrismPropertyValue(true, OriginType.USER_ACTION, null);
+		PropertyDelta enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition());
+		enabledDelta.addValueToAdd(enabledUserAction);
+		modifications.add(enabledDelta);
+//		delta = PropertyDelta.createModificationReplaceProperty(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition(), true);
+//		modifications.add(delta);
+		
+		ObjectDelta objectDelta = ObjectDelta.createModifyDelta(USER_JACK2_OID, modifications, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(objectDelta);
+		
+		
+		Task task = taskManager.createTaskInstance();
+		
+		modelService.executeChanges(deltas, null, task, parentResult);
+		parentResult.computeStatus();
+		assertEquals("Expected that user has one account reference, but got " + userType.getAccountRef().size(), 1, userType.getAccountRef().size());	
+		String shadowOid = userType.getAccountRef().get(0).getOid();
+		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, shadowOid, null, task, parentResult);
+		assertNotNull(account);
+		AccountShadowType shadow = account.asObjectable();
+		assertNotNull(shadow.getObjectChange());
+		display("shadow after communication problem", shadow);
+		
+		
+		Collection<PropertyDelta> newModifications = new ArrayList<PropertyDelta>();
+		PropertyDelta fullNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), user.getDefinition(), new PolyString("jackNew2a"));
+		newModifications.add(fullNameDeltaNew);
+		
+		
+		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), user.getDefinition(), new PolyString("jackNew2a"));
+		newModifications.add(givenNameDeltaNew);
+		
+		PrismPropertyValue enabledOutboundAction = new PrismPropertyValue(true, OriginType.OUTBOUND, null);
+		PropertyDelta enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition());
+		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
+		newModifications.add(enabledDeltaNew);
+		
+		ObjectDelta newObjectDelta = ObjectDelta.createModifyDelta(USER_JACK2_OID, newModifications, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> newDeltas = createDeltaCollection(newObjectDelta);
+		
+		
+		modelService.executeChanges(newDeltas, null, task, parentResult);
+		
+//		parentResult.computeStatus();
+//		assertEquals("expected handled error in the result", OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
+		
+		
+	}
+	
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
 	 * OpenDJ. The account should be linked.
@@ -1596,6 +1671,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNull("Expected that FailedOperationType is null, but isn't",
 				modifiedAccount.getFailedOperationType());
 		assertNull("result in the modified account after reconciliation must be null.", modifiedAccount.getResult());
+		assertNull("Expected that modification in shadow are null, but got: "+ modifiedAccount.getObjectChange(), modifiedAccount.getObjectChange());
 		
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
@@ -1626,6 +1702,18 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertIcfsNameAttribute(elaineAccount, "uid=elaine,ou=people,dc=example,dc=com");
 //		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
 //		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+
+		UserType userJack2 = repositoryService.getObject(UserType.class, USER_JACK2_OID, result).asObjectable();
+		assertNotNull(userJack2);
+		assertEquals(1, userJack2.getAccountRef().size());
+		String jack2Oid = userJack2.getAccountRef().get(0).getOid();
+		AccountShadowType jack2Shadow = provisioningService.getObject(AccountShadowType.class, jack2Oid, null, result).asObjectable();
+		assertNotNull(jack2Shadow);
+		assertNull("ObjectChnage in jack2 account must be null", jack2Shadow.getObjectChange());
+		assertNull("result in the jack2 shadow must be null", jack2Shadow.getResult());
+		assertNull("failed operation in jack2 shadow must be null", jack2Shadow.getFailedOperationType());
+		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "givenName", "jackNew2a");
+		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "cn", "jackNew2a");
 
 	}
 	
