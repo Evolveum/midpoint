@@ -56,6 +56,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
@@ -216,30 +217,53 @@ public class AssignmentProcessor {
                 evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
                 
             } else {
+            	if (assignmentDelta.isReplace()) {
 
-	            // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
-	            if (isAssignmentChanged) {
-	                // There was some change
-	
-	                if (assignmentDelta.isValueToAdd(assignmentCVal)) {
-	                	if (containsRealValue(assignmentsOld, assignmentCVal)) {
-	                		// Phantom add: adding assignment that is already there
-	                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
-	                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
-	                	}
-	                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
+            		boolean hadValue = containsRealValue(assignmentsOld, assignmentCVal);
+            		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal);
+            		if (hadValue && willHaveValue) {
+            			// No change
+            			collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+    	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+            		} else if (willHaveValue) {
+            			// add
+            			collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
 	                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
-	                }
-	                if (assignmentDelta.isValueToDelete(assignmentCVal)) {
-	                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+            		} else if (hadValue) {
+            			// delete
+            			collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
 	                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
-	                }
-	
-	            } else {
-	                // No change in assignment
-	                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
-	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
-	            }
+            		} else {
+            			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
+            		}
+            		
+            	} else {
+
+		            // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
+		            if (isAssignmentChanged) {
+		                // There was some change
+		
+		                if (assignmentDelta.isValueToAdd(assignmentCVal)) {
+		                	if (containsRealValue(assignmentsOld, assignmentCVal)) {
+		                		// Phantom add: adding assignment that is already there
+		                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+		                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+		                	} else {
+			                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
+			                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
+		                	}
+		                }
+		                if (assignmentDelta.isValueToDelete(assignmentCVal)) {
+		                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+		                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+		                }
+		
+		            } else {
+		                // No change in assignment
+		                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+		                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+		            }
+            	}
             }
         }
         

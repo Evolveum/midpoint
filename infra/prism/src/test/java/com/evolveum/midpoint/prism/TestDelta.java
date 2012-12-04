@@ -33,6 +33,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -108,6 +109,64 @@ public class TestDelta {
         assertEquals("Unexpected number of assignment values", 1, assignment.size());
     }
 	
+	@Test
+    public void testObjectDeltaUnionSimple() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaUnionSimple ]===\n");
+		// GIVEN
+		
+		//Delta
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
+        
+        // THEN
+        assertUnionDelta(userDeltaUnion);
+    }
+	
+	@Test
+    public void testObjectDeltaUnionMetadata() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaUnionMetadata ]===\n");
+		// GIVEN
+		
+		//Delta
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+    	
+    	
+    	PropertyDelta<PolyString> fullNameDelta2 = PropertyDelta.createDelta(UserType.F_FULL_NAME, UserType.class, 
+    			PrismTestUtil.getPrismContext());
+    	PrismPropertyValue<PolyString> fullNameValue2 = new PrismPropertyValue<PolyString>(PrismTestUtil.createPolyString("baz"));
+    	// Set some metadata to spoil usual equals
+    	fullNameValue2.setOriginType(OriginType.OUTBOUND);
+    	fullNameDelta2.addValueToAdd(fullNameValue2);
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModifyDelta(USER_FOO_OID, fullNameDelta2, UserType.class, 
+    			PrismTestUtil.getPrismContext());
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
+        
+        // THEN
+        assertUnionDelta(userDeltaUnion);
+    }
+	
+	private void assertUnionDelta(ObjectDelta<UserType> userDeltaUnion) {
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaUnion.getOid());
+        PrismAsserts.assertIsModify(userDeltaUnion);
+        PrismAsserts.assertModifications(userDeltaUnion, 1);
+        PropertyDelta<PolyString> fullNameDeltaUnion = userDeltaUnion.findPropertyDelta(UserType.F_FULL_NAME);
+        assertNotNull("No fullName delta after union", fullNameDeltaUnion);
+        Collection<PrismPropertyValue<PolyString>> valuesToAdd = fullNameDeltaUnion.getValuesToAdd();
+        assertNotNull("No valuesToAdd in fullName delta after union", valuesToAdd);
+        assertEquals("Unexpected size of valuesToAdd in fullName delta after union", 1, valuesToAdd.size());
+        PrismPropertyValue<PolyString> valueToAdd = valuesToAdd.iterator().next();
+        assertEquals("Unexcted value in valuesToAdd in fullName delta after union", 
+        		PrismTestUtil.createPolyString("baz"), valueToAdd.getValue());
+	}
+
 	public PrismObject<UserType> createUser() throws SchemaException {
 		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 

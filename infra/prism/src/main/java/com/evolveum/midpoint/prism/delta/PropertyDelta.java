@@ -235,16 +235,24 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 	public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object) {
 		return (PropertyDelta<T>) super.narrow(object);
 	}
-
-	public static PropertyDelta createDelta(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition) {
-    	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
-    	return new PropertyDelta(propertyPath, propDef);
-    }
     
-    public static <O extends Objectable> PropertyDelta createDelta(ItemPath propertyPath, Class<O> compileTimeClass, PrismContext prismContext) {
+    public static <O extends Objectable,T> PropertyDelta<T> createDelta(QName propertyName, PrismObjectDefinition<O> objectDefinition) {
+    	return createDelta(new ItemPath(propertyName), objectDefinition);
+    }
+
+	public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, PrismObjectDefinition<O> objectDefinition) {
+    	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
+    	return new PropertyDelta<T>(propertyPath, propDef);
+    }
+	
+	public static <O extends Objectable,T> PropertyDelta<T> createDelta(QName propertyName, Class<O> compileTimeClass, PrismContext prismContext) {
+		return createDelta(new ItemPath(propertyName), compileTimeClass, prismContext);
+	}
+    
+    public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, Class<O> compileTimeClass, PrismContext prismContext) {
     	PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
     	PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
-    	return new PropertyDelta(propertyPath, propDef);
+    	return new PropertyDelta<T>(propertyPath, propDef);
     }
     
     public static <T> PropertyDelta<T> createModificationReplaceProperty(QName propertyName, PrismObjectDefinition<?> objectDefinition, 

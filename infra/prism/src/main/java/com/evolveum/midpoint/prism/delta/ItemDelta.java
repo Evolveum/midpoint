@@ -235,7 +235,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (valuesToAdd == null) {
 			valuesToAdd = newValueCollection();
 		}
-		if (valuesToAdd.contains(newValue)) {
+		if (PrismValue.containsRealValue(valuesToAdd,newValue)) {
 			return;
 		}
 		valuesToAdd.add(newValue);
@@ -285,7 +285,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (valuesToDelete == null) {
 			valuesToDelete = newValueCollection();
 		}
-		if (valuesToDelete.contains(newValue)) {
+		if (PrismValue.containsRealValue(valuesToDelete,newValue)) {
 			return;
 		}
 		valuesToDelete.add(newValue);
@@ -420,6 +420,13 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			return false;
 		}
 		return valuesToDelete.contains(value);
+	}
+	
+	public boolean isValueToReplace(V value) {
+		if (valuesToReplace == null) {
+			return false;
+		}
+		return valuesToReplace.contains(value);
 	}
 	
 	public V getAnyValue() {
@@ -696,7 +703,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	 * Merge specified delta to this delta. This delta is assumed to be
 	 * chronologically earlier, delta provided in the parameter is chronilogically later.
 	 */
-	public void merge(ItemDelta deltaToMerge) {
+	public void merge(ItemDelta<V> deltaToMerge) {
 		if (deltaToMerge.isEmpty()) {
 			return;
 		}

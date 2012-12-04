@@ -223,7 +223,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		accountRefVal.setObject(account);
 		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		
 		doPreview(deltas, checker, task, result);
     }
@@ -241,7 +241,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta, accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
 		doPreview(deltas, checker, task, result);
 	}
@@ -263,7 +263,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta, accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
 		doPreview(deltas, checker, task, result);
 	}
@@ -285,7 +285,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(accountDelta, userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
         
 		doPreview(deltas, checker, task, result);
 	}
@@ -307,7 +307,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta, accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
 		doPreview(deltas, checker, task, result);
 	}
@@ -329,7 +329,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationAdd(UserType.F_ACCOUNT_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountRefDelta);
 		ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(accountDelta, userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
         
 		doPreview(deltas, checker, task, result);
 	}
@@ -353,7 +353,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		// Let's make the account different. This should cause the preview to fail
 		account.asObjectable().setDescription("aye!");
 		ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta, accountDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
 		doPreviewFail(deltas, task, result);
 	}
@@ -377,7 +377,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		// Let's make the account different. This should cause the preview to fail
 		account.asObjectable().setDescription("aye!");
 		ObjectDelta<AccountShadowType> accountDelta = account.createAddDelta();
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(accountDelta, userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta, userDelta);
 		
 		doPreviewFail(deltas, task, result);
 	}
@@ -759,10 +759,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		assertNull("Unexpected focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		// Caused by inbound
-//		assertNotNull("No focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		PrismAsserts.assertModifications(userSecondaryDelta, 1);
-//		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 		
 		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);
@@ -820,10 +816,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		assertNull("Unexpected focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		// Caused by inbound
-//		assertNotNull("No focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		PrismAsserts.assertModifications(userSecondaryDelta, 1);
-//		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 		
 		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);
@@ -882,10 +874,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		assertNull("Unexpected focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		// Caused by inbound
-//		assertNotNull("No focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		PrismAsserts.assertModifications(userSecondaryDelta, 1);
-//		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 		
 		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);
@@ -943,10 +931,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
 		assertNull("Unexpected focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		// Caused by inbound
-//		assertNotNull("No focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-//		PrismAsserts.assertModifications(userSecondaryDelta, 1);
-//		PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Elaine Threepwood"));
 		
 		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);

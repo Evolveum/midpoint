@@ -735,6 +735,27 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	return objectDelta;
     }
     
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, 
+    		String oid, QName containerName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
+    	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
+    }
+    
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, ItemPath containerPath,
+    		PrismContext prismContext, PrismContainerValue<C>... containerValues) {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	fillInModificationDeleteContainer(objectDelta, containerPath, containerValues);
+    	return objectDelta;
+    }
+    
+    protected static <O extends Objectable, C extends Containerable> void fillInModificationDeleteContainer(ObjectDelta<O> objectDelta,
+    		ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
+    	ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
+    	if (containerValues != null) {
+	    	containerDelta.addValuesToDelete(containerValues);
+    	}
+    }
+    
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type, 
     		String oid, QName containerName, PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	return createModificationReplaceContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);

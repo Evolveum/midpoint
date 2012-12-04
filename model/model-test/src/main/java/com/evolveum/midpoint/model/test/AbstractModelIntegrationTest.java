@@ -449,6 +449,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);		
 	}
 	
+	/**
+	 * Executes assignment replace delta with empty values.
+	 */
+	protected void unassignAll(String userOid, Task task, OperationResult result) 
+			throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid, 
+				UserType.F_ASSIGNMENT, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);		
+	}
+	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();

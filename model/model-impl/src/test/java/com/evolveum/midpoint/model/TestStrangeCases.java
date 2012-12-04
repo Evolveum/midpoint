@@ -234,7 +234,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		// Add to repo to avoid processing of the assignment
 		String userOtisOid = repositoryService.addObject(userOtis, result);
         
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, 
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, 
         		userOtisOid, UserType.F_ASSIGNMENT, prismContext, assignmentType.asPrismContainerValue().clone());
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 

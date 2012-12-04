@@ -227,5 +227,26 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // Postcondition
         assertMonkeyIslandOrgSanity();
 	}
+	
+	@Test
+    public void test208JackUnAssignAll() throws Exception {
+		final String TEST_NAME = "test208JackUnAssignAll";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignAll(USER_JACK_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignments(userJack, 0);
+        assertHasOrgs(userJack, 0);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
 
 }
