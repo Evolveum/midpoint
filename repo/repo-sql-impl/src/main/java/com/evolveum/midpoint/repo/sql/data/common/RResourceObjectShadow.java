@@ -66,6 +66,7 @@ public class RResourceObjectShadow extends RObject {
     private Integer attemptNumber;
     @QueryAttribute
     private Boolean dead;
+    @QueryAttribute(enumerated=true)
     private RFailedOperationTypeType failedOperationType;
     private String intent;
     @QueryAttribute(enumerated=true)
@@ -79,6 +80,7 @@ public class RResourceObjectShadow extends RObject {
             @Column(name = "class_namespace"),
             @Column(name = "class_localPart")
     })
+  //  @Type(type="com.evolveum.midpoint.repo.sql.type.QNameType")
     public QName getObjectClass() {
         return objectClass;
     }
