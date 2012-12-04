@@ -242,4 +242,14 @@ public class MiscSchemaUtil {
 		return assignmentPolicyEnforcement;
 	}
 
+	public static boolean compareRelation(QName a, QName b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return a.equals(b);
+	}
+
 }

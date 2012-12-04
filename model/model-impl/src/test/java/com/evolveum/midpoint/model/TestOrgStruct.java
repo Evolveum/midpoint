@@ -54,11 +54,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -72,7 +75,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -146,6 +152,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	
 	/**
 	 * Assign jack to both functional and project orgstruct.
+	 * Assign both orgs at the same time.
 	 */
 	@Test
     public void test201JackAssignScummBarAndSaveElaine() throws Exception {
@@ -155,9 +162,14 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        modifications.add(createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, true));
+        modifications.add(createAssignmentModification(ORG_SAVE_ELAINE_OID, OrgType.COMPLEX_TYPE, null, true));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
         // WHEN
-        assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
-        assignOrg(USER_JACK_OID, ORG_SAVE_ELAINE_OID, task, result);
+		modelService.executeChanges(deltas, null, task, result);
         
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -244,6 +256,54 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignments(userJack, 0);
         assertHasOrgs(userJack, 0);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test210JackAssignMinistryOfOffenseMember() throws Exception {
+		final String TEST_NAME = "test210JackAssignMinistryOfOffenseMember";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_OFFENSE_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertAssignments(userJack, 1);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertHasOrgs(userJack, 1);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test211JackAssignMinistryOfOffenseMinister() throws Exception {
+		final String TEST_NAME = "test211JackAssignMinistryOfOffenseMinister";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertAssignments(userJack, 2);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrgs(userJack, 2);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();

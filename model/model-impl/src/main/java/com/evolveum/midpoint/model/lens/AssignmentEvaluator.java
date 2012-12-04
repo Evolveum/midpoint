@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.Containerable;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.SimpleDelta;
@@ -153,7 +156,7 @@ public class AssignmentEvaluator {
 			
 		} else if (assignmentType.getTarget() != null) {
 			
-			evaluateTarget(assignment, assignmentPathSegment, assignmentType.getTarget(), source, sourceDescription, assignmentPath, result);
+			evaluateTarget(assignment, assignmentPathSegment, assignmentType.getTarget(), source, null, sourceDescription, assignmentPath, result);
 			
 		} else if (assignmentType.getTargetRef() != null) {
 			
@@ -221,19 +224,23 @@ public class AssignmentEvaluator {
 		}
 		
 		if (target != null) {
-			evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, sourceDescription, assignmentPath, result);
+			evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, targetRef.getRelation(), sourceDescription, assignmentPath, result);
 		}
 	}
 
 
-	private void evaluateTarget(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, ObjectType source, String sourceDescription,
+	private void evaluateTarget(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, 
+			ObjectType source, QName relation, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		assignmentPathSegment.setTarget(target);
 		if (target instanceof RoleType) {
 			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, sourceDescription, assignmentPath, result);
 		} else if (target instanceof OrgType) {
-			assignment.addOrg(target.asPrismObject());
+			PrismReferenceValue refVal = new PrismReferenceValue();
+			refVal.setObject(target.asPrismObject());
+			refVal.setRelation(relation);
+			assignment.addOrgRefVal(refVal);
 		} else {
 			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+sourceDescription);
 		}

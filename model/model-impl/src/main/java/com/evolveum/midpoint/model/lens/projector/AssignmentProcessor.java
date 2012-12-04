@@ -421,20 +421,20 @@ public class AssignmentProcessor {
 		
 		// Plus
 		for (Assignment assignment: evaluatedAssignmentTriple.getPlusSet()) {
-			Collection<PrismObject<OrgType>> orgs = assignment.getOrgs();
-			for (PrismObject<OrgType> org: orgs) {
+			Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
+			for (PrismReferenceValue org: orgs) {
 				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-				orgRefDelta.addValueToAdd(PrismReferenceValue.createFromTarget(org));
+				orgRefDelta.addValueToAdd(org.toCannonical());
 				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
 			}
 		}
 		
 		// Minus
 		for (Assignment assignment: evaluatedAssignmentTriple.getMinusSet()) {
-			Collection<PrismObject<OrgType>> orgs = assignment.getOrgs();
-			for (PrismObject<OrgType> org: orgs) {
+			Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
+			for (PrismReferenceValue org: orgs) {
 				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
-				orgRefDelta.addValueToDelete(PrismReferenceValue.createFromTarget(org));
+				orgRefDelta.addValueToDelete(org.toCannonical());
 				focusContext.swallowToProjectionWaveSecondaryDelta(orgRefDelta);
 			}
 		}

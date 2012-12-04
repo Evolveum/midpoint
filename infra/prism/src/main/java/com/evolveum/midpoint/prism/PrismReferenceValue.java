@@ -211,6 +211,21 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	public boolean isEmpty() {
 		return oid == null && object == null;
 	}
+	
+	/**
+	 * Returns a version of this value that is cannonical, that means it has the minimal form.
+	 * E.g. it will have only OID and no object.
+	 */
+	public PrismReferenceValue toCannonical() {
+		PrismReferenceValue can = new PrismReferenceValue();
+		can.setOid(getOid());
+		// do NOT copy object
+		can.setTargetType(getTargetType());
+		can.setRelation(getRelation());
+		can.setFilter(getFilter());
+		can.setDescription(getDescription());
+		return can;
+	}
 
 	@Override
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
@@ -311,8 +326,15 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		} else {
 			sb.append("object=").append(object);
 		}
-		sb.append(", type=").append(getOriginType());
-		sb.append(", source=").append(getOriginObject());
+		if (getRelation() != null) {
+			sb.append(", relation=").append(PrettyPrinter.prettyPrint(getRelation()));
+		}
+		if (getOriginType() != null) {
+			sb.append(", type=").append(getOriginType());
+		}
+		if (getOriginObject() != null) {
+			sb.append(", source=").append(getOriginObject());
+		}
 		if (filter != null) {
 			sb.append(", (filter)");
 		}

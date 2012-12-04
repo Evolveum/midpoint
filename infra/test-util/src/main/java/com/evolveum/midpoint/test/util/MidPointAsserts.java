@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -53,6 +54,22 @@ public class MidPointAsserts {
 			}
 		}
 		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid);
+	}
+	
+	public static void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType, QName relation) {
+		UserType userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			ObjectReferenceType targetRef = assignmentType.getTargetRef();
+			if (targetRef != null) {
+				if (refType.equals(targetRef.getType())) {
+					if (targetOid.equals(targetRef.getOid()) &&
+							MiscSchemaUtil.compareRelation(targetRef.getRelation(), relation)) {
+						return;
+					}
+				}
+			}
+		}
+		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid+ ", relation "+relation);
 	}
 	
 	public static void assertNotAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
@@ -86,6 +103,10 @@ public class MidPointAsserts {
 		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE);
 	}
 	
+	public static void assertAssignedOrg(PrismObject<UserType> user, String orgOid, QName relation) {
+		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE, relation);
+	}
+	
 	public static void assertHasOrg(PrismObject<UserType> user, String orgOid) {
 		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid())) {
@@ -93,6 +114,16 @@ public class MidPointAsserts {
 			}
 		}
 		AssertJUnit.fail(user + " does not have org " + orgOid);
+	}
+	
+	public static void assertHasOrg(PrismObject<UserType> user, String orgOid, QName relation) {
+		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
+			if (orgOid.equals(orgRef.getOid()) &&
+					MiscSchemaUtil.compareRelation(orgRef.getRelation(), relation)) {
+				return;
+			}
+		}
+		AssertJUnit.fail(user + " does not have org " + orgOid + ", relation "+relation);
 	}
 	
 	public static void assertHasNoOrg(PrismObject<UserType> user) {

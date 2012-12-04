@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,11 +40,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 public class Assignment implements DebugDumpable, Dumpable {
 
 	private Collection<AccountConstruction> accountConstructions;
-	private Collection<PrismObject<OrgType>> orgs;
+	private Collection<PrismReferenceValue> orgRefVals;
 
 	public Assignment() {
 		accountConstructions = new ArrayList<AccountConstruction>();
-		orgs = new ArrayList<PrismObject<OrgType>>();
+		orgRefVals = new ArrayList<PrismReferenceValue>();
 	}
 	
 	public Collection<AccountConstruction> getAccountConstructions() {
@@ -54,12 +55,12 @@ public class Assignment implements DebugDumpable, Dumpable {
 		accountConstructions.add(accpuntContruction);
 	}
 	
-	public Collection<PrismObject<OrgType>> getOrgs() {
-		return orgs;
+	public Collection<PrismReferenceValue> getOrgRefVals() {
+		return orgRefVals;
 	}
 
-	public void addOrg(PrismObject<OrgType> org) {
-		orgs.add(org);
+	public void addOrgRefVal(PrismReferenceValue org) {
+		orgRefVals.add(org);
 	}
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -92,10 +93,10 @@ public class Assignment implements DebugDumpable, Dumpable {
 				sb.append(ac.debugDump(indent+2));
 			}
 		}
-		if (!orgs.isEmpty()) {
+		if (!orgRefVals.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Orgs", indent+1);
-			for (PrismObject<OrgType> org: orgs) {
+			for (PrismReferenceValue org: orgRefVals) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(org.toString());
@@ -106,7 +107,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	@Override
 	public String toString() {
-		return "Assignment(acc=" + accountConstructions + "; org="+orgs+")";
+		return "Assignment(acc=" + accountConstructions + "; org="+orgRefVals+")";
 	}
 	
 }

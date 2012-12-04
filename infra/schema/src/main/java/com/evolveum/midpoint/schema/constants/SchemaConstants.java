@@ -145,6 +145,8 @@ public abstract class SchemaConstants {
 	public static final QName I_PASSWORD_POLICY_TYPE = new QName(NS_C, "PasswordPolicyType");
 	public static final QName I_PASSWORD_POLICY = new QName(NS_C, "passwordPolicy");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C, "globalAccountSynchronizationSettings");
+	
+	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
 
 	public static final ItemPath PATH_PASSWORD = new ItemPath(I_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(I_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);

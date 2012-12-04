@@ -417,34 +417,48 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, task, true, result);
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, true, result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 	SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 	PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, task, false, result);
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, false, result);
 	}
 	
 	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, task, true, result);
+		assignOrg(userOid, orgOid, null, task, result);
+	}
+	
+	protected void assignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, true, result);
 	}
 
 	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, task, false, result);
+		unassignOrg(userOid, orgOid, null, task, result);
 	}
 	
-	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, Task task, boolean add, OperationResult result) 
+	protected void unassignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, false, result);
+	}
+	
+	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task, boolean add, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, add);
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, relation, add);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);		
 	}
@@ -462,7 +476,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);		
 	}
 	
-	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, boolean add) throws SchemaException {
+	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
 		if (add) {
@@ -473,12 +487,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
 		targetRef.getValue().setOid(roleOid);
 		targetRef.getValue().setTargetType(refType);
+		targetRef.getValue().setRelation(relation);
 		return assignmentDelta;
 	}
 	
-	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, boolean add) throws SchemaException {
+	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, boolean add) throws SchemaException {
 		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-		modifications.add((createAssignmentModification(roleOid, refType, add)));
+		modifications.add((createAssignmentModification(roleOid, refType, relation, add)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
 	}
@@ -672,6 +687,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedOrg(user, orgOid);
 	}
 	
+	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid, QName relation) {
+		MidPointAsserts.assertAssignedOrg(user, orgOid, relation);
+	}
+	
 	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
 		MidPointAsserts.assertAssignedOrg(user, orgOid);
 	}
@@ -683,6 +702,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertHasOrg(PrismObject<UserType> user, String orgOid) {
 		MidPointAsserts.assertHasOrg(user, orgOid);
+	}
+	
+	protected void assertHasOrg(PrismObject<UserType> user, String orgOid, QName relation) {
+		MidPointAsserts.assertHasOrg(user, orgOid, relation);
 	}
 	
 	protected void assertHasNoOrg(PrismObject<UserType> user) {
