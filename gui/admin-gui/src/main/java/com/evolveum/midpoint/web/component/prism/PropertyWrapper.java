@@ -143,6 +143,11 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             return false;
         }
 
+        if (ContainerStatus.MODIFYING.equals(container.getObject().getStatus())) {
+            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
+            return false;
+        }
+
         return true;
     }
 
