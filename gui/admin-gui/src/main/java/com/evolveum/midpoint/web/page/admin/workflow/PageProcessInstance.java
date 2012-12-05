@@ -59,8 +59,19 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 	private IModel<ProcessInstanceDto> model;
 
+    private PageParameters parameters;
+
     public PageProcessInstance() {
-		model = new LoadableModel<ProcessInstanceDto>(false) {
+        this(new PageParameters());
+    }
+
+    public PageProcessInstance(final PageParameters parameters) {
+
+//        System.out.println("Received page parameters (constructor): ");
+//        dumpParameters(parameters);
+        this.parameters = parameters;
+
+        model = new LoadableModel<ProcessInstanceDto>(false) {
 
 			@Override
 			protected ProcessInstanceDto load() {
@@ -74,17 +85,13 @@ public class PageProcessInstance extends PageAdminWorkItems {
     private ProcessInstanceDto loadProcessInstance() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 
+//        System.out.println("Received page parameters (loadProcessInstance): ");
+//        dumpParameters(parameters);
 
-        System.out.println("Received page parameters: ");
-        for (PageParameters.NamedPair np : getPageParameters().getAllNamed()) {
-            System.out.println(" - " + np.getKey() + " = " + np.getValue());
-        }
-
-
-        StringValue back = getPageParameters().get(PARAM_PROCESS_INSTANCE_BACK);
+        StringValue back = parameters.get(PARAM_PROCESS_INSTANCE_BACK);
 		try {
-            StringValue pid = getPageParameters().get(PARAM_PROCESS_INSTANCE_ID);
-            boolean finished = getPageParameters().get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
+            StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
+            boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
             ProcessInstance processInstance = getWorkflowDataAccessor().getProcessInstanceByInstanceId(pid.toString(), finished, result);
             return new ProcessInstanceDto(processInstance);
 		} catch (Exception ex) {
@@ -100,7 +107,13 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 	}
 
-	private void initLayout() {
+//    private void dumpParameters(PageParameters parameters) {
+//        for (PageParameters.NamedPair np : parameters.getAllNamed()) {
+//            System.out.println(" - " + np.getKey() + " = " + np.getValue());
+//        }
+//    }
+
+    private void initLayout() {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
@@ -135,7 +148,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				setResponsePage(backPage(getPageParameters().get(PARAM_PROCESS_INSTANCE_BACK).toString()));
+				setResponsePage(backPage(parameters.get(PARAM_PROCESS_INSTANCE_BACK).toString()));
 			}
 		};
 		mainForm.add(backButton);
