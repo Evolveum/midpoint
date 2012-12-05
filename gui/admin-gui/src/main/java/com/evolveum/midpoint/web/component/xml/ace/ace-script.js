@@ -15106,6 +15106,9 @@ var VirtualRenderer = function(container, theme) {
 
     this.$highlightGutterLine = false;
     this.setHighlightGutterLine = function(shouldHighlight) {
+    	// adding this element to gutter causes strange behavior on ie
+	    if (useragent.isIE)
+	    	return;
         if (this.$highlightGutterLine == shouldHighlight)
             return;
         this.$highlightGutterLine = shouldHighlight;

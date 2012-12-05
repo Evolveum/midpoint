@@ -20,19 +20,6 @@
  */
 
 /** A WebReflection Solution */
-.position-fixed-top {
-    position: absolute !important;
-    top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + (!this.offsetHeight && 0)) + "px");
-}
-.position-fixed-center {
-    position: absolute !important;
-    top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + ((((document.documentElement.clientHeight || document.body.clientHeight) + (!this.offsetHeight && 0)) / 2) >> 0)) + "px");
-}
-.position-fixed-bottom {
-    position: absolute !important;
-    top: expression(((document.documentElement.scrollTop || document.body.scrollTop) + (document.documentElement.clientHeight || document.body.clientHeight) - this.offsetHeight) + "px");
-}
-
 div.objectForm .tableForm input[type='text'], div.objectForm .tableForm input[type='password'], div.objectForm .tableForm input[type='checkbox'], .assignmentBody input[type="text"], .assignmentBody input[type="password"] {
 	outline: none;
 	margin: 8px 0px 4px 10px;
@@ -72,22 +59,8 @@ div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam  .yui-ca
 }
 
 .sortedTable table thead th div {
-	position: relative;
-	height: 21px;
-    padding: 3px 0 0 0;
+    text-align: left;
 }
-
-/* .sortedTable table thead .sortable .sortableArrowIcon {
-	background-position: center;
-    position: absolute;
-    right: 10px;
-    width: 8px;
-    height: 10px;
-    float: right;
-    background-repeat: no-repeat;
-    margin-top: 0px;
-    top: 0px;
-} */
 
 .sortedTable table thead .sortable a:hover {
 	cursor: pointer;
@@ -101,22 +74,6 @@ div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam  .yui-ca
 	background-image: url("../img/sortableArrowDown.png");
 }
 
-.sortedTable .pagerNavigator .goto em {
-	padding: 0px;
-	display: inline-block;
-	margin: 0px;
-	position: relative;
-	width: 15px;
-}
-
-.sortedTable .pagerNavigator .goto em span {
-	padding: 0px 2px;
-	position: relative;
-	display: inline-block;
-	color: #333333;
-}
-
-
 .sortedTable .pagerNavigator a {
 	color: #52AACC;;
 }
@@ -126,10 +83,18 @@ div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam  .yui-ca
 	position: relative;
 }
 
-.sortedTable .pagerNavigator .goto {
-    margin-right: 2px;
+a.button.positive {
+    background-color: #88E086;
 }
 
-div.top-menu {
-    width: auto;
+a.button.negative {
+    background-color: #EB7C7C;
+}
+
+.messages-succ-details-section,
+.messages-error-details-section,
+.messages-info-details-section,
+.messages-warn-details-section,
+.messages-exp-details-section  {
+	min-height: 16px;
 }

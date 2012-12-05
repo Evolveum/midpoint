@@ -87,7 +87,8 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(" }");
         script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
         script.append(setFocus(isReadonly()));
-        script.append("$('#" + editorId + "').append(\"" + helpButton + "\")");
+        script.append("$('#" + editorId + "').append(\"" + helpButton + "\");");
+        script.append("if($.browser.msie){$('#" + editorId + "').find('.ace_gutter').hide();}");
         return script.toString();
     }
 
