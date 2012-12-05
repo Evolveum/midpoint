@@ -36,6 +36,7 @@ import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
 /**
@@ -72,6 +73,14 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
     private ProcessInstanceDto loadProcessInstance() {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
+
+
+        System.out.println("Received page parameters: ");
+        for (PageParameters.NamedPair np : getPageParameters().getAllNamed()) {
+            System.out.println(" - " + np.getKey() + " = " + np.getValue());
+        }
+
+
         StringValue back = getPageParameters().get(PARAM_PROCESS_INSTANCE_BACK);
 		try {
             StringValue pid = getPageParameters().get(PARAM_PROCESS_INSTANCE_ID);
