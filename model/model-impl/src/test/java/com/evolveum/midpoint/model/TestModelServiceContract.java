@@ -1309,10 +1309,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.clear();
         
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
-        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-		accountRefVal.setOid(accountOid);
-		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
-		userDelta.addModification(accountRefDelta);
+        // Explicit unlink is not needed here, it should work without it
+//        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+//		accountRefVal.setOid(accountOid);
+//		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF, getUserDefinition(), accountOid);
+//		userDelta.addModification(accountRefDelta);
         
 		ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
 		

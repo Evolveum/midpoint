@@ -213,12 +213,15 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_BETA_FILENAME = COMMON_DIR_NAME + "/role-beta.xml";
 	protected static final String ROLE_BETA_OID = "12345678-d34d-b33f-f00d-55555555bbbb";
 	
+	// Assigns dummy resource, sets some attributes
 	protected static final String ROLE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-pirate.xml";
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 
+	// Excludes role "pirate"
 	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
 	
+	// Assigns default dummy resource and red dummy resource
 	protected static final String ROLE_DUMMIES_FILENAME = COMMON_DIR_NAME + "/role-dummies.xml";
 	protected static final String ROLE_DUMMIES_OID = "12345678-d34d-b33f-f00d-55555555dddd";
 

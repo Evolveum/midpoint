@@ -76,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -330,6 +332,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 	}
 	
+	//////////////////////
+	// Following tests use POSITIVE enforcement mode
+	/////////////////////
+	
 	@Test
     public void test501JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test501JackAssignRolePirate";
@@ -414,6 +420,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();
         
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
+        // Use modification of user to delete account. Deleting account directly is tested later.
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_ACCOUNT_REF, prismContext, accountOid);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
@@ -424,6 +431,62 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignedNoRole(userJack);
+        assertNoLinkedAccount(userJack);
+        assertNoDummyAccount("jack");
+	}
+	
+	@Test
+    public void test520JackAssignRolePirate() throws Exception {
+		final String TEST_NAME = "test520JackAssignRolePirate";
+        displayTestTile(this, TEST_NAME);
+        
+        // IMPORTANT: Changing the assignment policy
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // THEN
+        assertAssignedRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assertDummyAccount("jack", "Jack Sparrow", true);
+        assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
+        assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
+        // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
+        assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+	}
+	
+	@Test
+    public void test521JackUnassignRolePirateDeleteAccount() throws Exception {
+		final String TEST_NAME = "test521JackUnassignRolePirateDeleteAccount";
+        displayTestTile(this, TEST_NAME);
+        
+        // IMPORTANT: Changing the assignment policy
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, false));
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        String accountOid = userJack.asObjectable().getAccountRef().iterator().next().getOid();        
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
+        // This all goes in the same context with user, explicit unlink should not be necessary
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
+        
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        userJack = getUser(USER_JACK_OID);
+        display("User after", userJack);
+        assertAssignedNoRole(userJack);
+        assertNoLinkedAccount(userJack);
         assertNoDummyAccount("jack");
 	}
 

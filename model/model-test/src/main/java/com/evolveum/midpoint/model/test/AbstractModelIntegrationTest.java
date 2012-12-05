@@ -262,6 +262,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertTrue("User "+user+" is not linked to account "+accountOid, found);
 	}
 	
+	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
+		PrismReference accountRef = user.findReference(UserType.F_ACCOUNT_REF);
+		if (accountRef == null) {
+			return;
+		}
+		assert accountRef.isEmpty() : "Expected that "+user+" has no linked account but it has "+accountRef.size()+" linked accounts: "
+			+ accountRef.getValues();
+	}
+	
 	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		String accountOid = getUserAccountRef(user, resourceOid);
 		assertNotNull("User "+user+" has no account on resource "+resourceOid, accountOid);

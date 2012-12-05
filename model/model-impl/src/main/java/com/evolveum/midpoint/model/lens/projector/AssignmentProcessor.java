@@ -333,7 +333,11 @@ public class AssignmentProcessor {
 	                    // Account removed
 	                    markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
             		} else {
-            			markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
+            			if (accountContext.isDelete()) {
+            				markPolicyDecision(accountContext, SynchronizationPolicyDecision.DELETE);
+            			} else {
+            				markPolicyDecision(accountContext, SynchronizationPolicyDecision.KEEP);
+            			}
             		}
             	} else {
             		// We have to delete something that is not there. Nothing to do.
