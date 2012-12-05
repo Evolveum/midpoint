@@ -26,9 +26,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +48,9 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -347,5 +349,131 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     	
     	PrismObject<AccountShadowType> afterModify = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
     	AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
+    }
+
+    @Test(enabled = false) //todo disabled because of MID-1078
+    public void testExtensionModify() throws Exception {
+        System.out.println("====[ testExtensionModify ]====");
+        LOGGER.info("====[ testExtensionModify ]====");
+
+        final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
+
+        File userFile = new File(TEST_DIR, "user-with-extension.xml");
+        //add first user
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+
+        OperationResult result = new OperationResult("test extension modify");
+        final String oid = repositoryService.addObject(user, result);
+
+        user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, result);
+//        AssertJUnit.assertEquals("User was not saved correctly", user, readUser);
+
+        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
+        PrismProperty loot = user.findProperty(path);
+        PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition());
+        lootDelta.setValueToReplace(new PrismPropertyValue(456));
+        modifications.add(lootDelta);
+
+        repositoryService.modifyObject(UserType.class, oid, modifications, result);
+
+        //check read after modify operation
+        user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        loot = user.findProperty(new ItemPath(UserType.F_EXTENSION, QNAME_LOOT));
+        loot.setValue(new PrismPropertyValue(456));
+
+        readUser = repositoryService.getObject(UserType.class, oid, result);
+        AssertJUnit.assertEquals("User was not saved correctly", user, readUser);
+    }
+
+    @Test
+    public void simpleModifyExtensionDateTest() throws Exception {
+        final Date DATE = new Date();
+        RUser user = createUser(123L, DATE);
+
+        Session session = null;
+        try {
+            session = factory.openSession();
+            session.beginTransaction();
+            RContainerId id = (RContainerId) session.save(user);
+            session.getTransaction().commit();
+            session.close();
+
+            session = factory.openSession();
+            session.beginTransaction();
+            user = createUser(456L, DATE);
+            user.setId(0L);
+            user.setOid(id.getOid());
+            session.merge(user);
+            session.getTransaction().commit();
+            session.close();
+
+            session = factory.openSession();
+            session.beginTransaction();
+            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id.getOid()).uniqueResult();
+
+            AssertJUnit.assertEquals(1, user.getExtension().getDates().size());
+            session.getTransaction().commit();
+        } finally {
+            session.close();
+        }
+    }
+
+    private RUser createUser(Long lootValue, Date dateValue) {
+        RUser user = new RUser();
+        user.setName(new RPolyString("u2", "u2"));
+        user.setFullName(new RPolyString("fu2", "fu2"));
+        user.setFamilyName(new RPolyString("fa2", "fa2"));
+        user.setGivenName(new RPolyString("gi2", "gi2"));
+
+        RAnyContainer any = new RAnyContainer();
+        user.setExtension(any);
+        any.setOwner(user);
+
+        Set<RDateValue> dates = new HashSet<RDateValue>();
+        any.setDates(dates);
+
+        final String namespace = "http://example.com/p";
+
+        RDateValue date = new RDateValue();
+        date.setDynamic(false);
+        date.setName(new QName(namespace, "funeralDate"));
+        date.setType(new QName("http://www.w3.org/2001/XMLSchema", "dateTime"));
+        date.setValue(dateValue);
+        dates.add(date);
+        date.setValueType(RValueType.PROPERTY);
+
+        Set<RLongValue> longs = new HashSet<RLongValue>();
+        any.setLongs(longs);
+
+        RLongValue l = new RLongValue();
+        longs.add(l);
+        l.setDynamic(false);
+        l.setName(new QName(namespace, "loot"));
+        l.setType(new QName("http://www.w3.org/2001/XMLSchema", "int"));
+        l.setValue(lootValue);
+        l.setValueType(RValueType.PROPERTY);
+
+        Set<RStringValue> strings = new HashSet<RStringValue>();
+        any.setStrings(strings);
+
+        RStringValue s1 = new RStringValue();
+        strings.add(s1);
+        s1.setDynamic(false);
+        s1.setName(new QName(namespace, "weapon"));
+        s1.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        s1.setValue("gun");
+        s1.setValueType(RValueType.PROPERTY);
+
+        RStringValue s2 = new RStringValue();
+        strings.add(s2);
+        s2.setDynamic(false);
+        s2.setName(new QName(namespace, "shipName"));
+        s2.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        s2.setValue("pltka");
+        s2.setValueType(RValueType.PROPERTY);
+
+        return user;
     }
 }
