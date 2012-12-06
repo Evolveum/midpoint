@@ -179,6 +179,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected DummyAuditService dummyAuditService;
 	
+	protected boolean verbose = false; 
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 			
 	public AbstractModelIntegrationTest() {
@@ -217,6 +219,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      */
     protected void applyResourceSchema(AccountShadowType accountType, ResourceType resourceType) throws SchemaException {
     	IntegrationTestTools.applyResourceSchema(accountType, resourceType, prismContext);
+    }
+    
+    protected void assertUsers(int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertUsers");
+        OperationResult result = task.getResult();
+    	List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        if (verbose) display("Users", users);
+        assertEquals("Unexpected number of users", expectedNumberOfUsers, users.size());
     }
 		
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
