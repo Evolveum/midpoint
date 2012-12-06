@@ -314,7 +314,13 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
 	
 	protected static final String TASK_RECONCILE_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy.xml";
-	protected static final String TASK_RECONCILE_DUMMY_OID = "91919191-76e0-59e2-86d6-3d4f02d3dddd";
+	protected static final String TASK_RECONCILE_DUMMY_OID = "10000000-0000-0000-5656-565600000004";
+	
+	protected static final String TASK_RECONCILE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy-blue.xml";
+	protected static final String TASK_RECONCILE_DUMMY_BLUE_OID = "10000000-0000-0000-5656-565600000204";
+	
+	protected static final String TASK_RECONCILE_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/task-reconcile-dummy-green.xml";
+	protected static final String TASK_RECONCILE_DUMMY_GREEN_OID = "10000000-0000-0000-5656-565600000404";
 	
 	protected static final String TASK_LIVE_SYNC_DUMMY_FILENAME = COMMON_DIR_NAME + "/task-dumy-livesync.xml";
 	protected static final String TASK_LIVE_SYNC_DUMMY_OID = "10000000-0000-0000-5555-555500000004";

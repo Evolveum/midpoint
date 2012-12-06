@@ -151,8 +151,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  */
 public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTest {
 		
-	private static final int DEFAULT_TASK_WAIT_TIMEOUT = 10000;
-	private static final long DEFAULT_TASK_SLEEP_TIME = 200;
+	protected static final int DEFAULT_TASK_WAIT_TIMEOUT = 10000;
+	protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
 			
 	protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 		
@@ -1015,7 +1015,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				task.refresh(waitResult);
 //				Task freshTask = taskManager.getTask(task.getOid(), waitResult);
 				OperationResult result = task.getResult();
-//				display("Check result", result);
+				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+task+": "+IntegrationTestTools.getErrorMessage(result);
 				assert !isUknown(result, checkSubresult) : "Unknown result in "+task+": "+IntegrationTestTools.getErrorMessage(result);
 				return !isInProgress(result, checkSubresult);
@@ -1048,7 +1048,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			public boolean check() throws Exception {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
-				display("Check result", result);
+				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
 				if (isUknown(result, checkSubresult)) {
 					return false;
@@ -1084,7 +1084,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			public boolean check() throws Exception {
 				Task freshTask = taskManager.getTask(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
-				display("Check result", result);
+				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
 				if (isUknown(result, checkSubresult)) {
 					return false;
@@ -1124,7 +1124,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				OperationResult result = freshTask.getResult();
 //				display("Times", longTimeToString(origLastRunStartTimestamp) + "-" + longTimeToString(origLastRunStartTimestamp) 
 //						+ " : " + longTimeToString(freshTask.getLastRunStartTimestamp()) + "-" + longTimeToString(freshTask.getLastRunFinishTimestamp()));
-				display("Check result", result);
+				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
 				if (isUknown(result, checkSubresult)) {
 					return false;

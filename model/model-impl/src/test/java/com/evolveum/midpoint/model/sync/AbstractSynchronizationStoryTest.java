@@ -57,6 +57,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -137,8 +138,18 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	}
 	
 	protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
+
 	protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);
 	
+	protected int getWaitTimeout() {
+		return DEFAULT_TASK_WAIT_TIMEOUT;
+	}
+	
+	protected int getNumberOfExtraDummyUsers() {
+		return 0;
+	}
+
+
 	@Test
     public void test100ImportLiveSyncTaskDummyGreen() throws Exception {
 		final String TEST_NAME = "test100ImportLiveSyncTaskDummyGreen";
@@ -312,6 +323,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
         
         waitForSyncTaskStart(resourceDummy);
+        
+        // Dummy resource has some extra users that may be created in recon, so let's give it a chance to do it now
+        waitForSyncTaskNextRun(resourceDummy);
+        
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 	}
 	
 	/**
@@ -342,6 +358,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         // Make sure we have steady state
         waitForSyncTaskNextRun(resourceDummy);
+        waitForSyncTaskNextRun(resourceDummyBlue);
+        waitForSyncTaskNextRun(resourceDummyGreen);
         
         PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Wally Feed");
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
@@ -357,7 +375,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
         
-        assertUsers(7);
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 	}
 	
 	/**
@@ -412,7 +430,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
         assertLinked(userWally, accountWallyDefault);
                 
-        assertUsers(7);
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 	}
 
 	/**
@@ -460,7 +478,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyBlue);
         assertLinked(userWally, accountWallyDefault);
                 
-        assertUsers(7);
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 	}
 	
 	/**
@@ -504,7 +522,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
         
-        assertUsers(7);
+        assertUsers(7 + getNumberOfExtraDummyUsers());
 	}
 	
 	/**
@@ -546,15 +564,15 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
 //        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
         
-        assertUsers(6);
+        assertUsers(6 + getNumberOfExtraDummyUsers());
 	}
 	
 	protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
-		waitForTaskStart(getSyncTaskOid(resource), false);
+		waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
 	
 	protected void waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-		waitForTaskNextRun(getSyncTaskOid(resource), false);
+		waitForTaskNextRun(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
 	
 	private PrismObject<AccountShadowType> checkWallyAccount(PrismObject<ResourceType> resource, String resourceDesc,

@@ -21,23 +21,23 @@
 
 <!--Reconciliation task definition for dummy resource -->
 
-<task oid="10000000-0000-0000-5656-565600000004"
+<task oid="10000000-0000-0000-5656-565600000204"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
 	<!-- Resource printable name -->
-	<name>Reconciliation: Dummy</name>
+	<name>Reconciliation: Dummy Blue</name>
 	
 	<extension>
 	</extension>
 	
-	<taskIdentifier>10000000-0000-0000-5656-565600000004</taskIdentifier>
+	<taskIdentifier>10000000-0000-0000-5656-565600000204</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
-	<objectRef oid="10000000-0000-0000-0000-000000000004"/>
+	<objectRef oid="10000000-0000-0000-0000-000000000204"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>

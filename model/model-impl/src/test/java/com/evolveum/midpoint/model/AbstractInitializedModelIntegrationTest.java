@@ -178,9 +178,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	
 	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 	
-	private static final int DEFAULT_TASK_WAIT_TIMEOUT = 10000;
-	private static final long DEFAULT_TASK_SLEEP_TIME = 200;
-	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 	
 	protected MockClockworkHook mockClockworkHook;
