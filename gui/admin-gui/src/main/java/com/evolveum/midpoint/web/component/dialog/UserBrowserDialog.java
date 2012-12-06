@@ -79,13 +79,13 @@ public class UserBrowserDialog extends ModalWindow {
     private static final Trace LOGGER = TraceManager.getTrace(UserBrowserDialog.class);
     private IModel<UserBrowserDto> model;
     private boolean initialized;
-    private Class clazz;
     private PrismContext prismContext;
 
     public UserBrowserDialog(String id, PrismContext prismContext) {
         super(id);
 
         setTitle(createStringResource("userBrowserDialog.title"));
+        this.prismContext = prismContext;
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(UserBrowserDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         setInitialWidth(900);
@@ -260,33 +260,40 @@ public class UserBrowserDialog extends ModalWindow {
         }
 
         try {
-            Document document = DOMUtil.getDocument();
-            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
-            if (dto.isName()) {
-                filters.add(SubstringFilter.createSubstring(ObjectType.class, prismContext, ObjectType.F_NAME, dto.getSearchText()));
-            }
+			PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
+			if (normalizer == null) {
+				normalizer = new PrismDefaultPolyStringNormalizer();
+			}
 
-            PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
-            String normalizedString = normalizer.normalize(dto.getSearchText());
+			String normalizedString = normalizer.normalize(dto.getSearchText());
 
-            if (dto.isFamilyName()) {
-                filters.add(SubstringFilter.createSubstring(clazz, prismContext, UserType.F_FAMILY_NAME, normalizedString));
-            }
-            if (dto.isFullName()) {
-                filters.add(SubstringFilter.createSubstring(clazz, prismContext, UserType.F_FULL_NAME, normalizedString));
-            }
-            if (dto.isGivenName()) {
-                filters.add(SubstringFilter.createSubstring(clazz, prismContext, UserType.F_GIVEN_NAME, normalizedString));
-            }
+			if (dto.isName()) {
+				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext, UserType.F_NAME,
+						normalizedString));
+			}
 
-            if (!filters.isEmpty()) {
-                query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
-            }
-        } catch (Exception ex) {
-            error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
-            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
-        }
+			if (dto.isFamilyName()) {
+				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+						UserType.F_FAMILY_NAME, normalizedString));
+			}
+			if (dto.isFullName()) {
+				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+						UserType.F_FULL_NAME, normalizedString));
+			}
+			if (dto.isGivenName()) {
+				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+						UserType.F_GIVEN_NAME, normalizedString));
+			}
+
+			if (!filters.isEmpty()) {
+				query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
+			}
+		} catch (Exception ex) {
+			error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+		}
 
         return query;
     }

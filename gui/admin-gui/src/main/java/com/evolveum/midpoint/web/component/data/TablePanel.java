@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.data;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -43,6 +44,8 @@ public class TablePanel<T> extends Panel {
     private static final String TABLE = "table";
     private static final String NAV_TOP = "navigatorTop";
     private static final String NAV_BOTTOM = "navigatorBottom";
+    private NavigatorPanel topNavigator;
+    private NavigatorPanel bottomNavigator;
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T>> columns) {
         this(id, provider, columns, 10);
@@ -61,8 +64,24 @@ public class TablePanel<T> extends Panel {
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
         table.setOutputMarkupId(true);
         add(table);
-        add(new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)));
-        add(new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)));
+        topNavigator = new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)) {
+			@Override
+			protected void onAjaxEvent(AjaxRequestTarget target) {
+				super.onAjaxEvent(target);
+				target.add(bottomNavigator);
+			}
+        };
+        
+        bottomNavigator = new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)) {
+        	@Override
+			protected void onAjaxEvent(AjaxRequestTarget target) {
+				super.onAjaxEvent(target);
+				target.add(topNavigator);
+			}
+        };
+        
+        add(topNavigator);
+        add(bottomNavigator);
         
     }
 

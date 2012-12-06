@@ -21,8 +21,8 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigation;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.basic.Label;
@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.IPagingLabelProvider;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigation;
-import org.apache.wicket.markup.html.navigation.paging.PagingNavigationIncrementLink;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -99,6 +98,12 @@ public class NavigatorPanel extends AjaxPagingNavigator {
 		link.setOutputMarkupId(true);
 		link.add(createVisibleBehaviour(pageable));
     	return link;
+	}
+	
+	@Override
+	protected void onAjaxEvent(AjaxRequestTarget target) {
+		super.onAjaxEvent(target);
+		target.appendJavaScript("init();");
 	}
 
 	private IModel<String> createModel(final IPageable pageable) {

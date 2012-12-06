@@ -133,6 +133,10 @@ function init() {
     $(".operatingFormButtons .button, .top-menu a").click(function(){
     	showDisableOperationFormButtons();
     });
+    
+    $(".pager a").click(function() {
+    	showDisablePaging();
+	});
 }
 
 function showLeftMenu() {
@@ -254,6 +258,7 @@ function hideBusysign() {
 	document.getElementById('bysy_indicator').style.display = 'none';
 	document.getElementById('error_indicator').style.display = 'none';
 	hideDisableOperationFormButtons();
+	hideDisablePaging();
 	ajaxError = 0;
 }
 
@@ -334,4 +339,14 @@ function hideDisableOperationFormButtons() {
 	$(".operatingFormButtons").css("opacity", 1);
 	//$(".operatingFormButtons").find(".button").css("opacity", 1);
 	disableOperationBlock.remove();
+}
+
+function showDisablePaging() {
+	$(".disablePaging").show();
+	$(".pager").css("opacity", .5);
+}
+
+function hideDisablePaging() {
+	$(".disablePaging").hide();
+	$(".pager").css("opacity", 1);
 }
