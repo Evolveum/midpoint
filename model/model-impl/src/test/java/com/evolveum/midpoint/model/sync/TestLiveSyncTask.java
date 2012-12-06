@@ -118,6 +118,8 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 		
 	private static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
 	private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+	
+	private static String userWallyOid;
 
 	public TestLiveSyncTask() throws JAXBException {
 		super();
@@ -234,18 +236,16 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
-        display("Account wally", accountWally);
-        assertNotNull("No wally account shadow", accountWally);
-        assertEquals("Wrong resourceRef in wally account", RESOURCE_DUMMY_BLUE_OID, 
-        		accountWally.asObjectable().getResourceRef().getOid());
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally was not created", userWally);
+        userWallyOid = userWally.getOid();
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
         assertAccounts(userWally, 1);
         
-        assertLinked(userWally, accountWally);
+        assertLinked(userWally, accountWallyBlue);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after sync", users);
@@ -280,26 +280,16 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountWallyBlue = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
-        display("Account shadow wally (blue)", accountWallyBlue);
-        
-        assertNotNull("No wally account shadow (blue)", accountWallyBlue);
-        assertEquals("Wrong resourceRef in wally account (blue)", RESOURCE_DUMMY_BLUE_OID, 
-        		accountWallyBlue.asObjectable().getResourceRef().getOid());
-        
-        PrismObject<AccountShadowType> accountWallyDummyGreen = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyGreen);
-        display("Account shadow wally (green)", accountWallyDummyGreen);
-        
-        assertNotNull("No wally account shadow (green)", accountWallyDummyGreen);
-        assertEquals("Wrong resourceRef in wally account (green)", RESOURCE_DUMMY_GREEN_OID, 
-        		accountWallyDummyGreen.asObjectable().getResourceRef().getOid());
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Wally Feed");
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
         assertAccounts(userWally, 2);
 
-        assertLinked(userWally, accountWallyDummyGreen);
+        assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
         
         
@@ -341,8 +331,8 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 	 * the default dummy account directly. Just make sure that it does not do anything bad.
 	 */
 	@Test
-    public void test360AddDummyDefaultAccount() throws Exception {
-		final String TEST_NAME = "test360AddDummyDefaultAccount";
+    public void test360ModifyUserAddDummyDefaultAccount() throws Exception {
+		final String TEST_NAME = "test360ModifyUserAddDummyDefaultAccount";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -350,6 +340,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        assertEquals("OID of user wally have changed", userWallyOid, userWally.getOid());
         
         ObjectDelta<UserType> userDelta = createModifyUserAddAccount(userWally.getOid(), resourceDummy);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
@@ -364,18 +355,19 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         // Make sure we have steady state
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, false);
         
-        PrismObject<AccountShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy);
-        display("Account shadow wally (default)", accountWallyDefault);        
-        assertNotNull("No wally account shadow (default)", accountWallyDefault);
-        assertEquals("Wrong resourceRef in wally account (default)", RESOURCE_DUMMY_OID, 
-        		accountWallyDefault.asObjectable().getResourceRef().getOid());
-                
+        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Wally Feed");
+        
         userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
         assertAccounts(userWally, 3);
 
         assertLinked(userWally, accountWallyDefault);
+        assertLinked(userWally, accountWallyGreen);
+        assertLinked(userWally, accountWallyBlue);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after sync", users);
@@ -387,8 +379,8 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 	 * There is also outbound mapping from the user to dummy account, therefore it should propagate there as well.
 	 */
 	@Test
-    public void test400ModifyDummyGreenAccountWally() throws Exception {
-		final String TEST_NAME = "test400ModifyDummyGreenAccountWally";
+    public void test370ModifyDummyGreenAccountWally() throws Exception {
+		final String TEST_NAME = "test370ModifyDummyGreenAccountWally";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -414,49 +406,19 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         displayThen(TEST_NAME);
-                
-        PrismObject<AccountShadowType> accountWallyBlue = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
-        display("Account shadow wally (blue)", accountWallyBlue);
-        DummyAccount dummyAccountBlue = dummyResourceBlue.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-        display("Account wally (blue)", dummyAccountBlue);
-        assertNotNull("No dummy account (blue)", dummyAccountBlue);
         
-        PrismObject<AccountShadowType> accountWallyGreen = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyGreen);
-        display("Account shadow wally (green)", accountWallyGreen);
-        DummyAccount dummyAccountGreen = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-        display("Account wally (green)", dummyAccountGreen);
-        assertNotNull("No dummy account (green)", dummyAccountGreen);
+        // FIXME this is wrong. The value should not be there as the mapping is WEAK.
+        // see MID-1068
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally B. Feed");
         
-        PrismObject<AccountShadowType> accountWallyDefault = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy);
-        display("Account shadow wally (default)", accountWallyDefault);
-        DummyAccount dummyAccountDefault = dummyResource.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
-        display("Account wally (default)", dummyAccountDefault);
-        assertNotNull("No dummy account (default)", dummyAccountDefault);
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Wally B. Feed");
+        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Wally B. Feed");
+        
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
-        PrismAsserts.assertPropertyValue(userWally, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Wally B. Feed"));
-
-        // FIXME this is wrong. The value should not be there as the mapping is WEAK.
-        // see MID-1068
-        assertNotNull("No wally account shadow (blue)", accountWallyBlue);
-        assertEquals("Wrong resourceRef in wally account (blue)", RESOURCE_DUMMY_BLUE_OID, 
-        		accountWallyBlue.asObjectable().getResourceRef().getOid());
-        IntegrationTestTools.assertAttribute(accountWallyBlue.asObjectable(),  resourceDummyBlue.asObjectable(),
-				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
-        
-        assertNotNull("No wally account shadow (green)", accountWallyGreen);
-        assertEquals("Wrong resourceRef in wally account (green)", RESOURCE_DUMMY_GREEN_OID, 
-        		accountWallyGreen.asObjectable().getResourceRef().getOid());
-		IntegrationTestTools.assertAttribute(accountWallyGreen.asObjectable(),  resourceDummyGreen.asObjectable(),
-				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
-		
-		assertNotNull("No wally account shadow (default)", accountWallyDefault);
-        assertEquals("Wrong resourceRef in wally account (default)", RESOURCE_DUMMY_OID, 
-        		accountWallyDefault.asObjectable().getResourceRef().getOid());
-		IntegrationTestTools.assertAttribute(accountWallyDefault.asObjectable(),  resourceDummy.asObjectable(),
-				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Wally B. Feed");
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, null);
        
         assertAccounts(userWally, 3);
 
@@ -468,6 +430,75 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         display("Users after sync", users);
         assertEquals("Unexpected number of users", 7, users.size());
         
+	}
+
+	/**
+	 * Change user fullname. See if the change propagates correctly. Also see that there are no side-effects.
+	 */
+	@Test
+    public void test380ModifyUserWallyFullName() throws Exception {
+		final String TEST_NAME = "test380ModifyUserWallyFullName";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestLiveSyncTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyAccount wallyDummyAccount = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+                
+		/// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(userWallyOid, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("Bloodnose"));
+        
+        // Wait for sync tasks to pick up the change and have some chance to screw things
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_BLUE_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_GREEN_OID, false);
+		
+        // THEN
+        displayThen(TEST_NAME);
+                
+        // FIXME this is wrong. The value should not be there as the mapping is WEAK.
+        // see MID-1068
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Bloodnose");
+        
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Bloodnose");
+        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Bloodnose");
+        
+        
+        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
+        assertNotNull("User wally disappeared", userWally);
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, null);
+       
+        assertAccounts(userWally, 3);
+
+        assertLinked(userWally, accountWallyGreen);
+        assertLinked(userWally, accountWallyBlue);
+        assertLinked(userWally, accountWallyDefault);
+                
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after sync", users);
+        assertEquals("Unexpected number of users", 7, users.size());
+        
+	}
+	
+	private PrismObject<AccountShadowType> checkWallyAccount(PrismObject<ResourceType> resource, String resourceDesc,
+			String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<AccountShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);
+        display("Account shadow wally ("+resourceDesc+")", accountShadowWally);
+        assertEquals("Wrong resourceRef in wally account ("+resourceDesc+")", resource.getOid(), 
+        		accountShadowWally.asObjectable().getResourceRef().getOid());
+        IntegrationTestTools.assertAttribute(accountShadowWally.asObjectable(),  resource.asObjectable(),
+				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
+        
+        DummyAccount dummyAccount = dummyResourceBlue.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("Account wally ("+resourceDesc+")", dummyAccount);
+        assertNotNull("No dummy account ("+resourceDesc+")", dummyAccount);
+        assertEquals("Wrong dummy account fullname ("+resourceDesc+")", expectedFullName, 
+        		dummyAccount.getAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        
+        return accountShadowWally;
 	}
 
 }
