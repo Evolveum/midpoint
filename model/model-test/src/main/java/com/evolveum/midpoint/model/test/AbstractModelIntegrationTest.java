@@ -573,20 +573,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected PrismObject<AccountShadowType> findAccountByUsername(String username, PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        
-        RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedAccountDefinition rAccount = rSchema.getDefaultAccountDefinition();
-        Collection<ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), identifierDef, username);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext, ResourceObjectShadowType.F_OBJECT_CLASS, 
-        		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class, 
-        		ResourceObjectShadowType.F_RESOURCE_REF, resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        
+        ObjectQuery query = createAccountShadowQuery(username, resource);
 		List<PrismObject<AccountShadowType>> accounts = modelService.searchObjects(AccountShadowType.class, query, null, task, result);
 		if (accounts.isEmpty()) {
 			return null;
@@ -636,6 +623,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return account;
 	}
 	
+	protected void assertNoShadow(String username, PrismObject<ResourceType> resource, 
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		ObjectQuery query = createAccountShadowQuery(username, resource);
+		List<PrismObject<AccountShadowType>> accounts = repositoryService.searchObjects(AccountShadowType.class, query, result);
+		if (accounts.isEmpty()) {
+			return;
+		}
+		assert false : "Found shadow for "+username+" on "+resource+" while not expecting it: "+accounts;
+	}
+	
+	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedAccountDefinition rAccount = rSchema.getDefaultAccountDefinition();
+        Collection<ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
+        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
+        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES), identifierDef, username);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ResourceObjectShadowType.class, prismContext, 
+        		ResourceObjectShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ResourceObjectShadowType.class, 
+        		ResourceObjectShadowType.F_RESOURCE_REF, resource);
+        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
+        return ObjectQuery.createObjectQuery(filter);
+	}
+
 	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
         UserType userType = user.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userType.getAccountRef().size());

@@ -17,13 +17,13 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.common;
 
 /**
  * @author semancik
  *
  */
-public class ModelCompiletimeConfig {
+public class CompiletimeConfig {
 	
 	public static final boolean DEVELOPMENT_MODE = true;
 	public static final boolean CONSISTENCY_CHECKS = DEVELOPMENT_MODE;

@@ -108,7 +108,7 @@ public class AddUserAction extends BaseAction {
                         new Object[]{user.getOid()});
             }
         } catch (Exception ex) {
-            ResourceObjectShadowType shadowAfterChange = getAccountShadowFromChange(change);
+            PrismObject<AccountShadowType> shadowAfterChange = getAccountShadowFromChange(change);
 
             LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
                     ex, shadowAfterChange.getName(), shadowAfterChange.getOid());

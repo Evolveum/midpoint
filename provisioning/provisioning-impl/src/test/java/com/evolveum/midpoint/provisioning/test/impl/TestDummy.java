@@ -683,7 +683,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 
 		account.checkConsistence(true, true);
-		ResourceObjectShadowUtil.checkConsistency(account, TEST_NAME);
+		ResourceObjectShadowUtil.checkConsistence(account, TEST_NAME);
 		assertSuccess("applyDefinition(account) result", result);
 	}
 
@@ -1726,7 +1726,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	private void checkShadow(AccountShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
 		shadowType.asPrismObject().checkConsistence(true, true);
-		ResourceObjectShadowUtil.checkConsistency(shadowType.asPrismObject(), parentResult.getOperation());
+		ResourceObjectShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
 		ObjectChecker<AccountShadowType> checker = createShadowChecker(fullShadow);
 		IntegrationTestTools.checkShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
 	}

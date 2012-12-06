@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -82,7 +83,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.dump());
 		}
 		
-		change.checkConsistence();
+		if (CompiletimeConfig.CONSISTENCY_CHECKS) change.checkConsistence();
 		
 		if ((null != listeners) && (!listeners.isEmpty())) {
 			for (ResourceObjectChangeListener listener : listeners) {

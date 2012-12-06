@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
-import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 /**
  * @author semancik

@@ -319,7 +319,7 @@
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>

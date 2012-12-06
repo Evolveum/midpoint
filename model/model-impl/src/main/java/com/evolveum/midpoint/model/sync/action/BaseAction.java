@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -294,33 +295,31 @@ public abstract class BaseAction implements Action {
     private PrismObject<AccountShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
             throws SchemaException {
 
-        AccountShadowType account = getAccountShadowFromChange(change);
+    	PrismObject<AccountShadowType> account = getAccountShadowFromChange(change);
         if (account == null) {
             return null;
         }
-
-        PrismObjectDefinition<AccountShadowType> definition = RefinedResourceSchema.getRefinedSchema(
-                change.getResource().asObjectable(), getPrismContext()).getObjectDefinition(account);
-
-        return account.asPrismObject();
+        
+        if (CompiletimeConfig.CONSISTENCY_CHECKS) account.checkConsistence();
+        return account;
     }
 
-    protected AccountShadowType getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
+    protected PrismObject<AccountShadowType> getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
         if (change.getCurrentShadow() != null) {
-            return (AccountShadowType) change.getCurrentShadow().asObjectable();
+            return (PrismObject<AccountShadowType>) change.getCurrentShadow();
         }
 
         if (change.getOldShadow() != null) {
-            return (AccountShadowType) change.getOldShadow().asObjectable();
+            return (PrismObject<AccountShadowType>) change.getOldShadow();
         }
 
         return null;
     }
 
     private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
-        AccountShadowType account = getAccountShadowFromChange(change);
+    	PrismObject<AccountShadowType> account = getAccountShadowFromChange(change);
         if (account != null) {
-            return ResourceObjectShadowUtil.getIntent(account);
+            return ResourceObjectShadowUtil.getIntent(account.asObjectable());
         }
 
         LOGGER.warn("Can't get account type from change (resource {}), because current and old shadow are null. " +

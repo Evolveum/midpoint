@@ -483,6 +483,96 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
+	/**
+	 * Delete default dummy account.
+	 * Dummy resource has unlinkAccount sync reaction for deleted situation. The account should be unlinked
+	 * but the user and other accounts should remain as they were.
+	 */
+	@Test
+    public void test400DeleteDummyDefaultAccount() throws Exception {
+		final String TEST_NAME = "test400DeleteDummyDefaultAccount";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestLiveSyncTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+     	dummyResource.deleteAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+        
+        // Make sure we have steady state
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_BLUE_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_GREEN_OID, false);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
+        
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Bloodnose");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Bloodnose");
+        
+        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
+        assertNotNull("User wally disappeared", userWally);
+        assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, null);
+        assertAccounts(userWally, 2);
+
+        assertLinked(userWally, accountWallyGreen);
+        assertLinked(userWally, accountWallyBlue);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after sync", users);
+        assertEquals("Unexpected number of users", 7, users.size());
+	}
+	
+	/**
+	 * Delete green dummy account.
+	 * Green dummy resource has deleteUser sync reaction for deleted situation. This should delete the user
+	 * and all other accounts.
+	 */
+	@Test
+    public void test410DeleteDummyGreentAccount() throws Exception {
+		final String TEST_NAME = "test410DeleteDummyGreentAccount";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestLiveSyncTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        /// WHEN
+        displayWhen(TEST_NAME);
+     	dummyResourceGreen.deleteAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+		
+     	// Make sure we have steady state
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_BLUE_OID, false);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_GREEN_OID, false);
+     	
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_GREEN_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
+//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyGreen, task, result);
+        
+        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        display("User wally", userWally);
+        assertNull("User wally is not gone", userWally);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
+//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after sync", users);
+        assertEquals("Unexpected number of users", 6, users.size());
+	}
+	
 	private PrismObject<AccountShadowType> checkWallyAccount(PrismObject<ResourceType> resource, String resourceDesc,
 			String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<AccountShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);

@@ -227,6 +227,9 @@ public class InboundProcessor {
         if (inbound.getStrength() != MappingStrengthType.WEAK) {
         	return false;
         }
+        if (newUser == null) {
+        	return false;
+        }
         PrismProperty<?> property = newUser.findProperty(inbound.getOutputPath());
         if (property != null && !property.isEmpty()) {
             return true;

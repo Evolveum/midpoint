@@ -311,7 +311,7 @@ public class SimpleOp extends Op {
 		} else {
 			Definition def = definition.findDefinition(conditionItem);
 			if (def == null) {
-				throw new QueryException("Couldn't find query definition for condition item '" + conditionItem + "'.");
+				throw new QueryException("Couldn't find query definition for condition item '" + conditionItem + "' in definition for path '"+path+"'");
 			}
 			if (def.isEntity()) {
 				throw new QueryException("Can't query entity for value, only attribute can be queried for value.");

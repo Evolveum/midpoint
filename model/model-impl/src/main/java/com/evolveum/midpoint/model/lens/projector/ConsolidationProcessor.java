@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
-import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;

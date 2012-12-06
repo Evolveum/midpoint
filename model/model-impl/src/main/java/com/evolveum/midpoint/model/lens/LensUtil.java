@@ -25,12 +25,12 @@ import java.util.HashSet;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.ModelCompiletimeConfig;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -174,7 +174,7 @@ public class LensUtil {
 			Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
 			Validate.notNull(typeClass, "Object type class is null in "+delta);
 			if (isFocalClass(typeClass)) {
-				if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) {
+				if (CompiletimeConfig.CONSISTENCY_CHECKS) {
 					// Focus delta has to be complete with all the definition already in place
 					delta.checkConsistence(false, true, true);
 				}
@@ -223,7 +223,7 @@ public class LensUtil {
 		// This forces context reload before the next projection
 		context.rot();
 		
-		if (ModelCompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
+		if (CompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
 		
 		return context;
 	}

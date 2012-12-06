@@ -260,7 +260,7 @@ public class ResourceObjectShadowUtil {
 		return attribute.getRealValues(type);
 	}
 
-	public static void checkConsistency(PrismObject<? extends ResourceObjectShadowType> shadow, String desc) {
+	public static void checkConsistence(PrismObject<? extends ResourceObjectShadowType> shadow, String desc) {
 		PrismReference resourceRef = shadow.findReference(ResourceObjectShadowType.F_RESOURCE_REF);
     	if (resourceRef == null) {
     		throw new IllegalStateException("No resourceRef in "+desc);

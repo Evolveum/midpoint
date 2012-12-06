@@ -293,7 +293,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
     	O objectType = object.asObjectable();
     	if (objectType instanceof ResourceObjectShadowType) {
-    		ResourceObjectShadowUtil.checkConsistency((PrismObject<? extends ResourceObjectShadowType>) object, desc);
+    		ResourceObjectShadowUtil.checkConsistence((PrismObject<? extends ResourceObjectShadowType>) object, desc);
     	}
     }
 	

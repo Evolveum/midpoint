@@ -571,28 +571,28 @@ public class ShadowCache {
 				// search objects in repository
 				Change change = i.next();
 
-				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(resourceType, change, parentResult);
+				ResourceObjectShadowType oldShadow = findOrCreateShadowFromChange(resourceType, change, parentResult);
 
-				LOGGER.trace("Old shadow: {}", ObjectTypeUtil.toShortString(newShadow));
+				LOGGER.trace("Old shadow: {}", ObjectTypeUtil.toShortString(oldShadow));
 
 				// skip setting other attribute when shadow is null
-				if (newShadow == null) {
+				if (oldShadow == null) {
 					change.setOldShadow(null);
 					continue;
 				}
 
-				change.setOldShadow(newShadow.asPrismObject());
+				change.setOldShadow(oldShadow.asPrismObject());
 
 				// FIXME: hack. make sure that the current shadow has OID
 				// and resource ref, also the account type should be set
 				if (change.getCurrentShadow() != null) {
 					ResourceObjectShadowType currentShadowType = change.getCurrentShadow().asObjectable();
 					if (currentShadowType != null) {
-						currentShadowType.setOid(newShadow.getOid());
-						currentShadowType.setResourceRef(newShadow.getResourceRef());
-						currentShadowType.setIntent(newShadow.getIntent());
-						if (currentShadowType instanceof AccountShadowType && newShadow instanceof AccountShadowType) {
-							((AccountShadowType) currentShadowType).setAccountType(((AccountShadowType) newShadow)
+						currentShadowType.setOid(oldShadow.getOid());
+						currentShadowType.setResourceRef(oldShadow.getResourceRef());
+						currentShadowType.setIntent(oldShadow.getIntent());
+						if (currentShadowType instanceof AccountShadowType && oldShadow instanceof AccountShadowType) {
+							((AccountShadowType) currentShadowType).setAccountType(((AccountShadowType) oldShadow)
 									.getAccountType());
 						}
 					}
@@ -600,12 +600,12 @@ public class ShadowCache {
 
 				// FIXME: hack. the object delta must have oid specified.
 				if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-					if (newShadow instanceof AccountShadowType) {
+					if (oldShadow instanceof AccountShadowType) {
 						ObjectDelta<AccountShadowType> objDelta = new ObjectDelta<AccountShadowType>(
 								AccountShadowType.class, ChangeType.DELETE, prismContext);
 						change.setObjectDelta(objDelta);
 					}
-					change.getObjectDelta().setOid(newShadow.getOid());
+					change.getObjectDelta().setOid(oldShadow.getOid());
 				}
 
 			}
@@ -760,24 +760,10 @@ public class ShadowCache {
 			// Account was found in repository
 
 			newShadow = accountList.get(0).asObjectable();
-			// if the fetched change was one of the deletion type, delete
-			// corresponding account from repo now
-			// if (change.getObjectDelta() != null
-			// && change.getObjectDelta().getChangeType() == ChangeType.DELETE)
-			// {
-			// try {
-			// getRepositoryService().deleteObject(AccountShadowType.class,
-			// newShadow.getOid(),
-			// parentResult);
-			// } catch (ObjectNotFoundException ex) {
-			// parentResult.recordFatalError("Object with oid " +
-			// newShadow.getOid()
-			// + " not found in repo. Reason: " + ex.getMessage(), ex);
-			// throw new ObjectNotFoundException("Object with oid " +
-			// newShadow.getOid()
-			// + " not found in repo. Reason: " + ex.getMessage(), ex);
-			// }
-			// }
+		}
+		
+		if (newShadow != null) {
+			shadowConverter.applyAttributesDefinition(newShadow.asPrismObject(), resource);
 		}
 
 		return newShadow;

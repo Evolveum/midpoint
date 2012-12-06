@@ -429,7 +429,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	
 	protected void assertNoDummyAccount(String dummyInstanceName, String username) {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNull("Dummy account for username "+username+" exists while not expecting it", account);
+		assertNull("Dummy account for username "+username+" exists while not expecting it ("+dummyInstanceName+")", account);
 	}
 	
 	protected void assertDefaultDummyAccountAttribute(String username, String attributeName, Object... expectedAttributeValues) {

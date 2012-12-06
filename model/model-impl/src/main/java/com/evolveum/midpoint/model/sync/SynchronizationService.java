@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.sync;
 
-import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -169,7 +169,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (CONSISTENCY_CHECKS) {
 			if (change.getCurrentShadow() != null) {
 				change.getCurrentShadow().checkConsistence();
-				ResourceObjectShadowUtil.checkConsistency(change.getCurrentShadow(), "current shadow in change description");
+				ResourceObjectShadowUtil.checkConsistence(change.getCurrentShadow(), "current shadow in change description");
 			}
 			if (change.getObjectDelta() != null) {
 				change.getObjectDelta().checkConsistence();

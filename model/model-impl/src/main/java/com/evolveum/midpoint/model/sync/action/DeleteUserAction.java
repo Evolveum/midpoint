@@ -87,7 +87,7 @@ public class DeleteUserAction extends BaseAction {
             //set object delta with delete
             ObjectDelta<UserType> userDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.DELETE, getPrismContext());
             userDelta.setOid(oldUser.getOid());
-            focusContext.setSecondaryDelta(userDelta, 0);
+            focusContext.setPrimaryDelta(userDelta);
 
             //create account context for this change
             LensProjectionContext<AccountShadowType> accContext = createAccountLensContext(context, change, null, null);

@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import static com.evolveum.midpoint.model.ModelCompiletimeConfig.CONSISTENCY_CHECKS;
+import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -458,7 +458,7 @@ public class ContextLoader {
 								+ user);
 					}
 					provisioningService.applyDefinition(account, result);
-					if (CONSISTENCY_CHECKS) ResourceObjectShadowUtil.checkConsistency(account, "account from "+accountRefDelta);
+					if (CONSISTENCY_CHECKS) ResourceObjectShadowUtil.checkConsistence(account, "account from "+accountRefDelta);
 					// Check for conflicting change
 					accountContext = LensUtil.getAccountContext(context, account, provisioningService, prismContext, result);
 					if (accountContext != null) {
