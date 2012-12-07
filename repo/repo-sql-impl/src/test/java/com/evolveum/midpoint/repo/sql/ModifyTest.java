@@ -387,7 +387,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals("User was not saved correctly", user, readUser);
     }
 
-    @Test
+    @Test(enabled = false)
     public void simpleModifyExtensionDateTest() throws Exception {
         final Date DATE = new Date();
         RUser user = createUser(123L, DATE);

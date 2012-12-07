@@ -36,9 +36,12 @@ import java.util.Random;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CharacterClassType;
@@ -71,6 +74,9 @@ public class ValuePolicyGenerator {
 				+ policy.getDescription());
 		inputResult.addSubresult(generatorResult);
 
+//		if (policy.getLimitations() != null && policy.getLimitations().getMinLength() != null){
+//			generateMinimalSize = true;
+//		}
 		// setup default values where missing
 //		PasswordPolicyUtils.normalize(pp);
 
@@ -102,6 +108,11 @@ public class ValuePolicyGenerator {
 			OperationResult reportBug = new OperationResult("Global limitation check");
 			reportBug
 					.recordWarning("There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
+		}
+		
+		if (minLen == 0 && maxLen == 0){
+			minLen = defaultLength;
+			generateMinimalSize = true;
 		}
 
 		// Initialize generator
@@ -193,14 +204,14 @@ public class ValuePolicyGenerator {
 		// test if maximum is not exceeded
 		if (password.length() > maxLen) {
 			generatorResult
-					.recordFatalError("Unable to meet minimal criterian and not exceed maximxal size of password.");
+					.recordFatalError("Unable to meet minimal criteria and not exceed maximxal size of password.");
 			return null;
 		}
 
 		/* ***************************************
 		 * Generate chars to not exceed maximal
 		 */
-
+		
 		for (int i = 0; i < minLen; i++) {
 			// test if max is reached
 			if (password.length() == maxLen) {
@@ -232,6 +243,10 @@ public class ValuePolicyGenerator {
 			// if selection is empty then no more characters and we can close
 			// our work
 			if (chars.isEmpty()) {
+				if (!StringUtils.isBlank(password.toString()) && password.length() >= minLen){
+					break;
+				}				
+				password.append(RandomStringUtils.randomAlphanumeric(minLen));
 				break;
 			}
 
@@ -247,7 +262,7 @@ public class ValuePolicyGenerator {
 		}
 
 		if (password.length() < minLen) {
-			generatorResult.recordFatalError("Unable generate password and meet minimal size of password."
+			generatorResult.recordFatalError("Unable to generate password and meet minimal size of password."
 					+ password.length() + "<" + minLen);
 			return null;
 		}
