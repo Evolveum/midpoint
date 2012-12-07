@@ -39,6 +39,7 @@ import org.w3c.dom.Element;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -95,7 +96,7 @@ public class RAnyConverter {
                             break;
                         case DATE:
                             RDateValue dateValue = new RDateValue();
-                            dateValue.setValue(extractValue(propertyValue, Date.class));
+                            dateValue.setValue(extractValue(propertyValue, Timestamp.class));
                             rValue = dateValue;
                             break;
                         case STRING:
@@ -502,6 +503,10 @@ switch (valueType) {
             object = ((GregorianCalendar) object).getTime();
         } else if (object instanceof XMLGregorianCalendar) {
             object = XMLGregorianCalendarType.asDate(((XMLGregorianCalendar) object));
+        }
+
+        if (object instanceof Date) {
+            object = new Timestamp(((Date)object).getTime());
         }
 
         return object;

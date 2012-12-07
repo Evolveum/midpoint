@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -50,6 +49,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -283,49 +283,49 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 //            AssertJUnit.fail(ex.getMessage());
 //        }
     }
-    
+
     @Test
     public void testModifyUserAddRole() throws Exception{
     	System.out.println("====[ testModifyUserAddRole ]====");
     	 LOGGER.info("=== [ testModifyUserAddRole ] ===");
     	OperationResult parentResult = new OperationResult("Modify user -> add roles");
     	String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
-    	
+
     	PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-csv.xml"));
     	repositoryService.addObject(csvResource, parentResult);
-    	
+
     	PrismObject<ResourceType> openDjResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-opendj.xml"));
     	repositoryService.addObject(openDjResource, parentResult);
-    	
+
     	PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/user.xml"));
     	repositoryService.addObject(user, parentResult);
-    	
+
     	PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-csv.xml"));
     	repositoryService.addObject(roleCsv, parentResult);
-    	
+
     	String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
     	PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-ldap.xml"));
     	repositoryService.addObject(roleLdap, parentResult);
-    	
+
     	RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, parentResult).asObjectable();
     	AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
     	AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
-    	
+
     	ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(TEST_DIR+"/modify-user-add-roles.xml"),
 				ObjectModificationType.class);
-    	
-    	
+
+
     	ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
-    	
-    	
-    	
+
+
+
     	repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
-    	
+
     	UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
     	AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
-    	
+
     }
-    
+
     @Test
     public void testModifyDeleteObjectChnageFromAccount() throws Exception{
     	System.out.println("====[ testModifyDeleteObjectChnageFromAccount ]====");
@@ -334,9 +334,9 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     	String oid = repositoryService.addObject(accShadow, parentResult);
     	System.out.println("\nAcc shadow");
     	System.out.println(accShadow.dump());
-    	
+
     	accShadow.asObjectable().setObjectChange(null);
-    	
+
     	PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
     	System.out.println("\nRepo shadow");
     	System.out.println(repoShadow.dump());
@@ -344,14 +344,14 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     	ObjectDelta d = repoShadow.diff(accShadow);
     	System.out.println("\nDelta");
     	System.out.println(d.dump());
-    	
+
     	repositoryService.modifyObject(AccountShadowType.class, oid, d.getModifications(), parentResult);
-    	
+
     	PrismObject<AccountShadowType> afterModify = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
     	AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
 
-    @Test(enabled = false) //todo disabled because of MID-1078
+    @Test
     public void testExtensionModify() throws Exception {
         System.out.println("====[ testExtensionModify ]====");
         LOGGER.info("====[ testExtensionModify ]====");
@@ -367,7 +367,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
         user = prismContext.getPrismDomProcessor().parseObject(userFile);
         PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, result);
-//        AssertJUnit.assertEquals("User was not saved correctly", user, readUser);
+        AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
 
         Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
@@ -384,22 +384,24 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         loot.setValue(new PrismPropertyValue(456));
 
         readUser = repositoryService.getObject(UserType.class, oid, result);
-        AssertJUnit.assertEquals("User was not saved correctly", user, readUser);
+        AssertJUnit.assertTrue("User was not modified correctly", user.diff(readUser).isEmpty());
     }
 
-    @Test(enabled = false)
+    @Test
     public void simpleModifyExtensionDateTest() throws Exception {
-        final Date DATE = new Date();
+        final Timestamp DATE = new Timestamp(new Date().getTime());
         RUser user = createUser(123L, DATE);
 
         Session session = null;
         try {
+            LOGGER.info(">>>SAVE");
             session = factory.openSession();
             session.beginTransaction();
             RContainerId id = (RContainerId) session.save(user);
             session.getTransaction().commit();
             session.close();
 
+            LOGGER.info(">>>MERGE");
             session = factory.openSession();
             session.beginTransaction();
             user = createUser(456L, DATE);
@@ -409,27 +411,34 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
             session.getTransaction().commit();
             session.close();
 
+            LOGGER.info(">>>GET");
             session = factory.openSession();
             session.beginTransaction();
             user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id.getOid()).uniqueResult();
 
-            AssertJUnit.assertEquals(1, user.getExtension().getDates().size());
+            RAnyContainer extension = user.getExtension();
+            AssertJUnit.assertEquals(1, extension.getClobs().size());
+            AssertJUnit.assertEquals(1, extension.getDates().size());
+            AssertJUnit.assertEquals(2, extension.getStrings().size());
+            AssertJUnit.assertEquals(1, extension.getLongs().size());
+
             session.getTransaction().commit();
         } finally {
             session.close();
         }
     }
 
-    private RUser createUser(Long lootValue, Date dateValue) {
+    private RUser createUser(Long lootValue, Timestamp dateValue) {
         RUser user = new RUser();
-        user.setName(new RPolyString("u2", "u2"));
-        user.setFullName(new RPolyString("fu2", "fu2"));
-        user.setFamilyName(new RPolyString("fa2", "fa2"));
-        user.setGivenName(new RPolyString("gi2", "gi2"));
+        user.setName(new RPolyString("u1", "u1"));
+        user.setFullName(new RPolyString("fu1", "fu1"));
+        user.setFamilyName(new RPolyString("fa1", "fa1"));
+        user.setGivenName(new RPolyString("gi1", "gi1"));
 
         RAnyContainer any = new RAnyContainer();
-        user.setExtension(any);
+        any.setOwnerType(RContainerType.USER);
         any.setOwner(user);
+        user.setExtension(any);
 
         Set<RDateValue> dates = new HashSet<RDateValue>();
         any.setDates(dates);
@@ -473,6 +482,17 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
         s2.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
         s2.setValue("pltka");
         s2.setValueType(RValueType.PROPERTY);
+
+        Set<RClobValue> clobs = new HashSet<RClobValue>();
+        any.setClobs(clobs);
+
+        RClobValue c1 = new RClobValue();
+        clobs.add(c1);
+        c1.setDynamic(false);
+        c1.setName(new QName(namespace, "someContainer"));
+        c1.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        c1.setValue("some container xml as clob or what...");
+        c1.setValueType(RValueType.CONTAINER);
 
         return user;
     }

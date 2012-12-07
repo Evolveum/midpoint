@@ -25,6 +25,7 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -33,16 +34,16 @@ import java.util.Date;
 @Embeddable
 public class RDateValue extends RValue<Date> {
 
-    private Date value;
+    private Timestamp value;
 
     public RDateValue() {
     }
 
-    public RDateValue(Date value) {
+    public RDateValue(Timestamp value) {
         this(null, null, value);
     }
 
-    public RDateValue(QName name, QName type, Date value) {
+    public RDateValue(QName name, QName type, Timestamp value) {
         setName(name);
         setType(type);
         setValue(value);
@@ -50,11 +51,11 @@ public class RDateValue extends RValue<Date> {
 
     @Index(name = "iDate")
     @Override
-    public Date getValue() {
+    public Timestamp getValue() {
         return value;
     }
 
-    public void setValue(Date value) {
+    public void setValue(Timestamp value) {
         this.value = value;
     }
 
