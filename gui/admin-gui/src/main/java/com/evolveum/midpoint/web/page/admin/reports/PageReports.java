@@ -72,7 +72,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ObjectOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -483,6 +482,9 @@ public class PageReports extends PageAdminReports {
 		JasperDesign design;
 		JasperReport report = null;
 		JasperPrint jasperPrint = null;
+		
+		byte[] generatedReport = null;
+		Session session = null;
 
 		try {
             ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
@@ -510,16 +512,21 @@ public class PageReports extends PageAdminReports {
 			params.put("USER_NAME", userNames);
 			params.put("RESOURCE_OID", dto.getResource().getOid());
 
-			Session session = sessionFactory.openSession();
+			session = sessionFactory.openSession();
 			session.beginTransaction();
 			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
 			jasperPrint = JasperFillManager.fillReport(report, params);
-			return JasperExportManager.exportReportToPdf(jasperPrint);
+			generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
 		} catch (JRException ex) {
             getSession().error(getString("pageReports.message.jasperError") + " " + ex.getMessage());
 			LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
 			throw new RestartResponseException(PageReports.class);
+		} finally{
+			session.close();
 		}
+		
+		return generatedReport;
+		
 	}
 	
 	private List<PrismObject<ObjectType>> getObjects() {
