@@ -161,4 +161,11 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 		return 20000;
 	}
 
+	@Override
+	protected int getNumberOfExtraDummyUsers() {
+		return 1;
+	}
+	
+	
+
 }
