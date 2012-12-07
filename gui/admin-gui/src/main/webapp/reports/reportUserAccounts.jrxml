@@ -61,7 +61,7 @@
 				</textElement>
 				<text><![CDATA[Resource:]]></text>
 			</staticText>
-			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss" isBlankWhenNull="true">
 				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="92" y="84" width="708" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
 					<font size="16" isBold="false"/>
@@ -70,7 +70,7 @@
 			</textField>
 			<staticText>
 				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="153" height="20">
-					<printWhenExpression><![CDATA[!$F{userName}.isEmpty()]]></printWhenExpression>
+					<!--<printWhenExpression><![CDATA[!$F{userName}.isEmpty()]]></printWhenExpression>-->
 				</reportElement>
 				<textElement verticalAlignment="Middle">
 					<font fontName="Times New Roman" size="16" isBold="true"/>
