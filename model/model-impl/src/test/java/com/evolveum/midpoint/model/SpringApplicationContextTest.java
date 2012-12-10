@@ -37,12 +37,12 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
  */
 //@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { 
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml",
-		"classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-task.xml",
-		"classpath:application-context-audit.xml"
+		"classpath:ctx-repository.xml",
+		"classpath:ctx-configuration-test.xml",
+		"classpath:ctx-model.xml",
+		"classpath:ctx-provisioning.xml",
+		"classpath:ctx-task.xml",
+		"classpath:ctx-audit.xml"
 		})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
 

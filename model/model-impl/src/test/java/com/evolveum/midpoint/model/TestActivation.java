@@ -106,13 +106,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:application-context-model.xml",
-        "classpath:application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
-        "classpath:application-context-configuration-test.xml",
-        "classpath:application-context-provisioning.xml",
-        "classpath:application-context-task.xml",
-		"classpath:application-context-audit.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-model.xml",
+        "classpath:ctx-repository.xml",
+        "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-configuration-test.xml",
+        "classpath:ctx-provisioning.xml",
+        "classpath:ctx-task.xml",
+		"classpath:ctx-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestActivation extends AbstractInitializedModelIntegrationTest {
 			

@@ -41,12 +41,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:application-context-audit.xml",
-		"classpath:application-context-task.xml",
-        "classpath:application-context-audit-test.xml",
-        "classpath:application-context-repo-cache.xml",
-        "classpath:application-context-repository.xml",
-        "classpath:application-context-configuration-test.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-audit.xml",
+		"classpath:ctx-task.xml",
+        "classpath:ctx-audit-test.xml",
+        "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-repository.xml",
+        "classpath:ctx-configuration-test.xml"})
 public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
 	
 	private static final String LOG_FILENAME = "target/test.log";

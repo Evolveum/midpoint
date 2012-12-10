@@ -35,11 +35,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author lazyman
  * 
  */
-@ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml",
-		"classpath:application-context-configuration-test-no-repo.xml", 
-		"classpath:application-context-task.xml",
-		"classpath:application-context-audit.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model.xml",
+		"classpath:ctx-model-unit-test.xml",
+		"classpath:ctx-configuration-test-no-repo.xml",
+		"classpath:ctx-task.xml",
+		"classpath:ctx-audit.xml"})
 public class ControllerLaunchImportTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerLaunchImportTest.class);

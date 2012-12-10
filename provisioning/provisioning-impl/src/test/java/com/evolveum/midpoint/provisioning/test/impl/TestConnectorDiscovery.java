@@ -56,13 +56,13 @@ import com.evolveum.prism.xml.ns._public.query_2.PagingType;
  * @author Katka Valalikova
  */
 
-@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml",
-        "classpath:application-context-audit.xml",
-		"classpath:application-context-task.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-repo-cache.xml",
-		"classpath:application-context-configuration-test.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-provisioning.xml",
+		"classpath:ctx-provisioning-test.xml",
+        "classpath:ctx-audit.xml",
+		"classpath:ctx-task.xml",
+		"classpath:ctx-repository.xml",
+		"classpath:ctx-repo-cache.xml",
+		"classpath:ctx-configuration-test.xml" })
 @DirtiesContext
 public class TestConnectorDiscovery extends AbstractIntegrationTest {
 

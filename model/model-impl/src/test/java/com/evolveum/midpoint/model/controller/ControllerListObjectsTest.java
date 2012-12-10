@@ -62,11 +62,11 @@ import com.evolveum.prism.xml.ns._public.query_2.PagingType;
  * @author lazyman
  * 
  */
-@ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml",
-		"classpath:application-context-configuration-test-no-repo.xml",
-		"classpath:application-context-task.xml",
-		"classpath:application-context-audit.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model.xml",
+		"classpath:ctx-model-unit-test.xml",
+		"classpath:ctx-configuration-test-no-repo.xml",
+		"classpath:ctx-task.xml",
+		"classpath:ctx-audit.xml"})
 public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/listObjects");

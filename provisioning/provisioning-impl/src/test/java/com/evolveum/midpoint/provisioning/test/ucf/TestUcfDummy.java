@@ -108,9 +108,9 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * this is a lesser evil for now (MID-392)
  */
 @ContextConfiguration(locations = { 
-		"classpath:application-context-provisioning-test.xml",
-        "classpath:application-context-audit.xml",
-		"classpath:application-context-configuration-test-no-repo.xml" })
+		"classpath:ctx-provisioning-test.xml",
+        "classpath:ctx-audit.xml",
+		"classpath:ctx-configuration-test-no-repo.xml" })
 public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";

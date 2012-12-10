@@ -58,14 +58,14 @@ import static org.testng.AssertJUnit.*;
  * @author mederly
  *
  */
-@ContextConfiguration(locations = {"classpath:application-context-model.xml",
-        "classpath:application-context-workflow.xml",
-        "classpath:application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
-        "classpath:application-context-configuration-test.xml",
-        "classpath:application-context-provisioning.xml",
-        "classpath:application-context-task.xml",
-		"classpath:application-context-audit.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-model.xml",
+        "classpath:ctx-workflow.xml",
+        "classpath:ctx-repository.xml",
+        "classpath:ctx-repo-cache.xml",
+        "classpath:ctx-configuration-test.xml",
+        "classpath:ctx-provisioning.xml",
+        "classpath:ctx-task.xml",
+		"classpath:ctx-audit.xml"})
 
 public class BasicTest extends AbstractTestNGSpringContextTests {
 

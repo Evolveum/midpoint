@@ -29,19 +29,19 @@
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>
-            classpath:application-context-common.xml
-            classpath:application-context-configuration.xml
-            classpath*:application-context-repository.xml,
-            classpath:application-context-repo-cache.xml,
-            classpath:application-context-task.xml,
-            classpath:application-context-provisioning.xml,
-            classpath:application-context-audit.xml,
-            classpath:application-context-model.xml,
-            classpath*:application-context-workflow.xml,
-            classpath:application-context-camel-imports.xml,
-            /WEB-INF/application-context-webapp.xml,
-            /WEB-INF/application-context-security.xml,
-            /WEB-INF/application-context-init.xml
+            classpath:ctx-common.xml
+            classpath:ctx-configuration.xml
+            classpath*:ctx-repository.xml,
+            classpath:ctx-repo-cache.xml,
+            classpath:ctx-task.xml,
+            classpath:ctx-provisioning.xml,
+            classpath:ctx-audit.xml,
+            classpath:ctx-model.xml,
+            classpath*:ctx-workflow.xml,
+            classpath:ctx-camel-imports.xml,
+            /WEB-INF/ctx-webapp.xml,
+            /WEB-INF/ctx-security.xml,
+            /WEB-INF/ctx-init.xml
         </param-value>
     </context-param>
 

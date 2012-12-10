@@ -35,18 +35,18 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  * @author lazyman
  */
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml",
-        "file:src/main/webapp/WEB-INF/application-context-init.xml",
-        "file:src/main/webapp/WEB-INF/application-context-security.xml",
-        "classpath:application-context-repo-cache.xml",
-        "classpath*:application-context-repository.xml",
-        "classpath:application-context-task.xml",
-        "classpath:application-context-audit.xml",
-        "classpath:application-context-configuration-test.xml",
-        "classpath:application-context-common.xml",
-        "classpath:application-context-provisioning.xml",
-        "classpath:application-context-model.xml",
-        "classpath*:application-context-workflow.xml"})
+@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/ctx-webapp.xml",
+        "file:src/main/webapp/WEB-INF/ctx-init.xml",
+        "file:src/main/webapp/WEB-INF/ctx-security.xml",
+        "classpath:ctx-repo-cache.xml",
+        "classpath*:ctx-repository.xml",
+        "classpath:ctx-task.xml",
+        "classpath:ctx-audit.xml",
+        "classpath:ctx-configuration-test.xml",
+        "classpath:ctx-common.xml",
+        "classpath:ctx-provisioning.xml",
+        "classpath:ctx-model.xml",
+        "classpath*:ctx-workflow.xml"})
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
     @Autowired(required = true)

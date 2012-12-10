@@ -79,9 +79,9 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
  * 
  * @author Igor Farinic
  */
-@ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
-		"classpath:application-context-configuration-basex-test.xml" })
+@ContextConfiguration(locations = { "../../../../../ctx-repository.xml",
+        "classpath:ctx-repo-cache.xml",
+		"classpath:ctx-configuration-basex-test.xml" })
 public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 
 	private static final String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
