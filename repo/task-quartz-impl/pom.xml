@@ -29,7 +29,7 @@
 	<parent>
 		<artifactId>repo</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>2.1-SNAPSHOT</version>
+		<version>2.1</version>
 	</parent>
 	<organization>
 		<name>evolveum</name>
@@ -63,17 +63,17 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-cache</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 		</dependency>
         <dependency>
 			<groupId>commons-pool</groupId>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>2.1</version>
             <scope>provided</scope>
         </dependency>
         <!--  Testing dependecies  -->
@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -115,7 +115,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>2.1</version>
             <scope>test</scope>
         </dependency>
 		
@@ -145,19 +145,19 @@
         <!--        <dependency>
               <groupId>com.evolveum.midpoint.repo</groupId>
               <artifactId>repo-sql-impl</artifactId>
-              <version>2.1-SNAPSHOT</version>
+              <version>2.1</version>
               <scope>test</scope>
           </dependency> 
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-basex-impl</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>2.1</version>
             <scope>test</scope>
         </dependency>-->
         <dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -168,7 +168,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>2.1-SNAPSHOT</version>
+			<version>2.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
