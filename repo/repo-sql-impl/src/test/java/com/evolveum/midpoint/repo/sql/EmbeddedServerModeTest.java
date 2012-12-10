@@ -39,10 +39,10 @@ import java.sql.DriverManager;
  * @author lazyman
  */
 @ContextConfiguration(locations = {
-        "../../../../../application-context-sql-server-mode-test.xml",
-        "../../../../../application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
-        "../../../../../application-context-configuration-sql-test.xml"})
+        "../../../../../ctx-sql-server-mode-test.xml",
+        "../../../../../ctx-repository.xml",
+        "classpath:ctx-repo-cache.xml",
+        "../../../../../ctx-configuration-sql-test.xml"})
 public class EmbeddedServerModeTest extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(EmbeddedServerModeTest.class);

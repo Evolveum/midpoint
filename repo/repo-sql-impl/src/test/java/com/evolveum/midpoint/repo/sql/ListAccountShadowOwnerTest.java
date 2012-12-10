@@ -61,10 +61,10 @@ import org.xml.sax.SAXException;
  * @author lazyman
  */
 @ContextConfiguration(locations = {
-        "../../../../../application-context-sql-no-server-mode-test.xml",
-        "../../../../../application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
-        "../../../../../application-context-configuration-sql-test.xml"})
+        "../../../../../ctx-sql-no-server-mode-test.xml",
+        "../../../../../ctx-repository.xml",
+        "classpath:ctx-repo-cache.xml",
+        "../../../../../ctx-configuration-sql-test.xml"})
 public class ListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests {
 	
 	private static final File TEST_DIR = new File("src/test/resources");

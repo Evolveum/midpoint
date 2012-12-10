@@ -60,10 +60,10 @@ import java.util.List;
  */
 
 @ContextConfiguration(locations = {
-        "../../../../../application-context-sql-server-mode-test.xml",
-        "../../../../../application-context-repository.xml",
-        "classpath:application-context-repo-cache.xml",
-        "../../../../../application-context-configuration-sql-test.xml"})
+        "../../../../../ctx-sql-server-mode-test.xml",
+        "../../../../../ctx-repository.xml",
+        "classpath:ctx-repo-cache.xml",
+        "../../../../../ctx-configuration-sql-test.xml"})
 
 public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
 

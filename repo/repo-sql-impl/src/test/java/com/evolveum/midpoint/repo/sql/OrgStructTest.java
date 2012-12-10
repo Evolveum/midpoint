@@ -38,9 +38,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
-@ContextConfiguration(locations = { "classpath:application-context-sql-no-server-mode-test.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repo-cache.xml",
-		"classpath:application-context-configuration-sql-test.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-sql-no-server-mode-test.xml",
+		"classpath:ctx-repository.xml", "classpath:ctx-repo-cache.xml",
+		"classpath:ctx-configuration-sql-test.xml" })
 public class OrgStructTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_DIR = new File("src/test/resources/orgstruct");
