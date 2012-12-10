@@ -26,11 +26,11 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>2.1-SNAPSHOT</version>
+        <version>2.1.1-SNAPSHOT</version>
     </parent>
     <groupId>com.evolveum.midpoint.infra</groupId>
     <artifactId>prism</artifactId>
-    <version>2.1-SNAPSHOT</version>
+    <version>2.1.1-SNAPSHOT</version>
     <name>midPoint Infrastructure - prism</name>
     <organization>
         <name>Evolveum</name>
@@ -71,7 +71,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>2.1.1-SNAPSHOT</version>
         </dependency>
         <!-- <dependency>
             <groupId>com.sun.xsom</groupId>
@@ -95,7 +95,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>2.1-SNAPSHOT</version>
+            <version>2.1.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
