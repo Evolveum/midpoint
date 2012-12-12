@@ -46,8 +46,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -215,8 +216,8 @@ public class PageHome extends PageAdmin {
 			OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
 			try {
 
-				Collection<ObjectOperationOptions> options =
-					ObjectOperationOptions.createCollection(AccountShadowType.F_RESOURCE, ObjectOperationOption.RESOLVE);
+				Collection<SelectorOptions<GetOperationOptions>> options =
+					SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
 				PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
 						reference.getOid(), options, task, subResult);

@@ -93,8 +93,9 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -623,9 +624,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected PrismObject<AccountShadowType> getAccount(String accountOid, boolean noFetch) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getAccount");
         OperationResult result = task.getResult();
-		Collection<ObjectOperationOptions> opts = null;
+		Collection<SelectorOptions<GetOperationOptions>> opts = null;
 		if (noFetch) {
-			opts = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
+			GetOperationOptions rootOpts = new GetOperationOptions();
+			rootOpts.setNoFetch(true);
+			opts = SelectorOptions.createCollection(rootOpts);
 		}
 		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, opts , task, result);
 		result.computeStatus();

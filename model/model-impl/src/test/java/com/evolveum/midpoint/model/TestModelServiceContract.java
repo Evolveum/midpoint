@@ -50,6 +50,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -66,8 +67,9 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -306,7 +308,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountNoFetch");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-		Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
+        
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		
 		// WHEN
 		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, options , task, result);
@@ -332,7 +335,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test103GetAccountRaw");
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-		Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 		
 		// WHEN
 		PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, accountOid, options , task, result);
@@ -453,8 +456,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<ObjectOperationOptions> options = 
-        	ObjectOperationOptions.createCollection(UserType.F_ACCOUNT, ObjectOperationOption.RESOLVE);
+        Collection<SelectorOptions<GetOperationOptions>> options = 
+        	SelectorOptions.createCollection(UserType.F_ACCOUNT, GetOperationOptions.createResolve());
         
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -490,8 +493,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<ObjectOperationOptions> options = 
-        	ObjectOperationOptions.createCollection(ObjectOperationOption.RESOLVE,
+        Collection<SelectorOptions<GetOperationOptions>> options = 
+            	SelectorOptions.createCollection(GetOperationOptions.createResolve(),
         			new ItemPath(UserType.F_ACCOUNT),
     				new ItemPath(UserType.F_ACCOUNT, AccountShadowType.F_RESOURCE)
         	);
@@ -531,8 +534,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<ObjectOperationOptions> options = 
-        	ObjectOperationOptions.createCollection(UserType.F_ACCOUNT, ObjectOperationOption.RESOLVE, ObjectOperationOption.NO_FETCH);
+        GetOperationOptions getOpts = new GetOperationOptions();
+        getOpts.setResolve(true);
+        getOpts.setNoFetch(true);
+		Collection<SelectorOptions<GetOperationOptions>> options = 
+        	SelectorOptions.createCollection(UserType.F_ACCOUNT, getOpts);
         
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -1471,7 +1477,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(objectDelta);
                         
 		// WHEN
-		modelService.executeChanges(deltas, ObjectOperationOption.createCollection(ObjectOperationOption.RAW), task, result);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1675,10 +1681,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<UserType> user = createUser("charles", "Charles L. Charles");
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);                
-		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
 		
 		// WHEN
-		modelService.executeChanges(deltas, options, task, result);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
 		
 		// THEN
 		result.computeStatus();
@@ -1717,10 +1722,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userCharlesOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);                
-		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
 		
 		// WHEN
-		modelService.executeChanges(deltas, options, task, result);
+		modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
 		
 		// THEN
 		result.computeStatus();

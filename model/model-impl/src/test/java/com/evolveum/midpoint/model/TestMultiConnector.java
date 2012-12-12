@@ -53,6 +53,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -72,7 +73,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -448,7 +449,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		resourceDelta.addModification(connectorRefDeltaAdd);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
         
-		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		ModelExecuteOptions options = ModelExecuteOptions.createRaw();
 		
 		// WHEN
         modelService.executeChanges(deltas, options, task, result);
@@ -482,7 +483,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		resourceDelta.addModification(connectorRefDeltaAdd);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 		
-		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		ModelExecuteOptions options = ModelExecuteOptions.createRaw();
 		
 		// WHEN
         modelService.executeChanges(deltas, options, task, result);
@@ -512,7 +513,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		resourceDelta.addModification(connectorRefDeltaReplace);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 		
-		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		ModelExecuteOptions options = ModelExecuteOptions.createRaw();
         
 		// WHEN
         modelService.executeChanges(deltas, options, task, result);
@@ -543,7 +544,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		resourceDelta.addModification(connectorRefDeltaReplace);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 		
-		Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+		ModelExecuteOptions options = ModelExecuteOptions.createRaw();
         
 		// WHEN
         modelService.executeChanges(deltas, options, task, result);

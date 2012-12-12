@@ -31,8 +31,9 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -374,8 +375,9 @@ public class PageUser extends PageAdminUsers {
         for (ObjectReferenceType reference : references) {
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
             try {
-                Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollection(
-                        AccountShadowType.F_RESOURCE, ObjectOperationOption.RESOLVE);
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+
 
                 PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
                         reference.getOid(), options, task, subResult);

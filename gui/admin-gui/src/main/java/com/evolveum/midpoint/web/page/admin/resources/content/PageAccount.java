@@ -23,8 +23,9 @@ package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -88,8 +89,8 @@ public class PageAccount extends PageAdminResources {
         PrismObject<AccountShadowType> account = null;
         try {
             Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
-            Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollection(
-                    AccountShadowType.F_RESOURCE, ObjectOperationOption.RESOLVE);
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+                    AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
             StringValue userOid = getPageParameters().get(PARAM_ACCOUNT_ID);
             account = getModelService().getObject(AccountShadowType.class, userOid.toString(), options, task, result);

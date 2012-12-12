@@ -36,14 +36,16 @@ import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceImportDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 public class PageResourceImport extends PageAdminResources {
@@ -74,8 +76,8 @@ public class PageResourceImport extends PageAdminResources {
 		PrismObject<ResourceType> resource = null;
 
 		try {
-			Collection<ObjectOperationOptions> options = 
-				ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR, ObjectOperationOption.RESOLVE);
+			Collection<SelectorOptions<GetOperationOptions>> options =
+					SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
 
 			Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
 

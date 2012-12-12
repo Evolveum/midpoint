@@ -22,8 +22,9 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -92,8 +93,8 @@ public class PageResource extends PageAdminResources {
     }
 
     private ResourceDto loadResourceDto() {
-        Collection<ObjectOperationOptions> options =
-                ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR, ObjectOperationOption.RESOLVE);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
 
         PrismObject<ResourceType> resource = loadResource(options);
         return new ResourceDto(resource, getPrismContext(), resource.asObjectable().getConnector(),

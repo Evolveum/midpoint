@@ -24,8 +24,9 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -509,8 +510,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                     ModelService model = page.getMidpointApplication().getModel();
                     Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT);
 
-                    Collection<ObjectOperationOptions> options = new ArrayList<ObjectOperationOptions>();
-                    options.add(ObjectOperationOptions.create(ObjectOperationOption.NO_FETCH));
+                    Collection<SelectorOptions<GetOperationOptions>> options =
+                            SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
                     PrismObject object = model.getObject(ObjectType.class, oid, options, task, result);
 
                     return WebMiscUtil.getName(object);

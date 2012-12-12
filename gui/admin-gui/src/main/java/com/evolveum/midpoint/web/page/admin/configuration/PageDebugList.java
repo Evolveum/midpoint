@@ -28,9 +28,11 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
@@ -455,7 +457,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
 
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
-                        ObjectOperationOption.createCollection(ObjectOperationOption.RAW),
+                        ModelExecuteOptions.createRaw(),
                         createSimpleTask(OPERATION_DELETE_OBJECT), subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
@@ -480,7 +482,7 @@ public class PageDebugList extends PageAdminConfiguration {
             ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
 
             getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
-                    ObjectOperationOption.createCollection(ObjectOperationOption.RAW),
+            		ModelExecuteOptions.createRaw(),
                     createSimpleTask(OPERATION_DELETE_OBJECT), result);
 
             result.recordSuccess();
@@ -564,7 +566,7 @@ public class PageDebugList extends PageAdminConfiguration {
         List<PrismObject> objects = null;
         try {
             objects = getModelService().searchObjects(type, clonedQuery,
-                    ObjectOperationOptions.createCollection(new ItemPath(), ObjectOperationOption.RAW),
+                    SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
                     createSimpleTask(OPERATION_SEARCH_OBJECT), result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);

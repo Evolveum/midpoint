@@ -23,7 +23,8 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 import org.apache.commons.lang.StringUtils;
@@ -105,7 +107,7 @@ public class PageAdminResources extends PageAdmin {
         return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }
 
-    protected PrismObject<ResourceType> loadResource(Collection<ObjectOperationOptions> options) {
+    protected PrismObject<ResourceType> loadResource(Collection<SelectorOptions<GetOperationOptions>> options) {
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
         PrismObject<ResourceType> resource = null;
 

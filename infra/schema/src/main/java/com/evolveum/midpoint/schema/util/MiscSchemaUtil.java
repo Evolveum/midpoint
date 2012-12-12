@@ -34,9 +34,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -133,43 +134,35 @@ public class MiscSchemaUtil {
 		return itemPathList;
 	}
 
-	public static Collection<ObjectOperationOptions> optionsTypeToOptions(OperationOptionsType optionsType) {
+	public static Collection<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(OperationOptionsType optionsType) {
 		if (optionsType == null) {
 			return null;
 		}
 		List<ObjectOperationOptionsType> objectOptionsTypeList = optionsType.getObjectOption();
-		Collection<ObjectOperationOptions> optionsList = new ArrayList<ObjectOperationOptions>(objectOptionsTypeList.size());
+		Collection<SelectorOptions<GetOperationOptions>> optionsList = new ArrayList<SelectorOptions<GetOperationOptions>>(objectOptionsTypeList.size());
 		for (ObjectOperationOptionsType objectOptionsType: objectOptionsTypeList) {
 			optionsList.add(objectOptionsTypeToOptions(objectOptionsType));
 		}
 		return optionsList;
 	}
 
-	private static ObjectOperationOptions objectOptionsTypeToOptions(ObjectOperationOptionsType objectOptionsType) {
+	private static SelectorOptions<GetOperationOptions> objectOptionsTypeToOptions(ObjectOperationOptionsType objectOptionsType) {
 		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
-		Collection<ObjectOperationOption> options = optionsTypeToOptions(objectOptionsType.getOption());
-		return new ObjectOperationOptions(selector, options );
+		GetOperationOptions options = optionsTypeToOptions(objectOptionsType.getOption());
+		return new SelectorOptions<GetOperationOptions>(selector, options );
 	}
 
-	private static Collection<ObjectOperationOption> optionsTypeToOptions(List<ObjectOperationOptionType> optionTypeList) {
-		Collection<ObjectOperationOption> options = new ArrayList<ObjectOperationOption>(optionTypeList.size());
+	private static GetOperationOptions optionsTypeToOptions(List<ObjectOperationOptionType> optionTypeList) {
+		GetOperationOptions options = new GetOperationOptions();
 		for (ObjectOperationOptionType optionType: optionTypeList) {
-			options.add(optionTypeToOption(optionType));
+			if (optionType == ObjectOperationOptionType.RESOLVE) {
+				options.setResolve(true);
+			}
+			if (optionType == ObjectOperationOptionType.NO_FETCH) {
+				options.setNoFetch(true);
+			}
 		}
 		return options;
-	}
-
-	private static ObjectOperationOption optionTypeToOption(ObjectOperationOptionType optionType) {
-		if (optionType == ObjectOperationOptionType.RESOLVE) {
-			return ObjectOperationOption.RESOLVE;
-		}
-		if (optionType == ObjectOperationOptionType.NO_FETCH) {
-			return ObjectOperationOption.NO_FETCH;
-		}
-		if (optionType == ObjectOperationOptionType.FORCE) {
-			return ObjectOperationOption.FORCE;
-		}
-		throw new IllegalArgumentException("Unknown value "+optionType);
 	}
 
 	private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {

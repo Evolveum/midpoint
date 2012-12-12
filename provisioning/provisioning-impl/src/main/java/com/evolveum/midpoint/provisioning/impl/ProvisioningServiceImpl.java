@@ -64,6 +64,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -175,7 +176,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-			Collection<ObjectOperationOption> options, OperationResult parentResult) throws ObjectNotFoundException,
+			GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
@@ -202,8 +203,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		PrismObject<T> resultingObject = null;
 
-		if (ObjectOperationOption.hasOption(options, ObjectOperationOption.NO_FETCH)|| 
-				ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
+		if (GetOperationOptions.isNoFetch(options) || GetOperationOptions.isRaw(options)) {
 			
 			// We have what we came for here. We have already got it from the repo.
 			// Except if that is a shadow then we want to apply definition before returning it.
@@ -212,7 +212,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				try {
 					applyDefinition((PrismObject<ResourceObjectShadowType>)repositoryObject, result);
 				} catch (SchemaException e) {
-					if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
+					if (GetOperationOptions.isRaw(options)) {
 						// This is (almost) OK in raw. We want to get whatever is available, even if it violates
 						// the schema
 						LOGGER.warn("Repository object {} violates the schema: {}", new Object[]{repositoryObject, e.getMessage(), e});

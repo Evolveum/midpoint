@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -377,7 +378,7 @@ public class ContextLoader {
 			if (account == null) {
 				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
-				Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+				GetOperationOptions options = GetOperationOptions.createNoFetch();
 				try {
 					account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 				} catch (ObjectNotFoundException e) {
@@ -494,7 +495,7 @@ public class ContextLoader {
 					try {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
-						Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+						GetOperationOptions options = GetOperationOptions.createNoFetch();
 						account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
@@ -538,7 +539,7 @@ public class ContextLoader {
 					try {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
-						Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+						GetOperationOptions options = GetOperationOptions.createNoFetch();
 						account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 						// Create account context from retrieved object
 						accountContext = getOrCreateAccountContext(context, account, result);
@@ -605,7 +606,7 @@ public class ContextLoader {
 					}
 					// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 					// We need to fetch from provisioning and not repository so the correct definition will be set.
-					Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.NO_FETCH);
+					GetOperationOptions options = GetOperationOptions.createNoFetch();
 					account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
 					// We will not set old account if the delta is delete. The
 					// account does not really exists now.
@@ -748,12 +749,12 @@ public class ContextLoader {
 									"Projection with null OID, no representation and no resource OID in account sync context "+projContext);
 						}
 					} else {
-						Collection<ObjectOperationOption> options = null;
+						GetOperationOptions options = null;
 						if (projContext.isDoReconciliation()) {
 							projContext.setFullShadow(true);
 						} else {
 							projContext.setFullShadow(false);
-							options = MiscUtil.createCollection(ObjectOperationOption.NO_FETCH);
+							options = GetOperationOptions.createNoFetch();
 						}
 						PrismObject<P> objectOld = provisioningService.getObject(
 								projContext.getObjectTypeClass(), projectionObjectOid, options, result);

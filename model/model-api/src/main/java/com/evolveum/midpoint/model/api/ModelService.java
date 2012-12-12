@@ -33,8 +33,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -132,7 +133,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<ObjectOperationOptions> options,
+	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
 	/**
@@ -201,7 +202,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<ObjectOperationOption> options, Task task, OperationResult parentResult) 
+	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult) 
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 	
@@ -522,11 +523,11 @@ public interface ModelService {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-        Collection<ObjectOperationOptions> options, Task task, OperationResult parentResult) throws SchemaException,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
 	
 
-	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<ObjectOperationOptions> options,
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 	/**

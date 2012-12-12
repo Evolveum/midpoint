@@ -72,8 +72,9 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -546,7 +547,7 @@ public class PageReports extends PageAdminReports {
         List<PrismObject<ObjectType>> objects = null;
         try {
 			objects = getModelService().searchObjects(type, clonedQuery,
-					ObjectOperationOptions.createCollection(new ItemPath(), ObjectOperationOption.RAW),
+					SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
 					createSimpleTask(OPERATION_SEARCH_OBJECT), result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);

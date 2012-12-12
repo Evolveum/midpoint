@@ -34,8 +34,9 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -88,7 +89,8 @@ public class ModelObjectResolver implements ObjectResolver {
 		return resolve(refVal, string, null, result);
 	}
 
-	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, Collection<ObjectOperationOption> options, OperationResult result) throws ObjectNotFoundException {
+	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, 
+			OperationResult result) throws ObjectNotFoundException {
 		String oid = refVal.getOid();
 		Class<?> typeClass = ObjectType.class;
 		QName typeQName = refVal.getTargetType();
@@ -102,7 +104,8 @@ public class ModelObjectResolver implements ObjectResolver {
 		return ((ObjectType) getObject((Class)typeClass, oid, options, result)).asPrismObject();
 	}
 	
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<ObjectOperationOption> options, OperationResult result) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions options, 
+			OperationResult result) throws ObjectNotFoundException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;

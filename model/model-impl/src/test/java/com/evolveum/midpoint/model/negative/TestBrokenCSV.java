@@ -39,8 +39,9 @@ import com.evolveum.midpoint.model.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.model.TestModelServiceContract;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -201,7 +202,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test101GetAccountMurrayNoFetch");
         OperationResult result = task.getResult();
         
-        Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.NO_FETCH);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         
 		// WHEN
         PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
@@ -223,7 +224,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountMurrayRaw");
         OperationResult result = task.getResult();
         
-        Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         
 		// WHEN
         PrismObject<AccountShadowType> account = modelService.getObject(AccountShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
@@ -313,8 +314,8 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "."+TEST_NAME);
         OperationResult result = task.getResult();
         
-		Collection<ObjectOperationOptions> options = 
-				ObjectOperationOptions.createCollection(ResourceType.F_CONNECTOR_REF, ObjectOperationOption.RESOLVE);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+        		ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve());
 		
 		// WHEN
 		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, options, task, result);

@@ -30,7 +30,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -112,8 +114,9 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<ObjectOperationOption> options, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
+	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, GetOperationOptions options, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
+			SecurityViolationException;
 	
 	/**
 	 * Add new object.
@@ -159,9 +162,10 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-			SecurityViolationException;
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, 
+			OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, 
+			ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Collect external changes on a resource and call the business logic with
@@ -188,7 +192,8 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
+	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, 
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 
 	/**
@@ -221,11 +226,13 @@ public interface ProvisioningService {
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+			SecurityViolationException;
 	
 
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+			SecurityViolationException;
 	
 	/**
 	 * Search for objects iteratively. Searches through all object types. Calls a

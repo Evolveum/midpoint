@@ -2,12 +2,14 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -69,7 +71,7 @@ public class PageDebugView extends PageAdminConfiguration {
             MidPointApplication application = PageDebugView.this.getMidpointApplication();
 //            ModelService modelService = application.getModel();
             
-            Collection<ObjectOperationOptions> options = ObjectOperationOptions.createCollectionRoot(ObjectOperationOption.RAW);
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 			// FIXME: ObjectType.class will not work well here. We need more specific type.
             //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
             PrismObject<ObjectType> object = getModelService().getObject(ObjectType.class, objectOid.toString(), options, task, result);
@@ -183,10 +185,10 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
             ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
             Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
-            Collection<ObjectOperationOption> options = ObjectOperationOption.createCollection(ObjectOperationOption.RAW);
+            ModelExecuteOptions options = ModelExecuteOptions.createRaw();
             
             if(encrypt.getObject()) {
-            	options.add(ObjectOperationOption.CRYPT);
+            	options.setCrypt(true);
             }  
 
             getModelService().executeChanges(deltas, options, task, result);

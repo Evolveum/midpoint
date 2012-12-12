@@ -46,6 +46,7 @@ import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelObjectResolver;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -84,8 +85,9 @@ import com.evolveum.midpoint.prism.util.PrismValidate;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.ObjectOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -214,7 +216,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-			Collection<ObjectOperationOptions> options, Task task, OperationResult result) throws ObjectNotFoundException,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -229,10 +231,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
-			Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
+			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 			object = objectResolver.getObject(clazz, oid, rootOptions, subResult);
 
-            if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW)) {
+            if (!GetOperationOptions.isRaw(rootOptions)) {
 			    updateDefinition(object.asPrismObject(), result);
             }
 
@@ -245,19 +247,19 @@ public class ModelController implements ModelService, ModelInteractionService {
 		return object.asPrismObject();
 	}
 
-	protected void resolve(PrismObject<?> object, Collection<ObjectOperationOptions> options,
+	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (object == null || options == null) {
 			return;
 		}
 
-		for (ObjectOperationOptions option: options) {
+		for (SelectorOptions<GetOperationOptions> option: options) {
 			resolve(object, option, task, result);
 		}
 	}
 	
-	private void resolve(PrismObject<?> object, ObjectOperationOptions option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		if (!option.hasOption(ObjectOperationOption.RESOLVE)) {
+	private void resolve(PrismObject<?> object, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		if (!GetOperationOptions.isResolve(option.getOptions())) {
 			return;
 		}
 		ObjectSelector selector = option.getSelector();
@@ -268,7 +270,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		resolve (object, path, option, task, result);
 	}
 		
-	private void resolve(PrismObject<?> object, ItemPath path, ObjectOperationOptions option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void resolve(PrismObject<?> object, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
@@ -296,7 +298,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<ObjectOperationOption> options,
+	public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -307,13 +309,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = null;
 		try {
 		
-			if (ObjectOperationOption.hasOption(options, ObjectOperationOption.RAW)) {
+			if (ModelExecuteOptions.isRaw(options)) {
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
 				auditRecord.addDeltas(deltas);
 				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
-					if (ObjectOperationOption.hasOption(options, ObjectOperationOption.CRYPT)) {
+					if (ModelExecuteOptions.isCrypt(options)) {
 						encryptValues(delta, result);
 					}
 					if (delta.isAdd()) {
@@ -636,7 +638,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-            Collection<ObjectOperationOptions> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -645,7 +647,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 		RepositoryCache.enter();
 
-        Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		List<PrismObject<T>> list = null;
 		try {
@@ -666,7 +668,7 @@ public class ModelController implements ModelService, ModelInteractionService {
                     query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
 
 			try {
-				if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW) && searchInProvisioning) {
+				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
 					list = provisioning.searchObjects(type, query, subResult);
 				} else {
 					list = cacheRepositoryService.searchObjects(type, query, subResult);
@@ -700,7 +702,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				list = new ArrayList<PrismObject<T>>();
 			}
 
-            if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW)) {
+            if (!GetOperationOptions.isRaw(rootOptions)) {
 			    updateDefinitions(list, result);
             }
 
@@ -712,10 +714,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 
 
-	private void processSearchException(Exception e, Collection<ObjectOperationOption> rootOptions,
+	private void processSearchException(Exception e, GetOperationOptions rootOptions,
 			boolean searchInProvisioning, OperationResult result) {
 		String message;
-		if (ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW) || !searchInProvisioning) {
+		if (GetOperationOptions.isRaw(rootOptions) || !searchInProvisioning) {
 			message = "Couldn't search objects in repository";
 		} else {
 			message = "Couldn't search objects in provisioning";
@@ -726,13 +728,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
-            Collection<ObjectOperationOptions> options, Task task, OperationResult parentResult)
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
 		// TODO: implement properly
 
-        Collection<ObjectOperationOption> rootOptions = ObjectOperationOptions.findRootOptions(options);
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		try {
-			if (!ObjectOperationOption.hasOption(rootOptions, ObjectOperationOption.RAW)
+			if (!GetOperationOptions.isRaw(rootOptions)
                     && ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
 				return provisioning.countObjects(type, query, parentResult);
 			} else {

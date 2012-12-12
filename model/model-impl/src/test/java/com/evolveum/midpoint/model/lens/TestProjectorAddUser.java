@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -119,7 +120,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		final String accountOid = "10000000-0000-0000-0000-000000000004";
 
 		when(
-				provisioning.getObject(eq(ResourceType.class), eq(resourceOid), any(Collection.class),
+				provisioning.getObject(eq(ResourceType.class), eq(resourceOid), any(GetOperationOptions.class),
 						any(OperationResult.class))).thenReturn(
 				resourceType.asPrismObject());
 		when(

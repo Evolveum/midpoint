@@ -32,14 +32,20 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author semancik
  *
  */
-public class ObjectOperationOptions {
+public class SelectorOptions<T> {
 	
 	private ObjectSelector selector;
-	private Collection<ObjectOperationOption> options;
+	private T options;
 	
-	public ObjectOperationOptions(ObjectSelector selector, Collection<ObjectOperationOption> options) {
+	public SelectorOptions(ObjectSelector selector, T options) {
 		super();
 		this.selector = selector;
+		this.options = options;
+	}
+	
+	public SelectorOptions(T options) {
+		super();
+		this.selector = null;
 		this.options = options;
 	}
 
@@ -47,63 +53,46 @@ public class ObjectOperationOptions {
 		return selector;
 	}
 
-	public Collection<ObjectOperationOption> getOptions() {
+	public T getOptions() {
 		return options;
 	}
-	
-	public boolean hasOption(ObjectOperationOption option) {
-		return ObjectOperationOption.hasOption(options, option);
+			
+	public static <T> SelectorOptions<T> create(ItemPath path, T options) {
+		return new SelectorOptions<T>(new ObjectSelector(path), options);
 	}
 	
-	public static ObjectOperationOptions create(ObjectOperationOption... options) {
-		return create((ObjectSelector)null, options);
+	public static <T> SelectorOptions<T> create(QName pathQName, T options) {
+		return new SelectorOptions<T>(new ObjectSelector(new ItemPath(pathQName)), options);
 	}
-	
-	public static ObjectOperationOptions create(ItemPath path, ObjectOperationOption... options) {
-		return create(new ObjectSelector(path), options);
-	}
-	
-	public static ObjectOperationOptions create(QName pathQName, ObjectOperationOption... options) {
-		return create(new ObjectSelector(new ItemPath(pathQName)), options);
-	}
-	
-	public static ObjectOperationOptions create(ObjectSelector selector, ObjectOperationOption... options) {
-		List<ObjectOperationOption> optionsList = Arrays.asList(options);
-		return new ObjectOperationOptions(selector, optionsList);
-	}
-	
-	public static Collection<ObjectOperationOptions> createCollection(ItemPath path, ObjectOperationOption... options) {
-		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(1);
+		
+	public static <T> Collection<SelectorOptions<T>> createCollection(ItemPath path, T options) {
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
 		optionsCollection.add(create(path, options));
 		return optionsCollection;
 	}
 
-	public static Collection<ObjectOperationOptions> createCollection(QName pathQName, ObjectOperationOption... options) {
-		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(1);
+	public static <T> Collection<SelectorOptions<T>> createCollection(QName pathQName, T options) {
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
 		optionsCollection.add(create(pathQName, options));
 		return optionsCollection;
 	}
-	
-	public static Collection<ObjectOperationOptions> createCollectionRoot(ObjectOperationOption... options) {
-		return createCollection((ObjectSelector)null, options);
-	}
 
-	public static Collection<ObjectOperationOptions> createCollection(ObjectSelector selector, ObjectOperationOption... options) {
-		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(1);
-		optionsCollection.add(create(selector, options));
+	public static <T> Collection<SelectorOptions<T>> createCollection(T options) {
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
+		optionsCollection.add(new SelectorOptions<T>(options));
 		return optionsCollection;
 	}
 
-	public static Collection<ObjectOperationOptions> createCollection(ObjectOperationOption options, ItemPath... paths) {
-		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(paths.length);
+	public static <T> Collection<SelectorOptions<T>> createCollection(T options, ItemPath... paths) {
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(paths.length);
 		for (ItemPath path: paths) {
 			optionsCollection.add(create(path, options));
 		}
 		return optionsCollection;
 	}
 
-	public static Collection<ObjectOperationOptions> createCollection(ObjectOperationOption options, QName... pathQNames) {
-		Collection<ObjectOperationOptions> optionsCollection = new ArrayList<ObjectOperationOptions>(pathQNames.length);
+	public static <T> Collection<SelectorOptions<T>> createCollection(T options, QName... pathQNames) {
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(pathQNames.length);
 		for (QName qname: pathQNames) {
 			optionsCollection.add(create(qname, options));
 		}
@@ -113,17 +102,16 @@ public class ObjectOperationOptions {
 	/**
 	 * Returns options that apply to the "root" object. I.e. options that have null selector, null path, empty path, ...
 	 */
-	public static Collection<ObjectOperationOption> findRootOptions(Collection<ObjectOperationOptions> options) {
+	public static <T> T findRootOptions(Collection<SelectorOptions<T>> options) {
 		if (options == null) {
 			return null;
 		}
-		Collection<ObjectOperationOption> objectOptions = new ArrayList<ObjectOperationOption>();
-		for (ObjectOperationOptions oooption: options) {
+		for (SelectorOptions<T> oooption: options) {
 			if (oooption.isRoot()) {
-				objectOptions.addAll(oooption.getOptions());
+				return oooption.getOptions();
 			}
 		}
-		return objectOptions;
+		return null;
 	}
 
 	private boolean isRoot() {
@@ -153,7 +141,7 @@ public class ObjectOperationOptions {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ObjectOperationOptions other = (ObjectOperationOptions) obj;
+		SelectorOptions other = (SelectorOptions) obj;
 		if (options == null) {
 			if (other.options != null)
 				return false;

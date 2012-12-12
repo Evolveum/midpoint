@@ -67,6 +67,7 @@ import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -863,8 +864,8 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test102GetAccountNoFetch");
 
-		Collection<ObjectOperationOption> options = ObjectOperationOption
-				.createCollection(ObjectOperationOption.NO_FETCH);
+		GetOperationOptions options = new GetOperationOptions();
+		options.setNoFetch(true);
 
 		// WHEN
 		AccountShadowType shadow = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, options,
