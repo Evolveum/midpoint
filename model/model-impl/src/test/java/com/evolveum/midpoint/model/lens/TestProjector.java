@@ -362,7 +362,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnameQName() , "Jack Sparrow");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
         PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME) , "mouth", "pistol");
         
