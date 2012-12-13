@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -77,6 +79,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
         "classpath:ctx-provisioning.xml",
         "classpath:ctx-task.xml",
 		"classpath:ctx-audit.xml"})
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	
 	@Autowired(required = true)

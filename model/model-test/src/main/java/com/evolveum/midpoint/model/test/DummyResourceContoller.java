@@ -32,6 +32,7 @@ import java.net.ConnectException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
@@ -66,11 +67,16 @@ public class DummyResourceContoller extends AbstractResourceController {
 	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
+
 	
+	public static DummyResourceContoller create(String instanceName) {
+		return create(instanceName, null);
+	}
+
 	public static DummyResourceContoller create(String instanceName, PrismObject<ResourceType> resource) {
 		DummyResourceContoller ctl = new DummyResourceContoller();
 		
-		ctl.dummyResource = DummyResource.getInstance();
+		ctl.dummyResource = DummyResource.getInstance(instanceName);
 		ctl.dummyResource.reset();
 		ctl.populateWithDefaultSchema();
 		

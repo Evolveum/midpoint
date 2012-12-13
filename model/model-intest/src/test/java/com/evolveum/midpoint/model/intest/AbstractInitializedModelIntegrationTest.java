@@ -69,12 +69,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredModelIntegrationTest {
 	
-	
-
 	private static final Object NUM_FUNCTIONAL_ORGS = 6;
 	private static final Object NUM_PROJECT_ORGS = 3;
-	
-	protected static final String MOCK_CLOCKWORK_HOOK_URL = MidPointConstants.NS_MIDPOINT_TEST_PREFIX + "/mockClockworkHook";
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 	
@@ -123,8 +119,18 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
+		
+		// Connectors
+		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
+		addObjectFromFile(CONNECTOR_DBTABLE_FILENAME, ConnectorType.class, initResult);
+		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
+		
+		// Resources
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
+		resourceOpenDjType = resourceOpenDj.asObjectable();
+		openDJController.setResource(resourceOpenDj);
 				
-		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
+		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
@@ -144,6 +150,30 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlGreen.extendDummySchema();
 		dummyResourceGreen = dummyResourceCtlGreen.getDummyResource();
 		
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
+		resourceDummyType = resourceDummy.asObjectable();
+		dummyResourceCtl.setResource(resourceDummy);
+		
+		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILENAME, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
+		resourceDummyRedType = resourceDummyRed.asObjectable();
+		dummyResourceCtlRed.setResource(resourceDummyRed);
+		
+		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLUE_FILENAME, RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
+		resourceDummyBlueType = resourceDummyBlue.asObjectable();
+		dummyResourceCtlBlue.setResource(resourceDummyBlue);		
+		
+		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
+		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
+		dummyResourceCtlWhite.setResource(resourceDummyWhite);
+		
+		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
+		resourceDummyGreenType = resourceDummyGreen.asObjectable();
+		dummyResourceCtlGreen.setResource(resourceDummyGreen);
+		
+		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
+		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
+
+		
 		postInitDummyResouce();
 		
 		dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
@@ -158,29 +188,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// User Templates
 		addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
 		addObjectFromFile(USER_TEMPLATE_COMPLEX_FILENAME, UserTemplateType.class, initResult);
-
-		// Connectors
-		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
-		addObjectFromFile(CONNECTOR_DBTABLE_FILENAME, ConnectorType.class, initResult);
-		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
-		
-		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
-		
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILENAME, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
-		resourceDummyRedType = resourceDummyRed.asObjectable();
-		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLUE_FILENAME, RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
-		resourceDummyBlueType = resourceDummyBlue.asObjectable();
-		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
-		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();
-		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
-		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
-		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
-		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 
 		// Accounts
 		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);

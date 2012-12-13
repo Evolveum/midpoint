@@ -131,10 +131,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		dummyResourceBlue.setSyncStyle(DummySyncStyle.SMART);
-		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 	}
 	
