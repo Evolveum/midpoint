@@ -24,7 +24,6 @@ package com.evolveum.midpoint.repo.sql.testing;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
-import com.evolveum.midpoint.repo.sql.TestSqlRepositoryFactory;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +32,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -80,7 +78,7 @@ public class SQLRepositoryBeanPostProcessor implements BeanPostProcessor, Applic
         LOGGER.info("Deleting objects from database.");
 
 //        SessionFactory sessionFactory = context.getBean(BEAN_SESSION_FACTORY, SessionFactory.class);
-        SessionFactory sessionFactory = (SessionFactory)bean;
+        SessionFactory sessionFactory = (SessionFactory) bean;
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();

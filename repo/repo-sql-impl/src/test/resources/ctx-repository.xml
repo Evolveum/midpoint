@@ -28,7 +28,7 @@
 
     <bean id="sqlRepositoryBeanPostProcessor" class="com.evolveum.midpoint.repo.sql.testing.SQLRepositoryBeanPostProcessor"/>
 
-    <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.TestSqlRepositoryFactory"
+    <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory"
           depends-on="repositoryFactory"/>
 
     <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>

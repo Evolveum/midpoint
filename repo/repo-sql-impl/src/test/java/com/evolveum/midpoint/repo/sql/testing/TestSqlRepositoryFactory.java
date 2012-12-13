@@ -19,9 +19,10 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.testing;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
