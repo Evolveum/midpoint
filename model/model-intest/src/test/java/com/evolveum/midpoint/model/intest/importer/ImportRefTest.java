@@ -18,7 +18,7 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.model.importer;
+package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -121,16 +121,8 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		display("Result after good import", result);
 		assertSuccessOrWarning("Import has failed (result)", result, 2);
 
-		// Check import of user
-//		Document doc = DOMUtil.getDocument();
-//		Element filter = QueryUtil.createAndFilter(doc,
-//				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
-//				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "jack"));
-
 		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "jack");
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
 
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, result);
 

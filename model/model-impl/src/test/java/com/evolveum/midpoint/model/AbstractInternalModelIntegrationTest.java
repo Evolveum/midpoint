@@ -150,6 +150,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrationTest {
 	
+	protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR_NAME + "/connector-ldap.xml";
+	
+	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR_NAME + "/connector-dbtable.xml";
+	
+	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
+	
 	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
@@ -213,6 +219,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
+	protected PrismObject<UserType> userAdministrator;
+	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
 	protected UserType userTypeGuybrush;
@@ -239,6 +247,27 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
+		
+		// System Configuration
+		try {
+			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+		} catch (ObjectAlreadyExistsException e) {
+			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
+					"looks like the previous test haven't cleaned it up", e);
+		}
+				
+		// Administrator
+		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		
+		// User Templates
+		addObjectFromFile(USER_TEMPLATE_FILENAME, UserTemplateType.class, initResult);
+
+		// Connectors
+		addObjectFromFile(CONNECTOR_LDAP_FILENAME, ConnectorType.class, initResult);
+		addObjectFromFile(CONNECTOR_DBTABLE_FILENAME, ConnectorType.class, initResult);
+		addObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
+		
+		// Resources
 		
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();

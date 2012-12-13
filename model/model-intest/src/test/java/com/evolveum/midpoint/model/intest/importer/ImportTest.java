@@ -18,7 +18,7 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.model.importer;
+package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;

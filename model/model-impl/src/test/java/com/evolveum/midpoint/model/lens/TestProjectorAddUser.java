@@ -74,7 +74,6 @@ import static org.mockito.Mockito.when;
 public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/addUser");
-	private static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestProjectorAddUser.class);
 	
@@ -108,11 +107,11 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "user-drake.xml"));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(LensTestConstants.TEST_RESOURCE_DIR_NAME, "user-drake.xml"));
 		UserType userType = user.asObjectable();
-		PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "user-template.xml"));
+		PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File(LensTestConstants.TEST_FOLDER_COMMON, "user-template.xml"));
 		UserTemplateType userTemplateType = userTemplate.asObjectable();
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(LensTestConstants.TEST_FOLDER_COMMON, "resource-opendj.xml"));
 		ResourceType resourceType = resource.asObjectable();
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
