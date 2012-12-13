@@ -44,10 +44,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -143,7 +140,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
 
-		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -152,7 +149,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No UID read",uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
-		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(SchemaTestConstants.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -169,7 +166,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No fullname update", fullnameDef.canUpdate());
 		assertTrue("No fullname read", fullnameDef.canRead());
 		
-		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 		
 	}
 

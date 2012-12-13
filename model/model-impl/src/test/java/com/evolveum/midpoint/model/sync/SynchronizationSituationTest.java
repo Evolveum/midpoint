@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.sync;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;

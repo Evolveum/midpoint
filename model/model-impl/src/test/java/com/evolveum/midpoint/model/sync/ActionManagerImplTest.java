@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.sync;
 
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;

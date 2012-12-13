@@ -78,7 +78,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * 
  * @author Radovan Semancik
  */
-public class OpenDJController {
+public class OpenDJController extends AbstractResourceController {
 
 	private String DATA_TEMPLATE = "test-data/opendj.template";
 	private String SERVER_ROOT = "target/test-data/opendj";

@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.intest.sync;
+package com.evolveum.midpoint.model.sync;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -43,8 +43,8 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -82,7 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
         "classpath:ctx-task.xml",
 		"classpath:ctx-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSynchronizationService extends AbstractInitializedModelIntegrationTest {
+public class TestSynchronizationService extends AbstractInternalModelIntegrationTest {
 		
 	@Autowired(required = true)
 	SynchronizationService synchronizationService;

@@ -24,119 +24,29 @@
     <listeners>
         <listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
     </listeners>
-    <test name="Model Basic" preserve-order="true" parallel="false" verbose="10" enabled="false">
+    <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <class name="com.evolveum.midpoint.model.SpringApplicationContextTest"/>
-            <class name="com.evolveum.midpoint.model.TestLoggingConfiguration"/>
-        </classes>
-    </test>
-    <test name="Controller add" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest"/>
-        </classes>
-    </test>
-    <test name="Controler delete" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerDeleteObjectTest"/>
-        </classes>
-    </test>
-    <test name="Controler get" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerGetObjectTest"/>
-        </classes>
-    </test>
-    <test name="Cotroler import" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerLaunchImportTest"/>
-        </classes>
-    </test>
-    <test name="Controler List" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerListAccountShadowOwnerTest"/>
-            <class name="com.evolveum.midpoint.model.controller.ControllerListObjectsTest"/>
-            <class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectShadowsTest"/>
-            <class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectsTest"/>
-        </classes>
-    </test>
-    <test name="Controle modify" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectTest"/>
-        </classes>
-    </test>
-    <test name="Controler Search" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerSearchObjectsTest"/>
-        </classes>
-    </test>
-    <test name="Controler Test Resource" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.ControllerTestResourceTest"/>
-        </classes>
-    </test>
-    <test name="Controler Utils" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.controller.FilterManagerImplTest"/>
-            <class name="com.evolveum.midpoint.model.controller.ModelUtilsTest"/>
-        </classes>
-    </test>
-    <test name="Expresions" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.expr.ExpressionHandlerImplTest"/>
-        </classes>
-    </test>
-    <test name="Filters" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.filter.DiacriticsFilterTest"/>
-            <class name="com.evolveum.midpoint.model.filter.EmptyFilterTest"/>
-            <class name="com.evolveum.midpoint.model.filter.PatternFilterTest"/>
-        </classes>
-    </test>
-    <test name="Importer" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.importer.ImportRefTest"/>
-            <class name="com.evolveum.midpoint.model.importer.ImportTest"/>
-            <class name="com.evolveum.midpoint.model.importer.BadImportTest"/>
+        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractDeprecated"/>
+        	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
+        	<class name="com.evolveum.midpoint.model.intest.TestRbac"/>
+            <class name="com.evolveum.midpoint.model.intest.TestSegregationOfDuties"/>
+            <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
+            <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
+            <class name="com.evolveum.midpoint.model.intest.TestOrgStruct"/>
+            <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
+            <class name="com.evolveum.midpoint.model.intest.TestPassword"/>
+            <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
+            <class name="com.evolveum.midpoint.model.intest.TestImportRecon"/>
+            <class name="com.evolveum.midpoint.model.intest.TestMultiConnector"/>
+            <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenCSV"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <class name="com.evolveum.midpoint.model.sync.SynchronizationSituationTest"/>
-            <class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest"/>
-            <class name="com.evolveum.midpoint.model.sync.TestSynchronizationService"/>
-            <class name="com.evolveum.midpoint.model.sync.TestLiveSyncTask"/>
-        </classes>
-    </test>
-    <test name="Lens" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.lens.TestAssignmentProcessor"/>
-            <class name="com.evolveum.midpoint.model.lens.TestAssignmentEvaluator"/>
-            <class name="com.evolveum.midpoint.model.lens.TestProjectorAddUser"/>
-            <class name="com.evolveum.midpoint.model.lens.TestProjector"/>
-            <class name="com.evolveum.midpoint.model.lens.TestClockwork"/>
-        </classes>
-    </test>
-    <test name="Model Web service" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.ModelWebServiceTest"/>
-        </classes>
-    </test>
-    <test name="Model Contract" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-        	<class name="com.evolveum.midpoint.model.TestModelServiceContract"/>
-        	<class name="com.evolveum.midpoint.model.TestModelServiceContractDeprecated"/>
-        	<class name="com.evolveum.midpoint.model.TestPreviewChanges"/>
-        	<class name="com.evolveum.midpoint.model.TestRbac"/>
-            <class name="com.evolveum.midpoint.model.TestSegregationOfDuties"/>
-            <class name="com.evolveum.midpoint.model.TestMultiResource"/>
-            <class name="com.evolveum.midpoint.model.TestUserTemplate"/>
-            <class name="com.evolveum.midpoint.model.TestOrgStruct"/>
-            <class name="com.evolveum.midpoint.model.TestSchemalessResource"/>
-            <class name="com.evolveum.midpoint.model.TestPassword"/>
-            <class name="com.evolveum.midpoint.model.TestActivation"/>
-            <class name="com.evolveum.midpoint.model.TestImportRecon"/>
-            <class name="com.evolveum.midpoint.model.TestMultiConnector"/>
-            <class name="com.evolveum.midpoint.model.TestStrangeCases"/>
-            <class name="com.evolveum.midpoint.model.negative.TestBrokenCSV"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestSynchronizationService"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTask"/>
         </classes>
     </test>
 </suite>
