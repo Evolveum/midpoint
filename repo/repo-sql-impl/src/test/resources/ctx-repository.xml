@@ -26,6 +26,8 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
+    <bean id="sqlRepositoryBeanPostProcessor" class="com.evolveum.midpoint.repo.sql.testing.SQLRepositoryBeanPostProcessor"/>
+
     <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.TestSqlRepositoryFactory"
           depends-on="repositoryFactory"/>
 

@@ -22,9 +22,9 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.testing.BaseSQLRepoTest;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -32,12 +32,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -55,15 +51,11 @@ import javax.xml.namespace.QName;
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
-public class RAnyConverterStaticTest extends AbstractTestNGSpringContextTests {
+public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverterStaticTest.class);
     private static final String NS_P = "http://example.com/p";
     private static final String NS_FOO_RESOURCE = "http://example.com/foo";
-    @Autowired
-    PrismContext prismContext;
-    @Autowired
-    SessionFactory factory;
 
     @Test
     public void testExtensionInteger() throws Exception {
@@ -198,7 +190,7 @@ public class RAnyConverterStaticTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals("locations", root.getLocalName());
         AssertJUnit.assertEquals(NS_P, root.getNamespaceURI());
         AssertJUnit.assertEquals(1, DOMUtil.listChildElements(root).size());
-        
+
         location = DOMUtil.listChildElements(root).get(0);
         AssertJUnit.assertNotNull(location);
         AssertJUnit.assertEquals("location", location.getLocalName());

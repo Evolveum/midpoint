@@ -25,7 +25,7 @@
             <extensionDir>./src/test/resources/schema</extensionDir>
         </global>
         <repository>
-            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
             <!--<baseDir>target</baseDir>-->
             <dropIfExists>true</dropIfExists>
 

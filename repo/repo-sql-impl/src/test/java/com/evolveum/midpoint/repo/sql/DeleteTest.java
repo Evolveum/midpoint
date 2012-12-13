@@ -22,19 +22,13 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.testing.BaseSQLRepoTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -50,17 +44,10 @@ import java.util.List;
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
-public class DeleteTest extends AbstractTestNGSpringContextTests {
+public class DeleteTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/");
     private static final Trace LOGGER = TraceManager.getTrace(DeleteTest.class);
-
-    @Autowired(required = true)
-    RepositoryService repositoryService;
-    @Autowired(required = true)
-    PrismContext prismContext;
-    @Autowired
-    SessionFactory factory;
 
     @Test
     public void delete001() throws Exception {

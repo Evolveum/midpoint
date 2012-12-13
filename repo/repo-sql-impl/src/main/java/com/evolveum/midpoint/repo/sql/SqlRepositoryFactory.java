@@ -303,8 +303,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {
         if (!config.isDropIfExists()) {
+            LOGGER.info("Database wont be deleted, dropIfExists=false.");
             return;
         }
+        LOGGER.info("Deleting database.");
 
         File file = new File(config.getBaseDir());
         final String fileName = config.getFileName();

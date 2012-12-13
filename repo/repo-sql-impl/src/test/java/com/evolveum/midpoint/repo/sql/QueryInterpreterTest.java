@@ -22,14 +22,16 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
+import com.evolveum.midpoint.repo.sql.data.common.RConnector;
+import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
+import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.testing.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -38,20 +40,18 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.criterion.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.persistence.EntityManagerFactory;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -66,20 +66,14 @@ import java.io.FileNotFoundException;
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
-public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
+public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
-    @Autowired(required = true)
-    RepositoryService repositoryService;
-    @Autowired(required = true)
-    PrismContext prismContext;
-    @Autowired(required = true)
-    SessionFactory factory;
-    
+
     @Test
     public void queryGenericLong() throws Exception {
-    	LOGGER.info("===[ queryGenericLong ]===");
+        LOGGER.info("===[ queryGenericLong ]===");
         Session session = open();
         Criteria main = session.createCriteria(RGenericObject.class, "g");
 
@@ -93,7 +87,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         c2.add(Restrictions.eq("l.value", 123L));
         c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
         c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
-        
+
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);
         conjunction.add(c2);
@@ -105,13 +99,13 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
-        
+
         close(session);
     }
 
     @Test
     public void queryOrComposite() throws Exception {
-    	LOGGER.info("===[ queryOrComposite ]===");
+        LOGGER.info("===[ queryOrComposite ]===");
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
@@ -211,7 +205,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void queryConnectorByType() throws Exception {
-    	LOGGER.info("===[{}]===", new Object[]{"queryConnectorByType"});
+        LOGGER.info("===[{}]===", new Object[]{"queryConnectorByType"});
         Session session = open();
 
         Criteria main = session.createCriteria(RConnector.class, "c");
@@ -229,7 +223,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void queryAccountByAttributesAndResourceRef() throws Exception {
-    	LOGGER.info("===[{}]===", new Object[]{"queryAccountByAttributesAndResourceRef"});
+        LOGGER.info("===[{}]===", new Object[]{"queryAccountByAttributesAndResourceRef"});
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
@@ -260,7 +254,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
         close(session);
     }
-    
+
     @Test
     public void queryEmail() throws Exception {
         //todo query some Set<String> stuff and embedded stuff and Set<RObjectReference> value
@@ -276,7 +270,7 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        RefFilter filter = RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF,prismContext, "123");
+        RefFilter filter = RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF, prismContext, "123");
         String real = getInterpretedQuery(session, UserType.class, filter);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
@@ -302,14 +296,14 @@ public class QueryInterpreterTest extends AbstractTestNGSpringContextTests {
         Document document = DOMUtil.parseFile(file);
         QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
         Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-        
+
         LOGGER.info("QUERY TYPE TO CONVERT : {}", QueryUtil.dump(queryType));
-        
+
         ObjectQuery query = null;
-        try{
-        	query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
-        } catch(Exception ex){
-        	LOGGER.info("error while converting query: "+ ex.getMessage(), ex);
+        try {
+            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
+        } catch (Exception ex) {
+            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }
         Criteria criteria = interpreter.interpret(query.getFilter());
         return HibernateToSqlTranslator.toSql(criteria);

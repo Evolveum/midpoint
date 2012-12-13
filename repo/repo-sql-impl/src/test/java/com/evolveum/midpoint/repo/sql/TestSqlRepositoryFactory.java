@@ -25,12 +25,6 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
 
@@ -41,14 +35,14 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
  *
  * @author lazyman
  */
-public class TestSqlRepositoryFactory extends SqlRepositoryFactory implements BeanPostProcessor {
+public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryFactory.class);
 
-    private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabase";
-
     @Override
     public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
+        LOGGER.info("Overriding loaded configuration with values read from system properties.");
+
         //override loaded configuration based on system properties...
         updateConfigurationBooleanProperty(configuration, PROPERTY_EMBEDDED);
         updateConfigurationBooleanProperty(configuration, PROPERTY_DROP_IF_EXISTS);
@@ -94,45 +88,6 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory implements Be
         }
 
         configuration.setProperty(propertyName, value);
-    }
-
-    @Override
-    public Object postProcessBeforeInitialization(Object o, String s) throws BeansException {
-        return o;
-    }
-
-    @Override
-    public Object postProcessAfterInitialization(Object o, String s) throws BeansException {
-        if (!(o instanceof SqlRepositoryServiceImpl)) {
-            return o;
-        }
-
-        //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
-        SqlRepositoryConfiguration config = getSqlConfiguration();
-        if (!config.isDropIfExists() || config.isEmbedded()) {
-            LOGGER.info("We're not deleting objects from DB, drop if exists=false or embedded=true.");
-            return o;
-        }
-
-        LOGGER.info("Deleting objects from database.");
-
-        SqlRepositoryServiceImpl repositoryService = (SqlRepositoryServiceImpl) o;
-        SessionFactory factory = repositoryService.getSessionFactory();
-
-        Session session = factory.openSession();
-        try {
-            session.beginTransaction();
-
-            Query query = session.createSQLQuery("select " + TRUNCATE_PROCEDURE + "();");
-            query.uniqueResult();
-
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-            session.getTransaction().rollback();
-            throw new BeanInitializationException("Couldn't delete objects from database, reason: " + ex.getMessage(), ex);
-        }
-
-        return o;
     }
 }
 

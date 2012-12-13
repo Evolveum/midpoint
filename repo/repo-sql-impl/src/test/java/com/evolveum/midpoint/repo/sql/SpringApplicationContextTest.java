@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.testing.BaseSQLRepoTest;
 import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
@@ -43,10 +44,8 @@ import static org.testng.AssertJUnit.assertNotNull;
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
-public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
+public class SpringApplicationContextTest extends BaseSQLRepoTest {
 
-    @Autowired(required = true)
-    private RepositoryService repositoryService;
     @Autowired
     private LocalSessionFactoryBean sessionFactory;
 

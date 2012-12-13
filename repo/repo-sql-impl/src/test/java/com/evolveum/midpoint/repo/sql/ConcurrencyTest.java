@@ -21,29 +21,19 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.testing.BaseSQLRepoTest;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.jdbc.Work;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -51,7 +41,6 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -65,18 +54,12 @@ import java.util.List;
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
 
-public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
+public class ConcurrencyTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConcurrencyTest.class);
 
-    @Autowired(required = true)
-    RepositoryService repositoryService;
-    @Autowired(required = true)
-    PrismContext prismContext;
-    @Autowired
-    SessionFactory factory;
     private static final long WAIT_TIME = 60000;
-    private static final long WAIT_STEP =   500;
+    private static final long WAIT_STEP = 500;
 
     @Test
     public void concurrency001() throws Exception {
@@ -109,7 +92,7 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
          *
          */
 
-        ModifierThread[] mts = new ModifierThread[] {
+        ModifierThread[] mts = new ModifierThread[]{
                 new ModifierThread(1, oid, UserType.F_GIVEN_NAME, true),
                 new ModifierThread(2, oid, UserType.F_FAMILY_NAME, true),
 //                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
@@ -126,7 +109,7 @@ public class ConcurrencyTest extends AbstractTestNGSpringContextTests {
         }
 
         LOGGER.info("*** Waiting " + WAIT_TIME + " ms ***");
-main:
+        main:
         for (long time = 0; time < WAIT_TIME; time += WAIT_STEP) {
             Thread.sleep(WAIT_STEP);
             for (ModifierThread mt : mts) {
@@ -139,7 +122,7 @@ main:
 
         for (ModifierThread mt : mts) {
             mt.stop = true;             // stop the threads
-            System.out.println("Thread " + mt.id + " has done " + (mt.counter-1) + " iterations");
+            System.out.println("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
             LOGGER.info("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
         }
 
@@ -179,7 +162,7 @@ main:
         public void run() {
             try {
                 run1();
-            } catch(Throwable t) {
+            } catch (Throwable t) {
                 LoggingUtils.logException(LOGGER, "Unexpected exception: " + t, t);
                 threadResult = t;
             }

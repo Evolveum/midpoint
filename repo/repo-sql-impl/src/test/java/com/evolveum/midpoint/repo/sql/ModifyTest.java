@@ -27,8 +27,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.testing.BaseSQLRepoTest;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -39,11 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -60,21 +57,14 @@ import java.util.*;
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
-public class ModifyTest extends AbstractTestNGSpringContextTests {
+public class ModifyTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
     private static final File TEST_DIR = new File("src/test/resources/modify");
 
-    @Autowired(required = true)
-    RepositoryService repositoryService;
-    @Autowired(required = true)
-    PrismContext prismContext;
-    @Autowired
-    SessionFactory factory;
-
     @Test(expectedExceptions = SystemException.class, enabled = false)
     public void test010ModifyWithExistingName() throws Exception {
-    	System.out.println("====[ test010ModifyWithExistingName ]====");
+        System.out.println("====[ test010ModifyWithExistingName ]====");
         LOGGER.info("=== [ test010ModifyWithExistingName ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
@@ -105,7 +95,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
     public void test020ModifyNotExistingUser() throws Exception {
-    	System.out.println("====[ test020ModifyNotExistingUser ]====");
+        System.out.println("====[ test020ModifyNotExistingUser ]====");
         LOGGER.info("=== [ test020ModifyNotExistingUser ] ===");
 
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
@@ -121,7 +111,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(enabled = false)
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
-    	System.out.println("====[ test030ModifyUserOnNonExistingAccountTest ]====");
+        System.out.println("====[ test030ModifyUserOnNonExistingAccountTest ]====");
         LOGGER.info("=== [ test030ModifyUserOnNonExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
@@ -157,7 +147,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test(enabled = false)
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
-    	System.out.println("====[ test031ModifyUserOnExistingAccountTest ]====");
+        System.out.println("====[ test031ModifyUserOnExistingAccountTest ]====");
         LOGGER.info("=== [ test031ModifyUserOnExistingAccountTest ] ===");
 
         OperationResult result = new OperationResult("MODIFY");
@@ -198,7 +188,7 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
-    	System.out.println("====[ test032ModifyTaskObjectRef ]====");
+        System.out.println("====[ test032ModifyTaskObjectRef ]====");
         LOGGER.info("=== [ test032ModifyTaskObjectRef ] ===");
 
         ClassMetadata metadata = factory.getClassMetadata(RTask.class);
@@ -285,70 +275,69 @@ public class ModifyTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testModifyUserAddRole() throws Exception{
-    	System.out.println("====[ testModifyUserAddRole ]====");
-    	 LOGGER.info("=== [ testModifyUserAddRole ] ===");
-    	OperationResult parentResult = new OperationResult("Modify user -> add roles");
-    	String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
+    public void testModifyUserAddRole() throws Exception {
+        System.out.println("====[ testModifyUserAddRole ]====");
+        LOGGER.info("=== [ testModifyUserAddRole ] ===");
+        OperationResult parentResult = new OperationResult("Modify user -> add roles");
+        String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
 
-    	PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-csv.xml"));
-    	repositoryService.addObject(csvResource, parentResult);
+        PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/resource-csv.xml"));
+        repositoryService.addObject(csvResource, parentResult);
 
-    	PrismObject<ResourceType> openDjResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/resource-opendj.xml"));
-    	repositoryService.addObject(openDjResource, parentResult);
+        PrismObject<ResourceType> openDjResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/resource-opendj.xml"));
+        repositoryService.addObject(openDjResource, parentResult);
 
-    	PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/user.xml"));
-    	repositoryService.addObject(user, parentResult);
+        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/user.xml"));
+        repositoryService.addObject(user, parentResult);
 
-    	PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-csv.xml"));
-    	repositoryService.addObject(roleCsv, parentResult);
+        PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-csv.xml"));
+        repositoryService.addObject(roleCsv, parentResult);
 
-    	String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
-    	PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/role-ldap.xml"));
-    	repositoryService.addObject(roleLdap, parentResult);
+        String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
+        PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-ldap.xml"));
+        repositoryService.addObject(roleLdap, parentResult);
 
-    	RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, parentResult).asObjectable();
-    	AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
-    	AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
+        RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, parentResult).asObjectable();
+        AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
+        AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
 
-    	ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(TEST_DIR+"/modify-user-add-roles.xml"),
-				ObjectModificationType.class);
-
-
-    	ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(TEST_DIR + "/modify-user-add-roles.xml"),
+                ObjectModificationType.class);
 
 
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
 
-    	repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
 
-    	UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
-    	AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
+        repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
+
+        UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, parentResult).asObjectable();
+        AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
 
     }
 
     @Test
-    public void testModifyDeleteObjectChnageFromAccount() throws Exception{
-    	System.out.println("====[ testModifyDeleteObjectChnageFromAccount ]====");
-    	OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
-    	PrismObject<AccountShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR+"/account-delete-object-change.xml"));
-    	String oid = repositoryService.addObject(accShadow, parentResult);
-    	System.out.println("\nAcc shadow");
-    	System.out.println(accShadow.dump());
+    public void testModifyDeleteObjectChnageFromAccount() throws Exception {
+        System.out.println("====[ testModifyDeleteObjectChnageFromAccount ]====");
+        OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
+        PrismObject<AccountShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
+        String oid = repositoryService.addObject(accShadow, parentResult);
+        System.out.println("\nAcc shadow");
+        System.out.println(accShadow.dump());
 
-    	accShadow.asObjectable().setObjectChange(null);
+        accShadow.asObjectable().setObjectChange(null);
 
-    	PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
-    	System.out.println("\nRepo shadow");
-    	System.out.println(repoShadow.dump());
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+        System.out.println("\nRepo shadow");
+        System.out.println(repoShadow.dump());
 
-    	ObjectDelta d = repoShadow.diff(accShadow);
-    	System.out.println("\nDelta");
-    	System.out.println(d.dump());
+        ObjectDelta d = repoShadow.diff(accShadow);
+        System.out.println("\nDelta");
+        System.out.println(d.dump());
 
-    	repositoryService.modifyObject(AccountShadowType.class, oid, d.getModifications(), parentResult);
+        repositoryService.modifyObject(AccountShadowType.class, oid, d.getModifications(), parentResult);
 
-    	PrismObject<AccountShadowType> afterModify = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
-    	AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
+        PrismObject<AccountShadowType> afterModify = repositoryService.getObject(AccountShadowType.class, oid, parentResult);
+        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
 
     @Test
