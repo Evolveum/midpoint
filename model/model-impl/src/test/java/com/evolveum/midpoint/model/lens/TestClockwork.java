@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -97,7 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
         "classpath:ctx-task.xml",
 		"classpath:ctx-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestClockwork extends AbstractInitializedModelIntegrationTest {
+public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	
 	@Autowired(required = true)
 	private Clockwork clockwork;
@@ -282,7 +283,7 @@ public class TestClockwork extends AbstractInitializedModelIntegrationTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
         
 	}
 	

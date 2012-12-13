@@ -156,7 +156,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static final long DEFAULT_TASK_SLEEP_TIME = 200;
 			
 	protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
-		
+	
 	@Autowired(required = true)
 	protected ModelService modelService;
 	

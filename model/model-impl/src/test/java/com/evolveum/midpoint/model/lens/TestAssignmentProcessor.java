@@ -22,7 +22,7 @@ package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
@@ -82,7 +82,7 @@ import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
         "classpath:ctx-task.xml",
 		"classpath:ctx-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentProcessor extends AbstractInitializedModelIntegrationTest {
+public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTest {
 
     private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
@@ -171,17 +171,11 @@ public class TestAssignmentProcessor extends AbstractInitializedModelIntegration
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
         
         AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
-                
-//        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
-//        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
-//        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
-        
+                        
         assertNoZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
         assertPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Tortuga");
         assertMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
-        
-//        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Shipwreck cove");
-        
+                
     }
     
 	@Test

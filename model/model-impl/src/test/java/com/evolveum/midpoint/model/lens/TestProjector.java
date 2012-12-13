@@ -47,12 +47,13 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -114,7 +115,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
         "classpath:ctx-task.xml",
 		"classpath:ctx-audit.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestProjector extends AbstractInitializedModelIntegrationTest {
+public class TestProjector extends AbstractInternalModelIntegrationTest {
 		
 	@Autowired(required = true)
 	private Projector projector;
@@ -138,7 +139,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
         
-        assertDummyRefinedSchemaSanity(refinedSchema);
+        dummyResourceCtl.assertRefinedSchemaSanity(refinedSchema);
         
         assertNoJackShadow();
 	}
@@ -169,12 +170,12 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         
         // Account Deltas
         ObjectDelta<AccountShadowType> accountDeltaPrimary = createModifyAccountShadowReplaceAttributeDelta(
-        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie Marley");
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie Marley");
         ObjectDelta<AccountShadowType> accountDeltaPrimaryClone = accountDeltaPrimary.clone();
         assert accountDeltaPrimaryClone != accountDeltaPrimary : "clone is not cloning";
         assert accountDeltaPrimaryClone.getModifications() != accountDeltaPrimary.getModifications() : "clone is not cloning (modifications)";
         ObjectDelta<AccountShadowType> accountDeltaSecondary = createModifyAccountShadowReplaceAttributeDelta(
-        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie LeChuck");
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elie LeChuck");
         ObjectDelta<AccountShadowType> accountDeltaSecondaryClone = accountDeltaSecondary.clone();
         accountContext.setPrimaryDelta(accountDeltaPrimary);
         accountContext.setSecondaryDelta(accountDeltaSecondary);
@@ -276,14 +277,14 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        PropertyDelta<String> fullNameDelta = accountSecondaryDelta.findPropertyDelta(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
+        PropertyDelta<String> fullNameDelta = accountSecondaryDelta.findPropertyDelta(dummyResourceCtl.getAttributeFullnamePath());
         PrismAsserts.assertReplace(fullNameDelta, "Jack Sparrow");
         PrismAsserts.assertOrigin(fullNameDelta, OriginType.OUTBOUND);
 
         PrismObject<AccountShadowType> accountNew = accContext.getObjectNew();
         IntegrationTestTools.assertIcfsNameAttribute(accountNew, "jack");
-        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
-        IntegrationTestTools.assertAttribute(accountNew, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_QNAME, "mouth", "pistol");
+        IntegrationTestTools.assertAttribute(accountNew, dummyResourceCtl.getAttributeFullnameQName(), "Jack Sparrow");
+        IntegrationTestTools.assertAttribute(accountNew, dummyResourceCtl.getAttributeWeaponQName(), "mouth", "pistol");
 	}
 	
 	@Test
@@ -361,8 +362,9 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH , "mouth", "pistol");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnameQName() , "Jack Sparrow");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME) , "mouth", "pistol");
         
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
 
@@ -412,8 +414,8 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, getOpenDJAttributePath("l") , "Tortuga");
-        PrismAsserts.assertPropertyDelete(accountSecondaryDelta, getOpenDJAttributePath("l") , "Caribbean");
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, openDJController.getAttributePath("l") , "Tortuga");
+        PrismAsserts.assertPropertyDelete(accountSecondaryDelta, openDJController.getAttributePath("l") , "Caribbean");
         
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
                 
@@ -464,7 +466,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getOpenDJAttributePath("cn") , "Captain Hector Barbossa");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, openDJController.getAttributePath("cn") , "Captain Hector Barbossa");
         
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
                 
@@ -606,7 +608,7 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack1");
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH , "Jack Sparrow");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
 
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
 	}
@@ -819,8 +821,8 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         
         // Change the guybrush account on dummy resource directly. This creates inconsistency.
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
-        dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
+        dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
+        dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
         
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
@@ -858,11 +860,13 @@ public class TestProjector extends AbstractInitializedModelIntegrationTest {
         
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, SchemaTestConstants.ICFS_NAME_PATH);
-        PropertyDelta<String> fullnameDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+        PropertyDelta<String> fullnameDelta = accountSecondaryDelta.findPropertyDelta(
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
         assertNotNull("No fullname Delta in account secondary delta", fullnameDelta);
         PrismAsserts.assertReplace(fullnameDelta, "Guybrush Threepwood");
         PrismAsserts.assertOrigin(fullnameDelta, OriginType.RECONCILIATION);
-        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(getDummyAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        PropertyDelta<String> locationDelta = accountSecondaryDelta.findPropertyDelta(
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         PrismAsserts.assertReplace(locationDelta, "Melee Island");
         PrismAsserts.assertOrigin(locationDelta, OriginType.RECONCILIATION);
         
