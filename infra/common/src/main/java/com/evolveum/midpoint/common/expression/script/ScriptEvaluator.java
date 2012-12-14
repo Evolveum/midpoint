@@ -21,7 +21,8 @@
 package com.evolveum.midpoint.common.expression.script;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionRet
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +48,7 @@ public interface ScriptEvaluator {
 	
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType, ScriptVariables variables, 
 			ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, ObjectResolver objectResolver,
-    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
+    		Collection<FunctionLibrary> functions, String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException;
 
     /**

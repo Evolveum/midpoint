@@ -49,15 +49,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
  * @author Radovan Semancik
  *
  */
-public class MidPointFunctions {
+public class BasicExpressionFunctions {
 	
 	public static final String NAME_SEPARATOR = " ";
 	
-	public static final Trace LOGGER = TraceManager.getTrace(MidPointFunctions.class);
+	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
 	
 	private PrismContext prismContext;
 
-	public MidPointFunctions(PrismContext prismContext) {
+	public BasicExpressionFunctions(PrismContext prismContext) {
 		super();
 		this.prismContext = prismContext;
 	}

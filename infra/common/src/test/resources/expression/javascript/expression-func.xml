@@ -2,6 +2,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
 	<code>
-		func.norm("Guľôčka v jamôčke!")
+		basic.norm("Guľôčka v jamôčke!")
 	</code>
 </script>

@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.common.mapping.MappingTestEvaluator.OBJECTS_
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
@@ -140,7 +143,9 @@ public class MappingTestEvaluator {
     	expressionFactory.addEvaluatorFactory(generateFactory);
 
     	// script
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext);
+    	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
+        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext));
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, functions);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext);

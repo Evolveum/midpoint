@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -236,5 +237,14 @@ public class ExpressionUtil {
         
 	}
 
-
+	public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext) {
+		FunctionLibrary lib = new FunctionLibrary();
+		lib.setVariableName(MidPointConstants.BASIC_FUNCTION_LIBRARY_VARIABLE_NAME);
+		lib.setNamespace(MidPointConstants.NS_FUNC_BASIC);
+		BasicExpressionFunctions func = new BasicExpressionFunctions(prismContext);
+		lib.setGenericFunctions(func);
+		BasicExpressionFunctionsXPath funcXPath = new BasicExpressionFunctionsXPath(func);
+		lib.setXmlFunctions(funcXPath);
+		return lib;
+	}
 }

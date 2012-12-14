@@ -52,7 +52,7 @@ public class TestMidPointFunctions {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValue01 ]===\n");
     	
         // GIVEN
-    	MidPointFunctions f = createMidPointFunctions();
+    	BasicExpressionFunctions f = createMidPointFunctions();
     	String dn = "uid=foo, ou=People, dc=example,dc=com";
     	String attributeName = "uid";
     	Collection<String> values = MiscUtil.createCollection("bar", "foo", "FooBAR");
@@ -72,7 +72,7 @@ public class TestMidPointFunctions {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValue02 ]===\n");
     	
         // GIVEN
-    	MidPointFunctions f = createMidPointFunctions();
+    	BasicExpressionFunctions f = createMidPointFunctions();
     	String dn = "cn=jack+uid=FooBAR, ou=People, dc=example,dc=com";
     	String attributeName = "uid";
     	Collection<String> values = MiscUtil.createCollection("bar", "foo", "FooBAR");
@@ -95,7 +95,7 @@ public class TestMidPointFunctions {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValueSingle ]===\n");
     	
         // GIVEN
-    	MidPointFunctions f = createMidPointFunctions();
+    	BasicExpressionFunctions f = createMidPointFunctions();
     	String dn = "cn=jack+uid=FooBar, ou=People, dc=example,dc=com";
     	String attributeName = "uid";
     	Collection<String> values = MiscUtil.createCollection("heh");
@@ -115,7 +115,7 @@ public class TestMidPointFunctions {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValueNull ]===\n");
     	
         // GIVEN
-    	MidPointFunctions f = createMidPointFunctions();
+    	BasicExpressionFunctions f = createMidPointFunctions();
     	String dn = "cn=jack+uid=FooBar, ou=People, dc=example,dc=com";
     	String attributeName = "uid";
     	Collection<String> values = MiscUtil.createCollection("heh");
@@ -133,7 +133,7 @@ public class TestMidPointFunctions {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValueFallback ]===\n");
     	
         // GIVEN
-    	MidPointFunctions f = createMidPointFunctions();
+    	BasicExpressionFunctions f = createMidPointFunctions();
     	String dn = "cn=jack, ou=People, dc=example,dc=com";
     	String attributeName = "uid";
     	Collection<String> values = MiscUtil.createCollection("foo", "bar", "foobar");
@@ -149,9 +149,9 @@ public class TestMidPointFunctions {
     }
 
     
-	private MidPointFunctions createMidPointFunctions() throws SchemaException, SAXException, IOException {
+	private BasicExpressionFunctions createMidPointFunctions() throws SchemaException, SAXException, IOException {
 		PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
-		return new MidPointFunctions(prismContext);
+		return new BasicExpressionFunctions(prismContext);
 	}
 
 }

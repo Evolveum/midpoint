@@ -49,13 +49,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
  * @author Radovan Semancik
  *
  */
-public class MidPointFunctionsXPath {
+public class BasicExpressionFunctionsXPath {
 	
-	public static final Trace LOGGER = TraceManager.getTrace(MidPointFunctionsXPath.class);
+	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctionsXPath.class);
 	
-	private MidPointFunctions functions;
+	private BasicExpressionFunctions functions;
 
-	public MidPointFunctionsXPath(MidPointFunctions functions) {
+	public BasicExpressionFunctionsXPath(BasicExpressionFunctions functions) {
 		super();
 		this.functions = functions;
 	}
@@ -64,21 +64,21 @@ public class MidPointFunctionsXPath {
 	 * Convert string to lower case.
 	 */
 	public static String lc(String orig) {
-		return MidPointFunctions.lc(orig);
+		return BasicExpressionFunctions.lc(orig);
 	}
 
 	/**
 	 * Convert string to upper case.
 	 */
 	public static String uc(String orig) {
-		return MidPointFunctions.uc(orig);
+		return BasicExpressionFunctions.uc(orig);
 	}
 	
 	/**
 	 * Remove whitespaces at the beginning and at the end of the string.
 	 */
 	public static String trim(String orig) {
-		return MidPointFunctions.trim(orig);
+		return BasicExpressionFunctions.trim(orig);
 	}
 
 	/**

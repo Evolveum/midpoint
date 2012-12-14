@@ -35,7 +35,8 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -72,8 +73,6 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
 
-	private static final String FUNCTION_LIBRARY_VARIABLE_NAME = "func";
-	
 	private ScriptEngine scriptEngine;
 	private PrismContext prismContext;
 	
@@ -89,11 +88,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	@Override
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType,
 			ScriptVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
-			ObjectResolver objectResolver, MidPointFunctions functionLibrary,
+			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 		
-		Bindings bindings = convertToBindings(variables, objectResolver, functionLibrary, contextDescription, result);
+		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, result);
 		
 		Element codeElement = expressionType.getCode();
 		if (codeElement == null) {
@@ -175,10 +174,17 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		throw new ExpressionEvaluationException("Expected "+expectedType+" from expression, but got "+rawValue.getClass()+" "+contextDescription);
 	}
 	
-	private Bindings convertToBindings(ScriptVariables variables, ObjectResolver objectResolver, MidPointFunctions functionLibrary,
+	private Bindings convertToBindings(ScriptVariables variables, ObjectResolver objectResolver, 
+			Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();
-		bindings.put(FUNCTION_LIBRARY_VARIABLE_NAME, functionLibrary);
+		// Functions
+		if (functions != null) {
+			for (FunctionLibrary funcLib: functions) {
+				bindings.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
+			}
+		}
+		// Variables
 		if (variables != null) {
 			for (Entry<QName, Object> variableEntry: variables.entrySet()) {
 				if (variableEntry.getKey() == null) {

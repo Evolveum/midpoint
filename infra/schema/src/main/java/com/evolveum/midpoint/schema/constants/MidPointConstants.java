@@ -55,6 +55,7 @@ public class MidPointConstants {
 	 */
 	public static final String DEFAULT_ACCOUNT_TYPE_NAME = "default";
 
-	public static final Object NS_FUNC = NS_MIDPOINT_PUBLIC_PREFIX+"/common/function-2";
+	public static final String BASIC_FUNCTION_LIBRARY_VARIABLE_NAME = "basic";
+	public static final String NS_FUNC_BASIC = NS_MIDPOINT_PUBLIC_PREFIX+"/function/basic-2";
 
 }

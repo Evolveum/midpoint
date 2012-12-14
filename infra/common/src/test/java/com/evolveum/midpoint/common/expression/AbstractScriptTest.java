@@ -88,7 +88,9 @@ public abstract class AbstractScriptTest {
     public void setupFactory() {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-        scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext);
+        Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
+        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext));
+		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, functions);
         evaluator = createEvaluator(prismContext);
         String languageUrl = evaluator.getLanguageUrl();
         System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);

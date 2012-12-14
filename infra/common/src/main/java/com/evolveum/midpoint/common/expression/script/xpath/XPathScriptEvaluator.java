@@ -21,7 +21,8 @@
 package com.evolveum.midpoint.common.expression.script.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -50,6 +51,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +73,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     @Override
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType,
 			ScriptVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
-			ObjectResolver objectResolver, MidPointFunctions functionLibrary,
+			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 
@@ -85,7 +87,8 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 		
         QName returnType = determineRerturnType(type, expressionType, outputDefinition, suggestedReturnType);
 
-        Object evaluatedExpression = evaluate(returnType, codeElement, variables, objectResolver, functionLibrary, contextDescription, result);
+        Object evaluatedExpression = evaluate(returnType, codeElement, variables, objectResolver, functions, 
+        		contextDescription, result);
 
         List<PrismPropertyValue<T>> propertyValues;
         
@@ -132,7 +135,8 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 	}
 
 	private Object evaluate(QName returnType, Element code, ScriptVariables variables, ObjectResolver objectResolver,
-    		MidPointFunctions functionLibrary, String contextDescription, OperationResult result)
+			Collection<FunctionLibrary> functions, 
+    		String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException {
 
         XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
@@ -141,7 +145,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription, result);
         xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
-        xpath.setXPathFunctionResolver(getFunctionResolver(functionLibrary));
+        xpath.setXPathFunctionResolver(getFunctionResolver(functions));
 
         XPathExpression expr;
         try {
@@ -387,8 +391,8 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     	return value == null || ((value instanceof String) && ((String) value).isEmpty());
     }
 
-    private XPathFunctionResolver getFunctionResolver(MidPointFunctions functionLibrary) {
-    	return new ReflectionXPathFunctionResolver(functionLibrary);
+    private XPathFunctionResolver getFunctionResolver(Collection<FunctionLibrary> functions) {
+    	return new ReflectionXPathFunctionResolver(functions);
     }
 
     @Override

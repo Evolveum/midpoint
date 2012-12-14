@@ -41,6 +41,28 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
     <context:spring-configured/>
+    
+    <bean id="basicFunctionObject" class="com.evolveum.midpoint.common.expression.BasicExpressionFunctions"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+    </bean>
+    
+    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.common.expression.BasicExpressionFunctionsXPath"
+          scope="singleton">
+          <constructor-arg type="com.evolveum.midpoint.common.expression.BasicExpressionFunctions" ref="basicFunctionObject"/>
+    </bean>
+    
+    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.common.expression.FunctionLibrary"
+          scope="singleton">
+        <property name="variableName" value="basic"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"/>
+        <property name="genericFunctions">
+            <ref bean="basicFunctionObject"/>
+        </property>
+        <property name="xmlFunctions">
+            <ref bean="basicFunctionObjectXml"/>
+        </property>
+    </bean>
 
     <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator"
           scope="singleton">
@@ -63,6 +85,12 @@
           scope="singleton">
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg>
+        	<list>
+        		<ref bean="basicFunctionLibrary"/>
+        		<!-- <ref bean="midPointFunctionLibrary"/>  -->
+        	</list>
+        </constructor-arg>
           <constructor-arg>
         	<list>
         		<ref bean="xpathScriptEvaluator"/>

@@ -26,7 +26,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -46,19 +47,20 @@ public class ScriptExpressionFactory {
 	private Map<String,ScriptEvaluator> evaluators = new HashMap<String, ScriptEvaluator>();
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
-	private MidPointFunctions functionLibrary;
+	private Collection<FunctionLibrary> functions;
 	
-	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext) {
+	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, Collection<FunctionLibrary> functions) {
 		this.prismContext = prismContext;
 		this.objectResolver = objectResolver;
-		functionLibrary = new MidPointFunctions(prismContext);
+		this.functions = functions;
 	}
 	
 	/**
 	 * Constructor created especially to be used from the Spring context.
 	 */
-	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, Collection<ScriptEvaluator> evaluators) {
-		this(objectResolver, prismContext);
+	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
+			Collection<FunctionLibrary> functions, Collection<ScriptEvaluator> evaluators) {
+		this(objectResolver, prismContext, functions);
 		for (ScriptEvaluator evaluator: evaluators) {
 			registerEvaluator(evaluator.getLanguageUrl(), evaluator);
 		}
@@ -80,7 +82,7 @@ public class ScriptExpressionFactory {
 		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
-		expression.setFunctionLibrary(functionLibrary);
+		expression.setFunctions(functions);
 		return expression;
 	}
 	

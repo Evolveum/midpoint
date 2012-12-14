@@ -20,7 +20,8 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -60,7 +61,7 @@ public class ScriptExpression {
     private ScriptEvaluator evaluator;
     private ItemDefinition outputDefinition;
     private ObjectResolver objectResolver;
-    private MidPointFunctions functionLibrary;
+    private Collection<FunctionLibrary> functions;
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 
@@ -84,21 +85,21 @@ public class ScriptExpression {
     public void setObjectResolver(ObjectResolver objectResolver) {
         this.objectResolver = objectResolver;
     }
-
-    public MidPointFunctions getFunctionLibrary() {
-		return functionLibrary;
-	}
-
-	public void setFunctionLibrary(MidPointFunctions functionLibrary) {
-		this.functionLibrary = functionLibrary;
-	}
 	
+	public Collection<FunctionLibrary> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(Collection<FunctionLibrary> functions) {
+		this.functions = functions;
+	}
+
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
 			String contextDescription, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		try {
-			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(expressionType, variables, outputDefinition, suggestedReturnType, objectResolver, functionLibrary, contextDescription, result);
+			List<PrismPropertyValue<T>> expressionResult = evaluator.evaluate(expressionType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, result);
 			
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;

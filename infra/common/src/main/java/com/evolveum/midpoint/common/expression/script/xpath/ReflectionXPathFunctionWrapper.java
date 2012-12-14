@@ -27,8 +27,8 @@ import java.util.List;
 import javax.xml.xpath.XPathFunction;
 import javax.xml.xpath.XPathFunctionException;
 
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
-import com.evolveum.midpoint.common.expression.MidPointFunctionsXPath;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.util.ReflectionUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,15 +43,17 @@ private static final Object LOG_FUNCTION_NAME = "logDebug";
 	
 	public static final Trace LOGGER = TraceManager.getTrace(ReflectionXPathFunctionWrapper.class);
 	
-	private MidPointFunctionsXPath functionLibrary;	
+	private Object functionObject;	
 	private String functionName;
 	private int arity;
+	private boolean enableDebug;
 
-	ReflectionXPathFunctionWrapper(MidPointFunctions functionLibrary, String functionName, int arity) {
+	ReflectionXPathFunctionWrapper(Object functionObject, String functionName, int arity, boolean enableDebug) {
 		super();
-		this.functionLibrary = new MidPointFunctionsXPath(functionLibrary);
+		this.functionObject = functionObject;
 		this.functionName = functionName;
 		this.arity = arity;
+		this.enableDebug = enableDebug;
 	}
 
 	/* (non-Javadoc)
@@ -59,13 +61,13 @@ private static final Object LOG_FUNCTION_NAME = "logDebug";
 	 */
 	@Override
 	public Object evaluate(List argList) throws XPathFunctionException {
-		if (LOG_FUNCTION_NAME.equals(functionName)) {
-			MidPointFunctions.LOGGER.debug("Expression debug: {}", ReflectionUtil.debugDumpArgList(argList));
+		if (enableDebug && LOG_FUNCTION_NAME.equals(functionName)) {
+			BasicExpressionFunctions.LOGGER.debug("Expression debug: {}", ReflectionUtil.debugDumpArgList(argList));
 			return null;
 		}
 				
 		try {
-			return ReflectionUtil.invokeMethod(functionLibrary, functionName, argList);
+			return ReflectionUtil.invokeMethod(functionObject, functionName, argList);
 		} catch (IllegalArgumentException e) {
 			throw new XPathFunctionException(e);
 		} catch (IllegalAccessException e) {

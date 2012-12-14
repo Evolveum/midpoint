@@ -22,14 +22,17 @@ package com.evolveum.midpoint.common.expression.script.xpath;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathFunction;
 import javax.xml.xpath.XPathFunctionException;
 import javax.xml.xpath.XPathFunctionResolver;
 
-import com.evolveum.midpoint.common.expression.MidPointFunctions;
+import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,11 +48,11 @@ public class ReflectionXPathFunctionResolver implements XPathFunctionResolver {
 	
 	public static final Trace LOGGER = TraceManager.getTrace(ReflectionXPathFunctionResolver.class);
 	
-	private MidPointFunctions functionLibrary;
+	private Collection<FunctionLibrary> functions;
 	
-	public ReflectionXPathFunctionResolver(MidPointFunctions functionLibrary) {
+	public ReflectionXPathFunctionResolver(Collection<FunctionLibrary> functions) {
 		super();
-		this.functionLibrary = functionLibrary;
+		this.functions = functions;
 	}
 
 	/* (non-Javadoc)
@@ -57,16 +60,43 @@ public class ReflectionXPathFunctionResolver implements XPathFunctionResolver {
 	 */
 	@Override
 	public XPathFunction resolveFunction(QName functionQName, int arity) {
+		boolean enableDebug = false;
 		String namespace = functionQName.getNamespaceURI();
-		if (namespace != null && !namespace.equals(MidPointConstants.NS_FUNC)) {
-			LOGGER.trace("Wrong namespace for function {} function with {} arguments", functionQName, arity);
+		if (namespace == null) {
+			namespace = MidPointConstants.NS_FUNC_BASIC;
+			enableDebug = true;
+		} else if (namespace.equals(MidPointConstants.NS_FUNC_BASIC)) {
+			enableDebug = true;
+		}
+		
+		FunctionLibrary lib = findLibrary(namespace);
+		if (lib == null) {
+			LOGGER.trace("Unknown namespace for function {} function with {} arguments", functionQName, arity);
 			return null;
 		}
+		
+		Object functionObject = null;
+		if (lib.getXmlFunctions() != null) {
+			functionObject = lib.getXmlFunctions();
+		} else {
+			functionObject = lib.getGenericFunctions();
+		}
+		
 		String functionName = functionQName.getLocalPart();
 		
 		LOGGER.trace("Resolving to {} function with {} arguments", functionName, arity);
-		ReflectionXPathFunctionWrapper xPathFunction = new ReflectionXPathFunctionWrapper(functionLibrary, functionName, arity);
-		return xPathFunction;		
+		ReflectionXPathFunctionWrapper xPathFunction = new ReflectionXPathFunctionWrapper(functionObject, functionName, 
+				arity, enableDebug);
+		return xPathFunction;
+	}
+
+	private FunctionLibrary findLibrary(String namespace) {
+		for (FunctionLibrary lib: functions) {
+			if (lib.getNamespace().equals(namespace)) {
+				return lib;
+			}
+		}
+		return null;
 	}
 
 }
