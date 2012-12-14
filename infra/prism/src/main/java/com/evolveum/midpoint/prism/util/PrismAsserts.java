@@ -301,6 +301,10 @@ public class PrismAsserts {
 		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "add", propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
+	public static <T> void assertDelete(PropertyDelta<T> propertyDelta, T... expectedValues) {
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
+	}
+
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {
 		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
@@ -388,6 +392,35 @@ public class PrismAsserts {
 			}
 		}
 		assert false : message+": Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in collection "+deltas;
+	}
+	
+	
+	public static <V extends PrismValue> void assertNoReplace(ItemDelta<V> delta) {
+		assertNoReplace(null, delta);
+	}
+	
+	public static <V extends PrismValue> void assertNoReplace(String message, ItemDelta<V> delta) {
+		assertNoSet(message, "replace", delta.getValuesToReplace());
+	}
+	
+	public static <V extends PrismValue> void assertNoAdd(ItemDelta<V> delta) {
+		assertNoAdd(null, delta);
+	}
+
+	public static <V extends PrismValue> void assertNoAdd(String message, ItemDelta<V> delta) {
+		assertNoSet(message, "add", delta.getValuesToAdd());
+	}
+	
+	public static <V extends PrismValue> void assertNoDelete(ItemDelta<V> delta) {
+		assertNoDelete(null, delta);
+	}
+
+	public static <V extends PrismValue> void assertNoDelete(String message, ItemDelta<V> delta) {
+		assertNoSet(message, "delete", delta.getValuesToDelete());
+	}
+
+	private static <V extends PrismValue> void assertNoSet(String message, String type, Collection<V> set) {
+		assert set == null : (message == null ? "" : message + ": ") + "Delta "+type+" set expected to be null but it is "+set;
 	}
 	
 	// DeltaSetTriple asserts

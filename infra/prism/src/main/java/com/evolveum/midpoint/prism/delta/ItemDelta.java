@@ -221,7 +221,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 	
-	public void addValuesToAdd(V[] newValues) {
+	public void addValuesToAdd(V... newValues) {
 		for (V val : newValues) {
 			addValueToAdd(val);
 		}
@@ -243,6 +243,34 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		newValue.recompute();
 	}
 	
+	public boolean removeValueToAdd(V valueToRemove) {
+		return removeValue(valueToRemove, valuesToAdd);
+	}
+	
+	public boolean removeValueToDelete(V valueToRemove) {
+		return removeValue(valueToRemove, valuesToDelete);
+	}
+	
+	public boolean removeValueToReplace(V valueToRemove) {
+		return removeValue(valueToRemove, valuesToReplace);
+	}
+	
+	private boolean removeValue(V valueToRemove, Collection<V> set) {
+		boolean removed = false;
+		if (set == null) {
+			return removed;
+		}
+		Iterator<V> valuesToReplaceIterator = set.iterator();
+		while (valuesToReplaceIterator.hasNext()) {
+			V valueToReplace = valuesToReplaceIterator.next();
+			if (valueToReplace.equalsRealValue(valueToRemove)) {
+				valuesToReplaceIterator.remove();
+				removed = true;
+			}
+		}
+		return removed;
+	}
+
 	public void mergeValuesToAdd(Collection<V> newValues) {
 		for (V val : newValues) {
 			mergeValueToAdd(val);
@@ -261,7 +289,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 				valuesToReplace.add(newValue);
 			}
 		} else {
-			addValueToAdd(newValue);
+			if (!removeValueToDelete(newValue)) {
+				addValueToAdd(newValue);
+			}
 		}
 	}
 
@@ -271,7 +301,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
-	public void addValuesToDelete(V[] newValues) {
+	public void addValuesToDelete(V... newValues) {
 		for (V val : newValues) {
 			addValueToDelete(val);
 		}
@@ -307,15 +337,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	
 	public void mergeValueToDelete(V newValue) {
 		if (valuesToReplace != null) {
-			Iterator<V> valuesToReplaceIterator = valuesToReplace.iterator();
-			if (valuesToReplaceIterator.hasNext()) {
-				V valueToReplace = valuesToReplaceIterator.next();
-				if (valueToReplace.equalsRealValue(newValue)) {
-					valuesToReplaceIterator.remove();
-				}
-			}
+			removeValueToReplace(newValue);
 		} else {
-			addValueToDelete(newValue);
+			if (!removeValueToAdd(newValue)) {
+				addValueToDelete(newValue);
+			}
 		}
 	}
 
@@ -340,7 +366,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
-	public void setValuesToReplace(V[] newValues) {
+	public void setValuesToReplace(V... newValues) {
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
 					+ " already has values to add, attempt to set value to replace");

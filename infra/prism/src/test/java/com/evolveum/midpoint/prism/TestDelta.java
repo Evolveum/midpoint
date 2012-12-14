@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -57,6 +58,221 @@ public class TestDelta {
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
 	
+	@Test
+    public void testPropertyDeltaMerge01() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge01 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertNoReplace(delta1);
+		PrismAsserts.assertAdd(delta1, "add1", "add2");
+		PrismAsserts.assertNoDelete(delta1);
+	}
+
+	@Test
+    public void testPropertyDeltaMerge02() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge02 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToDelete(new PrismPropertyValue<String>("del2"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertNoReplace(delta1);
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertDelete(delta1, "del1", "del2");
+	}
+
+	@Test
+    public void testPropertyDeltaMerge03() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge03 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		delta2.addValueToDelete(new PrismPropertyValue<String>("del2"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertNoReplace(delta1);
+		PrismAsserts.assertAdd(delta1, "add1", "add2");
+		PrismAsserts.assertDelete(delta1, "del1", "del2");
+	}
+
+	@Test
+    public void testPropertyDeltaMerge04() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge04 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		delta2.addValueToDelete(new PrismPropertyValue<String>("add1"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertNoReplace(delta1);
+		PrismAsserts.assertAdd(delta1, "add2");
+		PrismAsserts.assertDelete(delta1, "del1");
+	}
+	
+	@Test
+    public void testPropertyDeltaMerge10() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge10 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"), new PrismPropertyValue<String>("r1y"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertReplace(delta1, "r1x", "r1y", "add2");
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertNoDelete(delta1);
+	}
+	
+	@Test
+    public void testPropertyDeltaMerge11() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge11 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"), new PrismPropertyValue<String>("r1y"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		delta2.addValueToDelete(new PrismPropertyValue<String>("r1y"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertReplace(delta1, "r1x", "add2");
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertNoDelete(delta1);
+	}
+
+	@Test
+    public void testPropertyDeltaMerge12() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge12 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"), new PrismPropertyValue<String>("r1y"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		delta2.addValueToDelete(new PrismPropertyValue<String>("del2"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertReplace(delta1, "r1x", "r1y", "add2");
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertNoDelete(delta1);
+	}
+
+	@Test
+    public void testPropertyDeltaMerge20() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge20 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.setValuesToReplace(new PrismPropertyValue<String>("r2x"), new PrismPropertyValue<String>("r2y"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertReplace(delta1, "r2x", "r2y");
+		PrismAsserts.assertNoAdd(delta1);
+		PrismAsserts.assertNoDelete(delta1);
+	}
+
 	@Test
     public void testAddPropertyMulti() throws Exception {
 		System.out.println("\n\n===[ testAddPropertyMulti ]===\n");
