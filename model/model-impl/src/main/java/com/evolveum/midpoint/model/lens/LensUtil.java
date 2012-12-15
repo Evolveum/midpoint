@@ -255,7 +255,10 @@ public class LensUtil {
 		return null;
 	}
 	
-	// TODO: check for single-value
+	/**
+	 * Consolidate the mappings of a single property to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
+	 * It produces the delta considering the mapping exclusion, authoritativeness and strength.
+	 */
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
     		ItemDelta<V> apropriItemDelta, PrismContainer<?> itemContainer,
@@ -268,8 +271,13 @@ public class LensUtil {
             itemExisting = itemContainer.findItem(itemPath);
 		}
 		
+		// We will process each attribute individually.
         Collection<V> allValues = collectAllValues(triple);
         for (V value : allValues) {
+        	
+        	// Check what to do with the value using the usual "triple routine". It means that if a value is
+        	// in zero set than we need no delta, plus set means add delta and minus set means delte delta.
+        	// The first set that the value is present determines the result.
             Collection<ItemValueWithOrigin<V>> zeroPvwos =
                     collectPvwosFromSet(value, triple.getZeroSet());
             if (!zeroPvwos.isEmpty() && !addUnchangedValues) {
@@ -298,6 +306,8 @@ public class LensUtil {
             if (!pvwosToAdd.isEmpty()) {
             	boolean initialOnly = true;
             	boolean nonStrongOnly = true;
+            	// There may be several mappings that imply that value. So check them all for
+                // exclusions and strength
                 for (ItemValueWithOrigin<?> pvwoToAdd : pvwosToAdd) {
                     Mapping<?> mapping = pvwoToAdd.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {
@@ -340,6 +350,8 @@ public class LensUtil {
             	boolean initialOnly = true;
             	boolean nonStrongOnly = true;
             	boolean hasAuthoritative = false;
+            	// There may be several mappings that imply that value. So check them all for
+                // exclusions and strength
                 for (ItemValueWithOrigin<?> pvwo : minusPvwos) {
                     Mapping<?> mapping = pvwo.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {

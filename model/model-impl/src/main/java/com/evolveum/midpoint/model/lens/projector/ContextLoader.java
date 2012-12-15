@@ -76,7 +76,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
- * @author semancik
+ * Context loader loads the missing parts of the context. The context enters the projector with just the minimum information.
+ * Context loader gets missing data such as accounts. It gets them from the repository or provisioning as necessary. It follows
+ * the account links in user (accountRef) and user deltas. 
+ * 
+ * @author Radovan Semancik
  *
  */
 @Component

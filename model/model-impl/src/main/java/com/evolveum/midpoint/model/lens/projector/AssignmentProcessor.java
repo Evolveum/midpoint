@@ -80,7 +80,19 @@ import java.util.*;
 import java.util.Map.Entry;
 
 /**
- * @author semancik
+ * Assignment processor is recomputing user assignments. It recomputes all the assignemts whether they are direct
+ * or indirect (roles). 
+ * 
+ * Processor does not do the complete recompute. Only the account "existence" is recomputed. I.e. the processor determines
+ * what accounts should be added, deleted or kept as they are. The result is marked in account context SynchronizationPolicyDecision.
+ * This step does not create any deltas. It recomputes the attributes to delta set triples but does not "refine" them to deltas yet.
+ * It cannot create deltas as other mapping may interfere, e.g. outbound mappings. These needs to be computed before we can
+ * create the final deltas (because there may be mapping exclusions, interference of weak mappings, etc.)
+ * 
+ * The result of assignment processor are intermediary data in the context such as LensContext.evaluatedAssignmentTriple and
+ * LensProjectionContext.accountConstructionDeltaSetTriple.
+ * 
+ * @author Radovan Semancik
  */
 @Component
 public class AssignmentProcessor {
@@ -103,6 +115,10 @@ public class AssignmentProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
+    /**
+     * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
+     * Generic method for all projection types (theoretically). 
+     */
     public <F extends ObjectType, P extends ObjectType> void processAssignmentsProjections(LensContext<F,P> context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
@@ -116,14 +132,19 @@ public class AssignmentProcessor {
     	processAssignmentsAccounts((LensContext<UserType,AccountShadowType>) context, result);
     }
     
+    /**
+     * Processing user-account assignments (including roles). Specific user-account method.
+     */
     public void processAssignmentsAccounts(LensContext<UserType,AccountShadowType> context, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
         AccountSynchronizationSettingsType accountSynchronizationSettings = context.getAccountSynchronizationSettings();
         AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(accountSynchronizationSettings);
         if (globalAssignmentPolicyEnforcement == AssignmentPolicyEnforcementType.NONE) {
-            // No assignment processing
-            LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
+        	
+            // No assignment enforcement. Skip the entire processing. Just "fake" the synchronization policy decisions.
+            
+        	LOGGER.trace("Assignment enforcement policy set to NONE, skipping assignment processing");
 
             // We need to fake assignment processing a bit ...
             for (LensProjectionContext<AccountShadowType> accCtx : context.getProjectionContexts()) {
@@ -151,6 +172,10 @@ public class AssignmentProcessor {
             return;
         }
         
+        // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
+        // which assignments were added. Do a complete recompute for all the enforcement modes. We can do that because this does
+        // not create deltas, it just creates the triples. So we can decide what to do later when we convert triples to deltas.
+        
         LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> focusDelta = focusContext.getDelta();
         Collection<PrismContainerValue<AssignmentType>> assignmentsOld = new ArrayList<PrismContainerValue<AssignmentType>>();
@@ -165,9 +190,10 @@ public class AssignmentProcessor {
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
 
-        // TODO: preprocess assignment delta. If it is replace, then we need to convert it to: delete all existing assignments, add all new assignments
         Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 
+        // Initializing assignemnt evaluator. This will be used later to process all the assignments including the nested
+        // assignments (roles).
         AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
         assignmentEvaluator.setUserOdo(focusContext.getObjectDeltaObject());
@@ -176,6 +202,8 @@ public class AssignmentProcessor {
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
 
+        // We will be collecting the evaluated account constructions into these three sets. 
+        // It forms a kind of delta set triple for the account constructions.
         Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
         Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
         Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
@@ -193,6 +221,13 @@ public class AssignmentProcessor {
         DeltaSetTriple<Assignment> evaluatedAssignmentTriple = new DeltaSetTriple<Assignment>();
         context.setEvaluatedAssignmentTriple(evaluatedAssignmentTriple);
         
+        // Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
+        // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
+        // will be processed only once. Inside the loop we determine whether it was added, deleted or remains unchanged.
+        // This is a first step of the processing. It takes all the account constructions regardless of the resource and
+        // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
+        // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
+        // sorted out later.
         Collection<PrismContainerValue<AssignmentType>> allAssignments = MiscUtil.union(assignmentsOld, changedAssignments);
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
@@ -211,14 +246,27 @@ public class AssignmentProcessor {
             
             context.rememberResources(evaluatedAssignment.getResources(result));
             
+            // The following code is using collectToAccountMap() to collect the account constructions to one of the three "delta"
+            // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
+            // It is also collecting assignments to evaluatedAssignmentTriple.
+            
             if (focusDelta != null && focusDelta.isDelete()) {
             	
+            	// USER DELETE
+            	// If focus (user) is being deleted that all the assignments are to be gone. Including those that
+            	// were not changed explicitly.
             	collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
                 evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
                 
             } else {
             	if (assignmentDelta.isReplace()) {
 
+            		// ASSIGNMENT REPLACE
+            		// Handling assignment replace delta. This needs to be handled specially as all the "old"
+            		// assignments should be considered deleted - except those that are part of the new value set
+            		// (remain after replace). As account delete and add are costly operations (and potentiall dangerous)
+            		// we optimize here are consider the assignments that were there before replace and still are there
+            		// after it as unchanged.
             		boolean hadValue = containsRealValue(assignmentsOld, assignmentCVal);
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal);
             		if (hadValue && willHaveValue) {
@@ -239,7 +287,9 @@ public class AssignmentProcessor {
             		
             	} else {
 
-		            // Sort assignments to sets: unchanged (zero), added (plus), removed (minus)
+            		// ASSIGNMENT ADD/DELETE
+            		// This is the usual situation.
+		            // Just sort assignments to sets: unchanged (zero), added (plus), removed (minus)
 		            if (isAssignmentChanged) {
 		                // There was some change
 		
@@ -267,6 +317,7 @@ public class AssignmentProcessor {
             }
         }
         
+        // Checking for assignment exclusions. This means mostly role exclusions (SoD) 
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         
@@ -276,6 +327,11 @@ public class AssignmentProcessor {
                     dumpAccountMap(plusAccountMap), dumpAccountMap(minusAccountMap)});
         }
 
+        // Now we are processing account constructions from all the three sets once again. We will create projection contexts
+        // for them if not yet created. Now we will do the usual routing for converting the delta triples to deltas. 
+        // I.e. zero means unchanged, plus means added, minus means deleted. That will be recorded in the SynchronizationPolicyDecision.
+        // We will also collect all the construction triples to projection context. These will be used later for computing
+        // actual attribute deltas (in consolidation processor).
         Collection<ResourceShadowDiscriminator> allAccountTypes = MiscUtil.union(zeroAccountMap.keySet(), plusAccountMap.keySet(), minusAccountMap.keySet());
         for (ResourceShadowDiscriminator rat : allAccountTypes) {
 
@@ -466,6 +522,8 @@ public class AssignmentProcessor {
 		ObjectNotFoundException, ExpressionEvaluationException {
             
 		// TODO: reevaluate constructions
+		// This should re-evaluate all the constructions. They are evaluated already, evaluated in the assignment step before.
+		// But if there is any iteration counter that it will not be taken into account
 		
     }
 

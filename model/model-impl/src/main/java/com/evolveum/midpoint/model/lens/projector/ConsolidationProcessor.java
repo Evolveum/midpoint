@@ -72,8 +72,11 @@ import java.util.Map;
 
 /**
  * This processor consolidate delta set triples acquired from account sync context and transforms them to
- * property deltas. It considers also property deltas from sync, which already happened.
+ * property deltas. It converts mappings to deltas considering exclusions, authoritativeness and strength of individual
+ * mappings. It also (somehow indirectly) merges all the mappings together. It considers also property deltas from sync,
+ * which already happened.
  *
+ * @author Radovan Semancik
  * @author lazyman
  */
 @Component
@@ -129,6 +132,8 @@ public class ConsolidationProcessor {
     		LensProjectionContext<AccountShadowType> accCtx,
             boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 
+    	// "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
+    	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
     	Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes = sqeezeAttributes(accCtx); 
     	accCtx.setSqueezedAttributes(squeezedAttributes);
         
@@ -145,6 +150,8 @@ public class ConsolidationProcessor {
 
         ItemPath parentPath = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
+        // Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
+        // with the data in ItemValueWithOrigin triples.
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
             QName attributeName = entry.getKey();
             DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> triple = entry.getValue();
@@ -159,11 +166,13 @@ public class ConsolidationProcessor {
             		new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName));
             }
             
+            // Use this common utility method to do the computation. It does most of the work.
 			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
 					new ItemPath(SchemaConstants.I_ATTRIBUTES, attributeName), 
 					(DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
             		addUnchangedValues, false, "account " + rat);
             
+			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
             propDelta = consolidateWithSync(accCtx, propDelta);
 
             if (propDelta != null && !propDelta.isEmpty()) {

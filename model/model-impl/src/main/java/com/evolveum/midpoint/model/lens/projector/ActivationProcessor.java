@@ -54,7 +54,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * @author semancik
+ * The processor that takes care of user activation mapping to an account (outbound direction).
+ * 
+ * @author Radovan Semancik
  */
 @Component
 public class ActivationProcessor {

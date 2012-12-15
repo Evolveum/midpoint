@@ -60,8 +60,11 @@ import java.util.List;
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 /**
- * @author semancik
- *
+ * Processor that determines values of account attributes. It does so by taking the pre-processed information left
+ * behind by the assignment processor. It also does some checks, such as check of identifier uniqueness. It tries to
+ * do several iterations over the value computations if a conflict is found (and this feature is enabled).
+ * 
+ * @author Radovan Semancik
  */
 @Component
 public class AccountValuesProcessor {
@@ -121,13 +124,22 @@ public class AccountValuesProcessor {
 			String iterationToken = formatIterationToken(iteration);
 			accountContext.setIterationToken(iterationToken);			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			
+			// Re-evaluates the values in the account constructions (including roles)
 			assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
+			
 			context.recompute();
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			
+			// Evaluates the values in outbound mappings
 			outboundProcessor.processOutbound(context, accountContext, result);
+			
 			context.recompute();
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
+			
+			// Merges the values together, processing exclusions and strong/weak mappings are needed
 			consolidationProcessor.consolidateValues(context, accountContext, result);
+			
 			if (CONSISTENCY_CHECKS) context.checkConsistence();
 	        context.recompute();
 	        if (CONSISTENCY_CHECKS) context.checkConsistence();

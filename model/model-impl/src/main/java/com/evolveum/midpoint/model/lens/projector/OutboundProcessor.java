@@ -70,7 +70,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author semancik
+ * Processor that evaluates values of the outbound mappings. It does not create the deltas yet. It just collects the
+ * evaluated mappings in account context.
+ * 
+ * @author Radovan Semancik
  */
 @Component
 public class OutboundProcessor {

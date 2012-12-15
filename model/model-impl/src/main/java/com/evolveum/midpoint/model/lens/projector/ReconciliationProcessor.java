@@ -69,6 +69,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Processor that reconciles the computed account and the real account. There will be some deltas already computed from
+ * the other processors. This processor will compare the "projected" state of the account after application of the deltas
+ * to the actual (real) account with the result of the mappings. The differences will be expressed as additional 
+ * "reconciliation" deltas.
+ * 
  * @author lazyman
  * @author Radovan Semancik
  */
@@ -81,19 +86,6 @@ public class ReconciliationProcessor {
     public static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
-    /**
-     * we have two options:
-     * <ul>
-     * <li>we take account before change (oldAccount) from account sync context, no deltas and we compare
-     * it with everything that is in zero delta set triples</li>
-     * <li>we take account before change (oldAccount) from account sync context, we apply deltas and then
-     * we compare it with everything that is in zero and plus delta set triples</li>
-     * </ul>
-     *
-     * @param context
-     * @param result
-     * @throws SchemaException 
-     */
     <F extends ObjectType, P extends ObjectType> void processReconciliation(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {

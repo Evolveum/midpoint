@@ -48,7 +48,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 /**
- * @author semancik
+ * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies 
+ * and mappings to derive all the other data. E.g. a context with only a user (primary) delta. It applies user template,
+ * outbound mappings and the inbound mappings and then inbound and outbound mappings of other accounts and so on until
+ * all the data are computed. The output is the original context with all the computed delta.
+ * 
+ * Primary deltas are in the input, secondary deltas are computed in projector. Projector "projects" primary deltas to
+ * the secondary deltas of user and accounts.
+ * 
+ * Projector does NOT execute the deltas. It only recomputes the context. It may read a lot of objects (user, accounts, policies).
+ * But it does not change any of them.
+ * 
+ * @author Radovan Semancik
  *
  */
 @Component
@@ -95,6 +106,9 @@ public class Projector {
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
 		result.addContext("executionWave", context.getExecutionWave());
 		
+		// Projector is using a set of "processors" to do parts of its work. The processors will be called in seqence
+		// in the following code.
+		
 		try {
 		
 			contextLoader.load(context, activityDescription, result);
@@ -112,6 +126,9 @@ public class Projector {
 	        LOGGER.trace("Staring the waves. There will be {} waves (or so we think now)", maxWaves);
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
+	    
+	        	// Process the user-related aspectes of the context. That means inbound, user policy
+	        	// and assignments.
 	        	
 	        	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        // Loop through the account changes, apply inbound expressions
@@ -138,6 +155,7 @@ public class Projector {
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
+		        // User-related processing is over. Now we will process accounts in a loop.
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
 		        		continue;
@@ -152,6 +170,7 @@ public class Projector {
 		        	
 		        	if (CONSISTENCY_CHECKS) context.checkConsistence();
 		        	
+		        	// This is a "composite" processor. it contains several more processor invocations inside
 		        	accountValuesProcessor.process(context, projectionContext, activityDescription, result);
 		        	
 		        	if (CONSISTENCY_CHECKS) context.checkConsistence();

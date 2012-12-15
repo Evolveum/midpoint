@@ -71,7 +71,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Processor that takes changes from synchronization and updates user attributes if necessary
+ * Processor that takes changes from accounts and synchronization deltas and updates user attributes if necessary
  * (by creating secondary user object delta {@link ObjectDelta}).
  *
  * @author lazyman
