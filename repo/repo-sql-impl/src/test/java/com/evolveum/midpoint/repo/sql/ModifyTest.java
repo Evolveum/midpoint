@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.hibernate.Session;
 import org.hibernate.metadata.ClassMetadata;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -57,6 +58,7 @@ import java.util.*;
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);

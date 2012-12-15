@@ -30,9 +30,10 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
-
-import java.lang.Exception;
 
 /**
  * @author lazyman
@@ -48,18 +49,36 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     protected SessionFactory factory;
 
+    @BeforeClass
+    public void beforeClass() {
+        System.out.print("\n\n\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
+        LOGGER.info("\n\n\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
+    }
+
+    @AfterClass
+    public void afterClass() {
+        System.out.print(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<\n");
+        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[]{getClass().getName()});
+    }
+
     @BeforeMethod
-    public void beforeClass() throws Exception{
+    public void beforeMethod() throws Exception {
         testDatabase(factory);
     }
 
     private void testDatabase(SessionFactory sessionFactory) throws Exception {
         Session session = sessionFactory.openSession();
         try {
+            TestSqlRepositoryFactory sqlRepoFactory = applicationContext.getBean(TestSqlRepositoryFactory.class);
+            AssertJUnit.assertNotNull(sqlRepoFactory);
+            AssertJUnit.assertNotNull(sqlRepoFactory.getSqlConfiguration());
+
+            LOGGER.info("jdbc url: {}", new Object[]{sqlRepoFactory.getSqlConfiguration().getJdbcUrl()});
+
             session.beginTransaction();
             for (RContainerType type : RContainerType.values()) {
                 long count = (Long) session.createQuery("select count(*) from " + type.getClazz().getSimpleName()).uniqueResult();
-                LOGGER.info(">>> " + type.getClazz().getSimpleName() + " " + count);
+                LOGGER.info(">>> {} {}", new Object[]{type.getClazz().getSimpleName(), count});
 //                AssertJUnit.assertEquals(0L, count);
             }
             session.getTransaction().commit();

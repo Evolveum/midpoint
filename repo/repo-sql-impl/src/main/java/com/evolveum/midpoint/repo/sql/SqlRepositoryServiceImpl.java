@@ -389,21 +389,24 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	}
 
-	private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
-			Session session) throws SchemaException {
+    private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
+                                                                Session session) throws SchemaException {
 
-		Criteria query = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
-				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+//		Criteria query = session.createCriteria(ROrgClosure.class).createCriteria("descendant", "desc")
+//				.setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", descendantOid));
+        Criteria query = session.createCriteria(ROrgClosure.class);
+        Criteria desc = query.createCriteria("descendant", "desc");
+        query.setFetchMode("descendant", FetchMode.JOIN);
+        desc.add(Restrictions.eq("oid", descendantOid));
 
-		// query.
-		List<ROrgClosure> results = query.list();
-		for (ROrgClosure o : results) {
-			session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth() + 1));
-		}
+        // query.
+        List<ROrgClosure> results = query.list();
+        for (ROrgClosure o : results) {
+            session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth() + 1));
+        }
+    }
 
-	}
-
-	@Override
+    @Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");

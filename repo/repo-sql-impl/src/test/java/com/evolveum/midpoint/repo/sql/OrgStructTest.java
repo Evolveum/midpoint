@@ -37,10 +37,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@ContextConfiguration(locations = {"classpath:ctx-sql-no-server-mode-test.xml",
+@ContextConfiguration(locations = {"classpath:ctx-sql-server-mode-test.xml",
         "classpath:ctx-repository.xml", "classpath:ctx-repo-cache.xml",
         "classpath:ctx-configuration-sql-test.xml"})
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgStructTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/orgstruct");
@@ -439,9 +439,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     }
 
-
     @Test
-    public void megaSimpleOrgTest() {
+    public void test010megaSimpleTest() {
+        LOGGER.info("===[test010megaSimpleTest]===");
         RUser user = new RUser();
         user.setName(new RPolyString("vilko", "vilko"));
         Set<REmbeddedReference> refs = new HashSet<REmbeddedReference>();

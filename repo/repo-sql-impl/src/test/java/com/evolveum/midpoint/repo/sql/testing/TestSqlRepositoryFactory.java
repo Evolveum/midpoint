@@ -93,7 +93,5 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
 }
 
 //todo move somewhere else...
-// mvn clean install -D-Dmidpoint.home=target -Dembedded=false -DdriverClassName=org.postgresql.Driver
-// -DhibernateHbm2ddl=update -DhibernateDialect=org.hibernate.dialect.PostgreSQLDialect -DjdbcPassword=midpoint
-// -DjdbcUsername=midpoint -DjdbcUrl=jdbc:postgresql://localhost:5432/testing -P default -o
-
+//mvn clean install -P default -o -D-Dmidpoint.home=target -Dembedded=false -DdriverClassName=org.postgresql.Driver -DhibernateHbm2ddl=update -DhibernateDialect=org.hibernate.dialect.PostgreSQLDialect -DjdbcPassword=midpoint -DjdbcUsername=midpoint -DjdbcUrl=jdbc:postgresql://localhost:5432/testing
+//mvn clean install -P default -o -D-Dmidpoint.home=target -Dembedded=false -DdriverClassName=com.mysql.jdbc.Driver -DhibernateHbm2ddl=update -DhibernateDialect=org.hibernate.dialect.MySQL5InnoDBDialect -DjdbcPassword=midpoint -DjdbcUsername=midpoint -DjdbcUrl=jdbc:mysql://localhost:3306/testing

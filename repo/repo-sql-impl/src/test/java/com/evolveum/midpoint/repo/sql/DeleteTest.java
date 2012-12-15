@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -40,10 +41,11 @@ import java.util.List;
  * @author lazyman
  */
 @ContextConfiguration(locations = {
-        "../../../../../ctx-sql-no-server-mode-test.xml",
+        "../../../../../ctx-sql-server-mode-test.xml",
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DeleteTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/");

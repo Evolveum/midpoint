@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -44,7 +46,9 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -53,10 +57,11 @@ import static org.testng.AssertJUnit.assertNull;
  * @author lazyman
  */
 @ContextConfiguration(locations = {
-        "../../../../../ctx-sql-no-server-mode-test.xml",
+        "../../../../../ctx-sql-server-mode-test.xml",
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources");
@@ -69,8 +74,17 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     @Test
     public void listExistingOwner() throws Exception {
-        OperationResult result = new OperationResult("LIST OWNER");
+        OperationResult result = new OperationResult("List owner");
 
+        //insert sample data
+        final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
+        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
+        for (int i = 0; i < elements.size(); i++) {
+            PrismObject object = elements.get(i);
+            repositoryService.addObject(object, result);
+        }
+
+        //look for account owner
         PrismObject<UserType> user = repositoryService.listAccountShadowOwner("1234", result);
 
         assertNotNull("No owner for account 1234", user);
@@ -79,7 +93,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals("atestuserX00003", ((PolyString) name.getRealValue()).getOrig());
     }
 
-    @Test//(expectedExceptions = ObjectNotFoundException.class)
+    @Test
     public void listNonExistingOwner() throws Exception {
         OperationResult result = new OperationResult("LIST OWNER");
 

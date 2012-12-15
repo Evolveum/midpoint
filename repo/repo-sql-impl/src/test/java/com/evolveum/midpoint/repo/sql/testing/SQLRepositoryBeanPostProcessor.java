@@ -24,7 +24,6 @@ package com.evolveum.midpoint.repo.sql.testing;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Query;
@@ -35,7 +34,6 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.testng.AssertJUnit;
 
 /**
  * @author lazyman
@@ -59,14 +57,11 @@ public class SQLRepositoryBeanPostProcessor implements BeanPostProcessor, Applic
             LOGGER.info(">>>>>> post process: " + bean.getClass().getName());
         }
 
-//        if (1==1)return bean;
-
         if (!(bean instanceof SessionFactory)) {
             return bean;
         }
         LOGGER.info("Postprocessing test sql repository factory initialization.");
 
-//        SqlRepositoryFactory factory = (SqlRepositoryFactory) bean;
         TestSqlRepositoryFactory factory = context.getBean("sqlRepositoryFactory", TestSqlRepositoryFactory.class);
         //we'll attempt to drop database objects if configuration contains dropIfExists=true and embedded=false
         SqlRepositoryConfiguration config = factory.getSqlConfiguration();
@@ -77,7 +72,6 @@ public class SQLRepositoryBeanPostProcessor implements BeanPostProcessor, Applic
 
         LOGGER.info("Deleting objects from database.");
 
-//        SessionFactory sessionFactory = context.getBean(BEAN_SESSION_FACTORY, SessionFactory.class);
         SessionFactory sessionFactory = (SessionFactory) bean;
         Session session = sessionFactory.openSession();
         try {
@@ -94,27 +88,7 @@ public class SQLRepositoryBeanPostProcessor implements BeanPostProcessor, Applic
             session.close();
         }
 
-        testDatabase(sessionFactory);
-
         return bean;
-    }
-
-    private void testDatabase(SessionFactory sessionFactory) {
-        Session session = sessionFactory.openSession();
-        try {
-            session.beginTransaction();
-            for (RContainerType type : RContainerType.values()) {
-                long count = (Long) session.createQuery("select count(*) from " + type.getClazz().getSimpleName()).uniqueResult();
-                LOGGER.info(">>> " + type.getClazz().getSimpleName() + " " + count);
-                AssertJUnit.assertEquals(0L, count);
-            }
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-            session.getTransaction().rollback();
-            throw new BeanInitializationException(ex.getMessage(), ex);
-        } finally {
-            session.close();
-        }
     }
 
     @Override

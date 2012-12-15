@@ -28,6 +28,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
@@ -40,10 +41,11 @@ import static org.testng.AssertJUnit.assertNotNull;
  * @author lazyman
  */
 @ContextConfiguration(locations = {
-        "../../../../../ctx-sql-no-server-mode-test.xml",
+        "../../../../../ctx-sql-server-mode-test.xml",
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SpringApplicationContextTest extends BaseSQLRepoTest {
 
     @Autowired

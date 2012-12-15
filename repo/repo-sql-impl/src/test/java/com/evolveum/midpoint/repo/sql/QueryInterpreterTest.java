@@ -46,6 +46,7 @@ import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -62,10 +63,11 @@ import java.io.FileNotFoundException;
  * @author lazyman
  */
 @ContextConfiguration(locations = {
-        "../../../../../ctx-sql-no-server-mode-test.xml",
+        "../../../../../ctx-sql-server-mode-test.xml",
         "../../../../../ctx-repository.xml",
         "classpath:ctx-repo-cache.xml",
         "../../../../../ctx-configuration-sql-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest.class);

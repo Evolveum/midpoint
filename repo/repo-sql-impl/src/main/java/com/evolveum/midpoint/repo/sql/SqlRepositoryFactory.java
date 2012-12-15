@@ -348,8 +348,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private void removeFile(File file) throws IOException {
         if (file.exists()) {
-            LOGGER.info("Deleting file '{}'", new Object[]{file.getAbsolutePath()});
-            file.delete();
+            LOGGER.info("Deleting file '{}', result: {}", new Object[]{file.getAbsolutePath(), file.delete()});
+        } else {
+            LOGGER.info("File '{}' doesn't exist.", new Object[]{file.getAbsolutePath(), file.delete()});
         }
     }
 }
