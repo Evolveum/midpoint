@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+
+    <object xsi:type="UserType" version="1"
+            
+            xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+            xmlns:p="http://example.com/p">
+
+        <extension>
+            <p:shipName>user boad</p:shipName>
+        </extension>
+        <name>user assignment extension</name>
+        <fullName>
+            <t:orig>Test UserX00002</t:orig>
+            <t:norm>test userx00002</t:norm>
+        </fullName>
+        <givenName>
+            <t:orig>TestX</t:orig>
+            <t:norm>testx</t:norm>
+        </givenName>
+        <familyName>
+            <t:orig>UserX00002</t:orig>
+            <t:norm>userx00002</t:norm>
+        </familyName>
+        <emailAddress>testuserX00002@example.com</emailAddress>
+        <locality>
+            <t:orig>AreaX 00002</t:orig>
+            <t:norm>areax 00002</t:norm>
+        </locality>
+        <employeeNumber>en1234</employeeNumber>
+        <credentials>
+            <password>
+                <value>
+                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
+                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
+                        <ds:KeyInfo>
+                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+                        </ds:KeyInfo>
+                        <enc:CipherData>
+                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
+                            </enc:CipherValue>
+                        </enc:CipherData>
+                    </enc:EncryptedData>
+                </value>
+            </password>
+            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+        </credentials>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+        <assignment id="1">
+            <accountConstruction>
+                <description>
+                    Account construction.
+                </description>
+                <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
+                <type>default</type>
+            </accountConstruction>
+        </assignment>
+        <assignment>
+            <extension>
+                <p:shipName>assignment boat</p:shipName>
+            </extension>
+            <targetRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
+        </assignment>
+    </object>
+</objects>

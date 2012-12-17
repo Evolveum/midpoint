@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<user version="1" oid="f65963e3-9d47-4b18-aaf3-000000000000"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <name>concurrentModifyUser</name>
+    <fullName>
+        <t:orig>Test UserX00002</t:orig>
+        <t:norm>test userx00002</t:norm>
+    </fullName>
+    <givenName></givenName>
+    <familyName></familyName>
+    <emailAddress>testuserX00002@example.com</emailAddress>
+    <locality>
+        <t:orig>L</t:orig>
+        <t:norm>l</t:norm>
+    </locality>
+    <employeeNumber>en1234</employeeNumber>
+</user>

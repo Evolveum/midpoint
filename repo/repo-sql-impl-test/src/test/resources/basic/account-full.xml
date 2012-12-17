@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+<account 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"	
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <name>hbarbossa</name>
+        <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
+        <objectClass>ri:AccountObjectClass</objectClass>
+        <dead>false</dead>
+        <attributes>
+            <icfs:uid>8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+            <icfs:name>uid=hbarbossa,ou=people,dc=example,dc=com</icfs:name>
+            <ri:cn>Hector Barbossa</ri:cn>
+            <ri:sn>Barbossa</ri:sn>
+            <ri:uid>hbarbossa</ri:uid>
+        </attributes>
+        <activation>
+            <enabled>true</enabled>
+        </activation>
+        <synchronizationSituation>linked</synchronizationSituation>
+        <synchronizationSituationDescription>
+        	<situation>linked</situation>
+        	<channel>syncChannel</channel>
+        </synchronizationSituationDescription>
+</account>
