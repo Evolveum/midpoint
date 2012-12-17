@@ -184,7 +184,7 @@ public class InboundProcessor {
                     		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
                 } else if (accountOld != null) {
                 	if (!accContext.isFullShadow()) {
-                		throw new SystemException("Attept to execute inbound expression on account shadow (not full account)");
+                		throw new SystemException("Attempt to execute inbound expression on account shadow (not full account)");
                 	}
                     LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
                     PrismProperty<?> oldAccountProperty = accountOld.findProperty(new ItemPath(AccountShadowType.F_ATTRIBUTES, accountAttributeName));
@@ -287,7 +287,7 @@ public class InboundProcessor {
     	//                  the differences will be added to delta
     	
     	if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Inbound value constrution for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
+    		LOGGER.trace("Inbound value construction for {} returned triple:\n{}", accountAttributeName, triple == null ? "null" : triple.debugDump());
     	}
         
     	if (triple != null) {

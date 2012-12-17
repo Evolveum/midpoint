@@ -36,6 +36,11 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -55,11 +60,6 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -90,17 +90,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
  * @author semancik
@@ -1421,8 +1410,103 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
-	@Test
+
+    /**
+     * We try to modify an assignment of the account and see whether changes will be recorded in the account itself.
+     *
+     * Temporarily disabled, as currently fails due to audit service limitation ("java.lang.UnsupportedOperationException: ID not supported in Xpath yet").
+     */
+    @Test(enabled = false)
+    public void test161ModifyUserJackModifyAssignment() throws Exception {
+        displayTestTile(this, "test161ModifyUserJackModifyAssignment");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test161ModifyUserJackModifyAssignment");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        dummyAuditService.clear();
+
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+
+        //PrismPropertyDefinition definition = getAssignmentDefinition().findPropertyDefinition(new QName(SchemaConstantsGenerated.NS_COMMON, "accountConstruction"));
+
+        PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
+        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(dummyResource, prismContext);
+        PrismContainerDefinition accountDefinition = refinedSchema.getAccountDefinition((String) null);
+        PrismPropertyDefinition drinkDefinition = accountDefinition.findPropertyDefinition(new QName(
+                "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+        assertNotNull("drink attribute definition not found", drinkDefinition);
+
+        AccountConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
+        ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
+        radt.setRef(drinkDefinition.getName());
+        MappingType outbound = new MappingType();
+        radt.setOutbound(outbound);
+
+        ExpressionType expression = new ExpressionType();
+        outbound.setExpression(expression);
+
+        MappingType value = new MappingType();
+
+        PrismProperty property = drinkDefinition.instantiate();
+        property.add(new PrismPropertyValue<String>("soda"));
+
+        List evaluators = expression.getExpressionEvaluator();
+        Collection<?> collection = LiteralExpressionEvaluatorFactory.serializeValueElements(property, null);
+        ObjectFactory of = new ObjectFactory();
+        for (Object obj : collection) {
+            evaluators.add(of.createValue(obj));
+        }
+
+        value.setExpression(expression);
+        radt.setOutbound(value);
+        ObjectDelta<UserType> accountAssignmentUserDelta =
+                createReplaceAccountConstructionUserDelta(USER_JACK_OID, "1", accountConstruction);
+        deltas.add(accountAssignmentUserDelta);
+
+        PrismObject<UserType> userJackOld = getUser(USER_JACK_OID);
+        display("User before change execution", userJackOld);
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack, "Jack Sparrow");
+        accountOid = getSingleUserAccountRef(userJack);
+
+        // Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
+
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
+
+        // Check account in dummy resource
+        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
+        DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "soda");
+        //assertEquals("Missing or incorrect attribute value", "soda", dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class));
+
+//        // Check audit
+//        display("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+//        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
+//        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+//        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+//        dummyAuditService.assertExecutionSuccess();
+    }
+
+    @Test
     public void test165ModifyUserJack() throws Exception {
         displayTestTile(this, "test165ModifyUserJack");
 

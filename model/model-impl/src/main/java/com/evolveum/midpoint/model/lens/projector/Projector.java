@@ -106,7 +106,7 @@ public class Projector {
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
 		result.addContext("executionWave", context.getExecutionWave());
 		
-		// Projector is using a set of "processors" to do parts of its work. The processors will be called in seqence
+		// Projector is using a set of "processors" to do parts of its work. The processors will be called in sequence
 		// in the following code.
 		
 		try {
@@ -127,7 +127,7 @@ public class Projector {
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
 	    
-	        	// Process the user-related aspectes of the context. That means inbound, user policy
+	        	// Process the user-related aspects of the context. That means inbound, user policy
 	        	// and assignments.
 	        	
 	        	if (CONSISTENCY_CHECKS) context.checkConsistence();
@@ -255,7 +255,7 @@ public class Projector {
 			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 			LensProjectionContext<P> dependencyAccountContext = context.findProjectionContext(refRat);
 			if (dependencyAccountContext == null) {
-				throw new PolicyViolationException("Unsatisdied dependency of account "+accountContext.getResourceShadowDiscriminator()+
+				throw new PolicyViolationException("Unsatisfied dependency of account "+accountContext.getResourceShadowDiscriminator()+
 						" dependent on "+refRat+": Account not provisioned");
 			}
 			determineAccountWave(context, dependencyAccountContext);

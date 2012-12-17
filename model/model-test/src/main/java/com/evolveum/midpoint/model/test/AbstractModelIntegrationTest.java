@@ -38,6 +38,9 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.schema.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
@@ -58,20 +61,6 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -92,10 +81,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -535,6 +520,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		accountConstructionType.setIntent(intent);
 		return assignmentDelta;
 	}
+
+    protected AccountConstructionType createAccountConstruction(String resourceOid, String intent) throws SchemaException {
+        AccountConstructionType accountConstructionType = new AccountConstructionType();
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.setOid(resourceOid);
+        accountConstructionType.setResourceRef(resourceRef);
+        accountConstructionType.setIntent(intent);
+        return accountConstructionType;
+    }
+
+    protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, String id, AccountConstructionType newValue) throws SchemaException {
+        PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(new QName(SchemaConstantsGenerated.NS_COMMON, "accountConstruction"));
+        PropertyDelta<AccountConstructionType> acDelta =
+                PropertyDelta.createModificationReplaceProperty(
+                        new ItemPath(new NameItemPathSegment(AssignmentType.COMPLEX_TYPE), new IdItemPathSegment(id), new NameItemPathSegment(AccountConstructionType.COMPLEX_TYPE)),
+                        ppd,
+                        newValue);
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+        modifications.add(acDelta);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+        return userDelta;
+    }
 	
 	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, String intent, boolean add) throws SchemaException {
 		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
@@ -821,8 +829,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
-	
-	protected PrismObjectDefinition<ResourceType> getResourceDefinition() {
+
+    protected PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
+        return prismContext.getSchemaRegistry().findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
+    }
+
+    protected PrismObjectDefinition<ResourceType> getResourceDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 	}
 	

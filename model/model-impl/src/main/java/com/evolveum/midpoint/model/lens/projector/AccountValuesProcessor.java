@@ -174,7 +174,7 @@ public class AccountValuesProcessor {
 	        	if (iteration == 1) {
 	        		sb.append(": constraint violation: ");
 	        	} else {
-	        		sb.append(": cannot determine valuest that satisfy constraints: ");
+	        		sb.append(": cannot determine values that satisfy constraints: ");
 	        	}
 	        	sb.append(checker.getMessages());
 	        	throw new ObjectAlreadyExistsException(sb.toString());
