@@ -82,11 +82,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
  * @author lazyman
  */
 
-@ContextConfiguration(locations = {"classpath:ctx-model-unit-test.xml",
-        "classpath:ctx-model.xml",
-        "classpath:ctx-configuration-test-no-repo.xml",
-        "classpath:ctx-task.xml",
-        "classpath:ctx-audit.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-model-test-no-repo.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 

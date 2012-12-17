@@ -63,11 +63,7 @@ import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
  * @author lazyman
  * 
  */
-@ContextConfiguration(locations = { "classpath:ctx-model.xml",
-		"classpath:ctx-model-unit-test.xml",
-		"classpath:ctx-configuration-test-no-repo.xml",
-		"classpath:ctx-task.xml",
-		"classpath:ctx-audit.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller");
