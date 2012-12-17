@@ -28,6 +28,7 @@
 		</encoder>
 	</appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+    <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
 	<logger name="PROFILING" level="TRACE" />
 	<root level="TRACE">
 		<appender-ref ref="X" />

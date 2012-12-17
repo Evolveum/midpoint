@@ -33,5 +33,5 @@
 
     <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
 
-    <import resource="ctx-repository-session.xml"/>
+    <import resource="classpath:ctx-repository-session.xml"/>
 </beans>

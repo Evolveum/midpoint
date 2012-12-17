@@ -93,7 +93,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-task-test.xml",
         "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-repository.xml",
+        "classpath*:ctx-repository.xml",
         "classpath:ctx-audit.xml",
         "classpath:ctx-configuration-test.xml"})
 public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTests {
