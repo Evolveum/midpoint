@@ -64,6 +64,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME = "drink";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE2_NAME = "quote2";
 	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;

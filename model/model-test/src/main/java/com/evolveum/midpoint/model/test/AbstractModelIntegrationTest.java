@@ -531,10 +531,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectDelta<UserType> createReplaceAccountConstructionUserDelta(String userOid, String id, AccountConstructionType newValue) throws SchemaException {
-        PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(new QName(SchemaConstantsGenerated.NS_COMMON, "accountConstruction"));
+        PrismPropertyDefinition ppd = getAssignmentDefinition().findPropertyDefinition(AssignmentType.F_ACCOUNT_CONSTRUCTION);
         PropertyDelta<AccountConstructionType> acDelta =
                 PropertyDelta.createModificationReplaceProperty(
-                        new ItemPath(new NameItemPathSegment(AssignmentType.COMPLEX_TYPE), new IdItemPathSegment(id), new NameItemPathSegment(AccountConstructionType.COMPLEX_TYPE)),
+                        new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT), new IdItemPathSegment(id), new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION)),
                         ppd,
                         newValue);
 

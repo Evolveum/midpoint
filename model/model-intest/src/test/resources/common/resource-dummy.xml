@@ -106,6 +106,7 @@
                   <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="quote2" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -252,8 +253,13 @@
 					</expression>
 				</outbound>
 			</attribute>
-			
-			<credentials>
+            <attribute>
+                <ref>ri:quote2</ref>
+                <displayName>Quote2</displayName>
+                <tolerant>true</tolerant>
+            </attribute>
+
+            <credentials>
                 <password>
                     <outbound>
                     	<strength>weak</strength>

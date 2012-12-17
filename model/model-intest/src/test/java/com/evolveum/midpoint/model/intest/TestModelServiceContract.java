@@ -1416,7 +1416,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      *
      * Temporarily disabled, as currently fails due to audit service limitation ("java.lang.UnsupportedOperationException: ID not supported in Xpath yet").
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test161ModifyUserJackModifyAssignment() throws Exception {
         displayTestTile(this, "test161ModifyUserJackModifyAssignment");
 
@@ -1433,14 +1433,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(dummyResource, prismContext);
         PrismContainerDefinition accountDefinition = refinedSchema.getAccountDefinition((String) null);
-        PrismPropertyDefinition drinkDefinition = accountDefinition.findPropertyDefinition(new QName(
+        PrismPropertyDefinition quote2Definition = accountDefinition.findPropertyDefinition(new QName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
-        assertNotNull("drink attribute definition not found", drinkDefinition);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE2_NAME));
+        assertNotNull("drink attribute definition not found", quote2Definition);
 
         AccountConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
-        radt.setRef(drinkDefinition.getName());
+        radt.setRef(quote2Definition.getName());
         MappingType outbound = new MappingType();
         radt.setOutbound(outbound);
 
@@ -1449,8 +1449,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         MappingType value = new MappingType();
 
-        PrismProperty property = drinkDefinition.instantiate();
-        property.add(new PrismPropertyValue<String>("soda"));
+        PrismProperty property = quote2Definition.instantiate();
+        property.add(new PrismPropertyValue<String>("q"));
 
         List evaluators = expression.getExpressionEvaluator();
         Collection<?> collection = LiteralExpressionEvaluatorFactory.serializeValueElements(property, null);
@@ -1491,7 +1491,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "soda");
+        display(dummyAccount.debugDump());
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE2_NAME, "q");
         //assertEquals("Missing or incorrect attribute value", "soda", dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class));
 
 //        // Check audit
