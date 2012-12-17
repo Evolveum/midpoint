@@ -19,12 +19,22 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.testing;
+package com.evolveum.midpoint.test;
+
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 
 /**
+ * Simple mock identifier generator to satisfy spring dependencies.
+ *
  * @author lazyman
  */
-public class TestRepositoryFactory {
+public class LightweightIdentifierGeneratorMock implements LightweightIdentifierGenerator {
 
+    private int sequence;
 
+    @Override
+    public LightweightIdentifier generate() {
+        return new LightweightIdentifier(System.currentTimeMillis(), 0, ++sequence);
+    }
 }
