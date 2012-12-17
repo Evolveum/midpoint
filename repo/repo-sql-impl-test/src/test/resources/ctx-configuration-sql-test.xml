@@ -61,7 +61,7 @@
           factory-method="getProtector" />
 
     <bean name="lightweightIdentifierGenerator"
-          class="com.evolveum.midpoint.test.LightweightIdentifierGeneratorMock"/>
+          class="com.evolveum.midpoint.repo.sql.testing.LightweightIdentifierGeneratorMock"/>
 
 </beans>
 
