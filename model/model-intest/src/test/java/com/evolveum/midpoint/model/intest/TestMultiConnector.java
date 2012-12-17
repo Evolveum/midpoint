@@ -112,13 +112,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model.xml",
-        "classpath:ctx-repository.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-configuration-test.xml",
-        "classpath:ctx-provisioning.xml",
-        "classpath:ctx-task.xml",
-		"classpath:ctx-audit.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 			
