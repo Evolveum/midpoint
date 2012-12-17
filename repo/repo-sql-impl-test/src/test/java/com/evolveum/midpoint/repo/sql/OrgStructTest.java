@@ -57,9 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@ContextConfiguration(locations = {"classpath:ctx-sql-server-mode-test.xml",
-        "classpath:ctx-repository.xml", "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-configuration-sql-test.xml"})
+@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgStructTest extends BaseSQLRepoTest {
 

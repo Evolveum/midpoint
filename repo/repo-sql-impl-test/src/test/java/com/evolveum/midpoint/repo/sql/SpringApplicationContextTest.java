@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
+import com.evolveum.midpoint.util.ClassPathUtil;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +32,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {
-        "../../../../../ctx-sql-server-mode-test.xml",
-        "../../../../../ctx-repository.xml",
-        "classpath:ctx-repo-cache.xml",
-        "../../../../../ctx-configuration-sql-test.xml"})
+@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SpringApplicationContextTest extends BaseSQLRepoTest {
 
@@ -59,8 +57,8 @@ public class SpringApplicationContextTest extends BaseSQLRepoTest {
         configuration.setProperties(sessionFactory.getHibernateProperties());
         System.out.println("Dialect: " + sessionFactory.getHibernateProperties().getProperty("hibernate.dialect"));
 
-        addAnnotatedClasses("com/evolveum/midpoint/repo/sql/data/common", configuration);
-        addAnnotatedClasses("com/evolveum/midpoint/repo/sql/data/audit", configuration);
+        addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.common", configuration);
+        addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.audit", configuration);
 
         configuration.addPackage("com.evolveum.midpoint.repo.sql.type");
 
@@ -70,19 +68,10 @@ public class SpringApplicationContextTest extends BaseSQLRepoTest {
         export.execute(true, false, false, true);
     }
 
-    private void addAnnotatedClasses(String packagePath, Configuration configuration) throws ClassNotFoundException {
-        File parent = new File("./src/main/java");
-        File dir = new File(parent, packagePath);
-        File[] files = dir.listFiles();
-
-        String packageName = packagePath.replaceAll("/", ".") + ".";
-
-        for (File file : files) {
-            if (file.isDirectory() || !file.getName().endsWith("java")) {
-                continue;
-            }
-            String className = packageName + file.getName().substring(0, file.getName().length() - 5);
-            configuration.addAnnotatedClass(Class.forName(className));
+    private void addAnnotatedClasses(String packageName, Configuration configuration) throws ClassNotFoundException {
+        Set<Class> classes = ClassPathUtil.listClasses(packageName);
+        for (Class clazz : classes) {
+            configuration.addAnnotatedClass(clazz);
         }
     }
 }

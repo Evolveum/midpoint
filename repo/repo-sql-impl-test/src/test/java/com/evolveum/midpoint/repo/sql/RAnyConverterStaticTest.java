@@ -46,11 +46,7 @@ import javax.xml.namespace.QName;
  * @author lazyman
  */
 
-@ContextConfiguration(locations = {
-        "../../../../../ctx-sql-server-mode-test.xml",
-        "../../../../../ctx-repository.xml",
-        "classpath:ctx-repo-cache.xml",
-        "../../../../../ctx-configuration-sql-test.xml"})
+@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 

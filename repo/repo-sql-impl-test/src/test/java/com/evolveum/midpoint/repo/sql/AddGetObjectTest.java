@@ -52,8 +52,6 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AddGetObjectTest extends BaseSQLRepoTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/");
-
     private static final Trace LOGGER = TraceManager.getTrace(AddGetObjectTest.class);
 
     @Test(enabled = false)
@@ -85,7 +83,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     @Test
     public void addSameName() throws Exception {
-        final File user = new File("./src/test/resources/objects-user.xml");
+        final File user = new File(FOLDER_BASIC, "objects-user.xml");
         addGetCompare(user);
         try {
             // WHEN
@@ -119,7 +117,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void simpleAddGetTest() throws Exception {
         LOGGER.info("===[ simpleAddGetTest ]===");
-        final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
+        final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
         addGetCompare(OBJECTS_FILE);
     }
 
@@ -233,7 +231,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void addUserWithAssignmentExtension() throws Exception {
         LOGGER.info("===[ addUserWithAssignmentExtension ]===");
-        File file = new File("./src/test/resources/user-assignment-extension.xml");
+        File file = new File(FOLDER_BASIC, "user-assignment-extension.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
 
         OperationResult result = new OperationResult("ADD");
@@ -263,11 +261,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void addGetFullAccount() throws Exception {
         LOGGER.info("===[ addGetFullAccount ]===");
-        File file = new File("./src/test/resources/account-full.xml");
-        PrismObject<AccountShadowType> fileAccount = prismContext.parseObject(new File(TEST_DIR, "account-full.xml"));
+        File file = new File(FOLDER_BASIC, "account-full.xml");
+        PrismObject<AccountShadowType> fileAccount = prismContext.parseObject(new File(FOLDER_BASIC, "account-full.xml"));
 
         // apply appropriate schema
-        PrismObject<ResourceType> resource = prismContext.parseObject(new File(TEST_DIR, "resource-opendj.xml"));
+        PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         ResourceObjectShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
@@ -292,8 +290,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void addGetSystemConfigFile() throws Exception {
         LOGGER.info("===[ addGetPasswordPolicy ]===");
-        File file = new File("./src/test/resources/password-policy.xml");
-        PrismObject<AccountShadowType> filePasswordPolicy = prismContext.parseObject(new File(TEST_DIR, "password-policy.xml"));
+        File file = new File(FOLDER_BASIC, "password-policy.xml");
+        PrismObject<AccountShadowType> filePasswordPolicy = prismContext.parseObject(new File(FOLDER_BASIC, "password-policy.xml"));
 
         OperationResult result = new OperationResult("ADD");
         String pwdPolicyOid = "00000000-0000-0000-0000-000000000003";
@@ -304,7 +302,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(repoPasswordPolicy);
 
         String systemCongigOid = "00000000-0000-0000-0000-000000000001";
-        PrismObject<SystemConfigurationType> fileSystemConfig = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
+        PrismObject<SystemConfigurationType> fileSystemConfig = prismContext.parseObject(new File(FOLDER_BASIC, "systemConfiguration.xml"));
         LOGGER.info("System config from file: {}", fileSystemConfig.dump());
         oid = repositoryService.addObject(fileSystemConfig, result);
         AssertJUnit.assertNotNull(oid);

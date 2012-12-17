@@ -54,15 +54,9 @@ import static org.testng.AssertJUnit.assertNull;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {
-        "../../../../../ctx-sql-server-mode-test.xml",
-        "../../../../../ctx-repository.xml",
-        "classpath:ctx-repo-cache.xml",
-        "../../../../../ctx-configuration-sql-test.xml"})
+@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
-
-    private static final File TEST_DIR = new File("src/test/resources");
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -75,7 +69,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("List owner");
 
         //insert sample data
-        final File OBJECTS_FILE = new File("./src/test/resources/objects.xml");
+        final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
@@ -103,9 +97,9 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
     public void testLinkUnlink() throws Exception {
         // GIVEN
         OperationResult result = new OperationResult("testLinkUnlink");
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user.xml"));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
         String userOid = repositoryService.addObject(user, result);
-        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account-shadow.xml"));
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "account-shadow.xml"));
         String accountOid = repositoryService.addObject(account, result);
         // precondition
         PrismObject<UserType> accountOwnerOid = repositoryService.listAccountShadowOwner(accountOid, result);

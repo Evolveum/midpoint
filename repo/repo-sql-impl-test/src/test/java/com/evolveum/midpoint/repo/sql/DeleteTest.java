@@ -39,15 +39,10 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {
-        "../../../../../ctx-sql-server-mode-test.xml",
-        "../../../../../ctx-repository.xml",
-        "classpath:ctx-repo-cache.xml",
-        "../../../../../ctx-configuration-sql-test.xml"})
+@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DeleteTest extends BaseSQLRepoTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/");
     private static final Trace LOGGER = TraceManager.getTrace(DeleteTest.class);
 
     @Test
@@ -79,7 +74,7 @@ public class DeleteTest extends BaseSQLRepoTest {
 
     @Test
     public void delete0002() throws Exception {
-        PrismObject<SystemConfigurationType> configuration = prismContext.parseObject(new File(TEST_DIR, "systemConfiguration.xml"));
+        PrismObject<SystemConfigurationType> configuration = prismContext.parseObject(new File(FOLDER_BASIC, "systemConfiguration.xml"));
 
         OperationResult result = new OperationResult("add system configuration");
         final String oid = repositoryService.addObject(configuration, result);
