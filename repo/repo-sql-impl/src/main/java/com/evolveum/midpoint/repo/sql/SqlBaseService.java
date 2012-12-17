@@ -154,8 +154,8 @@ public class SqlBaseService {
             LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
                     + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
                     attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
         }

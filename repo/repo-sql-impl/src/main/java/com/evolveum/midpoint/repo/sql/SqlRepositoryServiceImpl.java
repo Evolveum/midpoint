@@ -322,10 +322,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			RContainerId containerId = (RContainerId) session.save(rObject);
 			oid = containerId.getOid();
 
-			if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
-				objectType.setOid(oid);
-				fillHierarchy(objectType, session);
-			}
+            if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
+                long time = System.currentTimeMillis();
+                LOGGER.debug("Org. structure closure table update started.");
+                objectType.setOid(oid);
+                fillHierarchy(objectType, session);
+                LOGGER.debug("Org. structure closure table update finished ({} ms).", new Object[]{(System.currentTimeMillis() - time)});
+            }
 
 			session.getTransaction().commit();
 
