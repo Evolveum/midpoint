@@ -119,14 +119,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
  * @author Radovan Semancik
  * @author Katka Valalikova
  */
-
-@ContextConfiguration(locations = { "classpath:ctx-provisioning.xml",
-		"classpath:ctx-provisioning-test.xml",
-		"classpath:ctx-task.xml",
-        "classpath:ctx-audit.xml",
-		"classpath:ctx-repository.xml",
-		"classpath:ctx-repo-cache.xml",
-		"classpath:ctx-configuration-test.xml" })
+@ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestOpenDJ extends AbstractOpenDJTest {
 	

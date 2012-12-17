@@ -102,9 +102,7 @@ import static org.testng.AssertJUnit.*;
  *         But due to a general issue with spring context initialization this is
  *         a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { "classpath:ctx-provisioning-test.xml",
-        "classpath:ctx-audit.xml",
-		"classpath:ctx-configuration-test-no-repo.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
 public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/object/resource-opendj.xml";

@@ -114,13 +114,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
  * Checking if appropriate errors are provided.
  */
 
-@ContextConfiguration(locations = { "classpath:ctx-provisioning.xml",
-		"classpath:ctx-provisioning-test.xml",
-		"classpath:ctx-task.xml",
-        "classpath:ctx-audit.xml",
-		"classpath:ctx-repository.xml",
-		"classpath:ctx-repo-cache.xml",
-		"classpath:ctx-configuration-test.xml" })
+@ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestOpenDJNegative extends AbstractOpenDJTest {
 	

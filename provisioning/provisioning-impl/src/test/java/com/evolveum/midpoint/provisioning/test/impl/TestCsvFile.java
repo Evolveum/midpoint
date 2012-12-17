@@ -81,13 +81,7 @@ import static org.testng.AssertJUnit.*;
  * @author Radovan Semancik
  * 
  */
-@ContextConfiguration(locations = { "classpath:ctx-provisioning.xml",
-		"classpath:ctx-provisioning-test.xml",
-		"classpath:ctx-task.xml",
-        "classpath:ctx-audit.xml",
-		"classpath:ctx-repository.xml",
-		"classpath:ctx-repo-cache.xml",
-		"classpath:ctx-configuration-test.xml" })
+@ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestCsvFile extends AbstractIntegrationTest {
 

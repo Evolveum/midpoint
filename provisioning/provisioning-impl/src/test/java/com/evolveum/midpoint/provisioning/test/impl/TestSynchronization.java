@@ -38,13 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
-@ContextConfiguration(locations = { "classpath:ctx-provisioning.xml",
-		"classpath:ctx-provisioning-test.xml",
-		"classpath:ctx-task.xml",
-        "classpath:ctx-audit.xml",
-		"classpath:ctx-repository.xml",
-		"classpath:ctx-repo-cache.xml",
-		"classpath:ctx-configuration-test.xml" })
+@ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestSynchronization extends AbstractIntegrationTest {
 

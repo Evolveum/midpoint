@@ -107,10 +107,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { 
-		"classpath:ctx-provisioning-test.xml",
-        "classpath:ctx-audit.xml",
-		"classpath:ctx-configuration-test-no-repo.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-provisioning-test-no-repo.xml" })
 public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/object/resource-dummy.xml";
