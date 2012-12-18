@@ -221,20 +221,29 @@ public class PageLogging extends PageAdminConfiguration {
             }
         });
 
-
         //level editing column
-        columns.add(new EditablePropertyColumn<LoggerConfiguration>(createStringResource("pageLogging.loggersLevel"),
-                "level") {
+        columns.add(new EditableLinkColumn<LoggerConfiguration>(createStringResource("pageLogging.loggersLevel"), "level") {
 
             @Override
-            protected InputPanel createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
+            protected Component createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
                         WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
                 FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
                 input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 input.add(new LevelValidator());
-            	return dropDownChoicePanel;
+                return dropDownChoicePanel;
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
+                loggerEditPerformed(target, rowModel);
+            }
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<LoggerConfiguration> rowModel) {
+                LoggerConfiguration configuration = rowModel.getObject();
+                return WebMiscUtil.createLocalizedModelForEnum(configuration.getLevel(), PageLogging.this);
             }
         });
 
@@ -331,11 +340,11 @@ public class PageLogging extends PageAdminConfiguration {
 
 
         //level editing column
-        columns.add(new EditablePropertyColumn<FilterConfiguration>(createStringResource("pageLogging.loggersLevel"),
+        columns.add(new EditableLinkColumn<FilterConfiguration>(createStringResource("pageLogging.loggersLevel"),
                 "level") {
 
             @Override
-            protected InputPanel createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
+            protected Component createInputPanel(String componentId, IModel<FilterConfiguration> model) {
                 DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                         new PropertyModel(model, getPropertyExpression()),
                         WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
@@ -343,7 +352,18 @@ public class PageLogging extends PageAdminConfiguration {
                 FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
                 input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 input.add(new LevelValidator());
-            	return dropDownChoicePanel;
+                return dropDownChoicePanel;
+            }
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<FilterConfiguration> rowModel) {
+                FilterConfiguration config = rowModel.getObject();
+                return WebMiscUtil.createLocalizedModelForEnum(config.getLevel(), PageLogging.this);
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
+                filterEditPerformed(target, rowModel);
             }
         });
 

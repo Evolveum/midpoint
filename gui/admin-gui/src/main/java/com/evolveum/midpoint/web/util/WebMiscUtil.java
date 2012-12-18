@@ -43,9 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -71,6 +73,11 @@ public final class WebMiscUtil {
     }
 
     private WebMiscUtil() {
+    }
+
+    public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
+        String key = value != null ? value.getClass().getSimpleName() + "." + value.name() : "";
+        return new StringResourceModel(key, comp, null);
     }
 
     public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(final Class<T> type) {
