@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -106,7 +107,12 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_ENABLE_USERS = DOT_CLASS + "enableUsers";
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
+
+    private static final String ID_FORCE_CHECK = "forceCheck";
+
     private LoadableModel<UsersDto> model;
+    //used for
+    private boolean forceAction = false;
 
     public PageUsers() {
         this(null);
@@ -231,6 +237,25 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         mainForm.add(delete);
+
+        //todo move model object to some dto and use PropertyModel
+        CheckBox forceCheck = new CheckBox(ID_FORCE_CHECK, new IModel<Boolean>() {
+
+            @Override
+            public Boolean getObject() {
+                return forceAction;
+            }
+
+            @Override
+            public void setObject(Boolean value) {
+                forceAction = value;
+            }
+
+            @Override
+            public void detach() {
+            }
+        });
+        mainForm.add(forceCheck);
     }
 
     private IModel<String> createDeleteConfirmString() {

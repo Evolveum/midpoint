@@ -68,6 +68,7 @@ import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -114,11 +115,15 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_USER_FORM = "userForm";
     private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
+    private static final String ID_FORCE_CHECK = "forceCheck";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private IModel<ObjectWrapper> userModel;
     private IModel<List<UserAccountDto>> accountsModel;
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
+
+    //used to add force flag to operations if necessary, will be moved to some "page dto"
+    private boolean forceAction;
 
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -535,9 +540,27 @@ public class PageUser extends PageAdminUsers {
         initAccountButtons(buttons);
 
         initAccountButton(mainForm);
+
+        //todo move model object to some dto and use PropertyModel
+        CheckBox forceCheck = new CheckBox(ID_FORCE_CHECK, new IModel<Boolean>() {
+
+            @Override
+            public Boolean getObject() {
+                return forceAction;
+            }
+
+            @Override
+            public void setObject(Boolean value) {
+                forceAction = value;
+            }
+
+            @Override
+            public void detach() {
+            }
+        });
+        mainForm.add(forceCheck);
     }
 
-    @Deprecated
     private void initAccountButton(Form mainForm) {
         AjaxLinkButton addAccount = new AjaxLinkButton("addAccount",
                 createStringResource("pageUser.button.addAccount")) {
