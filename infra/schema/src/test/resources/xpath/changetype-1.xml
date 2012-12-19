@@ -31,7 +31,7 @@
 
 	<apit:modification xmlns:bar="http://bar/">
 		<t:modificationType>replace</t:modificationType>
-		<t:path xmlns:foo="http://foo/">/c:extension/piracy:ship</t:path>
+		<t:path xmlns:foo="http://foo/">/c:extension/piracy:ship[2]/c:name</t:path>
 		<t:value>
 			<piracy:name>Black Pearl</piracy:name>
 		</t:value>

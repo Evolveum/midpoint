@@ -36,6 +36,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -52,12 +53,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
- * TODO: documentation
+ * Holds internal (parsed) form of midPoint-style XPath-like expressions.
+ * It is able to retrieve/export these expressions from/to various forms (text, text in XML document,
+ * XPathSegment list, prism path specification).
  * 
  * Assumes relative XPath, but somehow can also work with absolute XPaths.
  * 
  * @author semancik
+ * @author mederly
  */
 public class XPathHolder {
 
@@ -67,6 +70,8 @@ public class XPathHolder {
 	private boolean absolute;
 	private List<XPathSegment> segments;
 	Map<String, String> explicitNamespaceDeclarations;
+
+    // Part 1: Import from external representations.
 
 	/**
 	 * Sets "current node" Xpath.
@@ -83,26 +88,6 @@ public class XPathHolder {
 
 	public XPathHolder(String xpath, Map<String, String> namespaceMap) {
 		parse(xpath, null, namespaceMap);
-	}
-
-	public XPathHolder(List<XPathSegment> segments) {
-		this(segments, false);
-	}
-
-	public XPathHolder(List<XPathSegment> segments, boolean absolute) {
-		this.segments = new ArrayList<XPathSegment>();
-		for (XPathSegment segment : segments) {
-			if (StringUtils.isEmpty(segment.getQName().getPrefix())) {
-				QName qname = segment.getQName();
-				this.segments.add(new XPathSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart(),
-						SchemaConstants.NS_C_PREFIX)));
-			} else {
-				this.segments.add(segment);
-			}
-		}
-
-		// this.segments = segments;
-		this.absolute = absolute;
 	}
 
 	public XPathHolder(Element domElement) {
@@ -138,32 +123,14 @@ public class XPathHolder {
 		parse(xpath, domNode, null);
 	}
 
-	public XPathHolder(QName... segmentQNames) {
-		this.segments = new ArrayList<XPathSegment>();
-		for (QName segmentQName :segmentQNames) {
-			XPathSegment segment = new XPathSegment(segmentQName);
-			this.segments.add(segment);
-		}
-
-		this.absolute = false;		
-	}
-	
-	public XPathHolder(ItemPath propertyPath) {
-		this.segments = new ArrayList<XPathSegment>();
-		for (ItemPathSegment segment: propertyPath.getSegments()) {
-			XPathSegment xsegment = null;
-			if (segment instanceof NameItemPathSegment) {
-				xsegment = new XPathSegment(((NameItemPathSegment)segment).getName());
-			} else {
-				throw new UnsupportedOperationException("ID not supported in Xpath yet");
-				// TODO: support ID
-			}
-			this.segments.add(xsegment);
-		}
-
-		this.absolute = false;		
-	}
-
+    /**
+     * Parses XPath-like expression (midPoint flavour), with regards to domNode from where the namespace declarations
+     * (embedded in XML using xmlns attributes) are taken.
+     *
+     * @param xpath text representation of the XPath-like expression
+     * @param domNode context (DOM node from which the expression was taken)
+     * @param namespaceMap externally specified namespaces
+     */
 	private void parse(String xpath, Node domNode, Map<String, String> namespaceMap) {
 
 		segments = new ArrayList<XPathSegment>();
@@ -180,12 +147,13 @@ public class XPathHolder {
 		// Continue parsing with Xpath without the "preamble"
 		xpath = parser.getPureXPathString();
 
+        // todo: fixme what if there's '/' within ID value we are looking for?
 		String[] segArray = xpath.split("/");
 		for (int i = 0; i < segArray.length; i++) {
 			if (segArray[i] == null || segArray[i].isEmpty()) {
 				if (i == 0) {
 					absolute = true;
-					// ignore the fist empty segment of absolute path
+					// ignore the first empty segment of absolute path
 					continue;
 				} else {
 					throw new IllegalStateException("XPath " + xpath + " has an empty segment (number " + i
@@ -193,37 +161,54 @@ public class XPathHolder {
 				}
 			}
 
-			// TODO: add support for [@attr="value"]
-
 			String segmentStr = segArray[i];
-			boolean variable = false;
-			if (segmentStr.startsWith("$")) {
-				// We have variable here
-				variable = true;
-				segmentStr = segmentStr.substring(1);
-			}
+            XPathSegment idValueFilterSegment;
 
-			String[] qnameArray = segmentStr.split(":");
-			if (qnameArray.length > 2) {
-				throw new IllegalStateException("Unsupported format: more than one colon in XPath segment: "
-						+ segArray[i]);
-			}
-			QName qname;
-			if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
-				// default namespace <= empty prefix
-				String namespace = findNamespace(null, domNode, namespaceMap);
-				qname = new QName(namespace, qnameArray[0], SchemaConstants.NS_C_PREFIX);
-			} else {
-				String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
-				qname = new QName(namespace, qnameArray[1], qnameArray[0]);
-			}
-			if (StringUtils.isEmpty(qname.getNamespaceURI())) {
-				LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
-						segmentStr, xpath });
-			}
-			XPathSegment segment = new XPathSegment(qname, variable);
+            // is ID value filter attached to this segment?
+            int idValuePosition = segmentStr.indexOf('[');
+            if (idValuePosition >= 0) {
+                if (!segmentStr.endsWith("]")) {
+                    throw new IllegalStateException("XPath " + xpath + " has a ID segment not ending with ']': '" + segmentStr + "'");
+                }
+                String value = segmentStr.substring(idValuePosition+1, segmentStr.length()-1);
+                segmentStr = segmentStr.substring(0, idValuePosition);
+                idValueFilterSegment = new XPathSegment(value);
+            } else {
+                idValueFilterSegment = null;
+            }
 
-			segments.add(segment);
+            // processing the rest (i.e. the first part) of the segment
+
+            boolean variable = false;
+            if (segmentStr.startsWith("$")) {
+                // We have variable here
+                variable = true;
+                segmentStr = segmentStr.substring(1);
+            }
+
+            String[] qnameArray = segmentStr.split(":");
+            if (qnameArray.length > 2) {
+                throw new IllegalStateException("Unsupported format: more than one colon in XPath segment: "
+                        + segArray[i]);
+            }
+            QName qname;
+            if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
+                // default namespace <= empty prefix
+                String namespace = findNamespace(null, domNode, namespaceMap);
+                qname = new QName(namespace, qnameArray[0], SchemaConstants.NS_C_PREFIX);
+            } else {
+                String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
+                qname = new QName(namespace, qnameArray[1], qnameArray[0]);
+            }
+            if (StringUtils.isEmpty(qname.getNamespaceURI())) {
+                LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
+                        segmentStr, xpath });
+            }
+
+            segments.add(new XPathSegment(qname, variable));
+            if (idValueFilterSegment != null) {
+                segments.add(idValueFilterSegment);
+            }
 		}
 	}
 
@@ -277,7 +262,54 @@ public class XPathHolder {
 		return ns;
 	}
 
-	public String getXPath() {
+    public XPathHolder(List<XPathSegment> segments) {
+        this(segments, false);
+    }
+
+    public XPathHolder(List<XPathSegment> segments, boolean absolute) {
+        this.segments = new ArrayList<XPathSegment>();
+        for (XPathSegment segment : segments) {
+            if (segment.getQName() != null && StringUtils.isEmpty(segment.getQName().getPrefix())) {
+                QName qname = segment.getQName();
+                this.segments.add(new XPathSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart(),
+                        SchemaConstants.NS_C_PREFIX)));
+            } else {
+                this.segments.add(segment);
+            }
+        }
+
+        // this.segments = segments;
+        this.absolute = absolute;
+    }
+
+    public XPathHolder(QName... segmentQNames) {
+        this.segments = new ArrayList<XPathSegment>();
+        for (QName segmentQName : segmentQNames) {
+            XPathSegment segment = new XPathSegment(segmentQName);
+            this.segments.add(segment);
+        }
+
+        this.absolute = false;
+    }
+
+    public XPathHolder(ItemPath propertyPath) {
+        this.segments = new ArrayList<XPathSegment>();
+        for (ItemPathSegment segment: propertyPath.getSegments()) {
+            XPathSegment xsegment = null;
+            if (segment instanceof NameItemPathSegment) {
+                xsegment = new XPathSegment(((NameItemPathSegment)segment).getName());
+            } else if (segment instanceof IdItemPathSegment) {
+                xsegment = new XPathSegment(((IdItemPathSegment) segment).getId());
+            }
+            this.segments.add(xsegment);
+        }
+
+        this.absolute = false;
+    }
+
+    // Part 2: Export to external representations.
+
+    public String getXPath() {
 		StringBuilder sb = new StringBuilder();
 
 		addPureXpath(sb);
@@ -296,7 +328,7 @@ public class XPathHolder {
 
 	private void addPureXpath(StringBuilder sb) {
 		if (!absolute && segments.isEmpty()) {
-			// Emtpty segment list gives a "local node" XPath
+			// Empty segment list gives a "local node" XPath
 			sb.append(".");
 			return;
 		}
@@ -305,30 +337,42 @@ public class XPathHolder {
 			sb.append("/");
 		}
 
-		Iterator<XPathSegment> iter = segments.iterator();
-		while (iter.hasNext()) {
-			XPathSegment seg = iter.next();
-			if (seg.isVariable()) {
-				sb.append("$");
-			}
-			QName qname = seg.getQName();
-			if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
-				sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
-			} else {
-				// Default namespace
-				// TODO: HACK - because of broken implementations of JAXP and
-				// JVM, we will transform default namespace to some namespace
-				// problem with default namespace resolution - implementation is
-				// broken:
-				// http://stackoverflow.com/questions/1730710/xpath-is-there-a-way-to-set-a-default-namespace-for-queries
-				// Jaxen and Saxon are treating xpath with "./:" differently
-				sb.append(DEFAULT_PREFIX + ":" + qname.getLocalPart());
-				// sb.append(qname.getLocalPart());
-			}
+        boolean first = true;
 
-			if (iter.hasNext()) {
-				sb.append("/");
-			}
+		for (XPathSegment seg : segments) {
+
+            if (seg.isIdValueFilter()) {
+
+                sb.append("[");
+                sb.append(seg.getValue());
+                sb.append("]");
+
+            } else {
+
+                if (!first) {
+                    sb.append("/");
+                } else {
+                    first = false;
+                }
+
+                if (seg.isVariable()) {
+                    sb.append("$");
+                }
+                QName qname = seg.getQName();
+                if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
+                    sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
+                } else {
+                    // Default namespace
+                    // TODO: HACK - because of broken implementations of JAXP and
+                    // JVM, we will transform default namespace to some namespace
+                    // problem with default namespace resolution - implementation is
+                    // broken:
+                    // http://stackoverflow.com/questions/1730710/xpath-is-there-a-way-to-set-a-default-namespace-for-queries
+                    // Jaxen and Saxon are treating xpath with "./:" differently
+                    sb.append(DEFAULT_PREFIX + ":" + qname.getLocalPart());
+                    // sb.append(qname.getLocalPart());
+                }
+            }
 		}
 	}
 
@@ -339,14 +383,15 @@ public class XPathHolder {
 		while (iter.hasNext()) {
 			XPathSegment seg = iter.next();
 			QName qname = seg.getQName();
-			if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
-				namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
-			} else {
-				// Default namespace
-				// HACK. See addPureXpath method
-				namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
-			}
-
+            if (qname != null) {
+                if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
+                    namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
+                } else {
+                    // Default namespace
+                    // HACK. See addPureXpath method
+                    namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
+                }
+            }
 		}
 
 		return namespaceMap;
@@ -360,7 +405,7 @@ public class XPathHolder {
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return toElement(elementNamespace, localElementName, loader.newDocument());
 		} catch (ParserConfigurationException ex) {
-			throw new AssertionError("Error on createing XML document " + ex.getMessage());
+			throw new AssertionError("Error on creating XML document " + ex.getMessage());
 		}
 	}
 
@@ -385,6 +430,23 @@ public class XPathHolder {
 		// FIXME !!!
 		return Collections.unmodifiableList(segments);
 	}
+
+    public ItemPath toPropertyPath() {
+        List<XPathSegment> xsegments = toSegments();
+        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());
+        for (XPathSegment segment : xsegments) {
+            if (segment.isIdValueFilter()) {
+                segments.add(new IdItemPathSegment(segment.getValue()));
+            } else {
+                QName qName = segment.getQName();
+                boolean variable = segment.isVariable();
+                segments.add(new NameItemPathSegment(qName, variable));
+            }
+        }
+        return new ItemPath(segments);
+    }
+
+    // Part 3: Various
 
 	/**
 	 * Returns new XPath with a specified element prepended to the path. Useful
@@ -412,12 +474,6 @@ public class XPathHolder {
 		allSegments.addAll(parentPath);
 		allSegments.addAll(toSegments());
 		return new XPathHolder(allSegments);
-	}
-
-	@Override
-	public String toString() {
-		// TODO: more verbose toString later
-		return getXPath();
 	}
 
 	private void addExplicitNsDeclarations(StringBuilder sb) {
@@ -452,7 +508,13 @@ public class XPathHolder {
 		return segments.isEmpty();
 	}
 
-	@Override
+    @Override
+    public String toString() {
+        // TODO: more verbose toString later
+        return getXPath();
+    }
+
+    @Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -519,7 +581,7 @@ public class XPathHolder {
 	 * Returns null if the assumption is false.
 	 */
 	public List<XPathSegment> getTail(XPathHolder path) {
-		int i=0;
+		int i = 0;
 		while(i < path.segments.size()) {
 			if (i > this.segments.size()) {
 				// We have run beyond all of local segments, therefore
@@ -544,18 +606,6 @@ public class XPathHolder {
 			return true;
 		}
 		return false;
-	}
-	
-	public ItemPath toPropertyPath() {
-		List<XPathSegment> xsegments = toSegments();
-		List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());
-		for (XPathSegment segment : xsegments) {
-			QName qName = segment.getQName();
-			// TODO: support IDs
-			boolean variable = segment.isVariable();
-			segments.add(new NameItemPathSegment(qName, variable));
-		}
-		return new ItemPath(segments);
 	}
 	
 }
