@@ -26,11 +26,11 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true">
-        <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
-        <property name="jdbcUrl" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
-        <property name="user" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
-        <property name="password" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
+    <bean id="testSqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true">
+        <property name="driverClass" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
+        <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
+        <property name="user" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
+        <property name="password" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
 
         <property name="acquireIncrement" value="3"/>
         <property name="minPoolSize" value="8"/>
@@ -42,18 +42,18 @@
     </bean>
 
     <!-- Hibernate session factory -->
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
-          depends-on="sqlDataSource" lazy-init="true">
+    <bean id="testSessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+          depends-on="testSqlDataSource" lazy-init="true">
 
         <property name="dataSource">
-            <ref bean="sqlDataSource"/>
+            <ref bean="testSqlDataSource"/>
         </property>
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">#{sqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
+                <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
                 <!--<prop key="hibernate.show_sql">true</prop>-->
                 <!--<prop key="hibernate.format_sql">true</prop>-->
-                <prop key="hibernate.hbm2ddl.auto">#{sqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
+                <prop key="hibernate.hbm2ddl.auto">#{testSqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
             </props>
         </property>

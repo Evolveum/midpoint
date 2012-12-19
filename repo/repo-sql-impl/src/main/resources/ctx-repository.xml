@@ -33,7 +33,9 @@
     <bean id="sqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"
           depends-on="repositoryFactory"/>
 
-    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
+    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory">
+        <property name="repositoryFactory" ref="sqlRepositoryFactory" />
+    </bean>
 
     <import resource="ctx-repository-session.xml"/>
 </beans>

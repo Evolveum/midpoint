@@ -38,9 +38,9 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * @author lazyman
  */
-public class SQLRepositoryBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
+public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SQLRepositoryBeanPostProcessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryBeanPostProcessor.class);
     private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabase";
 
     private ApplicationContext context;

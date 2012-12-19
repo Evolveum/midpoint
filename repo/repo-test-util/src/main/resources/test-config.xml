@@ -36,7 +36,7 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>

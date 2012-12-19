@@ -36,8 +36,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SqlAuditServiceFactory implements AuditServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceFactory.class);
-    @Autowired(required = true)
-    SqlRepositoryFactory repositoryFactory;
+    private SqlRepositoryFactory repositoryFactory;
+
+    public SqlRepositoryFactory getRepositoryFactory() {
+        return repositoryFactory;
+    }
+
+    public void setRepositoryFactory(SqlRepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
+    }
 
     @Override
     public synchronized void destroy() throws AuditServiceFactoryException {
