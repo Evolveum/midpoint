@@ -46,4 +46,6 @@ public @interface QueryAttribute {
     boolean multiValue() default false;
 
     boolean reference() default false;
+    
+    boolean qname() default false;
 }

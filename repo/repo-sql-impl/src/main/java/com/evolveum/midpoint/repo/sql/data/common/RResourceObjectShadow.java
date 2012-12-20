@@ -57,6 +57,7 @@ public class RResourceObjectShadow extends RObject {
     private static final Trace LOGGER = TraceManager.getTrace(RResourceObjectShadow.class);
     @QueryAttribute(polyString = true)
     private RPolyString name;
+    @QueryAttribute
     private QName objectClass;
     private RActivation activation;
     private ROperationResult result;

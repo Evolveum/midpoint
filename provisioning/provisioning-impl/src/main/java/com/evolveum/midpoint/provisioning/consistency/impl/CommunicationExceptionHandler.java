@@ -194,7 +194,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			for (OperationResult subRes : parentResult.getSubresults()) {
 				subRes.muteError();
 			}
-			parentResult.recordPartialError("Could not get "+ObjectTypeUtil.toShortString(shadow)+" from the resource "
+			operationResult.recordPartialError("Could not get "+ObjectTypeUtil.toShortString(shadow)+" from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
 					+ ", because resource is unreachable. Returning shadow from the repository");
 			shadow.setFetchResult(operationResult.createOperationResultType());

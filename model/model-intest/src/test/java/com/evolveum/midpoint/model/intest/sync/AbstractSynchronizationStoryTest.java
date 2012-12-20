@@ -499,7 +499,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
         
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
-//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
+        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
         
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Bloodnose");
         PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Bloodnose");

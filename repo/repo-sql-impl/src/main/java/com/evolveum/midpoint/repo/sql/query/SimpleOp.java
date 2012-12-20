@@ -100,7 +100,6 @@ public class SimpleOp extends Op {
 	@Override
 	public Criterion interpret(ObjectFilter filter, boolean pushNot) throws QueryException {
 		LOGGER.trace("Interpreting '{}', pushNot '{}'", new Object[] { filter.getClass().getSimpleName(), pushNot });
-		// validate(filter);
 
 		ValueFilter valueFilter = (ValueFilter) filter;
 		ItemPath propertyPath = valueFilter.getParentPath();
@@ -109,16 +108,6 @@ public class SimpleOp extends Op {
 			// at first we build criterions with aliases
 			updateQueryContext(propertyPath);
 		}
-
-		//
-		// Element value = DOMUtil.getChildElement(filter,
-		// SchemaConstantsGenerated.Q_VALUE);
-		// if (value == null || DOMUtil.listChildElements(value).isEmpty()) {
-		// throw new
-		// QueryException("Equal without value element, or without element in <value> not supported now.");
-		// }
-
-		// Element condition = DOMUtil.listChildElements(value).get(0);
 
 		SimpleItem conditionItem = updateConditionItem(valueFilter.getDefinition(), propertyPath);
 
@@ -134,9 +123,6 @@ public class SimpleOp extends Op {
 			case EQUAL:
 				EqualsFilter equalFilter = (EqualsFilter) valueFilter;
 				PrismValue val = equalFilter.getValues().get(0);
-				// if (val instanceof PrismReferenceValue) {
-				// filterValue = ((PrismReferenceValue) val).getOid();
-				// } else {
 				filterValue = ((PrismPropertyValue) val).getValue();
 				if (conditionItem.isPolyString) {
 					if (filterValue instanceof PolyStringType) {
@@ -187,7 +173,9 @@ public class SimpleOp extends Op {
 			
 			LOGGER.trace("Value updated to type '{}'", new Object[] { (testedValue == null ? null : testedValue
 					.getClass().getName()) });
-
+			if (conditionItem.isQname){
+				criterion = interpretQname(conditionItem, (QName) testedValue, criterion);
+			}
 			criterion = createBaseCriteria(filter, pushNot, conditionItem, testedValue);
 
 		}
@@ -196,7 +184,7 @@ public class SimpleOp extends Op {
 			criterion = interpretAny(valueFilter.getDefinition(), conditionItem, criterion);
 		} else if (conditionItem.isReference) {
 			criterion = interpretReference((PrismReferenceValue) ((RefFilter) valueFilter).getValues().get(0),
-					conditionItem, filter, pushNot);
+					conditionItem, filter, pushNot);	
 		}
 
 		return criterion;
@@ -255,6 +243,29 @@ public class SimpleOp extends Op {
 		return conjunction;
 	}
 
+	private Criterion interpretQname(SimpleItem conditionItem, QName testedValue, Criterion baseCriterion)
+			throws QueryException {
+		LOGGER.trace("Condition is type of any, creating conjunction for value and QName name, type");
+
+//		QName name = itemDefinition.getName();
+//		QName type = itemDefinition.getTypeName();
+//
+//		if (name == null || type == null) {
+//			throw new QueryException("Couldn't get name or type for queried item '" + itemDefinition + "'");
+//		}
+
+		// when we're interpreting any we have to use base criterion (criteria
+		// based on condition element) and
+		// add also QName name and type condition
+		Conjunction conjunction = Restrictions.conjunction();
+		conjunction.add(baseCriterion);
+		conjunction.add(Restrictions.eq(conditionItem.alias + ".localPart", testedValue.getLocalPart()));
+		conjunction.add(Restrictions.eq(conditionItem.alias + ".namespace", testedValue.getNamespaceURI()));
+
+		return conjunction;
+	}
+
+	
 	private Criterion interpretReference(PrismReferenceValue refValue, SimpleItem conditionItem, ObjectFilter filter,
 			boolean pushNot) throws QueryException {
 
@@ -352,6 +363,7 @@ public class SimpleOp extends Op {
 			item.isEnum = attrDef.isEnumerated();
 			item.enumType = attrDef.getClassType();
 			item.isMultiValue = attrDef.isMultiValue();
+			item.isQname = attrDef.isQname();
 		}
 
 		return item;
@@ -456,6 +468,7 @@ public class SimpleOp extends Op {
 		boolean isEnum;
 		boolean isPolyString;
 		boolean isMultiValue;
+		boolean isQname;
 		// if condition item is enum type, then this is enum class
 		Class<?> enumType;
 

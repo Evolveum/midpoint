@@ -35,6 +35,7 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
     private boolean enumerated;
     private boolean polyString;
     private boolean multiValue;
+    private boolean qname;
     private Class<?> classType;
 
     public Class<?> getClassType() {
@@ -85,6 +86,13 @@ public class AttributeDefinition extends Definition implements DebugDumpable {
 		return multiValue;
 	}
 
+    public boolean isQname() {
+		return qname;
+	}
+    
+    public void setQname(boolean qname) {
+		this.qname = qname;
+	}
     @Override
     public Definition findDefinition(QName qname) {
         return null;
