@@ -58,15 +58,7 @@ import static org.testng.AssertJUnit.*;
  * @author mederly
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model.xml",
-        "classpath:ctx-workflow.xml",
-        "classpath:ctx-repository.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-configuration-test.xml",
-        "classpath:ctx-provisioning.xml",
-        "classpath:ctx-task.xml",
-		"classpath:ctx-audit.xml"})
-
+@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 public class BasicTest extends AbstractTestNGSpringContextTests {
 
     private static final String TEST_FILE_DIRECTORY = "src/test/resources/repo/";
