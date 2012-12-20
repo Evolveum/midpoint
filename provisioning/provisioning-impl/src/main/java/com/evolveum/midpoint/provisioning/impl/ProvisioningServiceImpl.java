@@ -124,8 +124,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private PrismContext prismContext;
 	@Autowired(required = true)
 	private ResourceObjectManager resourceObjectManager;
-	@Autowired(required = true)
-	private OperationFinisher operationFinisher;
 
 	
 	
