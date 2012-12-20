@@ -158,12 +158,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
  * 
  * @author Katarina Valalikova
  */
-@ContextConfiguration(locations = { "classpath:ctx-model.xml",
-		"classpath:ctx-provisioning.xml",
-		"classpath:ctx-consistency-test.xml", "classpath:ctx-task.xml",
-		"classpath:ctx-audit.xml", "classpath:ctx-repository.xml",
-		"classpath:ctx-repo-cache.xml",
-		"classpath:ctx-configuration-test.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-consistency-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
