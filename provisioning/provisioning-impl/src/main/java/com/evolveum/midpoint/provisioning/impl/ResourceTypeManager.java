@@ -24,44 +24,27 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -71,20 +54,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 @Component
 public class ResourceTypeManager {
@@ -97,15 +76,9 @@ public class ResourceTypeManager {
 	@Autowired(required = true)
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired(required = true)
-	private ShadowConverter shadowConverter;
-	@Autowired(required = true)
 	private PrismContext prismContext;
-	@Autowired(required = true)
-	private ChangeNotificationDispatcher changeNotificationDispatcher;
-	@Autowired(required = true)
-	private TaskManager taskManager;
 
-	private PrismObjectDefinition<ResourceType> resourceTypeDefinition = null;
+//	private PrismObjectDefinition<ResourceType> resourceTypeDefinition = null;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
 
@@ -551,12 +524,11 @@ public class ResourceTypeManager {
 
 	}
 	
-//	private void modifyResourceAvailabilityStatus(AvailabilityStatusType status, ResourceType resourceType, OperationResult parentResult){
-		private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result){
+	public void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result){
 			
 			if (resource.getOperationalState() == null || resource.getOperationalState().getLastAvailabilityStatus() == null || resource.getOperationalState().getLastAvailabilityStatus() != status) {
-				List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-				PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
+				List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
+				PropertyDelta<?> statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
 				modifications.add(statusDelta);
 				statusDelta.setParentPath(new ItemPath(ResourceType.F_OPERATIONAL_STATE));
 				
@@ -578,19 +550,6 @@ public class ResourceTypeManager {
 				resource.getOperationalState().setLastAvailabilityStatus(status);
 			}
 		}
-//		PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(ResourceType.F_LAST_AVAILABILITY_STATUS, getResourceTypeDefinition(), status);
-//		List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
-//		modifications.add(statusDelta);
-//		try {
-//			repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, parentResult);
-//		} catch (SchemaException ex) {
-//			throw new SystemException(ex);
-//		} catch (ObjectAlreadyExistsException ex) {
-//			throw new SystemException(ex);
-//		} catch (ObjectNotFoundException ex) {
-//			throw new SystemException(ex);
-//		}
-//	}
 
 	/**
 	 * Adjust scheme with respect to capabilities. E.g. disable attributes that
@@ -681,318 +640,6 @@ public class ResourceTypeManager {
 		return schema;
 	}
 
-	public void listShadows(final ResourceType resource, final QName objectClass,
-			final ShadowHandler handler, final boolean readFromRepository, final OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
-
-		Validate.notNull(objectClass);
-		if (resource == null) {
-			parentResult.recordFatalError("Resource must not be null");
-			throw new IllegalArgumentException("Resource must not be null.");
-		}
-
-		searchObjects(ResourceObjectShadowType.class, objectClass, resource, null, handler, null,
-				readFromRepository, parentResult);
-
-	}
-
-	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
-			final QName objectClass, final ResourceType resourceType,
-			List<ResourceAttribute> query, final ShadowHandler handler,
-			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
-	
-		throw new UnsupportedOperationException("not supported operation: search objects iterative.");
-	}
-	
-	// TODO: maybe this method should be placed in another class...
-	public <T extends ResourceObjectShadowType> void searchObjectsIterative(final Class<T> type,
-			final QName objectClass, final ResourceType resourceType,
-			ObjectQuery query, final ShadowHandler handler,
-			final DiscoveryHandler discoveryHandler, final OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
-
-		Validate.notNull(resourceType, "Resource must not be null.");
-		Validate.notNull(objectClass, "Object class must not be null.");
-		Validate.notNull(parentResult, "Operation result must not be null.");
-
-		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClass,
-				ObjectTypeUtil.toShortString(resourceType));
-
-		searchObjects(type, objectClass, resourceType, query, handler, discoveryHandler,
-				true, parentResult);
-
-	}
-
-	private <T extends ResourceObjectShadowType> void searchObjects(final Class<T> type, QName objectClass,
-			final ResourceType resourceType, ObjectQuery query,
-			final ShadowHandler handler, final DiscoveryHandler discoveryHandler,
-			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException {
-
-		final ResourceSchema schema = getResourceSchema(resourceType, parentResult);
-
-		if (schema == null) {
-			parentResult.recordFatalError("No schema for "+resourceType);
-			throw new ConfigurationException("No schema for "+resourceType);
-		}
-
-		ObjectClassComplexTypeDefinition objectClassDef = schema.findObjectClassDefinition(objectClass);
-
-		if (objectClassDef == null) {
-			String message = "Object class " + objectClass + " is not defined in schema of "
-					+ ObjectTypeUtil.toShortString(resourceType);
-			LOGGER.error(message);
-			parentResult.recordFatalError(message);
-			throw new SchemaException(message);
-		}
-
-		ResultHandler<T> resultHandler = new ResultHandler<T>() {
-
-			@Override
-			public boolean handle(PrismObject<T> resourceShadow) {
-				LOGGER.trace("Found resource object {}", SchemaDebugUtil.prettyPrint(resourceShadow));
-				ResourceObjectShadowType resultShadowType;
-				try {
-					if (shadowConverter.isProtectedShadow(resourceType, resourceShadow)) {
-						// Protected shadow. We will pretend that it does not exist.
-						LOGGER.trace("Skipping protected shadow " + resourceShadow + " in search");
-						return true;
-					}
-					T resourceShadowType = resourceShadow.asObjectable();
-					// Try to find shadow that corresponds to the resource object
-					if (readFromRepository) {
-						resultShadowType = lookupShadowInRepository(type, resourceShadowType, resourceType,
-								parentResult);
-
-						ResourceObjectShadowType conflictedShadow = lookupShadowAccordingToName(type, resourceShadowType, resourceType, parentResult);
-						if (resultShadowType == null) {
-							LOGGER.trace(
-									"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-									SchemaDebugUtil.prettyPrint(resourceShadow));
-
-							
-							// TODO: make sure that the resource object has appropriate definition (use objectClass and schema)
-							// The resource object obviously exists on the resource, but appropriate shadow does not exist in the
-							// repository we need to create the shadow to align repo state to the reality (resource)
-
-							try {
-
-								ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(
-										resourceShadowType, resourceType);
-								String oid = getRepositoryService().addObject(repoShadow.asPrismObject(),
-										parentResult);
-
-								resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, null,
-										resourceType, parentResult);
-
-								resultShadowType.setOid(oid);
-								
-							} catch (ObjectAlreadyExistsException e) {
-								// This should not happen. We haven't supplied an OID so is should not conflict
-								LOGGER.error("Unexpected repository behavior: Object already exists: {}", e.getMessage(), e);
-								throw new SystemException("Unexpected repository behavior: Object already exists: "+e.getMessage(),e);
-							}
-
-							// And notify about the change we have discovered (if requested to do so)
-							if (discoveryHandler != null) {
-								discoveryHandler.discovered(resultShadowType, parentResult);
-							}
-						} else {
-							LOGGER.trace("Found shadow object in the repository {}",
-									SchemaDebugUtil.prettyPrint(resultShadowType));
-						}
-						if (conflictedShadow != null){
-							Task task = taskManager.createTaskInstance();
-							ResourceObjectShadowFailureDescription failureDescription = createResourceFailureDescription(conflictedShadow, resourceType, parentResult);
-							changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
-							deleteConflictedShadowFromRepo(conflictedShadow, parentResult);
-							}
-					} else {
-						resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, null,
-								resourceType, parentResult);
-
-					}
-
-				} catch (SchemaException e) {
-					// TODO: better error handling
-					parentResult.recordFatalError("Schema error: " + e.getMessage(), e);
-					LOGGER.error("Schema error: {}", e.getMessage(), e);
-					return false;
-				} catch (ConfigurationException e) {
-					// TODO: better error handling
-					parentResult.recordFatalError("Configuration error: " + e.getMessage(), e);
-					LOGGER.error("Configuration error: {}", e.getMessage(), e);
-					return false;
-				}
-
-				return handler.handle(resultShadowType);
-			}
-
-		};
-		
-		ConnectorInstance connector = getConnectorInstance(resourceType, false, parentResult);
-
-		try {
-			connector.search(type, objectClassDef, query, resultHandler, parentResult);
-		} catch (GenericFrameworkException e) {
-			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
-			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
-
-		} catch (CommunicationException ex) {
-			parentResult.recordFatalError(
-					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-			throw new CommunicationException("Error communicating with the connector " + connector + ": "
-					+ ex.getMessage(), ex);
-		}
-
-		parentResult.recordSuccess();
-	}
-	
-	private void deleteConflictedShadowFromRepo(ResourceObjectShadowType shadow, OperationResult parentResult){
-		
-		try{
-		repositoryService.deleteObject(AccountShadowType.class, shadow.getOid(), parentResult);
-		} catch (Exception ex){
-			throw new SystemException(ex.getMessage(), ex);
-		}
-		
-	}
-	private ResourceObjectShadowFailureDescription createResourceFailureDescription(ResourceObjectShadowType conflictedShadow, ResourceType resource, OperationResult parentResult){
-		ResourceObjectShadowFailureDescription failureDesc = new ResourceObjectShadowFailureDescription();
-		PrismObject<AccountShadowType> account = conflictedShadow.asPrismObject();
-		failureDesc.setCurrentShadow(account);
-		ObjectDelta objectDelta = null;
-		if (FailedOperationTypeType.ADD == conflictedShadow.getFailedOperationType()) {
-			objectDelta = ObjectDelta.createAddDelta(account);
-		} 
-//		else if (FailedOperationTypeType.MODIFY == conflictedShadow.getFailedOperationType()) {
-//			ObjectDeltaType objDeltaType = conflictedShadow.getObjectChange();
-//			if (objDeltaType != null) {
-//				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-//						objDeltaType.getModification(), account.getDefinition());
-//				objectDelta = ObjectDelta.createModifyDelta(conflictedShadow.getOid(), modifications,
-//						AccountShadowType.class, prismContext);
-//
-//			}
-//		}
-//		else if (FailedOperationTypeType.DELETE == conflictedShadow.getFailedOperationType()){
-//			objectDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, conflictedShadow.getOid(), prismContext);
-//		}
-		failureDesc.setObjectDelta(objectDelta);
-		failureDesc.setResource(resource.asPrismObject());
-		failureDesc.setResult(parentResult);
-		failureDesc.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY.getLocalPart());
-		
-		return failureDesc;
-	}
-
-	/**
-	 * Locates the appropriate Shadow in repository that corresponds to the
-	 * provided resource object.
-	 * 
-	 * @param parentResult
-	 * 
-	 * @return current unchanged shadow object that corresponds to provided
-	 *         resource object or null if the object does not exist
-	 * @throws SchemaException
-	 * @throws ConfigurationException 
-	 */
-	private <T extends ResourceObjectShadowType> T lookupShadowInRepository(Class<T> type, T resourceShadow,
-			ResourceType resource, OperationResult parentResult) throws SchemaException, ConfigurationException {
-
-		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
-				parentResult);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter:\n{}",
-					query.dump());
-		}
-//		PagingType paging = new PagingType();
-
-		// TODO: check for errors
-		List<PrismObject<T>> results;
-
-		results = getRepositoryService().searchObjects(type, query, parentResult);
-
-		LOGGER.trace("lookupShadow found {} objects", results.size());
-
-		if (results.size() == 0) {
-			return null;
-		}
-		if (results.size() > 1) {
-			for (PrismObject<T> result : results) {
-				LOGGER.trace("Search result:\n{}", result.dump());
-			}
-			LOGGER.error("More than one shadows found for " + resourceShadow);
-			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
-		}
-
-		T repoShadow = results.get(0).asObjectable();
-		if (repoShadow != null) {
-			shadowConverter.applyAttributesDefinition(repoShadow.asPrismObject(), resource);
-		}
-		return ShadowCacheUtil.completeShadow(resourceShadow, repoShadow, resource, parentResult);
-	}
-
-	private <T extends ResourceObjectShadowType> T lookupShadowAccordingToName(Class<T> type, T resourceShadow,
-			ResourceType resource, OperationResult parentResult) throws SchemaException, ConfigurationException {
-
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ResourceObjectShadowUtil.getSecondaryIdentifiers(resourceShadow);
-		ResourceAttribute secondaryIdentifier = null;
-		if (secondaryIdentifiers.size() < 1){
-			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
-		}
-		
-		secondaryIdentifier = secondaryIdentifiers.iterator().next();
-		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
-		
-		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(AccountShadowType.class,
-				AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-				new ItemPath(AccountShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
-				secondaryIdentifier.getValue()));
-//		ObjectQuery query = ShadowCacheUtil.createSearchShadowQuery(resourceShadow, resource, prismContext,
-//				parentResult);
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
-					query.dump());
-		}
-//		PagingType paging = new PagingType();
-
-		// TODO: check for errors
-		List<PrismObject<T>> results;
-
-		results = getRepositoryService().searchObjects(type, query, parentResult);
-
-		LOGGER.trace("lookupShadow found {} objects", results.size());
-
-		if (results.size() == 0) {
-			return null;
-		}
-		if (results.size() > 1) {
-			for (PrismObject<T> result : results) {
-				LOGGER.trace("Search result:\n{}", result.dump());
-			}
-			LOGGER.error("More than one shadows found for " + resourceShadow);
-			// TODO: Better error handling later
-			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
-		}
-
-		T repoShadow = results.get(0).asObjectable();
-		if (repoShadow != null) {
-			if (repoShadow.getFailedOperationType() == null){
-				LOGGER.trace("Found shadow is ok, returning null");
-				return null;
-			} 
-			if (repoShadow.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadow.getFailedOperationType()){
-				return null;
-			}
-			shadowConverter.applyAttributesDefinition(repoShadow.asPrismObject(), resource);
-		}
-		return ShadowCacheUtil.completeShadow(resourceShadow, repoShadow, resource, parentResult);
-	}
-
 	private void checkSchema(PrismSchema schema) throws SchemaException {
 		// This is resource schema, it should contain only
 		// ResourceObjectDefintions
@@ -1022,13 +669,13 @@ public class ResourceTypeManager {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, forceFresh, parentResult);
 	}
 
-	private PrismObjectDefinition<ResourceType> getResourceTypeDefinition() {
-		if (resourceTypeDefinition == null) {
-			resourceTypeDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(
-					ResourceType.class);
-		}
-		return resourceTypeDefinition;
-	}
+//	private PrismObjectDefinition<ResourceType> getResourceTypeDefinition() {
+//		if (resourceTypeDefinition == null) {
+//			resourceTypeDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(
+//					ResourceType.class);
+//		}
+//		return resourceTypeDefinition;
+//	}
 
 	public void applyDefinition(ObjectDelta<ResourceType> delta, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		PrismObject<ResourceType> resource = null;
@@ -1108,7 +755,7 @@ public class ResourceTypeManager {
      
         resourceType.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION).applyDefinition(configContainerDef);
  
-        for (ItemDelta itemDelta : delta.getModifications()){
+        for (ItemDelta<?> itemDelta : delta.getModifications()){
         	if (itemDelta.getParentPath() == null){
         		LOGGER.trace("No parent path defined for item delta {}", itemDelta);
         		continue;

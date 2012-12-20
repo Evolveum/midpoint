@@ -2486,6 +2486,8 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="avoidDuplicateValues" type="xsd:boolean" minOccurs="0" default="false"/>
+        	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true"/>
+        	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <!-- TODO -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>

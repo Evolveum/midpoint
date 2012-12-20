@@ -75,7 +75,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
@@ -89,7 +89,11 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		// first modify last availability status in the resource, so by others
 		// operations, we can know that it is down
 		modifyResourceAvailabilityStatus(shadow.getResource(), AvailabilityStatusType.DOWN, operationResult);
-
+		
+		if (!isPostpone(shadow.getResource())){
+			throw new CommunicationException(ex.getMessage(), ex);
+		}
+				
 		switch (op) {
 		case ADD:
 			// if it is firt time, just store the whole account to the repo
@@ -190,7 +194,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			for (OperationResult subRes : parentResult.getSubresults()) {
 				subRes.muteError();
 			}
-			operationResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Could not get "+ObjectTypeUtil.toShortString(shadow)+" from the resource "
+			parentResult.recordPartialError("Could not get "+ObjectTypeUtil.toShortString(shadow)+" from the resource "
 					+ ObjectTypeUtil.toShortString(shadow.getResource())
 					+ ", because resource is unreachable. Returning shadow from the repository");
 			shadow.setFetchResult(operationResult.createOperationResultType());
@@ -237,10 +241,6 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			modifications.add(propertyDelta);
 		}
 	
-//		propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject().getDefinition(),
-//				ResourceObjectShadowType.F_ATTEMPT_NUMBER, getAttemptNumber(shadow));
-//		modifications.add(propertyDelta);
-
 		modifications = createAttemptModification(shadow, modifications);
 		
 		return modifications;

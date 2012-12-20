@@ -21,11 +21,23 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -38,57 +50,53 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.consistency.impl.GenericErrorHandler;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.Change;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 @Component
 public class ShadowConverter {
 	
-	private static final ItemPath ATTRIBUTES_PATH = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
+//	private static final ItemPath ATTRIBUTES_PATH = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
 
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired
-	private ResourceTypeManager resourceTypeManager;
-	@Autowired(required = true)
 	private PrismContext prismContext;
 
 	public ShadowConverter() {
@@ -102,16 +110,9 @@ public class ShadowConverter {
 		this.connectorTypeManager = connectorTypeManager;
 	}
 
-	public ResourceTypeManager getResourceTypeManager() {
-		return resourceTypeManager;
-	}
-
-	public void setResourceTypeManager(ResourceTypeManager resourceTypeManager) {
-		this.resourceTypeManager = resourceTypeManager;
-	}
-
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConverter.class);
 
+	@SuppressWarnings("unchecked")
 	public <T extends ResourceObjectShadowType> T getShadow(Class<T> type, ResourceType resource,
 			T repoShadow, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
@@ -179,20 +180,16 @@ public class ShadowConverter {
 
 	}
 
-	public ResourceType completeResource(ResourceType resource, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-
-		return resourceTypeManager.completeResource(resource, null, parentResult);
-	}
-
+	@SuppressWarnings("unchecked")
 	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadowType,
-			Set<Operation> additionalOperations, boolean isReconciled, OperationResult parentResult)
+			Set<Operation> additionalOperations, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
 		PrismObject<ResourceObjectShadowType> shadow = shadowType.asPrismObject();
 
-		ObjectClassComplexTypeDefinition objectClass = applyAttributesDefinition(shadow, resource);
+//		ObjectClassComplexTypeDefinition objectClass = 
+		applyAttributesDefinition(shadow, resource);
 		
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
@@ -241,15 +238,12 @@ public class ShadowConverter {
 			LOGGER.trace("Shadow being stored:\n{}", shadowType.asPrismObject().dump());
 		}
 
-		if (!isReconciled) {
-			shadowType = ShadowCacheUtil.createRepositoryShadow(shadowType, resource);
-		}
-
 		parentResult.recordSuccess();
 		return shadowType;
 	}
 
 
+	@SuppressWarnings("unchecked")
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
 			Set<Operation> additionalOperations, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -309,8 +303,9 @@ public class ShadowConverter {
 		}
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
-			ResourceObjectShadowType shadow, Collection<Operation> operations, String oid,
+			ResourceObjectShadowType shadow, Collection<Operation> operations,
 			Collection<? extends ItemDelta> objectChanges, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -333,22 +328,8 @@ public class ShadowConverter {
 					+ objectClassDefinition + ": " + identifiers);
 		}
 		
-//		ObjectDelta mergedDelta = null;
-//		if (shadow.getObjectChange() != null) {
-//			ObjectDeltaType deltaType = shadow.getObjectChange();
-//			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-//					deltaType.getModification(), shadow.asPrismObject().getDefinition());
-//			mergedDelta = ObjectDelta.union(
-//					ObjectDelta.createModifyDelta(oid, objectChanges, AccountShadowType.class, prismContext),
-//					ObjectDelta.createModifyDelta(oid, pendingModifications, AccountShadowType.class, prismContext));
-//		}
-
-//		if (mergedDelta == null) {
 			getAttributeChanges(objectChanges, operations, resource, shadow, resourceAttributeDefinition);
-//		} else {
-//			getAttributeChanges(mergedDelta.getModifications(), operations, resource, shadow,
-//					resourceAttributeDefinition);
-//		}
+
 		
 		if (shadow.getFetchResult() != null){
 			parentResult.addParam("shadow", shadow);
@@ -432,6 +413,39 @@ public class ShadowConverter {
 		return sideEffectChanges;
 	}
 
+	
+	public <T extends ResourceObjectShadowType> void searchObjects(ResourceType resourceType, ResourceSchema resourceSchema, QName objectClass,
+			ResultHandler<T> resultHandler, ObjectQuery query, OperationResult parentResult) throws SchemaException,
+			CommunicationException, ObjectNotFoundException, ConfigurationException {
+
+		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(objectClass);
+
+		if (objectClassDef == null) {
+			String message = "Object class " + objectClass + " is not defined in schema of "
+					+ ObjectTypeUtil.toShortString(resourceType);
+			LOGGER.error(message);
+			parentResult.recordFatalError(message);
+			throw new SchemaException(message);
+		}
+		
+		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
+
+		try {
+			connector.search(objectClassDef, query, resultHandler, parentResult);
+		} catch (GenericFrameworkException e) {
+			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
+			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
+
+		} catch (CommunicationException ex) {
+			parentResult.recordFatalError(
+					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+			throw new CommunicationException("Error communicating with the connector " + connector + ": "
+					+ ex.getMessage(), ex);
+		}
+
+		parentResult.recordSuccess();
+
+	}
 	private boolean avoidDuplicateValues(ResourceType resource) {
 		if (resource.getConsistency() == null) {
 			return false;
@@ -442,18 +456,17 @@ public class ShadowConverter {
 		return resource.getConsistency().isAvoidDuplicateValues();
 	}
 
-	public PrismProperty fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
+	@SuppressWarnings("rawtypes")
+	public PrismProperty fetchCurrentToken(ResourceType resourceType, ResourceSchema resourceSchema, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
+		Validate.notNull(resourceSchema, "Resource schema must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-		ResourceSchema resourceSchema = resourceTypeManager.getResourceSchema(resourceType, parentResult);
-		if (resourceSchema == null) {
-			throw new ConfigurationException("No schema for "+resourceType);
-		}
+
 		// This is a HACK. It should not work only for default account, but also
 		// for other objectclasses (FIXME)
 		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
@@ -476,6 +489,7 @@ public class ShadowConverter {
 		return lastToken;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public List<Change> fetchChanges(ResourceType resource, PrismProperty lastToken,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException {
@@ -527,17 +541,17 @@ public class ShadowConverter {
 		return changes;
 	}
 
-	public ResourceObjectShadowType createNewAccountFromChange(Change change, ResourceType resource,
+	public ResourceObjectShadowType createNewAccountFromChange(Change change, ResourceType resource, ResourceSchema resourceSchema,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, ConfigurationException,
 			SecurityViolationException {
 
-		ResourceAttributeContainer resourceObject = null;
+//		ResourceAttributeContainer resourceObject = null;
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 
-		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, parentResult);
-		ObjectClassComplexTypeDefinition rod = schema.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resource),
+//		ResourceSchema schema = resourceTypeManager.getResourceSchema(resource, parentResult);
+		ObjectClassComplexTypeDefinition rod = resourceSchema.findObjectClassDefinition(new QName(ResourceTypeUtil.getResourceNamespace(resource),
 				"AccountObjectClass"));
 
 		ResourceObjectShadowType shadow = null;
@@ -607,6 +621,7 @@ public class ShadowConverter {
 
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void applyAfterOperationAttributes(ResourceObjectShadowType shadow,
 			Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
@@ -625,6 +640,7 @@ public class ShadowConverter {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, false, parentResult);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Operation determineActivationChange(ResourceObjectShadowType shadow, Collection<? extends ItemDelta> objectChange,
 			ResourceType resource, ResourceAttributeContainerDefinition objectClassDefinition)
 			throws SchemaException {
@@ -645,7 +661,6 @@ public class ShadowConverter {
 				// have specified policies to do that
 				PropertyModificationOperation activationAttribute = convertToActivationAttribute(shadow, resource,
 						enabled, objectClassDefinition);
-				// changes.add(activationAttribute);
 				return activationAttribute;
 			} else {
 				// Navive activation, nothing special to do
@@ -657,6 +672,7 @@ public class ShadowConverter {
 	}
 	
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void checkActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource,
 			ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 		OperationResult result = new OperationResult("Checking activation attribute in the new shadow.");
@@ -669,14 +685,16 @@ public class ShadowConverter {
 						throw new SchemaException("Attempt to change activation/enabled on "+resource+" that has neither native" +
 								" nor simulated activation capability");
 					}
-					ResourceAttribute activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
+					ResourceAttribute<?> activationSimulateAttribute = getSimulatedActivationAttribute(shadow, resource,
 							objectClassDefinition, result);
 					boolean enabled = shadow.getActivation().isEnabled().booleanValue();
+					PrismPropertyValue activationValue = null;
 					if (enabled) {
-						activationSimulateAttribute.add(getEnableValue(enableDisable));
+						activationValue = new PrismPropertyValue(getEnableValue(enableDisable));
 					} else {
-						activationSimulateAttribute.add(getDisableValue(enableDisable));
+						activationValue = new PrismPropertyValue(getDisableValue(enableDisable));
 					}
+					activationSimulateAttribute.add(activationValue);
 
 					PrismContainer attributesContainer =shadow.asPrismObject().findContainer(AccountShadowType.F_ATTRIBUTES);
 					if (attributesContainer.findItem(activationSimulateAttribute.getName()) == null){
@@ -691,31 +709,32 @@ public class ShadowConverter {
 		
 	}
 
-	private Operation determinePasswordChange(Collection<? extends ItemDelta> objectChange, ResourceObjectShadowType objectType) throws SchemaException {
-		// Look for password change
+//	private Operation determinePasswordChange(Collection<? extends ItemDelta> objectChange, ResourceObjectShadowType objectType) throws SchemaException {
+//		// Look for password change
+//
+//		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
+//				SchemaConstants.PATH_PASSWORD_VALUE);
+//		if (passwordPropertyDelta == null) {
+//			return null;
+//		}
+//		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
+//
+//		PropertyModificationOperation passwordChangeOp = null;
+//		if (newPasswordStructure != null) {
+//			ProtectedStringType newPasswordPS = newPasswordStructure.getValue();
+//			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
+//				throw new IllegalArgumentException(
+//						"ProtectedString is empty in an attempt to change password of "
+//								+ ObjectTypeUtil.toShortString(objectType));
+//			}
+//			passwordChangeOp = new PropertyModificationOperation(passwordPropertyDelta);
+//			// TODO: other things from the structure
+//			// changes.add(passwordChangeOp);
+//		}
+//		return passwordChangeOp;
+//	}
 
-		PropertyDelta<PasswordType> passwordPropertyDelta = PropertyDelta.findPropertyDelta(objectChange,
-				SchemaConstants.PATH_PASSWORD_VALUE);
-		if (passwordPropertyDelta == null) {
-			return null;
-		}
-		PasswordType newPasswordStructure = passwordPropertyDelta.getPropertyNew().getRealValue();
-
-		PropertyModificationOperation passwordChangeOp = null;
-		if (newPasswordStructure != null) {
-			ProtectedStringType newPasswordPS = newPasswordStructure.getValue();
-			if (MiscSchemaUtil.isNullOrEmpty(newPasswordPS)) {
-				throw new IllegalArgumentException(
-						"ProtectedString is empty in an attempt to change password of "
-								+ ObjectTypeUtil.toShortString(objectType));
-			}
-			passwordChangeOp = new PropertyModificationOperation(passwordPropertyDelta);
-			// TODO: other things from the structure
-			// changes.add(passwordChangeOp);
-		}
-		return passwordChangeOp;
-	}
-
+	@SuppressWarnings("rawtypes")
 	private void getAttributeChanges(Collection<? extends ItemDelta> objectChange, Collection<Operation> changes,
 			ResourceType resource, ResourceObjectShadowType shadow, ResourceAttributeContainerDefinition objectClassDefinition) throws SchemaException {
 	if (changes == null) {
@@ -729,8 +748,7 @@ public class ShadowConverter {
 					changes.add(attributeModification);
 				} else if (itemDelta instanceof ContainerDelta) {
 					// skip the container delta - most probably password change
-					// - it
-					// is processed earlier
+					// - it is processed earlier
 					continue;
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
@@ -778,7 +796,7 @@ public class ShadowConverter {
 
 	}
 	
-	private ResourceAttribute getSimulatedActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource, ResourceAttributeContainerDefinition objectClassDefinition, OperationResult result){
+	private ResourceAttribute<?> getSimulatedActivationAttribute(ResourceObjectShadowType shadow, ResourceType resource, ResourceAttributeContainerDefinition objectClassDefinition, OperationResult result){
 		
 		ActivationEnableDisableCapabilityType enableDisable = getEnableDisableFromSimulatedActivation(shadow, resource, result);
 		if (enableDisable == null){
@@ -813,7 +831,7 @@ public class ShadowConverter {
 			throws SchemaException {
 		OperationResult result = new OperationResult("Modify activation attribute.");
 
-		ResourceAttribute activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
+		ResourceAttribute<?> activationAttribute = getSimulatedActivationAttribute(shadow, resource, objectClassDefinition, result);
 		if (activationAttribute == null){
 			return null;
 		}
@@ -822,17 +840,21 @@ public class ShadowConverter {
 		if (enableDisable == null){
 			return null;
 		}
-		PropertyDelta enableAttributeDelta = new PropertyDelta(new ItemPath(
-				ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition());
+		
+		PropertyDelta<?> enableAttributeDelta = null;
 		
 		if (enabled) {
-			PrismPropertyValue enableValue = getEnableValue(enableDisable);
+			String enableValue = getEnableValue(enableDisable);
 			LOGGER.trace("enable attribute delta: {}", enableValue);
-			enableAttributeDelta.setValueToReplace(enableValue);
+			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
+					ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), enableValue);
+//			enableAttributeDelta.setValueToReplace(enableValue);
 		} else {
-			PrismPropertyValue disableValue = getDisableValue(enableDisable);
+			String disableValue = getDisableValue(enableDisable);
 			LOGGER.trace("enable attribute delta: {}", disableValue);
-			enableAttributeDelta.setValueToReplace(disableValue);
+			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
+					ResourceObjectShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), disableValue);
+//			enableAttributeDelta.setValueToReplace(disableValue);
 		}
 
 		PropertyModificationOperation attributeChange = new PropertyModificationOperation(
@@ -840,12 +862,14 @@ public class ShadowConverter {
 		return attributeChange;
 	}
 	
-	private PrismPropertyValue getDisableValue(ActivationEnableDisableCapabilityType enableDisable){
+	private String getDisableValue(ActivationEnableDisableCapabilityType enableDisable){
+		//TODO some checks
 		String disableValue = enableDisable.getDisableValue().iterator().next();
-		return new PrismPropertyValue(disableValue);
+		return disableValue;
+//		return new PrismPropertyValue(disableValue);
 	}
 	
-	private PrismPropertyValue getEnableValue(ActivationEnableDisableCapabilityType enableDisable){
+	private String getEnableValue(ActivationEnableDisableCapabilityType enableDisable){
 		List<String> enableValues = enableDisable.getEnableValue();
 
 		Iterator<String> i = enableValues.iterator();
@@ -857,8 +881,8 @@ public class ShadowConverter {
 				enableValue = i.next();
 			}
 		}
-		
-		return new PrismPropertyValue(enableValue);
+		return enableValue;
+//		return new PrismPropertyValue(enableValue);
 	}
 
 	public <T extends ResourceObjectShadowType> boolean isProtectedShadow(ResourceType resource,
@@ -924,7 +948,7 @@ public class ShadowConverter {
 			applyAttributesDefinition(delta.getObjectToAdd(), resource);
 		} else if (delta.isModify()) {
 			ItemPath attributesPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
-			for(ItemDelta modification: delta.getModifications()) {
+			for(ItemDelta<?> modification: delta.getModifications()) {
 				if (modification.getDefinition() == null && attributesPath.equals(modification.getParentPath())) {
 					QName attributeName = modification.getName();
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);

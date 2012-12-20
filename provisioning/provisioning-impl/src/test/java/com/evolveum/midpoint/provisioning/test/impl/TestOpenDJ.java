@@ -312,7 +312,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
 			System.out.println(objectToAdd.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
@@ -435,7 +435,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
@@ -475,7 +475,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		try {
 		
-			addedObjectOid = provisioningService.addObject(null, null, result);
+			addedObjectOid = provisioningService.addObject(null, null, null, result);
 			Assert.fail("Expected IllegalArgumentException but haven't got one.");
 		} catch(IllegalArgumentException ex){
 			assertEquals("Object to add must not be null.", ex.getMessage());
@@ -506,7 +506,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
 
 			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
@@ -559,7 +559,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
 
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
@@ -568,7 +568,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			display("Object change",delta);
 
 			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-					delta.getModifications(), null, result);
+					delta.getModifications(), null, null, result);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 					ACCOUNT_MODIFY_OID, null, result).asObjectable();
@@ -634,7 +634,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_PASSWORD_FILENAME, AccountShadowType.class);
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 
 			assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
 			
@@ -659,7 +659,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			display("Object change",delta);
 
 			// WHEN
-			provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), null, result);
+			provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(), null, null, result);
 
 			// THEN
 			
@@ -702,7 +702,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
 
 			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
@@ -826,7 +826,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
 			
 
@@ -836,7 +836,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			display("Object change",delta);
 
 			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-					delta.getModifications(), null, result);
+					delta.getModifications(), null, null, result);
 			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 					ACCOUNT_DISABLE_SIMULATED_OID, null, result).asObjectable();
@@ -892,7 +892,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
 
 			final List<AccountShadowType> objectTypeList = new ArrayList<AccountShadowType>();
@@ -950,7 +950,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
 
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
 
 			QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
@@ -1038,7 +1038,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, result);
+			provisioningService.addObject(account, null, null, result);
 			
 			AssertJUnit.fail("Expected addObject operation to fail but it was successful");
 			
@@ -1066,7 +1066,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, result);
+			provisioningService.addObject(account, null, null, result);
 			
 			AssertJUnit.fail("Expected addObject operation to fail but it was successful");
 			

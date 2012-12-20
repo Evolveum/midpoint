@@ -374,7 +374,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		try {
 			// WHEN
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -426,7 +426,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		try {
 
 			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-					delta.getModifications(), null, result);
+					delta.getModifications(), null, null, result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -652,7 +652,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("Account to add", object);
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, result);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
 		
 		// THEN
 		result.computeStatus();
@@ -728,7 +728,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("Object change",delta);
 		
 		provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-				delta.getModifications(), null, result);
+				delta.getModifications(), null, null, result);
 		
 	
 		// THEN

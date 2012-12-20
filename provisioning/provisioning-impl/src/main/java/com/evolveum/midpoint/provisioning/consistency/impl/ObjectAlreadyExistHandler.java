@@ -42,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 @Component
 public class ObjectAlreadyExistHandler extends ErrorHandler {
 
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService cacheRepositoryService;
+//	@Autowired
+//	@Qualifier("cacheRepositoryService")
+//	private RepositoryService cacheRepositoryService;
 	@Autowired
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
@@ -55,10 +55,14 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private TaskManager taskManager;
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
+		if (!isDoDiscovery(shadow.getResource())){
+			throw new ObjectAlreadyExistsException();
+		}
+		
 		OperationResult operationResult = parentResult
 				.createSubresult("Discovery for object already exists situation. Operation: " + op.name());
 		operationResult.addParam("shadow", shadow);

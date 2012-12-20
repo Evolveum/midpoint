@@ -3,6 +3,9 @@ package com.evolveum.midpoint.provisioning.consistency.api;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -13,16 +16,43 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 public abstract class ErrorHandler {
+	
 	
 	public static enum FailedOperation{
 		ADD, DELETE, MODIFY, GET;
 	}
 	
-	public abstract <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
+	protected boolean isPostpone(ResourceType resource){
+		if (resource.getConsistency() == null){
+			return true;
+		}
+		
+		if (resource.getConsistency().isPostpone() == null){
+			return true;
+		}
+		
+		return resource.getConsistency().isPostpone();
+	}
+	
+	protected boolean isDoDiscovery(ResourceType resource){
+		if (resource.getConsistency() == null){
+			return true;
+		}
+		
+		if (resource.getConsistency().isDiscovery() == null){
+			return true;
+		}
+		
+		return resource.getConsistency().isDiscovery();
+	}
+	
+	public abstract <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
 
 	
 	protected <T extends ResourceObjectShadowType> Collection<ItemDelta> createAttemptModification(T shadow,

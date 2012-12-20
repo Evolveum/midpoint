@@ -128,10 +128,62 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 
 		try {
-
 			performResourceReconciliation(resourceOid, task, opResult);
-			performRepoReconciliation(task, opResult);
+//			performRepoReconciliation(task, opResult);
 
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordFatalError("Resource does not exist, OID: " + resourceOid, ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (CommunicationException ex) {
+			LOGGER.error("Reconciliation: Communication error: {}", ex.getMessage(), ex);
+			// Error, but not critical. Just try later.
+			opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (SchemaException ex) {
+			LOGGER.error("Reconciliation: Error dealing with schema: {}", ex.getMessage(), ex);
+			// Not sure about this. But most likely it is a misconfigured
+			// resource or connector
+			// It may be worth to retry. Error is fatal, but may not be
+			// permanent.
+			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+//			return runResult;
+		} catch (RuntimeException ex) {
+			LOGGER.error("Reconciliation: Internal Error: {}", ex.getMessage(), ex);
+			// Can be anything ... but we can't recover from that.
+			// It is most likely a programming error. Does not make much sense
+			// to retry.
+			opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (ConfigurationException ex) {
+			LOGGER.error("Reconciliation: Configuration error: {}", ex.getMessage(), ex);
+			// Not sure about this. But most likely it is a misconfigured
+			// resource or connector
+			// It may be worth to retry. Error is fatal, but may not be
+			// permanent.
+			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("Recompute: Security violation: {}", ex.getMessage(), ex);
+			opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+//			return runResult;
+		}
+		
+		try {
+			performRepoReconciliation(task, opResult);
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
 			// This is bad. The resource does not exist. Permanent problem.
@@ -146,7 +198,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
-
 		} catch (CommunicationException ex) {
 			LOGGER.error("Reconciliation: Communication error: {}", ex.getMessage(), ex);
 			// Error, but not critical. Just try later.
@@ -164,12 +215,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
-			// } catch (ExpressionEvaluationException ex) {
-			// LOGGER.error("Reconciliation: Error evaluating expression: {}",ex.getMessage(),ex);
-			// opResult.recordFatalError("Error evaluating expression: "+ex.getMessage(),ex);
-			// runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			// runResult.setProgress(progress);
-			// return runResult;
 		} catch (RuntimeException ex) {
 			LOGGER.error("Reconciliation: Internal Error: {}", ex.getMessage(), ex);
 			// Can be anything ... but we can't recover from that.
@@ -196,6 +241,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			runResult.setProgress(progress);
 			return runResult;
 		}
+
 
 		opResult.computeStatus("Reconciliation run has failed");
 		// This "run" is finished. But the task goes on ...
@@ -251,23 +297,20 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		LOGGER.trace("Found {} accounts that were not successfully proccessed.", shadows.size());
 		for (PrismObject<AccountShadowType> shadow : shadows) {
-//
-//			// if (shadow.asObjectable().getAttemptNumber().intValue() >
-//			// MAX_ITERATIONS){
-//			// normalizeShadow(shadow, result);
-//			// }
-//			if (shadow.asObjectable().getFailedOperationType() == null){
-//				continue;
-//			}
 
 			try {
-				retryFailedOperation(shadow.asObjectable(), opResult);
+				provisioningService.finishOperation(shadow, opResult);
+//				retryFailedOperation(shadow.asObjectable(), opResult);
 			} catch (Exception ex) {
 				Collection<? extends ItemDelta> modifications = PropertyDelta
 						.createModificationReplacePropertyCollection(AccountShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
+				try{
 				repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						opResult);
+				}catch(Exception e){
+					
+				}
 			}
 		}
 
@@ -287,115 +330,115 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return EqualsFilter.createEqual(AccountShadowType.class, prismContext, AccountShadowType.F_FAILED_OPERATION_TYPE, failedOp);
 	}
 	
-	private void retryFailedOperation(AccountShadowType shadow, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-		if (shadow.getFailedOperationType() == null){
-			return;
-		}
-		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
-			LOGGER.debug("Re-adding {}", shadow);
-			addObject(shadow.asPrismObject(), parentResult);
-			LOGGER.trace("Re-adding account was successful.");
-			return;
+//	private void retryFailedOperation(AccountShadowType shadow, OperationResult parentResult)
+//			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+//			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+//		if (shadow.getFailedOperationType() == null){
+//			return;
+//		}
+//		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
+//			LOGGER.debug("Re-adding {}", shadow);
+//			addObject(shadow.asPrismObject(), parentResult);
+//			LOGGER.trace("Re-adding account was successful.");
+//			return;
+//
+//		}
+//		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
+//			ObjectDeltaType shadowDelta = shadow.getObjectChange();
+//			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+//					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
+//
+//			LOGGER.debug("Re-modifying {}", shadow);
+//			modifyObject(shadow.getOid(), modifications, parentResult);
+//			LOGGER.trace("Re-modifying account was successful.");
+//			return;
+//		}
+//
+//		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
+//			LOGGER.debug("Re-deleting {}", shadow);
+//			deleteObject(shadow.getOid(), parentResult);
+//			LOGGER.trace("Re-deleting account was successful.");
+//			return;
+//		}
+//	}
+//
+//	private void addObject(PrismObject<AccountShadowType> shadow, OperationResult parentResult)
+//			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+//			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+//		try {
+//			provisioningService.addObject(shadow, null, parentResult);
+//		} catch (ObjectAlreadyExistsException e) {
+//			parentResult.recordFatalError("Cannot add object: object already exist: " + e.getMessage(), e);
+//			throw e;
+//		} catch (SchemaException e) {
+//			parentResult.recordFatalError("Cannot add object: schema violation: " + e.getMessage(), e);
+//			throw e;
+//		} catch (CommunicationException e) {
+//			parentResult.recordFatalError("Cannot add object: communication problem: " + e.getMessage(), e);
+//			throw e;
+//		} catch (ObjectNotFoundException e) {
+//			parentResult.recordFatalError("Cannot add object: object not found: " + e.getMessage(), e);
+//			throw e;
+//		} catch (ConfigurationException e) {
+//			parentResult.recordFatalError("Cannot add object: configuration problem: " + e.getMessage(), e);
+//			throw e;
+//		} catch (SecurityViolationException e) {
+//			parentResult.recordFatalError("Cannot add object: security violation: " + e.getMessage(), e);
+//			throw e;
+//		}
+//	}
+//
+//	private void modifyObject(String oid, Collection<? extends ItemDelta> modifications,
+//			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+//			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+//		try {
+//			provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, parentResult);
+//		} catch (ObjectNotFoundException e) {
+//			parentResult.recordFatalError("Cannot modify object: object not found: " + e.getMessage(), e);
+//			throw e;
+//		} catch (SchemaException e) {
+//			parentResult.recordFatalError("Cannot modify object: schema violation: " + e.getMessage(), e);
+//			throw e;
+//		} catch (CommunicationException e) {
+//			parentResult
+//					.recordFatalError("Cannot modify object: communication problem: " + e.getMessage(), e);
+//			throw e;
+//		} catch (ConfigurationException e) {
+//			parentResult
+//					.recordFatalError("Cannot modify object: configuration problem: " + e.getMessage(), e);
+//			throw e;
+//		} catch (SecurityViolationException e) {
+//			parentResult.recordFatalError("Cannot modify object: security violation: " + e.getMessage(), e);
+//			throw e;
+//		} catch (ObjectAlreadyExistsException e) {
+//			parentResult.recordFatalError("Cannot modify object: conflict with another object: " + e.getMessage(), e);
+//			throw e;
+//		}
+//	}
 
-		}
-		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
-			ObjectDeltaType shadowDelta = shadow.getObjectChange();
-			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
-
-			LOGGER.debug("Re-modifying {}", shadow);
-			modifyObject(shadow.getOid(), modifications, parentResult);
-			LOGGER.trace("Re-modifying account was successful.");
-			return;
-		}
-
-		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
-			LOGGER.debug("Re-deleting {}", shadow);
-			deleteObject(shadow.getOid(), parentResult);
-			LOGGER.trace("Re-deleting account was successful.");
-			return;
-		}
-	}
-
-	private void addObject(PrismObject<AccountShadowType> shadow, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-		try {
-			provisioningService.addObject(shadow, null, parentResult);
-		} catch (ObjectAlreadyExistsException e) {
-			parentResult.recordFatalError("Cannot add object: object already exist: " + e.getMessage(), e);
-			throw e;
-		} catch (SchemaException e) {
-			parentResult.recordFatalError("Cannot add object: schema violation: " + e.getMessage(), e);
-			throw e;
-		} catch (CommunicationException e) {
-			parentResult.recordFatalError("Cannot add object: communication problem: " + e.getMessage(), e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			parentResult.recordFatalError("Cannot add object: object not found: " + e.getMessage(), e);
-			throw e;
-		} catch (ConfigurationException e) {
-			parentResult.recordFatalError("Cannot add object: configuration problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			parentResult.recordFatalError("Cannot add object: security violation: " + e.getMessage(), e);
-			throw e;
-		}
-	}
-
-	private void modifyObject(String oid, Collection<? extends ItemDelta> modifications,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
-		try {
-			provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, parentResult);
-		} catch (ObjectNotFoundException e) {
-			parentResult.recordFatalError("Cannot modify object: object not found: " + e.getMessage(), e);
-			throw e;
-		} catch (SchemaException e) {
-			parentResult.recordFatalError("Cannot modify object: schema violation: " + e.getMessage(), e);
-			throw e;
-		} catch (CommunicationException e) {
-			parentResult
-					.recordFatalError("Cannot modify object: communication problem: " + e.getMessage(), e);
-			throw e;
-		} catch (ConfigurationException e) {
-			parentResult
-					.recordFatalError("Cannot modify object: configuration problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			parentResult.recordFatalError("Cannot modify object: security violation: " + e.getMessage(), e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			parentResult.recordFatalError("Cannot modify object: conflict with another object: " + e.getMessage(), e);
-			throw e;
-		}
-	}
-
-	private void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		try {
-			provisioningService.deleteObject(AccountShadowType.class, oid, null, null, parentResult);
-		} catch (ObjectNotFoundException e) {
-			parentResult.recordFatalError("Cannot delete object: object not found: " + e.getMessage(), e);
-			throw e;
-		} catch (CommunicationException e) {
-			parentResult
-					.recordFatalError("Cannot delete object: communication problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SchemaException e) {
-			parentResult.recordFatalError("Cannot delete object: schema violation: " + e.getMessage(), e);
-			throw e;
-		} catch (ConfigurationException e) {
-			parentResult
-					.recordFatalError("Cannot delete object: configuration problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			parentResult.recordFatalError("Cannot delete object: security violation: " + e.getMessage(), e);
-			throw e;
-		}
-	}
+//	private void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+//			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+//		try {
+//			provisioningService.deleteObject(AccountShadowType.class, oid, null, null, parentResult);
+//		} catch (ObjectNotFoundException e) {
+//			parentResult.recordFatalError("Cannot delete object: object not found: " + e.getMessage(), e);
+//			throw e;
+//		} catch (CommunicationException e) {
+//			parentResult
+//					.recordFatalError("Cannot delete object: communication problem: " + e.getMessage(), e);
+//			throw e;
+//		} catch (SchemaException e) {
+//			parentResult.recordFatalError("Cannot delete object: schema violation: " + e.getMessage(), e);
+//			throw e;
+//		} catch (ConfigurationException e) {
+//			parentResult
+//					.recordFatalError("Cannot delete object: configuration problem: " + e.getMessage(), e);
+//			throw e;
+//		} catch (SecurityViolationException e) {
+//			parentResult.recordFatalError("Cannot delete object: security violation: " + e.getMessage(), e);
+//			throw e;
+//		}
+//	}
 
 	private ObjectQuery createAccountSearchQuery(ResourceType resource,
 			RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {

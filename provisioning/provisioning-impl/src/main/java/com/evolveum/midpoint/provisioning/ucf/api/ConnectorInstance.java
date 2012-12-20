@@ -189,8 +189,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException 
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public <T extends ResourceObjectShadowType> void search(Class<T> type,
-			ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+	public <T extends ResourceObjectShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
 			ResultHandler<T> handler, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, SchemaException;
 

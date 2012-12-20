@@ -21,10 +21,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.impl.ShadowCache;
+import com.evolveum.midpoint.provisioning.impl.ShadowCacheOld;
+import com.evolveum.midpoint.provisioning.impl.ShadowCacheReconciler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -66,8 +68,6 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private TaskManager taskManager;
-	@Autowired(required = true)
-	private ShadowCache shadowCache;
 
 	private String oid = null;
 	
@@ -95,10 +95,14 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex,
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
+		if (!isDoDiscovery(shadow.getResource())){
+			throw new ObjectNotFoundException(ex.getMessage(), ex);
+		}
+		
 		OperationResult result = parentResult
 				.createSubresult("Compensating object not found situation while execution operation: " + op.name());
 		result.addParam("shadow", shadow);
@@ -155,7 +159,9 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			if (oid != null ) {
 				LOGGER.trace("Modifying re-created account according to given changes.");
 				try {
-					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null,
+					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
+					options.setCompletePostponed(false);
+					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, options,
 							result);
 					parentResult.recordHandledError(
 							"Account was recreated and modifications were applied to newly cleated account.");
@@ -221,7 +227,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				subResult.muteError();
 			}
 			if (oid != null) {
-				shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
+				PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), oid, null, result);
+				shadow = (T) prismShadow.asObjectable();
 				parentResult.recordHandledError("Account was re-created by the discovery.");
 				result.computeStatus();
 				return shadow;

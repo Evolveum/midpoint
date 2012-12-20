@@ -725,7 +725,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -780,7 +780,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1112,7 +1112,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, objectModification.getOid(),
-				delta.getModifications(), new ProvisioningScriptsType(), result);
+				delta.getModifications(), new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1150,7 +1150,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), result);
+				new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1177,7 +1177,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), result);
+				new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1207,7 +1207,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), result);
+				new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1233,7 +1233,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), result);
+				new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1259,7 +1259,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), result);
+				new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1289,7 +1289,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), result);
+				new ProvisioningScriptsType(), null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1319,7 +1319,7 @@ public class TestDummy extends AbstractDummyTest {
 		System.out.println(PrismTestUtil.marshalWrap(scriptsType));
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -1386,7 +1386,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			provisioningService.addObject(shadow, null, result);
+			provisioningService.addObject(shadow, null, null, result);
 			AssertJUnit.fail("Expected security exception while adding 'daviejones' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
@@ -1443,7 +1443,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			provisioningService.modifyObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, result);
+			provisioningService.modifyObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, result);
 			AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected

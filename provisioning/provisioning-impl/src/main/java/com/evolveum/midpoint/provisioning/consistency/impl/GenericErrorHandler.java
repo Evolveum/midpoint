@@ -11,7 +11,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.impl.ShadowCache;
+import com.evolveum.midpoint.provisioning.impl.OperationFinisher;
+import com.evolveum.midpoint.provisioning.impl.ShadowCacheOld;
+import com.evolveum.midpoint.provisioning.impl.ShadowCacheReconciler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -38,16 +40,21 @@ public class GenericErrorHandler extends ErrorHandler{
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 
-	@Autowired(required = true)
-	private ShadowCache shadowCache;
+//	@Autowired(required = true)
+//	private ShadowCacheReconciler shadowCacheFinisher;
 	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
 	
+//	@Autowired
+//	private OperationFinisher operationFinisher;
+	
 	
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException{
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
 //		OperationResult result = OperationResult.createOperationResult(shadow.getResult());
 		String operation = (shadow.getFailedOperationType() == null ? "null" : shadow.getFailedOperationType().name());
@@ -71,47 +78,54 @@ public class GenericErrorHandler extends ErrorHandler{
 				return shadow;
 			}
 			
-			if (shadow.getFailedOperationType() != null){
-				
-				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					
-					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
+			if (shadow.getFailedOperationType() == null){
+				throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+			}
+//				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
+					provisioningService.finishOperation(shadow.asPrismObject(), result);
+//					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
 					result.computeStatus();
 					if (result.isSuccess()){
-						 shadow = (T) shadowCache.getShadow(shadow.getClass(), oid, null, result);
+						 PrismObject prismShadow = provisioningService.getObject(shadow.getClass(), shadow.getOid(), null, result);
+						 shadow = (T) prismShadow.asObjectable();
 					}
-				} else if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()){
-					if (shadow.getObjectChange() != null) {
-						ObjectDeltaType deltaType = shadow.getObjectChange();
-						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-								deltaType.getModification(), shadow.asPrismObject().getDefinition());
-						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null, result);
-					} 
-					shadow = (T) shadowCache.getShadow(shadow.getClass(), shadow.getOid(), null, result);
-				} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
-					
-					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), ObjectOperationOption.FORCE, null, result);
-				}
+//				} else if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()){
+//					if (shadow.getObjectChange() != null) {
+//						ObjectDeltaType deltaType = shadow.getObjectChange();
+//						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+//								deltaType.getModification(), shadow.asPrismObject().getDefinition());
+//						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null, result);
+//					} 
+//					shadow = (T) shadowCache.getShadow(shadow.getClass(), shadow.getOid(), null, result);
+//				} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
+//					
+//					provisioningService.deleteObject(AccountShadowType.class, shadow.getOid(), ObjectOperationOption.FORCE, null, result);
+//				}
 				return shadow;
-			}
-			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
-					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+			
+//			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+//					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 		case MODIFY:
-			if (shadow.getFailedOperationType() != null) {
-				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
-					// get the modifications from the shadow before the account
-					// is created, because after successful creation of account,
-					// the modification will be lost
-					Collection<? extends ItemDelta> modifications = null;
-					if (shadow.getObjectChange() != null) {
-						ObjectDeltaType deltaType = shadow.getObjectChange();
+			if (shadow.getFailedOperationType() == null) {
+				throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+			}
+				// get the modifications from the shadow before the account
+				// is created, because after successful creation of account,
+				// the modification will be lost
+				Collection<? extends ItemDelta> modifications = null;
+				if (shadow.getObjectChange() != null) {
+					ObjectDeltaType deltaType = shadow.getObjectChange();
 
-						modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
-								.asPrismObject().getDefinition());
-					}
-
+					modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
+							.asPrismObject().getDefinition());
+				}
 					PropertyDelta.applyTo(modifications, shadow.asPrismObject());
-					provisioningService.addObject(shadow.asPrismObject(), null, result);
+//				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
+//				
+					provisioningService.finishOperation(shadow.asPrismObject(), result);						
+//					provisioningService.addObject(shadow.asPrismObject(), null, result);
 					// if (oid != null){
 					// shadow = shadowCache.getShadow(AccountShadowType.class,
 					// oid, null, parentResult);
@@ -119,14 +133,6 @@ public class GenericErrorHandler extends ErrorHandler{
 					result.computeStatus();
 
 					if (!result.isSuccess()) {
-						// we assume, that the account was successfully
-						// created,
-						// so apply also modifications to the resource
-						// account
-//						provisioningService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications, null,
-//								result);
-//						result.computeStatus();
-//					} else {
 						// account wasn't created, probably resource is
 						// still
 						// down, or there is other reason.just save the
@@ -141,11 +147,8 @@ public class GenericErrorHandler extends ErrorHandler{
 						result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
 					}
 
-				}
+				
 				return shadow;
-			}
-			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
-					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 			
 		case DELETE:
 			cacheRepositoryService.deleteObject(shadow.getClass(), shadow.getOid(), result);

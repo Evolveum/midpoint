@@ -44,6 +44,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -154,7 +155,7 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ObjectOperationOption.class), any(ProvisioningScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ProvisioningOperationOptions.class), any(ProvisioningScriptsType.class),
 				any(OperationResult.class));
 	}
 }

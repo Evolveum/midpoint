@@ -162,7 +162,7 @@ public interface ProvisioningService {
 	 * @throws SecurityViolationException 
 	 * 				Security violation while communicating with the connector or processing provisioning policies
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, 
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, ProvisioningOperationOptions options,
 			OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException, 
 			ConfigurationException, SecurityViolationException;
@@ -302,7 +302,7 @@ public interface ProvisioningService {
      *             if resulting object would have name which already exists in another object of the same type
 	 */
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-			ProvisioningScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
+			ProvisioningScriptsType scripts, ProvisioningOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
 
 	/**
@@ -329,7 +329,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ObjectOperationOption option, ProvisioningScriptsType scripts, OperationResult parentResult)
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -399,6 +399,11 @@ public interface ProvisioningService {
 	public List<PrismObject<? extends ResourceObjectShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
+	
+	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ObjectAlreadyExistsException, SecurityViolationException;
+
 	/**
 	 * Applies appropriate definition to the shadow delta.
 	 */

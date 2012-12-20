@@ -29,11 +29,12 @@ public class SchemaExceptionHandler extends ErrorHandler{
 	private RepositoryService cacheRepositoryService;
 	
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException,
-			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
 		if (shadow.getOid() == null){
+			parentResult.recordFatalError("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 			throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 		}
 		

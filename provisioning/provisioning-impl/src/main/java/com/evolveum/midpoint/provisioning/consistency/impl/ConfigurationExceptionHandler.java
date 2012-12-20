@@ -26,9 +26,9 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 	private RepositoryService cacheRepositoryService;
 	
 	@Override
-	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, OperationResult parentResult) throws SchemaException,
-			GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, ConfigurationException {
+	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 		
 		if (shadow.getOid() == null){
 			throw new ConfigurationException("Configuration error: "+ex.getMessage(), ex);

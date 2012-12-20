@@ -1427,8 +1427,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 
 	@Override
-	public <T extends ResourceObjectShadowType> void search(Class<T> type,
-			ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
+	public <T extends ResourceObjectShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
 			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException {
 

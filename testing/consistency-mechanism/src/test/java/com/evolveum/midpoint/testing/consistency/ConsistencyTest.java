@@ -132,12 +132,14 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -220,6 +222,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private static final String USER_MORGAN_FILENAME = REQUEST_DIR_NAME + "user-morgan.xml";
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
+	
+	private static final String USER_ANGELIKA_FILENAME = REPO_DIR_NAME + "user-angelika.xml";
+	private static final String USER_ANGELIKA_OID = "c0c010c0-d34d-b33f-f00d-111111111888";
+	
+	private static final String USER_ALICE_FILENAME = REPO_DIR_NAME + "user-alice.xml";
+	private static final String USER_ALICE_OID = "c0c010c0-d34d-b33f-f00d-111111111999";
 
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = REPO_DIR_NAME + "account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
@@ -742,7 +750,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		AccountShadowType jackeAccount = unmarshallJaxbFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
 				AccountShadowType.class);
 
-		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, parentResult);
+		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, parentResult);
 		PrismObject<AccountShadowType> jackFromRepo = repositoryService.getObject(AccountShadowType.class,
 				oid, parentResult);
 		LOGGER.debug("account jack after provisioning: {}", jackFromRepo.dump());
@@ -873,7 +881,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		AccountShadowType shadow = unmarshallJaxbFromFile(ACCOUNT_DENIELS_FILENAME, AccountShadowType.class);
 
-		provisioningService.addObject(shadow.asPrismObject(), null, secondResult);
+		provisioningService.addObject(shadow.asPrismObject(), null, null, secondResult);
 
 		addObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
 
@@ -1527,7 +1535,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), user.getDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
-		PrismPropertyValue enabledOutboundAction = new PrismPropertyValue(true, OriginType.OUTBOUND, null);
+		PrismPropertyValue enabledOutboundAction = new PrismPropertyValue(true, OriginType.USER_ACTION, null);
 		PropertyDelta enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ENABLE, user.getDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
@@ -1543,6 +1551,181 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		
 	}
+	
+	/**
+	 * this test simulates situation, when someone tries to add account while
+	 * resource is down and this account is created by next get call on this
+	 * account
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void test027getDiscoveryAddCommunicationProblem() throws Exception {
+		displayTestTile("test027getDiscoveryAddCommunicationProblem");
+		OperationResult result = new OperationResult("test027getDiscoveryAddCommunicationProblem");
+		addObjectFromFile(USER_ANGELIKA_FILENAME, UserType.class, result);
+
+		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ANGELIKA_OID, result);
+		assertNotNull(addedUser);
+		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				0, accountRefs.size());
+
+		
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_ANGELIKA_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+//		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
+
+		result.computeStatus();
+		display("add object communication problem result: ", result);
+		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		
+		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
+				USER_ANGELIKA_OID, result);
+		assertNotNull(userAferModifyOperation);
+		accountRefs = userAferModifyOperation.asObjectable().getAccountRef();
+		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
+				accountRefs.size());
+
+		String accountOid = accountRefs.get(0).getOid();
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid, result).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
+		assertNotNull("Failed angelica's account must have result.", faieldAccount.getResult());
+		assertNotNull("Failed angelica's account must contain reference on the resource", faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "sn", "angelika");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "angelika");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "angelika");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "angelika");
+		
+		//start openDJ
+		openDJController.start();
+		//and set the resource availability status to UP
+		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
+				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), AvailabilityStatusType.UP);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		modifications.add(resourceStatusDelta);
+		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, result);
+		//and then try to get account -> result is that the account will be created while getting it
+		
+		PrismObject<AccountShadowType> angelicaAcc = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+		assertNotNull(angelicaAcc);
+		AccountShadowType angelicaAccount = angelicaAcc.asObjectable();
+		displayJaxb("Shadow after discovery: ", angelicaAccount, AccountShadowType.COMPLEX_TYPE);
+		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
+		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
+		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), angelicaAccount.getResourceRef().getOid());
+//		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "sn", "angelika");
+		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "cn", "angelika");
+		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "givenName", "angelika");
+		assertAttribute(angelicaAccount, resourceTypeOpenDjrepo, "uid", "angelika");
+		
+	}
+	
+	@Test
+	public void test028getDiscoveryModifyCommunicationProblem() throws Exception{
+		displayTestTile("test028getDiscoveryModifyCommunicationProblem");
+		OperationResult parentResult = new OperationResult("test028getDiscoveryModifyCommunicationProblem");
+		
+		//prepare user 
+		addObjectFromFile(USER_ALICE_FILENAME, UserType.class, parentResult);
+
+		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_ALICE_OID, parentResult);
+		assertNotNull(addedUser);
+		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				0, accountRefs.size());
+
+		//and add account to the user while resource is UP
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_ALICE_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, parentResult);
+		
+		//then stop openDJ
+		openDJController.stop();
+		UserType userJack = repositoryService.getObject(UserType.class, USER_ALICE_OID, parentResult)
+				.asObjectable();
+		assertNotNull(userJack);
+		assertEquals(1, userJack.getAccountRef().size());
+		String accountRefOid = userJack.getAccountRef().get(0).getOid();
+
+		//and make some modifications to the account while resource is DOWN
+		objectChange = unmarshallJaxbFromFile(
+				REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+
+		modifyDelta = ObjectDelta.createModifyDelta(accountRefOid, delta.getModifications(), AccountShadowType.class, prismContext);
+		deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, parentResult);
+//		modelService.modifyObject(AccountShadowType.class, accountRefOid, delta.getModifications(), task,
+//				parentResult);
+
+		//check the state after execution
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountRefOid,
+				parentResult).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.MODIFY, faieldAccount.getFailedOperationType());
+		assertNotNull(faieldAccount.getResult());
+		assertNotNull(faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertNotNull(faieldAccount.getObjectChange());
+
+		//start openDJ
+		openDJController.start();
+		//and set the resource availability status to UP
+		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
+				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), AvailabilityStatusType.UP);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		modifications.add(resourceStatusDelta);
+		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
+		
+		//and then try to get account -> result is that the modifications will be applied to the account
+		PrismObject<AccountShadowType> aliceAcc = modelService.getObject(AccountShadowType.class, accountRefOid, null, task, parentResult);
+		assertNotNull(aliceAcc);
+		AccountShadowType aliceAccount = aliceAcc.asObjectable();
+		displayJaxb("Shadow after discovery: ", aliceAccount, AccountShadowType.COMPLEX_TYPE);
+		assertNull("Alice's account after discovery must not have failed opertion.", aliceAccount.getFailedOperationType());
+		assertNull("Alice's account after discovery must not have result.", aliceAccount.getResult());
+		assertNull("Object changes in alices's account after discovery must be null", aliceAccount.getObjectChange());
+		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "sn", "alice");
+		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "cn", "alice");
+		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
+		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "uid", "alice");
+		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+
+		//and finally stop openDJ
+		openDJController.stop();
+	}
+	
 	
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
@@ -1635,7 +1818,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				accountRefs.get(0).getOid(), null, null, result).asObjectable();
 		assertNotNull(addedAccount);
 		displayJaxb("shadow from the repository: ", addedAccount, AccountShadowType.COMPLEX_TYPE);
-		assertNull("Expected that FailedOperationType is null, but it has value "+ addedAccount.getFailedOperationType(),
+		assertNull("Expected that FailedOperationType in e's account is null, but it has value "+ addedAccount.getFailedOperationType(),
 				addedAccount.getFailedOperationType());
 		assertNull(addedAccount.getResult());
 		assertNotNull(addedAccount.getResourceRef());
@@ -1691,12 +1874,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				null, null, result).asObjectable();
 		assertNotNull(elaineAccount);
 		displayJaxb("shadow from the repository: ", elaineAccount, AccountShadowType.COMPLEX_TYPE);
-		assertNull("Expected that FailedOperationType is null, but isn't",
+		assertNull("Expected that FailedOperationType in elaine's account is null, but isn't",
 				elaineAccount.getFailedOperationType());
 		assertNull("result in the modified account after reconciliation must be null.", elaineAccount.getResult());
 		assertIcfsNameAttribute(elaineAccount, "uid=elaine,ou=people,dc=example,dc=com");
-//		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
-//		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
+		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
 		UserType userJack2 = repositoryService.getObject(UserType.class, USER_JACK2_OID, result).asObjectable();
 		assertNotNull(userJack2);

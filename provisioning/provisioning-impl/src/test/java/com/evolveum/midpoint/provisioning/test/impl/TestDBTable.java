@@ -123,7 +123,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		System.out.println(account.asPrismObject().dump());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
 		
 		// THEN
 		result.computeStatus();

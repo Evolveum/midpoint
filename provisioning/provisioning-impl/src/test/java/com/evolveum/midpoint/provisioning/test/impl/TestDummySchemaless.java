@@ -413,7 +413,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
 
 		// THEN
 		result.computeStatus();

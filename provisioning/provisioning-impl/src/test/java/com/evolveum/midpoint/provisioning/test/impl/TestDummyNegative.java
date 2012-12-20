@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -200,7 +201,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, result);
+			provisioningService.addObject(account, null, null, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -227,7 +228,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, result);
+			provisioningService.addObject(account, null, null, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -254,7 +255,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, result);
+			provisioningService.addObject(account, null, null, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -281,7 +282,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, result);
+			provisioningService.addObject(account, null, null, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -309,8 +310,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 		try {
 			// WHEN
 			String oid = repositoryService.addObject(account, result);
-			
-			provisioningService.deleteObject(AccountShadowType.class, oid, ObjectOperationOption.FORCE, null, result);
+			ProvisioningOperationOptions options = ProvisioningOperationOptions.createForce(true);
+			provisioningService.deleteObject(AccountShadowType.class, oid, options, null, result);
 //			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected
