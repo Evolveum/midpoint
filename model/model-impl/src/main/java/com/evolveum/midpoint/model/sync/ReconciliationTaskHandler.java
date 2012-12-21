@@ -35,11 +35,13 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -183,7 +185,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 		
 		try {
-			performRepoReconciliation(task, opResult);
+			performRepoReconciliation(task, resourceOid, opResult);
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
 			// This is bad. The resource does not exist. Permanent problem.
@@ -280,17 +282,22 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.computeStatus();
 	}
 
-	private void performRepoReconciliation(Task task, OperationResult result) throws SchemaException,
+	private void performRepoReconciliation(Task task, String resourceOid, OperationResult result) throws SchemaException,
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 		// find accounts
+		
+//		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult)
+//				.asObjectable();
 		LOGGER.debug("Repository reconciliation starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
 
 
 		NotFilter notNull = NotFilter.createNot(createFailedOpFilter(null));
-		ObjectQuery query =	ObjectQuery.createObjectQuery(notNull); 
+		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(AccountShadowType.class,
+				AccountShadowType.F_RESOURCE_REF, prismContext, resourceOid));
+		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
 
 		List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(
 				AccountShadowType.class, query, opResult);
