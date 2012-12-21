@@ -200,10 +200,11 @@ public class PasswordPolicyUtils {
 					msg));
 			message.append(msg);
 			message.append("\n");
-		} else {
-			ret.addSubresult(new OperationResult("Check global minimal length. Minimal length of password OK.",
-					OperationResultStatus.SUCCESS, "PASSED"));
-		}
+		} 
+//		else {
+//			ret.addSubresult(new OperationResult("Check global minimal length. Minimal length of password OK.",
+//					OperationResultStatus.SUCCESS, "PASSED"));
+//		}
 
 		// Test maximal length
 		if (lims.getMaxLength() != null) {
@@ -214,10 +215,11 @@ public class PasswordPolicyUtils {
 						msg));
 				message.append(msg);
 				message.append("\n");
-			} else {
-				ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
-						OperationResultStatus.SUCCESS, "PASSED"));
-			}
+			} 
+//			else {
+//				ret.addSubresult(new OperationResult("Check global maximal length. Maximal length of password OK.",
+//						OperationResultStatus.SUCCESS, "PASSED"));
+//			}
 		}
 		// Test uniqueness criteria
 		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
@@ -230,11 +232,12 @@ public class PasswordPolicyUtils {
 						OperationResultStatus.FATAL_ERROR, msg));
 				message.append(msg);
 				message.append("\n");
-			} else {
-				ret.addSubresult(new OperationResult(
-						"Check minimal count of unique chars. Password satisfies minimal required unique characters.",
-						OperationResultStatus.SUCCESS, "PASSED"));
-			}
+			} 
+//			else {
+//				ret.addSubresult(new OperationResult(
+//						"Check minimal count of unique chars. Password satisfies minimal required unique characters.",
+//						OperationResultStatus.SUCCESS, "PASSED"));
+//			}
 		}
 
 		// check limitation
@@ -283,10 +286,11 @@ public class PasswordPolicyUtils {
 						OperationResultStatus.FATAL_ERROR, msg));
 				message.append(msg);
 				message.append("\n");
-			} else {
-				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters in password OK.",
-						OperationResultStatus.SUCCESS, "PASSED"));
-			}
+			} 
+//			else {
+//				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters in password OK.",
+//						OperationResultStatus.SUCCESS, "PASSED"));
+//			}
 
 			// Test maximal occurrence
 			if (l.getMaxOccurs() != null) {
@@ -299,11 +303,12 @@ public class PasswordPolicyUtils {
 							OperationResultStatus.FATAL_ERROR, msg));
 					message.append(msg);
 					message.append("\n");
-				} else {
-					limitResult.addSubresult(new OperationResult(
-							"Check maximal occurence of characters in password OK.", OperationResultStatus.SUCCESS,
-							"PASSED"));
-				}
+				} 
+//				else {
+//					limitResult.addSubresult(new OperationResult(
+//							"Check maximal occurence of characters in password OK.", OperationResultStatus.SUCCESS,
+//							"PASSED"));
+//				}
 			}
 			// test if first character is valid
 			if (l.isMustBeFirst() == null){
@@ -316,10 +321,11 @@ public class PasswordPolicyUtils {
 						OperationResultStatus.FATAL_ERROR, msg));
 				message.append(msg);
 				message.append("\n");
-			} else {
-				limitResult.addSubresult(new OperationResult("Check valid first char in password OK.",
-						OperationResultStatus.SUCCESS, "PASSED"));
-			}
+			} 
+//			else {
+//				limitResult.addSubresult(new OperationResult("Check valid first char in password OK.",
+//						OperationResultStatus.SUCCESS, "PASSED"));
+//			}
 			limitResult.computeStatus();
 			ret.addSubresult(limitResult);
 		}
@@ -339,10 +345,11 @@ public class PasswordPolicyUtils {
 					OperationResultStatus.FATAL_ERROR, msg));
 			message.append(msg);
 			message.append("\n");
-		} else {
-			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters OK.",
-					OperationResultStatus.SUCCESS, "PASSED"));
-		}
+		} 
+//		else {
+//			ret.addSubresult(new OperationResult("Check if password does not contain invalid characters OK.",
+//					OperationResultStatus.SUCCESS, "PASSED"));
+//		}
 
 		if (message.toString() == null || message.toString().isEmpty()){
 			ret.computeStatus();
