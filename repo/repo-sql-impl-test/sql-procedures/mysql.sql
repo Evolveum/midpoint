@@ -1,42 +1,51 @@
-create function cleanupTestDatabase() returns integer
-begin
-  truncate table m_account_shadow ;
-  truncate table m_any ;
-  truncate table m_any_clob ;
-  truncate table m_any_date ;
-  truncate table m_any_long ;
-  truncate table m_any_string ;
-  truncate table m_assignment ;
-  truncate table m_audit_delta ;
-  truncate table m_audit_event ;
-  truncate table m_connector ;
-  truncate table m_connector_host ;
-  truncate table m_connector_target_system ;
-  truncate table m_container ;
-  truncate table m_exclusion ;
-  truncate table m_generic_object ;
-  truncate table m_node ;
-  truncate table m_object ;
-  truncate table m_object_org_ref ;
-  truncate table m_operation_result ;
-  truncate table m_org ;
-  truncate table m_org_closure ;
-  truncate table m_org_org_type ;
-  truncate table m_org_sys_config ;
-  truncate table m_password_policy ;
-  truncate table m_reference ;
-  truncate table m_resource ;
-  truncate table m_resource_approver_ref ;
-  truncate table m_resource_shadow ;
-  truncate table m_role ;
-  truncate table m_sync_situation_description ;
-  truncate table m_system_configuration ;
-  truncate table m_task ;
-  truncate table m_user ;
-  truncate table m_user_employee_type ;
-  truncate table m_user_organizational_unit ;
-  truncate table m_user_template ;
+DELIMITER $$
+
+DROP FUNCTION IF EXISTS `cleanupTestDatabase`$$
+
+CREATE FUNCTION `cleanupTestDatabase`() RETURNS TINYINT(1)
+    DETERMINISTIC
+BEGIN
+	DECLARE run TINYINT DEFAULT 0;
+
+	delete from m_account_shadow ;
+  delete from m_any ;
+  delete from m_any_clob ;
+  delete from m_any_date ;
+  delete from m_any_long ;
+  delete from m_any_string ;
+  delete from m_assignment ;
+  delete from m_audit_delta ;
+  delete from m_audit_event ;
+  delete from m_connector ;
+  delete from m_connector_host ;
+  delete from m_connector_target_system ;
+  delete from m_container ;
+  delete from m_exclusion ;
+  delete from m_generic_object ;
+  delete from m_node ;
+  delete from m_object ;
+  delete from m_object_org_ref ;
+  delete from m_operation_result ;
+  delete from m_org ;
+  delete from m_org_closure ;
+  delete from m_org_org_type ;
+  delete from m_org_sys_config ;
+  delete from m_password_policy ;
+  delete from m_reference ;
+  delete from m_resource ;
+  delete from m_resource_approver_ref ;
+  delete from m_resource_shadow ;
+  delete from m_role ;
+  delete from m_sync_situation_description ;
+  delete from m_system_configuration ;
+  delete from m_task ;
+  delete from m_user ;
+  delete from m_user_employee_type ;
+  delete from m_user_organizational_unit ;
+  delete from m_user_template ;
   update hibernate_sequence set next_val=1;
-  
-  return 0;
-end
+
+	RETURN run;
+END$$
+
+DELIMITER ;
