@@ -77,10 +77,16 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
 
             session.getTransaction().commit();
         } catch (Exception ex) {
-            session.getTransaction().rollback();
+            LOGGER.error("Couldn't cleanup database, reason: " + ex.getMessage(), ex);
+
+            if (session != null && session.getTransaction() != null) {
+                session.getTransaction().rollback();
+            }
             throw new BeanInitializationException("Couldn't delete objects from database, reason: " + ex.getMessage(), ex);
         } finally {
-            session.close();
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
 
         return bean;
