@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -79,10 +80,13 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
         } catch (Exception ex) {
             LOGGER.error("Couldn't cleanup database, reason: " + ex.getMessage(), ex);
 
-            if (session != null && session.getTransaction() != null) {
-                session.getTransaction().rollback();
+            if (session != null && session.isOpen()) {
+                Transaction transaction = session.getTransaction();
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
             }
-            throw new BeanInitializationException("Couldn't delete objects from database, reason: " + ex.getMessage(), ex);
+            throw new BeanInitializationException("Couldn't cleanup database, reason: " + ex.getMessage(), ex);
         } finally {
             if (session != null && session.isOpen()) {
                 session.close();
