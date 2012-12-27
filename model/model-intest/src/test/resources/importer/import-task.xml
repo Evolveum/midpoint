@@ -31,10 +31,10 @@
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
     <task oid="00000000-0000-0000-0000-123450000001">
-        <name>Task1: basic single-run task (takes 3x60 sec)</name>
+        <name>Task1: basic single-run task (takes 180x1 sec)</name>
 		<extension>
-			<noop:delay xsi:type="xsd:int">60000</noop:delay>	
-			<noop:steps xsi:type="xsd:int">3</noop:steps>
+			<noop:delay xsi:type="xsd:int">1000</noop:delay>
+			<noop:steps xsi:type="xsd:int">180</noop:steps>
 		</extension>
         <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
         <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
