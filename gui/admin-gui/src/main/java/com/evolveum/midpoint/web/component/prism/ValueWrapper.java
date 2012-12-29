@@ -99,6 +99,10 @@ public class ValueWrapper<T> implements Serializable {
         return oldValue != null ? !oldValue.equals(value) : value != null;
     }
 
+    public boolean isReadonly() {
+        return property.isReadonly();
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

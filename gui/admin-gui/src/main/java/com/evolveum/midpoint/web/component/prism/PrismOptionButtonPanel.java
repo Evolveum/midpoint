@@ -73,8 +73,17 @@ public class PrismOptionButtonPanel extends Panel {
             public void onClick(AjaxRequestTarget target) {
                 showEmptyOnClick(target);
             }
+
         };
         add(showEmpty);
+
+        showEmpty.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !model.getObject().isReadonly();
+            }
+        });
 
         Image showEmptyImg = new Image("showEmptyImg", new AbstractReadOnlyModel() {
 

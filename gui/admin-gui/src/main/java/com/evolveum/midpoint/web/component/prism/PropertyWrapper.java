@@ -47,6 +47,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     private ValueStatus status;
     private List<ValueWrapper> values;
     private String displayName;
+    private boolean readonly;
 
     public PropertyWrapper(ContainerWrapper container, PrismProperty property, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
@@ -55,6 +56,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         this.container = container;
         this.property = property;
         this.status = status;
+        this.readonly = container.isReadonly();
 
         ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
@@ -180,5 +182,13 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             builder.append("\n");
         }
         return builder.toString();
+    }
+
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    public void setReadonly(boolean readonly) {
+        this.readonly = readonly;
     }
 }

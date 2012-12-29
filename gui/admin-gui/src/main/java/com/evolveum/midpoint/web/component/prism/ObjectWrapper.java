@@ -69,6 +69,7 @@ public class ObjectWrapper implements Serializable {
 	private boolean selected;
 
     private boolean showAssignments = false;
+    private boolean readonly = false;
 
 	public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
@@ -568,5 +569,13 @@ public class ObjectWrapper implements Serializable {
 
     public void setShowAssignments(boolean showAssignments) {
         this.showAssignments = showAssignments;
+    }
+
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    public void setReadonly(boolean readonly) {
+        this.readonly = readonly;
     }
 }

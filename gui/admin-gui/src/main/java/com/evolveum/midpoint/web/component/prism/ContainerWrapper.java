@@ -57,6 +57,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private ItemPath path;
     private List<PropertyWrapper> properties;
 
+    private boolean readonly;
+
     public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "Prism object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
@@ -66,6 +68,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         this.status = status;
         this.path = path;
         main = path == null;
+        readonly = object.isReadonly();
     }
 
     ObjectWrapper getObject() {
@@ -361,5 +364,13 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         }
 
         return false;
+    }
+
+    public boolean isReadonly() {
+        return readonly;
+    }
+
+    public void setReadonly(boolean readonly) {
+        this.readonly = readonly;
     }
 }

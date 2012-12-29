@@ -170,6 +170,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
+        wrapper.setReadonly(true);
 
         return wrapper;
     }
@@ -186,6 +187,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
+        wrapper.setReadonly(true);
 
         return wrapper;
     }
@@ -202,6 +204,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
+        wrapper.setReadonly(true);
 
         return wrapper;
     }
@@ -247,6 +250,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
+        wrapper.setReadonly(true);
 
         return wrapper;
     }
@@ -258,6 +262,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
+        wrapper.setReadonly(true);
 
         return wrapper;
     }

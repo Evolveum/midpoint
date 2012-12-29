@@ -70,6 +70,11 @@ public class PrismPropertyPanel extends Panel {
                 ContainerWrapper container = property.getContainer();
                 return container.isPropertyVisible(property);
             }
+
+            @Override
+            public boolean isEnabled() {
+                return !model.getObject().isReadonly();
+            }
         });
 
         initLayout(model, form);

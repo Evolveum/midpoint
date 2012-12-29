@@ -173,7 +173,7 @@ public class PrismValuePanel extends Panel {
                     ObjectWrapper object = propertyWrapper.getContainer().getObject();
                     PrismPropertyDefinition def = propertyWrapper.getItem().getDefinition();
 
-                    return isAccessible(def, object.getStatus());
+                    return !model.getObject().isReadonly() && isAccessible(def, object.getStatus());
                 }
             });
         }
