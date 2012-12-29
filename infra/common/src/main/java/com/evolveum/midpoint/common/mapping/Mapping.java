@@ -471,7 +471,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			ItemPath path = new XPathHolder(pathElement).toPropertyPath();
 			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+contextDescription);
 			if (outputDefinition == null) {
-				throw new SchemaException("No target item that would comform to the path "+path+" in "+getContextDescription());
+				throw new SchemaException("No target item that would conform to the path "+path+" in "+getContextDescription());
 			}
 
 			// Make the path relative if needed

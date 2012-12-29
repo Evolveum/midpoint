@@ -66,10 +66,12 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
         }
 
         boolean approved;
-        switch (level.getEvaluationStrategy()) {
-            case ALL_MUST_AGREE: approved = allApproved; break;
-            case FIRST_DECIDES: approved = decisionList.getDecisionList().get(0).isApproved(); break;
-            default: throw new SystemException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
+        if (level.getEvaluationStrategy() == null || level.getEvaluationStrategy() == LevelEvaluationStrategyType.ALL_MUST_AGREE) {
+            approved = allApproved;
+        } else if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
+            approved = decisionList.getDecisionList().get(0).isApproved();
+        } else {
+            throw new SystemException("Unknown level evaluation strategy: " + level.getEvaluationStrategy());
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("approved at this level = " + approved);

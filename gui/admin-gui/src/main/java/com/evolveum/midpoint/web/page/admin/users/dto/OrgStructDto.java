@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jvnet.jaxb2_commons.lang.Validate;
@@ -46,8 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class OrgStructDto<T extends ObjectType> implements Serializable {
 	private List<NodeDto> orgUnitList;
 	private List<NodeDto> userList;
-	private static QName ORG_MANAGER = new QName("http://midpoint.evolveum.com/xml/ns/public/common/org-2",
-			"manager");
 	private OperationResult result = new OperationResult(OrgStructDto.class.getName());
 
 	public OrgStructDto(List<PrismObject<T>> orgUnitList, NodeDto parent) {
@@ -132,7 +131,7 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
 		}
 		QName relation = orgRef.getRelation();
 
-		if (relation.equals(ORG_MANAGER)) {
+		if (SchemaConstants.ORG_MANAGER.equals(relation)) {
 			return NodeType.MANAGER;
 		}
 		return null;

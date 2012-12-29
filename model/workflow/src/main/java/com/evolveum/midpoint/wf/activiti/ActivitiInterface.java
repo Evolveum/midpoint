@@ -24,6 +24,7 @@ package com.evolveum.midpoint.wf.activiti;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -59,12 +60,15 @@ public class ActivitiInterface {
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiInterface.class);
 
     /**
-     * Processes a message coming from midPoint to activiti
+     * Processes a message coming from midPoint to activiti. Although currently activiti is co-located with midPoint,
+     * the interface between them is designed to be more universal - based on message passing.
      */
 
     public void idm2activiti(MidPointToActivitiMessage cmd) {
 
-        LOGGER.trace(" *** A command from midPoint has arrived; class = " + cmd.getClass().getName() + " ***");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(" *** A command from midPoint has arrived; class = " + cmd.getClass().getName() + " ***");
+        }
 
         if (cmd instanceof QueryProcessCommand)
         {
@@ -75,15 +79,15 @@ public class ActivitiInterface {
             qpr.setPid(pid);
             qpr.setTaskOid(qpc.getTaskOid());
 
-            LOGGER.trace("Querying process instance id = " + pid);
-            //System.out.println("#######################################################\nQuerying process instance id = " + pid);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Querying process instance id = " + pid);
+            }
 
             HistoryService hs = activitiEngine.getHistoryService();
 
             HistoricDetailQuery hdq = hs.createHistoricDetailQuery()
                     .variableUpdates()
                     .processInstanceId(pid)
-                    //.orderByVariableRevision().desc();
                     .orderByTime().desc();
 
             for (HistoricDetail hd : hdq.list())
@@ -91,8 +95,9 @@ public class ActivitiInterface {
                 HistoricVariableUpdate hvu = (HistoricVariableUpdate) hd;
                 String varname = hvu.getVariableName();
                 Object value = hvu.getValue();
-                LOGGER.trace("hvu: " + varname + " <- " + value);
-                //System.out.println("Variable: " + varname + " <- " + value + " [rev:" + hvu.getRevision() + "]");
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(" - found historic variable update: " + varname + " <- " + value);
+                }
                 if (!qpr.containsVariable(varname)) {
                     qpr.putVariable(varname, value);
                 }
@@ -107,32 +112,19 @@ public class ActivitiInterface {
                 HistoricFormProperty hfp = (HistoricFormProperty) hd;
                 String varname = hfp.getPropertyId();
                 Object value = hfp.getPropertyValue();
-                LOGGER.trace("form-property: " + varname + " <- " + value);
-                //System.out.println("form-property: " + varname + " <- " + value);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(" - found historic form property: " + varname + " <- " + value);
+                }
                 qpr.putVariable(varname, value);
             }
 
             ProcessInstance pi = activitiEngine.getProcessEngine().getRuntimeService().createProcessInstanceQuery().processInstanceId(pid).singleResult();
             qpr.setRunning(pi != null && !pi.isEnded());
-            //System.out.println("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
-            LOGGER.trace("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Running process instance = " + pi + ", isRunning: " + qpr.isRunning());
+                LOGGER.trace("Response to be sent to midPoint: " + qpr);
+            }
 
-            // is the process still running? (needed if value == null)
-//            if (qpr.getAnswer() == null)
-//            {
-//                HistoricProcessInstance hip = hs.createHistoricProcessInstanceQuery()
-//                        .processInstanceId(pid).singleResult();
-//                if (hip != null)
-//                {
-//                    LOGGER.trace("Found historic process instance with id " + hip.getId() + ", end time = " + hip.getEndTime());
-//                    if (hip.getEndTime() != null)
-//                        ;
-//                }
-//                else
-//                    LOGGER.trace("No historic process instance with id " + pid + " was found.");
-//            }
-
-            LOGGER.trace("Response to be sent to midPoint: " + qpr);
             activiti2midpoint(qpr);
         }
         else if (cmd instanceof StartProcessCommand)
@@ -141,13 +133,17 @@ public class ActivitiInterface {
 
             Map<String,Object> map = new HashMap<String,Object>();
 
-            LOGGER.trace("midpointTaskOid = " + spic.getTaskOid());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("midpointTaskOid = " + spic.getTaskOid());
+            }
 
             map.put(WfConstants.VARIABLE_MIDPOINT_TASK_OID, spic.getTaskOid());
             map.put(WfConstants.VARIABLE_MIDPOINT_LISTENER, new IdmExecutionListenerProxy());
             map.putAll(spic.getVariables());
 
-            LOGGER.trace("process name = " + spic.getProcessName());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("process name = " + spic.getProcessName());
+            }
 
             RuntimeService rs = activitiEngine.getProcessEngine().getRuntimeService();
 
@@ -187,6 +183,7 @@ public class ActivitiInterface {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("activiti2midpoint starting.");
         }
+
         try {
 
             if (msg instanceof ProcessEvent) {
@@ -198,16 +195,16 @@ public class ActivitiInterface {
                 String taskOid = event.getTaskOid();
 
                 if (taskOid != null) {
-
                     Task task = taskManager.getTask(taskOid, result);
                     wfCore.processWorkflowMessage(event, task, result);
+                } else {
+                    throw new IllegalStateException("Got a workflow message without taskOid: " + event.toString());
+                }
+            } else {
+                throw new IllegalStateException("Unknown message type coming from the workflow: " + msg);
+            }
 
-                } else
-                    throw new Exception("Got a workflow message without taskOid: " + event.toString());
-            } else
-                throw new Exception("Unknown message type coming from the workflow: " + msg);
-
-        } catch (Exception e) {
+        } catch (Exception e) {     // todo fix the exception processing
             String message = "Couldn't process an event coming from the workflow management system";
             LoggingUtils.logException(LOGGER, message, e);
             result.recordFatalError(message, e);

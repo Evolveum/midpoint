@@ -68,6 +68,6 @@ public interface ChangeHook {
 	 * @param task task in which context we execute
 	 * @param result ????
 	 */
-    @Deprecated
-	void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result);
+//    @Deprecated
+//	void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result);
 }

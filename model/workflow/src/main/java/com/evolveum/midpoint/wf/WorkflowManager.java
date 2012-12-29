@@ -65,7 +65,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
  * Some notes about the workflow package and its classes/subpackages:
  *
  * External interfaces:
- * - WorkflowManager: externally-visible functionality (initialization, methods needed by GUI).
+ * - WorkflowManager + WfDataAccessor: externally-visible functionality (initialization, methods needed by GUI).
  * - WfHook: interface to the model ChangeHook mechanism
  * - WfTaskHandler: interface to the midPoint task scheduling mechanism (for active tasks)
  * - ActivitiInterface: communication with Activiti (currently only local instance, in the future probably remote as well)
@@ -150,7 +150,6 @@ public class WorkflowManager implements BeanFactoryAware {
     public boolean isEnabled() {
         return wfConfiguration.isEnabled();
     }
-
 
     public PrismContext getPrismContext() {
         return prismContext;

@@ -3025,7 +3025,7 @@
             <xsd:element name="argument" type="tns:ProvisioningScriptArgumentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Script aguments. The arguments will passed to the script
+                        Script arguments. The arguments will passed to the script
                         in any way suitable for the script. The argument name
                         is "local" to the script (script-specific). Script name
                         must be unique in the argument set.
@@ -3119,7 +3119,7 @@
     <xsd:simpleType name="ProvisioningScriptHostType">
         <xsd:annotation>
             <xsd:documentation>
-                An enumeration that defines where the script will be excuted.
+                An enumeration that defines where the script will be executed.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -3218,7 +3218,7 @@
                 constructed. The value may be static or constructed as an
                 result of evaluating an expression.
 
-                This strucuture also defines a method how to merge several value
+                This structure also defines a method how to merge several value
                 construction definitions, how to behave if a property already
                 has a value, etc.
 
@@ -3232,7 +3232,7 @@
                 new account. We also need that to specify values when creating a
                 new user (user templates). Having the same data structure for all of
                 these cases may simplify the code, as it all can be handled by a
-                generic library reused in many places throught the system.
+                generic library reused in many places through the system.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -3499,7 +3499,7 @@
                 Static attribute values. The values in this element should be
                 assigned to the account as-is.
 
-                List of values for the attribute provided in an propriate XML elements
+                List of values for the attribute provided in an appropriate XML elements
                 that specify attribute name. (as is usual for properties)
 
                 Only one attribute may be specified here, although it may have multiple
@@ -3605,7 +3605,7 @@
     <xsd:complexType name="ScriptExpressionCodeType" mixed="true">
         <xsd:annotation>
             <xsd:documentation>
-                The expression code is supposed to be in the contect of this type. The content ix "mixed"
+                The expression code is supposed to be in the content of this type. The content ix "mixed"
                 which allows both XML and non-XML languages.
 
                 The expression may use variables or arguments. However, such variables or arguments passed
@@ -3675,7 +3675,7 @@
             <xsd:enumeration value="absolute">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Absolute expression. Works on all the values at once. May not be entirelly reliable.
+                        Absolute expression. Works on all the values at once. May not be entirely reliable.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ABSOLUTE"/>
@@ -4392,12 +4392,12 @@
                 that can be assigned directly to user. Role is in fact just
                 a named set of assignments.
 
-                The speicific roles are also called technical role or IT role,
+                The specific roles are also called technical role or IT role,
                 however this definition is an abstract definition of concept
-                that can span wide area of intepretation.
+                that can span wide area of interpretation.
 
-                This is the basic building blog of role-based access
-                contol (RBAC) in the provisioning system. It defines what
+                This is the basic building block of role-based access
+                control (RBAC) in the provisioning system. It defines what
                 rights (e.g. accounts) should be given to user, how they
                 should look like (attributes) and what groups or native
                 roles to assign to them (entitlements).
@@ -4413,7 +4413,7 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Set of roles's assignments.
+                                Set of role's assignments.
                                 Represents objects (such as roles) or accounts assigned to the
                                 role and therefore implied by the role.
 
@@ -4432,7 +4432,8 @@
 
                                 If the role implying this account is unassigned
                                 and no other role or assignment implies the account, the
-                                account should be removed.
+                                account should be removed (depending on assignment enforcement mode,
+                                http://wiki.evolveum.com/display/midPoint/Account+Synchronization+Settings).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4452,19 +4453,31 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Approvers for this role. If specified, the expression(s) are evaluated and the result
+                                is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
+                                May be used with approverRef element(s).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                More complex (multi-level) approval schema.
+                                More complex (multi-level) approval schema. If used, it overrides both
+                                approverRef and approverExpression elements.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Name of custom approval process.
+                                Name of custom approval process. If used, it overrides
+                                approverRef, approverExpression, and approvalSchema elements.
 
-                                Note: only one of approverRef(s), approvalSchema and approvalProcess should be specified.
+                                For explicitness, only one of approverRef(s)/approverExpression(s),
+                                approvalSchema and approvalProcess should be specified.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -4473,6 +4486,8 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
+
+    <xsd:element name="approverRef" type="tns:ObjectReferenceType" />
 
     <xsd:complexType name="ApprovalSchemaType">
         <xsd:annotation>
@@ -4503,12 +4518,21 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Instruction to approve something, by a user (if this points to a User object) or
                         by someone from a group of users (if this points to a Role or Org object; representing
                         all users that possess that role or belong to that OU).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Dynamically specifies approver(s). If specified, the expression(s) are evaluated and the result
+                        is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
+                        May be used with approverRef element(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

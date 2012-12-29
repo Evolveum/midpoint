@@ -21,11 +21,28 @@
 
 package com.evolveum.midpoint.wf.processes.addroles;
 
+import com.evolveum.midpoint.common.expression.Expression;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
+import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+
+import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,9 +55,100 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughApproversInLevel.class);
 
+    private ExpressionFactory expressionFactory;
+
     public void execute(DelegateExecution execution) {
         execution.setVariableLocal(WfConstants.VARIABLE_DECISION_LIST, new DecisionList());
-        execution.setVariableLocal(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.FALSE);
+
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRolesProcessWrapper.LEVEL);
+
+        Set<ObjectReferenceType> approverRefs = new HashSet<ObjectReferenceType>();
+        approverRefs.addAll(level.getApproverRef());
+        approverRefs.addAll(evaluateExpressions(level.getApproverExpression(), execution));
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
+        }
+
+        Boolean stop;
+        if (approverRefs.isEmpty()) {
+            LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(WfConstants.VARIABLE_PROCESS_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+            stop = Boolean.TRUE;
+        } else {
+            stop = Boolean.FALSE;
+        }
+        execution.setVariableLocal(AddRolesProcessWrapper.APPROVERS_IN_LEVEL, new ArrayList<ObjectReferenceType>(approverRefs));
+        execution.setVariableLocal(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
+
+    private Collection<? extends ObjectReferenceType> evaluateExpressions(List<ExpressionType> approverExpressionList, DelegateExecution execution) {
+        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
+        for (ExpressionType approverExpression : approverExpressionList) {
+            try {
+                retval.addAll(evaluateExpression(approverExpression, execution));
+            } catch (Exception e) {     // todo fixme
+                throw new SystemException("Couldn't evaluate approver expression", e);
+            }
+        }
+        return retval;
+    }
+
+    private Collection<ObjectReferenceType> evaluateExpression(ExpressionType approverExpression, DelegateExecution execution) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+
+        if (expressionFactory == null) {
+            expressionFactory = getExpressionFactory();
+        }
+
+        OperationResult result = new OperationResult("dummy");
+
+        PrismContext prismContext = expressionFactory.getPrismContext();
+//        PrismPropertyDefinition approverRefDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "approverRef"));
+//        if (approverRefDef == null) {
+//            throw new IllegalStateException("ApproverRef definition couldn't be found.");
+//        }
+
+        QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
+        PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, approverOidName, DOMUtil.XSD_STRING, prismContext);
+        Expression<PrismValue> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
+        ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, getDefaultVariables(execution), "approverExpression", result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
+
+        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
+        for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setOid(item.getValue());
+            retval.add(ort);
+        }
+        return retval;
+
+    }
+
+    private ExpressionFactory getExpressionFactory() {
+        LOGGER.info("Getting expressionFactory");
+        ExpressionFactory ef = SpringApplicationContextHolder.getApplicationContext().getBean("expressionFactory", ExpressionFactory.class);
+        if (ef == null) {
+            throw new IllegalStateException("expressionFactory bean cannot be found");
+        }
+        return ef;
+    }
+
+
+    private Map<QName, Object> getDefaultVariables(DelegateExecution execution) {
+
+        Map<QName, Object> variables = new HashMap<QName, Object>();
+
+        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW);
+        if (user != null) {
+            variables.put(SchemaConstants.I_USER, user);
+        }
+
+        PrismObject<UserType> requester = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_REQUESTER);
+        if (requester != null) {
+            variables.put(SchemaConstants.I_REQUESTER, requester);
+        }
+
+        return variables;
+    }
+
 
 }

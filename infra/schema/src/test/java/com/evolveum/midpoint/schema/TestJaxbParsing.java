@@ -39,10 +39,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
@@ -151,6 +148,31 @@ public class TestJaxbParsing {
         assertPropertyValue(account, AccountShadowType.F_INTENT, "default");
 
         // TODO: more asserts
+    }
+
+    @Test
+    public void testParseExpressionFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
+
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        RoleType roleType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "role.xml"), RoleType.class);
+
+        // WHEN
+
+        PrismObject<RoleType> role = roleType.asPrismObject();
+        role.revive(prismContext);
+
+        // THEN
+        System.out.println("Parsed role:");
+        System.out.println(role.dump());
+
+        role.checkConsistence();
+        assertPropertyValue(role, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("r3"));
+        PrismAsserts.assertEquals("Wrong number of approver expressions", 1, role.asObjectable().getApproverExpression().size());
+        Object o = role.asObjectable().getApproverExpression().get(0).getExpressionEvaluator().get(0).getValue();
+        PrismAsserts.assertEquals("Invalid evaluator type", ScriptExpressionEvaluatorType.class, o.getClass());
+        String code = ((ScriptExpressionEvaluatorType) o).getCode().getTextContent();
+        PrismAsserts.assertEquals("Incorrect code parsed", "midpoint.oid2ort(user.getOid())", code);
     }
 
     @Test

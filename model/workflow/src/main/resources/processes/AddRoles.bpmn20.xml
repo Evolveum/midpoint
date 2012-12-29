@@ -88,11 +88,22 @@
                 <sequenceFlow sourceRef="loopLevels.start.1" targetRef="initializeLoopThroughApproversInLevel" />
 
                 <serviceTask id="initializeLoopThroughApproversInLevel" activiti:class="com.evolveum.midpoint.wf.processes.addroles.InitializeLoopThroughApproversInLevel" />
-                <sequenceFlow sourceRef="initializeLoopThroughApproversInLevel" targetRef="loopApproversInLevel" />
+                <sequenceFlow sourceRef="initializeLoopThroughApproversInLevel" targetRef="shouldBeLevelExecutedQ" />
+
+                <exclusiveGateway id="shouldBeLevelExecutedQ"/>
+
+                <sequenceFlow sourceRef='shouldBeLevelExecutedQ' targetRef='loopApproversInLevel' >
+                    <conditionExpression xsi:type="tFormalExpression">
+                        ${!loopApproversInLevel_stop}</conditionExpression>
+                </sequenceFlow>
+                <sequenceFlow sourceRef='shouldBeLevelExecutedQ' targetRef='before.summarizeDecisions' >
+                    <conditionExpression xsi:type="tFormalExpression">
+                        ${loopApproversInLevel_stop}</conditionExpression>
+                </sequenceFlow>
 
                 <subProcess id="loopApproversInLevel">
                     <multiInstanceLoopCharacteristics isSequential="false"
-                                                      activiti:collection="${level.approverRef}" activiti:elementVariable="approverRef">
+                                                      activiti:collection="${approversInLevel}" activiti:elementVariable="approverRef">
                         <completionCondition>${loopApproversInLevel_stop}</completionCondition>
                     </multiInstanceLoopCharacteristics>
 

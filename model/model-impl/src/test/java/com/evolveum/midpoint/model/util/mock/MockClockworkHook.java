@@ -110,12 +110,12 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#postChange(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
-	@Override
-	public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task,
-			OperationResult result) {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task,
+//			OperationResult result) {
+//		// TODO Auto-generated method stub
+//
+//	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.Dumpable#dump()

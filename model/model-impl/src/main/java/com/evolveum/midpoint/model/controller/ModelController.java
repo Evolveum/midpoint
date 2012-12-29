@@ -1265,25 +1265,25 @@ public class ModelController implements ModelService, ModelInteractionService {
      * Methods to invoke old-style hooks, necessary for keeping SystemConfigurationHandler updated.
      * (Will disappear after non-user-related model actions will be migrated to new 'lens' paradigm.)
      */
-    @Deprecated
-    private void executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task,
-                                                OperationResult result) {
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        deltas.add(objectDelta);
-        executePostChange(deltas, task, result);
-    }
+//    @Deprecated
+//    private void executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task,
+//                                                OperationResult result) {
+//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+//        deltas.add(objectDelta);
+//        executePostChange(deltas, task, result);
+//    }
 
-    @Deprecated
-    private void executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
-                                                Task task, OperationResult result) {
-
-        HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-        if (hookRegistry != null) {
-            for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-                hook.postChange(objectDeltas, task, result);
-            }
-        }
-    }
+//    @Deprecated
+//    private void executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
+//                                                Task task, OperationResult result) {
+//
+//        HookOperationMode resultMode = HookOperationMode.FOREGROUND;
+//        if (hookRegistry != null) {
+//            for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+//                hook.postChange(objectDeltas, task, result);
+//            }
+//        }
+//    }
 
 
 }

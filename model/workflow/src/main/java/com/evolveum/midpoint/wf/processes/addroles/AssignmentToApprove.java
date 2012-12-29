@@ -42,19 +42,20 @@ public class AssignmentToApprove implements Serializable {
 
         if (role.getApprovalSchema() != null) {
             approvalSchema = role.getApprovalSchema();
-        } else if (!role.getApproverRef().isEmpty()) {
+        } else if (!role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty()) {
             approvalSchema = new ApprovalSchemaType();
-            fillInApprovalSchema(approvalSchema, role.getApproverRef());
+            fillInApprovalSchema(approvalSchema, role.getApproverRef(), role.getApproverExpression());
         } else {
-            throw new SystemException("Neither approvalSchema nor approverRef is filled-in for role " + role);
+            throw new SystemException("Neither approvalSchema nor approverRef/approverExpression is filled-in for role " + role);
         }
     }
 
-    private void fillInApprovalSchema(ApprovalSchemaType ast, List<ObjectReferenceType> approverRef) {
+    private void fillInApprovalSchema(ApprovalSchemaType ast, List<ObjectReferenceType> approverRef, List<ExpressionType> approverExpression) {
         //default: all approvers in one level, evaluation strategy = allMustApprove
 
         ApprovalLevelType level = new ApprovalLevelType();
         level.getApproverRef().addAll(approverRef);
+        level.getApproverExpression().addAll(approverExpression);
         level.setEvaluationStrategy(LevelEvaluationStrategyType.ALL_MUST_AGREE);
 
         ast.getLevel().add(level);

@@ -45,7 +45,7 @@ public class TreeOp extends Op {
 		}
 
 		if (org.getOrgRef().getOid() == null) {
-			throw new QueryException("No oid specified in organization refernece " + org.getOrgRef().dump());
+			throw new QueryException("No oid specified in organization reference " + org.getOrgRef().dump());
 		}
 
 		String orgRefOid = org.getOrgRef().getOid();

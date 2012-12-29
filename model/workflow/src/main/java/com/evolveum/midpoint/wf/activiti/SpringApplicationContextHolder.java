@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.wf.activiti;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -45,6 +46,16 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
         }
 		return context;
 	}
+
+    public static PrismContext getPrismContext() {
+        PrismContext pc = SpringApplicationContextHolder
+                .getApplicationContext().
+                        getBean("prismContext", PrismContext.class);
+        if (pc == null) {
+            throw new IllegalStateException("Could not find PrismContext");
+        }
+        return pc;
+    }
 
 }
 

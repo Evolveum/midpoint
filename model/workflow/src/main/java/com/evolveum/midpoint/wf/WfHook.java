@@ -44,10 +44,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Provides an interface between the model and the workflow engine.
- * (1) catches hook calls and determines which ones require workflow invocation
- * (2) (asynchronously) receives results from the workflow process and passes them back to model;
- *     resulting e.g. in continuing model operation that has been approved by workflow process
+ * Provides an interface between the model and the workflow engine:
+ * catches hook calls and determines which ones require workflow invocation
  *
  * @author mederly
  */
@@ -59,9 +57,8 @@ public class WfHook implements ChangeHook {
     private static final Trace LOGGER = TraceManager.getTrace(WfHook.class);
 
     @Autowired(required = true)
+    public
     WfCore wfCore;
-
-    private List<ProcessWrapper> wrappers = new ArrayList<ProcessWrapper>();
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
@@ -70,7 +67,6 @@ public class WfHook implements ChangeHook {
         LOGGER.trace("Registering workflow hook");
         hookRegistry.registerChangeHook(WfHook.WORKFLOW_HOOK_URI, this);
     }
-
 
     @Override
     public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult) {
@@ -120,18 +116,9 @@ public class WfHook implements ChangeHook {
         return mode;
     }
 
-    public void registerWfProcessWrapper(ProcessWrapper starter) {
-        LOGGER.trace("Registering process wrapper: " + starter.getClass().getName());
-        wrappers.add(starter);
-    }
-
-    public List<ProcessWrapper> getWrappers() {
-        return wrappers;
-    }
-
-    @Override
-    @Deprecated
-    public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result) {
-    }
+//    @Override
+//    @Deprecated
+//    public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result) {
+//    }
 
 }

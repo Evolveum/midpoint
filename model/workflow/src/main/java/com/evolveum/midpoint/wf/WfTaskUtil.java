@@ -21,12 +21,14 @@
 
 package com.evolveum.midpoint.wf;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -168,10 +171,10 @@ public class WfTaskUtil {
         t.setCategory(TaskCategory.WORKFLOW);
         t.setBinding(TaskBinding.LOOSE);
 
-
         t.makeRunnable();
-        // TODO fix this ugly hack
-        t.setOwner(repositoryService.getObject(UserType.class, "00000000-0000-0000-0000-000000000002", parentResult));
+        if (t.getOwner() == null) {
+            t.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), parentResult));
+        }
         t.savePendingModifications(parentResult);
 	}
 	
@@ -601,5 +604,11 @@ public class WfTaskUtil {
             return values.iterator().next();
             //String id = (String) idProp.getRealValue(String.class);
         }
+    }
+
+    void setModelOperationState(Task task, ModelContext context) throws IOException {
+        ModelOperationStateType state = new ModelOperationStateType();
+        state.setOperationData(SerializationUtil.toString(context));
+        task.setModelOperationState(state);
     }
 }

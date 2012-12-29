@@ -97,12 +97,13 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
     public static final String APPROVER_MAIL_ADDRESS = "approverMailAddress";
     public static final String FORM_FIELD_COMMENT = "comment#C";
     public static final String LEVEL = "level";
+    public static final String APPROVERS_IN_LEVEL = "approversInLevel";
 
     //private static final QName ADDITIONAL_INFO = new QName(SchemaConstants.NS_C, "AdditionalInfo");       // todo: change namespace
 
     @PostConstruct
     public void register() {
-        wfHook.registerWfProcessWrapper(this);
+        wfHook.wfCore.registerWfProcessWrapper(this);
     }
 
     @Override
@@ -253,7 +254,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
     }
 
     private boolean shouldRoleBeAuthorized(RoleType role) {
-        return !role.getApproverRef().isEmpty() || role.getApprovalSchema() != null;
+        return !role.getApproverRef().isEmpty() || !role.getApproverExpression().isEmpty() || role.getApprovalSchema() != null;
     }
 
     private String formatAsAssignmentList(List<AssignmentToApprove> assignmentsToApprove) {

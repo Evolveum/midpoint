@@ -49,14 +49,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 21.9.2012
- * Time: 17:39
- * To change this template use File | Settings | File Templates.
+ * Core methods of the workflow module.
+ *
+ * @author mederly
  */
 
 @Component
@@ -76,13 +76,28 @@ public class WfCore {
     @Autowired(required = true)
     private ActivitiInterface activitiInterface;
 
+    private List<ProcessWrapper> wrappers = new ArrayList<ProcessWrapper>();
+
+    /**
+     * Looks whether wf process instance should be started. If so, starts it and returns "background" HookOperationMode.
+     * Uses first applicable wrapper.
+     *
+     * @param context ModelContext describing current operation
+     * @param task
+     * @param result
+     * @return HookOperationMode.BACKGROUND if a process was started; .FOREGROUND if not; .ERROR in case of error
+     */
     HookOperationMode executeProcessStartIfNeeded(ModelContext context, Task task, OperationResult result) {
 
-        for (ProcessWrapper wrapper : wfHook.getWrappers()) {
-            LOGGER.trace("Trying wrapper: " + wrapper.getClass().getName());
+        for (ProcessWrapper wrapper : wrappers) {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Trying wrapper: " + wrapper.getClass().getName());
+            }
             StartProcessInstruction startCommand = wrapper.startProcessIfNeeded(context, task, result);
             if (startCommand != null) {
-                LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
+                }
                 try {
                     startProcessInstance(startCommand, wrapper, task, context, result);
                 } catch (Exception e) { // TODO better error handling here
@@ -120,9 +135,7 @@ public class WfCore {
         }
 
         wfTaskUtil.setProcessWrapper(task, wrapper);
-        ModelOperationStateType state = new ModelOperationStateType();
-        state.setOperationData(SerializationUtil.toString(context));
-        task.setModelOperationState(state);
+        wfTaskUtil.setModelOperationState(task, context);
 
         taskManager.switchToBackground(task, parentResult);
 
@@ -137,7 +150,7 @@ public class WfCore {
         spc.setProcessName(startInstruction.getProcessName());
         spc.setSendStartConfirmation(startInstruction.isSimple());	// for simple processes we should get wrapper-generated start events
         spc.setVariablesFrom(startInstruction.getProcessVariables());
-        spc.setProcessOwner(task.getOwner().getOid());      // todo: is this ok?
+        spc.setProcessOwner(task.getOwner().getOid());
         spc.addVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
 
         try {
@@ -153,72 +166,6 @@ public class WfCore {
         parentResult.recordSuccessIfUnknown();
 
         LOGGER.trace(" === startProcessInstance ending ===");
-    }
-
-    /*
-      * Post-processing
-      *
-      * For active tasks:
-      *  - we throw away this wrapper, so the ModelOperationTaskHandler (next one on wrapper stack) will be invoked
-      * For passive tasks:
-      *  - we change task status to RUNNING, RELEASED, so that TaskManager will invoke WorkflowHookTaskHandler
-      *
-      * FIXME: correctly deal with the situation when more than one message with 'answer' present arrives
-      * (probably do not invoke post-processing when task executionStatus == CLOSED)
-      */
-
-    void finishProcessing(ProcessEvent event, Task task, OperationResult result)
-    {
-        LOGGER.trace("finishProcessing called for task " + task + ", event " + event);
-
-        if (task == null) {
-            try {
-                task = taskManager.getTask(event.getTaskOid(), result);
-            } catch (ObjectNotFoundException e) {   // todo: fixme - temporary "solution"
-                throw new SystemException(e);
-            } catch (SchemaException e) {
-                throw new SystemException(e);
-            }
-        }
-
-        ModelOperationStateType state = task.getModelOperationState();
-        if (state == null || StringUtils.isEmpty(state.getOperationData())) {
-            throw new IllegalStateException("The task does not contain model operation context; task = " + task);
-        }
-        ModelContext context;
-        try {
-            context = (ModelContext) SerializationUtil.fromString(state.getOperationData());
-        } catch (IOException e) {
-            throw new IllegalStateException("Model Context could not be fetched from the task due to IOException; task = " + task, e);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Model Context could not be fetched from the task due to ClassNotFoundException; task = " + task, e);
-        }
-
-        ProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, wfHook.getWrappers());
-        wrapper.finishProcess(context, event, task, result);
-        try {
-            state.setOperationData(SerializationUtil.toString(context));
-            task.setModelOperationState(state);
-            task.finishHandler(result);
-            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
-                taskManager.unpauseTask(task, result);
-            }
-        } catch (ObjectNotFoundException e) {
-            throw new IllegalStateException(e);         // todo fixme
-        } catch (SchemaException e) {
-            throw new IllegalStateException(e);         // todo fixme
-        } catch (IOException e) {
-            throw new SystemException(e);               // todo fixme (serialization error)
-        }
-
-//		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
-
-//		// let us mark the task result as SUCCESS
-//		OperationResult or = task.getResult();		// 'or' should really be non-null here
-//		if (or != null) {
-//			or.recordSuccess();
-//			wfTaskUtil.setTaskResult(task.getOid(), or);
-//		}
     }
 
     /**
@@ -261,9 +208,75 @@ public class WfCore {
         if (event instanceof ProcessFinishedEvent || !event.isRunning()) {
             finishProcessing(event, task, result);
         }
-
     }
 
+    /*
+    * Post-processing
+    *
+    * For active tasks:
+    *  - we throw away this wrapper, so the ModelOperationTaskHandler (next one on wrapper stack) will be invoked
+    * For passive tasks:
+    *  - we change task status to RUNNING, RELEASED, so that TaskManager will invoke WorkflowHookTaskHandler
+    *
+    * FIXME: correctly deal with the situation when more than one message with 'answer' present arrives
+    * (probably do not invoke post-processing when task executionStatus == CLOSED)
+    */
+
+    private void finishProcessing(ProcessEvent event, Task task, OperationResult result)
+    {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("finishProcessing called for task " + task + ", event " + event);
+        }
+
+        if (task == null) {
+            try {
+                task = taskManager.getTask(event.getTaskOid(), result);
+            } catch (ObjectNotFoundException e) {   // todo: fixme - temporary "solution"
+                throw new SystemException(e);
+            } catch (SchemaException e) {
+                throw new SystemException(e);
+            }
+        }
+
+        ModelOperationStateType state = task.getModelOperationState();
+        if (state == null || StringUtils.isEmpty(state.getOperationData())) {
+            throw new IllegalStateException("The task does not contain model operation context; task = " + task);
+        }
+        ModelContext context;
+        try {
+            context = (ModelContext) SerializationUtil.fromString(state.getOperationData());
+        } catch (IOException e) {
+            throw new IllegalStateException("Model Context could not be fetched from the task due to IOException; task = " + task, e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Model Context could not be fetched from the task due to ClassNotFoundException; task = " + task, e);
+        }
+
+        ProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, wrappers);
+        wrapper.finishProcess(context, event, task, result);
+        try {
+            state.setOperationData(SerializationUtil.toString(context));
+            task.setModelOperationState(state);
+            task.finishHandler(result);
+            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+                taskManager.unpauseTask(task, result);
+            }
+        } catch (ObjectNotFoundException e) {
+            throw new IllegalStateException(e);         // todo fixme
+        } catch (SchemaException e) {
+            throw new IllegalStateException(e);         // todo fixme
+        } catch (IOException e) {
+            throw new SystemException(e);               // todo fixme (serialization error)
+        }
+
+//		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
+
+//		// let us mark the task result as SUCCESS
+//		OperationResult or = task.getResult();		// 'or' should really be non-null here
+//		if (or != null) {
+//			or.recordSuccess();
+//			wfTaskUtil.setTaskResult(task.getOid(), or);
+//		}
+    }
 
     ProcessWrapper findProcessWrapper(Map<String, Object> vars, String id, OperationResult result) throws WorkflowException {
         String wrapperName = (String) vars.get(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
@@ -285,6 +298,11 @@ public class WfCore {
         String m = "Cannot instantiate workflow process wrapper " + wrapperName;
         result.recordFatalError(m, e1);
         throw new WorkflowException(m, e1);
+    }
+
+    public void registerWfProcessWrapper(ProcessWrapper starter) {
+        LOGGER.trace("Registering process wrapper: " + starter.getClass().getName());
+        wrappers.add(starter);
     }
 
 }
