@@ -48,7 +48,12 @@ public class ObjectNotFoundException extends CommonException {
 		super(message);
 	}
 
-	public ObjectNotFoundException(Throwable cause) {
+    public ObjectNotFoundException(String message, String oid) {
+        super(message);
+        this.oid = oid;
+    }
+
+    public ObjectNotFoundException(Throwable cause) {
 		super(cause);
 	}
 

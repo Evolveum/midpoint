@@ -108,6 +108,7 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
     private static final String CHEESE_JR_OID = "00000002-0000-0000-0000-000000000001";
     private static final String ELAINE_OID = "00000001-0000-0000-0000-000000000000";
     private static final String LECHUCK_OID = "00000007-0000-0000-0000-000000000000";
+    private static final String F0006_OID = "00000000-8888-6666-0000-100000000006";
 
     @Autowired(required=true)
 	private ScriptExpressionFactory scriptExpressionFactory;
@@ -222,4 +223,28 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         Set<String> expectedOids = new HashSet<String>(Arrays.asList(new String[] { CHEESE_OID, CHEESE_JR_OID, ELAINE_OID, LECHUCK_OID }));
         assertEquals("Unexpected script output", expectedOids, oids);
     }
+
+    @Test
+    public void testGetOrgByName() throws Exception {
+        final String TEST_NAME = "testGetOrgByName";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
+
+        importIfNeeded();
+
+        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
+        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ScriptVariables variables = new ScriptVariables();
+
+        // WHEN
+        List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, TEST_NAME, result);
+
+        // THEN
+        display("Script output", scriptOutputs);
+        assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
+        assertEquals("Unexpected script output", F0006_OID, scriptOutputs.get(0).getValue());
+    }
+
 }

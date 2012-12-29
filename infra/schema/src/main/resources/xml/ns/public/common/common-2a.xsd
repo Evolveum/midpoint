@@ -4481,6 +4481,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Condition specifying when the assignment is automatically approved (e.g. "user is
+                                from Board of Directors"). This is an expression that should yield a boolean value.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -4541,6 +4549,14 @@
                     <xsd:documentation>
                         Must all approvers at this level approve the thing (allMustApprove),
                         or first decision is taken as authoritative (firstDecides)?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition specifying when this level is automatically approved (e.g. "user is
+                        from Board of Directors"). This is an expression that should yield a boolean value.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

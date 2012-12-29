@@ -20,10 +20,13 @@
  */
 package com.evolveum.midpoint.model.expr;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.query.Query;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -123,6 +126,20 @@ public class MidpointFunctions {
         return repositoryService.getObject(OrgType.class, oid, new OperationResult("getOrgByOid")).asObjectable();
     }
 
+    public OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException {
+        PolyString polyName = new PolyString(name);
+        polyName.recompute(prismContext.getDefaultPolyStringNormalizer());
+        ObjectQuery q = QueryUtil.createNameQuery(polyName, prismContext);
+        List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, new OperationResult("getOrgByName"));
+        if (result.isEmpty()) {
+            throw new ObjectNotFoundException("No organizational unit with the name '" + name + "'", name);
+        }
+        if (result.size() > 1) {
+            throw new IllegalStateException("More than one organizational unit with the name '" + name + "' (there are " + result.size() + " of them)");
+        }
+        return result.get(0).asObjectable();
+    }
+
     public Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException {
         Set<UserType> retval = new HashSet<UserType>();
         OperationResult result = new OperationResult("getManagerOfOrg");
@@ -147,4 +164,14 @@ public class MidpointFunctions {
         }
         return false;
     }
+
+    public boolean isMemberOf(UserType user, String orgOid) {
+        for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
+            if (orgOid.equals(objectReferenceType.getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

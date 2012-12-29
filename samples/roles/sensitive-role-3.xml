@@ -33,6 +33,12 @@
                     <code>midpoint.getManagersOidsExceptUser(user)</code>
                 </script>
             </approverExpression>
+            <automaticallyApproved>
+                <description>If the user works in F0006 (Scumm Bar), the assignment of this role is automatically approved for him.</description>
+                <script>
+                    <code>midpoint.isMemberOf(user, midpoint.getOrgByName("F0006").getOid())</code>
+                </script>
+            </automaticallyApproved>
         </level>
     </approvalSchema>
 </role>

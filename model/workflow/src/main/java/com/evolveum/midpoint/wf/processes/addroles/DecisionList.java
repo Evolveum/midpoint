@@ -30,6 +30,7 @@ public class DecisionList implements Serializable {
     private static final long serialVersionUID = -8603661687788638920L;
 
     private List<Decision> decisionList = new ArrayList<Decision>();
+    private boolean preApproved = false;
 
     public List<Decision> getDecisionList() {
         return decisionList;
@@ -43,8 +44,16 @@ public class DecisionList implements Serializable {
         decisionList.add(decision);
     }
 
+    public boolean isPreApproved() {
+        return preApproved;
+    }
+
+    public void setPreApproved(boolean preApproved) {
+        this.preApproved = preApproved;
+    }
+
     @Override
     public String toString() {
-        return "DecisionList: " + getDecisionList();
+        return "DecisionList: " + getDecisionList() + (preApproved ? " [pre-approved]" : "");
     }
 }

@@ -186,7 +186,8 @@
 		<name>carla</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
-		<fullName>Carla the Swordmaster</fullName>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
+        <fullName>Carla the Swordmaster</fullName>
 		<givenName>Carla</givenName>
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
@@ -194,6 +195,9 @@
 		<assignment>
 			<targetRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
 		</assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
+        </assignment>
 	</user>
 
 	<user>

@@ -58,21 +58,40 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     private ExpressionFactory expressionFactory;
 
     public void execute(DelegateExecution execution) {
-        execution.setVariableLocal(WfConstants.VARIABLE_DECISION_LIST, new DecisionList());
 
         ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRolesProcessWrapper.LEVEL);
 
-        Set<ObjectReferenceType> approverRefs = new HashSet<ObjectReferenceType>();
-        approverRefs.addAll(level.getApproverRef());
-        approverRefs.addAll(evaluateExpressions(level.getApproverExpression(), execution));
+        DecisionList decisionList = new DecisionList();
+        if (level.getAutomaticallyApproved() != null) {
+            boolean preApproved;
+            try {
+                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), execution);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Pre-approved = " + preApproved + " for level " + level);
+                }
+            } catch (Exception e) {     // todo
+                throw new SystemException("Couldn't evaluate auto-approval expression", e);
+            }
+            decisionList.setPreApproved(preApproved);
+        }
+        execution.setVariableLocal(WfConstants.VARIABLE_DECISION_LIST, decisionList);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
+        Set<ObjectReferenceType> approverRefs = new HashSet<ObjectReferenceType>();
+
+        if (!decisionList.isPreApproved()) {
+            approverRefs.addAll(level.getApproverRef());
+            approverRefs.addAll(evaluateExpressions(level.getApproverExpression(), execution));
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Approvers at the level " + level + " are: " + approverRefs);
+            }
+            if (approverRefs.isEmpty()) {
+                LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(WfConstants.VARIABLE_PROCESS_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+            }
         }
 
         Boolean stop;
-        if (approverRefs.isEmpty()) {
-            LOGGER.warn("No approvers at the level '" + level.getName() + "' for process " + execution.getVariable(WfConstants.VARIABLE_PROCESS_NAME) + " (id " + execution.getProcessInstanceId() + ")");
+        if (approverRefs.isEmpty() || decisionList.isPreApproved()) {
             stop = Boolean.TRUE;
         } else {
             stop = Boolean.FALSE;
@@ -102,11 +121,6 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         OperationResult result = new OperationResult("dummy");
 
         PrismContext prismContext = expressionFactory.getPrismContext();
-//        PrismPropertyDefinition approverRefDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "approverRef"));
-//        if (approverRefDef == null) {
-//            throw new IllegalStateException("ApproverRef definition couldn't be found.");
-//        }
-
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
         PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, approverOidName, DOMUtil.XSD_STRING, prismContext);
         Expression<PrismValue> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
@@ -121,6 +135,31 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
         return retval;
 
+    }
+
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, DelegateExecution execution) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+
+        if (expressionFactory == null) {
+            expressionFactory = getExpressionFactory();
+        }
+
+        OperationResult result = new OperationResult("dummy");
+
+        PrismContext prismContext = expressionFactory.getPrismContext();
+        QName resultName = new QName(SchemaConstants.NS_C, "result");
+        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
+        ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, getDefaultVariables(execution), "automatic approval expression", result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
+
+        Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
+        if (exprResult.size() == 0) {
+            return false;
+        } else if (exprResult.size() > 1) {
+            throw new IllegalStateException("Auto-approval expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
+        }
+        Boolean boolResult = exprResult.iterator().next().getValue();
+        return boolResult != null ? boolResult : false;
     }
 
     private ExpressionFactory getExpressionFactory() {
