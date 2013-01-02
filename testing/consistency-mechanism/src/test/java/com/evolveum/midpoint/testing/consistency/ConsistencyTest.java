@@ -123,6 +123,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
@@ -228,7 +229,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private static final String USER_ALICE_FILENAME = REPO_DIR_NAME + "user-alice.xml";
 	private static final String USER_ALICE_OID = "c0c010c0-d34d-b33f-f00d-111111111999";
-
+	
+	private static final String USER_BOB_NO_FAMILY_NAME_FILENAME = REPO_DIR_NAME + "user-bob-no-family-name.xml";
+	private static final String USER_BOB_NO_FAMILY_NAME_OID = "c0c010c0-d34d-b33f-f00d-222111222999";
+	
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = REPO_DIR_NAME + "account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
 	
@@ -1726,7 +1730,128 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		openDJController.stop();
 	}
 	
-	
+	/**
+	 * this test simulates situation, when someone tries to add account while
+	 * resource is down and this account is created by next get call on this
+	 * account
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void test029modifyDiscoveryAddCommunicationProblem() throws Exception {
+		displayTestTile("test029modifyDiscoveryAddCommunicationProblem");
+		OperationResult result = new OperationResult("test029modifyDiscoveryAddCommunicationProblem");
+		addObjectFromFile(USER_BOB_NO_FAMILY_NAME_FILENAME, UserType.class, result);
+
+		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_BOB_NO_FAMILY_NAME_OID, result);
+		assertNotNull(addedUser);
+		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				0, accountRefs.size());
+
+		
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_BOB_NO_FAMILY_NAME_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+//		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
+
+		result.computeStatus();
+		display("add object communication problem result: ", result);
+		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		
+		PrismObject<UserType> userAferModifyOperation = repositoryService.getObject(UserType.class,
+				USER_BOB_NO_FAMILY_NAME_OID, result);
+		assertNotNull(userAferModifyOperation);
+		accountRefs = userAferModifyOperation.asObjectable().getAccountRef();
+		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(), 1,
+				accountRefs.size());
+
+		String accountOid = accountRefs.get(0).getOid();
+		AccountShadowType faieldAccount = repositoryService.getObject(AccountShadowType.class, accountOid, result).asObjectable();
+		assertNotNull(faieldAccount);
+		displayJaxb("shadow from the repository: ", faieldAccount, AccountShadowType.COMPLEX_TYPE);
+		assertEquals("Failed operation saved with account differt from  the expected value.",
+				FailedOperationTypeType.ADD, faieldAccount.getFailedOperationType());
+		assertNotNull("Failed bob's account must have result.", faieldAccount.getResult());
+		assertNotNull("Failed bob's account must contain reference on the resource", faieldAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), faieldAccount.getResourceRef().getOid());
+		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+//		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "sn", "angelika");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "cn", "Bob Dylan");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "givenName", "Bob");
+		assertAttribute(faieldAccount, resourceTypeOpenDjrepo, "uid", "bob");
+		
+		//start openDJ
+		openDJController.start();
+		//and set the resource availability status to UP
+		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
+				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), AvailabilityStatusType.UP);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		modifications.add(resourceStatusDelta);
+		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, result);
+		//and then try to get account -> result is that the account will be created while getting it
+		
+		try{
+		modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+		fail("expected schema exception was not thrown");
+//		} catch (SchemaException ex){
+//			LOGGER.info("schema exeption while trying to re-add account after communication problem without family name..this is expected.");
+//			result.muteLastSubresultError();
+//			result.recordSuccess();
+		
+		
+		//TODO: is this really expected? shouldn't it be a schema exception???
+		} catch (SystemException ex){
+			LOGGER.info("system exeption while trying to re-add account after communication problem without family name..this is expected.");
+			result.muteLastSubresultError();
+			result.recordSuccess();
+//			LOGGER.info("expected schema exeption while got: {}", ex);
+		}
+		
+		OperationResult modifyFamilyNameResult = new OperationResult("execute changes -> modify user's family name");
+		Collection<? extends ItemDelta> familyNameDelta = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, addedUser.getDefinition(), new PolyString("Dylan"));
+		ObjectDelta familyNameD = ObjectDelta.createModifyDelta(USER_BOB_NO_FAMILY_NAME_OID, familyNameDelta, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> modifyFamilyNameDelta = createDeltaCollection(familyNameD);
+		modelService.executeChanges(modifyFamilyNameDelta, null, task, modifyFamilyNameResult);
+		
+		modifyFamilyNameResult.computeStatus();
+		display("add object communication problem result: ", modifyFamilyNameResult);
+		assertEquals("Expected handled error but got: " + modifyFamilyNameResult.getStatus(), OperationResultStatus.SUCCESS, modifyFamilyNameResult.getStatus());
+		
+		PrismObject<AccountShadowType> bobRepoAcc = repositoryService.getObject(AccountShadowType.class, accountOid, modifyFamilyNameResult);
+		assertNotNull(bobRepoAcc);
+		AccountShadowType bobRepoAccount = bobRepoAcc.asObjectable();
+		displayJaxb("Shadow after discovery: ", bobRepoAccount, AccountShadowType.COMPLEX_TYPE);
+		assertNull("Bob's account after discovery must not have failed opertion.", bobRepoAccount.getFailedOperationType());
+		assertNull("Bob's account after discovery must not have result.", bobRepoAccount.getResult());
+		assertNotNull("Bob's account must contain reference on the resource", bobRepoAccount.getResourceRef());
+		
+		PrismObject<AccountShadowType> bobResourceAcc = modelService.getObject(AccountShadowType.class, accountOid, null, task, modifyFamilyNameResult);
+		assertNotNull(bobResourceAcc);
+		AccountShadowType bobResourceAccount = bobResourceAcc.asObjectable();
+//		displayJaxb("Shadow after discovery: ", angelicaAccount, AccountShadowType.COMPLEX_TYPE);
+//		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
+//		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
+//		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), bobResourceAccount.getResourceRef().getOid());
+//		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "sn", "Dylan");
+		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "cn", "Bob Dylan");
+		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "givenName", "Bob");
+		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "uid", "bob");
+		
+		openDJController.stop();
+	}
+
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
 	 * OpenDJ. The account should be linked.

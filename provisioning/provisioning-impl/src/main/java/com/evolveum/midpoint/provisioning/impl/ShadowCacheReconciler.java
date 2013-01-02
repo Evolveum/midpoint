@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -53,26 +54,39 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 	
 	private void cleanShadowInRepository(ResourceObjectShadowType shadowType, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
-	PrismObject oldShadow = shadowType.asPrismObject().clone();
-	ResourceObjectShadowUtil.getAttributesContainer(oldShadow).clear();
-	ShadowCacheUtil.normalizeShadow(shadowType, parentResult);
+		PrismObject<AccountShadowType> oldShadow = shadowType.asPrismObject().clone();
+		ResourceObjectShadowUtil.getAttributesContainer(oldShadow).clear();
+		ShadowCacheUtil.normalizeShadow(shadowType, parentResult);
 
-	ObjectDelta delta = oldShadow.diff(shadowType.asPrismObject());
-	LOGGER.trace("Normalizing shadow: change description: {}", delta.dump());
-//	prismContext.adopt(shadow);
-	try {
-		getRepositoryService().modifyObject(AccountShadowType.class, shadowType.getOid(), delta.getModifications(),
-				parentResult);
-	} catch (SchemaException ex) {
-		parentResult.recordFatalError("Couldn't modify shadow: schema violation: " + ex.getMessage(), ex);
-		throw ex;
-	} catch (ObjectAlreadyExistsException ex) {
-		parentResult.recordFatalError("Couldn't modify shadow: shadow already exists: " + ex.getMessage(), ex);
-		throw ex;
-	} catch (ObjectNotFoundException ex) {
-		parentResult.recordFatalError("Couldn't modify shadow: shadow not found: " + ex.getMessage(), ex);
-		throw ex;
-	}
+		// FIXME: ugly hack, need to be fixed (problem with comparing operation
+		// result, because it was changed and in this call it is different as
+		// one in repo, therefore the following if)
+		PrismObject<AccountShadowType> repoShadow = getRepositoryService().getObject(AccountShadowType.class,
+				shadowType.getOid(), parentResult);
+		AccountShadowType repoShadowType = repoShadow.asObjectable();
+		if (repoShadowType.getResult() != null) {
+			if (!repoShadowType.getResult().equals(oldShadow.asObjectable().getResult())) {
+				oldShadow.asObjectable().setResult(repoShadowType.getResult());
+			}
+		}
+
+		ObjectDelta delta = oldShadow.diff(shadowType.asPrismObject());
+
+		LOGGER.trace("Normalizing shadow: change description: {}", delta.dump());
+		// prismContext.adopt(shadow);
+		try {
+			getRepositoryService().modifyObject(AccountShadowType.class, shadowType.getOid(), delta.getModifications(),
+					parentResult);
+		} catch (SchemaException ex) {
+			parentResult.recordFatalError("Couldn't modify shadow: schema violation: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ObjectAlreadyExistsException ex) {
+			parentResult.recordFatalError("Couldn't modify shadow: shadow already exists: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ObjectNotFoundException ex) {
+			parentResult.recordFatalError("Couldn't modify shadow: shadow not found: " + ex.getMessage(), ex);
+			throw ex;
+		}
 
 	}
 
