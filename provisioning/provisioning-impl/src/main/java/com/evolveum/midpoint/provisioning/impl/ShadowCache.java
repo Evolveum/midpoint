@@ -247,7 +247,7 @@ public abstract class ShadowCache {
 
 			Set<Operation> changes = new HashSet<Operation>();
 			addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
-			LOGGER.info("modifications before merging deltas, {}", DebugUtil.debugDump(modifications));
+			LOGGER.trace("modifications before merging deltas, {}", DebugUtil.debugDump(modifications));
 			
 			modifications = beforeModifyOnResource(shadow, options, modifications);
 			

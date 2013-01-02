@@ -232,12 +232,17 @@ public class AssignmentProcessor {
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             
+            // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
+            // about "micro-changes" inside assignment, these will be processed later.
             boolean isAssignmentChanged = containsRealValue(changedAssignments,assignmentCVal);
             String assignmentPlacementDesc;
             if (isAssignmentChanged) {
             	assignmentPlacementDesc = "delta for "+source;
             } else {
             	assignmentPlacementDesc = source.toString();
+            	// TODO: check for property deltas and apply them to assignmentCVal???
+            	Collection<? extends ItemDelta<?>> assignmentItemDeltas = focusContext.getExecutionWaveAssignmentItemDeltas(assignmentCVal.getId());
+            	// TODO TODO TODO
             }
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));

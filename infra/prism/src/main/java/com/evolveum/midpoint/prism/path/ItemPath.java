@@ -85,7 +85,7 @@ public class ItemPath implements Serializable {
 		this.segments.addAll(parentPath.segments);
 		this.segments.add(subSegment);
 	}
-
+	
 	public ItemPath subPath(QName subName) {
 		return new ItemPath(segments, subName);
 	}
@@ -175,6 +175,63 @@ public class ItemPath implements Serializable {
 
 	public boolean isEmpty() {
 		return segments.isEmpty();
+	}
+	
+	public ItemPath normalize() {
+		ItemPath normalizedPath = new ItemPath();
+		ItemPathSegment lastSegment = null;
+		for (ItemPathSegment origSegment: segments) {
+			if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment) && 
+					!(origSegment instanceof IdItemPathSegment)) {
+				normalizedPath.segments.add(new IdItemPathSegment());
+			}
+			normalizedPath.segments.add(origSegment);
+			lastSegment = origSegment;
+		}
+		if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment)) {
+			normalizedPath.segments.add(new IdItemPathSegment());
+		}
+		return normalizedPath;
+	}
+	
+	public CompareResult compareComplex(ItemPath otherPath) {
+		ItemPath thisNormalized = this.normalize();
+		ItemPath otherNormalized = otherPath.normalize();
+		int i = 0;
+		while (i < thisNormalized.segments.size() && i < otherNormalized.segments.size()) {
+			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
+			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
+			if (!thisSegment.equals(otherSegment)) {
+				return CompareResult.NO_RELATION;
+			}
+			i++;
+		}
+		if (i < thisNormalized.size()) {
+			return CompareResult.SUPERPATH;
+		}
+		if (i < otherNormalized.size()) {
+			return CompareResult.SUBPATH;
+		}
+		return CompareResult.EQUIVALENT;
+	}
+
+	public enum CompareResult {
+		EQUIVALENT,
+		SUPERPATH,
+		SUBPATH,
+		NO_RELATION;
+	}
+	
+	public boolean isSubPath(ItemPath otherPath) {
+		return compareComplex(otherPath) == CompareResult.SUBPATH;
+	}
+	
+	public boolean isSuperPath(ItemPath otherPath) {
+		return compareComplex(otherPath) == CompareResult.SUPERPATH;
+	}
+	
+	public boolean equivalent(ItemPath otherPath) {
+		return compareComplex(otherPath) == CompareResult.EQUIVALENT;
 	}
 	
 	/**

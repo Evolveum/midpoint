@@ -555,6 +555,19 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
         return null;
     }
     
+    public static Collection<? extends ItemDelta<?>> findItemDeltasSubPath(Collection<? extends ItemDelta<?>> deltas, ItemPath itemPath) {
+    	Collection<ItemDelta<?>> foundDeltas = new ArrayList<ItemDelta<?>>();
+        if (deltas == null) {
+            return foundDeltas;
+        }
+        for (ItemDelta<?> delta : deltas) {
+            if (delta.getPath().isSubPath(itemPath)) {
+                foundDeltas.add(delta);
+            }
+        }
+        return foundDeltas;
+    }
+    
     public static <D extends ItemDelta> D findItemDelta(Collection<? extends ItemDelta> deltas, QName itemName, Class<D> deltaType) {
     	return findItemDelta(deltas, new ItemPath(itemName), deltaType);
     }

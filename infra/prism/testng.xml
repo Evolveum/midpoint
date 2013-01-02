@@ -39,6 +39,7 @@
 			<class name="com.evolveum.midpoint.prism.TestPolyString"/>
 			<class name="com.evolveum.midpoint.prism.TestDiff"/>
 			<class name="com.evolveum.midpoint.prism.TestDelta"/>
+			<class name="com.evolveum.midpoint.prism.TestPath"/>
         </classes>
     </test>
 </suite>

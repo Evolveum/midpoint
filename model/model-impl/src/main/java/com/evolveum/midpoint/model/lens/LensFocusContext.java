@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -26,7 +28,9 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -149,6 +153,18 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         return assignmentDelta;
     }
+    
+	public Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(String id) throws SchemaException {
+		if (getObjectTypeClass() != UserType.class) {
+    		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
+    	}
+        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getWaveDelta(getLensContext().getExecutionWave());
+        if (userDelta == null) {
+            return null;
+        }
+        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(SchemaConstants.C_ASSIGNMENT),
+        									  new IdItemPathSegment(id)));
+	}
 
     private ContainerDelta<AssignmentType> createEmptyAssignmentDelta() {
         return new ContainerDelta<AssignmentType>(getAssignmentContainerDefinition());
@@ -256,4 +272,5 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	public String toString() {
 		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
 	}
+
 }

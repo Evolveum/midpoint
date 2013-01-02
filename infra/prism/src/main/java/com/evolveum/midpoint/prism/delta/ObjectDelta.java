@@ -89,7 +89,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     /**
      * Set of relative property deltas. Valid only if changeType==MODIFY
      */
-    private Collection<? extends ItemDelta> modifications;
+    private Collection<? extends ItemDelta<?>> modifications;
 
     /**
      * Class of the object that we describe.
@@ -329,6 +329,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public ReferenceDelta findReferenceModification(QName itemName) {
     	return findModification(itemName, ReferenceDelta.class);
     }
+    
+	/**
+	 * Returns all item deltas at or below a specified path.
+	 */
+	public Collection<? extends ItemDelta<?>> findItemDeltasSubPath(ItemPath itemPath) {
+		return ItemDelta.findItemDeltasSubPath(modifications, itemPath);
+	}
+
     
     private <D extends ItemDelta> void removeModification(ItemPath propertyPath, Class<D> deltaType) {
     	ItemDelta.removeItemDelta(modifications, propertyPath, deltaType);
@@ -616,9 +624,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         // nothing to do for DELETE
     }
 
-    private Collection<? extends ItemDelta> createEmptyModifications() {
+    private Collection<? extends ItemDelta<?>> createEmptyModifications() {
     	// Lists are easier to debug
-        return new ArrayList<ItemDelta>();
+        return new ArrayList<ItemDelta<?>>();
     }
     
     public <X> PropertyDelta<X> createPropertyModification(QName name, PrismPropertyDefinition propertyDefinition) {
@@ -1177,6 +1185,5 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     public String dump() {
         return debugDump(0);
     }
-
 
 }
