@@ -28,13 +28,14 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -52,6 +53,20 @@ public class RRole extends RObject {
 	private Set<RObjectReference> approverRefs;
     private String approvalProcess;
     private String approvalSchema;
+    private String approvalExpression;
+    private String automaticallyApproved;
+
+    @Column(nullable = true)
+    @Lob @Type(type = "org.hibernate.type.TextType")
+    public String getAutomaticallyApproved() {
+        return automaticallyApproved;
+    }
+
+    @Column(nullable = true)
+    @Lob @Type(type = "org.hibernate.type.TextType")
+    public String getApprovalExpression() {
+        return approvalExpression;
+    }
 
     @Column(nullable = true)
     public String getApprovalProcess() {
@@ -123,6 +138,14 @@ public class RRole extends RObject {
         this.approvalSchema = approvalSchema;
     }
 
+    public void setApprovalExpression(String approvalExpression) {
+        this.approvalExpression = approvalExpression;
+    }
+
+    public void setAutomaticallyApproved(String automaticallyApproved) {
+        this.automaticallyApproved = automaticallyApproved;
+    }
+
     @Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -146,16 +169,22 @@ public class RRole extends RObject {
             return false;
         if (approvalSchema != null ? !approvalSchema.equals(rRole.approvalSchema) : rRole.approvalSchema != null)
             return false;
+        if (approvalExpression != null ? !approvalExpression.equals(rRole.approvalExpression) : rRole.approvalExpression != null)
+            return false;
+        if (automaticallyApproved != null ? !automaticallyApproved.equals(rRole.automaticallyApproved) : rRole.automaticallyApproved != null)
+            return false;
 
-		return true;
-	}
+        return true;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = super.hashCode();
-		result = 31 * result + (name != null ? name.hashCode() : 0);
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
         result = 31 * result + (approvalSchema != null ? approvalSchema.hashCode() : 0);
+        result = 31 * result + (approvalExpression != null ? approvalExpression.hashCode() : 0);
+        result = 31 * result + (automaticallyApproved != null ? automaticallyApproved.hashCode() : 0);
 		return result;
 	}
 
@@ -184,6 +213,17 @@ public class RRole extends RObject {
         try {
             jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVAL_SCHEMA),
                     repo.getApprovalSchema(), ApprovalSchemaType.class, prismContext));
+
+            if (StringUtils.isNotEmpty(repo.getApprovalExpression())) {
+                List expressions = RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVER_EXPRESSION),
+                        repo.getApprovalExpression(), List.class, prismContext);
+                jaxb.getApproverExpression().addAll(expressions);
+            }
+
+            if (StringUtils.isNotEmpty(repo.getAutomaticallyApproved())) {
+                jaxb.setAutomaticallyApproved(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_AUTOMATICALLY_APPROVED),
+                        repo.getAutomaticallyApproved(), ExpressionType.class, prismContext));
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -232,6 +272,9 @@ public class RRole extends RObject {
         repo.setApprovalProcess(jaxb.getApprovalProcess());
         try {
             repo.setApprovalSchema(RUtil.toRepo(jaxb.getApprovalSchema(), prismContext));
+
+            repo.setApprovalExpression(RUtil.toRepo(jaxb.getApproverExpression(), prismContext));
+            repo.setAutomaticallyApproved(RUtil.toRepo(jaxb.getAutomaticallyApproved(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

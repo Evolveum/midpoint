@@ -51,7 +51,10 @@ import java.util.*;
 public final class RUtil {
 
     public static final String NS_SQL_REPO = "http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd";
-    static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, "sqlRepoObject");
+    public static final String SQL_REPO_OBJECTS = "sqlRepoObjects";
+    public static final String SQL_REPO_OBJECT = "sqlRepoObject";
+    static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
+    static final QName CUSTOM_OBJECTS = new QName(NS_SQL_REPO, SQL_REPO_OBJECTS);
 
     private RUtil() {
     }
@@ -80,7 +83,17 @@ public final class RUtil {
         Element root = document.getDocumentElement();
 
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        if (Objectable.class.isAssignableFrom(clazz)) {
+        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        if (List.class.isAssignableFrom(clazz)) {
+            List<Element> objects = DOMUtil.getChildElements(root, CUSTOM_OBJECT);
+
+            List list = new ArrayList();
+            for (Element element : objects) {
+                JAXBElement jaxbElement = jaxbProcessor.unmarshalElement(element, Object.class);
+                list.add(jaxbElement.getValue());
+            }
+            return (T) list;
+        } else if (Objectable.class.isAssignableFrom(clazz)) {
             if (root == null) {
                 return null;
             }
@@ -99,7 +112,6 @@ public final class RUtil {
             return (T) container.getValue().asContainerable(clazz);
         }
 
-        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
         JAXBElement<T> element = jaxbProcessor.unmarshalElement(root, clazz);
         return element.getValue();
     }
@@ -134,10 +146,30 @@ public final class RUtil {
                     createFakeParentElement());
         }
 
+        Object valueForMarshall = value;
+        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        if (value instanceof List) {
+            List valueList = (List)value;
+            if (valueList.isEmpty()) {
+                return null;
+            }
+
+            Document document = DOMUtil.getDocument();
+            Element root = DOMUtil.createElement(document, CUSTOM_OBJECTS);
+            document.appendChild(root);
+
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+            for (Object val : valueList) {
+                jaxbProcessor.marshalElementToDom(new JAXBElement<Object>(CUSTOM_OBJECT, Object.class, val), root);
+            }
+
+            return DOMUtil.printDom(root, false, false).toString();
+        }
+
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-        return prismContext.getPrismJaxbProcessor().marshalElementToString(
-                new JAXBElement<Object>(CUSTOM_OBJECT, Object.class, value), properties);
+        return jaxbProcessor.marshalElementToString(new JAXBElement<Object>(CUSTOM_OBJECT, Object.class, valueForMarshall), properties);
     }
 
     private static Element createFakeParentElement() {

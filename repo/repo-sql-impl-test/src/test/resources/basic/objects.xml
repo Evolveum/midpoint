@@ -30,7 +30,7 @@
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-            
+
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00002</name>
@@ -85,7 +85,7 @@
     </object>
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-            
+
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>atestuserX00003</name>
@@ -233,7 +233,7 @@
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
-					
+
 					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
@@ -484,7 +484,7 @@
 						</expression>
 					</outbound>
 				</attribute>
-				
+
 		           <credentials>
 		               <password>
 		                   <outbound>
@@ -500,7 +500,7 @@
 		                   </inbound>
 		               </password>
 		           </credentials>
-		           
+
 		           <activation>
 		               <enabled>
 		                   <outbound/>
@@ -779,7 +779,7 @@
             <enabled>true</enabled>
         </activation>
         <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                     
+
                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                      xmlns:gen160="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -864,7 +864,7 @@
             xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
-                
+
                 <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
                 <xsd:complexType name="ConfigurationType">
                     <xsd:annotation>
@@ -966,7 +966,7 @@
         </definition>
         </schema>
     </object>
-    
+
 <!--  it's commented because it will be tested separatelly in the test -->
 <!--     <object xsi:type="SystemConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#"> -->
 <!--         <name>SystemConfiguration</name> -->
@@ -1040,5 +1040,20 @@
             <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
             <policy>enforce</policy>
         </exclusion>
+        <approverExpression>
+            <script>
+                <code>giveName + ' ' + familyName</code>
+            </script>
+        </approverExpression>
+        <approverExpression>
+            <script>
+                <code>giveName + '-' + familyName</code>
+            </script>
+        </approverExpression>
+        <automaticallyApproved>
+            <script>
+                <code>giveName + ' ' + familyName</code>
+            </script>
+        </automaticallyApproved>
     </role>
 </objects>

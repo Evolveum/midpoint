@@ -216,7 +216,11 @@ public class DOMUtil {
 		return sb.toString();
 	}
 
-	public static StringBuffer printDom(Node node) {
+    public static StringBuffer printDom(Node node) {
+        return printDom(node, true, true);
+    }
+
+	public static StringBuffer printDom(Node node, boolean indent, boolean omitXmlDeclaration) {
 		StringWriter writer = new StringWriter();
 		TransformerFactory transfac = TransformerFactory.newInstance();
 		Transformer trans;
@@ -225,10 +229,10 @@ public class DOMUtil {
 		} catch (TransformerConfigurationException e) {
 			throw new SystemException("Error in XML configuration: "+e.getMessage(),e);
 		}
-		trans.setOutputProperty(OutputKeys.INDENT, "yes");
+		trans.setOutputProperty(OutputKeys.INDENT, (indent ? "yes" : "no"));
 		trans.setParameter(OutputKeys.ENCODING, "utf-8");
-		// Note: serialized XML does not contain xml declaration
-		trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        // Note: serialized XML does not contain xml declaration
+        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, (omitXmlDeclaration ? "yes" : "no"));
 
 		DOMSource source = new DOMSource(node);
 		try {
