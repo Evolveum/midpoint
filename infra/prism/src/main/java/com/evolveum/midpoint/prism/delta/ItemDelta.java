@@ -795,6 +795,21 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			delta.applyTo(propertyContainer);
 		}
 	}
+	
+	/**
+	 * Apply this delta (path) to a property container.
+	 */
+	public void applyTo(PrismContainerValue<?> propertyContainerVal) throws SchemaException {
+		ItemPath itemPath = getPath();
+		Item<?> item = propertyContainerVal.findOrCreateItem(itemPath, getItemClass(), getDefinition());
+		if (item == null) {
+			throw new IllegalStateException("Cannot apply delta because cannot find item "+itemPath+" in "+propertyContainerVal);
+		}
+		applyTo(item);
+		if (item.isEmpty()) {
+			propertyContainerVal.remove(item);
+		}
+	}
 
 	/**
 	 * Apply this delta (path) to a property.

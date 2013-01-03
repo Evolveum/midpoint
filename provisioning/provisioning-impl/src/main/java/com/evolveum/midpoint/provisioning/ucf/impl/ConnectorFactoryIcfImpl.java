@@ -459,11 +459,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 				// hack to split MANIFEST from name
 				try {
-					URL tmp = new URL(u.getPath().split("!")[0]);
+					URL tmp = new URL(toUrl(u.getPath().split("!")[0]));
 					if (isThisBundleCompatible(tmp)) {
 						bundle.add(tmp);
 					} else {
-						LOGGER.info("Skip loading ICF bundle {} due error occured", tmp);
+						LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
 					}
 				} catch (MalformedURLException e) {
 					LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
@@ -472,6 +472,15 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 		}
 		return bundle;
+	}
+
+	private String toUrl(String string) {
+		if (string.contains(":")) {
+			// We are OK, there is a protocol section
+			return string;
+		}
+		// We assume file protocol as default
+		return "file:" + string;
 	}
 
 	/**
@@ -517,7 +526,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 					if (isThisBundleCompatible(dirEntries[i].toURI().toURL())) {
 						bundle.add(dirEntries[i].toURI().toURL());
 					} else {
-						LOGGER.info("Skip loading budle {} due error occured", dirEntries[i].toURI().toURL());
+						LOGGER.warn("Skip loading budle {} due error occured", dirEntries[i].toURI().toURL());
 					}
 				} catch (MalformedURLException e) {
 					LOGGER.error("This never happend we hope.", e);
@@ -529,7 +538,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	}
 
 	/**
-	 * Test if bundle internal configuration and dependencie are OK
+	 * Test if bundle internal configuration and dependencies are OK
 	 * @param bundleUrl
 	 * 			tested bundle URL
 	 * @return true if OK
@@ -539,11 +548,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			return false;
 		try {
 			ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
-		} catch (ConfigurationException ex) {
+		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error(ex.getMessage(), ex);
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()}, ex);
 			} else {
-				LOGGER.error(ex.getMessage());
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
 			}
 			return false;
 		}

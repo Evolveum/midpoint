@@ -41,7 +41,7 @@
         </password>
     </credentials>
     
-    <assignment>
+    <assignment id="a001">
 		<accountConstruction>
 			<description>Brethren account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>

@@ -174,12 +174,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	}
 		
 	@Test
-    public void test050GetUser() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
-        displayTestTile(this, "test050GetUser");
+    public void test050GetUserJack() throws Exception {
+		final String TEST_NAME = "test050GetUserJack";
+        displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test050GetUser");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -193,6 +192,31 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertSuccess("getObject result", result);
         
         userJack.checkConsistence(true, true);
+	}
+	
+	@Test
+    public void test051GetUserBarbossa() throws Exception {
+		final String TEST_NAME = "test051GetUserBarbossa";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        // WHEN
+        PrismObject<UserType> userBarbossa = modelService.getObject(UserType.class, USER_BARBOSSA_OID, null, task, result);
+        
+        // THEN
+        assertUser(userBarbossa, USER_BARBOSSA_OID, "barbossa", "Hector Barbossa", "Hector", "Barbossa");
+        
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess("getObject result", result);
+        
+        userBarbossa.checkConsistence(true, true);
+        
+        PrismContainer<Containerable> assignmentContainer = userBarbossa.findContainer(UserType.F_ASSIGNMENT);
+        assertEquals("Unexpected number of assignment values", 2, assignmentContainer.size());
+        PrismAsserts.assertValueId("a001",assignmentContainer);
 	}
 	
 	@Test

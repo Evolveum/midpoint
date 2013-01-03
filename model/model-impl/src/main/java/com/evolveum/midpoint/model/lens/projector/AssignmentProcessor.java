@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -240,9 +241,15 @@ public class AssignmentProcessor {
             	assignmentPlacementDesc = "delta for "+source;
             } else {
             	assignmentPlacementDesc = source.toString();
-            	// TODO: check for property deltas and apply them to assignmentCVal???
             	Collection<? extends ItemDelta<?>> assignmentItemDeltas = focusContext.getExecutionWaveAssignmentItemDeltas(assignmentCVal.getId());
-            	// TODO TODO TODO
+            	if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
+	            	// Make sure we clone first to avoid side-effects
+	            	PrismContainerValue<AssignmentType> assignmentCValClone = assignmentCVal.clone();
+	            	assignmentCValClone.setParent(assignmentCVal.getParent());
+	            	assignmentCVal = assignmentCValClone;
+	            	assignmentType = assignmentCVal.asContainerable();
+	            	applyAssignemntMicroDeltas(assignmentItemDeltas, assignmentCVal);
+            	}
             }
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
@@ -423,6 +430,19 @@ public class AssignmentProcessor {
         
     }
     
+	private void applyAssignemntMicroDeltas(Collection<? extends ItemDelta<?>> assignmentItemDeltas, PrismContainerValue<AssignmentType> assignmentCVal) throws SchemaException {
+		for (ItemDelta<?> assignmentItemDelta: assignmentItemDeltas) {
+			ItemDelta<?> assignmentItemDeltaClone = assignmentItemDelta.clone();
+			ItemPath deltaPath = assignmentItemDeltaClone.getParentPath();
+			ItemPath tailPath = deltaPath.tail();
+			if (tailPath.first() instanceof IdItemPathSegment) {
+				tailPath = tailPath.tail();
+			}
+			assignmentItemDeltaClone.setParentPath(tailPath);
+			assignmentItemDeltaClone.applyTo(assignmentCVal);
+		}
+	}
+
 	/**
 	 * Set policy decisions for the accounts that does not have it already
 	 */

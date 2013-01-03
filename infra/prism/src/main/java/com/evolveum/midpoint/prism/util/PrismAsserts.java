@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -223,6 +225,18 @@ public class PrismAsserts {
 		assertEquals("Wrong definition minOccurs for "+itemName, minOccurs, definition.getMinOccurs());
 		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
 	}
+	
+	public static<C extends Containerable> void assertValueId(String expectedId, PrismContainer<C> container) {
+		List<String> ids = new ArrayList<String>();
+		for (PrismContainerValue<C> value: container.getValues()) {
+			if (MiscUtil.equals(expectedId, value.getId())) {
+				return;
+			}
+			ids.add(value.getId());
+		}
+		assert false : "Expected that container "+container+" will have value id '"+expectedId+"' but it has not; existing IDs: "+ids;
+	}
+
 	
 	// MISC asserts
 	
@@ -694,6 +708,5 @@ public class PrismAsserts {
 		}
 		return a.equals(b);
 	}
-
 
 }

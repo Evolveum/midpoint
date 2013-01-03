@@ -557,6 +557,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     public <X extends Item> X findOrCreateItem(QName containerName, Class<X> type) throws SchemaException {
     	return findCreateItem(containerName, type, null, true);
     }
+    
+    public <X extends Item> X findOrCreateItem(ItemPath path, Class<X> type, ItemDefinition definition) throws SchemaException {
+    	return findCreateItem(path, type, definition, true);
+    }
 
     public <X> PrismProperty<X> findOrCreateProperty(QName propertyQName) throws SchemaException {
         PrismProperty<X> property = findItem(propertyQName, PrismProperty.class);

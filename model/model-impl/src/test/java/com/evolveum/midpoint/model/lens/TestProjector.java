@@ -111,6 +111,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjector extends AbstractInternalModelIntegrationTest {
 		
+	public static final String TEST_DIR_NAME = "src/test/resources/lens";
+	public static final String USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC = TEST_DIR_NAME + "/user-barbossa-modify-assignment-replace-ac.xml";
+	
 	@Autowired(required = true)
 	private Projector projector;
 	
@@ -518,12 +521,62 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
     }
 	
 	/**
+	 * User barbossa has a direct account assignment. Let's modify that assignment and see if the
+	 * changes will be reflected.
+	 */
+	// TODO: MID-1090 work in progress
+	@Test(enabled=false)
+    public void test255ModifyUserBarbossaAssignment() throws Exception {
+		final String TEST_NAME = "test255ModifyUserBarbossaAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        addModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC);
+        context.recompute();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, openDJController.getAttributePath("businessCategory") , "Pirate of XXX");
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
+                
+    }
+	
+	/**
 	 * User barbossa has a direct account assignment.
 	 * Let's try to delete assigned account. It should end up with a policy violation error.
 	 */
 	@Test
-    public void test255DeleteBarbossaOpenDjAccount() throws Exception {
-		final String TEST_NAME = "test255DeleteBarbossaOpenDjAccount";
+    public void test259DeleteBarbossaOpenDjAccount() throws Exception {
+		final String TEST_NAME = "test259DeleteBarbossaOpenDjAccount";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN

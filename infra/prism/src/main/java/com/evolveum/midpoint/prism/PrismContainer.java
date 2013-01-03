@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -380,8 +381,8 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		}
     	}
     	
-    	ItemPathSegment first = itemPath.first();
-    	PrismContainerValue<V> cval = findValue(first);
+    	IdItemPathSegment idSegment = getIdSegment(itemPath);
+    	PrismContainerValue<V> cval = findValue(idSegment);
     	if (cval == null) {
     		return null;
     	}
@@ -390,21 +391,25 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	return cval.findCreateItem(rest, type, itemDefinition, create);
     }
     
-    private PrismContainerValue<V> findValue(ItemPathSegment pathSegment) {
+	private IdItemPathSegment getIdSegment(ItemPath itemPath) {
+		ItemPathSegment first = itemPath.first();
+		if (first instanceof IdItemPathSegment) {
+			return (IdItemPathSegment)first;
+		}
+		return null;
+	}
+
+	private PrismContainerValue<V> findValue(IdItemPathSegment idSegment) {
     	String id = null;
-    	if (pathSegment instanceof NameItemPathSegment) {
-    		// id remains null
-    	} else if (pathSegment instanceof IdItemPathSegment) {
-    		id = ((IdItemPathSegment)pathSegment).getId();
-    	} else {
-    		throw new IllegalArgumentException("Unexpected path segment "+pathSegment);
+    	if (idSegment != null) {
+    		id = idSegment.getId();
     	}
     	// Otherwise descent to the correct value
     	if (id == null) {
     		if (canAssumeSingleValue()) {
     			return getValue();
     		} else {
-    			throw new IllegalArgumentException("Attempt to get segment "+pathSegment+" without an ID from a multi-valued container "+getName());
+    			throw new IllegalArgumentException("Attempt to get segment without an ID from a multi-valued container "+getName());
     		}
     	} else {
 	        for (PrismContainerValue<V> pval : getValues()) {
@@ -527,8 +532,8 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
 
     public <I extends Item<?>> void removeItem(ItemPath path, Class<I> itemType) {
-    	ItemPathSegment firstPathSegment = path.first();
-    	PrismContainerValue<V> cval = findValue(firstPathSegment);
+    	IdItemPathSegment idSegment = getIdSegment(path);
+    	PrismContainerValue<V> cval = findValue(idSegment);
     	if (cval == null) {
     		return;
     	}
