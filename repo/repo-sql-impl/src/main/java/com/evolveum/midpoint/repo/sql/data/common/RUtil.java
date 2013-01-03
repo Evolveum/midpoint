@@ -280,13 +280,16 @@ public final class RUtil {
         return ref;
     }
 
-    public static Long getLongWrappedFromString(String text) {
-        return StringUtils.isNotEmpty(text) && text.matches("[0-9]*") ? Long.parseLong(text) : null;
-    }
+    public static Long getLongContainerIdFromString(String text) throws DtoTranslationException {
+        if (StringUtils.isEmpty(text)) {
+            return null;
+        }
 
-    public static long getLongFromString(String text) {
-        Long value = getLongWrappedFromString(text);
-        return value != null ? value : 0;
+        if (!text.matches("[0-9]+")) {
+            throw new DtoTranslationException("Couldn't create long id from '" + text + "'.");
+        }
+
+        return Long.parseLong(text);
     }
 
     public static String getStringFromLong(Long id) {

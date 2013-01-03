@@ -216,7 +216,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         PrismContainer<Containerable> assignmentContainer = userBarbossa.findContainer(UserType.F_ASSIGNMENT);
         assertEquals("Unexpected number of assignment values", 2, assignmentContainer.size());
-        PrismAsserts.assertValueId("a001",assignmentContainer);
+        PrismAsserts.assertValueId("2381",assignmentContainer);
 	}
 	
 	@Test
