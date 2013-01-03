@@ -72,7 +72,6 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.users.dto.AccountChangesDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.AccountDto;
@@ -89,11 +88,11 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 /**
  * @author mserbak
  */
-public class PageSubmit extends PageAdmin {
-	private static final String DOT_CLASS = PageSubmit.class.getName() + ".";
+public class PageUserPreview extends PageAdmin {
+	private static final String DOT_CLASS = PageUserPreview.class.getName() + ".";
 	private static final String OPERATION_SAVE_USER = DOT_CLASS + "saveUser";
-	private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "saveUser - modifyAccount";
-	private static final Trace LOGGER = TraceManager.getTrace(PageSubmit.class);
+	private static final String OPERATION_MODIFY_ACCOUNT = DOT_CLASS + "modifyAccount";
+	private static final Trace LOGGER = TraceManager.getTrace(PageUserPreview.class);
 
 	private UserChangesDto userChangesDto;
 	private AccountChangesDto accountChangesDto;
@@ -105,10 +104,10 @@ public class PageSubmit extends PageAdmin {
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
-	public PageSubmit(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
-			ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify) {
+	public PageUserPreview(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
+                           ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify) {
 		if (previewChanges == null || allDeltas == null || userDelta == null) {
-			getSession().error(getString("pageSubmit.message.cantLoadData"));
+			getSession().error(getString("pageUserPreview.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
 		this.deltasChanges = allDeltas;
@@ -126,7 +125,7 @@ public class PageSubmit extends PageAdmin {
 		Form mainForm = new Form("mainForm");
 		add(mainForm);
 
-		mainForm.add(new Label("confirmText", createStringResource("pageSubmit.confirmText",
+		mainForm.add(new Label("confirmText", createStringResource("pageUserPreview.confirmText",
 				new AbstractReadOnlyModel<String>() {
 
 					@Override
@@ -149,7 +148,7 @@ public class PageSubmit extends PageAdmin {
 
 			@Override
 			public String getObject() {
-				return getString("pageSubmit.changesList");
+				return getString("pageUserPreview.changesList");
 			}
 		});
 		changesList.setOutputMarkupId(true);
@@ -173,17 +172,17 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
-						return getString("pageSubmit.resourceList");
+						return getString("pageUserPreview.resourceList");
 					}
 				});
 		accountsList.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accountsList);
 
 		List<IColumn<SubmitResourceDto>> columns = new ArrayList<IColumn<SubmitResourceDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.name"), "name"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.resourceList.resourceName"),
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.resourceList.name"), "name"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.resourceList.resourceName"),
 				"resourceName"));
-		PropertyColumn status = new PropertyColumn(createStringResource("pageSubmit.resourceList.status"), "syncPolicy"){
+		PropertyColumn status = new PropertyColumn(createStringResource("pageUserPreview.resourceList.status"), "syncPolicy"){
 
 			@Override
 			public void populateItem(final Item item, String componentId, final IModel rowModel) {
@@ -231,7 +230,7 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
-						return createStringResource("pageSubmit.userInfoAccordion", userChangesList.size())
+						return createStringResource("pageUserPreview.userInfoAccordion", userChangesList.size())
 								.getString();
 					}
 				});
@@ -239,11 +238,11 @@ public class PageSubmit extends PageAdmin {
 		changeType.getBodyContainer().add(userInfoAccordion);
 
 		List<IColumn<SubmitUserDto>> columns = new ArrayList<IColumn<SubmitUserDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.originType"), "originType"));
-		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.attribute"), "attribute"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.oldValue"), "oldValue"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.newValue"), "newValue"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.originType"), "originType"));
+		columns.add(new AdditionalDataIconColumn(createStringResource("pageUserPreview.typeOfAddData")));
 
 		ListDataProvider<SubmitUserDto> provider = new ListDataProvider<SubmitUserDto>(this,
 				new AbstractReadOnlyModel<List<SubmitUserDto>>() {
@@ -265,7 +264,7 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
-						return createStringResource("pageSubmit.accountsAccordion",
+						return createStringResource("pageUserPreview.accountsAccordion",
 								accountChangesDto.getAccountChangesList().size()).getString();
 					}
 				});
@@ -273,12 +272,12 @@ public class PageSubmit extends PageAdmin {
 		changeType.getBodyContainer().add(accountsAccordion);
 
 		List<IColumn<SubmitAccountDto>> columns = new ArrayList<IColumn<SubmitAccountDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.resource"), "resourceName"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.attribute"), "attribute"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.oldValue"), "oldValue"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.newValue"), "newValue"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.originType"), "originType"));
-		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.resource"), "resourceName"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.attribute"), "attribute"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.oldValue"), "oldValue"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.newValue"), "newValue"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.originType"), "originType"));
+		columns.add(new AdditionalDataIconColumn(createStringResource("pageUserPreview.typeOfAddData")));
 
 		ListDataProvider<SubmitAccountDto> provider = new ListDataProvider<SubmitAccountDto>(this,
 				new AbstractReadOnlyModel<List<SubmitAccountDto>>() {
@@ -300,7 +299,7 @@ public class PageSubmit extends PageAdmin {
 
 					@Override
 					public String getObject() {
-						return createStringResource("pageSubmit.assignmentsAccordion",
+						return createStringResource("pageUserPreview.assignmentsAccordion",
 								assignmentsChangesList.size()).getString();
 					}
 				});
@@ -308,11 +307,11 @@ public class PageSubmit extends PageAdmin {
 		changeType.getBodyContainer().add(assignmentsAccordion);
 
 		List<IColumn<SubmitAssignmentDto>> columns = new ArrayList<IColumn<SubmitAssignmentDto>>();
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.assignment"),
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.assignmentsList.assignment"),
 				"assignment"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.assignmentsList.operation"), "status"));
-		columns.add(new PropertyColumn(createStringResource("pageSubmit.originType"), "originType"));
-		columns.add(new AdditionalDataIconColumn(createStringResource("pageSubmit.typeOfAddData")));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.assignmentsList.operation"), "status"));
+		columns.add(new PropertyColumn(createStringResource("pageUserPreview.originType"), "originType"));
+		columns.add(new AdditionalDataIconColumn(createStringResource("pageUserPreview.typeOfAddData")));
 
 		ListDataProvider<SubmitAssignmentDto> provider = new ListDataProvider<SubmitAssignmentDto>(this,
 				new AbstractReadOnlyModel<List<SubmitAssignmentDto>>() {
@@ -331,7 +330,7 @@ public class PageSubmit extends PageAdmin {
 
 	private void initButtons(Form mainForm) {
 		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
-				createStringResource("pageSubmit.button.save")) {
+				createStringResource("pageUserPreview.button.save")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -346,7 +345,7 @@ public class PageSubmit extends PageAdmin {
 		mainForm.add(saveButton);
 
 		AjaxLinkButton cancelButton = new AjaxLinkButton("cancelButton",
-				createStringResource("pageSubmit.button.cancel")) {
+				createStringResource("pageUserPreview.button.cancel")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -375,7 +374,7 @@ public class PageSubmit extends PageAdmin {
 					prismValue = (PrismValue) item;
 					originType = prismValue.getOriginType();
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment(prismValue),
-							getString("pageSubmit.status." + SubmitStatus.ADDING), getString("OriginType."
+							getString("pageUserPreview.status." + SubmitStatus.ADDING), getString("OriginType."
 									+ originType), assignmentDto.isSecondaryValue(), false));
 				}
 			}
@@ -385,7 +384,7 @@ public class PageSubmit extends PageAdmin {
 					prismValue = (PrismValue) item;
 					originType = prismValue.getOriginType();
 					list.add(new SubmitAssignmentDto(getReferenceFromAssignment(prismValue),
-							getString("pageSubmit.status." + SubmitStatus.DELETING),getString("OriginType."
+							getString("pageUserPreview.status." + SubmitStatus.DELETING),getString("OriginType."
 									+ originType), assignmentDto.isSecondaryValue(), true));
 				}
 			}
@@ -615,8 +614,8 @@ public class PageSubmit extends PageAdmin {
 
 			result.recomputeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError(getString("pageSubmit.message.cantCreateUser"), ex);
-			LoggingUtils.logException(LOGGER, getString("pageSubmit.message.cantCreateUser"), ex);
+			result.recordFatalError(getString("pageUserPreview.message.cantCreateUser"), ex);
+			LoggingUtils.logException(LOGGER, getString("pageUserPreview.message.cantCreateUser"), ex);
 		}
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
@@ -714,21 +713,21 @@ public class PageSubmit extends PageAdmin {
 
 		private String getTitle(boolean secondaryValue, boolean deletedValue) {
 			if (deletedValue) {
-				return PageSubmit.this.getString("pageSubmit.deletedValue");
+				return PageUserPreview.this.getString("pageUserPreview.deletedValue");
 			} else if (secondaryValue) {
-				return PageSubmit.this.getString("pageSubmit.secondaryValue");
+				return PageUserPreview.this.getString("pageUserPreview.secondaryValue");
 			} else {
-				return PageSubmit.this.getString("pageSubmit.primaryValue");
+				return PageUserPreview.this.getString("pageUserPreview.primaryValue");
 			}
 		}
 
 		private ResourceReference getIcon(boolean secondaryValue, boolean deletedValue) {
 			if (deletedValue) {
-				return new PackageResourceReference(PageSubmit.class, "DeletedValue.png");
+				return new PackageResourceReference(PageUserPreview.class, "DeletedValue.png");
 			} else if (secondaryValue) {
-				return new PackageResourceReference(PageSubmit.class, "SecondaryValue.png");
+				return new PackageResourceReference(PageUserPreview.class, "SecondaryValue.png");
 			} else {
-				return new PackageResourceReference(PageSubmit.class, "PrimaryValue.png");
+				return new PackageResourceReference(PageUserPreview.class, "PrimaryValue.png");
 			}
 		}
 	}

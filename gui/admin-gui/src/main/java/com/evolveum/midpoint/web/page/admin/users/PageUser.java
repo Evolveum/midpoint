@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1162,8 +1161,8 @@ public class PageUser extends PageAdminUsers {
         }
 
         if (result.isSuccess() || result.isHandledError()) {
-            PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, accountsBeforeModify);
-            setResponsePage(pageSubmit);
+            PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, accountsBeforeModify);
+            setResponsePage(pageUserPreview);
         } else {
             showResult(result);
             target.add(getFeedbackPanel());

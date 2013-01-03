@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
+import com.evolveum.midpoint.web.page.admin.users.PageUserPreview;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
@@ -64,7 +65,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
-import com.evolveum.midpoint.web.page.admin.users.PageSubmit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
@@ -141,7 +141,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         // mount(new MountedMapperWithoutPageComponentInfo("/admin/users", PageUsers.class, new PageUsersEncoder()));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
         mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
-        mount(new MountedMapper("/admin/submit", PageSubmit.class, encoder));   //todo rename url mapping to something more explanatory, probably "preview"
+        mount(new MountedMapper("/admin/userPreview", PageUserPreview.class, encoder));
         mount(new MountedMapper("/admin/orgStruct", PageOrgStruct.class, encoder));
 
         mount(new MountedMapper("/admin/task", PageTaskEdit.class, new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_EDIT_ID)));

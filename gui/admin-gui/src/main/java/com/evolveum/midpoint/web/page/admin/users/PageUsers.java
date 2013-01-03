@@ -56,10 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -516,8 +514,8 @@ public class PageUsers extends PageAdminUsers {
                 showResult(result);
                 target.add(getFeedbackPanel());
             } else {
-                PageSubmit pageSubmit = new PageSubmit(changes, deltas, delta, null);
-                setResponsePage(pageSubmit);
+                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, null);
+                setResponsePage(pageUserPreview);
             }
 
         } else {
