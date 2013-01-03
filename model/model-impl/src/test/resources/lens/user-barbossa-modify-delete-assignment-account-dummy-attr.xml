@@ -21,35 +21,25 @@
 
 <!-- Object modification description that is changing user "barbossa" by adding a new account assignment -->
 
-<objectModification
+<objectModification 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
 	<modification>
-		<t:modificationType>add</t:modificationType>
+		<t:modificationType>delete</t:modificationType>
 		<t:value>
 			<c:assignment>
 				<c:accountConstruction>
-					<c:description>Monkey account construction</c:description>
-					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+					<c:description>Shipwreck account construction</c:description>
+					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+					<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 					<c:attribute>
-						<c:ref>ri:secretary</c:ref>
+						<c:ref>ri:location</c:ref>
 						<c:outbound>
 							<c:expression>
-								<c:value>Jack the Monkey</c:value>
-							</c:expression>
-						</c:outbound>
-					</c:attribute>
-					<c:attribute>
-						<c:ref>ri:l</c:ref>
-						<c:outbound>
-							<c:expression>
-								<c:value>
-									<ri:l>Caribbean</ri:l>
-									<ri:l>World's End</ri:l>
-								</c:value>
+								<c:value>Shipwreck cove</c:value>
 							</c:expression>
 						</c:outbound>
 					</c:attribute>

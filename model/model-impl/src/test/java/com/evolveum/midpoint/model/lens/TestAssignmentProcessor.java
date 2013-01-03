@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.projector.AssignmentProcessor;
+import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -80,8 +81,6 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
     private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
-	private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
-
     @Autowired(required = true)
     private AssignmentProcessor assignmentProcessor;
 
@@ -125,7 +124,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
         context.recompute();
 
@@ -166,9 +165,12 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         
         AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
                         
-        assertNoZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        assertPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Tortuga");
-        assertMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
+        assertNoZeroAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        assertPlusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Tortuga");
+        assertMinusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
                 
     }
     
@@ -181,7 +183,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         context.recompute();
 
         display("Input context", context);
@@ -208,25 +210,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Account secondary delta sneaked in", accountSecondaryDelta);
         
-        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
-        
-     // TODO: Move to a different test
-//        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-//        MidPointObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-//        assertEquals("user", newAccount.findProperty(new QName(SchemaConstants.NS_C, "accountType")).getValue());
-//        assertEquals(new QName(resourceType.getNamespace(), "AccountObjectClass"),
-//                newAccount.findProperty(new QName(SchemaConstants.NS_C, "objectClass")).getValue());
-//        ObjectReferenceType resourceRef = (ObjectReferenceType) newAccount.findProperty(new QName(SchemaConstants.NS_C, "resourceRef")).getValue().getValue();
-//        assertEquals(resourceType.getOid(), resourceRef.getOid());
-
-//        PropertyContainer attributes = newAccount.findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
-//        assertEquals("Sparrow", attributes.findProperty(new QName(resourceType.getNamespace(), "sn")).getValue());
-//        assertEquals("Jack", attributes.findProperty(new QName(resourceType.getNamespace(), "givenName")).getValue());
-//        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceType.getNamespace(), "cn")).getValue());
-//        assertEquals("middle of nowhere", attributes.findProperty(new QName(resourceType.getNamespace(), "l")).getValue());
-//        assertEquals("Created by IDM", attributes.findProperty(new QName(resourceType.getNamespace(), "description")).getValue());
-//        assertEquals("jack", attributes.findProperty(new QName(resourceType.getNamespace(), "uid")).getValue());
-//        assertEquals("uid=jack,ou=people,dc=example,dc=com", attributes.findProperty(ICFS_NAME).getValue());
+        assertEquals(SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());        
     }
 
     @Test
@@ -238,7 +222,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
 
         display("Input context", context);
@@ -278,36 +262,21 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         
         AccountConstruction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple);
                 
-        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
-        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
-        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        assertZeroAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		"Pirate Brethren, Inc.");
+        assertNoPlusAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
+        assertNoMinusAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         
-        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
-        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        
-        
-// TODO: Move to a different test
-//        assertEquals(ChangeType.ADD, accountSecondaryDelta.getChangeType());
-//        MidPointObject<AccountShadowType> newAccount = accountSecondaryDelta.getObjectToAdd();
-//        assertEquals("user", newAccount.findProperty(new QName(SchemaConstants.NS_C, "accountType")).getValue());
-//        assertEquals(new QName(resourceType.getNamespace(), "AccountObjectClass"),
-//                newAccount.findProperty(new QName(SchemaConstants.NS_C, "objectClass")).getValue());
-//        ObjectReferenceType resourceRef = (ObjectReferenceType) newAccount.findProperty(new QName(SchemaConstants.NS_C, "resourceRef")).getValue().getValue();
-//        assertEquals(resourceType.getOid(), resourceRef.getOid());
-//
-//        PropertyContainer attributes = newAccount.findPropertyContainer(SchemaConstants.I_ATTRIBUTES);
-//        assertEquals("Sparrow", attributes.findProperty(new QName(resourceType.getNamespace(), "sn")).getValue());
-//        assertEquals("Jack", attributes.findProperty(new QName(resourceType.getNamespace(), "givenName")).getValue());
-//        assertEquals("Jack Sparrow", attributes.findProperty(new QName(resourceType.getNamespace(), "cn")).getValue());
-//        assertEquals("Created by IDM", attributes.findProperty(new QName(resourceType.getNamespace(), "description")).getValue());
-//        assertEquals("jack", attributes.findProperty(new QName(resourceType.getNamespace(), "uid")).getValue());
-//        assertEquals("uid=jack,ou=people,dc=example,dc=com", attributes.findProperty(ICFS_NAME).getValue());
-//
-//        assertEquals("Pirate Brethren, Inc.", attributes.findProperty(new QName(resourceType.getNamespace(), "o")).getValue());
-//
-//        Set<PropertyValue<Object>> lValues = attributes.findProperty(new QName(resourceType.getNamespace(), "l")).getValues();
-//        TestUtil.assertPropertyValueSetEquals(lValues, "middle of nowhere", "Caribbean");
+        assertZeroAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
+        assertNoPlusAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        assertNoMinusAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+                
     }
 
 	@Test
@@ -319,8 +288,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
 
         display("Input context", context);
@@ -357,26 +326,48 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
-        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
+        AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple,
+        		"Brethren account construction");
         
-        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
-        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
-        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        assertZeroAttributeValues(zeroAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		"Pirate Brethren, Inc.");
+        assertNoPlusAttributeValues(zeroAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
+        assertNoMinusAttributeValues(zeroAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         
-        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
-        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertZeroAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
+        assertNoPlusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        assertNoMinusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        
+        assertZeroAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME), "Sword");
+        assertNoPlusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
+        assertNoMinusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         
         assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
         AccountConstruction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple, "Monkey account construction");
         
-        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"secretary"), "Jack the Monkey");
-        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"secretary"));
-        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"secretary"));
+        assertZeroAttributeValues(plusAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME), "Rum");
+        assertNoPlusAttributeValues(plusAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+        assertNoMinusAttributeValues(plusAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
         
-        assertZeroAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean", "World's End");
-        assertNoPlusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        assertNoMinusAttributeValues(plusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertZeroAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
+        		"Dagger", "Pistol");
+        assertNoPlusAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
+        assertNoMinusAttributeValues(plusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
         
         
@@ -407,8 +398,8 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recomputeFocus();
 
         display("Input context", context);
@@ -451,20 +442,31 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 1);
         AccountConstruction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple);
         
-        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Caribbean");
-        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertZeroAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
+        assertNoPlusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        assertNoMinusAttributeValues(zeroAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         
-        assertZeroAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"), "Pirate Brethren, Inc.");
-        assertNoPlusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
-        assertNoMinusAttributeValues(zeroAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"o"));
+        assertZeroAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		"Pirate Brethren, Inc.");
+        assertNoPlusAttributeValues(zeroAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
+        assertNoMinusAttributeValues(zeroAccountConstruction,
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
         
         assertSetSize("minus", accountConstructionDeltaSetTriple.getMinusSet(), 1);
         AccountConstruction minusAccountConstruction = getMinusAccountConstruction(accountConstructionDeltaSetTriple);
         
-        assertZeroAttributeValues(minusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"), "Shipwreck cove");
-        assertNoPlusAttributeValues(minusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
-        assertNoMinusAttributeValues(minusAccountConstruction, new QName(RESOURCE_OPENDJ_NS,"l"));
+        assertZeroAttributeValues(minusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
+        		"Shipwreck cove");
+        assertNoPlusAttributeValues(minusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        assertNoMinusAttributeValues(minusAccountConstruction, 
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
         
 //        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 //        assertNull(accountSecondaryDelta.getObjectToAdd());

@@ -561,7 +561,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
             return foundDeltas;
         }
         for (ItemDelta<?> delta : deltas) {
-            if (delta.getPath().isSubPath(itemPath)) {
+            if (itemPath.isSubPath(delta.getPath())) {
                 foundDeltas.add(delta);
             }
         }

@@ -369,7 +369,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
 
 	/**
-	 * User barbossa has a direct account assignment. This assignment has an expression for user/locality -> opendj/l.
+	 * User barbossa has a direct account assignment. This assignment has an expression for user/locality -> dummy/location.
 	 * Let's try if the "l" gets updated if we update barbosa's locality.
 	 */
 	@Test
@@ -384,7 +384,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Tortuga"));
         context.recompute();
 
@@ -411,15 +411,15 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, openDJController.getAttributePath("l") , "Tortuga");
-        PrismAsserts.assertPropertyDelete(accountSecondaryDelta, openDJController.getAttributePath("l") , "Caribbean");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME) , "Tortuga");
         
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
                 
     }
 	
 	/**
-	 * User barbossa has a direct account assignment. This assignment has an expression for user/fullName -> opendj/cn.
+	 * User barbossa has a direct account assignment. This assignment has an expression for user/fullName -> dummy/fullname.
 	 * cn is also overriden to be single-value.
 	 * Let's try if the "cn" gets updated if we update barbosa's fullName. Also check if delta is replace.
 	 */
@@ -436,7 +436,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Hector Barbossa"));
         context.recompute();
 
@@ -463,7 +463,9 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, openDJController.getAttributePath("cn") , "Captain Hector Barbossa");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME) , 
+        		"Captain Hector Barbossa");
         
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
                 
@@ -486,7 +488,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context,
         		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED),
         		false);
@@ -515,7 +517,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PropertyDelta<Boolean> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(AccountShadowType.F_ACTIVATION, ActivationType.F_ENABLED));
+        PropertyDelta<Boolean> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(AccountShadowType.F_ACTIVATION, 
+        		ActivationType.F_ENABLED));
         PrismAsserts.assertReplace(enabledDelta, false);
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
     }
@@ -538,7 +541,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC);
         context.recompute();
 
@@ -563,9 +566,12 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
         assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, openDJController.getAttributePath("businessCategory") , "Pirate of XXX");
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+        		"Pirate of Caribbean");
         PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
                 
     }
@@ -575,8 +581,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	 * Let's try to delete assigned account. It should end up with a policy violation error.
 	 */
 	@Test
-    public void test259DeleteBarbossaOpenDjAccount() throws Exception {
-		final String TEST_NAME = "test259DeleteBarbossaOpenDjAccount";
+    public void test259DeleteBarbossaDummyAccount() throws Exception {
+		final String TEST_NAME = "test259DeleteBarbossaDummyAccount";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -587,8 +593,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         // Do not fill user to context. Projector should figure that out.
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID, result);
-        addModificationToContextDeleteAccount(context, ACCOUNT_HBARBOSSA_OPENDJ_OID);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        addModificationToContextDeleteAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID);
         context.recompute();
 
         display("Input context", context);
@@ -711,8 +717,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
     }
 	
 	@Test
-    public void test401ImportHermanOpenDj() throws Exception {
-		final String TEST_NAME = "test401ImportHermanOpenDj";
+    public void test401ImportHermanDummy() throws Exception {
+		final String TEST_NAME = "test401ImportHermanDummy";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -724,7 +730,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         LensContext<UserType, AccountShadowType> context = createUserAccountContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_OPENDJ_FILENAME, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILENAME, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
 

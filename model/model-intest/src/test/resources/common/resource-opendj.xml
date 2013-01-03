@@ -293,7 +293,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								$c:givenName
+								$c:givenName/t:orig
 							</code>
 						</script>
 					</expression>

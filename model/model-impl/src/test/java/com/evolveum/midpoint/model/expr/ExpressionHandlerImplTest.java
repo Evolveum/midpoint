@@ -113,7 +113,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testEvaluateExpression() throws Exception {
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(TEST_FOLDER, "expr/account.xml"));
 		AccountShadowType accountType = account.asObjectable();
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-opendj.xml"));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-dummy.xml"));
 		ResourceType resourceType = resource.asObjectable();
 		accountType.setResource(resourceType);
 
@@ -122,7 +122,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 				.getFilter(), SchemaConstants.NS_C, "valueExpression");
 		ExpressionType expression = PrismTestUtil.getPrismContext().getPrismJaxbProcessor()
 				.toJavaValue(valueExpressionElement, ExpressionType.class);
-		LOGGER.debug(SchemaDebugUtil.prettyPrint(expression));
+		LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));
 
 		OperationResult result = new OperationResult("testCorrelationRule");
 		String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", result);

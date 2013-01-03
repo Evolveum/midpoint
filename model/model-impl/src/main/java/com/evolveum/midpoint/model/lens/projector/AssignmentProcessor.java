@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.AccountConstructionPack;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.lens.AssignmentPath;
@@ -205,9 +206,9 @@ public class AssignmentProcessor {
 
         // We will be collecting the evaluated account constructions into these three sets. 
         // It forms a kind of delta set triple for the account constructions.
-        Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> zeroAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
-        Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> plusAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
-        Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> minusAccountMap = new HashMap<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>();
+        Map<ResourceShadowDiscriminator, AccountConstructionPack> zeroAccountMap = new HashMap<ResourceShadowDiscriminator, AccountConstructionPack>();
+        Map<ResourceShadowDiscriminator, AccountConstructionPack> plusAccountMap = new HashMap<ResourceShadowDiscriminator, AccountConstructionPack>();
+        Map<ResourceShadowDiscriminator, AccountConstructionPack> minusAccountMap = new HashMap<ResourceShadowDiscriminator, AccountConstructionPack>();
 
         LOGGER.trace("Old assignments {}", SchemaDebugUtil.prettyPrint(assignmentsOld));
         LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
@@ -233,6 +234,7 @@ public class AssignmentProcessor {
         for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
             AssignmentType assignmentType = assignmentCVal.asContainerable();
             
+            boolean forceRecon = false;
             // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
             // about "micro-changes" inside assignment, these will be processed later.
             boolean isAssignmentChanged = containsRealValue(changedAssignments,assignmentCVal);
@@ -249,6 +251,10 @@ public class AssignmentProcessor {
 	            	assignmentCVal = assignmentCValClone;
 	            	assignmentType = assignmentCVal.asContainerable();
 	            	applyAssignemntMicroDeltas(assignmentItemDeltas, assignmentCVal);
+	            	// We do not exactly know what was changed. This may be a replace change, etc.
+	            	// Even if we know we do not bother to compute it now. This is not a performance-critical case anyway
+	            	// So we just force reconciliation for this case. It will sort it out.
+	            	forceRecon = true;
             	}
             }
 
@@ -267,7 +273,7 @@ public class AssignmentProcessor {
             	// USER DELETE
             	// If focus (user) is being deleted that all the assignments are to be gone. Including those that
             	// were not changed explicitly.
-            	collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+            	collectToAccountMap(context, minusAccountMap, evaluatedAssignment, forceRecon, result);
                 evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
                 
             } else {
@@ -283,15 +289,15 @@ public class AssignmentProcessor {
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal);
             		if (hadValue && willHaveValue) {
             			// No change
-            			collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+            			collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, forceRecon, result);
     	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
             		} else if (willHaveValue) {
             			// add
-            			collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
+            			collectToAccountMap(context, plusAccountMap, evaluatedAssignment, forceRecon, result);
 	                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
             		} else if (hadValue) {
             			// delete
-            			collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+            			collectToAccountMap(context, minusAccountMap, evaluatedAssignment, forceRecon, result);
 	                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
             		} else {
             			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
@@ -308,21 +314,21 @@ public class AssignmentProcessor {
 		                if (assignmentDelta.isValueToAdd(assignmentCVal)) {
 		                	if (containsRealValue(assignmentsOld, assignmentCVal)) {
 		                		// Phantom add: adding assignment that is already there
-		                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+		                        collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, forceRecon, result);
 		                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
 		                	} else {
-			                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, result);
+			                    collectToAccountMap(context, plusAccountMap, evaluatedAssignment, forceRecon, result);
 			                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
 		                	}
 		                }
 		                if (assignmentDelta.isValueToDelete(assignmentCVal)) {
-		                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, result);
+		                    collectToAccountMap(context, minusAccountMap, evaluatedAssignment, forceRecon, result);
 		                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
 		                }
 		
 		            } else {
 		                // No change in assignment
-		                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, result);
+		                collectToAccountMap(context, zeroAccountMap, evaluatedAssignment, forceRecon, result);
 		                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
 		            }
             	}
@@ -416,12 +422,17 @@ public class AssignmentProcessor {
             }
 
             PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountDeltaSetTriple = 
-            		new PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>>(zeroAccountMap.get(rat),
-                    plusAccountMap.get(rat), minusAccountMap.get(rat));
+            		new PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>>(
+            				getConstructions(zeroAccountMap.get(rat)),
+            				getConstructions(plusAccountMap.get(rat)),
+            				getConstructions(minusAccountMap.get(rat)));
             LensProjectionContext<AccountShadowType> accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
             	accountContext.setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
+            	if (isForceRecon(zeroAccountMap.get(rat)) || isForceRecon(plusAccountMap.get(rat)) || isForceRecon(minusAccountMap.get(rat))) {
+            		accountContext.setDoReconciliation(true);
+            	}
             }
 
         }
@@ -430,6 +441,21 @@ public class AssignmentProcessor {
         
     }
     
+	private Collection<PrismPropertyValue<AccountConstruction>> getConstructions(AccountConstructionPack accountConstructionPack) {
+		if (accountConstructionPack == null) {
+			return null;
+		}
+		return accountConstructionPack.getConstructions();
+	}
+	
+	private boolean isForceRecon(AccountConstructionPack accountConstructionPack) {
+		if (accountConstructionPack == null) {
+			return false;
+		}
+		return accountConstructionPack.isForceRecon();
+	}
+
+
 	private void applyAssignemntMicroDeltas(Collection<? extends ItemDelta<?>> assignmentItemDeltas, PrismContainerValue<AssignmentType> assignmentCVal) throws SchemaException {
 		for (ItemDelta<?> assignmentItemDelta: assignmentItemDeltas) {
 			ItemDelta<?> assignmentItemDeltaClone = assignmentItemDelta.clone();
@@ -553,33 +579,36 @@ public class AssignmentProcessor {
     }
 
     private void collectToAccountMap(LensContext<UserType,AccountShadowType> context,
-            Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> accountMap,
-            Assignment evaluatedAssignment, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, Assignment evaluatedAssignment, 
+            boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String accountType = accountConstruction.getAccountType();
             ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
             accountType = LensUtil.refineAccountType(accountType, resource, prismContext);
             ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType);
-            Collection<PrismPropertyValue<AccountConstruction>> constructions = null;
+            AccountConstructionPack constructionPack = null;
             if (accountMap.containsKey(rat)) {
-                constructions = accountMap.get(rat);
+                constructionPack = accountMap.get(rat);
             } else {
-                constructions = new ArrayList<PrismPropertyValue<AccountConstruction>>();
-                accountMap.put(rat, constructions);
+                constructionPack = new AccountConstructionPack();
+                accountMap.put(rat, constructionPack);
             }
-            constructions.add(new PrismPropertyValue<AccountConstruction>(accountConstruction));
+            constructionPack.add(new PrismPropertyValue<AccountConstruction>(accountConstruction));
+            if (forceRecon) {
+            	constructionPack.setForceRecon(true);
+            }
         }
     }
 
-    private String dumpAccountMap(Map<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> accountMap) {
+    private String dumpAccountMap(Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap) {
         StringBuilder sb = new StringBuilder();
-        Set<Entry<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>> entrySet = accountMap.entrySet();
-        Iterator<Entry<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>>> i = entrySet.iterator();
+        Set<Entry<ResourceShadowDiscriminator, AccountConstructionPack>> entrySet = accountMap.entrySet();
+        Iterator<Entry<ResourceShadowDiscriminator, AccountConstructionPack>> i = entrySet.iterator();
         while (i.hasNext()) {
-            Entry<ResourceShadowDiscriminator, Collection<PrismPropertyValue<AccountConstruction>>> entry = i.next();
+            Entry<ResourceShadowDiscriminator, AccountConstructionPack> entry = i.next();
             sb.append(entry.getKey()).append(": ");
-            sb.append(SchemaDebugUtil.prettyPrint(entry.getValue()));
+            sb.append(entry.getValue());
             if (i.hasNext()) {
                 sb.append("\n");
             }

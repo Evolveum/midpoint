@@ -222,7 +222,6 @@
 				<ref>ri:weapon</ref>
 				<displayName>Weapon</displayName>
 				<outbound>
-					<strength>weak</strength>
 					<source>
 						<path>
 							$user/extension/piracy:weapon
@@ -256,7 +255,6 @@
 			<credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>
@@ -273,7 +271,6 @@
             <activation>
             	<enabled>
             		<outbound>
-            			<strength>weak</strength>
                     	<expression>
                         	<asIs/>
                         </expression>

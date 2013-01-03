@@ -115,6 +115,9 @@ public class ExpressionHandler {
 
 		ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
+		if (outputTriple == null) {
+			return null;
+		}
 		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 			return null;

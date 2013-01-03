@@ -25,7 +25,7 @@
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>barbossa</name>
     <fullName>Hector Barbossa</fullName>
@@ -41,13 +41,13 @@
         </password>
     </credentials>
     
-    <assignment id="2381">
+    <assignment id="1001">
 		<accountConstruction>
 			<description>Brethren account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
-				<ref>ri:o</ref>
+				<ref>ri:ship</ref>
 				<outbound>
 					<expression>
 						<value>Pirate Brethren, Inc.</value>
@@ -55,7 +55,7 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>ri:l</ref>
+				<ref>ri:location</ref>
 				<outbound>
 					<source>
 						<path>$c:user/c:locality</path>
@@ -70,16 +70,24 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<outbound>
+					<expression>
+						<value>Sword</value>
+					</expression>
+				</outbound>
+			</attribute>
 		</accountConstruction>
 	</assignment>
 
     <assignment>
 		<accountConstruction>
 			<description>Shipwreck account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
-				<ref>ri:l</ref>
+				<ref>ri:location</ref>
 				<outbound>
 					<expression>
 						<value>Shipwreck cove</value>

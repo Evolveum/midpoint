@@ -32,7 +32,6 @@
     <test name="Controller" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest"/>
-            <class name="com.evolveum.midpoint.model.controller.ControllerDeleteObjectTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerGetObjectTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerLaunchImportTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerListAccountShadowOwnerTest"/>

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
+import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -43,12 +44,17 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
@@ -79,6 +85,9 @@ import java.util.Set;
  */
 @Component
 public class ReconciliationProcessor {
+	
+	@Autowired(required = true)
+    private ProvisioningService provisioningService;
 
 	@Autowired(required=true)
 	PrismContext prismContext;
@@ -86,7 +95,7 @@ public class ReconciliationProcessor {
     public static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
-    <F extends ObjectType, P extends ObjectType> void processReconciliation(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException {
+    <F extends ObjectType, P extends ObjectType> void processReconciliation(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
@@ -98,7 +107,7 @@ public class ReconciliationProcessor {
     	processReconciliationUser((LensContext<UserType,AccountShadowType>) context, (LensProjectionContext<AccountShadowType>)projectionContext, result);
     }
     
-    void processReconciliationUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accContext, OperationResult result) throws SchemaException {
+    void processReconciliationUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accContext, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     
     OperationResult subResult = result.createSubresult(PROCESS_RECONCILIATION);    
         
@@ -116,6 +125,14 @@ public class ReconciliationProcessor {
             if (accContext.getObjectOld() == null) {
                 LOGGER.warn("Can't do reconciliation. Account context doesn't contain old version of account.");
                 return;
+            }
+            
+            if (!accContext.isFullShadow()) {
+            	// We need to load the object
+            	PrismObject<AccountShadowType> objectOld = provisioningService.getObject(
+            			AccountShadowType.class, accContext.getOid(), null, result);
+            	accContext.setObjectOld(objectOld);
+            	accContext.setFullShadow(true);
             }
             
             LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceShadowDiscriminator());

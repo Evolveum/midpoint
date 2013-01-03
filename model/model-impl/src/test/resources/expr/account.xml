@@ -1,50 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<object xsi:type="AccountShadowType" oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<account xsi:type="AccountShadowType" oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>3082e023-b777-38f5-9563-d86141806be5</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType" />
-	<objectClass xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">ns3:AccountObjectClass</objectClass>
+	<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+	<objectClass>ri:AccountObjectClass</objectClass>
 	<attributes>
-		<cn:cn xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:cn="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Hector Barbossa</cn:cn>
-		<name:name xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:name="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">uid=hbarbossa,ou=People,dc=example,dc=com</name:name>
-		<l:l xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:l="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Caribbean</l:l>
-		<userPassword:userPassword
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:userPassword="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">e1NTSEF9TGh3Qk5pNjlFU3hMTXFEaDFZZWc0dWY3bmg5cHV3NEZQOS9pMlE9PQ==</userPassword:userPassword>
-		<mail:mail xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:mail="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">captain.barbossa@example.com</mail:mail>
-		<givenName:givenName
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:givenName="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Hector</givenName:givenName>
-		<roomNumber:roomNumber
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:roomNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">111</roomNumber:roomNumber>
-		<uid:uid xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:uid="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">hbarbossa</uid:uid>
-		<telephoneNumber:telephoneNumber
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:telephoneNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">+421 910 382734</telephoneNumber:telephoneNumber>
-		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">organizationalPerson</objectClass:objectClass>
-		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">person</objectClass:objectClass>
-		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">inetOrgPerson</objectClass:objectClass>
-		<objectClass:objectClass
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:objectClass="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">top</objectClass:objectClass>
-		<facsimileTelephoneNumber:facsimileTelephoneNumber
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:facsimileTelephoneNumber="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">+1 408 555 1111</facsimileTelephoneNumber:facsimileTelephoneNumber>
-		<uid:uid xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" xmlns:uid="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">3082e023-b777-38f5-9563-d86141806be5</uid:uid>
-		<sn:sn xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:sn="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Barbossa</sn:sn>
-		<o:o xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-			xmlns:o="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">Brethren Court</o:o>
+		<ri:fullname>Hector Barbossa</ri:fullname>
+		<icfs:name>hbarbossa</icfs:name>
+		<ri:location>Caribbean</ri:location>
+		<icfs:uid>hbarbossa</icfs:uid>
 	</attributes>
-</object>
+</account>

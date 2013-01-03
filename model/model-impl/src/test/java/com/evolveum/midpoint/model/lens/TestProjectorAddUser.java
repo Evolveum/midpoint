@@ -17,6 +17,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
@@ -105,19 +106,18 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(LensTestConstants.TEST_RESOURCE_DIR_NAME, "user-drake.xml"));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(LensTestConstants.USER_DRAKE_FILENAME));
 		UserType userType = user.asObjectable();
-		PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File(LensTestConstants.TEST_FOLDER_COMMON, "user-template.xml"));
+		PrismObject<UserTemplateType> userTemplate = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.USER_TEMPLATE_FILENAME));
 		UserTemplateType userTemplateType = userTemplate.asObjectable();
-		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(LensTestConstants.TEST_FOLDER_COMMON, "resource-opendj.xml"));
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.RESOURCE_DUMMY_FILENAME));
 		ResourceType resourceType = resource.asObjectable();
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
-		final String resourceOid = "10000000-0000-0000-0000-000000000003";
 		final String accountOid = "10000000-0000-0000-0000-000000000004";
 
 		when(
-				provisioning.getObject(eq(ResourceType.class), eq(resourceOid), any(GetOperationOptions.class),
+				provisioning.getObject(eq(ResourceType.class), eq(AbstractInternalModelIntegrationTest.RESOURCE_DUMMY_OID), any(GetOperationOptions.class),
 						any(OperationResult.class))).thenReturn(
 				resourceType.asPrismObject());
 		when(

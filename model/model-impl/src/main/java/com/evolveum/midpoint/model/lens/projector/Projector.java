@@ -123,7 +123,7 @@ public class Projector {
 	        // Note that the number of waves may be recomputed as new accounts appear in the context (usually after assignment step).
 	                
 	        // Start the waves ....
-	        LOGGER.trace("Staring the waves. There will be {} waves (or so we think now)", maxWaves);
+	        LOGGER.trace("Starting the waves. There will be {} waves (or so we think now)", maxWaves);
 	        context.setProjectionWave(0);
 	        while (context.getProjectionWave() < maxWaves) {
 	    

@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+
 import java.io.File;
 
 /**
@@ -29,21 +30,26 @@ public class LensTestConstants {
 	
 	public static final String TEST_RESOURCE_DIR_NAME = "src/test/resources/lens";
 	public static final File TEST_FOLDER_COMMON = new File("./src/test/resources/common");
+	
+	public static final String ASSIGNMENT_DIRECT_FILENAME = TEST_RESOURCE_DIR_NAME + "/assignment-direct.xml";
+	
+	public static final String USER_DRAKE_FILENAME = TEST_RESOURCE_DIR_NAME + "/user-drake.xml";
 
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj.xml";
-	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-jack-modify-add-assignment-account-opendj-attr.xml";
+//	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
+//            "/user-jack-modify-add-assignment-account-opendj.xml";
 	
 	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY = TEST_RESOURCE_DIR_NAME +
     		"/user-jack-modify-add-assignment-account-dummy.xml";
-	
+
+	public static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR = TEST_RESOURCE_DIR_NAME +
+    		"/user-jack-modify-add-assignment-account-dummy-attr.xml";
+
 	public static final String REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY = TEST_RESOURCE_DIR_NAME +
 			"/user-jack-modify-delete-assignment-account-dummy.xml";
 	
-	public static final String REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-add-assignment-account-opendj-attr.xml";
-	public static final String REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_OPENDJ_ATTR = TEST_RESOURCE_DIR_NAME +
-            "/user-barbossa-modify-delete-assignment-account-opendj-attr.xml";
+	public static final String REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR = TEST_RESOURCE_DIR_NAME +
+            "/user-barbossa-modify-add-assignment-account-dummy-attr.xml";
+	public static final String REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR = TEST_RESOURCE_DIR_NAME +
+            "/user-barbossa-modify-delete-assignment-account-dummy-attr.xml";
 
 }

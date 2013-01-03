@@ -21,25 +21,35 @@
 
 <!-- Object modification description that is changing user "barbossa" by adding a new account assignment -->
 
-<objectModification 
+<objectModification
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
 	<modification>
-		<t:modificationType>delete</t:modificationType>
+		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:assignment>
 				<c:accountConstruction>
-					<c:description>Shipwreck account construction</c:description>
-					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-					<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
+					<c:description>Monkey account construction</c:description>
+					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 					<c:attribute>
-						<c:ref>ri:l</c:ref>
+						<c:ref>ri:drink</c:ref>
 						<c:outbound>
 							<c:expression>
-								<c:value>Shipwreck cove</c:value>
+								<c:value>Rum</c:value>
+							</c:expression>
+						</c:outbound>
+					</c:attribute>
+					<c:attribute>
+						<c:ref>ri:weapon</c:ref>
+						<c:outbound>
+							<c:expression>
+								<c:value>
+									<ri:weapon>Dagger</ri:weapon>
+									<ri:weapon>Pistol</ri:weapon>
+								</c:value>
 							</c:expression>
 						</c:outbound>
 					</c:attribute>

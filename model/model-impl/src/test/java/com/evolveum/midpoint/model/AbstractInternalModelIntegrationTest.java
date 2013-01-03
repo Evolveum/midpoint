@@ -180,8 +180,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 	
-	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-opendj.xml";
-	protected static final String ACCOUNT_HBARBOSSA_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
+	protected static final String ACCOUNT_HBARBOSSA_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-dummy.xml";
+	protected static final String ACCOUNT_HBARBOSSA_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
+	protected static final String ACCOUNT_HBARBOSSA_DUMMY_USERNAME = "hbarbossa";
 	
 	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
@@ -190,8 +191,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
 	public static final String ACCOUNT_HERMAN_DUMMY_USERNAME = "ht";
 	
-	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-herman-opendj.xml";
-	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
+//	public static final String ACCOUNT_HERMAN_OPENDJ_FILENAME = COMMON_DIR_NAME + "/account-herman-opendj.xml";
+//	public static final String ACCOUNT_HERMAN_OPENDJ_OID = "22220000-2200-0000-0000-333300003333";
 	
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-guybrush-dummy.xml";
 	public static final String ACCOUNT_SHADOW_GUYBRUSH_OID = "22226666-2200-6666-6666-444400004444";
@@ -202,15 +203,12 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-		
-	protected static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
-	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
+	public static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
+	public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
+	public static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	
-	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
-	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
+	public static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
+	public static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
 	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
@@ -225,10 +223,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	protected UserType userTypeBarbossa;
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
-	
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
-	
+		
 	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
 	protected static DummyResource dummyResource;
@@ -276,15 +271,12 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
+		dummyResourceCtl.addAccount(ACCOUNT_HBARBOSSA_DUMMY_USERNAME, "Hector Barbossa", "Caribbean");
 		dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot", "Monkey Island");
 		dummyResourceCtl.addAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Melee Island");
-		
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
-		
+				
 		// Accounts
-		addObjectFromFile(ACCOUNT_HBARBOSSA_OPENDJ_FILENAME, AccountShadowType.class, initResult);
+		addObjectFromFile(ACCOUNT_HBARBOSSA_DUMMY_FILENAME, AccountShadowType.class, initResult);
 		addObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILENAME, AccountShadowType.class, initResult);
 		addObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME, AccountShadowType.class, initResult);
 		
