@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -104,12 +105,16 @@ public class PageUserPreview extends PageAdmin {
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
+    //used to add force flag to operations if necessary, will be moved to some "page dto"
+    private boolean forceAction;
+
 	public PageUserPreview(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
-                           ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify) {
+                           ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify, boolean forceAction) {
 		if (previewChanges == null || allDeltas == null || userDelta == null) {
 			getSession().error(getString("pageUserPreview.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
+        this.forceAction = forceAction;
 		this.deltasChanges = allDeltas;
 		this.previewChanges = previewChanges;
 		this.delta = userDelta;
@@ -610,7 +615,12 @@ public class PageUserPreview extends PageAdmin {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Delta before save user:\n{}", new Object[] { delta.debugDump(3) });
 			}
-			getModelService().executeChanges(deltasChanges, null, task, result);
+
+
+            ModelExecuteOptions options = new ModelExecuteOptions();
+            options.setForce(forceAction);
+            LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+			getModelService().executeChanges(deltasChanges, options, task, result);
 
 			result.recomputeStatus();
 		} catch (Exception ex) {

@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -514,7 +515,7 @@ public class PageUsers extends PageAdminUsers {
                 showResult(result);
                 target.add(getFeedbackPanel());
             } else {
-                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, null);
+                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, null, forceAction);
                 setResponsePage(pageUserPreview);
             }
 
@@ -540,7 +541,10 @@ public class PageUsers extends PageAdminUsers {
                 ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
                 delta.setOid(user.getOid());
 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, subResult);
+                ModelExecuteOptions options = new ModelExecuteOptions();
+                options.setForce(forceAction);
+                LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
                 subResult.recomputeStatus();
@@ -593,7 +597,11 @@ public class PageUsers extends PageAdminUsers {
 //				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 //				objectDelta.addModification(delta);
 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), null, task,
+
+                ModelExecuteOptions options = new ModelExecuteOptions();
+                options.setForce(forceAction);
+                LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), options, task,
                         subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {

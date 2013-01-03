@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -1016,6 +1017,11 @@ public class PageUser extends PageAdminUsers {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
             Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+
+            ModelExecuteOptions options = new ModelExecuteOptions();
+            options.setForce(forceAction);
+            LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+
             switch (userWrapper.getStatus()) {
                 case ADDING:
                     PrismObject<UserType> user = delta.getObjectToAdd();
@@ -1027,7 +1033,7 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     if (!delta.isEmpty()) {
-                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
                     } else {
                         result.recordSuccess();
                     }
@@ -1052,7 +1058,7 @@ public class PageUser extends PageAdminUsers {
                     }
 
                     if (!deltas.isEmpty()) {
-                        getModelService().executeChanges(deltas, null, task, result);
+                        getModelService().executeChanges(deltas, options, task, result);
                     } else {
                         result.recordSuccess();
                     }
@@ -1161,7 +1167,7 @@ public class PageUser extends PageAdminUsers {
         }
 
         if (result.isSuccess() || result.isHandledError()) {
-            PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, accountsBeforeModify);
+            PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, accountsBeforeModify, forceAction);
             setResponsePage(pageUserPreview);
         } else {
             showResult(result);
