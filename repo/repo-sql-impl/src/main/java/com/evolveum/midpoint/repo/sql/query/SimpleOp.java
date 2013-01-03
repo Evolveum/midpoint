@@ -57,6 +57,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -298,7 +299,8 @@ public class SimpleOp extends Op {
 			if (definition.isAny()) {
 				try {
 					item.isAny = true;
-					List<ItemPathSegment> segments = path.getSegments();
+                    List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
+                    segments.addAll(path.getSegments());
 					// get any type name (e.g. clobs, strings, dates,...) based
 					// on definition
 					String anyTypeName = RAnyConverter.getAnySetType(itemDef);
