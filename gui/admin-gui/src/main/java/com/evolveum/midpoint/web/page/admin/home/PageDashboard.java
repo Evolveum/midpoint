@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -47,7 +49,14 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initLayout() {
-        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, createStringResource("PageDashboard.personalInfo"));
+        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO,
+                createStringResource("PageDashboard.personalInfo")) {
+
+            @Override
+            protected Component getLazyLoadComponent(String componentId) {
+                return new PersonalInfoPanel(componentId);
+            }
+        };
         add(personalInfo);
 
         DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"));

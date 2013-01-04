@@ -56,14 +56,17 @@ public class DashboardPanel extends Panel {
 
             @Override
             public Component getLazyLoadComponent(String componentId) {
-                try{
-                    Thread.sleep(3000);
-                }
-                catch (InterruptedException e){
-                    throw new RuntimeException(e);
-                }
-                return new Label(componentId, "I'm here now");
+                return DashboardPanel.this.getLazyLoadComponent(componentId);
             }
         });
+    }
+
+    protected Component getLazyLoadComponent(String componentId) {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return new Label(componentId, "I'm here now");
     }
 }

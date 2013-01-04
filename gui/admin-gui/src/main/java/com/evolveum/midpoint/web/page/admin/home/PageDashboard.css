@@ -45,11 +45,11 @@
 }
 
 .doublepage .col1 {
-    width: 46%; /* left column content width (column width minus left and right padding) */
-    left: 52%; /* right column width plus left column left padding */
+    width: 48%; /* left column content width (column width minus left and right padding) */
+    left: 51%; /* right column width plus left column left padding */
 }
 
 .doublepage .col2 {
-    width: 46%; /* right column content width (column width minus left and right padding) */
-    left: 56%; /* (right column width) plus (left column left and right padding) plus (right column left padding) */
+    width: 48%; /* right column content width (column width minus left and right padding) */
+    left: 53%; /* (right column width) plus (left column left and right padding) plus (right column left padding) */
 }
