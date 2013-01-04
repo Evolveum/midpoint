@@ -192,8 +192,8 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	if (getChangeType() != ChangeType.MODIFY) {
     		throw new IllegalStateException("Cannot add modifications to "+getChangeType()+" delta");
     	}
-    	QName name = itemDelta.getName();
-    	ItemDelta existingModification = findModification(name, itemDelta.getClass());
+    	ItemPath itemPath = itemDelta.getPath();
+    	ItemDelta<?> existingModification = findModification(itemPath, itemDelta.getClass());
     	if (existingModification != null) {
     		existingModification.merge(itemDelta);
     	} else {

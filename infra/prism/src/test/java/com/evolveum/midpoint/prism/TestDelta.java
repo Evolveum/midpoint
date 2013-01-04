@@ -31,6 +31,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -271,6 +272,37 @@ public class TestDelta {
 		PrismAsserts.assertReplace(delta1, "r2x", "r2y");
 		PrismAsserts.assertNoAdd(delta1);
 		PrismAsserts.assertNoDelete(delta1);
+	}
+	
+	@Test
+    public void testPropertyDeltaSwallow01() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaSwallow01 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta.addModification(delta1);
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		
+		// WHEN
+		objectDelta.swallow(delta2);
+		
+		// THEN
+		System.out.println("Swallowed delta:");
+		System.out.println(objectDelta.dump());
+
+		PrismAsserts.assertModifications(objectDelta, 1);
+		PropertyDelta<String> modification = (PropertyDelta<String>) objectDelta.getModifications().iterator().next();
+		PrismAsserts.assertNoReplace(modification);
+		PrismAsserts.assertAdd(modification, "add1", "add2");
+		PrismAsserts.assertNoDelete(modification);
 	}
 
 	@Test
