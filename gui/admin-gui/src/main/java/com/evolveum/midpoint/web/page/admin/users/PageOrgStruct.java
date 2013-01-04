@@ -24,34 +24,26 @@ package com.evolveum.midpoint.web.page.admin.users;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.extensions.markup.html.tabs.TabbedPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.component.orgStruct.OrgStructPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 /**
  * @author mserbak
@@ -59,8 +51,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
  */
 public class PageOrgStruct extends PageAdminUsers {
 
-	private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
-	private static final String OPERATION_LOAD_ORGUNIT = DOT_CLASS + "load org unit";
+    private static final Trace LOGGER = TraceManager.getTrace(PageOrgStruct.class);
+
+    private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
+	private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 	private IModel<List<PrismObject<OrgType>>> roots;
 
 	public PageOrgStruct() {
@@ -88,8 +82,8 @@ public class PageOrgStruct extends PageAdminUsers {
 	}
 
 	private List<PrismObject<OrgType>> loadOrgUnit() {
-		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
-		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
+		Task task = createSimpleTask(OPERATION_LOAD_ORG_UNIT);
+		OperationResult result = new OperationResult(OPERATION_LOAD_ORG_UNIT);
 
 		List<PrismObject<OrgType>> orgUnitList = null;
 		try {
@@ -97,6 +91,7 @@ public class PageOrgStruct extends PageAdminUsers {
 			orgUnitList = getModelService().searchObjects(OrgType.class, query, null, task, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Unable to load org. unit", ex);
 			result.recordFatalError("Unable to load org unit", ex);
 		}
 

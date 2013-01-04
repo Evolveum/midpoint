@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.component.orgStruct;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.LabeledLinkPanel;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,6 +39,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -63,6 +66,7 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 		treeButton.setOutputMarkupId(true);
 		add(treeButton);
 		treeButton.add(BUTTON_STYLE_CLASS);
+        //todo XXX this will disable org. structure menu button
 		treeButton.setVisible(false);
 		createMenu(treeButton.getMarkupId(), model);
 	}
@@ -82,12 +86,13 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 
 			@Override
 			public boolean isEnabled() {
-				return StyledLinkLabel.this.isClickable();
+//				return StyledLinkLabel.this.isClickable();
+                return true;
 			}
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				StyledLinkLabel.this.onClick(target);
+                onClickPerformed(target);
 			}
 		};
 	}
@@ -119,6 +124,18 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
 
 	protected void onClick(AjaxRequestTarget target) {
 	}
+
+    private void onClickPerformed(AjaxRequestTarget target) {
+        NodeDto t = getModelObject();
+        if (t.getType().equals(NodeType.FOLDER)) {
+            onClick(target);
+            return;
+        }
+
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageUser.PARAM_USER_ID, t.getOid());
+        setResponsePage(PageUser.class, parameters);
+    }
 
 	private static class StyleBehavior extends Behavior {
 

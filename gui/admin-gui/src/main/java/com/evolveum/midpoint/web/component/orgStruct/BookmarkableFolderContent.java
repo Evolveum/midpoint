@@ -21,19 +21,6 @@
 
 package com.evolveum.midpoint.web.component.orgStruct;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -41,9 +28,19 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.orgStruct.AbstractTree.State;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mserbak
@@ -138,15 +135,15 @@ public class BookmarkableFolderContent extends Content {
 			@Override
 			protected MarkupContainer newLinkComponent(String id, IModel<NodeDto> model) {
 				final NodeDto node = model.getObject();
-				if (tree.getProvider().hasChildren(node)) {
+//				if (tree.getProvider().hasChildren(node)) {
 					tree.collapse(node);
 					return super.newLinkComponent(id, model);
 
-				} else {
-					tree.collapse(node);
-					return new LabeledWebMarkupContainer(id, model) {
-					};
-				}
+//				} else {
+//					tree.collapse(node);
+//					return new LabeledWebMarkupContainer(id, model) {
+//					};
+//				}
 			}
 
 			@Override

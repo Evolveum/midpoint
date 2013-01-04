@@ -27,6 +27,10 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**
+ * todo WTF!!!!!!!!!!!!!!!
+ *
+ * why Content extends PageAdmin in here??what is this class for...?
+ *
  * @author mserbak
  */
 public abstract class Content extends PageAdmin implements IDetachable

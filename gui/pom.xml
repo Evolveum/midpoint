@@ -56,8 +56,8 @@
         <module>admin-gui</module>
         <module>admin-gui-en-US</module>
 	    <module>admin-gui-sk-SK</module>
-        <!--<module>gui-component</module>-->
-        <!--<module>forms</module>-->
+        <module>gui-components</module>
+        <module>forms</module>
         <!--<module>forms-gui</module>-->
     </modules>
 
