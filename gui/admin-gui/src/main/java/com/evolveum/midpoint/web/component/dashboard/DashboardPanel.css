@@ -40,4 +40,6 @@ div.dashboard-content {
     border-color: #757575;
     border-style: none solid solid solid;
     border-width: 1px;
+
+    padding: 6px;
 }

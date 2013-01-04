@@ -47,19 +47,19 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initLayout() {
-        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO);
+        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, createStringResource("PageDashboard.personalInfo"));
         add(personalInfo);
 
-        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS);
+        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"));
         add(workItems);
 
-        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS);
+        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"));
         add(accounts);
 
-        DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES);
+        DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
         add(assignedRoles);
 
-        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES);
+        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES, createStringResource("PageDashboard.assignedResources"));
         add(assignedResources);
     }
 }
