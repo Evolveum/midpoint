@@ -83,14 +83,14 @@
 
     <assignment>
 		<accountConstruction>
-			<description>Shipwreck account construction</description>
+			<description>Undead monkey account construction</description>
 			<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
-				<ref>ri:location</ref>
+				<ref>ri:weapon</ref>
 				<outbound>
 					<expression>
-						<value>Shipwreck cove</value>
+						<value>Undead Monkey</value>
 					</expression>
 				</outbound>
 			</attribute>

@@ -527,8 +527,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	 * User barbossa has a direct account assignment. Let's modify that assignment and see if the
 	 * changes will be reflected.
 	 */
-	// TODO: MID-1090 work in progress
-	@Test(enabled=false)
+	@Test
     public void test255ModifyUserBarbossaAssignment() throws Exception {
 		final String TEST_NAME = "test255ModifyUserBarbossaAssignment";
         displayTestTile(this, TEST_NAME);
@@ -556,7 +555,11 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
+        // This micro-change in assignment will trigger reconciliation, this will cause that also other attributes
+        // will be recomputed (e.g. "ship") and will bounce back by INBOUND
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        display("User Secondary Delta", userSecondaryDelta);
+        assertEquals("Unexpected number of user secondary changes", 1, userSecondaryDelta.getModifications().size());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
@@ -568,11 +571,12 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
+        // There is a lot of changes caused byt the reconciliation. But we are only interested in the new one
+        assertEquals("Unexpected number of account secondary changes", 5, accountSecondaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
         		"Pirate of Caribbean");
-        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.ASSIGNMENTS);
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.RECONCILIATION);
                 
     }
 	

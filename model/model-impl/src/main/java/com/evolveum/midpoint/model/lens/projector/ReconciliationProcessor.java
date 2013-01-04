@@ -133,6 +133,7 @@ public class ReconciliationProcessor {
             			AccountShadowType.class, accContext.getOid(), null, result);
             	accContext.setObjectOld(objectOld);
             	accContext.setFullShadow(true);
+            	accContext.recompute();
             }
             
             LOGGER.trace("Attribute reconciliation processing ACCOUNT {}",accContext.getResourceShadowDiscriminator());

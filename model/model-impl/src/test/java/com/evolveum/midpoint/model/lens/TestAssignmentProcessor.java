@@ -461,12 +461,12 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         AccountConstruction minusAccountConstruction = getMinusAccountConstruction(accountConstructionDeltaSetTriple);
         
         assertZeroAttributeValues(minusAccountConstruction, 
-        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
-        		"Shipwreck cove");
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
+        		"Undead Monkey");
         assertNoPlusAttributeValues(minusAccountConstruction, 
-        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         assertNoMinusAttributeValues(minusAccountConstruction, 
-        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
+        		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
         
 //        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 //        assertNull(accountSecondaryDelta.getObjectToAdd());
