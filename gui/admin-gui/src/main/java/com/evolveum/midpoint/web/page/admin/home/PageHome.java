@@ -71,7 +71,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
  * @author lazyman
  * @author mserbak
  */
-public class PageHome extends PageAdmin {
+public class PageHome extends PageAdminHome {
 
 	private static final String DOT_CLASS = PageHome.class.getName() + ".";
 	private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";

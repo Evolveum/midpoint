@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.security;
 import java.io.File;
 import java.io.FilenameFilter;
 
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
 import com.evolveum.midpoint.web.page.admin.users.PageUserPreview;
 import org.apache.commons.configuration.Configuration;
@@ -134,7 +135,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/login", PageLogin.class, encoder));
 
         mount(new MountedMapper("/admin", PageHome.class, encoder));
-        mount(new MountedMapper("/admin/home", PageHome.class, encoder));
+        mount(new MountedMapper("/admin/home", PageHome.class, encoder));    //todo remove
+        mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
 
 
         // todo mount used for performance tests, will be implemented properly in next release
