@@ -49,6 +49,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -236,7 +237,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -278,8 +279,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -352,9 +353,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         waitForSyncTaskNextRun(resourceDummyBlue);
         waitForSyncTaskNextRun(resourceDummyGreen);
         
-        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Wally Feed");
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally Feed");
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
         
         userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -402,19 +403,15 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
         
-        // FIXME this is wrong. The value should not be there as the mapping is WEAK.
-        // see MID-1068
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Wally B. Feed");
-        
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Wally B. Feed");
-        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Wally B. Feed");
-        
-        
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, null);
-       
+        
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally B. Feed");
+        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally B. Feed");
+        
         assertAccounts(userWally, 3);
 
         assertLinked(userWally, accountWallyGreen);
@@ -450,12 +447,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
                 
-        // FIXME this is wrong. The value should not be there as the mapping is WEAK.
-        // see MID-1068
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Bloodnose");
-        
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Bloodnose");
-        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, "default", "Bloodnose");
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Bloodnose");
         
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -501,8 +495,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
         
-        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, "blue", "Bloodnose");
-        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, "green", "Bloodnose");
+        PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -566,7 +560,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		waitForTaskNextRun(getSyncTaskOid(resource), false, getWaitTimeout());
 	}
 	
-	private PrismObject<AccountShadowType> checkWallyAccount(PrismObject<ResourceType> resource, String resourceDesc,
+	private PrismObject<AccountShadowType> checkWallyAccount(PrismObject<ResourceType> resource, DummyResource dummy, String resourceDesc,
 			String expectedFullName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<AccountShadowType> accountShadowWally = findAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME, resource);
         display("Account shadow wally ("+resourceDesc+")", accountShadowWally);
@@ -575,7 +569,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         IntegrationTestTools.assertAttribute(accountShadowWally.asObjectable(),  resource.asObjectable(),
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expectedFullName);
         
-        DummyAccount dummyAccount = dummyResourceBlue.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+        DummyAccount dummyAccount = dummy.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("Account wally ("+resourceDesc+")", dummyAccount);
         assertNotNull("No dummy account ("+resourceDesc+")", dummyAccount);
         assertEquals("Wrong dummy account fullname ("+resourceDesc+")", expectedFullName, 

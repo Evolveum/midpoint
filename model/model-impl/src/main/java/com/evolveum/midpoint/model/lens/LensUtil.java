@@ -304,14 +304,14 @@ public class LensUtil {
             }
 
             if (!pvwosToAdd.isEmpty()) {
-            	boolean initialOnly = true;
+            	boolean weakOnly = true;
             	boolean nonStrongOnly = true;
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<?> pvwoToAdd : pvwosToAdd) {
                     Mapping<?> mapping = pvwoToAdd.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                        initialOnly = false;
+                        weakOnly = false;
                     }
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     	nonStrongOnly = false;
@@ -329,19 +329,22 @@ public class LensUtil {
                 }
                 if (nonStrongOnly && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
-                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping adding", value, itemPath);
+                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping adding in {}", 
+                    		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
-                if (initialOnly && (itemExisting != null && !itemExisting.isEmpty())) {
+                if (weakOnly && (itemExisting != null && !itemExisting.isEmpty())) {
                     // There is already a value, skip this
-                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping adding", value, itemPath);
+                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping adding in {}",
+                    		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
                 if (filterExistingValues && hasValue(itemExisting, value)) {
-                	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value", value, itemPath);
+                	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
+                			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
-                LOGGER.trace("Value {} added to delta for item {}", value, itemPath);
+                LOGGER.trace("Value {} added to delta for item {} in {}", new Object[]{value, itemPath, contextDescription});
                 itemDelta.addValueToAdd((V)value.clone());
                 continue;
             }
@@ -365,24 +368,29 @@ public class LensUtil {
                     }
                 }
                 if (!hasAuthoritative) {
-                	LOGGER.trace("Value {} has no authoritative mapping for item {}, skipping deletion", value, itemPath);
+                	LOGGER.trace("Value {} has no authoritative mapping for item {}, skipping deletion in {}",
+                			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
                 if (nonStrongOnly && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
-                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion", value, itemPath);
+                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion in {}",
+                    		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
                 if (initialOnly && (itemExisting != null && !itemExisting.isEmpty())) {
                     // There is already a value, skip this
-                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion", value, itemPath);
+                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion in {}",
+                    		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
                 if (filterExistingValues && !hasValue(itemExisting, value)) {
-                	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value", value, itemPath);
+                	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
+                			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
-                LOGGER.trace("Value {} deleted to delta for item {}", value, itemPath);
+                LOGGER.trace("Value {} deleted to delta for item {} in {}",
+                		new Object[]{ value, itemPath, contextDescription});
                 itemDelta.addValueToDelete((V)value.clone());
             }
         }

@@ -20,6 +20,10 @@
  */
 package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.SimpleVisitable;
+import com.evolveum.midpoint.prism.SimpleVisitor;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -40,7 +44,7 @@ import java.util.Collection;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable {
+public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable, SimpleVisitable<T> {
 
     /**
      * Collection of values that were not changed.
@@ -209,6 +213,17 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable 
 			set.clear();
 		}
 	}
+	
+	public int size() {
+		return sizeSet(zeroSet) + sizeSet(plusSet) + sizeSet(minusSet);
+	}
+
+	private int sizeSet(Collection<T> set) {
+		if (set == null) {
+			return 0;
+		}
+		return set.size();
+	}
 
 	/**
      * Returns all values, regardless of the internal sets.
@@ -216,8 +231,23 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable 
     public Collection<T> union() {
         return MiscUtil.union(zeroSet, plusSet, minusSet);
     }
+    
+    public Collection<T> getAllValues() {
+    	Collection<T> allValues = new ArrayList<T>(size());
+    	addAllValuesSet(allValues, zeroSet);
+    	addAllValuesSet(allValues, plusSet);
+    	addAllValuesSet(allValues, minusSet);
+    	return allValues;
+    }
 
-    public Collection<T> getNonNegativeValues() {
+	private void addAllValuesSet(Collection<T> allValues, Collection<T> set) {
+		if (set == null) {
+			return;
+		}
+		allValues.addAll(set);
+	}
+
+	public Collection<T> getNonNegativeValues() {
         return MiscUtil.union(zeroSet, plusSet);
     }
     
@@ -263,6 +293,22 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable 
 			return true;
 		}
 		return set.isEmpty();
+	}
+	
+	@Override
+	public void accept(SimpleVisitor<T> visitor) {
+		acceptSet(visitor, zeroSet);
+		acceptSet(visitor, plusSet);
+		acceptSet(visitor, minusSet);
+	}
+
+	private void acceptSet(SimpleVisitor<T> visitor, Collection<T> set) {
+		if (set == null) {
+			return;
+		}
+		for (T element: set) {
+			visitor.visit(element);
+		}
 	}
 
 	@Override

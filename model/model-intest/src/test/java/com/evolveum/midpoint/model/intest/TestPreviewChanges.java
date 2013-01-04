@@ -1043,8 +1043,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNull("Unexpected account primary delta (blue)", accountPrimaryDelta);
 		
         accountSecondaryDelta = accContext.getSecondaryDelta();
-        // FIXME MID-1068
-//        assertNull("Unexpected account secondary delta (blue)", accountSecondaryDelta);
+        assertNull("Unexpected account secondary delta (blue)", accountSecondaryDelta);
 		
 	}
 	

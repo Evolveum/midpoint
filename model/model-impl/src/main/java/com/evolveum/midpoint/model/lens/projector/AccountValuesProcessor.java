@@ -36,10 +36,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
@@ -90,7 +93,7 @@ public class AccountValuesProcessor {
 	
 	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, LensProjectionContext<P> projectionContext, 
 			String activityDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
@@ -105,7 +108,7 @@ public class AccountValuesProcessor {
 	
 	public void processAccounts(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accountContext, 
 			String activityDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationPolicyDecision();
 		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {

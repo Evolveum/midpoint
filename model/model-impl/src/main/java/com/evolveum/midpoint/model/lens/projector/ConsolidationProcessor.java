@@ -47,11 +47,16 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
@@ -85,6 +90,9 @@ public class ConsolidationProcessor {
     public static final String PROCESS_CONSOLIDATION = ConsolidationProcessor.class.getName() + ".consolidateValues";
     private static final Trace LOGGER = TraceManager.getTrace(ConsolidationProcessor.class);
     
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
+    
     @Autowired(required=true)
     PrismContext prismContext;
 
@@ -92,7 +100,7 @@ public class ConsolidationProcessor {
      * Converts delta set triples to a secondary account deltas.
      */
     void consolidateValues(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws SchemaException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     		//todo filter changes which were already in account sync delta
 
         //account was deleted, no changes are needed.
@@ -130,7 +138,7 @@ public class ConsolidationProcessor {
 
     private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(LensContext<UserType,AccountShadowType> context,
     		LensProjectionContext<AccountShadowType> accCtx,
-            boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	// "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
     	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
@@ -146,9 +154,18 @@ public class ConsolidationProcessor {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
+        
+        if (!accCtx.isFullShadow() && !accCtx.isAdd() && !accCtx.isDelete() && hasWeakMapping(squeezedAttributes)) {
+        	// There is at least one weak mapping and the full account was not yet loaded. This will cause problems as
+        	// the weak mapping may be applied even though it should not be applied. Therefore load the account now.
+        	PrismObject<AccountShadowType> objectOld = provisioningService.getObject(
+        			AccountShadowType.class, accCtx.getOid(), null, result);
+        	accCtx.setObjectOld(objectOld);
+        	accCtx.setFullShadow(true);
+        	accCtx.recompute();
+        }
+        
         ObjectDelta<AccountShadowType> existingDelta = accCtx.getDelta();
-
-        ItemPath parentPath = new ItemPath(SchemaConstants.I_ATTRIBUTES);
 
         // Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
         // with the data in ItemValueWithOrigin triples.
@@ -171,9 +188,17 @@ public class ConsolidationProcessor {
 					new ItemPath(SchemaConstants.I_ATTRIBUTES, attributeName), 
 					(DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
             		addUnchangedValues, false, "account " + rat);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
+			}
             
 			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
             propDelta = consolidateWithSync(accCtx, propDelta);
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
+			}
 
             if (propDelta != null && !propDelta.isEmpty()) {
             	propDelta.simplify();
@@ -186,8 +211,21 @@ public class ConsolidationProcessor {
         return objectDelta;
     }
 
+	private boolean hasWeakMapping(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes) {
+		for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
+			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> ivwoTriple = entry.getValue();
+			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> ivwo: ivwoTriple.getAllValues()) {
+				if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	private void consolidateValuesAddAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, true, result);
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
@@ -215,7 +253,7 @@ public class ConsolidationProcessor {
     }
 
     private void consolidateValuesModifyAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         boolean addUnchangedValues = false;
         if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
@@ -243,7 +281,7 @@ public class ConsolidationProcessor {
      * @param delta  new delta created during consolidation process
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private PropertyDelta consolidateWithSync(LensProjectionContext<AccountShadowType> accCtx, PropertyDelta delta) {
+    private <T> PropertyDelta<T> consolidateWithSync(LensProjectionContext<AccountShadowType> accCtx, PropertyDelta<T> delta) {
         if (delta == null) {
             return null;
         }
@@ -253,7 +291,7 @@ public class ConsolidationProcessor {
             return consolidateWithSyncAbsolute(accCtx, delta);
         }
 
-        PropertyDelta alreadyDoneDelta = syncDelta.findPropertyDelta(delta.getPath());
+        PropertyDelta<T> alreadyDoneDelta = syncDelta.findPropertyDelta(delta.getPath());
         if (alreadyDoneDelta == null) {
             return delta;
         }
@@ -275,13 +313,13 @@ public class ConsolidationProcessor {
      * @param delta
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private PropertyDelta consolidateWithSyncAbsolute(LensProjectionContext<AccountShadowType> accCtx, PropertyDelta delta) {
+    private <T> PropertyDelta<T> consolidateWithSyncAbsolute(LensProjectionContext<AccountShadowType> accCtx, PropertyDelta<T> delta) {
         if (delta == null || accCtx.getObjectOld() == null) {
             return delta;
         }
 
         PrismObject<AccountShadowType> absoluteAccountState = accCtx.getObjectOld();
-        PrismProperty absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
+        PrismProperty<T> absoluteProperty = absoluteAccountState.findProperty(delta.getPath());
         if (absoluteProperty == null) {
             return delta;
         }
@@ -305,14 +343,14 @@ public class ConsolidationProcessor {
      *                 from {@link Collection} values parameter if they already are not in {@link PrismProperty} parameter.
      * @param property property with absolute state
      */
-    private void cleanupAbsoluteValues(Collection<PrismPropertyValue<Object>> values, boolean adding, PrismProperty property) {
+    private <T> void cleanupAbsoluteValues(Collection<PrismPropertyValue<T>> values, boolean adding, PrismProperty<T> property) {
         if (values == null) {
             return;
         }
 
-        Iterator<PrismPropertyValue<Object>> iterator = values.iterator();
+        Iterator<PrismPropertyValue<T>> iterator = values.iterator();
         while (iterator.hasNext()) {
-            PrismPropertyValue<Object> value = iterator.next();
+            PrismPropertyValue<T> value = iterator.next();
             if (adding && property.hasRealValue(value)) {
                 iterator.remove();
             }
@@ -331,14 +369,14 @@ public class ConsolidationProcessor {
      * @param values           collection which has to be filtered
      * @param alreadyDoneDelta already applied delta from sync
      */
-    private void cleanupValues(Collection<PrismPropertyValue<Object>> values, PropertyDelta alreadyDoneDelta) {
+    private <T> void cleanupValues(Collection<PrismPropertyValue<T>> values, PropertyDelta<T> alreadyDoneDelta) {
         if (values == null) {
             return;
         }
 
-        Iterator<PrismPropertyValue<Object>> iterator = values.iterator();
+        Iterator<PrismPropertyValue<T>> iterator = values.iterator();
         while (iterator.hasNext()) {
-            PrismPropertyValue<Object> valueToAdd = iterator.next();
+            PrismPropertyValue<T> valueToAdd = iterator.next();
             if (alreadyDoneDelta.isRealValueToAdd(valueToAdd)) {
                 iterator.remove();
             }
