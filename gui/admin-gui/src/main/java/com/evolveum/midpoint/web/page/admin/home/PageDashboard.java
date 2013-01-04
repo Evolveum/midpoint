@@ -21,10 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.web.component.dashboard.Dashboard;
 import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 /**
@@ -37,6 +39,7 @@ public class PageDashboard extends PageAdminHome {
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ROLES = "assignedRoles";
     private static final String ID_RESOURCES = "assignedResources";
+    private static final String ID_ORG_UNITS = "assignedOrgUnits";
 
     public PageDashboard() {
         initLayout();
@@ -68,7 +71,25 @@ public class PageDashboard extends PageAdminHome {
         DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
         add(assignedRoles);
 
-        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES, createStringResource("PageDashboard.assignedResources"));
+        DashboardPanel assignedOrgUnits = new DashboardPanel(ID_ORG_UNITS,
+                createStringResource("PageDashboard.assignedOrgUnits"),
+                new Model<Dashboard>(new Dashboard() {
+
+                    private int i = 0;
+
+                    @Override
+                    public boolean isLoaded() {
+                        i++;
+                        if (i < 8) {
+                            return false;
+                        }
+                        return true;
+                    }
+                }));
+        add(assignedOrgUnits);
+
+        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
+                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
         add(assignedResources);
     }
 }

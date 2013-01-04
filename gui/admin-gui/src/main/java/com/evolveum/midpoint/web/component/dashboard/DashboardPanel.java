@@ -21,13 +21,18 @@
 
 package com.evolveum.midpoint.web.component.dashboard;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import org.apache.wicket.Component;
-import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.time.Duration;
 
 /**
  * @author lazyman
@@ -35,12 +40,18 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 public class DashboardPanel extends Panel {
 
     private static final String ID_TITLE = "title";
+    private static final String ID_PRELOADER = "preloader";
     private static final String ID_CONTENT = "content";
 
     public DashboardPanel(String id, IModel<String> titleModel) {
-        super(id);
+        this(id, titleModel, null);
+    }
 
-        initLayout(titleModel);
+    public DashboardPanel(String id, IModel<String> titleModel, IModel<? extends Dashboard> dashboardModel) {
+        super(id);
+        setOutputMarkupId(true);
+
+        initLayout(titleModel, dashboardModel);
     }
 
     @Override
@@ -49,24 +60,54 @@ public class DashboardPanel extends Panel {
         response.renderCSSReference(new PackageResourceReference(DashboardPanel.class, "DashboardPanel.css"));
     }
 
-    private void initLayout(IModel<String> titleModel) {
+    private void initLayout(IModel<String> titleModel, final IModel<? extends Dashboard> dashboardModel) {
         add(new Label(ID_TITLE, titleModel));
 
-        add(new AjaxLazyLoadPanel(ID_CONTENT) {
+        Image preloader = new Image(ID_PRELOADER, new PackageResourceReference(ImgResources.class, "preloader-panel.gif"));
+        preloader.add(new VisibleEnableBehaviour() {
 
             @Override
-            public Component getLazyLoadComponent(String componentId) {
-                return DashboardPanel.this.getLazyLoadComponent(componentId);
+            public boolean isVisible() {
+                if (dashboardModel == null) {
+                    return false;
+                }
+
+                Dashboard dashboard = dashboardModel.getObject();
+                return dashboard != null ? !dashboard.isLoaded() : true;
             }
         });
+        add(preloader);
+
+        if (dashboardModel == null) {
+            add(getLazyLoadComponent(ID_CONTENT));
+            return;
+        }
+
+        AbstractAjaxTimerBehavior selfUpdating = new AbstractAjaxTimerBehavior(Duration.seconds(2)) {
+
+            @Override
+            protected void onTimer(AjaxRequestTarget target) {
+                Dashboard dashboard = dashboardModel.getObject();
+                if (dashboard == null || !dashboard.isLoaded()) {
+                    return;
+                }
+
+                replace(getLazyLoadComponent(ID_CONTENT));
+                stop();
+                target.add(DashboardPanel.this);
+            }
+        };
+        add(selfUpdating);
+        add(new Label(ID_CONTENT));
     }
 
+    /**
+     * //todo documentation
+     *
+     * @param componentId
+     * @return
+     */
     protected Component getLazyLoadComponent(String componentId) {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return new Label(componentId, "I'm here now");
+        return new Label(ID_CONTENT, "I'm here now.");
     }
 }

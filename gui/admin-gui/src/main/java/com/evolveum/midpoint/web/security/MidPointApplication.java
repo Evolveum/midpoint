@@ -255,7 +255,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         @Override
         public boolean accept(File parent, String name) {
-            if (name.endsWith("png")) {
+            if (name.endsWith("png") || name.endsWith("gif")) {
                 return true;
             }
 
