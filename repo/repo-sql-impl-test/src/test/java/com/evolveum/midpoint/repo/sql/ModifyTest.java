@@ -29,7 +29,10 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -482,4 +485,57 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         return user;
     }
+    
+    @Test
+    public void testModifyAccountSynchronizationSituation() throws Exception {
+        System.out.println("====[ testModifyAccountSynchronizationSituation ]====");
+        LOGGER.info("=== [ testModifyAccountSynchronizationSituation ] ===");
+
+        OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
+
+        //add account
+        File accountFile = new File(TEST_DIR, "account-synchronization-situation.xml");
+        PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
+        repositoryService.addObject(account, result);
+     
+//        List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
+        List<PropertyDelta> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, SynchronizationSituationType.LINKED, null);
+        PropertyDelta syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
+        syncSituationDeltas.add(syncSituationDelta);
+        
+        
+//        syncSituationDeltas.addAll(mod);
+        
+        repositoryService.modifyObject(AccountShadowType.class, account.getOid(), syncSituationDeltas, result);
+        
+        PrismObject<AccountShadowType> afterFirtModify = repositoryService.getObject(AccountShadowType.class, account.getOid(), result);
+        AssertJUnit.assertNotNull(afterFirtModify);
+        AccountShadowType afterFirstModifyType = afterFirtModify.asObjectable();
+        AssertJUnit.assertEquals(1, afterFirstModifyType.getSynchronizationSituationDescription().size());
+        SynchronizationSituationDescriptionType description = afterFirstModifyType.getSynchronizationSituationDescription().get(0);
+        AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
+//        AssertJUnit.assertNull(description.getChannel());
+        
+        
+//        syncSituationDeltas = new ArrayList<PropertyDelta>();
+       
+        
+        syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(afterFirtModify, null, null);
+        syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(afterFirtModify, null);
+        syncSituationDeltas.add(syncSituationDelta);
+//        syncSituationDeltas.addAll(mod);
+        
+        repositoryService.modifyObject(AccountShadowType.class, account.getOid(), syncSituationDeltas, result);
+        
+        PrismObject<AccountShadowType> afterSecondModify = repositoryService.getObject(AccountShadowType.class, account.getOid(), result);
+        AssertJUnit.assertNotNull(afterSecondModify);
+        AccountShadowType afterSecondModifyType = afterSecondModify.asObjectable();
+        AssertJUnit.assertEquals(1, afterSecondModifyType.getSynchronizationSituationDescription().size());
+        description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
+        AssertJUnit.assertEquals(null, description.getSituation());
+//        AssertJUnit.assertNull(description.getChannel());
+//        AssertJUnit.assertEquals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC), description.getChannel());
+    }
+    
+
 }

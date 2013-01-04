@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
@@ -23,7 +24,7 @@ public class RSynchronizationSituationDescription implements Serializable {
 	@QueryAttribute(enumerated = true)
 	private RSynchronizationSituation situation;
 	private XMLGregorianCalendar timestamp;
-	private String chanel;
+	private String chanel = "";
 
 	@Enumerated(EnumType.ORDINAL)
 	@Column(nullable = true)
@@ -36,6 +37,7 @@ public class RSynchronizationSituationDescription implements Serializable {
 	}
 
 	@Column(nullable = true)
+//	@Type(type="com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType")
 	public XMLGregorianCalendar getTimestamp() {
 		return timestamp;
 	}
@@ -90,7 +92,9 @@ public class RSynchronizationSituationDescription implements Serializable {
 		}
 
 		RSynchronizationSituationDescription repo = new RSynchronizationSituationDescription();
-		repo.setChanel(jaxb.getChannel());
+		if (jaxb.getChannel() != null) {
+			repo.setChanel(jaxb.getChannel());
+		}
 		repo.setTimestamp(jaxb.getTimestamp());
 		repo.setSituation(RSynchronizationSituation.toRepoType(jaxb.getSituation()));
 

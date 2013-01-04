@@ -70,6 +70,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -440,38 +441,17 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (object == null) {
 			return;
 		}
-
-		List<PrismPropertyValue> syncSituationDescriptionList = new ArrayList<PrismPropertyValue>();
-		// old situation description
-		// SynchronizationSituationDescriptionType syncSituationDescription =
-		// new SynchronizationSituationDescriptionType();
-		// syncSituationDescription.setSituation(situation.getSituation());
-		// syncSituationDescription.setChannel(change.getSourceChannel());
-		// syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-		// syncSituationDescriptionList.add(new
-		// PrismPropertyValue(syncSituationDescription));
-
-		// refresh situation
-		// situation = checkSituation(change, parentResult);
-		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
-		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
-				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation.getSituation());
-		syncSituationDeltas.add(syncSituationDelta);
-
-		// new situation description
-		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
-		syncSituationDescription.setSituation(situation.getSituation());
-		syncSituationDescription.setChannel(change.getSourceChannel());
-		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-		syncSituationDescriptionList.add(new PrismPropertyValue(syncSituationDescription));
-
-		syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
-				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
-		syncSituationDelta.addValuesToAdd(syncSituationDescriptionList);
-		syncSituationDeltas.add(syncSituationDelta);
-
+		
 		T objectType = object.asObjectable();
-
+		// new situation description
+		List<PropertyDelta> syncSituationDeltas = SynchronizationSituationUtil
+				.createSynchronizationSituationDescriptionDelta(object, situation.getSituation(),
+						change.getSourceChannel());
+		// refresh situation		
+		PropertyDelta syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+				situation.getSituation());
+		syncSituationDeltas.add(syncSituationDelta);
+	
 		try {
 
 			repositoryService.modifyObject(objectType.getClass(), object.getOid(), syncSituationDeltas, parentResult);

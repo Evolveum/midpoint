@@ -45,11 +45,13 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -298,21 +300,17 @@ public class ChangeExecutor {
     	OperationResult result = new OperationResult("Updating situation in account (Model)");
     	result.addParam("situation", situation);
     	result.addParam("accountRef", accountRef);
-		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
-
-		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(accountDefinition,
-				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation);
-		syncSituationDeltas.add(syncSituationDelta);
-
-		// new situation description
-		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
-		syncSituationDescription.setSituation(situation);
-		syncSituationDescription.setChannel(task.getHandlerUri());
-		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		
-		syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
-				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), accountDefinition);
-		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
+    	PrismObject<AccountShadowType> account = null;
+    	try{
+    		account = provisioning.getObject(AccountShadowType.class, accountRef, GetOperationOptions.createNoFetch(), result);
+    	} catch (Exception ex){
+    		LOGGER.trace("Problem with getting account, skipping modifying siatuation in account.");
+			return;
+    	}
+    	
+    	List<PropertyDelta> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, situation, task.getChannel());
+		PropertyDelta syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
 		syncSituationDeltas.add(syncSituationDelta);
 		
 		try {
