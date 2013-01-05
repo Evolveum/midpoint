@@ -26,7 +26,8 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true">
+    <bean id="sqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true"
+          destroy-method="close">
         <property name="driverClass" value="#{sqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
         <property name="jdbcUrl" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
         <property name="user" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
