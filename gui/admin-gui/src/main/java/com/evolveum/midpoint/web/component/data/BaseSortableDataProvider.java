@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -52,7 +53,7 @@ import java.util.Map;
 public abstract class BaseSortableDataProvider<T extends Serializable> extends SortableDataProvider<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
-    private PageBase page;
+    private Component component;
     private List<T> availableData;
     private ObjectQuery query;
 
@@ -62,13 +63,13 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private int cacheCleanupThreshold = 60;
     private boolean useCache;
 
-    public BaseSortableDataProvider(PageBase page) {
-        this(page, false);
+    public BaseSortableDataProvider(Component component) {
+        this(component, false);
     }
 
-    public BaseSortableDataProvider(PageBase page, boolean useCache) {
-        Validate.notNull(page, "Page must not be null.");
-        this.page = page;
+    public BaseSortableDataProvider(Component component, boolean useCache) {
+        Validate.notNull(component, "Component must not be null.");
+        this.component = component;
         this.useCache = useCache;
 
         setSort("name", SortOrder.ASCENDING);
@@ -107,7 +108,16 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     protected PageBase getPage() {
-        return page;
+        if (component instanceof PageBase) {
+            return (PageBase) component;
+        }
+
+        if (component.getPage() instanceof  PageBase) {
+            return (PageBase) component.getPage();
+        }
+
+        throw new IllegalStateException("Component is not instance of '"+PageBase.class.getName()
+                + "' or is not placed on page of that instance.");
     }
 
     public ObjectQuery getQuery() {

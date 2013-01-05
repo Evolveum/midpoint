@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
@@ -37,8 +38,8 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 
     private IModel<List<T>> model;
 
-    public ListDataProvider(PageBase page, IModel<List<T>> model) {
-        super(page);
+    public ListDataProvider(Component Component, IModel<List<T>> model) {
+        super(Component);
 
         Validate.notNull(model);
         this.model = model;

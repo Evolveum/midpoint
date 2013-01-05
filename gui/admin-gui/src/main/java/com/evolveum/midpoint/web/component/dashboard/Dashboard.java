@@ -28,20 +28,39 @@ import java.io.Serializable;
  */
 public class Dashboard implements Serializable {
 
-    private boolean isLoaded;
+    private boolean showMinimize;
+    private boolean minimized;
+
+    private boolean loaded;
 
     public Dashboard() {
     }
 
     public Dashboard(boolean loaded) {
-        isLoaded = loaded;
+        this.loaded = loaded;
     }
 
     public boolean isLoaded() {
-        return isLoaded;
+        return loaded;
+    }
+
+    public boolean isMinimized() {
+        return minimized;
+    }
+
+    public boolean isShowMinimize() {
+        return showMinimize;
+    }
+
+    public void setMinimized(boolean minimized) {
+        this.minimized = minimized;
+    }
+
+    public void setShowMinimize(boolean showMinimize) {
+        this.showMinimize = showMinimize;
     }
 
     public void setLoaded(boolean loaded) {
-        isLoaded = loaded;
+        this.loaded = loaded;
     }
 }

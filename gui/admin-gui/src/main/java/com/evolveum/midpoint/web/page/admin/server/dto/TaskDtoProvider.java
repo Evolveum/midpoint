@@ -21,9 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,7 +31,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
+import org.apache.wicket.Component;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -48,8 +48,8 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
 
     private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
 
-    public TaskDtoProvider(PageBase page) {
-        super(page);
+    public TaskDtoProvider(Component component) {
+        super(component);
     }
 
     @Override

@@ -238,16 +238,15 @@ input:focus, .button:focus, select:focus, option:focus {
 }
 
 .sortedTable {
-	padding: 10px 0 20px 0;
+	/*padding: 10px 0 20px 0;*/
 }
 
 .sortedTable table {
     width: 100%;
     color: #333333;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: 5px 0;
     height: auto;
-    
 }
 
 .sortedTable .autowidth {

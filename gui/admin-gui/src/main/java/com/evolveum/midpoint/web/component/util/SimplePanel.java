@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
 
@@ -33,6 +34,10 @@ import java.io.Serializable;
 public class SimplePanel<T extends Serializable> extends Panel {
 
     private IModel<T> model;
+
+    public SimplePanel(String id) {
+        this(id, null);
+    }
 
     public SimplePanel(String id, IModel<T> model) {
         super(id);
@@ -45,8 +50,21 @@ public class SimplePanel<T extends Serializable> extends Panel {
         return model;
     }
 
-    protected PageBase getBasePage() {
+    public PageBase getBasePage() {
         return (PageBase) getPage();
+    }
+
+    public String getString(String resourceKey, Object... objects) {
+        return createStringResource(resourceKey, objects).getString();
+    }
+
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    }
+
+    public StringResourceModel createStringResource(Enum e) {
+        String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
+        return createStringResource(resourceKey);
     }
 
     protected void initLayout() {

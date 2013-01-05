@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WfDataAccessor;
+import org.apache.wicket.Component;
 
 import java.util.Iterator;
 import java.util.List;
@@ -65,8 +66,8 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
         return principal.getOid();
     }
 
-    public ProcessInstanceDtoProvider(PageBase page, boolean requestedBy, boolean requestedFor, boolean finished) {
-        super(page);
+    public ProcessInstanceDtoProvider(Component component, boolean requestedBy, boolean requestedFor, boolean finished) {
+        super(component);
         LOGGER.trace("requestedBy = " + requestedBy + ", requestedFor = " + requestedFor + ", finished = " + finished);
         this.requestedBy = requestedBy;
         this.requestedFor = requestedFor;

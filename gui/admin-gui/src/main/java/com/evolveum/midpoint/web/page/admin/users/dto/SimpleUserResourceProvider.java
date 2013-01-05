@@ -21,24 +21,19 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+
+import java.util.*;
 
 /**
  * @author lazyman
@@ -52,12 +47,12 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     private ObjectDataProvider resourceProvider;
     private IModel<List<UserAccountDto>> accountsModel;
 
-    public SimpleUserResourceProvider(PageBase page, IModel<List<UserAccountDto>> accountsModel) {
-        super(page);
+    public SimpleUserResourceProvider(Component component, IModel<List<UserAccountDto>> accountsModel) {
+        super(component);
         Validate.notNull(accountsModel, "Accounts model must not be null.");
         this.accountsModel = accountsModel;
 
-        resourceProvider = new ObjectDataProvider(page, ResourceType.class);
+        resourceProvider = new ObjectDataProvider(component, ResourceType.class);
     }
 
     @Override

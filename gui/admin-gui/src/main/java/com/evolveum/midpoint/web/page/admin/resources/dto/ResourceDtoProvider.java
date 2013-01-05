@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import org.apache.wicket.Component;
 
 /**
  * @author lazyman
@@ -49,8 +50,8 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
     private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
     private static final String OPERATION_COUNT_RESOURCES = DOT_CLASS + "countResources";
 
-    public ResourceDtoProvider(PageBase page) {
-        super(page);
+    public ResourceDtoProvider(Component component) {
+        super(component);
     }
 
     @Override

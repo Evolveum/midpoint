@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.component.dashboard.Dashboard;
 import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.IHeaderResponse;
@@ -65,7 +66,13 @@ public class PageDashboard extends PageAdminHome {
         DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"));
         add(workItems);
 
-        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"));
+        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS, createStringResource("PageDashboard.accounts")) {
+
+            @Override
+            protected Component getLazyLoadComponent(String componentId) {
+                return new MyAccountsPanel(componentId);
+            }
+        };
         add(accounts);
 
         DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
@@ -89,7 +96,7 @@ public class PageDashboard extends PageAdminHome {
         add(assignedOrgUnits);
 
         DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
-                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
+                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(false)));
         add(assignedResources);
     }
 }

@@ -27,6 +27,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -40,6 +41,7 @@ import org.apache.wicket.util.time.Duration;
 public class DashboardPanel extends Panel {
 
     private static final String ID_TITLE = "title";
+    private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
     private static final String ID_PRELOADER = "preloader";
     private static final String ID_CONTENT = "content";
 
@@ -63,8 +65,9 @@ public class DashboardPanel extends Panel {
     private void initLayout(IModel<String> titleModel, final IModel<? extends Dashboard> dashboardModel) {
         add(new Label(ID_TITLE, titleModel));
 
-        Image preloader = new Image(ID_PRELOADER, new PackageResourceReference(ImgResources.class, "preloader-panel.gif"));
-        preloader.add(new VisibleEnableBehaviour() {
+        WebMarkupContainer preloaderContainer = new WebMarkupContainer(ID_PRELOADER_CONTAINER);
+        add(preloaderContainer);
+        preloaderContainer.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -76,7 +79,9 @@ public class DashboardPanel extends Panel {
                 return dashboard != null ? !dashboard.isLoaded() : true;
             }
         });
-        add(preloader);
+
+        Image preloader = new Image(ID_PRELOADER, new PackageResourceReference(ImgResources.class, "preloader-panel.gif"));
+        preloaderContainer.add(preloader);
 
         if (dashboardModel == null) {
             add(getLazyLoadComponent(ID_CONTENT));

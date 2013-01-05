@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
 import com.evolveum.midpoint.wf.WorkflowException;
+import org.apache.wicket.Component;
 
 import java.util.Iterator;
 import java.util.List;
@@ -57,8 +58,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         return principal.getOid();
     }
 
-    public WorkItemDtoProvider(PageBase page, boolean assigned) {
-        super(page);
+    public WorkItemDtoProvider(Component component, boolean assigned) {
+        super(component);
         this.assigned = assigned;
     }
 

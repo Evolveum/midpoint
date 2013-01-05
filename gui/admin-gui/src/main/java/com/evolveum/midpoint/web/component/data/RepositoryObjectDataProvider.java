@@ -21,26 +21,24 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
+
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -55,8 +53,8 @@ public class RepositoryObjectDataProvider<T extends ObjectType>
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryObjectDataProvider.class);
     private Class<T> type;
 
-    public RepositoryObjectDataProvider(PageBase page, Class<T> type) {
-        super(page, true);
+    public RepositoryObjectDataProvider(Component component, Class<T> type) {
+        super(component, true);
 
         setType(type);
     }

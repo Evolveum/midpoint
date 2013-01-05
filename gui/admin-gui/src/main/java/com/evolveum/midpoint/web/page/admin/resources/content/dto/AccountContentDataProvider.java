@@ -21,16 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.model.IModel;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -49,12 +39,20 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -69,8 +67,8 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     private IModel<String> resourceOid;
     private IModel<QName> objectClass;
 
-    public AccountContentDataProvider(PageBase page, IModel<String> resourceOid, IModel<QName> objectClass) {
-        super(page);
+    public AccountContentDataProvider(Component component, IModel<String> resourceOid, IModel<QName> objectClass) {
+        super(component);
 
         Validate.notNull(resourceOid, "Resource oid model must not be null.");
         Validate.notNull(objectClass, "Object class model must not be null.");

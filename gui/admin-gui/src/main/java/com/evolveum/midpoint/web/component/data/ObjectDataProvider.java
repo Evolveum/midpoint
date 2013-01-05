@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.wicket.Component;
 
 /**
  * @author lazyman
@@ -52,8 +53,8 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
     private Class<T> type;
 
-    public ObjectDataProvider(PageBase page, Class<T> type) {
-        super(page, true);
+    public ObjectDataProvider(Component component, Class<T> type) {
+        super(component, true);
 
         Validate.notNull(type);
         this.type = type;
