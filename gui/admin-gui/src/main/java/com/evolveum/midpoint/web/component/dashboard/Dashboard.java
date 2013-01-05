@@ -26,18 +26,29 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class Dashboard implements Serializable {
+public class Dashboard<T extends Serializable> implements Serializable {
 
     private boolean showMinimize;
     private boolean minimized;
 
+    private boolean lazyLoading;
     private boolean loaded;
+
+    private T object;
 
     public Dashboard() {
     }
 
-    public Dashboard(boolean loaded) {
-        this.loaded = loaded;
+    public Dashboard(boolean lazyLoading) {
+        this.lazyLoading = lazyLoading;
+    }
+
+    public boolean isLazyLoading() {
+        return lazyLoading;
+    }
+
+    public void setLazyLoading(boolean lazyLoading) {
+        this.lazyLoading = lazyLoading;
     }
 
     public boolean isLoaded() {
@@ -62,5 +73,13 @@ public class Dashboard implements Serializable {
 
     public void setLoaded(boolean loaded) {
         this.loaded = loaded;
+    }
+
+    public T getObject() {
+        return object;
+    }
+
+    public void setObject(T object) {
+        this.object = object;
     }
 }

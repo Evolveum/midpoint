@@ -63,7 +63,9 @@ public class PageDashboard extends PageAdminHome {
         };
         add(personalInfo);
 
-        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"));
+        Dashboard dashboard = new Dashboard();
+        dashboard.setShowMinimize(true);
+        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"), new Model<Dashboard>(dashboard));
         add(workItems);
 
         DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS, createStringResource("PageDashboard.accounts")) {
@@ -80,7 +82,7 @@ public class PageDashboard extends PageAdminHome {
 
         DashboardPanel assignedOrgUnits = new DashboardPanel(ID_ORG_UNITS,
                 createStringResource("PageDashboard.assignedOrgUnits"),
-                new Model<Dashboard>(new Dashboard() {
+                new Model<Dashboard>(new Dashboard(true) {
 
                     private int i = 0;
 
@@ -96,7 +98,7 @@ public class PageDashboard extends PageAdminHome {
         add(assignedOrgUnits);
 
         DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
-                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(false)));
+                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
         add(assignedResources);
     }
 }

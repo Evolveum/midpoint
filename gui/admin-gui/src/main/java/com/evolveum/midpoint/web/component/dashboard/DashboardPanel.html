@@ -23,12 +23,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div>
-        <h3 class="dashboard-title" wicket:id="title"/>
-        <div class="dashboard-content">
+        <div class="dashboard-title" wicket:id="dashboardTitle">
+            <span wicket:id="title"/>
+            <a wicket:id="minimize" class="dashboard-button">
+                <img wicket:id="minimizeIcon"/>
+            </a>
+        </div>
+        <div class="dashboard-content" wicket:id="dashboardContent">
             <div wicket:id="preloaderContainer" style="text-align: center;">
                 <img wicket:id="preloader"/>
             </div>
-            <div wicket:id="content" />
+            <div wicket:id="content"/>
         </div>
     </div>
 </wicket:panel>

@@ -19,7 +19,7 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-h3.dashboard-title {
+div.dashboard-title {
     background: none repeat scroll 0 0 #9F9F9F;
     border-radius: 4px 4px 0 0;
     border-color: #757575;
@@ -33,6 +33,15 @@ h3.dashboard-title {
     padding: 8px 6px;
     position: relative;
     width: auto;
+}
+
+a.dashboard-button {
+    float: right;
+    background: white;
+    border-radius: 4px;
+    display: block;
+    height: 15px;
+    width: 15px;
 }
 
 div.dashboard-content {
