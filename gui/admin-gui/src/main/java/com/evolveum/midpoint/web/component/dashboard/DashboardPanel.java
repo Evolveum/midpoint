@@ -114,7 +114,7 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
                 if (dashboard == null) {
                     return true;
                 }
-                return dashboard.isLazyLoading() && !dashboard.isLoaded();
+                return dashboard.isLazyLoading() && !dashboard.isLoaded() && !dashboard.isReloadTimeout();
             }
         });
         dashboardContent.add(preloaderContainer);
@@ -133,14 +133,7 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
 
             @Override
             protected void onTimer(AjaxRequestTarget target) {
-                Dashboard dashboard = DashboardPanel.this.getModel().getObject();
-                if (dashboard == null || !dashboard.isLoaded()) {
-                    return;
-                }
-
-                dashboardContent.replace(getLazyLoadComponent(ID_CONTENT));
-                stop();
-                target.add(DashboardPanel.this);
+                onTimerPerformed(target, this);
             }
         };
         dashboardContent.add(selfUpdating);
@@ -194,6 +187,26 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
 
         target.add(this);
         //todo implement
+    }
+
+    private void onTimerPerformed(AjaxRequestTarget target, AbstractAjaxTimerBehavior behavior) {
+        Dashboard dashboard = DashboardPanel.this.getModel().getObject();
+        if (dashboard == null) {
+            return;
+        }
+
+        dashboard.recordAttempt();
+
+        WebMarkupContainer dashboardContent = (WebMarkupContainer) get(ID_DASHBOARD_CONTENT);
+        if (dashboard.isReloadTimeout()) {
+            dashboardContent.replace(new Label(ID_CONTENT, createStringResource("DashboardPanel.timeout")));
+            behavior.stop();
+            target.add(DashboardPanel.this);
+        } else if (dashboard.isLoaded()) {
+            dashboardContent.replace(getLazyLoadComponent(ID_CONTENT));
+            behavior.stop();
+            target.add(DashboardPanel.this);
+        }
     }
 
     /**

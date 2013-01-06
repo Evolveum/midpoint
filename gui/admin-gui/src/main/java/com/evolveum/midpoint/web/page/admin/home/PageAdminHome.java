@@ -40,6 +40,7 @@ public class PageAdminHome extends PageAdmin {
 
         items.add(new BottomMenuItem(createStringResource("PageAdminHome.home"), PageHome.class));
         items.add(new BottomMenuItem(createStringResource("PageAdminHome.dashboard"), PageDashboard.class));
+        items.add(new BottomMenuItem(createStringResource("PageAdminHome.myPasswords"), PageMyPasswords.class));
 
         return items;
     }

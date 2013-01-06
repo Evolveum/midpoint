@@ -21,12 +21,17 @@
 
 package com.evolveum.midpoint.web.component.dashboard;
 
+import com.evolveum.midpoint.web.page.PageBase;
+
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
 public class Dashboard<T extends Serializable> implements Serializable {
+
+    private static final int MAX_RELOAD_ATTEMPTS = 10;
+    private int reloadAttempts;
 
     private boolean showMinimize;
     private boolean minimized;
@@ -40,7 +45,12 @@ public class Dashboard<T extends Serializable> implements Serializable {
     }
 
     public Dashboard(boolean lazyLoading) {
+        this(lazyLoading, false);
+    }
+
+    public Dashboard(boolean lazyLoading, boolean showMinimize) {
         this.lazyLoading = lazyLoading;
+        this.showMinimize = showMinimize;
     }
 
     public boolean isLazyLoading() {
@@ -81,5 +91,18 @@ public class Dashboard<T extends Serializable> implements Serializable {
 
     public void setObject(T object) {
         this.object = object;
+    }
+
+    protected PageBase getPageBase() {
+        //todo implement
+        return null;
+    }
+
+    public void recordAttempt() {
+        reloadAttempts++;
+    }
+
+    public boolean isReloadTimeout() {
+        return reloadAttempts >= MAX_RELOAD_ATTEMPTS;
     }
 }

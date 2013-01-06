@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.dashboard.Dashboard;
 import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
+import com.evolveum.midpoint.web.page.admin.home.dto.MyAccountsDashboard;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.model.Model;
@@ -53,29 +54,9 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initLayout() {
-        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO,
-                createStringResource("PageDashboard.personalInfo")) {
-
-            @Override
-            protected Component getLazyLoadComponent(String componentId) {
-                return new PersonalInfoPanel(componentId);
-            }
-        };
-        add(personalInfo);
-
-        Dashboard dashboard = new Dashboard();
-        dashboard.setShowMinimize(true);
-        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"), new Model<Dashboard>(dashboard));
-        add(workItems);
-
-        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS, createStringResource("PageDashboard.accounts")) {
-
-            @Override
-            protected Component getLazyLoadComponent(String componentId) {
-                return new MyAccountsPanel(componentId);
-            }
-        };
-        add(accounts);
+        initPersonalInfo();
+        initMyWorkItems();
+        initMyAccounts();
 
         DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
         add(assignedRoles);
@@ -100,5 +81,38 @@ public class PageDashboard extends PageAdminHome {
         DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
                 createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
         add(assignedResources);
+    }
+
+    private void initPersonalInfo() {
+        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO,
+                createStringResource("PageDashboard.personalInfo")) {
+
+            @Override
+            protected Component getLazyLoadComponent(String componentId) {
+                return new PersonalInfoPanel(componentId);
+            }
+        };
+        add(personalInfo);
+    }
+
+    private void initMyWorkItems() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setShowMinimize(true);
+        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"),
+                new Model<Dashboard>(dashboard));
+        add(workItems);
+    }
+
+    private void initMyAccounts() {
+        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS,
+                createStringResource("PageDashboard.accounts"),
+                new Model(new MyAccountsDashboard())) {
+
+            @Override
+            protected Component getLazyLoadComponent(String componentId) {
+                return new MyAccountsPanel(componentId);
+            }
+        };
+        add(accounts);
     }
 }
