@@ -37,11 +37,13 @@ div.dashboard-title {
 
 a.dashboard-button {
     float: right;
-    background: white;
+    background: #ffffff;
     border-radius: 4px;
     display: block;
-    height: 15px;
-    width: 15px;
+    height: 16px;
+    width: 16px;
+    padding: 1px;
+    margin: 0 2px;
 }
 
 div.dashboard-content {

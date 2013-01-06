@@ -42,6 +42,7 @@ public class Dashboard<T extends Serializable> implements Serializable {
     private T object;
 
     public Dashboard() {
+        this(false);
     }
 
     public Dashboard(boolean lazyLoading) {

@@ -48,6 +48,8 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
 
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
+    private static final String ID_RELOAD = "reload";
+    private static final String ID_RELOAD_ICON = "reloadIcon";
     private static final String ID_MINIMIZE = "minimize";
     private static final String ID_MINIMIZE_ICON = "minimizeIcon";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
@@ -89,6 +91,7 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
         add(dashboardTitle);
         dashboardTitle.add(new Label(ID_TITLE, titleModel));
         dashboardTitle.add(createMinimizeLink(getModel()));
+        dashboardTitle.add(createReloadLink(getModel()));
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
         dashboardContent.setOutputMarkupId(true);
@@ -140,6 +143,29 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
         dashboardContent.add(new Label(ID_CONTENT));
     }
 
+    private AjaxLink createReloadLink(final IModel<? extends Dashboard> dashboardModel) {
+        AjaxLink reload = new AjaxLink(ID_RELOAD) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                reloadPerformed(target);
+            }
+        };
+        reload.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                Dashboard dashboard = dashboardModel.getObject();
+                return dashboard != null && dashboard.isLazyLoading();
+            }
+        });
+
+        reload.add(new Image(ID_RELOAD_ICON,
+                new PackageResourceReference(ImgResources.class, "arrow_rotate_clockwise.png")));
+
+        return reload;
+    }
+
     private AjaxLink createMinimizeLink(final IModel<? extends Dashboard> dashboardModel) {
         AjaxLink minimize = new AjaxLink(ID_MINIMIZE) {
 
@@ -172,7 +198,7 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
             public PackageResourceReference getObject() {
                 Dashboard dashboard = dashboardModel.getObject();
 
-                String icon = dashboard.isMinimized() ? "bullet_toggle_plus.png" : "bullet_toggle_minus.png";
+                String icon = dashboard.isMinimized() ? "arrow_out.png" : "arrow_in.png";
                 return new PackageResourceReference(ImgResources.class, icon);
             }
         });
@@ -207,6 +233,10 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
             behavior.stop();
             target.add(DashboardPanel.this);
         }
+    }
+
+    private void reloadPerformed(AjaxRequestTarget target) {
+        //todo implement
     }
 
     /**
