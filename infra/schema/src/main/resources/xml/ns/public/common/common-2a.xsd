@@ -4184,6 +4184,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
+     				<xsd:element name="synchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
+	     				<xsd:annotation>
+							<xsd:documentation>
+								The timestamp of the most recent synchronization. Regardless of the channel or result.
+								It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
+								property.
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
      				<xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
      					<xsd:annotation>
 							<xsd:documentation>
