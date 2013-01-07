@@ -168,6 +168,33 @@ public class TestDelta {
 	}
 	
 	@Test
+    public void testPropertyDeltaMerge05() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge05 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		delta2.addValueToDelete(new PrismPropertyValue<String>("add1"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertNoReplace(delta1);
+		PrismAsserts.assertAdd(delta1, "add2");
+		PrismAsserts.assertNoDelete(delta1);
+	}
+	
+	@Test
     public void testPropertyDeltaMerge10() throws Exception {
 		System.out.println("\n\n===[ testPropertyDeltaMerge10 ]===\n");
 		
@@ -304,7 +331,111 @@ public class TestDelta {
 		PrismAsserts.assertAdd(modification, "add1", "add2");
 		PrismAsserts.assertNoDelete(modification);
 	}
+	
+	@Test
+    public void testSummarize01() throws Exception {
+		System.out.println("\n\n===[ testSummarize01 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta1.addModification(delta1);
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		ObjectDelta<UserType> objectDelta2 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta2.addModification(delta2);
+		
+		// WHEN
+		ObjectDelta<UserType> sumDelta = ObjectDelta.summarize(objectDelta1, objectDelta2);
+		
+		// THEN
+		System.out.println("Summarized delta:");
+		System.out.println(sumDelta.dump());
+
+		PrismAsserts.assertModifications(sumDelta, 1);
+		PropertyDelta<String> modification = (PropertyDelta<String>) sumDelta.getModifications().iterator().next();
+		PrismAsserts.assertNoReplace(modification);
+		PrismAsserts.assertAdd(modification, "add1", "add2");
+		PrismAsserts.assertNoDelete(modification);
+	}
+
+	@Test
+    public void testSummarize02() throws Exception {
+		System.out.println("\n\n===[ testSummarize02 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
+		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta1.addModification(delta1);
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToDelete(new PrismPropertyValue<String>("del2"));
+		ObjectDelta<UserType> objectDelta2 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta2.addModification(delta2);
+		
+		// WHEN
+		ObjectDelta<UserType> sumDelta = ObjectDelta.summarize(objectDelta1, objectDelta2);
+		
+		// THEN
+		System.out.println("Summarized delta:");
+		System.out.println(sumDelta.dump());
+
+		PrismAsserts.assertModifications(sumDelta, 1);
+		PropertyDelta<String> modification = (PropertyDelta<String>) sumDelta.getModifications().iterator().next();
+		PrismAsserts.assertNoReplace(modification);
+		PrismAsserts.assertNoAdd(modification);
+		PrismAsserts.assertDelete(modification, "del1", "del2");
+	}
+	
+	@Test
+    public void testSummarize05() throws Exception {
+		System.out.println("\n\n===[ testSummarize05 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta1.addModification(delta1);
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("add2"));
+		delta2.addValueToDelete(new PrismPropertyValue<String>("add1"));
+		ObjectDelta<UserType> objectDelta2 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
+				PrismTestUtil.getPrismContext());
+		objectDelta2.addModification(delta2);
+		
+		// WHEN
+		ObjectDelta<UserType> sumDelta = ObjectDelta.summarize(objectDelta1, objectDelta2);
+		
+		// THEN
+		System.out.println("Summarized delta:");
+		System.out.println(sumDelta.dump());
+
+		PrismAsserts.assertModifications(sumDelta, 1);
+		PropertyDelta<String> modification = (PropertyDelta<String>) sumDelta.getModifications().iterator().next();
+		PrismAsserts.assertNoReplace(modification);
+		PrismAsserts.assertAdd(modification, "add2");
+		PrismAsserts.assertNoDelete(modification);
+	}
+
+	
 	@Test
     public void testAddPropertyMulti() throws Exception {
 		System.out.println("\n\n===[ testAddPropertyMulti ]===\n");
