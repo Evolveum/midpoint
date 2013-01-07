@@ -40,6 +40,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 
@@ -76,6 +77,7 @@ public class RResourceObjectShadow extends RObject {
     //attributes
     @QueryEntity(any = true)
     private RAnyContainer attributes;
+    private XMLGregorianCalendar synchronizationTimestamp;
 
     @Columns(columns = {
             @Column(name = "class_namespace"),
@@ -155,6 +157,14 @@ public class RResourceObjectShadow extends RObject {
     
     public String getIntent() {
 		return intent;
+	}
+    
+    public XMLGregorianCalendar getSynchronizationTimestamp() {
+		return synchronizationTimestamp;
+	}
+    
+    public void setSynchronizationTimestamp(XMLGregorianCalendar synchronizationTimestamp) {
+		this.synchronizationTimestamp = synchronizationTimestamp;
 	}
 
     public void setName(RPolyString name) {
@@ -291,7 +301,9 @@ public class RResourceObjectShadow extends RObject {
         if (!situations.isEmpty()) {
             jaxb.getSynchronizationSituationDescription().addAll(situations);
         }
-
+        
+        jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
+        
         try {
             jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
         } catch (Exception ex) {
@@ -330,6 +342,7 @@ public class RResourceObjectShadow extends RObject {
         }
         
         repo.setSynchronizationSituationDescription(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
+        repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
         repo.setAttemptNumber(jaxb.getAttemptNumber());
 //        if (jaxb.isDead() == null){
@@ -338,7 +351,7 @@ public class RResourceObjectShadow extends RObject {
         	repo.setDead(jaxb.isDead());
 //        }
         repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));
-
+        
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
                     "translated to resource reference.");
