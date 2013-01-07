@@ -195,6 +195,33 @@ public class TestDelta {
 	}
 	
 	@Test
+    public void testPropertyDeltaMerge06() throws Exception {
+		System.out.println("\n\n===[ testPropertyDeltaMerge06 ]===\n");
+		
+		// GIVEN
+		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
+				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
+
+		PropertyDelta<String> delta2 = new PropertyDelta<String>(propertyDefinition);
+		delta2.addValueToAdd(new PrismPropertyValue<String>("del1"));
+		
+		// WHEN
+		delta1.merge(delta2);
+		
+		// THEN
+		System.out.println("Merged delta:");
+		System.out.println(delta1.dump());
+
+		PrismAsserts.assertNoReplace(delta1);
+		PrismAsserts.assertAdd(delta1, "add1");
+		PrismAsserts.assertNoDelete(delta1);
+	}
+	
+	@Test
     public void testPropertyDeltaMerge10() throws Exception {
 		System.out.println("\n\n===[ testPropertyDeltaMerge10 ]===\n");
 		
@@ -409,7 +436,8 @@ public class TestDelta {
 				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
-		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		// Let's complicate the things a bit with origin. This should work even though origins do not match.
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1", OriginType.OUTBOUND, null));
 		ObjectDelta<UserType> objectDelta1 = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, 
 				PrismTestUtil.getPrismContext());
 		objectDelta1.addModification(delta1);
