@@ -30,6 +30,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.testng.IHookCallBack;
+import org.testng.ITestResult;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+
+import java.lang.reflect.Method;
 
 /**
  * @author semancik
@@ -243,4 +251,57 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		return task;
 	}
 	
+
+    @Override
+    public void run(IHookCallBack callBack, ITestResult testResult) {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> run start");
+        super.run(callBack, testResult);
+        LOGGER.info("###>>> run end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    @AfterClass
+    @Override
+    protected void springTestContextAfterTestClass() throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextAfterTestClass start");
+        super.springTestContextAfterTestClass();
+        LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    @AfterMethod
+    @Override
+    protected void springTestContextAfterTestMethod(Method testMethod) throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextAfterTestMethod start");
+        super.springTestContextAfterTestMethod(testMethod);
+        LOGGER.info("###>>> springTestContextAfterTestMethod end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    @BeforeClass
+    @Override
+    protected void springTestContextBeforeTestClass() throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextBeforeTestClass start");
+        super.springTestContextBeforeTestClass();
+        LOGGER.info("###>>> springTestContextBeforeTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    @BeforeMethod
+    @Override
+    protected void springTestContextBeforeTestMethod(Method testMethod) throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextBeforeTestMethod start");
+        super.springTestContextBeforeTestMethod(testMethod);
+        LOGGER.info("###>>> springTestContextBeforeTestMethod end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    @BeforeClass
+    @Override
+    protected void springTestContextPrepareTestInstance() throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextPrepareTestInstance start");
+        super.springTestContextPrepareTestInstance();
+        LOGGER.info("###>>> springTestContextPrepareTestInstance end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
 }
