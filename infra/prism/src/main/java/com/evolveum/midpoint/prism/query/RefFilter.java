@@ -24,17 +24,14 @@ public class RefFilter extends PropertyValueFilter{
 	
 	RefFilter(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values) {
 		super(path, definition, values);
-		// TODO Auto-generated constructor stub
 	}
 		
 	RefFilter(ItemPath path, ItemDefinition definition, PrismReferenceValue value) {
 		super(path, definition, value);
-		// TODO Auto-generated constructor stub
 	}
 	
 	RefFilter(ItemPath path, ItemDefinition definition, Element expression) {
 		super(path, definition, expression);
-		// TODO Auto-generated constructor stub
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values){
@@ -77,6 +74,12 @@ public class RefFilter extends PropertyValueFilter{
 
 	}
 
+	@Override
+	public RefFilter clone() {
+		RefFilter clone = new RefFilter(getParentPath(), getDefinition(), (List<PrismReferenceValue>) getValues());
+		cloneValues(clone);
+		return clone;
+	}
 
 	@Override
 	public String dump() {

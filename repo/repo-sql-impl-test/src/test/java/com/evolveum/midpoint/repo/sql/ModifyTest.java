@@ -499,8 +499,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, result);
      
 //        List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
-        List<PropertyDelta> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, SynchronizationSituationType.LINKED, null);
-        PropertyDelta syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
+        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, SynchronizationSituationType.LINKED, null);
+        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
         syncSituationDeltas.add(syncSituationDelta);
         
         

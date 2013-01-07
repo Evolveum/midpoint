@@ -24,7 +24,17 @@ public abstract class NaryLogicalFilter extends LogicalFilter{
 	public void setCondition(List<ObjectFilter> condition) {
 		this.condition = condition;
 	}
-
+	
+	protected List<ObjectFilter> getClonedConditions() {
+		if (condition == null) {
+			return null;
+		}
+		List<ObjectFilter> clonedConditions = new ArrayList<ObjectFilter>(condition.size());
+		for (ObjectFilter connditio: condition) {
+			clonedConditions.add(connditio.clone());
+		}
+		return clonedConditions;
+	}
 
 	@Override
 	public String dump() {

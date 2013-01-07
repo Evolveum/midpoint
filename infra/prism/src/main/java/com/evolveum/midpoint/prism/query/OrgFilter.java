@@ -55,6 +55,11 @@ public class OrgFilter extends ObjectFilter {
 	}
 	
 	@Override
+	public OrgFilter clone() {
+		return new OrgFilter(getOrgRef(), getMinDepth(), getMaxDepth());
+	}
+
+	@Override
 	public String dump() {
 		return debugDump(0);
 	}

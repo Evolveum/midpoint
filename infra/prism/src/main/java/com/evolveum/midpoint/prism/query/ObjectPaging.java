@@ -78,6 +78,10 @@ public class ObjectPaging implements Dumpable, DebugDumpable, Serializable{
 	public void setMaxSize(Integer maxSize) {
 		this.maxSize = maxSize;
 	}
+	
+	public ObjectPaging clone() {
+		return new ObjectPaging(offset, maxSize, orderBy, direction);
+	}
 
 	@Override
 	public String debugDump() {

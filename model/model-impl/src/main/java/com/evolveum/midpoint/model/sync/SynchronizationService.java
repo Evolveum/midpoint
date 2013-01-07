@@ -444,13 +444,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		T objectType = object.asObjectable();
 		// new situation description
-		List<PropertyDelta> syncSituationDeltas = SynchronizationSituationUtil
+		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil
 				.createSynchronizationSituationDescriptionDelta(object, situation.getSituation(),
 						change.getSourceChannel());
-		// refresh situation		
-		PropertyDelta syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
+		// refresh situation
+		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
 				situation.getSituation());
 		syncSituationDeltas.add(syncSituationDelta);
+		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object));
 	
 		try {
 

@@ -36,5 +36,11 @@ public abstract class ValueFilter extends ObjectFilter {
 	public void setParentPath(ItemPath path) {
 		this.parentPath = path;
 	}
+	
+	protected void cloneValues(ValueFilter clone) {
+		super.cloneValues(clone);
+		clone.parentPath = this.parentPath;
+		clone.definition = this.definition;
+	}
 
 }

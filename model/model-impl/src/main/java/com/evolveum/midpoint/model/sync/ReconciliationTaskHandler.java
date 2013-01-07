@@ -31,9 +31,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -44,6 +47,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -58,6 +62,8 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -68,6 +74,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -108,6 +115,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	private static final int MAX_ITERATIONS = 10;
 
+	private static final int BLOCK_SIZE = 20;
+
 	@PostConstruct
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
@@ -130,8 +139,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 
 		try {
-			performResourceReconciliation(resourceOid, task, opResult);
-//			performRepoReconciliation(task, opResult);
+			PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult);
+			
+			performResourceReconciliation(resource, task, opResult);
+			performShadowReconciliation(resource, task, opResult);
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
@@ -185,7 +196,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 		
 		try {
-			performRepoReconciliation(task, resourceOid, opResult);
+			scanForUnfinishedOperations(task, resourceOid, opResult);
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
 			// This is bad. The resource does not exist. Permanent problem.
@@ -253,23 +264,22 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void performResourceReconciliation(String resourceOid, Task task, OperationResult result)
+	private void performResourceReconciliation(PrismObject<ResourceType> resource, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation");
-		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult)
-				.asObjectable();
+		
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
 		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
 		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
-				ObjectTypeUtil.toShortString(resource), refinedAccountDefinition);
+				resource, refinedAccountDefinition);
 
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
-		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource,
+		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
 				refinedAccountDefinition, task, changeNotificationDispatcher);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setProcessShortName("reconciliation");
@@ -281,15 +291,97 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		opResult.computeStatus();
 	}
+	
+	private void performShadowReconciliation(final PrismObject<ResourceType> resource, final Task task, OperationResult result) throws SchemaException {
+		// find accounts
+		
+		LOGGER.debug("Shadow reconciliation starting");
+		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 
-	private void performRepoReconciliation(Task task, String resourceOid, OperationResult result) throws SchemaException,
+		// TODO: search by timestamp
+		
+//		AndFilter andFilter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(AccountShadowType.class,
+//				AccountShadowType.F_RESOURCE_REF, prismContext, resourceOid));
+//		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
+
+		RefFilter refFilter = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid());
+		ObjectQuery query = ObjectQuery.createObjectQuery(refFilter);
+
+		Handler<PrismObject<AccountShadowType>> handler = new Handler<PrismObject<AccountShadowType>>() {
+			@Override
+			public void handle(PrismObject<AccountShadowType> shadow) {
+				reconcileShadow(shadow, resource, task);
+			}
+		};
+		Utils.searchIterative(repositoryService, AccountShadowType.class, query, handler , BLOCK_SIZE, opResult);
+		
+		// for each try the operation again
+		
+		opResult.computeStatus();
+		
+		LOGGER.debug("Shadow reconciliation finished, result: {}", opResult.getStatus());
+	}
+	
+	private void reconcileShadow(PrismObject<AccountShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
+		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
+		try {
+			provisioningService.getObject(AccountShadowType.class, shadow.getOid(), null, opResult);
+		} catch (ObjectNotFoundException e) {
+			// Account is gone
+			reactShadowGone(shadow, resource, task, opResult);
+		} catch (CommunicationException e) {
+			processShadowReconErrror(e, shadow, opResult);
+		} catch (SchemaException e) {
+			processShadowReconErrror(e, shadow, opResult);
+		} catch (ConfigurationException e) {
+			processShadowReconErrror(e, shadow, opResult);
+		} catch (SecurityViolationException e) {
+			processShadowReconErrror(e, shadow, opResult);
+		}
+	}
+
+
+	private void reactShadowGone(PrismObject<AccountShadowType> shadow, PrismObject<ResourceType> resource, 
+			Task task, OperationResult result) {
+		try {
+			provisioningService.applyDefinition(shadow, result);
+			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+			change.setResource(resource);
+			ObjectDelta<AccountShadowType> shadowDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, shadow.getOid(),
+					shadow.getPrismContext()); 
+			change.setObjectDelta(shadowDelta);
+			// Need to also set current shadow. This will get reflected in "old" object in lens context
+			change.setCurrentShadow(shadow);
+			changeNotificationDispatcher.notifyChange(change, task, result);
+		} catch (SchemaException e) {
+			processShadowReconErrror(e, shadow, result);
+		} catch (ObjectNotFoundException e) {
+			processShadowReconErrror(e, shadow, result);
+		} catch (CommunicationException e) {
+			processShadowReconErrror(e, shadow, result);
+		} catch (ConfigurationException e) {
+			processShadowReconErrror(e, shadow, result);
+		}
+	}
+
+	private void processShadowReconErrror(Exception e, PrismObject<AccountShadowType> shadow, OperationResult opResult) {
+		LOGGER.error("Error reconciling shadow {}: {}", new Object[]{shadow, e.getMessage(), e});
+		opResult.recordFatalError(e);
+		// TODO: store error in the shadow?
+	}
+
+	/**
+	 * Scans shadows for unfinished operations and tries to finish them.
+	 */
+	private void scanForUnfinishedOperations(Task task, String resourceOid, OperationResult result) throws SchemaException,
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 		// find accounts
 		
 //		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult)
 //				.asObjectable();
-		LOGGER.debug("Repository reconciliation starting");
+		LOGGER.debug("Scan for unifinished operations starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
 
@@ -325,7 +417,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		opResult.computeStatus();
 		
-		LOGGER.debug("Repository reconciliation finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
+		LOGGER.debug("Scan for unifinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
 	}
 
 	// private void normalizeShadow(PrismObject<AccountShadowType> shadow,
@@ -447,7 +539,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 //		}
 //	}
 
-	private ObjectQuery createAccountSearchQuery(ResourceType resource,
+	private ObjectQuery createAccountSearchQuery(PrismObject<ResourceType> resource,
 			RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
 		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
 		return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);

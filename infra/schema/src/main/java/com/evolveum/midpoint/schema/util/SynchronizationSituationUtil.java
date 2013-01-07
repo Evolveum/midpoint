@@ -1,7 +1,10 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -46,22 +49,26 @@ public class SynchronizationSituationUtil {
 		return true;
 	}
 	
-	public static PropertyDelta createSynchronizationSituationDelta(PrismObject object, SynchronizationSituationType situation){
-		List<PropertyDelta> syncSituationDeltas = new ArrayList<PropertyDelta>();
-		PropertyDelta syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
+	public static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(PrismObject object, SynchronizationSituationType situation){
+		PropertyDelta<SynchronizationSituationType> syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
 				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation);
-		syncSituationDeltas.add(syncSituationDelta);
-		
 		return syncSituationDelta;
 	}
 	
-	public static List<PropertyDelta> createSynchronizationSituationDescriptionDelta(PrismObject object, SynchronizationSituationType situation, String sourceChannel){
+	public static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject object){
+		XMLGregorianCalendar gcal = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
+				ResourceObjectShadowType.F_SYNCHRONIZATION_TIMESTAMP, gcal);
+		return syncSituationDelta;
+	}
+	
+	public static List<PropertyDelta<?>> createSynchronizationSituationDescriptionDelta(PrismObject object, SynchronizationSituationType situation, String sourceChannel){
 		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
 		syncSituationDescription.setSituation(situation);
 		syncSituationDescription.setChannel(sourceChannel);
 		syncSituationDescription.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 		
-		List<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
+		List<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
 
 		PropertyDelta syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
 				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());

@@ -11,9 +11,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 public class SubstringFilter extends StringValueFilter {
 
-	public SubstringFilter(ItemPath path, ItemDefinition definition, String value) {
-		super(path, definition, value);
-		// TODO Auto-generated constructor stub
+	public SubstringFilter(ItemPath parentPath, ItemDefinition definition, String value) {
+		super(parentPath, definition, value);
 	}
 
 	public static SubstringFilter createSubstring(ItemPath path, ItemDefinition definition, String value) {
@@ -24,6 +23,11 @@ public class SubstringFilter extends StringValueFilter {
 		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
 		ItemDefinition itemDef = objDef.findItemDefinition(propertyName);
 		return new SubstringFilter(null, itemDef, value);
+	}
+
+	@Override
+	public SubstringFilter clone() {
+		return new SubstringFilter(getParentPath(),getDefinition(),getValue());
 	}
 
 	@Override

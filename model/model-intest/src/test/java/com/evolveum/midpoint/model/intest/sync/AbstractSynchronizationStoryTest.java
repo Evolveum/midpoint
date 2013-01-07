@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -102,6 +104,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -117,6 +120,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
 	
 	protected static String userWallyOid;
+	
+	protected boolean allwaysCheckTimestamp = false;
+	protected long timeBeforeSync;
 
 	public AbstractSynchronizationStoryTest() throws JAXBException {
 		super();
@@ -169,6 +175,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
         
         // Preconditions
         assertUsers(5);
@@ -188,6 +195,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID, 
         		accountMancomb.asObjectable().getResourceRef().getOid());
+        assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
@@ -226,6 +234,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
                 
 		/// WHEN
         displayWhen(TEST_NAME);
@@ -238,6 +247,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
         
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -262,6 +272,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
                 
 		/// WHEN
         displayWhen(TEST_NAME);
@@ -280,7 +291,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
         
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -334,6 +347,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertEquals("OID of user wally have changed", userWallyOid, userWally.getOid());
@@ -354,8 +368,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         waitForSyncTaskNextRun(resourceDummyGreen);
         
         PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally Feed");
+        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -382,6 +399,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
         
         DummyAccount wallyDummyAccount = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
                 
@@ -409,8 +427,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, null);
         
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally B. Feed");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally B. Feed");
+        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
         
         assertAccounts(userWally, 3);
 
@@ -432,6 +453,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
         
         DummyAccount wallyDummyAccount = dummyResourceGreen.getAccountByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
                 
@@ -448,8 +470,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
                 
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Bloodnose");
+        assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
         
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -479,6 +504,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // GIVEN
         Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
 
         /// WHEN
         displayWhen(TEST_NAME);
@@ -493,11 +519,12 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
         
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
-        // TODO: MID-1098
-        //assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
+        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
         
         PrismObject<AccountShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<AccountShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
+        if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -577,6 +604,21 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         		dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
         
         return accountShadowWally;
+	}
+	
+	protected void rememberTimeBeforeSync() {
+		timeBeforeSync = System.currentTimeMillis();
+	}
+
+	protected void assertShadowOperationalData(PrismObject<AccountShadowType> shadow, SynchronizationSituationType expectedSituation) {
+		AccountShadowType shadowType = shadow.asObjectable();
+		SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
+		assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
+		XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
+		assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
+		long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
+		assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow "+shadow;
+		// TODO: assert sync description
 	}
 
 }

@@ -309,8 +309,8 @@ public class ChangeExecutor {
 			return;
     	}
     	
-    	List<PropertyDelta> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, situation, task.getChannel());
-		PropertyDelta syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
+    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, situation, task.getChannel());
+		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
 		syncSituationDeltas.add(syncSituationDelta);
 		
 		try {

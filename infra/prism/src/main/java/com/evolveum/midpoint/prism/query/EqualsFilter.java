@@ -30,16 +30,16 @@ import com.sun.tools.xjc.reader.xmlschema.parser.SchemaConstraintChecker;
 
 public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
-	EqualsFilter(ItemPath path, ItemDefinition definition, List<PrismValue> values) {
-		super(path, definition, values);
+	EqualsFilter(ItemPath parentPath, ItemDefinition definition, List<PrismValue> values) {
+		super(parentPath, definition, values);
 	}
 
-	EqualsFilter(ItemPath path, ItemDefinition definition, PrismValue value) {
-		super(path, definition, value);
+	EqualsFilter(ItemPath parentPath, ItemDefinition definition, PrismValue value) {
+		super(parentPath, definition, value);
 	}
 	
-	EqualsFilter(ItemPath path, ItemDefinition definition, Element expression) {
-		super(path, definition, expression);
+	EqualsFilter(ItemPath parentPath, ItemDefinition definition, Element expression) {
+		super(parentPath, definition, expression);
 	}
 
 	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, PrismValue value) {
@@ -107,6 +107,13 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		return createEqual(null, objDef, propertyName, realValue);
 	}
 	
+	@Override
+	public EqualsFilter clone() {
+		EqualsFilter clone = new EqualsFilter(getParentPath(), getDefinition(), (List<PrismValue>) getValues());
+		cloneValues(clone);
+		return clone;
+	}
+
 	@Override
 	public String dump() {
 		return debugDump(0);

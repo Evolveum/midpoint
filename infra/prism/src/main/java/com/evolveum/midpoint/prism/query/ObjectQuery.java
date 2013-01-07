@@ -42,6 +42,17 @@ public class ObjectQuery implements Dumpable, Serializable {
 		query.setPaging(paging);
 		return query;
 	}
+	
+	public ObjectQuery clone() {
+		ObjectQuery clone = new ObjectQuery();
+		if (this.filter != null) {
+			clone.filter = this.filter.clone();
+		}
+		if (this.paging != null) {
+			clone.paging = this.paging.clone();
+		}
+		return clone;
+	}
 
 	@Override
 	public String dump() {

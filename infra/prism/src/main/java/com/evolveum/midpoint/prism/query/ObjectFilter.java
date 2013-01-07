@@ -27,6 +27,12 @@ public abstract class ObjectFilter implements Dumpable, DebugDumpable, Serializa
 
 	public void setExpression(Element expression) {
 		this.expression = expression;
-	}	
+	}
+	
+	public abstract ObjectFilter clone();
+	
+	protected void cloneValues(ObjectFilter clone) {
+		clone.expression = this.expression;
+	}
 	
 }

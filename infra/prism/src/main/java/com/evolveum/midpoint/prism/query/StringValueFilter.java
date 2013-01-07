@@ -7,8 +7,8 @@ public abstract class StringValueFilter extends ValueFilter{
 
 	private String value;
 	
-	public StringValueFilter(ItemPath path, ItemDefinition definition, String value) {
-		super(path, definition);
+	public StringValueFilter(ItemPath parentPath, ItemDefinition definition, String value) {
+		super(parentPath, definition);
 		this.value = value;
 	}	
 	

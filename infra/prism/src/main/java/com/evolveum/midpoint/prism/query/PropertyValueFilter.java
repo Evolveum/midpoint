@@ -42,5 +42,20 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		this.values = values;
 	}
 	
+	protected void cloneValues(PropertyValueFilter clone) {
+		super.cloneValues(clone);
+		clone.values = getCloneValuesList();
+	}
+	private List<? extends PrismValue> getCloneValuesList() {
+		if (values == null) {
+			return null;
+		}
+		List<PrismValue> clonedValues = new ArrayList<PrismValue>(values.size());
+		for(PrismValue value: values) {
+			clonedValues.add(value.clone());
+		}
+		return clonedValues;
+	}
+	
 	
 }

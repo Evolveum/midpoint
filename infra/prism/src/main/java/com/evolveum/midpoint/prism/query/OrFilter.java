@@ -27,6 +27,11 @@ public class OrFilter extends NaryLogicalFilter {
 	}
 	
 	@Override
+	public OrFilter clone() {
+		return new OrFilter(getClonedConditions());
+	}
+	
+	@Override
 	public String dump() {
 		return debugDump(0);
 	}

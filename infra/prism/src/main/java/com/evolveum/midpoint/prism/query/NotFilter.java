@@ -23,19 +23,16 @@ public class NotFilter extends UnaryLogicalFilter {
 	public static NotFilter createNot(ObjectFilter filter) {
 		return new NotFilter(filter);
 	}
-
-//	public ObjectFilter getFilter() {
-//		return filter;
-//	}
-//
-//	public void setFilter(ObjectFilter filter) {
-//		this.filter = filter;
-//	}
-
+	
+	@Override
+	public NotFilter clone() {
+		return new NotFilter(getFilter().clone());
+	}
+	
 	@Override
 	public String dump() {
 		return debugDump(0);
-			}
+	}
 
 	@Override
 	public String debugDump() {

@@ -123,6 +123,8 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 		dummyResource.setSyncStyle(DummySyncStyle.NONE);
 		dummyResourceBlue.setSyncStyle(DummySyncStyle.NONE);
 		
+		allwaysCheckTimestamp = true;
+		
 	}
 	
 	@Override

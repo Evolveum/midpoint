@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.model.util;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
@@ -34,8 +36,12 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -139,7 +145,7 @@ public final class Utils {
                 protector.encrypt(ps);
             } catch (EncryptionException e) {
 //                LOGGER.info("Faild to encrypt cleartext value for field " + propName + " while importing " + object);
-                result.recordFatalError("Faild to encrypt value for field " + propName + ": " + e.getMessage(), e);
+                result.recordFatalError("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
                 return;
             }
         }
@@ -151,7 +157,22 @@ public final class Utils {
 		if (pval.getParent() == null){
 			pval.setParent(item);
 		}
-		
-		
+	}
+	
+	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
+			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
+		ObjectQuery myQuery = query.clone();
+		// TODO: better handle original values in paging
+		ObjectPaging myPaging = ObjectPaging.createPaging(0, blockSize);
+		myQuery.setPaging(myPaging);
+		boolean cont = true;
+		while (cont) {
+			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, opResult);
+			for (PrismObject<T> object: objects) {
+				handler.handle(object);
+			}
+			cont = objects.size() == blockSize;
+			myPaging.setOffset(myPaging.getOffset() + blockSize);
+		}
 	}
 }

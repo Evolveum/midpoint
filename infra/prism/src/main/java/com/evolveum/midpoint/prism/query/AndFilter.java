@@ -29,6 +29,11 @@ public class AndFilter extends NaryLogicalFilter{
 	}
 	
 	@Override
+	public AndFilter clone() {
+		return new AndFilter(getClonedConditions());
+	}
+
+	@Override
 	public String dump() {
 		return debugDump(0);	
 	}
