@@ -109,9 +109,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestActivation extends AbstractInitializedModelIntegrationTest {
 			
-	private static final ItemPath ACTIVATION_ENABLED_PATH = new ItemPath(UserType.F_ACTIVATION, 
-			ActivationType.F_ENABLED); 
-	
 	private String accountOid;
 	private String accountRedOid;
 
@@ -401,8 +398,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 * change.
 	 */
 	@Test
-    public void test121ModifyJackPasswordUserAndAccountRed() throws Exception {
-        displayTestTile(this, "test121ModifyJackPasswordUserAndAccountRed");
+    public void test121ModifyJackUserAndAccountRed() throws Exception {
+        displayTestTile(this, "test121ModifyJackUserAndAccountRed");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
@@ -431,6 +428,37 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDisabled(userJack);
 		assertDummyDisabled("jack");
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
+	}
+	
+	@Test
+    public void test130ModifyAccountDefaultAndRed() throws Exception {
+        displayTestTile(this, "test130ModifyAccountDefaultAndRed");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test121ModifyJackPasswordUserAndAccountRed");
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        ObjectDelta<AccountShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(accountOid, 
+        		resourceDummy, ACTIVATION_ENABLED_PATH, true);
+        ObjectDelta<AccountShadowType> accountDeltaRed = createModifyAccountShadowReplaceDelta(accountRedOid, 
+        		resourceDummyRed, ACTIVATION_ENABLED_PATH, true);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaRed);
+		
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+
+        assertDisabled(userJack);
+		assertDummyEnabled("jack");
+		assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
 	}
 	
 	private void assertDummyActivationEnabledState(String userId, boolean expectedEnabled) {

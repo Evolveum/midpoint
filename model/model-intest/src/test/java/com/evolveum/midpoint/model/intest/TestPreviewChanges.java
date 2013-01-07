@@ -1241,4 +1241,74 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 	}
 	
+	// The 7xx tests try to do various non-common cases
+	
+	/**
+	 * Enable two accounts at once. Both accounts belongs to the same user. But no user delta is here.
+	 * This may cause problems when constructing the lens context inside model implementation.
+	 */
+	@Test
+    public void test700DisableElaineAccountTwoResources() throws Exception {
+        final String TEST_NAME = "test700DisableElaineAccountTwoResources";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestPreviewChanges.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        ObjectDelta<AccountShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_OID, 
+        		resourceDummy, ACTIVATION_ENABLED_PATH, false);
+        ObjectDelta<AccountShadowType> accountDeltaBlue = createModifyAccountShadowReplaceDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, 
+        		resourceDummyBlue, ACTIVATION_ENABLED_PATH, false);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaBlue);
+		display("Input deltas: ", deltas);
+                
+		// WHEN
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+		
+		// THEN
+        display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+		
+		result.computeStatus();
+        assertSuccess(result);
+		
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
+		
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		assertNull("Unexpected focus secondary delta: "+focusContext.getSecondaryDelta(), userSecondaryDelta);
+		
+		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
+		
+		ModelProjectionContext<AccountShadowType> accContextDefault = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+		assertNotNull("Null model projection context (default)", accContextDefault);
+		
+		assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContextDefault.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContextDefault.getPrimaryDelta();
+		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
+		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ENABLED_PATH, false);
+		
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
+        assertNull("Unexpected account secondary delta (default)", accountSecondaryDelta);
+		
+		ModelProjectionContext<AccountShadowType> accContextBlue = modelContext.findProjectionContext(
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+		assertNotNull("Null model projection context (blue)", accContextBlue);
+		
+		assertEquals("Wrong policy decision (blue)", SynchronizationPolicyDecision.KEEP, accContextBlue.getSynchronizationPolicyDecision());
+		ObjectDelta<AccountShadowType> accountPrimaryDeltaBlue = accContextBlue.getPrimaryDelta();
+		assertNotNull("No account primary delta (blue)", accountPrimaryDeltaBlue);
+		PrismAsserts.assertModifications(accountPrimaryDeltaBlue, 1);
+		PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ENABLED_PATH, false);
+		
+        ObjectDelta<AccountShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
+        assertNull("Unexpected account secondary delta (blue)", accountSecondaryDeltaBlue);
+	}
 }

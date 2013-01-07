@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -65,7 +66,12 @@ public class Clockwork {
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
 	@Autowired(required = true)
-	Projector projector;
+	private Projector projector;
+	
+	// This is ugly
+	// TODO: cleanup
+	@Autowired(required = true)
+	private ContextLoader contextLoader;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
@@ -109,6 +115,11 @@ public class Clockwork {
 	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		
 		try {
+			
+			// We need to determine focus before auditing. Otherwise we will not know user
+			// for the accounts (unless there is a specific delta for it).
+			// This is ugly, but it is the easiest way now (TODO: cleanup).
+			contextLoader.determineFocusContext(context, result);
 			
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
@@ -246,7 +257,7 @@ public class Clockwork {
 				throw new IllegalStateException("No focus and no projectstions in "+context);
 			}
 			if (projectionContexts.size() > 1) {
-				throw new IllegalStateException("No focus and more than one projectstions in "+context);
+				throw new IllegalStateException("No focus and more than one projection in "+context);
 			}
 			LensProjectionContext<P> projection = projectionContexts.iterator().next();
 			primaryObject = projection.getObjectOld();

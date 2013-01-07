@@ -305,6 +305,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
+		}
+		
 		RepositoryCache.enter();
 		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = null;
 		try {

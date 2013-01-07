@@ -192,6 +192,9 @@ public class LensUtil {
 			}
 		}
 		
+		if (focusClass == null) {
+			focusClass = determineFocusClass(projectionClass);
+		}
 		LensContext<F, P> context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
 		context.setChannel(task.getChannel());
 		if (focusDelta != null) {
@@ -226,6 +229,13 @@ public class LensUtil {
 		if (CompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
 		
 		return context;
+	}
+	
+	public static <F extends ObjectType, P extends ObjectType> Class<F> determineFocusClass(Class<P> projectionClass) {
+		if (projectionClass == AccountShadowType.class) {
+			return (Class<F>) UserType.class;
+		}
+		return null;
 	}
 
 	private static <T extends ObjectType> Class<T> checkProjectionClass(Class<T> oldProjectionClass, Class<T> newProjectionClass) {

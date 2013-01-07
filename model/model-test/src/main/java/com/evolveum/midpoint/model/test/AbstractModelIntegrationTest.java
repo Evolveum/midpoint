@@ -142,6 +142,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			
 	protected static final String CONNECTOR_DUMMY_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 	
+	protected static final ItemPath ACTIVATION_ENABLED_PATH = new ItemPath(UserType.F_ACTIVATION, 
+			ActivationType.F_ENABLED);
+	
 	@Autowired(required = true)
 	protected ModelService modelService;
 	

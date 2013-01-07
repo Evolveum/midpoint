@@ -209,7 +209,7 @@ public class ContextLoader {
 	/** 
 	 * try to load focus context from the projections, e.g. by determining account owners
 	 */
-	private <F extends ObjectType, P extends ObjectType> void determineFocusContext(LensContext<F,P> context, 
+	public <F extends ObjectType, P extends ObjectType> void determineFocusContext(LensContext<F,P> context, 
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (context.getFocusContext() != null) {
 			// already done
