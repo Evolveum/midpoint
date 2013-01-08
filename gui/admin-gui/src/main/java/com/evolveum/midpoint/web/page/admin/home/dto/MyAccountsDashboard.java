@@ -53,10 +53,13 @@ public class MyAccountsDashboard extends Dashboard<ArrayList<AccountItemDto>> {
         super(true, true);
     }
 
-    private void loadObject() {
+    private List<AccountItemDto> loadObject() {
+        List<AccountItemDto> accounts = new ArrayList<AccountItemDto>();
 
+        return accounts;
     }
 
+    @Deprecated
     private List<SimpleAccountDto> loadAccounts(PrismObject<UserType> prismUser) {
         List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
@@ -66,7 +69,6 @@ public class MyAccountsDashboard extends Dashboard<ArrayList<AccountItemDto>> {
         for (ObjectReferenceType reference : references) {
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
             try {
-
                 Collection<SelectorOptions<GetOperationOptions>> options =
                         SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
@@ -78,7 +80,6 @@ public class MyAccountsDashboard extends Dashboard<ArrayList<AccountItemDto>> {
                 if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
                     //showResult(OperationResult.createOperationResult(fetchResult));
                 }
-
 
                 ResourceType resource = accountType.getResource();
                 String resourceName = WebMiscUtil.getName(resource);

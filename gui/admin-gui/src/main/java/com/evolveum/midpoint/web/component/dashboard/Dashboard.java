@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.component.dashboard;
 
 import com.evolveum.midpoint.web.page.PageBase;
+import org.apache.wicket.Component;
 
 import java.io.Serializable;
 
@@ -31,6 +32,8 @@ import java.io.Serializable;
 public class Dashboard<T extends Serializable> implements Serializable {
 
     private static final int MAX_RELOAD_ATTEMPTS = 10;
+
+    private DashboardPanel dashboardPanel;
     private int reloadAttempts;
 
     private boolean showMinimize;
@@ -95,8 +98,7 @@ public class Dashboard<T extends Serializable> implements Serializable {
     }
 
     protected PageBase getPageBase() {
-        //todo implement
-        return null;
+        return dashboardPanel.getBasePage();
     }
 
     public void recordAttempt() {
