@@ -87,7 +87,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 		hasRun = true;
 
         if ("L1".equals(id)) {
-            PrismProperty<Boolean> l1flag = (PrismProperty<Boolean>) task.getExtension(L1_FLAG_QNAME);
+            PrismProperty<Boolean> l1flag = task.getExtension(L1_FLAG_QNAME);
 
             if (l1flag == null || l1flag.getRealValue() == false) {
 
@@ -128,7 +128,7 @@ public class MockSingleTaskHandler implements TaskHandler {
             LOGGER.info("L3 handler, simply exiting. Progress = " + progress);
         } else if ("WFS".equals(id)) {
 
-            PrismProperty<Boolean> wfsFlag = (PrismProperty<Boolean>) task.getExtension(WFS_FLAG_QNAME);
+            PrismProperty<Boolean> wfsFlag = task.getExtension(WFS_FLAG_QNAME);
 
             if (wfsFlag == null || wfsFlag.getRealValue() == false) {
 

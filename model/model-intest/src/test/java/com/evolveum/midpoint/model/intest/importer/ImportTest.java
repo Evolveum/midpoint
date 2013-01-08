@@ -414,7 +414,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 //		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 180x1 sec)", task1AsType.getName());
 		
 		Task task1 = taskManager.createTaskInstance(task1AsPrism, result);
-        PrismProperty<Integer> delayProp = (PrismProperty<Integer>) task1.getExtension(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
+        PrismProperty<Integer> delayProp = task1.getExtension(new QName(NoOpTaskHandler.EXT_SCHEMA_URI, "delay"));
         assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
 	}

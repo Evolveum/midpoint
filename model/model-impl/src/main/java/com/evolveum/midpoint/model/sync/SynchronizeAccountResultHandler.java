@@ -135,7 +135,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{} {} from {}",new Object[] {
+			LOGGER.trace("{} starting for {} from {}",new Object[] {
 					getProcessShortNameCapitalized(), accountShadow,resource.asPrismObject()});
 		}
 
@@ -174,11 +174,6 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 				change.setCurrentShadow(accountShadow);
 			}
 
-// No need to log. The notification dispatcher will log it all right
-//			if (LOGGER.isDebugEnabled()) {
-//				LOGGER.trace("{}: going to call notification with: {}", getProcessShortNameCapitalized(), change.dump());
-//			}
-			
 			try {
 				change.checkConsistence();
 			} catch (RuntimeException ex) {
@@ -222,8 +217,8 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 			result.computeStatus();
 			// Everything OK, signal to continue
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("{} of {} finished, result: {}", new Object[]{
-						getProcessShortNameCapitalized(), accountShadow,result.dump()});
+				LOGGER.trace("{} finished for {} from {}, result: {}", new Object[]{
+						getProcessShortNameCapitalized(), accountShadow, resource, result.dump()});
 			}
 			return true;
 		} else {

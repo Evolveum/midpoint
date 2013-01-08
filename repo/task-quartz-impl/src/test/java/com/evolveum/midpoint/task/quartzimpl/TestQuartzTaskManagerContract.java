@@ -261,7 +261,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task001 = taskManager.getTask(taskOid(test), result);
         System.out.println("1st round: Task from repo: " + task001.dump());
 
-        PrismProperty<String> bigString001 = (PrismProperty<String>) task001.getExtension(bigStringQName);
+        PrismProperty<String> bigString001 = task001.getExtension(bigStringQName);
         assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
 
         // second round
@@ -278,7 +278,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task002 = taskManager.getTask(taskOid(test), result);
         System.out.println("2nd round: Task from repo: " + task002.dump());
 
-        PrismProperty<String> bigString002 = (PrismProperty<String>) task002.getExtension(bigStringQName);
+        PrismProperty<String> bigString002 = task002.getExtension(bigStringQName);
         assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -322,7 +322,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task001 = taskManager.getTask(taskOid(test), result);
         System.out.println("1st round: Task from repo: " + task001.dump());
 
-        PrismProperty<String> shipState001 = (PrismProperty<String>) task001.getExtension(shipStateQName);
+        PrismProperty<String> shipState001 = task001.getExtension(shipStateQName);
         assertEquals("Big string not retrieved correctly (1st round)", shipStateProperty.getRealValue(), shipState001.getRealValue());
 
         // second round
@@ -336,7 +336,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task002 = taskManager.getTask(taskOid(test), result);
         System.out.println("2nd round: Task from repo: " + task002.dump());
 
-        PrismProperty<String> bigString002 = (PrismProperty<String>) task002.getExtension(shipStateQName);
+        PrismProperty<String> bigString002 = task002.getExtension(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
 

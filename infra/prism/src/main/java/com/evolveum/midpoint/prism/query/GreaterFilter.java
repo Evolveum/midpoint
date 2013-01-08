@@ -52,7 +52,11 @@ public class GreaterFilter extends ComparativeFilter{
 			throws SchemaException {
 		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, type, prismContext, propertyName, realValue, equals);
 	}
-
+	
+	@Override
+	public GreaterFilter clone() {
+		return new GreaterFilter(getParentPath(), getDefinition(), getValues().get(0), isEquals());
+	}
 
 	@Override
 	public String dump() {
@@ -97,12 +101,6 @@ public class GreaterFilter extends ComparativeFilter{
 			sb.append("null\n");
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public ObjectFilter clone() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

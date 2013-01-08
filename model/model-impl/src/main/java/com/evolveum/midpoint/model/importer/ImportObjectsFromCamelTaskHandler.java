@@ -117,8 +117,8 @@ public class ImportObjectsFromCamelTaskHandler implements TaskHandler, Processor
 
         // Determine the input endpoint/route from task extension
 
-        PrismProperty<String> endpointProperty = (PrismProperty<String>) task.getExtension(ImportConstants.ENDPOINT_PROPERTY_NAME);
-        PrismProperty<String> routeProperty = (PrismProperty<String>) task.getExtension(ImportConstants.ROUTE_PROPERTY_NAME);
+        PrismProperty<String> endpointProperty = task.getExtension(ImportConstants.ENDPOINT_PROPERTY_NAME);
+        PrismProperty<String> routeProperty = task.getExtension(ImportConstants.ROUTE_PROPERTY_NAME);
 
         if (endpointProperty == null && routeProperty == null) {
             LOGGER.error("Import: Neither endpoint nor route specified");

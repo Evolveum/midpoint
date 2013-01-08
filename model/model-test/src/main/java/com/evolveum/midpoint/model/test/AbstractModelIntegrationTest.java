@@ -654,6 +654,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (accounts.isEmpty()) {
 			return;
 		}
+		LOGGER.error("Found shadow for "+username+" on "+resource+" while not expecting it:\n"+accounts.get(0).dump());
 		assert false : "Found shadow for "+username+" on "+resource+" while not expecting it: "+accounts;
 	}
 	

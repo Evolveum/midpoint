@@ -21,9 +21,11 @@
 package com.evolveum.midpoint.model.sync;
 
 import java.util.Collection;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,17 +36,21 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -63,6 +69,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -93,6 +100,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 public class ReconciliationTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/sync/reconciliation-handler-1";
+	public static final long DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL = 5 * 60 * 1000;
 
 	@Autowired(required = true)
 	private TaskManager taskManager;
@@ -137,12 +145,23 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID is missing in task extension");
 		}
+		
+		Long freshnessInterval = DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL;
+		PrismProperty<Long> freshnessIntervalProperty = task.getExtension(SynchronizationConstants.FRESHENESS_INTERVAL_PROPERTY_NAME);
+		if (freshnessIntervalProperty != null) {
+			PrismPropertyValue<Long> freshnessIntervalPropertyValue = freshnessIntervalProperty.getValue();
+			if (freshnessIntervalPropertyValue == null || freshnessIntervalPropertyValue.getValue() == null || 
+					freshnessIntervalPropertyValue.getValue() < 0) {
+				freshnessInterval = null;
+			}
+			freshnessInterval = freshnessIntervalPropertyValue.getValue();
+		}
 
 		try {
 			PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult);
 			
 			performResourceReconciliation(resource, task, opResult);
-			performShadowReconciliation(resource, task, opResult);
+			performShadowReconciliation(resource, freshnessInterval, task, opResult);
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
@@ -292,25 +311,37 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.computeStatus();
 	}
 	
-	private void performShadowReconciliation(final PrismObject<ResourceType> resource, final Task task, OperationResult result) throws SchemaException {
+	private void performShadowReconciliation(final PrismObject<ResourceType> resource, Long freshnessInterval, final Task task, OperationResult result) throws SchemaException {
 		// find accounts
 		
-		LOGGER.debug("Shadow reconciliation starting");
+		LOGGER.debug("Shadow reconciliation starting for {}, freshness interval {}", resource, freshnessInterval);
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
-
-		// TODO: search by timestamp
 		
-//		AndFilter andFilter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(AccountShadowType.class,
-//				AccountShadowType.F_RESOURCE_REF, prismContext, resourceOid));
-//		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
-
-		RefFilter refFilter = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid());
-		ObjectQuery query = ObjectQuery.createObjectQuery(refFilter);
+		ObjectFilter filter;
+		
+		if (freshnessInterval == null) {
+			filter = RefFilter.createReferenceEqual(AccountShadowType.class, AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid());
+		} else {
+			long timestamp = System.currentTimeMillis() - freshnessInterval;
+			XMLGregorianCalendar timestampCal = XmlTypeConverter.createXMLGregorianCalendar(timestamp);
+			LessFilter timestampFilter = LessFilter.createLessFilter(AccountShadowType.class, prismContext, 
+					AccountShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestampCal , true);
+			filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(AccountShadowType.class,
+					AccountShadowType.F_RESOURCE_REF, prismContext, resource.getOid()));
+		}
+		
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow recon query:\n{}", query.dump());
+		}
+		
+		final Holder<Long> countHolder = new Holder<Long>(0L);
 
 		Handler<PrismObject<AccountShadowType>> handler = new Handler<PrismObject<AccountShadowType>>() {
 			@Override
 			public void handle(PrismObject<AccountShadowType> shadow) {
 				reconcileShadow(shadow, resource, task);
+				countHolder.setValue(countHolder.getValue() + 1);
 			}
 		};
 		Utils.searchIterative(repositoryService, AccountShadowType.class, query, handler , BLOCK_SIZE, opResult);
@@ -319,7 +350,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		opResult.computeStatus();
 		
-		LOGGER.debug("Shadow reconciliation finished, result: {}", opResult.getStatus());
+		LOGGER.debug("Shadow reconciliation finished, processed {} shadows for {}, result: {}", 
+				new Object[]{countHolder.getValue(), resource, opResult.getStatus()});
 	}
 	
 	private void reconcileShadow(PrismObject<AccountShadowType> shadow, PrismObject<ResourceType> resource, Task task) {

@@ -24,6 +24,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -368,9 +369,9 @@ public interface Task extends Dumpable {
 	 * 
 	 * @return task extension
 	 */
-	public PrismContainer<?> getExtension();
+	public <C extends Containerable> PrismContainer<C> getExtension();
 	
-	public PrismProperty<?> getExtension(QName propertyName);
+	public <T> PrismProperty<T> getExtension(QName propertyName);
 	
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException;
 	

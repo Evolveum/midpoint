@@ -231,7 +231,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
         // Determine object class to import
         QName objectclass = null;
-        PrismProperty<QName> objectclassProperty = (PrismProperty<QName>) task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+        PrismProperty<QName> objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
         if (objectclassProperty != null) {
             objectclass = objectclassProperty.getValue().getValue();
         }

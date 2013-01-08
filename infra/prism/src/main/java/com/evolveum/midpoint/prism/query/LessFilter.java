@@ -53,6 +53,11 @@ public class LessFilter extends ComparativeFilter{
 			throws SchemaException {
 		return (LessFilter) createComparativeFilter(LessFilter.class, type, prismContext, propertyName, realValue, equals);
 	}
+	
+	@Override
+	public LessFilter clone() {
+		return new LessFilter(getParentPath(), getDefinition(), getValues().get(0), isEquals());
+	}
 
 	@Override
 	public String dump() {
@@ -97,12 +102,6 @@ public class LessFilter extends ComparativeFilter{
 			sb.append("null\n");
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public ObjectFilter clone() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

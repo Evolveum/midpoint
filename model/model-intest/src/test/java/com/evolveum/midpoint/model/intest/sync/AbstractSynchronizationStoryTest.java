@@ -544,8 +544,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	 * and all other accounts.
 	 */
 	@Test
-    public void test410DeleteDummyGreentAccount() throws Exception {
-		final String TEST_NAME = "test410DeleteDummyGreentAccount";
+    public void test410DeleteDummyGreenAccount() throws Exception {
+		final String TEST_NAME = "test410DeleteDummyGreenAccount";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -565,17 +565,17 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         displayThen(TEST_NAME);
         
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
-//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
+        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummy, task, result);
         
         assertNoDummyAccount(RESOURCE_DUMMY_GREEN_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
-//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyGreen, task, result);
+        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyGreen, task, result);
         
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNull("User wally is not gone", userWally);
         
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_WALLY_DUMMY_USERNAME);
-//        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
+        assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
         
         assertUsers(6 + getNumberOfExtraDummyUsers());
 	}
