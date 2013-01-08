@@ -27,6 +27,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.LessFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -47,6 +51,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.sql.Timestamp;
@@ -525,6 +530,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         syncSituationDeltas.add(syncSituationDelta);
 //        syncSituationDeltas.addAll(mod);
         
+        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        PropertyDelta syncTimestap = PropertyDelta.createModificationReplaceProperty(AccountShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirtModify.getDefinition(), timestamp);
+        syncSituationDeltas.add(syncTimestap);
+        
         repositoryService.modifyObject(AccountShadowType.class, account.getOid(), syncSituationDeltas, result);
         
         PrismObject<AccountShadowType> afterSecondModify = repositoryService.getObject(AccountShadowType.class, account.getOid(), result);
@@ -533,6 +542,16 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, afterSecondModifyType.getSynchronizationSituationDescription().size());
         description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals(null, description.getSituation());
+        
+//        PrismPropertyValue timestamp = new PrismPropertyValue(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis())); 
+        LessFilter filter = LessFilter.createLessFilter(null, afterSecondModify.findItem(AccountShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), timestamp, true);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        
+        List<PrismObject<AccountShadowType>> shadows = repositoryService.searchObjects(AccountShadowType.class, query, result);
+        AssertJUnit.assertNotNull(shadows);
+        AssertJUnit.assertEquals(1, shadows.size());
+        
+        System.out.println("shadow: " + shadows.get(0).dump() );
 //        AssertJUnit.assertNull(description.getChannel());
 //        AssertJUnit.assertEquals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC), description.getChannel());
     }

@@ -754,7 +754,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			}
 			if (deltaToMerge.valuesToDelete != null) {
 				mergeValuesToDelete(PrismValue.cloneValues(deltaToMerge.valuesToDelete));
-			}
+			} 
 		}
 		// We do not want to clean up the sets during merging (e.g. in removeValue methods) because the set
 		// may become empty and the a values may be added later. So just clean it up when all is done.

@@ -10,6 +10,10 @@ public abstract class ValueFilter extends ObjectFilter {
 	private ItemPath parentPath;
 	private ItemDefinition definition;
 	
+	public ValueFilter() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition){
 		this.parentPath = parentPath;
 		this.definition = definition;

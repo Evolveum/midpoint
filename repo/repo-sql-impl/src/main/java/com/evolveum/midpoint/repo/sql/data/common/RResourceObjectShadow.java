@@ -77,6 +77,7 @@ public class RResourceObjectShadow extends RObject {
     //attributes
     @QueryEntity(any = true)
     private RAnyContainer attributes;
+    @QueryAttribute
     private XMLGregorianCalendar synchronizationTimestamp;
 
     @Columns(columns = {

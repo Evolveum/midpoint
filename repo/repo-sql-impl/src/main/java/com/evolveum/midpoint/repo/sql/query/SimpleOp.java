@@ -32,7 +32,10 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.GreaterFilter;
+import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
@@ -66,7 +69,7 @@ import java.util.List;
 public class SimpleOp extends Op {
 
 	private static enum Operation {
-		EQUAL, SUBSTRING, REF
+		EQUAL, SUBSTRING, REF, LESS, GREATER
 	}
 
 	private static final Trace LOGGER = TraceManager.getTrace(SimpleOp.class);
@@ -82,6 +85,10 @@ public class SimpleOp extends Op {
 			return Operation.SUBSTRING;
 		} else if (filterPart instanceof RefFilter) {
 			return Operation.REF;
+		} else if (filterPart instanceof GreaterFilter) {
+			return Operation.GREATER;
+		} else if (filterPart instanceof LessFilter) {
+			return Operation.LESS;
 		}
 
 		throw new QueryException("Unknown filter type '" + filterPart.getClass().getSimpleName() + "'.");
@@ -120,9 +127,10 @@ public class SimpleOp extends Op {
 			Operation operation = getOperationType(valueFilter);
 			Object filterValue = null;
 			switch (operation) {
-
+			case LESS:
+			case GREATER:
 			case EQUAL:
-				EqualsFilter equalFilter = (EqualsFilter) valueFilter;
+				PropertyValueFilter equalFilter = (PropertyValueFilter) valueFilter;
 				PrismValue val = equalFilter.getValues().get(0);
 				filterValue = ((PrismPropertyValue) val).getValue();
 				if (conditionItem.isPolyString) {
@@ -216,6 +224,21 @@ public class SimpleOp extends Op {
 			} else {
 				return Restrictions.like(name, "%" + testedValue + "%").ignoreCase();
 			}
+		case LESS:
+			LessFilter less = (LessFilter) filter;
+			if (pushNot) {
+				return less.isEquals() ? Restrictions.not(Restrictions.le(name, testedValue)) : Restrictions.not(Restrictions.lt(name, testedValue));
+			} else {
+				return less.isEquals() ? Restrictions.le(name, testedValue) : Restrictions.lt(name, testedValue);
+			}
+		case GREATER:
+			GreaterFilter greater = (GreaterFilter) filter;
+			if (pushNot) {
+				return greater.isEquals() ? Restrictions.not(Restrictions.ge(name, testedValue)) : Restrictions.not(Restrictions.gt(name, testedValue));
+			} else {
+				return greater.isEquals() ? Restrictions.ge(name, testedValue) : Restrictions.gt(name, testedValue);
+			}
+			
 		}
 
 		throw new IllegalStateException("Couldn't create base criteria for filter '"

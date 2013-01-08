@@ -1,35 +1,33 @@
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
-import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.sun.tools.xjc.reader.xmlschema.parser.SchemaConstraintChecker;
 
 public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3284478412180258355L;
+
+	EqualsFilter(){	
+	}
+	
 	EqualsFilter(ItemPath parentPath, ItemDefinition definition, List<PrismValue> values) {
 		super(parentPath, definition, values);
 	}
@@ -41,7 +39,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	EqualsFilter(ItemPath parentPath, ItemDefinition definition, Element expression) {
 		super(parentPath, definition, expression);
 	}
-
+	
 	public static EqualsFilter createEqual(ItemPath path, ItemDefinition itemDef, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(path, itemDef, value);
@@ -58,53 +56,22 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}
 
 	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition item, Object realValue) {
-
-		if (realValue == null){
-			return createEqual(parentPath, item, new PrismPropertyValue(null));
-		}
-		if (List.class.isAssignableFrom(realValue.getClass())) {
-			List<PrismValue> prismValues = new ArrayList<PrismValue>();
-			for (Object o : (List) realValue) {
-				if (o instanceof PrismPropertyValue) {
-					prismValues.add((PrismPropertyValue) o);
-				} else {
-					PrismPropertyValue val = new PrismPropertyValue(o);
-					prismValues.add(val);
-				}
-			}
-			return createEqual(parentPath, item, prismValues);
-		}
-		PrismPropertyValue value = new PrismPropertyValue(realValue);
-		return createEqual(parentPath, item, value);
-	}
-
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, item, realValue);
+	}	
 	
 	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
 			QName propertyName, PrismValue... values) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
-					+ containerDef);
-		}
-
-		return createEqual(parentPath, itemDef, values);
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, propertyName, values);
 	}
 
 	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
 			QName propertyName, Object realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
-					+ containerDef);
-		}
-
-		return createEqual(parentPath, itemDef, realValue);
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, propertyName, realValue);
 	}
 
 	public static EqualsFilter createEqual(Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)
 			throws SchemaException {
-		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createEqual(null, objDef, propertyName, realValue);
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, type, prismContext, propertyName, realValue);
 	}
 	
 	@Override
