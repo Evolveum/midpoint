@@ -30,7 +30,8 @@ import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,7 +44,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 	
-	private List<ResourceObjectChangeListener> listeners = new ArrayList<ResourceObjectChangeListener>();
+	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<ResourceObjectChangeListener>();
+	private List<ResourceOperationListener> operationListeners = new ArrayList<ResourceOperationListener>();
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
 	
@@ -52,12 +54,27 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 */
 	@Override
 	public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
-		if (listeners.contains(listener)) {
+		if (changeListeners.contains(listener)) {
 			LOGGER.warn(
 					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
 					listener);
 		} else {
-			listeners.add(listener);
+			changeListeners.add(listener);
+		}
+
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#registerNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
+	 */
+	@Override
+	public synchronized void registerNotificationListener(ResourceOperationListener listener) {
+		if (operationListeners.contains(listener)) {
+			LOGGER.warn(
+					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
+					listener);
+		} else {
+			operationListeners.add(listener);
 		}
 
 	}
@@ -66,8 +83,16 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#unregisterNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
 	 */
 	@Override
+	public synchronized void unregisterNotificationListener(ResourceOperationListener listener) {
+		changeListeners.remove(listener);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#unregisterNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
+	 */
+	@Override
 	public synchronized void unregisterNotificationListener(ResourceObjectChangeListener listener) {
-		listeners.remove(listener);
+		operationListeners.remove(listener);
 	}
 
 
@@ -84,8 +109,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		
 		if (CompiletimeConfig.CONSISTENCY_CHECKS) change.checkConsistence();
 		
-		if ((null != listeners) && (!listeners.isEmpty())) {
-			for (ResourceObjectChangeListener listener : listeners) {
+		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+			for (ResourceObjectChangeListener listener : changeListeners) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyChange(change, task, parentResult);
@@ -103,28 +128,28 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription,
+	public void notifyFailure(ResourceOperationFailureDescription failureDescription,
 			Task task, OperationResult parentResult) {
 		Validate.notNull(failureDescription, "Failure description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("SYNCHRONIZATION failure notification\n{} ", failureDescription.dump());
+			LOGGER.trace("Resource operation failure notification\n{} ", failureDescription.dump());
 		}
 		
 		failureDescription.checkConsistence();
 		
-		if ((null != listeners) && (!listeners.isEmpty())) {
-			for (ResourceObjectChangeListener listener : listeners) {
+		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+			for (ResourceOperationListener listener : operationListeners) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyFailure(failureDescription, task, parentResult);
 				} catch (RuntimeException e) {
-					LOGGER.error("Exception {} thrown by object failure listener {}: {}", new Object[]{
+					LOGGER.error("Exception {} thrown by operation failure listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
 				}
 			}
 		} else {
-			LOGGER.warn("Change notification received but listener list is empty, there is nobody to get the message");
+			LOGGER.debug("Operation failure received but listener list is empty, there is nobody to get the message");
 		}
 	}
 

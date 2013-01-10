@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowFailureDescription implements Dumpable, DebugDumpable {
+public class ResourceOperationFailureDescription implements Dumpable, DebugDumpable {
 
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private PrismObject<? extends ResourceObjectShadowType> currentShadow;

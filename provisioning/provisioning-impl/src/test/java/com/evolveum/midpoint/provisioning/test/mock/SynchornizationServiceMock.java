@@ -15,7 +15,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -28,13 +29,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 @Service(value = "syncServiceMock")
-public class SynchornizationServiceMock implements ResourceObjectChangeListener {
+public class SynchornizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchornizationServiceMock.class);
 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
-	private ResourceObjectShadowFailureDescription lastFailure = null;
+	private ResourceOperationFailureDescription lastFailure = null;
 	private ObjectChecker changeChecker;
 
 	@Autowired(required=true)
@@ -43,13 +44,15 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 	RepositoryService repositoryService;
 	
 	@PostConstruct
-	public void registerForResourceObjectChangeNotifications() {
-		notificationManager.registerNotificationListener(this);
+	public void register() {
+		notificationManager.registerNotificationListener((ResourceObjectChangeListener)this);
+		notificationManager.registerNotificationListener((ResourceOperationListener)this);
 	}
 
 	@PreDestroy
-	public void unregisterForResourceObjectChangeNotifications() {
-		notificationManager.unregisterNotificationListener(this);
+	public void unregister() {
+		notificationManager.unregisterNotificationListener((ResourceObjectChangeListener)this);
+		notificationManager.unregisterNotificationListener((ResourceOperationListener)this);
 	}
 	
 	public ObjectChecker getChangeChecker() {
@@ -133,7 +136,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener 
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void notifyFailure(ResourceObjectShadowFailureDescription failureDescription,
+	public void notifyFailure(ResourceOperationFailureDescription failureDescription,
 			Task task, OperationResult parentResult) {
 		LOGGER.debug("Notify failure mock called with {}", failureDescription);
 
