@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -42,7 +43,8 @@ import org.springframework.context.ApplicationContextAware;
 public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(TestSqlRepositoryBeanPostProcessor.class);
-    private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabase";
+    private static final String TRUNCATE_FUNCTION = "cleanupTestDatabase";
+    private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabaseProc";
 
     private ApplicationContext context;
 
@@ -73,8 +75,16 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
         try {
             session.beginTransaction();
 
-            Query query = session.createSQLQuery("select " + TRUNCATE_PROCEDURE + "();");
-            query.uniqueResult();
+            Query query;
+            if (StringUtils.containsIgnoreCase(factory.getSqlConfiguration().getHibernateDialect(), "oracle")) {
+                LOGGER.info("Using oracle truncate procedure.");
+                query = session.createSQLQuery("{ call" + TRUNCATE_PROCEDURE + "() }");
+                query.executeUpdate();
+            } else {
+                LOGGER.info("Using truncate function.");
+                query = session.createSQLQuery("select " + TRUNCATE_FUNCTION + "();");
+                query.uniqueResult();
+            }
 
             session.getTransaction().commit();
         } catch (Exception ex) {

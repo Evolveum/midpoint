@@ -31,6 +31,7 @@
 		<appender-ref ref="X" />
 	</root>
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
+    <logger name="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="com.evolveum.midpoint" level="TRACE" />
 </configuration>
