@@ -58,6 +58,7 @@ public class RSystemConfiguration extends RObject {
     private String logging;
     private RObjectReference defaultUserTemplateRef;
     private String connectorFramework;
+    private String notificationConfiguration;
 
     @Lob
     @Type(type = "org.hibernate.type.TextType")
@@ -109,6 +110,13 @@ public class RSystemConfiguration extends RObject {
         return modelHooks;
     }
 
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
+    public String getNotificationConfiguration() {
+        return notificationConfiguration;
+    }
+
+
     @Embedded
     public RPolyString getName() {
         return name;
@@ -146,6 +154,10 @@ public class RSystemConfiguration extends RObject {
         this.modelHooks = modelHooks;
     }
 
+    public void setNotificationConfiguration(String notificationConfiguration) {
+        this.notificationConfiguration = notificationConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -167,6 +179,7 @@ public class RSystemConfiguration extends RObject {
             return false;
         if (logging != null ? !logging.equals(that.logging) : that.logging != null) return false;
         if (modelHooks != null ? !modelHooks.equals(that.modelHooks) : that.modelHooks != null) return false;
+        if (notificationConfiguration != null ? !notificationConfiguration.equals(that.notificationConfiguration) : that.notificationConfiguration != null) return false;
 
         return true;
     }
@@ -179,6 +192,7 @@ public class RSystemConfiguration extends RObject {
         result = 31 * result + (globalPasswordPolicyRef != null ? globalPasswordPolicyRef.hashCode() : 0);
         result = 31 * result + (orgRootRef != null ? orgRootRef.hashCode() : 0);
         result = 31 * result + (modelHooks != null ? modelHooks.hashCode() : 0);
+        result = 31 * result + (notificationConfiguration != null ? notificationConfiguration.hashCode() : 0);
         result = 31 * result + (logging != null ? logging.hashCode() : 0);
         result = 31 * result + (connectorFramework != null ? connectorFramework.hashCode() : 0);
         return result;
@@ -214,6 +228,8 @@ public class RSystemConfiguration extends RObject {
                     repo.getLogging(), LoggingConfigurationType.class, prismContext));
             jaxb.setModelHooks(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_MODEL_HOOKS),
                     repo.getModelHooks(), ModelHooksType.class, prismContext));
+            jaxb.setNotificationConfiguration(RUtil.toJAXB(SystemConfigurationType.class, new ItemPath(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION),
+                    repo.getNotificationConfiguration(), NotificationConfigurationType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -252,6 +268,7 @@ public class RSystemConfiguration extends RObject {
             repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings(), prismContext));
             repo.setLogging(RUtil.toRepo(jaxb.getLogging(), prismContext));
             repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks(), prismContext));
+            repo.setNotificationConfiguration(RUtil.toRepo(jaxb.getNotificationConfiguration(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

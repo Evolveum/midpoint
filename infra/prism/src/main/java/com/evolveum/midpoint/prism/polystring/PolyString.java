@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.io.Serializable;
 
@@ -192,5 +193,12 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
 		return sb.toString();
 	}
 
+    public static String getOrig(PolyString s) {
+        return s != null ? s.getOrig() : null;
+    }
+
+    public static String getOrig(PolyStringType s) {
+        return s != null ? s.getOrig() : null;
+    }
 	
 }

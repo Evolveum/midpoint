@@ -37,6 +37,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -238,6 +239,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
 		dummyAuditService.clear();
+        dummyNotifier.clearRecords();
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -279,7 +281,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, UserType.class);
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
-        
+
+        // Check notifications
+        display("Notifier", dummyNotifier);
+        assertEquals("Invalid number of notification records", 1, dummyNotifier.getRecords().size());
+        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords().get(0);
+        assertEquals("Wrong user in notification record", USER_JACK_OID, record.getRequest().getUser().getOid());
+        assertEquals("Wrong number of account OIDs in notification record", 1, record.getAccountsOids().size());
+        assertEquals("Wrong account OID in notification record", accountOid, record.getAccountsOids().iterator().next());
 	}
 	
 	@Test

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2012 Evolveum
+  ~ Copyright (c) 2013 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -17,14 +17,14 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~
-  ~ Portions Copyrighted 2012 [name of copyright owner]
+  ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Workflow</name>
+    <name>midPoint Notifications</name>
     <groupId>com.evolveum.midpoint.model</groupId>
-    <artifactId>workflow</artifactId>
+    <artifactId>notifications</artifactId>
     <packaging>jar</packaging>
     <parent>
         <artifactId>model</artifactId>
@@ -36,11 +36,11 @@
         <url>http://www.evolveum.com</url>
     </organization>
     <repositories>
-<repository>
-                        <id>evolveum</id>
-                        <name>repo</name>
-                        <url>http://repo.evolveum.com/repo</url>
-                </repository>
+        <repository>
+            <id>evolveum</id>
+            <name>repo</name>
+            <url>http://repo.evolveum.com/repo</url>
+        </repository>
     </repositories>
     <licenses>
         <license>
@@ -66,11 +66,6 @@
             <version>2.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-impl</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
             <version>2.1.1-SNAPSHOT</version>
@@ -91,19 +86,8 @@
             <version>2.1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.activiti</groupId>
-            <artifactId>activiti-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.activiti</groupId>
-            <artifactId>activiti-spring</artifactId>
-        </dependency>
-        <!-- this one is needed to get SQL configuration from the repository -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-email</artifactId>
         </dependency>
         <!-- Test -->
         <dependency>
@@ -111,66 +95,66 @@
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>system-init</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-test-util</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>task-quartz-impl</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-impl</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <artifactId>provisioning-impl</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.2</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.tools</groupId>-->
+            <!--<artifactId>test-ng</artifactId>-->
+            <!--<version>2.1.1-SNAPSHOT</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.mockito</groupId>-->
+            <!--<artifactId>mockito-all</artifactId>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.springframework</groupId>-->
+            <!--<artifactId>spring-test</artifactId>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.repo</groupId>-->
+            <!--<artifactId>system-init</artifactId>-->
+            <!--<version>2.1.1-SNAPSHOT</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>jcl-over-slf4j</artifactId>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.slf4j</groupId>-->
+            <!--<artifactId>log4j-over-slf4j</artifactId>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.repo</groupId>-->
+            <!--<artifactId>repo-test-util</artifactId>-->
+            <!--<version>2.1.1-SNAPSHOT</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.repo</groupId>-->
+            <!--<artifactId>task-quartz-impl</artifactId>-->
+            <!--<version>2.1.1-SNAPSHOT</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.repo</groupId>-->
+            <!--<artifactId>audit-impl</artifactId>-->
+            <!--<version>2.1.1-SNAPSHOT</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.provisioning</groupId>-->
+            <!--<artifactId>provisioning-impl</artifactId>-->
+            <!--<version>2.1.1-SNAPSHOT</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>junit</groupId>-->
+            <!--<artifactId>junit</artifactId>-->
+            <!--<version>4.8.2</version>-->
+        <!--</dependency>-->
     </dependencies>
     <profiles>
         <profile>

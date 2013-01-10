@@ -58,5 +58,6 @@
 		<module>model-impl</module>
 		<module>model-intest</module>
         <module>workflow</module>
+        <module>notifications</module>
 	</modules>
 </project>

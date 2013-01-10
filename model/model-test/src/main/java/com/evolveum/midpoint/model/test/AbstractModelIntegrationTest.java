@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.schema.*;
@@ -165,6 +166,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected PrismContext prismContext;
+
+    @Autowired(required = false)                    // not strictly required, because it is currently used only in model-intest (but this class is used in more modules)
+    protected DummyNotifier dummyNotifier;
 	
 	protected DummyAuditService dummyAuditService;
 	

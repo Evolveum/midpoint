@@ -5271,6 +5271,14 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A configuration for user notifications. In future, it might be overriden e.g. at a level
+                                of a user.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     
                 </xsd:sequence>
             </xsd:extension>
@@ -5799,6 +5807,138 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-            
+
+    <xsd:complexType name="NotificationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A configuration for user notifications. It defines how should be notifications created in various
+                situations, e.g. when an account is created or removed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entry" type="tns:NotificationConfigurationEntryType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
+
+    <xsd:complexType name="NotificationConfigurationEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                One entry of a configuration of notifications.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="situation" type="xsd:QName" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        e.g. c:accountCreation, c:accountModification, c:workItemCreation, ...
+                        If there are more than one, the entry is applied if any of them matches.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="situationQualifier" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information supplementing the situation specification, e.g. a resource on which an account creation is to be watched.
+                        Not implemented yet.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="notifier" type="tns:NotifierConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Notifier(s) to be used, along with their parameters.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotifierConfigurationType">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName" />
+            <xsd:element name="parameter" type="tns:NotifierConfigurationParameterType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotifierConfigurationParameterType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to send mail notifications.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of a particular mail server host. If there are more of them, they are tried
+                        one after another. If there is none, mail notifications are not sent.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What to put into "From" field of mail messages (unless overriden by specific situation).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailServerConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of a particular mail server host.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="host" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mail server host (FQDN or IP address).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="port" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mail server port (25 by default).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="username" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the mail server. (Not implemented yet.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="password" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the mail server. (Not implemented yet.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tls" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to use SSL/TLS. (Not implemented yet.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>
 
