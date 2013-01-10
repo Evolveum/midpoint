@@ -190,6 +190,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".test200AddAccountNullAttributes");
+		syncServiceMock.reset();
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -208,7 +209,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 			// This is expected
 			display("Expected exception", e);
 		}
-
+		
+		syncServiceMock.assertNotifyFailureOnly();
 	}
 	
 	@Test
@@ -217,6 +219,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".test201AddAccountEmptyAttributes");
+		syncServiceMock.reset();
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -235,7 +238,8 @@ public class TestDummyNegative extends AbstractDummyTest {
 			// This is expected
 			display("Expected exception", e);
 		}
-
+		
+		syncServiceMock.assertNotifyFailureOnly();
 	}
 	
 	@Test
@@ -244,6 +248,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".test210AddAccountNoObjectclass");
+		syncServiceMock.reset();
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -263,6 +268,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			display("Expected exception", e);
 		}
 
+		syncServiceMock.assertNotifyFailureOnly();
 	}
 	
 	@Test
@@ -271,6 +277,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".test220AddAccountNoResourceRef");
+		syncServiceMock.reset();
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -290,6 +297,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			display("Expected exception", e);
 		}
 
+		syncServiceMock.assertNotifyFailureOnly();
 	}
 	
 	@Test
@@ -298,6 +306,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".test220AddAccountNoResourceRef");
+		syncServiceMock.reset();
 
 		AccountShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, AccountShadowType.class);
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
@@ -318,6 +327,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			display("Expected exception", e);
 		}
 
+		syncServiceMock.assertNotifyFailureOnly();
 	}
 
 

@@ -718,6 +718,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test110AddAccount");
+		syncServiceMock.reset();
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 		account.asPrismObject().checkConsistence();
@@ -739,6 +740,8 @@ public class TestDummy extends AbstractDummyTest {
 				.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
 //		assertEquals("will", accountType.getName());
+		
+		syncServiceMock.assertNotifySuccessOnly();
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_WILL_OID, null, result).asObjectable();
@@ -774,6 +777,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test101AddAccountWithoutName");
+		syncServiceMock.reset();
 
 		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_MORGAN_FILENAME, AccountShadowType.class);
 
@@ -792,6 +796,8 @@ public class TestDummy extends AbstractDummyTest {
 				.getObject(AccountShadowType.class, ACCOUNT_MORGAN_OID, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
 //		assertEquals("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
+		
+		syncServiceMock.assertNotifySuccessOnly();
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_MORGAN_OID, null, result).asObjectable();
@@ -1102,6 +1108,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
 		assertTrue(dummyAccount.isEnabled());
+		
+		syncServiceMock.reset();
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_DISABLE_ACCOUNT,
 				ObjectModificationType.class);
@@ -1123,6 +1131,8 @@ public class TestDummy extends AbstractDummyTest {
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
 		assertFalse(dummyAccount.isEnabled());
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 
 	@Test
@@ -1140,6 +1150,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
 		assertFalse("Account is not disabled", dummyAccount.isEnabled());
+		
+		syncServiceMock.reset();
 
 		ObjectModificationType objectModification = unmarshallJaxbFromFile(FILENAME_ENABLE_ACCOUNT,
 				ObjectModificationType.class);
@@ -1161,6 +1173,8 @@ public class TestDummy extends AbstractDummyTest {
 		// check if activation was changed
 		dummyAccount = dummyResource.getAccountByUsername("will");
 		assertTrue(dummyAccount.isEnabled());
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 
 	@Test
@@ -1169,6 +1183,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test123ModifyObjectReplace");
+		
+		syncServiceMock.reset();
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, 
 				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_FULLNAME_PATH, prismContext, "Pirate Will Turner");
@@ -1190,7 +1206,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong fullname", "Pirate Will Turner", dummyAccount.getAttributeValue("fullname"));
 		
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME, "Pirate Will Turner");
-
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 
 	@Test
@@ -1199,6 +1216,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test124ModifyObjectAddPirate");
+		syncServiceMock.reset();
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
 				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Pirate");
@@ -1217,6 +1235,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate");
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 	
 	@Test
@@ -1225,6 +1245,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test125ModifyObjectAddCaptain");
+		syncServiceMock.reset();
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
 				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Captain");
@@ -1243,6 +1264,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate", "Captain");
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 
 	@Test
@@ -1251,6 +1274,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test126ModifyObjectDeletePirate");
+		syncServiceMock.reset();
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class, 
 				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Pirate");
@@ -1269,6 +1293,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 	
 	/**
@@ -1281,6 +1307,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test127ModifyObjectAddCaptainAgain");
+		syncServiceMock.reset();
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
 				ACCOUNT_WILL_OID, RESOURCE_DUMMY_ATTR_TITLE_PATH, prismContext, "Captain");
@@ -1299,6 +1326,8 @@ public class TestDummy extends AbstractDummyTest {
 		delta.checkConsistence();
 		// check if attribute was changed
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
+		
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 
 	@Test
@@ -1309,6 +1338,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test131AddScript");
+		syncServiceMock.reset();
 
 		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
 
@@ -1331,6 +1361,8 @@ public class TestDummy extends AbstractDummyTest {
 				result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "william", accountType.getName());
 //		assertEquals("william", accountType.getName());
+		
+		syncServiceMock.assertNotifySuccessOnly();
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_SCRIPT_OID, null, result).asObjectable();
@@ -1369,6 +1401,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test500AddProtectedAccount");
+		syncServiceMock.reset();
 
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
@@ -1396,6 +1429,8 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("addObject result (expected failure)", result);
 		assertFailure(result);
+		
+		syncServiceMock.assertNotifyFailureOnly();
 
 //		checkConsistency();
 	}
@@ -1430,6 +1465,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test502ModifyProtectedAccountShadow");
+		syncServiceMock.reset();
 
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -1453,6 +1489,8 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("modifyObject result (expected failure)", result);
 		assertFailure(result);
+		
+		syncServiceMock.assertNotifyFailureOnly();
 
 //		checkConsistency();
 	}
@@ -1464,6 +1502,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test503DeleteProtectedAccountShadow");
+		syncServiceMock.reset();
 
 		// WHEN
 		try {
@@ -1477,6 +1516,8 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("deleteObject result (expected failure)", result);
 		assertFailure(result);
+		
+		syncServiceMock.assertNotifyFailureOnly();
 
 //		checkConsistency();
 	}

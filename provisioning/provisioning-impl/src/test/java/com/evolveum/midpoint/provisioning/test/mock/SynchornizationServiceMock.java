@@ -263,7 +263,20 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	public void assertNoNotifyChange() {
 		assert !wasCalledNotifyChange() : "Expected that no notifyChange will be called but it was";
 	}
+	
+	public void assertNotifySuccessOnly() {
+		assert wasSuccess : "Expected that notifySuccess will be called but it was not";		
+		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
+		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+	}
 
+	public void assertNotifyFailureOnly() {
+		assert wasFailure : "Expected that notifyFailure will be called but it was not";				
+		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
+		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
+		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
