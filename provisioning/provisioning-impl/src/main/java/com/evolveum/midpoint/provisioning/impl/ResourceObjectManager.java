@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
@@ -286,7 +286,7 @@ public class ResourceObjectManager {
 						}
 						if (conflictedShadow != null){
 							Task task = taskManager.createTaskInstance();
-							ResourceOperationFailureDescription failureDescription = createResourceFailureDescription(conflictedShadow, resourceType, parentResult);
+							ResourceOperationDescription failureDescription = createResourceFailureDescription(conflictedShadow, resourceType, parentResult);
 							changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
 							deleteConflictedShadowFromRepo(conflictedShadow, parentResult);
 							}
@@ -327,8 +327,8 @@ public class ResourceObjectManager {
 		
 	}
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private ResourceOperationFailureDescription createResourceFailureDescription(ResourceObjectShadowType conflictedShadow, ResourceType resource, OperationResult parentResult){
-		ResourceOperationFailureDescription failureDesc = new ResourceOperationFailureDescription();
+	private ResourceOperationDescription createResourceFailureDescription(ResourceObjectShadowType conflictedShadow, ResourceType resource, OperationResult parentResult){
+		ResourceOperationDescription failureDesc = new ResourceOperationDescription();
 		PrismObject<AccountShadowType> account = conflictedShadow.asPrismObject();
 		failureDesc.setCurrentShadow(account);
 		ObjectDelta objectDelta = null;

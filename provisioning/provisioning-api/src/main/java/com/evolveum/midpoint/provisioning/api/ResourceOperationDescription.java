@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -36,13 +37,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  *
  * @author Radovan Semancik
  */
-public class ResourceOperationFailureDescription implements Dumpable, DebugDumpable {
+public class ResourceOperationDescription implements Dumpable, DebugDumpable {
 
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
     private PrismObject<? extends ResourceObjectShadowType> currentShadow;
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
     private OperationResult result;
+    private boolean asynchronous = false;
+    private int attemptNumber = 0;
 
     /**
      * The operation that was about to execute and that has failed.
@@ -94,6 +97,33 @@ public class ResourceOperationFailureDescription implements Dumpable, DebugDumpa
 		this.result = result;
 	}
 
+	/**
+	 * True if the operation is asynchronous. I.e. true if the operation
+	 * cannot provide direct return value and therefore the invocation of
+	 * the listener is the only way how to pass operation return value to
+	 * the upper layers.
+	 * 
+	 * This may be useful e.g. for decided whether log the message and what
+	 * log level to use (it can be assumed that the error gets logged at least
+	 * once for synchronous operations, but this may be the only chance to 
+	 * properly log it for asynchronous operations).
+	 */
+	public boolean isAsynchronous() {
+		return asynchronous;
+	}
+
+	public void setAsynchronous(boolean asynchronous) {
+		this.asynchronous = asynchronous;
+	}
+
+	public int getAttemptNumber() {
+		return attemptNumber;
+	}
+
+	public void setAttemptNumber(int attemptNumber) {
+		this.attemptNumber = attemptNumber;
+	}
+
 	public void checkConsistence() {
     	if (resource == null) {
     		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
@@ -121,9 +151,12 @@ public class ResourceOperationFailureDescription implements Dumpable, DebugDumpa
 
 	@Override
 	public String toString() {
-		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
+		return "ResourceOperationDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", sourceChannel=" + sourceChannel
-				+ ", resource=" + resource + ", result=" + result + ")";
+				+ ", resource=" + resource + 
+				(asynchronous ? ", ASYNC" : "") +
+				(attemptNumber != 0 ? ", attemptNumber="+attemptNumber : "") +
+				", result=" + result + ")";
 	}
     
     @Override
@@ -160,16 +193,15 @@ public class ResourceOperationFailureDescription implements Dumpable, DebugDumpa
 		
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
-		
 		sb.append("objectDelta:");
 		if (objectDelta == null) {
 			sb.append(" null");
 		} else {
 			sb.append(objectDelta.debugDump(indent+2));
 		}
+		
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
-
 		sb.append("currentShadow:");
 		if (currentShadow == null) {
 			sb.append(" null\n");
@@ -177,9 +209,17 @@ public class ResourceOperationFailureDescription implements Dumpable, DebugDumpa
 			sb.append("\n");
 			sb.append(currentShadow.debugDump(indent+2));
 		}
-		sb.append("\n");
-		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "Asynchronous", indent+1);
+		sb.append(asynchronous);
+
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "Attempt number", indent+1);
+		sb.append(attemptNumber);
+
+		sb.append("\n");
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);		
 		sb.append("result:");
 		if (result == null) {
 			sb.append(" null\n");

@@ -30,7 +30,7 @@ import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -128,9 +128,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void notifyFailure(ResourceOperationFailureDescription failureDescription,
+	public void notifyFailure(ResourceOperationDescription failureDescription,
 			Task task, OperationResult parentResult) {
-		Validate.notNull(failureDescription, "Failure description of resource object shadow must not be null.");
+		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Resource operation failure notification\n{} ", failureDescription.dump());
@@ -150,6 +150,64 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			}
 		} else {
 			LOGGER.debug("Operation failure received but listener list is empty, there is nobody to get the message");
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void notifySuccess(ResourceOperationDescription failureDescription,
+			Task task, OperationResult parentResult) {
+		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Resource operation success notification\n{} ", failureDescription.dump());
+		}
+		
+		failureDescription.checkConsistence();
+		
+		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+			for (ResourceOperationListener listener : operationListeners) {
+				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
+				try {
+					listener.notifySuccess(failureDescription, task, parentResult);
+				} catch (RuntimeException e) {
+					LOGGER.error("Exception {} thrown by operation success listener {}: {}", new Object[]{
+							e.getClass(), listener.getName(), e.getMessage(), e });
+				}
+			}
+		} else {
+			LOGGER.debug("Operation success received but listener list is empty, there is nobody to get the message");
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void notifyInProgress(ResourceOperationDescription failureDescription,
+			Task task, OperationResult parentResult) {
+		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Resource operation in-progress notification\n{} ", failureDescription.dump());
+		}
+		
+		failureDescription.checkConsistence();
+		
+		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+			for (ResourceOperationListener listener : operationListeners) {
+				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
+				try {
+					listener.notifyInProgress(failureDescription, task, parentResult);
+				} catch (RuntimeException e) {
+					LOGGER.error("Exception {} thrown by operation in-progress listener {}: {}", new Object[]{
+							e.getClass(), listener.getName(), e.getMessage(), e });
+				}
+			}
+		} else {
+			LOGGER.debug("Operation in-progress received but listener list is empty, there is nobody to get the message");
 		}
 	}
 

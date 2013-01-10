@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationFailureDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,7 +35,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 	private int callCount = 0;
 	private ResourceObjectShadowChangeDescription lastChange = null;
-	private ResourceOperationFailureDescription lastFailure = null;
+	private ResourceOperationDescription lastOperationDescription = null;
 	private ObjectChecker changeChecker;
 
 	@Autowired(required=true)
@@ -136,24 +136,48 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void notifyFailure(ResourceOperationFailureDescription failureDescription,
+	public void notifySuccess(ResourceOperationDescription opDescription,
 			Task task, OperationResult parentResult) {
-		LOGGER.debug("Notify failure mock called with {}", failureDescription);
+		notifyOp("success", opDescription, task, parentResult);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void notifyFailure(ResourceOperationDescription opDescription,
+			Task task, OperationResult parentResult) {
+		notifyOp("failure", opDescription, task, parentResult);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void notifyInProgress(ResourceOperationDescription opDescription,
+			Task task, OperationResult parentResult) {
+		notifyOp("in-progress", opDescription, task, parentResult);
+	}
+
+		
+	private void notifyOp(String notificationDesc, ResourceOperationDescription opDescription,
+			Task task, OperationResult parentResult) {
+		LOGGER.debug("Notify "+notificationDesc+" mock called with {}", opDescription);
 
 		// Some basic sanity checks
-		assertNotNull("No failure", failureDescription);
+		assertNotNull("No op description", opDescription);
 		assertNotNull("No task", task);
-		assertNotNull("No result", failureDescription.getResult());
-		assertNotNull("No resource", failureDescription.getResource());
+		assertNotNull("No result", opDescription.getResult());
+		assertNotNull("No resource", opDescription.getResource());
 		assertNotNull("No parent result", parentResult);
 
-		assertNotNull("Current shadow not present", failureDescription.getCurrentShadow());
-		assertNotNull("Delta not present", failureDescription.getObjectDelta());
-		if (failureDescription.getCurrentShadow() != null) {
-			ResourceObjectShadowType currentShadowType = failureDescription.getCurrentShadow().asObjectable();
+		assertNotNull("Current shadow not present", opDescription.getCurrentShadow());
+		assertNotNull("Delta not present", opDescription.getObjectDelta());
+		if (opDescription.getCurrentShadow() != null) {
+			ResourceObjectShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
 			if (currentShadowType != null) {
 				// not a useful check..the current shadow could be null
-				assertNotNull("Current shadow does not have an OID", failureDescription.getCurrentShadow().getOid());
+				assertNotNull("Current shadow does not have an OID", opDescription.getCurrentShadow().getOid());
 				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
 				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
 				assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil
@@ -161,7 +185,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 				// Check if the shadow is already present in repo
 				try {
-					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), new OperationResult("mockSyncService.notifyChange"));
+					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), new OperationResult("mockSyncService."+notificationDesc));
 				} catch (Exception e) {
 					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
 							": "+e.getCause()+": "+e.getMessage());
@@ -170,34 +194,34 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 				String resourceOid = ResourceObjectShadowUtil.getResourceOid(currentShadowType);
 				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
 				try {
-					repositoryService.getObject(ResourceType.class, resourceOid, new OperationResult("mockSyncService.notifyChange"));
+					repositoryService.getObject(ResourceType.class, resourceOid, new OperationResult("mockSyncService."+notificationDesc));
 				} catch (Exception e) {
 					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
 							": "+e.getCause()+": "+e.getMessage());
 				}
 
-				if (failureDescription.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
-					AccountShadowType account = (AccountShadowType) failureDescription.getCurrentShadow().asObjectable();
+				if (opDescription.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
+					AccountShadowType account = (AccountShadowType) opDescription.getCurrentShadow().asObjectable();
 					assertNotNull("Current shadow does not have activation", account.getActivation());
 					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
 							.isEnabled());
 				} else {
 					// We don't support other types now
-					AssertJUnit.fail("Unexpected type of shadow " + failureDescription.getCurrentShadow().getClass());
+					AssertJUnit.fail("Unexpected type of shadow " + opDescription.getCurrentShadow().getClass());
 				}
 			}
 		}
-		if (failureDescription.getObjectDelta() != null) {
-			assertNotNull("Delta has null OID", failureDescription.getObjectDelta().getOid());
+		if (opDescription.getObjectDelta() != null) {
+			assertNotNull("Delta has null OID", opDescription.getObjectDelta().getOid());
 		}
 		
 		if (changeChecker != null) {
-			changeChecker.check(failureDescription);
+			changeChecker.check(opDescription);
 		}
 
 		// remember ...
 		callCount++;
-		lastFailure = failureDescription;
+		lastOperationDescription = opDescription;
 	}
 
 	public boolean wasCalled() {
