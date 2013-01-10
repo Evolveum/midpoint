@@ -143,7 +143,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 			// THEN
 			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
 			
-			assertEquals("Synchronization service was not called.", true, mock.wasCalled());
+			assertEquals("Synchronization service was not called.", true, mock.wasCalledNotifyChange());
 
 		} finally {
 			repositoryService.deleteObject(TaskType.class, SYNC_TASK_OID, result);

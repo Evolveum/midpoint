@@ -33,7 +33,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchornizationServiceMock.class);
 
-	private int callCount = 0;
+	private int callCountNotifyChange = 0;
+	private int callCountNotifyOperation = 0;
+	private boolean wasSuccess = false;
+	private boolean wasFailure = false;
+	private boolean wasInProgress = false;
 	private ResourceObjectShadowChangeDescription lastChange = null;
 	private ResourceOperationDescription lastOperationDescription = null;
 	private ObjectChecker changeChecker;
@@ -128,7 +132,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		}
 
 		// remember ...
-		callCount++;
+		callCountNotifyChange++;
 		lastChange = change;
 	}
 	
@@ -139,6 +143,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	public void notifySuccess(ResourceOperationDescription opDescription,
 			Task task, OperationResult parentResult) {
 		notifyOp("success", opDescription, task, parentResult);
+		wasSuccess = true;
 	}
 
 	/* (non-Javadoc)
@@ -148,6 +153,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	public void notifyFailure(ResourceOperationDescription opDescription,
 			Task task, OperationResult parentResult) {
 		notifyOp("failure", opDescription, task, parentResult);
+		wasFailure = true;
 	}
 
 	/* (non-Javadoc)
@@ -157,6 +163,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	public void notifyInProgress(ResourceOperationDescription opDescription,
 			Task task, OperationResult parentResult) {
 		notifyOp("in-progress", opDescription, task, parentResult);
+		wasInProgress = true;
 	}
 
 		
@@ -220,16 +227,16 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		}
 
 		// remember ...
-		callCount++;
+		callCountNotifyOperation++;
 		lastOperationDescription = opDescription;
 	}
 
-	public boolean wasCalled() {
-		return (callCount > 0);
+	public boolean wasCalledNotifyChange() {
+		return (callCountNotifyChange > 0);
 	}
 
 	public void reset() {
-		callCount = 0;
+		callCountNotifyChange = 0;
 		lastChange = null;
 	}
 
@@ -242,12 +249,21 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 	}
 
 	public int getCallCount() {
-		return callCount;
+		return callCountNotifyChange;
 	}
 
 	public void setCallCount(int callCount) {
-		this.callCount = callCount;
+		this.callCountNotifyChange = callCount;
 	}
+
+	public void assertNotifyChange() {
+		assert wasCalledNotifyChange() : "Expected that notifyChange will be called but it was not";
+	}
+
+	public void assertNoNotifyChange() {
+		assert !wasCalledNotifyChange() : "Expected that no notifyChange will be called but it was";
+	}
+
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()

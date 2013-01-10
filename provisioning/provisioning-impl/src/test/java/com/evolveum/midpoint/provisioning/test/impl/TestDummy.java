@@ -1505,7 +1505,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 
 		// No change, no fun
-		assertFalse(syncServiceMock.wasCalled());
+		syncServiceMock.assertNoNotifyChange();
 
 		checkAllShadows();
 	}
@@ -1535,7 +1535,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
 
-		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		syncServiceMock.assertNotifyChange();
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -1585,7 +1585,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
 
-		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		syncServiceMock.assertNotifyChange();
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -1638,7 +1638,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Synchronization result", result);
 		assertSuccess("Synchronization result is not OK", result);
 
-		assertTrue("Sync service was not called", syncServiceMock.wasCalled());
+		syncServiceMock.assertNotifyChange();
 
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
@@ -1689,7 +1689,7 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
 
-		assertFalse("Sync service was called (and should not be)", syncServiceMock.wasCalled());
+		syncServiceMock.assertNoNotifyChange();
 
 		checkAllShadows();
 	}
