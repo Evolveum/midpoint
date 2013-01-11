@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -476,8 +477,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	 * Let's disable user, the account should be disabled as well.
 	 */
 	@Test
-    public void test253ModifyUserBarbossaDisable() throws Exception {
-		final String TEST_NAME = "test253ModifyUserBarbossaDisable";
+    public void test254ModifyUserBarbossaDisable() throws Exception {
+		final String TEST_NAME = "test254ModifyUserBarbossaDisable";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -581,12 +582,114 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
     }
 	
 	/**
+	 * The drink attribute is NOT tolerant. Therefore an attempt to manually change it using
+	 * account primary delta should fail.
+	 */
+	@Test
+    public void test260ModifyAccountBarbossaDrinkReplace() throws Exception {
+		final String TEST_NAME = "test260ModifyAccountBarbossaDrinkReplace";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "Water");
+        context.recompute();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        try {
+	        // WHEN
+	        projector.project(context, "test", result);
+	        
+	        AssertJUnit.fail("Unexpected success of projector");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	
+        }
+                        
+    }
+	
+	/**
+	 * The quote attribute has a strong mapping and is tolerant. Therefore an attempt to manually change it using
+	 * account primary delta should succeed. The modification is by purpose a replace modification. Therefore the
+	 * value from the mapping should be explicitly added in the secondary delta even though the mapping is static
+	 * and it was not changed.
+	 */
+	@Test
+    public void test261ModifyAccountBarbossaQuoteReplace() throws Exception {
+		final String TEST_NAME = "test261ModifyAccountBarbossaQuoteReplace";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I'm disinclined to acquiesce to your request.");
+        context.recompute();
+
+        display("Input context", context);
+
+        assertUserModificationSanity(context);
+
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertNull("Unexpected user primary changes", context.getFocusContext().getPrimaryDelta());
+        assertNull("Unexpected user secondary changes", context.getFocusContext().getSecondaryDelta());
+        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
+
+        Collection<LensProjectionContext<AccountShadowType>> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext<AccountShadowType> accContext = accountContexts.iterator().next();
+
+        ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
+        assertEquals(ChangeType.MODIFY, accountPrimaryDelta.getChangeType());
+        assertEquals("Unexpected number of account secondary changes", 1, accountPrimaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME) , 
+        		"I'm disinclined to acquiesce to your request.");
+        
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+
+        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNotNull("No account secondary delta", accountSecondaryDelta);
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        assertEquals("Unexpected number of account secondary changes", 1, accountSecondaryDelta.getModifications().size());
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME) , 
+        		"Arr!");
+        
+        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
+                
+    }
+	
+	
+	/**
 	 * User barbossa has a direct account assignment.
 	 * Let's try to delete assigned account. It should end up with a policy violation error.
 	 */
 	@Test
-    public void test259DeleteBarbossaDummyAccount() throws Exception {
-		final String TEST_NAME = "test259DeleteBarbossaDummyAccount";
+    public void test269DeleteBarbossaDummyAccount() throws Exception {
+		final String TEST_NAME = "test269DeleteBarbossaDummyAccount";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN

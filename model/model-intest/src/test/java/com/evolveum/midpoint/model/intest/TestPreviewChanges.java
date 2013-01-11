@@ -718,14 +718,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNull("Unexpected account secondary delta", accountSecondaryDelta);
 	}
-	
-	// the test4xx is testing mappings with red dummy resource. It has STRONG mappings.
-	// FIXME: following tests may not be entirelly OK, see MID-1067
-	
+		
 	/**
 	 * Changing ACCOUNT fullname (replace delta), no user changes.
+	 * Attempt to make a change to a single-valued attribute or which there is already a strong mapping.
+	 * As it cannot have both values (from the delta and from the mapping) the preview should fail.
 	 */
-	@Test
+	// FIXME: see MID-1101
+	@Test(enabled=false)
     public void test400ModifyElaineAccountDummyRedReplace() throws Exception {
         final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
         displayTestTile(this, TEST_NAME);
@@ -740,48 +740,29 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
-                
-		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
-		
-		// THEN
-        display("Preview context", modelContext);
-		assertNotNull("Null model context", modelContext);
+               
+		try {
+			// WHEN
+	        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+	        display("Preview context", modelContext);
+	        
+	        AssertJUnit.fail("Preview unexpectedly succeeded");
+		} catch (PolicyViolationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
 		
 		result.computeStatus();
-        assertSuccess(result);
-		
-		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
-		assertNotNull("Null model focus context", focusContext);
-		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
-		
-		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
-		assertNull("Unexpected focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-		
-		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
-		assertNotNull("Null model projection context list", projectionContexts);
-		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
-		
-		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
-		assertNotNull("Null model projection context", accContext);
-		
-		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
-		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
-		assertNotNull("No account primary delta", accountPrimaryDelta);
-		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
-				getAttributePath(resourceDummyRed, 
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Threepwood");
-		
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+        assertFailure(result);
 	}
 	
 	/**
 	 * Changing ACCOUNT fullname (add/delete delta), no user changes.
+	 * Attempt to make a change to a single-valued attribute or which there is already a strong mapping.
+	 * As it cannot have both values (from the delta and from the mapping) the preview should fail.
 	 */
-	@Test
+	// FIXME: see MID-1101
+	@Test(enabled=false)
     public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
         final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
         displayTestTile(this, TEST_NAME);
@@ -799,44 +780,19 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
                 
-		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
-		
-		// THEN
-        display("Preview context", modelContext);
-		assertNotNull("Null model context", modelContext);
+		try {
+			// WHEN
+	        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+	        display("Preview context", modelContext);
+	        
+	        AssertJUnit.fail("Preview unexpectedly succeeded");
+		} catch (PolicyViolationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
 		
 		result.computeStatus();
-        assertSuccess(result);
-		
-		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
-		assertNotNull("Null model focus context", focusContext);
-		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
-		
-		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
-		assertNull("Unexpected focus secondary delta: "+userSecondaryDelta, userSecondaryDelta);
-		
-		Collection<? extends ModelProjectionContext<AccountShadowType>> projectionContexts = modelContext.getProjectionContexts();
-		assertNotNull("Null model projection context list", projectionContexts);
-		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
-		
-		ModelProjectionContext<AccountShadowType> accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
-		assertNotNull("Null model projection context", accContext);
-		
-		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
-		ObjectDelta<AccountShadowType> accountPrimaryDelta = accContext.getPrimaryDelta();
-		assertNotNull("No account primary delta", accountPrimaryDelta);
-		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyAdd(accountPrimaryDelta, 
-				getAttributePath(resourceDummyRed, 
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Threepwood");
-		PrismAsserts.assertPropertyDelete(accountPrimaryDelta, 
-				getAttributePath(resourceDummyRed, 
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME), "Elaine Marley");
-		
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta", accountSecondaryDelta);
+        assertFailure(result);
 	}
 
 	// the test5xx is testing mappings with blue dummy resource. It has WEAK mappings.
@@ -845,8 +801,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	 * Changing ACCOUNT fullname (replace delta), no user changes.
 	 */
 	@Test
-    public void test500ModifyElaineAccountDummyRedReplace() throws Exception {
-        final String TEST_NAME = "test500ModifyElaineAccountDummyRedReplace";
+    public void test500ModifyElaineAccountDummyBlueReplace() throws Exception {
+        final String TEST_NAME = "test500ModifyElaineAccountDummyBlueReplace";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN

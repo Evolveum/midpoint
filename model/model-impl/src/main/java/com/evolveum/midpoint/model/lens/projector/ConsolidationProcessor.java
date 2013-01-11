@@ -177,17 +177,23 @@ public class ConsolidationProcessor {
                         
             RefinedAttributeDefinition attributeDefinition = rAccount.findAttributeDefinition(attributeName);
             
+            boolean forceAddUnchangedValues = false;
             PropertyDelta<?> existingAttributeDelta = null;
             if (existingDelta != null ) {
             	existingAttributeDelta = existingDelta.findPropertyDelta(
             		new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName));
+            }
+            if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
+            	// We need to add all values if there is replace delta. Otherwise the zero-set values will be
+            	// lost
+            	forceAddUnchangedValues = true;
             }
             
             // Use this common utility method to do the computation. It does most of the work.
 			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
 					new ItemPath(SchemaConstants.I_ATTRIBUTES, attributeName), 
 					(DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
-            		addUnchangedValues, false, "account " + rat);
+            		addUnchangedValues || forceAddUnchangedValues, false, "account " + rat);
 			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
@@ -224,34 +230,6 @@ public class ConsolidationProcessor {
 		return false;
 	}
 
-	private void consolidateValuesAddAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, true, result);
-        ObjectDelta<AccountShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
-        if (accountSecondaryDelta != null) {
-            accountSecondaryDelta.merge(modifyDelta);
-        } else {
-            if (accCtx.getPrimaryDelta() == null || !accCtx.getPrimaryDelta().isAdd()) {
-                ObjectDelta<AccountShadowType> addDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class,
-                		ChangeType.ADD, prismContext);
-                RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
-
-                if (rAccount == null) {
-                    LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", accCtx.getResourceShadowDiscriminator(), context.dump());
-                    throw new IllegalStateException("Definition for account type " + accCtx.getResourceShadowDiscriminator() + " not found in the context, but it should be there");
-                }
-                PrismObject<AccountShadowType> newAccount = rAccount.createBlankShadow();
-                addDelta.setObjectToAdd(newAccount);
-
-                addDelta.merge(modifyDelta);
-                accCtx.setSecondaryDelta(addDelta);
-            } else {
-                accCtx.setSecondaryDelta(modifyDelta);
-            }
-        }
-    }
-
     private void consolidateValuesModifyAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -260,7 +238,7 @@ public class ConsolidationProcessor {
         	addUnchangedValues = true;
         }
         
-		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues , result);
+		ObjectDelta<AccountShadowType> modifyDelta = consolidateValuesToModifyDelta(context, accCtx, addUnchangedValues, result);
         if (modifyDelta == null || modifyDelta.isEmpty()) {
         	return;
         }

@@ -21,6 +21,8 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -31,11 +33,17 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -91,9 +99,10 @@ public class AccountValuesProcessor {
 	private PrismContext prismContext;
 
 	
-	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, LensProjectionContext<P> projectionContext, 
-			String activityDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, 
+			LensProjectionContext<P> projectionContext, String activityDescription, OperationResult result) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, 
+			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
@@ -106,9 +115,12 @@ public class AccountValuesProcessor {
     			activityDescription, result);
 	}
 	
-	public void processAccounts(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accountContext, 
-			String activityDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public void processAccounts(LensContext<UserType,AccountShadowType> context, 
+			LensProjectionContext<AccountShadowType> accountContext, String activityDescription, OperationResult result) 
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+		
+		checkSchemaAndPolicies(context, accountContext, activityDescription, result);
 		
 		SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationPolicyDecision();
 		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
@@ -218,7 +230,46 @@ public class AccountValuesProcessor {
 		return delta.hasItemDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attr.getName()));
 	}
 
-	
+	/**
+	 * Check that the primary deltas do not violate schema and policies
+	 * TODO: implement schema check 
+	 */
+	public void checkSchemaAndPolicies(LensContext<UserType,AccountShadowType> context, 
+			LensProjectionContext<AccountShadowType> accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
+		ObjectDelta<AccountShadowType> primaryDelta = accountContext.getPrimaryDelta();
+		if (primaryDelta == null || primaryDelta.isDelete()) {
+			return;
+		}
+		
+		RefinedAccountDefinition rAccountDef = accountContext.getRefinedAccountDefinition();
+		
+		if (primaryDelta.isAdd()) {
+			PrismObject<AccountShadowType> accountToAdd = primaryDelta.getObjectToAdd();
+			ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(accountToAdd);
+			if (attributesContainer != null) {
+				for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
+					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getName());
+					if (!rAttrDef.isTolerant()) {
+						throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getName()+" in "+
+								"account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
+					}
+				}
+			}
+		} else if (primaryDelta.isModify()) {
+			for(ItemDelta<?> modification: primaryDelta.getModifications()) {
+				if (modification.getParentPath().equals(SchemaConstants.PATH_ATTRIBUTES)) {
+					PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
+					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getName());
+					if (!rAttrDef.isTolerant()) {
+						throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getName()+" in "+
+								"account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
+					}
+				}
+			}
+		} else {
+			throw new IllegalStateException("Whoops!");
+		}
+	}
 	
 	/**
 	 * Remove the intermediate results of values processing such as secondary deltas.
