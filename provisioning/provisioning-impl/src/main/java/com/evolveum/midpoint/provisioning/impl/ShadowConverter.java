@@ -405,7 +405,7 @@ public class ShadowConverter {
 		} catch (GenericFrameworkException ex) {
 			parentResult.recordFatalError(
 					"Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
-			throw new CommunicationException("Error comminicationg with connector " + connector + ": "
+			throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		}
 		
