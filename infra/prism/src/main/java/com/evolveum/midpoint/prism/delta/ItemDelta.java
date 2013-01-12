@@ -435,24 +435,39 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	}
 
 	public boolean isValueToAdd(V value) {
-		if (valuesToAdd == null) {
-			return false;
-		}
-		return valuesToAdd.contains(value);
+		return isValueSet(value, false, valuesToAdd);
+	}
+
+	public boolean isValueToAdd(V value, boolean ignoreMetadata) {
+		return isValueSet(value, ignoreMetadata, valuesToAdd);
 	}
 
 	public boolean isValueToDelete(V value) {
-		if (valuesToDelete == null) {
-			return false;
-		}
-		return valuesToDelete.contains(value);
+		return isValueSet(value, false, valuesToDelete);
 	}
-	
+
+	public boolean isValueToDelete(V value, boolean ignoreMetadata) {
+		return isValueSet(value, ignoreMetadata, valuesToDelete);
+	}
+
 	public boolean isValueToReplace(V value) {
-		if (valuesToReplace == null) {
+		return isValueSet(value, false, valuesToReplace);
+	}
+
+	public boolean isValueToReplace(V value, boolean ignoreMetadata) {
+		return isValueSet(value, ignoreMetadata, valuesToReplace);
+	}
+
+	private boolean isValueSet(V value, boolean ignoreMetadata, Collection<V> set) {
+		if (set == null) {
 			return false;
 		}
-		return valuesToReplace.contains(value);
+		for (V myVal: set) {
+			if (myVal.equals(value, ignoreMetadata)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public V getAnyValue() {
@@ -642,7 +657,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
     					(contextDescription == null ? "" : " in "+contextDescription));
     		}
     		if (valuesToReplace != null && valuesToReplace.size() > 1) {
-    			throw new SchemaException("Attempt to replace "+valuesToAdd.size()+" values to a single-valued item "+getPath() +
+    			throw new SchemaException("Attempt to replace "+valuesToReplace.size()+" values to a single-valued item "+getPath() +
     					(contextDescription == null ? "" : " in "+contextDescription));
     		}
     	}

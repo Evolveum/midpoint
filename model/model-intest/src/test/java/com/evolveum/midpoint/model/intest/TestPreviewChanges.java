@@ -725,8 +725,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	 * Attempt to make a change to a single-valued attribute or which there is already a strong mapping.
 	 * As it cannot have both values (from the delta and from the mapping) the preview should fail.
 	 */
-	// FIXME: see MID-1101
-	@Test(enabled=false)
+	@Test
     public void test400ModifyElaineAccountDummyRedReplace() throws Exception {
         final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
         displayTestTile(this, TEST_NAME);
@@ -748,7 +747,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	        display("Preview context", modelContext);
 	        
 	        AssertJUnit.fail("Preview unexpectedly succeeded");
-		} catch (PolicyViolationException e) {
+		} catch (SchemaException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
@@ -762,8 +761,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	 * Attempt to make a change to a single-valued attribute or which there is already a strong mapping.
 	 * As it cannot have both values (from the delta and from the mapping) the preview should fail.
 	 */
-	// FIXME: see MID-1101
-	@Test(enabled=false)
+	@Test
     public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
         final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
         displayTestTile(this, TEST_NAME);
@@ -1022,14 +1020,15 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<AccountShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
         		ACCOUNT_SHADOW_ELAINE_DUMMY_OID, resourceDummy, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
-        ObjectDelta<AccountShadowType> accountDeltaRed = createModifyAccountShadowReplaceAttributeDelta(
-        		ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, resourceDummyRed, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
+        // Cannot change the attribute on RED resource. It would conflict with the strong mapping and therefore fail.
+//        ObjectDelta<AccountShadowType> accountDeltaRed = createModifyAccountShadowReplaceAttributeDelta(
+//        		ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, resourceDummyRed, 
+//        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
         ObjectDelta<AccountShadowType> accountDeltaBlue = createModifyAccountShadowReplaceAttributeDelta(
         		ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, resourceDummyBlue, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta, 
-				accountDeltaRed, accountDeltaBlue);
+				accountDeltaBlue);
 		display("Input deltas: ", deltas);
                 
 		// WHEN
@@ -1079,12 +1078,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 		accountPrimaryDelta = accContext.getPrimaryDelta();
-		assertNotNull("No account primary delta (default)", accountPrimaryDelta);
-		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
-		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
-				getAttributePath(resourceDummyRed, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
-				"Elaine LeChuck");
-		
+		assertNull("Unexpected account primary delta (red)", accountPrimaryDelta);		
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (red)", accountSecondaryDelta);
 		PrismAsserts.assertModifications(accountSecondaryDelta, 1);

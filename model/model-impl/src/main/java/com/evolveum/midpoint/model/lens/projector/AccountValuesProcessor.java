@@ -215,7 +215,7 @@ public class AccountValuesProcessor {
 	}
 
 	private String formatIterationToken(int iteration) {
-		// TODO: flexible token format
+		// TODO: flexible token format (MID-1102)
 		if (iteration == 0) {
 			return "";
 		}

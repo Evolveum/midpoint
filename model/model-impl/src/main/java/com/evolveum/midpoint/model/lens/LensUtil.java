@@ -31,6 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -267,12 +268,12 @@ public class LensUtil {
 	
 	/**
 	 * Consolidate the mappings of a single property to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
-	 * It produces the delta considering the mapping exclusion, authoritativeness and strength.
+	 * It produces the delta considering the mapping exclusion, authoritativeness and strength. 
 	 */
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
     		ItemDelta<V> apropriItemDelta, PrismContainer<?> itemContainer,
-    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException {
+    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException, PolicyViolationException {
     	
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 		
@@ -290,15 +291,30 @@ public class LensUtil {
         	// The first set that the value is present determines the result.
             Collection<ItemValueWithOrigin<V>> zeroPvwos =
                     collectPvwosFromSet(value, triple.getZeroSet());
+            Collection<ItemValueWithOrigin<V>> plusPvwos =
+                    collectPvwosFromSet(value, triple.getPlusSet());
+            Collection<ItemValueWithOrigin<V>> minusPvwos =
+                    collectPvwosFromSet(value, triple.getMinusSet());
+            
+            boolean zeroHasStrong = false;
+            if (!zeroPvwos.isEmpty()) {
+            	for (ItemValueWithOrigin<?> pvwo : zeroPvwos) {
+                    Mapping<?> mapping = pvwo.getMapping();
+                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
+                    	zeroHasStrong = true;
+                    }
+            	}
+            }
+            
+            if (zeroHasStrong && apropriItemDelta != null && apropriItemDelta.isValueToDelete(value, true)) {
+            	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
+            			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
+            }
             if (!zeroPvwos.isEmpty() && !addUnchangedValues) {
                 // Value unchanged, nothing to do
                 LOGGER.trace("Value {} unchanged, doing nothing", value);
                 continue;
             }
-            Collection<ItemValueWithOrigin<V>> plusPvwos =
-                    collectPvwosFromSet(value, triple.getPlusSet());
-            Collection<ItemValueWithOrigin<V>> minusPvwos =
-                    collectPvwosFromSet(value, triple.getMinusSet());
             if (!plusPvwos.isEmpty() && !minusPvwos.isEmpty()) {
                 // Value added and removed. Ergo no change.
                 LOGGER.trace("Value {} added and removed, doing nothing", value);
@@ -315,7 +331,7 @@ public class LensUtil {
 
             if (!pvwosToAdd.isEmpty()) {
             	boolean weakOnly = true;
-            	boolean nonStrongOnly = true;
+            	boolean hasStrong = false;
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<?> pvwoToAdd : pvwosToAdd) {
@@ -324,7 +340,7 @@ public class LensUtil {
                         weakOnly = false;
                     }
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    	nonStrongOnly = false;
+                    	hasStrong = true;
                     }
                     if (mapping.isExclusive()) {
                         if (exclusiveMapping == null) {
@@ -337,10 +353,14 @@ public class LensUtil {
                         }
                     }
                 }
-                if (nonStrongOnly && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
+                if (hasStrong && apropriItemDelta != null && apropriItemDelta.isValueToDelete(value, true)) {
+                	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
+                			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
+                }
+                if (!hasStrong && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
-                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping adding in {}", 
-                    		new Object[]{value, itemPath, contextDescription});
+                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
+                    		"skipping adding in {}", new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
                 if (weakOnly && (itemExisting != null && !itemExisting.isEmpty())) {
@@ -361,7 +381,7 @@ public class LensUtil {
 
             if (!minusPvwos.isEmpty()) {
             	boolean initialOnly = true;
-            	boolean nonStrongOnly = true;
+            	boolean hasStrong = false;
             	boolean hasAuthoritative = false;
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
@@ -371,7 +391,7 @@ public class LensUtil {
                         initialOnly = false;
                     }
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    	nonStrongOnly = false;
+                    	hasStrong = true;
                     }
                     if (mapping.isAuthoritative()) {
                         hasAuthoritative = true;
@@ -382,7 +402,7 @@ public class LensUtil {
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
-                if (nonStrongOnly && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
+                if (!hasStrong && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion in {}",
                     		new Object[]{value, itemPath, contextDescription});

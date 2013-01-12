@@ -144,8 +144,8 @@ public class UserPolicyProcessor {
 	}
 
 	
-	private void applyUserTemplate(LensContext<UserType, AccountShadowType> context,
-			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private void applyUserTemplate(LensContext<UserType, AccountShadowType> context, OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
 		UserTemplateType userTemplate = context.getUserTemplate();

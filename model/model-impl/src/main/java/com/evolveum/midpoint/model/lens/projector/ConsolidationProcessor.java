@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -99,8 +100,10 @@ public class ConsolidationProcessor {
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    void consolidateValues(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws SchemaException,
-            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    void consolidateValues(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, 
+    		OperationResult result) 
+    				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+    				ConfigurationException, SecurityViolationException, PolicyViolationException {
     		//todo filter changes which were already in account sync delta
 
         //account was deleted, no changes are needed.
@@ -137,8 +140,9 @@ public class ConsolidationProcessor {
     }
 
     private ObjectDelta<AccountShadowType> consolidateValuesToModifyDelta(LensContext<UserType,AccountShadowType> context,
-    		LensProjectionContext<AccountShadowType> accCtx,
-            boolean addUnchangedValues, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    		LensProjectionContext<AccountShadowType> accCtx, boolean addUnchangedValues, OperationResult result) 
+            		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            		ConfigurationException, SecurityViolationException, PolicyViolationException {
 
     	// "Squeeze" all the relevant mappings into a data structure that we can process conveniently. We want to have all the
     	// (meta)data about relevant for a specific attribute in one data structure, not spread over several account constructions.
@@ -207,8 +211,18 @@ public class ConsolidationProcessor {
 			}
 
             if (propDelta != null && !propDelta.isEmpty()) {
-            	propDelta.simplify();
+            	if (existingAttributeDelta == null || !existingAttributeDelta.isReplace()) {
+            		// We cannot simplify if there is already a replace delta. This might result in
+            		// two replace deltas and therefore some information may be lost
+            		propDelta.simplify();
+            	}
             	propDelta.validate();
+            	if (existingAttributeDelta != null) {
+            		// Let's make sure that both the previous delta and this delta makes sense
+            		PropertyDelta<?> mergedDelta = existingAttributeDelta.clone();
+            		mergedDelta.merge((PropertyDelta)propDelta);
+            		mergedDelta.validate();
+            	}
                 objectDelta.addModification(propDelta);
             }
             
@@ -230,8 +244,10 @@ public class ConsolidationProcessor {
 		return false;
 	}
 
-    private void consolidateValuesModifyAccount(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void consolidateValuesModifyAccount(LensContext<UserType,AccountShadowType> context, 
+    		LensProjectionContext<AccountShadowType> accCtx, OperationResult result) 
+    				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, 
+    				CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
         boolean addUnchangedValues = false;
         if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
