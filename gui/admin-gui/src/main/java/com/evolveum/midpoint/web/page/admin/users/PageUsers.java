@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -505,8 +506,12 @@ public class PageUsers extends PageAdminUsers {
             try {
                 delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
                 deltas.add(delta);
-                changes = getModelInteractionService().previewChanges(deltas, task, result);
-            } catch (Exception ex) {
+                ModelExecuteOptions options = null;
+                if (forceAction){
+            		options = ModelExecuteOptions.createForce();
+                }
+                changes = getModelInteractionService().previewChanges(deltas, options, task, result);
+            }	catch (Exception ex) {
                 result.recordFatalError("Couldn't send user to submit.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
             }

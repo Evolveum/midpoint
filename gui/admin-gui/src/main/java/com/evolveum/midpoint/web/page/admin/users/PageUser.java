@@ -1144,14 +1144,14 @@ public class PageUser extends PageAdminUsers {
                     prepareUserForAdd(user);
                     getPrismContext().adopt(user, UserType.class);
                     deltas.add(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, task, result);
+                    changes = getModelInteractionService().previewChanges(deltas, null, task, result);
                     result.recordSuccess();
                     break;
                 case MODIFYING:
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
                     prepareUserDeltaForModify(delta);
                     deltas.add(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, task, result);
+                    changes = getModelInteractionService().previewChanges(deltas, null, task, result);
                     result.recordSuccess();
                     break;
                 // support for add/delete containers (e.g. delete credentials)
