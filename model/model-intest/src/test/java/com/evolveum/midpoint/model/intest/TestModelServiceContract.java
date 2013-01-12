@@ -846,7 +846,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         deltas.add(accountAssignmentUserDelta);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
 		result.computeStatus();

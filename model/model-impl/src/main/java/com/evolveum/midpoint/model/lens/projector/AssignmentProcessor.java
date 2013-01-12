@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
@@ -259,8 +260,16 @@ public class AssignmentProcessor {
             }
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
-
-            Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
+            
+            Assignment evaluatedAssignment = null;
+            try{
+            	evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
+            } catch (ObjectNotFoundException ex){
+            	if (ModelExecuteOptions.isForce(context.getOptions())){
+            		return;
+            	} 
+            	throw ex;
+            }
             
             context.rememberResources(evaluatedAssignment.getResources(result));
             

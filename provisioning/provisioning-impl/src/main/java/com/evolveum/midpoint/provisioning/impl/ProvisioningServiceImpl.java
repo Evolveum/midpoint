@@ -295,7 +295,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, ProvisioningScriptsType scripts, ProvisioningOperationOptions options,
-			OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
 			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 	
 		Validate.notNull(object, "Object to add must not be null.");
@@ -313,7 +313,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 				// calling shadow cache to add object
 				oid = getShadowCache(Mode.STANDARD).addShadow((ResourceObjectShadowType) object.asObjectable(), scripts,
-						null, result);
+						null, task, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
 				result.computeStatus();
 			} catch (GenericFrameworkException ex) {
@@ -696,7 +696,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectAlreadyExistsException {
 
@@ -727,7 +727,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
 				ResourceObjectShadowType shadow = (ResourceObjectShadowType) object.asObjectable();
-				oid = getShadowCache(Mode.STANDARD).modifyShadow(shadow, null, oid, modifications, scripts, options,
+				oid = getShadowCache(Mode.STANDARD).modifyShadow(shadow, null, oid, modifications, scripts, options, task, 
 					result);
 			} else {
 				cacheRepositoryService.modifyObject(type, oid, modifications, result);
@@ -767,7 +767,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
+			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
@@ -788,7 +788,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (object.canRepresent(ResourceObjectShadowType.class)) {
 
 			try {
-				getShadowCache(Mode.STANDARD).deleteShadow(object.asObjectable(), options, scripts, null, result);
+				getShadowCache(Mode.STANDARD).deleteShadow(object.asObjectable(), options, scripts, null, task, result);
 			} catch (CommunicationException e) {
 				logFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
 				throw new CommunicationException(e.getMessage(), e);
@@ -911,7 +911,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return objectList;
 	}
 	
-	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, OperationResult parentResult)
+	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException {
 		Validate.notNull(object, "Object for finishing operation must not be null.");
@@ -920,12 +920,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		try{
 			if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-				getShadowCache(Mode.RECON).addShadow(shadow, null, null, parentResult);
+				getShadowCache(Mode.RECON).addShadow(shadow, null, null, task, parentResult);
 //				finishAdd(shadow, resource, parentResult);
 			} else if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()){
-				getShadowCache(Mode.RECON).modifyShadow(shadow, null, shadow.getOid(), new ArrayList<ItemDelta>(), null, null, parentResult);
+				getShadowCache(Mode.RECON).modifyShadow(shadow, null, shadow.getOid(), new ArrayList<ItemDelta>(), null, null, task, parentResult);
 			} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
-				getShadowCache(Mode.RECON).deleteShadow(shadow, null, null, null, parentResult);
+				getShadowCache(Mode.RECON).deleteShadow(shadow, null, null, null, task, parentResult);
 //		operationFinisher.finishOperation(shadow, parentResult);
 			}
 		} catch (CommunicationException e) {

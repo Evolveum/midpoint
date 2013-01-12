@@ -430,7 +430,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		for (PrismObject<AccountShadowType> shadow : shadows) {
 
 			try {
-				provisioningService.finishOperation(shadow, opResult);
+				provisioningService.finishOperation(shadow, task, opResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
 			} catch (Exception ex) {
 				Collection<? extends ItemDelta> modifications = PropertyDelta

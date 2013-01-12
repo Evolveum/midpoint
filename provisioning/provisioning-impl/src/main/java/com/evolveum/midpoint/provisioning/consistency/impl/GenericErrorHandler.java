@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -62,6 +63,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		result.addParam("currentOperation", op);
 		result.addParam("reconciled", true);
 		
+		Task task = taskManager.createTaskInstance();
 		
 		switch (op) {
 		case GET:
@@ -81,7 +83,7 @@ public class GenericErrorHandler extends ErrorHandler{
 						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 			}
 //				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					provisioningService.finishOperation(shadow.asPrismObject(), result);
+					provisioningService.finishOperation(shadow.asPrismObject(), task, result);
 //					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
 					result.computeStatus();
 					if (result.isSuccess()){
@@ -122,7 +124,7 @@ public class GenericErrorHandler extends ErrorHandler{
 					PropertyDelta.applyTo(modifications, shadow.asPrismObject());
 //				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 //				
-					provisioningService.finishOperation(shadow.asPrismObject(), result);						
+					provisioningService.finishOperation(shadow.asPrismObject(), task, result);						
 //					provisioningService.addObject(shadow.asPrismObject(), null, result);
 					// if (oid != null){
 					// shadow = shadowCache.getShadow(AccountShadowType.class,

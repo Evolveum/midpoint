@@ -61,6 +61,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
@@ -78,6 +79,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -120,6 +122,13 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestOpenDJNegative.class);
 
+	@Autowired
+	TaskManager taskManager;
+	
+//	@Autowired
+//	private ResourceObjectChangeListener syncServiceMock;
+
+		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -374,7 +383,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		try {
 			// WHEN
-			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
+			String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -397,7 +406,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		try {
 
-			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
 
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -426,7 +435,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		try {
 
 			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-					delta.getModifications(), null, null, result);
+					delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("addObject succeeded unexpectedly");
 		} catch (ConfigurationException e) {
@@ -477,7 +486,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		// Delete should work fine even though OpenDJ is down
-		provisioningService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, result);
+		provisioningService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, null, taskManager.createTaskInstance(), result);
 		
 		result.computeStatus();
 		assertSuccess(result);
@@ -652,7 +661,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("Account to add", object);
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, result);
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		
 		// THEN
 		result.computeStatus();
@@ -690,7 +699,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 				+ "." + TEST_NAME);
 
 		// WHEN
-		provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, result);
+		provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, null, taskManager.createTaskInstance(), result);
 
 		// THEN
 		result.computeStatus();
@@ -728,7 +737,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("Object change",delta);
 		
 		provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
-				delta.getModifications(), null, null, result);
+				delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 		
 	
 		// THEN

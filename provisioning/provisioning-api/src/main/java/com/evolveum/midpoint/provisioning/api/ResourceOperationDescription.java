@@ -129,13 +129,14 @@ public class ResourceOperationDescription implements Dumpable, DebugDumpable {
     		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
     	}
     	resource.checkConsistence();
-    	if (sourceChannel == null) {
-    		throw new IllegalArgumentException("No sourceChannel in "+this.getClass().getSimpleName());
-    	}
+    	//FIXME: have not to be set always
+//    	if (sourceChannel == null) {
+//    		throw new IllegalArgumentException("No sourceChannel in "+this.getClass().getSimpleName());
+//    	}
     	if (objectDelta == null && currentShadow == null) {
     		throw new IllegalArgumentException("Either objectDelta or currentShadow must be set in "+this.getClass().getSimpleName());
     	}
-    	if (objectDelta != null && objectDelta.getOid() == null) {
+    	if (objectDelta != null && !objectDelta.isAdd() && objectDelta.getOid() == null) {
     		throw new IllegalArgumentException("Delta OID not set in "+this.getClass().getSimpleName());
     	}
     	if (objectDelta != null) {

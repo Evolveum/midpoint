@@ -23,6 +23,7 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
@@ -55,12 +56,12 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
-	@Autowired
-	private ChangeNotificationDispatcher changeNotificationDispatcher;
+//	@Autowired
+//	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
-	@Autowired(required = true)
-	private TaskManager taskManager;
+//	@Autowired(required = true)
+//	private TaskManager taskManager;
 
 	private String oid = null;
 	
@@ -105,7 +106,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		}
 
 		LOGGER.trace("Start compensationg object not found situation while execution operation: {}", op.name());
-		
+		Task task = taskManager.createTaskInstance();
+		ObjectDelta delta = null;
 		switch (op) {
 		case DELETE:
 			LOGGER.trace("Deleting sahdow from the repostiory.");
@@ -118,6 +120,9 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 							+ ". Shadow deleted from the repository to equalize the state on the resource and in the repository.");
 			LOGGER.trace("Shadow deleted from the repository. Inconsistencies are now removed.");
 			result.computeStatus();
+			delta = ObjectDelta.createDeleteDelta(shadow.getClass(), shadow.getOid(), prismContext);
+			ResourceOperationDescription operationDescritpion = createOperationDescription(shadow, shadow.getResource(), delta, task, result);
+			changeNotificationDispatcher.notifySuccess(operationDescritpion, task, result);
 			return null;
 		case MODIFY:
 			LOGGER.trace("Starting discovery to find out if the account should exist or not.");
@@ -140,7 +145,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// the model to decide, if the account will be revived or unlinked
 			// form the user
 			// TODO: task initialication
-			Task task = taskManager.createTaskInstance();
+//			Task task = taskManager.createTaskInstance();
+			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
 			handleErrorResult.computeStatus();
 			String oidVal = null;
@@ -154,7 +160,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				try {
 					ProvisioningOperationOptions options = new ProvisioningOperationOptions();
 					options.setCompletePostponed(false);
-					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, options,
+					provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, options, task, 
 							result);
 					parentResult.recordHandledError(
 							"Account was recreated and modifications were applied to newly cleated account.");

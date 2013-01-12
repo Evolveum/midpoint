@@ -83,6 +83,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
@@ -127,8 +128,8 @@ public class TestDummy extends AbstractDummyTest {
 	private static final String DRAKE_USERNAME = "drake";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
-
-	private static Task syncTask;
+	
+	private Task syncTask = taskManager.createTaskInstance();
 	private CachingMetadataType capabilitiesCachingMetadataType;
 
 	@Test
@@ -726,7 +727,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -784,7 +785,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1120,7 +1121,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, objectModification.getOid(),
-				delta.getModifications(), new ProvisioningScriptsType(), null, result);
+				delta.getModifications(), new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1162,7 +1163,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, result);
+				new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1193,7 +1194,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, result);
+				new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1225,7 +1226,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, result);
+				new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1254,7 +1255,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, result);
+				new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1283,7 +1284,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, result);
+				new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1316,7 +1317,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, result);
+				new ProvisioningScriptsType(), null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1349,7 +1350,7 @@ public class TestDummy extends AbstractDummyTest {
 		System.out.println(PrismTestUtil.marshalWrap(scriptsType));
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1419,7 +1420,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			provisioningService.addObject(shadow, null, null, result);
+			provisioningService.addObject(shadow, null, null, syncTask, result);
 			AssertJUnit.fail("Expected security exception while adding 'daviejones' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
@@ -1479,7 +1480,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			provisioningService.modifyObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, result);
+			provisioningService.modifyObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, syncTask, result);
 			AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
@@ -1506,7 +1507,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, null, result);
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, null, syncTask, result);
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected

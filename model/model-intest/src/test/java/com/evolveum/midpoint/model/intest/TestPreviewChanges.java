@@ -51,6 +51,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -383,7 +384,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
         
 		// WHEN
-		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
 		display("Preview context", modelContext);
@@ -400,7 +401,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         
 		try {
 			// WHEN
-			ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+			ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 			
 			AssertJUnit.fail("Expected exception, but it haven't come");
 		} catch (SchemaException e) {
@@ -475,7 +476,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
         
 		// WHEN
-		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+		ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
 		display("Preview context", modelContext);
@@ -517,7 +518,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
         
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -568,7 +569,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", userDelta);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -624,7 +625,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -682,7 +683,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -743,7 +744,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                
 		try {
 			// WHEN
-	        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+	        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 	        display("Preview context", modelContext);
 	        
 	        AssertJUnit.fail("Preview unexpectedly succeeded");
@@ -782,7 +783,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                 
 		try {
 			// WHEN
-	        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+	        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 	        display("Preview context", modelContext);
 	        
 	        AssertJUnit.fail("Preview unexpectedly succeeded");
@@ -817,7 +818,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -875,7 +876,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -934,7 +935,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -1032,7 +1033,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -1124,7 +1125,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);
@@ -1221,7 +1222,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		display("Input deltas: ", deltas);
                 
 		// WHEN
-        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, task, result);
+        ModelContext<UserType,AccountShadowType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
 		
 		// THEN
         display("Preview context", modelContext);

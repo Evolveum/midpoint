@@ -46,6 +46,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -110,6 +111,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;
+	
+	@Autowired(required = true) 
+	protected TaskManager taskManager;
 
 	
 	@Override

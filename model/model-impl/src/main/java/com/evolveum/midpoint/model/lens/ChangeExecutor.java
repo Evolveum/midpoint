@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model.lens;
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.controller.ModelUtils;
@@ -311,10 +312,11 @@ public class ChangeExecutor {
     	
     	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationDescriptionDelta(account, situation, task.getChannel());
 		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
+		if (syncSituationDelta != null){
 		syncSituationDeltas.add(syncSituationDelta);
-		
+		}
 		try {
-			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), result);
+			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
 		} catch (ObjectNotFoundException ex) {
 			// if the object not found exception is thrown, it's ok..probably
 			// the account was deleted by previous execution of changes..just
@@ -349,17 +351,18 @@ public class ChangeExecutor {
 
     	try {
     		
-    		ProvisioningOperationOptions options = null;
+    		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(context.getOptions());
+   
     		if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
-        		options = ProvisioningOperationOptions.createCompletePostponed(false);
+    			provisioningOptions.setCompletePostponed(false);
     		}
     	
 	        if (objectDelta.getChangeType() == ChangeType.ADD) {
-	            executeAddition(objectDelta, options, result);
+	            executeAddition(objectDelta, provisioningOptions, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
-	        		executeModification(objectDelta, options, result);
+	        	executeModification(objectDelta, provisioningOptions, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
-	            executeDeletion(objectDelta, options, result);
+	            executeDeletion(objectDelta, provisioningOptions, task, result);
 	        }
 	        
 	        objectContext.addToExecutedDeltas(objectDelta.clone());
@@ -377,6 +380,16 @@ public class ChangeExecutor {
     	}
     }
 	
+	private ProvisioningOperationOptions copyFromModelOptions(ModelExecuteOptions options) {
+		ProvisioningOperationOptions provisioningOptions = new ProvisioningOperationOptions();
+		if (options == null){
+			return provisioningOptions;
+		}
+		
+		provisioningOptions.setForce(options.getForce());
+		return provisioningOptions;
+	}
+
 	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
 				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F,P> context, OperationResult result) {
 		StringBuilder sb = new StringBuilder();
@@ -403,7 +416,7 @@ public class ChangeExecutor {
 		LOGGER.debug("\n{}", sb);
 	}
 
-    private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, ProvisioningOperationOptions options, OperationResult result) throws ObjectAlreadyExistsException,
+    private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 
         PrismObject<T> objectToAdd = change.getObjectToAdd();
@@ -421,7 +434,7 @@ public class ChangeExecutor {
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-            oid = addProvisioningObject(objectToAdd, options, result);
+            oid = addProvisioningObject(objectToAdd, options, task, result);
             if (oid == null) {
             	throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
             }
@@ -435,7 +448,7 @@ public class ChangeExecutor {
         change.setOid(oid);
     }
 
-    private <T extends ObjectType> void executeDeletion(ObjectDelta<T> change, ProvisioningOperationOptions options, OperationResult result) throws
+    private <T extends ObjectType> void executeDeletion(ObjectDelta<T> change, ProvisioningOperationOptions options, Task task, OperationResult result) throws
             ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException {
 
         String oid = change.getOid();
@@ -444,13 +457,13 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-            deleteProvisioningObject(objectTypeClass, oid, options, result);
+            deleteProvisioningObject(objectTypeClass, oid, options, task, result);
         } else {
             cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
         }
     }
 
-    private <T extends ObjectType> void executeModification(ObjectDelta<T> change, ProvisioningOperationOptions options, OperationResult result)
+    private <T extends ObjectType> void executeModification(ObjectDelta<T> change, ProvisioningOperationOptions options, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, RewindException {
         if (change.isEmpty()) {
             // Nothing to do
@@ -461,7 +474,7 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-            String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), options, result);
+            String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), options, task, result);
             if (!oid.equals(change.getOid())){
             	change.setOid(oid);
             }
@@ -482,7 +495,7 @@ public class ChangeExecutor {
         }
     }
 
-    private String addProvisioningObject(PrismObject<? extends ObjectType> object, ProvisioningOperationOptions options, OperationResult result)
+    private String addProvisioningObject(PrismObject<? extends ObjectType> object, ProvisioningOperationOptions options, Task task, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 
@@ -496,7 +509,7 @@ public class ChangeExecutor {
 
         try {
             ProvisioningScriptsType scripts = getScripts(object.asObjectable(), result);
-            String oid = provisioning.addObject(object, scripts, options, result);
+            String oid = provisioning.addObject(object, scripts, options, task, result);
             return oid;
         } catch (ObjectNotFoundException ex) {
             throw ex;
@@ -511,13 +524,13 @@ public class ChangeExecutor {
 		}
     }
 
-    private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid, ProvisioningOperationOptions options,
+    private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid, ProvisioningOperationOptions options, Task task, 
             OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException {
 
         try {
             // TODO: scripts
-            provisioning.deleteObject(objectTypeClass, oid, options, null, result);
+            provisioning.deleteObject(objectTypeClass, oid, options, null, task, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -526,11 +539,11 @@ public class ChangeExecutor {
     }
 
     private String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
-            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options, OperationResult result) throws ObjectNotFoundException, RewindException {
+            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectNotFoundException, RewindException {
 
         try {
             // TODO: scripts
-            String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, null, options, result);
+            String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, null, options, task, result);
             return changedOid;
         } catch (ObjectNotFoundException ex) {
             throw ex;

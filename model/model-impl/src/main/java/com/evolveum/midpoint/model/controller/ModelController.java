@@ -349,6 +349,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				while (true) {
 					RewindException rewindException = null;
 					LensContext<?, ?> context = LensUtil.objectDeltasToContext(deltas, provisioning, prismContext, task, result);
+					context.setOptions(options);
 					try {
 						
 						clockwork.run(context, task, result);
@@ -459,7 +460,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	 */
 	@Override
 	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult)
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (LOGGER.isDebugEnabled()) {
@@ -478,7 +479,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 			context = (LensContext<F, P>) LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
-			
+			context.setOptions(options);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
 			}

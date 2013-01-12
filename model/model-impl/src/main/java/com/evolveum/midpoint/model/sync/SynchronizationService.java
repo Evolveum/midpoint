@@ -450,7 +450,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		// refresh situation
 		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
 				situation.getSituation());
+		if (syncSituationDelta != null){
 		syncSituationDeltas.add(syncSituationDelta);
+		}
 		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object));
 	
 		try {

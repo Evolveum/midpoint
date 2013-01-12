@@ -13,15 +13,18 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -31,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
@@ -93,7 +97,10 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		if (!isPostpone(shadow.getResource())){
 			throw new CommunicationException(ex.getMessage(), ex);
 		}
-				
+		
+		Task task = null; 
+		ObjectDelta delta = null;
+		ResourceOperationDescription operationDescription = null;
 		switch (op) {
 		case ADD:
 			// if it is firt time, just store the whole account to the repo
@@ -121,8 +128,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			} else {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 
-					Collection<? extends ItemDelta> delta = createAttemptModification(shadow, null);
-					cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), delta,
+					Collection<? extends ItemDelta> attemptdelta = createAttemptModification(shadow, null);
+					cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), attemptdelta,
 							operationResult);
 			
 				}
@@ -139,6 +146,11 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 									+ ObjectTypeUtil.toShortString(resource)
 									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
 			
+			task = taskManager.createTaskInstance();
+			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+			delta = ObjectDelta.createAddDelta(shadow.asPrismObject());
+			operationDescription = createOperationDescription(shadow, resource, delta, task, operationResult);
+			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
 		case MODIFY:
 			if (shadow.getFailedOperationType() == null || shadow.getFailedOperationType() == FailedOperationTypeType.MODIFY) {
@@ -148,6 +160,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 				getCacheRepositoryService().modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 						operationResult);
+				delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
 //				operationResult.recordSuccess();
 				// return shadow;
 			} else {
@@ -158,6 +171,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), deltas,
 								operationResult);
+						delta = ObjectDelta.createModifyDelta(shadow.getOid(), deltas, shadow.asPrismObject().getCompileTimeClass(), prismContext);
 						// return shadow;
 //						operationResult.recordSuccess();
 					}
@@ -171,6 +185,11 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 					.recordHandledError("Could not apply modifications to "+ObjectTypeUtil.toShortString(shadow)+" on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", because resource is unreachable. Modifications will be applied when the resource goes online");
+			task = taskManager.createTaskInstance();
+			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+			
+			operationDescription = createOperationDescription(shadow, shadow.getResource(), delta, task, operationResult);
+			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
 		case DELETE:
 			shadow.setFailedOperationType(FailedOperationTypeType.DELETE);
@@ -187,6 +206,11 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 									+ ", because resource is unreachable. Account will be delete when the resource goes online");
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();
+			task = taskManager.createTaskInstance();
+			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+			delta = ObjectDelta.createDeleteDelta(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), prismContext);
+			operationDescription = createOperationDescription(shadow, shadow.getResource(), delta, task, operationResult);
+			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
 		case GET:
 			// nothing to do, just return the shadow from the repo and set fetch
@@ -245,7 +269,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		
 		return modifications;
 	}
-
+	
+	
 //	private Integer getAttemptNumber(ResourceObjectShadowType shadow) {
 //		Integer attemptNumber = (shadow.getAttemptNumber() == null ? 0 : shadow.getAttemptNumber()+1);
 //		return attemptNumber;

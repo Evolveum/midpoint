@@ -6,10 +6,17 @@ import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -23,6 +30,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 public abstract class ErrorHandler {
 	
+	@Autowired(required = true)
+	protected TaskManager taskManager;
+	@Autowired(required = true)
+	protected ChangeNotificationDispatcher changeNotificationDispatcher;
+//	@Autowired(required = true)
+//	protected ResourceOperationListener operationListener;
+	@Autowired
+	protected PrismContext prismContext;
 	
 	public static enum FailedOperation{
 		ADD, DELETE, MODIFY, GET;
@@ -71,4 +86,16 @@ public abstract class ErrorHandler {
 		Integer attemptNumber = (shadow.getAttemptNumber() == null ? 0 : shadow.getAttemptNumber()+1);
 		return attemptNumber;
 	}
+	
+	protected ResourceOperationDescription createOperationDescription(ResourceObjectShadowType shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult result) {
+		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
+		operationDescription.setCurrentShadow(shadowType.asPrismObject());
+		operationDescription.setResource(resource.asPrismObject());
+		operationDescription.setSourceChannel(task.getChannel());
+		operationDescription.setObjectDelta(delta);
+		operationDescription.setResult(result);
+		return operationDescription;
+	}
+
+	
 }

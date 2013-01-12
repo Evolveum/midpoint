@@ -66,7 +66,7 @@ public interface ModelInteractionService {
 	 * on the generated values. 
 	 */
 	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) 
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) 
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 }

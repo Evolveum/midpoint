@@ -50,9 +50,20 @@ public class SynchronizationSituationUtil {
 	}
 	
 	public static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(PrismObject object, SynchronizationSituationType situation){
-		PropertyDelta<SynchronizationSituationType> syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
-				ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation);
-		return syncSituationDelta;
+		
+		if (situation == null){
+			SynchronizationSituationType oldValue = ((ResourceObjectShadowType) object.asObjectable()).getSynchronizationSituation();
+			if (oldValue != null){
+				ItemPath syncSituationPath = new ItemPath(ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION);
+				return PropertyDelta.createModificationDeleteProperty(syncSituationPath,
+						object.findProperty(syncSituationPath).getDefinition(),oldValue);
+			}
+	
+		} else{
+			return PropertyDelta.createReplaceDelta(object.getDefinition(),
+					ResourceObjectShadowType.F_SYNCHRONIZATION_SITUATION, situation);
+		} 
+		return null;
 	}
 	
 	public static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject object){

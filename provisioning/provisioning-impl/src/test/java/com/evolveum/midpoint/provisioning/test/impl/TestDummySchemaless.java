@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
@@ -122,6 +123,9 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+	
+//	@Autowired
+//	TaskManager taskManager;
 
 	/**
 	 * @throws JAXBException
@@ -413,7 +417,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Adding shadow", account.asPrismObject());
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 
 		// THEN
 		result.computeStatus();

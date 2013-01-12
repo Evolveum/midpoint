@@ -754,7 +754,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		AccountShadowType jackeAccount = unmarshallJaxbFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
 				AccountShadowType.class);
 
-		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, parentResult);
+		Task task = taskManager.createTaskInstance();
+		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, task, parentResult);
 		PrismObject<AccountShadowType> jackFromRepo = repositoryService.getObject(AccountShadowType.class,
 				oid, parentResult);
 		LOGGER.debug("account jack after provisioning: {}", jackFromRepo.dump());
@@ -885,7 +886,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		AccountShadowType shadow = unmarshallJaxbFromFile(ACCOUNT_DENIELS_FILENAME, AccountShadowType.class);
 
-		provisioningService.addObject(shadow.asPrismObject(), null, null, secondResult);
+		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
 
 		addObjectFromFile(USER_DENIELS_FILENAME, UserType.class, secondResult);
 

@@ -5,9 +5,12 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -54,6 +57,12 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	@Autowired
 	private ProvisioningService provisioningService;
+	
+//	@Autowired
+//	private TaskManager taskManager;
+	
+	@Autowired
+	private SynchornizationServiceMock syncServiceMock;
 	
 	
 	/* (non-Javadoc)
@@ -122,8 +131,9 @@ public class TestDBTable extends AbstractIntegrationTest {
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(account.asPrismObject().dump());
 
+		Task task = taskManager.createTaskInstance();
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, task, result);
 		
 		// THEN
 		result.computeStatus();

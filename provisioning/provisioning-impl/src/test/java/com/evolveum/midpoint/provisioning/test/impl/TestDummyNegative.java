@@ -61,6 +61,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
@@ -84,6 +85,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
@@ -127,6 +129,12 @@ public class TestDummyNegative extends AbstractDummyTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	
 	private static final String ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME = TEST_DIR + "account-elaine-resource-not-found.xml";
+	
+//	@Autowired
+//	TaskManager taskManager;
+	
+//	@Autowired
+//	private ResourceObjectChangeListener syncServiceMock;
 	
 	@Test
 	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
@@ -202,7 +210,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, null, result);
+			provisioningService.addObject(account, null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -231,7 +239,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, null, result);
+			provisioningService.addObject(account, null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -260,7 +268,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, null, result);
+			provisioningService.addObject(account, null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -289,7 +297,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			provisioningService.addObject(account, null, null, result);
+			provisioningService.addObject(account, null, null, taskManager.createTaskInstance(), result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
@@ -320,7 +328,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			// WHEN
 			String oid = repositoryService.addObject(account, result);
 			ProvisioningOperationOptions options = ProvisioningOperationOptions.createForce(true);
-			provisioningService.deleteObject(AccountShadowType.class, oid, options, null, result);
+			provisioningService.deleteObject(AccountShadowType.class, oid, options, null, taskManager.createTaskInstance(), result);
 //			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected

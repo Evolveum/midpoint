@@ -122,7 +122,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 				resourceType.asPrismObject());
 		when(
 				provisioning.addObject(any(PrismObject.class), any(ProvisioningScriptsType.class),
-						any(ProvisioningOperationOptions.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
+						any(ProvisioningOperationOptions.class), any(Task.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
 				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];

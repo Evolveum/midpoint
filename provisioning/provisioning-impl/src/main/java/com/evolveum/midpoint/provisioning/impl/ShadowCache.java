@@ -36,7 +36,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
@@ -53,6 +56,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -90,6 +94,8 @@ public abstract class ShadowCache {
 	private PrismContext prismContext;
 	@Autowired(required = true)
 	private ShadowConverter shadowConverter;
+	@Autowired(required = true)
+	private ChangeNotificationDispatcher operationListener;
 
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
@@ -179,7 +185,7 @@ public abstract class ShadowCache {
 	public abstract String afterAddOnResource(ResourceObjectShadowType shadowType, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 	
 	public String addShadow(ResourceObjectShadowType shadowType, ProvisioningScriptsType scripts,
-			ResourceType resource, OperationResult parentResult) throws CommunicationException,
+			ResourceType resource, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 	Validate.notNull(shadowType, "Object to add must not be null.");
@@ -207,13 +213,30 @@ public abstract class ShadowCache {
 	
 	try {
 		shadowType = shadowConverter.addShadow(resource, shadowType, additionalOperations, parentResult);
+		
 	} catch (Exception ex) {
 		shadowType = handleError(ex, shadowType, FailedOperation.ADD, resource, null, true, parentResult);
 		return shadowType.getOid();
 	}
 	
 		String oid = afterAddOnResource(shadowType, resource, parentResult);
+		shadowType.setOid(oid);
+		ObjectDelta delta = ObjectDelta.createAddDelta(shadowType.asPrismObject());
+		ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadowType, resource, delta, task, parentResult);
+		operationListener.notifySuccess(operationDescription, task, parentResult);
 		return oid;
+	}
+
+	private ResourceOperationDescription createSuccessOperationDescription(ResourceObjectShadowType shadowType, ResourceType resource, ObjectDelta delta, Task task, OperationResult parentResult) {
+		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
+		operationDescription.setCurrentShadow(shadowType.asPrismObject());
+		operationDescription.setResource(resource.asPrismObject());
+		if (task != null){
+		operationDescription.setSourceChannel(task.getChannel());
+		}
+		operationDescription.setObjectDelta(delta);
+		operationDescription.setResult(parentResult);
+		return operationDescription;
 	}
 
 	public abstract void afterModifyOnResource(ResourceObjectShadowType shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
@@ -221,7 +244,7 @@ public abstract class ShadowCache {
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(ResourceObjectShadowType shadowType, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException;
 	
 	public String modifyShadow(ResourceObjectShadowType objectType, ResourceType resource, String oid,
-				Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, OperationResult parentResult)
+				Collection<? extends ItemDelta> modifications, ProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 				throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
 				ConfigurationException, SecurityViolationException {
 
@@ -282,13 +305,17 @@ public abstract class ShadowCache {
 				// TODO: implement
 				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
 			}
+			
+			ObjectDelta delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
+			ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadow, resource, delta, task, parentResult);
+			operationListener.notifySuccess(operationDescription, task, parentResult);
 			parentResult.recordSuccess();
 			return oid;
 		}
 
 
 	public void deleteShadow(ObjectType objectType, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
-			ResourceType resource, OperationResult parentResult) throws CommunicationException,
+			ResourceType resource, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectNotFoundException, SchemaException, ConfigurationException,
 			SecurityViolationException {
 
@@ -338,6 +365,9 @@ public abstract class ShadowCache {
 			LOGGER.trace("Detele object with oid {} form repository.", accountShadow.getOid());
 			try {
 				getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(), parentResult);
+				ObjectDelta delta = ObjectDelta.createDeleteDelta(accountShadow.asPrismObject().getCompileTimeClass(), accountShadow.getOid(), prismContext);
+				ResourceOperationDescription operationDescription = createSuccessOperationDescription(accountShadow, resource, delta, task, parentResult);
+				operationListener.notifySuccess(operationDescription, task, parentResult);
 			} catch (ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't delete object " + ObjectTypeUtil.toShortString(accountShadow)
 						+ ". Reason: " + ex.getMessage(), ex);

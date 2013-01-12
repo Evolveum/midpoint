@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -99,6 +100,8 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     transient private Map<String, ResourceType> resourceCache;
 	
 	transient private PrismContext prismContext;
+	
+	private ModelExecuteOptions options;
 	
 	public LensContext(Class<F> focusClass, Class<P> projectionClass, PrismContext prismContext) {
 		Validate.notNull(prismContext, "No prismContext");
@@ -345,6 +348,14 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	public void setEvaluatedAssignmentTriple(DeltaSetTriple<Assignment> evaluatedAssignmentTriple) {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
+	}
+	
+	public ModelExecuteOptions getOptions() {
+		return options;
+	}
+	
+	public void setOptions(ModelExecuteOptions options) {
+		this.options = options;
 	}
 
 	/**
