@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Resource for use with dummy ICF connector.
@@ -82,7 +83,7 @@ public class DummyResource {
 	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
 	
 	DummyResource() {
-		accounts = new HashMap<String, DummyAccount>();
+		accounts = new ConcurrentHashMap<String, DummyAccount>();
 		scriptHistory = new ArrayList<String>();
 		accountObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
