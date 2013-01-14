@@ -38,24 +38,6 @@ public class SchemaExceptionHandler extends ErrorHandler{
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
-		if (shadow.getOid() == null){
-			parentResult.recordFatalError("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
-			throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
-		}
-		
-		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
-		
-		try {
-			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(),
-					modification, parentResult);
-		} catch (Exception e) {
-			//this should not happen. But if it happens, we should return original exception
-//			throw new SchemaException("Schema violation during processing shadow: "
-//					+ ObjectTypeUtil.toShortString(shadow) + ": " + ex.getMessage(), ex);
-		}
-		
-		parentResult.recordFatalError("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
-		
 		ObjectDelta delta = null;
 		switch (op) {
 		case ADD:
@@ -82,7 +64,26 @@ public class SchemaExceptionHandler extends ErrorHandler{
 					shadow.getResource(), delta, task, parentResult);
 			changeNotificationDispatcher.notifyFailure(operationDescription, task, parentResult);
 		}
-		throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
+
+		if (shadow.getOid() == null){
+			parentResult.recordFatalError("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
+			throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
+		}
+		
+		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
+		
+		try {
+			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(),
+					modification, parentResult);
+		} catch (Exception e) {
+			//this should not happen. But if it happens, we should return original exception
+//			throw new SchemaException("Schema violation during processing shadow: "
+//					+ ObjectTypeUtil.toShortString(shadow) + ": " + ex.getMessage(), ex);
+		}
+		
+		parentResult.recordFatalError("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
+		
+				throw new SchemaException("Schema violation during processing shadow: "+ ObjectTypeUtil.toShortString(shadow)+": "+ex.getMessage(), ex);
 	}	
 
 }

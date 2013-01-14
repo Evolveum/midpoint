@@ -184,14 +184,16 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 			ResourceObjectShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
 			if (currentShadowType != null) {
 				// not a useful check..the current shadow could be null
+				if (!failure){
 				assertNotNull("Current shadow does not have an OID", opDescription.getCurrentShadow().getOid());
-				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
 				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
 				assertFalse("Current shadow has empty attributes", ResourceObjectShadowUtil
 						.getAttributesContainer(currentShadowType).isEmpty());
-
+				}
+				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
+				
 				// Check if the shadow is already present in repo (if it is not a delete case)
-				if (!opDescription.getObjectDelta().isDelete() || !failure){
+				if (!opDescription.getObjectDelta().isDelete() && !failure){
 				try {
 					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), new OperationResult("mockSyncService."+notificationDesc));
 				} catch (Exception e) {
@@ -224,7 +226,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 //				}
 			}
 		}
-		if (opDescription.getObjectDelta() != null) {
+		if (opDescription.getObjectDelta() != null && !failure) {
 			assertNotNull("Delta has null OID", opDescription.getObjectDelta().getOid());
 		}
 		
@@ -243,7 +245,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 	public void reset() {
 		callCountNotifyChange = 0;
+		callCountNotifyOperation = 0;
 		lastChange = null;
+		wasSuccess = false;
+		wasFailure = false;
+		wasInProgress = false;
 	}
 
 	public ResourceObjectShadowChangeDescription getLastChange() {

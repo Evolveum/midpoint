@@ -142,7 +142,8 @@ public class ResourceOperationDescription implements Dumpable, DebugDumpable {
     	if (objectDelta != null) {
     		objectDelta.checkConsistence();
     	}
-    	if (currentShadow != null && currentShadow.getOid() == null) {
+    	//shadow does not have oid set, for example the shadow should be added, but is wasn't because of some error
+    	if (currentShadow != null && currentShadow.getOid() == null && objectDelta != null && !objectDelta.isAdd()) {
     		throw new IllegalArgumentException("Current shadow OID not set in "+this.getClass().getSimpleName());
     	}
     	if (currentShadow != null) {

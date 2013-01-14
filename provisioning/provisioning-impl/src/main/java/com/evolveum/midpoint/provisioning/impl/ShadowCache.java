@@ -202,7 +202,8 @@ public abstract class ShadowCache {
 	PrismContainer<?> attributesContainer = shadowType.asPrismObject().findContainer(
 			ResourceObjectShadowType.F_ATTRIBUTES);
 	if (attributesContainer == null || attributesContainer.isEmpty()) {
-		throw new SchemaException("Attempt to add shadow without any attributes: " + shadowType);
+//		throw new SchemaException("Attempt to add shadow without any attributes: " + shadowType);
+		handleError(new SchemaException("Attempt to add shadow without any attributes: " + shadowType), shadowType, FailedOperation.ADD, resource, null, true, parentResult);
 	}
 
 	Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -335,6 +336,7 @@ public abstract class ShadowCache {
 					if (ProvisioningOperationOptions.isForce(options)) {
 						getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(),
 								parentResult);
+						return;
 					}
 				}
 			}

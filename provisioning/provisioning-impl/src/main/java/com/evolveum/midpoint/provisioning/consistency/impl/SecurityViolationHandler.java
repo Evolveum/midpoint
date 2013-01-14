@@ -38,17 +38,6 @@ public class SecurityViolationHandler extends ErrorHandler{
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
-		if (shadow.getOid() == null){
-			throw new SecurityViolationException("Security violation during processing shadow " + ObjectTypeUtil.toShortString(shadow) +": "+ ex.getMessage(), ex);
-		}
-		
-		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
-		try{
-		cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
-		} catch (Exception e) {
-			//this should not happen. But if it happens, we should return original exception
-		}
-		
 		ObjectDelta delta = null;
 		switch(op){
 		case ADD :
@@ -75,6 +64,19 @@ public class SecurityViolationHandler extends ErrorHandler{
 				delta, task, parentResult);
 		changeNotificationDispatcher.notifyFailure(operationDescription, task, parentResult);
 		}
+		
+		if (shadow.getOid() == null){
+			throw new SecurityViolationException("Security violation during processing shadow " + ObjectTypeUtil.toShortString(shadow) +": "+ ex.getMessage(), ex);
+		}
+		
+		Collection<ItemDelta> modification = createAttemptModification(shadow, null);
+		try{
+		cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
+		} catch (Exception e) {
+			//this should not happen. But if it happens, we should return original exception
+		}
+		
+		
 		
 		throw new SecurityViolationException("Security violation during processing shadow " + ObjectTypeUtil.toShortString(shadow) +": "+ ex.getMessage(), ex);
 	}	

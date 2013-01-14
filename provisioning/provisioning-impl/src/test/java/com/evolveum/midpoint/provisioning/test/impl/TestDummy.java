@@ -129,7 +129,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
 	
-	private Task syncTask = taskManager.createTaskInstance();
+//	private Task syncTask = null;
 	private CachingMetadataType capabilitiesCachingMetadataType;
 
 	@Test
@@ -154,6 +154,8 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		assertSuccess(result);
+		
+		
 
 		// Check connector schema
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connector, prismContext);
@@ -717,6 +719,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test100AddAccount() throws Exception {
 		displayTestTile("test110AddAccount");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test110AddAccount");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test110AddAccount");
 		syncServiceMock.reset();
@@ -776,6 +780,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test101AddAccountWithoutName() throws Exception {
 		displayTestTile("test101AddAccountWithoutName");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test101AddAccountWithoutName");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test101AddAccountWithoutName");
 		syncServiceMock.reset();
@@ -1098,6 +1104,8 @@ public class TestDummy extends AbstractDummyTest {
 		displayTestTile("test121EnableAccount");
 		// GIVEN
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test121EnableAccount");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test121EnableAccount");
 
@@ -1138,11 +1146,13 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test122DisableAccount() throws Exception {
-		displayTestTile("test122EnableAccount");
+		displayTestTile("test122DisableAccount");
 		// GIVEN
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test122DisableAccount");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test122EnableAccount");
+				+ ".test122DisableAccount");
 
 		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null,
 				result).asObjectable();
@@ -1182,6 +1192,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test123ModifyObjectReplace() throws Exception {
 		displayTestTile("test123ModifyObjectReplace");
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test123ModifyObjectReplace");
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test123ModifyObjectReplace");
 		
@@ -1215,6 +1227,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test124ModifyObjectAddPirate() throws Exception {
 		displayTestTile("test124ModifyObjectAddPirate");
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test124ModifyObjectAddPirate");
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test124ModifyObjectAddPirate");
 		syncServiceMock.reset();
@@ -1244,6 +1258,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test125ModifyObjectAddCaptain() throws Exception {
 		displayTestTile("test125ModifyObjectAddCaptain");
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test125ModifyObjectAddCaptain");
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test125ModifyObjectAddCaptain");
 		syncServiceMock.reset();
@@ -1273,6 +1289,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test126ModifyObjectDeletePirate() throws Exception {
 		displayTestTile("test126ModifyObjectDeletePirate");
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test126ModifyObjectDeletePirate");
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test126ModifyObjectDeletePirate");
 		syncServiceMock.reset();
@@ -1306,6 +1324,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test127ModifyObjectAddCaptainAgain() throws Exception {
 		displayTestTile("test127ModifyObjectAddCaptainAgain");
 
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test127ModifyObjectAddCaptainAgain");
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test127ModifyObjectAddCaptainAgain");
 		syncServiceMock.reset();
@@ -1337,6 +1357,8 @@ public class TestDummy extends AbstractDummyTest {
 			SecurityViolationException {
 		displayTestTile("test131AddScript");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test131AddScript");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test131AddScript");
 		syncServiceMock.reset();
@@ -1400,6 +1422,8 @@ public class TestDummy extends AbstractDummyTest {
 			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 		displayTestTile("test500AddProtectedAccount");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test500AddProtectedAccount");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test500AddProtectedAccount");
 		syncServiceMock.reset();
@@ -1464,6 +1488,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test502ModifyProtectedAccountShadow() throws Exception {
 		displayTestTile("test502ModifyProtectedAccountShadow");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test502ModifyProtectedAccountShadow");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test502ModifyProtectedAccountShadow");
 		syncServiceMock.reset();
@@ -1501,6 +1527,8 @@ public class TestDummy extends AbstractDummyTest {
 			SchemaException, ConfigurationException, SecurityViolationException {
 		displayTestTile("test503DeleteProtectedAccountShadow");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test503DeleteProtectedAccountShadow");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test503DeleteProtectedAccountShadow");
 		syncServiceMock.reset();
@@ -1523,12 +1551,14 @@ public class TestDummy extends AbstractDummyTest {
 //		checkConsistency();
 	}
 
+	static Task syncTokenTask = null;
+	
 	@Test
 	public void test800LiveSyncInit() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException {
 		displayTestTile("test800LiveSyncInit");
-		syncTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
+		syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
 		syncServiceMock.reset();
@@ -1539,7 +1569,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Dry run to remember the current sync token in the task instance.
 		// Otherwise a last sync token whould be used and
 		// no change would be detected
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1556,6 +1586,9 @@ public class TestDummy extends AbstractDummyTest {
 	public void test801LiveSyncAddBlackbeard() throws Exception {
 		displayTestTile("test801LiveSyncAddBlackbeard");
 		// GIVEN
+//		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+//				+ ".test801LiveSyncAddBlackbeard");
+//		
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test801LiveSyncAddBlackbeard");
 
@@ -1570,7 +1603,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1609,6 +1642,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test802LiveSyncModifyBlackbeard() throws Exception {
 		displayTestTile("test802LiveSyncModifyBlackbeard");
 		// GIVEN
+//		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+//				+ ".test802LiveSyncModifyBlackbeard");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test802LiveSyncModifyBlackbeard");
 
@@ -1620,7 +1655,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1659,6 +1694,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test803LiveSyncAddDrake() throws Exception {
 		displayTestTile("test803LiveSyncAddDrake");
 		// GIVEN
+//		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+//				+ ".test803LiveSyncAddDrake");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test803LiveSyncAddDrake");
 
@@ -1673,7 +1710,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Resource before sync", dummyResource.dump());
 
 		// WHEN
-		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTask, result);
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -1712,6 +1749,8 @@ public class TestDummy extends AbstractDummyTest {
 	public void test810LiveSyncModifyProtectedAccount() throws Exception {
 		displayTestTile("test810LiveSyncModifyProtectedAccount");
 		// GIVEN
+		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ ".test810LiveSyncModifyProtectedAccount");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test810LiveSyncModifyProtectedAccount");
 
