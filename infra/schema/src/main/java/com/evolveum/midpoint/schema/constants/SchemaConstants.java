@@ -77,6 +77,9 @@ public abstract class SchemaConstants {
 	public static final QName C_EXTENSION = new QName(NS_C, "extension");;
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
 	public static final QName C_TASK = new QName(NS_C, "task");
+    public static final QName C_TASK_REQUESTEE = new QName(NS_C, "requestee");
+    public static final QName C_TASK_REQUESTEE_REF = new QName(NS_C, "requesteeRef");
+    public static final QName C_TASK_REQUESTEE_OID = new QName(NS_C, "requesteeOid");
 	public static final QName C_TASK_EXECUTION_STATUS = new QName(NS_C, "executionStatus");
 	public static final QName C_TASK_EXECLUSIVITY_STATUS = new QName(NS_C, "exclusivityStatus");
 	public static final QName C_TASK_DESCRIPTION = new QName(NS_C, "description");		

@@ -24,11 +24,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
@@ -256,8 +252,22 @@ public interface Task extends Dumpable {
 	
 	// TODO: sets owner in-memory only (for now)
 	public void setOwner(PrismObject<UserType> owner);
-	
-	/**
+
+    /**
+     * Works with the 'requestee', i.e. the user about who is the request.
+     * Currently implemented via task extension. TODO decide how to do that seriously.
+     *
+     * TODO FIXME: xxxRequesteeRef methods currently do not work because of problem in RAnyConverter, use xxxRequesteeOid instead
+     */
+    public PrismReference getRequesteeRef();
+    public void setRequesteeRef(PrismReferenceValue reference) throws SchemaException;
+    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException;
+
+    public String getRequesteeOid();
+    public void setRequesteeOid(String oid) throws SchemaException;
+    public void setRequesteeOidImmediate(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
+    /**
 	 * Returns change channel URI.
 	 */
 	public String getChannel();
@@ -372,8 +382,14 @@ public interface Task extends Dumpable {
 	public <C extends Containerable> PrismContainer<C> getExtension();
 	
 	public <T> PrismProperty<T> getExtension(QName propertyName);
-	
-	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException;
+
+    public <T extends PrismValue> Item<T> getExtensionItem(QName propertyName);
+
+    public <C extends Containerable> void setExtensionContainer(PrismContainer<C> item) throws SchemaException;
+
+    public void setExtensionReference(PrismReference reference) throws SchemaException;
+
+    public void setExtensionProperty(PrismProperty<?> property) throws SchemaException;
 	
 	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
@@ -573,4 +589,5 @@ public interface Task extends Dumpable {
 
     void finishHandler(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
+
 }

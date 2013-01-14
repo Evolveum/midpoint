@@ -340,6 +340,29 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
 
+    @Test(enabled = false)
+    public void test004cReferenceInExtension() throws Exception {
+
+        String test = "004cReferenceInExtension";
+        OperationResult result = createResult(test);
+        addObjectFromFile(taskFilename(test));
+
+        TaskQuartzImpl task = (TaskQuartzImpl) taskManager.getTask(taskOid(test), result);
+
+        System.out.println("Task extension = " + task.getExtension());
+
+        PrismObject<UserType> requestee = task.getOwner();
+        task.setRequesteeRef(requestee);
+
+        logger.trace("Saving modifications...");
+        task.savePendingModifications(result);          // here it crashes
+
+        logger.trace("Retrieving the task and comparing its properties...");
+        Task task001 = taskManager.getTask(taskOid(test), result);
+        logger.trace("Task from repo: " + task001.dump());
+        AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
+    }
+
     @Test(enabled = true)
     public void test004TaskProperties() throws Exception {
 
@@ -415,6 +438,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         task.setResult(result);
 
+        PrismObject<UserType> requestee = task.getOwner();
+        //task.setRequesteeRef(requestee);      does not work
+        task.setRequesteeOid(requestee.getOid());
+
         logger.trace("Saving modifications...");
 
         task.savePendingModifications(result);
@@ -455,6 +482,9 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // handling of operation result in tasks is extremely fragile now...
         // in case of problems, just uncomment the following line ;)
         AssertJUnit.assertEquals(ort, ort1);
+
+        //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
+        AssertJUnit.assertEquals("RequesteeOid was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeOid());
 
         // now pop the handlers
 

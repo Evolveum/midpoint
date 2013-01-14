@@ -26,7 +26,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksTaskHandler;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -275,7 +278,7 @@ public class TaskQuartzImpl implements Task {
 		}
 	}
 
-	private void processModificationNow(PropertyDelta<?> delta, OperationResult parentResult)
+	private void processModificationNow(ItemDelta<?> delta, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		if (delta != null) {
 			Collection<ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>(1);
@@ -1269,8 +1272,8 @@ public class TaskQuartzImpl implements Task {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         processModificationNow(setNameAndPrepareDelta(value), parentResult);
 	}
-	
-	public void setNameTransient(PolyStringType name) {
+
+    public void setNameTransient(PolyStringType name) {
 		taskPrism.asObjectable().setName(name);
 	}
 	
@@ -1364,10 +1367,29 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 
-	@Override
+    @Override
+    public Item<?> getExtensionItem(QName propertyName) {
+        if (getExtension() != null) {
+            return getExtension().findItem(propertyName);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
 		processModificationBatched(setExtensionPropertyAndPrepareDelta(property));
 	}
+
+    @Override
+    public <C extends Containerable> void setExtensionContainer(PrismContainer<C> item) throws SchemaException {
+        processModificationBatched(setExtensionContainerAndPrepareDelta(item));
+    }
+
+    @Override
+    public void setExtensionReference(PrismReference reference) throws SchemaException {
+        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference));
+    }
 
     @Override
     public void addExtensionProperty(PrismProperty<?> property) throws SchemaException {
@@ -1403,17 +1425,31 @@ public class TaskQuartzImpl implements Task {
 		setExtensionPropertyAndPrepareDelta(property);
 	}
 
-	private PropertyDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> property) throws SchemaException {
-		
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
-        delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
-        
-		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
-		modifications.add(delta);
+    private ItemDelta<?> setExtensionPropertyAndPrepareDelta(PrismProperty<?> item) throws SchemaException {
+        ItemDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, item.getName()), item.getDefinition());
+        return setExtensionItemAndPrepareDeltaCommon(delta, item);
+    }
+
+    private ItemDelta<?> setExtensionContainerAndPrepareDelta(PrismContainer<?> item) throws SchemaException {
+        ItemDelta delta = new ContainerDelta(new ItemPath(TaskType.F_EXTENSION, item.getName()), item.getDefinition());
+        return setExtensionItemAndPrepareDeltaCommon(delta, item);
+    }
+
+    private ItemDelta<?> setExtensionReferenceAndPrepareDelta(PrismReference reference) throws SchemaException {
+        ItemDelta delta = new ReferenceDelta(new ItemPath(TaskType.F_EXTENSION, reference.getName()), reference.getDefinition());
+        return setExtensionItemAndPrepareDeltaCommon(delta, reference);
+    }
+
+    private ItemDelta<?> setExtensionItemAndPrepareDeltaCommon(ItemDelta delta, Item item) throws SchemaException {
+
+        delta.setValuesToReplace(PrismValue.cloneCollection(item.getValues()));
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>(1);
+        modifications.add(delta);
         PropertyDelta.applyTo(modifications, taskPrism);		// i.e. here we apply changes only locally (in memory)
-        
-		return isPersistent() ? delta : null;
-	}
+
+        return isPersistent() ? delta : null;
+    }
 
     private ItemDelta<?> modifyExtensionAndPrepareDelta(ItemDelta<?> delta) throws SchemaException {
 
@@ -1449,8 +1485,67 @@ public class TaskQuartzImpl implements Task {
     }
 
     /*
-     * Node
+     * Requestee (implemented as extension property)
      */
+
+    @Override
+    public PrismReference getRequesteeRef() {
+        return (PrismReference) getExtensionItem(SchemaConstants.C_TASK_REQUESTEE_REF);
+    }
+
+    @Override
+    public String getRequesteeOid() {
+        PrismProperty<String> property = (PrismProperty<String>) getExtension(SchemaConstants.C_TASK_REQUESTEE_OID);
+        if (property != null) {
+            return property.getRealValue();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void setRequesteeRef(PrismReferenceValue requesteeRef) throws SchemaException {
+        PrismReferenceDefinition itemDefinition = new PrismReferenceDefinition(SchemaConstants.C_TASK_REQUESTEE_REF,
+                SchemaConstants.C_TASK_REQUESTEE_REF, ObjectReferenceType.COMPLEX_TYPE, taskManager.getPrismContext());
+        itemDefinition.setTargetTypeName(UserType.COMPLEX_TYPE);
+
+        PrismReference ref = new PrismReference(SchemaConstants.C_TASK_REQUESTEE_REF);
+        ref.setDefinition(itemDefinition);
+        ref.add(requesteeRef);
+        setExtensionReference(ref);
+    }
+
+    @Override
+    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
+        Validate.notNull(requestee.getOid());
+        PrismReferenceValue value = new PrismReferenceValue(requestee.getOid());
+        value.setTargetType(UserType.COMPLEX_TYPE);
+        setRequesteeRef(value);
+    }
+
+    @Override
+    public void setRequesteeOid(String oid) throws SchemaException {
+        setExtensionProperty(prepareRequesteeProperty(oid));
+    }
+
+    @Override
+    public void setRequesteeOidImmediate(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        setExtensionPropertyImmediate(prepareRequesteeProperty(oid), result);
+    }
+
+    private PrismProperty<String> prepareRequesteeProperty(String oid) {
+        PrismPropertyDefinition definition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.C_TASK_REQUESTEE_OID);
+        if (definition == null) {
+            throw new SystemException("No definition for " + SchemaConstants.C_TASK_REQUESTEE_OID);
+        }
+        PrismProperty<String> property = definition.instantiate();
+        property.setRealValue(oid);
+        return property;
+    }
+
+    /*
+    * Node
+    */
 
     @Override
     public String getNode() {
