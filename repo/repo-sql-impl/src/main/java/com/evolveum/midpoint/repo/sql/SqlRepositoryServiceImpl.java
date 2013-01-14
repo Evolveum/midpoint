@@ -773,10 +773,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw ex;
 		} catch (ConstraintViolationException ex) {
 			rollbackTransaction(session, ex, result, true);
-			// we don't know if it's only name uniqueness violation, or
-			// something else,
-			// therefore we're throwing it always as
-			// ObjectAlreadyExistsException
+
+            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
+			// we don't know if it's only name uniqueness violation, or something else,
+			// therefore we're throwing it always as ObjectAlreadyExistsException
+
+            //todo improve (we support only 5 DB, so we should probably do some hacking in here)
 			throw new ObjectAlreadyExistsException(ex);
 		} catch (Exception ex) {
 			if (ex instanceof SchemaException) {

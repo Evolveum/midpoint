@@ -253,6 +253,8 @@ public class SqlBaseService {
     }
 
     protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
+        LOGGER.debug("General exception occurred.", ex);
+
         //fix for ORA-08177 can't serialize access for this transaction
         if (ex instanceof QueryTimeoutException) {
             if (ex.getCause() != null && !(ex.getCause() instanceof SQLException)) {

@@ -88,6 +88,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
             }
             session.getTransaction().commit();
         } catch (Exception ex) {
+            LOGGER.error("Couldn't test database.", ex);
             session.getTransaction().rollback();
             throw ex;
         } finally {

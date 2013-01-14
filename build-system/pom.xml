@@ -689,7 +689,13 @@
                                 <midpoint.home>target/midpoint-home</midpoint.home>
                             </systemPropertyVariables>
                             <argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>
-                            <!--<argLine>-agentpath:/usr/local/yjp-11.0.2/bin/linux-x86-32/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.2/bin/yjp.sh,onexit=snapshot -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>-->
+                            <!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot -Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine>-->
+
+                            <!-- it's used for bamboo build to load jdbc libraries which can not be installed to public maven repository (MS SQL, ORACLE)-->
+                            <additionalClasspathElements>
+                                <additionalClasspathElement>/opt/Bamboo_db_configs/mssqljdbc4.jar</additionalClasspathElement>
+                                <additionalClasspathElement>/opt/Bamboo_db_configs/ojdbc6.jar</additionalClasspathElement>
+                            </additionalClasspathElements>
                         </configuration>
                         <dependencies>
                             <dependency>
