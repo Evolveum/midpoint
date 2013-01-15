@@ -167,9 +167,9 @@ public class SimpleAccountOperationNotifier implements Notifier {
             body.append("The operation will be retried.\n\n");
         }
 
-        body.append("----------------------------------------\n");
-        body.append("Technical information:\n\n");
-        body.append(rod.debugDump(2));
+//        body.append("----------------------------------------\n");
+//        body.append("Technical information:\n\n");
+//        body.append(rod.debugDump(2));
     }
 
 //    private String getLocalPart(QName name) {
