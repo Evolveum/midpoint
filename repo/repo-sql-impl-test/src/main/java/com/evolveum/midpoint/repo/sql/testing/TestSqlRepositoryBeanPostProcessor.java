@@ -76,7 +76,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
             session.beginTransaction();
 
             Query query;
-            if (StringUtils.containsIgnoreCase(factory.getSqlConfiguration().getHibernateDialect(), "oracle")) {
+            if (useProcedure(factory.getSqlConfiguration())) {
                 LOGGER.info("Using oracle truncate procedure.");
                 query = session.createSQLQuery("{ call" + TRUNCATE_PROCEDURE + "() }");
                 query.executeUpdate();
@@ -104,6 +104,17 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
         }
 
         return bean;
+    }
+
+    /**
+     * This method decides whether function or procedure (oracle, ms sql server) will be used to cleanup testing database.
+     *
+     * @param config
+     * @return
+     */
+    private boolean useProcedure(SqlRepositoryConfiguration config) {
+        return StringUtils.containsIgnoreCase(config.getHibernateDialect(), "oracle")
+                || StringUtils.containsIgnoreCase(config.getHibernateDialect(), "SQLServer");
     }
 
     @Override
