@@ -29,16 +29,23 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 public class PasswordAccountDto extends Selectable {
 
     public static final String F_DISPLAY_NAME = "displayName";
+    public static final String F_RESOURCE_NAME = "resourceName";
     public static final String F_ENABLED = "enabled";
 
     private String oid;
     private String displayName;
+    private String resourceName;
     private boolean enabled;
 
-    public PasswordAccountDto(String oid, String displayName, boolean enabled) {
+    public PasswordAccountDto(String oid, String displayName, String resourceName, boolean enabled) {
         this.displayName = displayName;
+        this.resourceName = resourceName;
         this.enabled = enabled;
         this.oid = oid;
+    }
+
+    public String getResourceName() {
+        return resourceName;
     }
 
     public String getDisplayName() {

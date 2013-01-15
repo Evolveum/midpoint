@@ -21,6 +21,16 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
@@ -32,6 +42,9 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -44,12 +57,21 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @author lazyman
  */
 public class PageMyPasswords extends PageAdminHome {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageMyPasswords.class);
+
+    private static final String DOT_CLASS = PageMyPasswords.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER_WITH_ACCOUNTS = DOT_CLASS + "loadUserWithAccounts";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+    private static final String OPERATION_SAVE_PASSWORD = DOT_CLASS + "savePassword";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ACCOUNTS = "accounts";
@@ -74,9 +96,58 @@ public class PageMyPasswords extends PageAdminHome {
 
     private MyPasswordsDto loadPageModel() {
         MyPasswordsDto dto = new MyPasswordsDto();
-        dto.getAccounts().add(new PasswordAccountDto("1", "name", true));
-        //todo implement
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER_WITH_ACCOUNTS);
+        try {
+            String userOid = SecurityUtils.getPrincipalUser().getOid();
+            Task task = createSimpleTask(OPERATION_LOAD_USER);
+            PrismObject<UserType> user = getModelService().getObject(UserType.class, userOid, null, task,
+                    result.createSubresult(OPERATION_LOAD_USER));
+
+            PrismReference reference = user.findReference(UserType.F_ACCOUNT_REF);
+            if (reference == null || reference.getValues() == null) {
+                LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
+                return dto;
+            }
+
+            final Collection<SelectorOptions<GetOperationOptions>> options =
+                    SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
+
+            List<PrismReferenceValue> values = reference.getValues();
+            for (PrismReferenceValue value : values) {
+                try {
+                    String accountOid = value.getOid();
+                    task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
+
+                    PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
+                            accountOid, options, task, result.createSubresult(OPERATION_LOAD_ACCOUNT));
+
+                    dto.getAccounts().add(createPasswordAccountDto(account));
+                } catch (Exception ex) {
+                    //todo error handling
+                    //couldn't
+                }
+            }
+            //todo implement
+        } catch (Exception ex) {
+            //todo error handling
+            LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
+        }
+
         return dto;
+    }
+
+    private PasswordAccountDto createPasswordAccountDto(PrismObject<AccountShadowType> account) {
+        PrismReference resourceRef = account.findReference(AccountShadowType.F_RESOURCE_REF);
+        String resourceName;
+        if (resourceRef == null || resourceRef.getValue() == null || resourceRef.getValue().getObject() == null) {
+            resourceName = getString("PageMyPasswords.couldntResolve");
+        } else {
+            resourceName = WebMiscUtil.getName(resourceRef.getValue().getObject());
+        }
+
+        return new PasswordAccountDto(account.getOid(), WebMiscUtil.getName(account),
+                resourceName, WebMiscUtil.isActivationEnabled(account));
     }
 
     private void initLayout() {
@@ -87,6 +158,7 @@ public class PageMyPasswords extends PageAdminHome {
         ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<PasswordAccountDto>(this,
                 new PropertyModel<List<PasswordAccountDto>>(model, MyPasswordsDto.F_ACCOUNTS));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, columns);
+        accounts.setItemsPerPage(30);
         accounts.setShowPaging(false);
         mainForm.add(accounts);
 
@@ -108,6 +180,9 @@ public class PageMyPasswords extends PageAdminHome {
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("PageMyPasswords.name"), PasswordAccountDto.F_DISPLAY_NAME);
+        columns.add(column);
+
+        column = new PropertyColumn(createStringResource("PageMyPasswords.resourceName"), PasswordAccountDto.F_RESOURCE_NAME);
         columns.add(column);
 
         CheckBoxColumn enabled = new CheckBoxColumn(createStringResource("PageMyPasswords.enabled"),
@@ -145,6 +220,13 @@ public class PageMyPasswords extends PageAdminHome {
     }
 
     private void savePerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
+        try {
+            List<PasswordAccountDto> accounts = model.getObject().getAccounts();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't save password changes", ex);
+            //todo error handling
+        }
         //todo implement
     }
 

@@ -37,12 +37,10 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -52,7 +50,6 @@ import org.apache.wicket.model.StringResourceModel;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -262,7 +259,7 @@ public final class WebMiscUtil {
 
         return collection;
     }
-    
+
     public static boolean showResultInPage(OperationResult result) {
         if (result == null) {
             return true;
@@ -270,9 +267,27 @@ public final class WebMiscUtil {
 
         return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();
     }
-    
+
     public static String getFormatedDate(Date date) {
-    	SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
-    	return dateFormat.format(date);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
+        return dateFormat.format(date);
+    }
+
+    public static boolean isActivationEnabled(PrismObject object) {
+        Validate.notNull(object);
+
+        PrismContainer activation = object.findContainer(UserType.F_ACTIVATION); //this is equal to account activation...
+        if (activation == null) {
+            return false;
+        }
+
+        PrismProperty enabled = activation.findProperty(ActivationType.F_ENABLED);
+        if (enabled == null || enabled.getRealValue() == null) {
+            return false;
+        }
+
+        //todo imrove with activation dates...
+
+        return (Boolean) enabled.getRealValue();
     }
 }
