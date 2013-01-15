@@ -340,7 +340,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test004cReferenceInExtension() throws Exception {
 
         String test = "004cReferenceInExtension";
