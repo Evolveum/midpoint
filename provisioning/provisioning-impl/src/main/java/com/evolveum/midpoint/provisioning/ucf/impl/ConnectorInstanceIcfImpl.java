@@ -1871,9 +1871,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				convertedAttributeValues.add(UcfUtil.convertValueToIcf(value, protector, attribute.getName()));
 			}
 
-			Attribute connectorAttribute = AttributeBuilder.build(attrName, convertedAttributeValues);
-
-			attributes.add(connectorAttribute);
+			boolean empty = convertedAttributeValues.isEmpty();
+			for (Object o: convertedAttributeValues) {
+				if (o != null) {
+					empty = false;
+					break;
+				}
+			}
+			
+			if (!empty) {
+				Attribute connectorAttribute = AttributeBuilder.build(attrName, convertedAttributeValues);
+				attributes.add(connectorAttribute);
+			}
 		}
 		return attributes;
 	}

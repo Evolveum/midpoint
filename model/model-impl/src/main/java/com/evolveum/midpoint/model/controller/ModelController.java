@@ -40,6 +40,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
@@ -223,7 +224,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		Validate.notNull(clazz, "Object class must not be null.");
 		RepositoryCache.enter();
 
-		T object = null;
+		PrismObject<T> object = null;
 		try {
 			OperationResult subResult = result.createSubresult(GET_OBJECT);
 			subResult.addParams(new String[] { "oid", "options", "class" }, oid, options, clazz);
@@ -232,19 +233,20 @@ public class ModelController implements ModelService, ModelInteractionService {
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-			object = objectResolver.getObject(clazz, oid, rootOptions, subResult);
+			object = objectResolver.getObject(clazz, oid, rootOptions, subResult).asPrismObject();
 
             if (!GetOperationOptions.isRaw(rootOptions)) {
-			    updateDefinition(object.asPrismObject(), result);
+			    updateDefinition(object, result);
             }
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
-			resolve(object.asPrismObject(), options, task, subResult);
+			resolve(object, options, task, subResult);
 		} finally {
 			RepositoryCache.exit();
 		}
-		return object.asPrismObject();
+		if (CompiletimeConfig.CONSISTENCY_CHECKS) object.checkConsistence(true, false);
+		return object;
 	}
 
 	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -747,6 +749,12 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		} finally {
 			RepositoryCache.exit();
+		}
+		
+		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+			for (PrismObject<T> object: list) {
+				object.checkConsistence(true, false);
+			}
 		}
 
 		return list;

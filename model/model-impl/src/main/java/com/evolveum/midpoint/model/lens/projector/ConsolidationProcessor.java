@@ -162,11 +162,15 @@ public class ConsolidationProcessor {
         if (!accCtx.isFullShadow() && !accCtx.isAdd() && !accCtx.isDelete() && hasWeakMapping(squeezedAttributes)) {
         	// There is at least one weak mapping and the full account was not yet loaded. This will cause problems as
         	// the weak mapping may be applied even though it should not be applied. Therefore load the account now.
+        	LOGGER.trace("Loading full account {} because there are weak mappings", accCtx);
         	PrismObject<AccountShadowType> objectOld = provisioningService.getObject(
         			AccountShadowType.class, accCtx.getOid(), null, result);
         	accCtx.setObjectOld(objectOld);
         	accCtx.setFullShadow(true);
         	accCtx.recompute();
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
+        	}
         }
         
         ObjectDelta<AccountShadowType> existingDelta = accCtx.getDelta();
