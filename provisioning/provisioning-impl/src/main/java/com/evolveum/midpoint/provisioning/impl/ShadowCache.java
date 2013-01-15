@@ -334,8 +334,10 @@ public abstract class ShadowCache {
 					// if the force option is set, delete shadow from the repo
 					// although the resource does not exists..
 					if (ProvisioningOperationOptions.isForce(options)) {
+						parentResult.muteLastSubresultError();
 						getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(),
 								parentResult);
+						parentResult.recordHandledError("Resource defined in shadow does not exists. Shadow was deleted from the repository.");
 						return;
 					}
 				}

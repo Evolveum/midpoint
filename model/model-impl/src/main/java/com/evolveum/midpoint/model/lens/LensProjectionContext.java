@@ -530,10 +530,11 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	public void checkConsistence() {
-		checkConsistence(null, true);
+		checkConsistence(null, true, false);
 	}
 	
-	public void checkConsistence(String contextDesc, boolean fresh) {
+	
+	public void checkConsistence(String contextDesc, boolean fresh, boolean force) {
 		super.checkConsistence(contextDesc);
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			// OID is all we need for broken context
@@ -542,7 +543,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 			}
 			return;
 		}
-    	if (fresh) {
+    	if (fresh && !force) {
     		if (isShadow()) {
 	    		if (resource == null) {
 		    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));

@@ -136,9 +136,22 @@ public class ChangeExecutor {
 	        		continue;
 	        	}
 	            ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
-	            
-	            if (accCtx.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN) {
-		            if (accDelta == null || accDelta.isEmpty()) {
+	            if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN){
+	            	if (syncContext.getFocusContext().getDelta() != null
+							&& syncContext.getFocusContext().getDelta().isDelete() && syncContext.getOptions() != null
+							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
+						if (accDelta == null){
+							accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(), accCtx.getOid(), prismContext);
+						}
+						 executeChange(accDelta, accCtx, syncContext, task, result);
+			 	            
+			 	            // To make sure that the OID is set (e.g. after ADD operation)
+			 	            accCtx.setOid(accDelta.getOid());
+
+//						accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+					}
+	            } else{
+	            	if (accDelta == null || accDelta.isEmpty()) {
 		                if (LOGGER.isTraceEnabled()) {
 		                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
 		                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
@@ -148,12 +161,35 @@ public class ChangeExecutor {
 		                }
 		                continue;
 		            }
-		            
-		            executeChange(accDelta, accCtx, syncContext, task, result);
-		            
-		            // To make sure that the OID is set (e.g. after ADD operation)
-		            accCtx.setOid(accDelta.getOid());
+	            	
+	            	 executeChange(accDelta, accCtx, syncContext, task, result);
+	 	            
+	 	            // To make sure that the OID is set (e.g. after ADD operation)
+	 	            accCtx.setOid(accDelta.getOid());
+
 	            }
+	            
+	           
+	             
+	            
+//	            if (accCtx.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN) {
+//	            	
+//		            if (accDelta == null || accDelta.isEmpty()) {
+//		                if (LOGGER.isTraceEnabled()) {
+//		                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
+//		                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
+//		                }
+//		                if (focusContext != null) {
+//		                	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
+//		                }
+//		                continue;
+//		            }
+//		            
+//		            executeChange(accDelta, accCtx, syncContext, task, result);
+//		            
+//		            // To make sure that the OID is set (e.g. after ADD operation)
+//		            accCtx.setOid(accDelta.getOid());
+//	            }
 	            
 	            if (focusContext != null) {
 	            	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
@@ -540,7 +576,7 @@ public class ChangeExecutor {
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new SystemException(ex.getMessage(), ex);
+            throw new SystemException(ex);
         }
     }
 

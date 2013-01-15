@@ -428,7 +428,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 			focusContext.checkConsistence();
 		}
 		for (LensProjectionContext<P> projectionContext: projectionContexts) {
-			projectionContext.checkConsistence(this.toString(), isFresh);
+			projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
 		}
 	}
 	

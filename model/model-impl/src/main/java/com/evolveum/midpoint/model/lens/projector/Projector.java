@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -158,7 +159,8 @@ public class Projector {
 		        // User-related processing is over. Now we will process accounts in a loop.
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-		        		continue;
+						
+						continue;
 		        	}
 		        	if (projectionContext.getWave() != context.getProjectionWave()) {
 		        		// Let's skip accounts that do not belong into this wave.
