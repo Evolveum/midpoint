@@ -970,7 +970,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					if (delta.isAdd()) {
 						ResourceAttribute addAttribute = (ResourceAttribute) delta.instantiateEmptyProperty();
 						addAttribute.addValues(PrismValue.cloneCollection(delta.getValuesToAdd()));
-						addValues.add(addAttribute);
+						if (addAttribute.getDefinition().isMultiValue()) {
+							addValues.add(addAttribute);
+						} else {
+							// Force "update" for single-valued attributes instead of "add". This is saving one
+							// read in some cases. It should also make no substantial difference in such case.
+							// But it is working around some connector bugs.
+							updateValues.add(addAttribute);
+						}
 					}
 					if (delta.isDelete()) {
 						ResourceAttribute deleteAttribute = (ResourceAttribute) delta
