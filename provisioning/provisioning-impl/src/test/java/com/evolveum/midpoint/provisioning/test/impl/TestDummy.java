@@ -717,21 +717,22 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test100AddAccount() throws Exception {
-		displayTestTile("test110AddAccount");
+		final String TEST_NAME = "test100AddAccount";
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test110AddAccount");
+				+ "." + TEST_NAME);
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test110AddAccount");
+				+ "." + TEST_NAME);
 		syncServiceMock.reset();
 
-		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
-		account.asPrismObject().checkConsistence();
+		PrismObject<AccountShadowType> account = prismContext.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		account.checkConsistence();
 
-		display("Adding shadow", account.asPrismObject());
+		display("Adding shadow", account);
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), null, null, syncTask, result);
+		String addedObjectOid = provisioningService.addObject(account, null, null, syncTask, result);
 
 		// THEN
 		result.computeStatus();
@@ -739,7 +740,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess("addObject has failed (result)", result);
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		account.asPrismObject().checkConsistence();
+		account.checkConsistence();
 
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, result)
 				.asObjectable();
@@ -773,7 +774,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		ProvisioningTestUtil.checkRepoShadow(shadowFromRepo);
 
-		checkConsistency(account.asPrismObject());
+		checkConsistency(account);
 	}
 
 	@Test
@@ -839,7 +840,6 @@ public class TestDummy extends AbstractDummyTest {
 	@Test
 	public void test102GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
-		try{
 		displayTestTile("test102GetAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -861,9 +861,6 @@ public class TestDummy extends AbstractDummyTest {
 		checkShadow(shadow, result);
 
 		checkConsistency(shadow.asPrismObject());
-		} catch (Exception ex){
-			LOGGER.info("ERROR: {}", ex.getMessage(), ex);
-		}
 	}
 
 	@Test
@@ -1322,12 +1319,12 @@ public class TestDummy extends AbstractDummyTest {
 	 */
 	@Test
 	public void test127ModifyObjectAddCaptainAgain() throws Exception {
-		displayTestTile("test127ModifyObjectAddCaptainAgain");
+		final String TEST_NAME = "test127ModifyObjectAddCaptainAgain";
+		displayTestTile(TEST_NAME);
 
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test127ModifyObjectAddCaptainAgain");
-		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ ".test127ModifyObjectAddCaptainAgain");
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationAddProperty(AccountShadowType.class, 
@@ -1337,7 +1334,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		provisioningService.modifyObject(AccountShadowType.class, delta.getOid(), delta.getModifications(),
-				new ProvisioningScriptsType(), null, syncTask, result);
+				new ProvisioningScriptsType(), null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1349,6 +1346,37 @@ public class TestDummy extends AbstractDummyTest {
 		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
+	}
+	
+	/**
+	 * Set a null value to the (native) dummy attribute. The UCF layer should filter that out.
+	 */
+	@Test
+	public void test128NullAttributeValue() throws Exception {
+		final String TEST_NAME = "test128NullAttributeValue";
+		displayTestTile(TEST_NAME);
+
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		DummyAccount willDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_ICF_UID);
+		willDummyAccount.replaceAttributeValue(RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, null);
+
+		// WHEN
+		PrismObject<AccountShadowType> accountWill = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null, result);
+
+		// THEN
+		result.computeStatus();
+		display("getObject result", result);
+		assertSuccess(result);
+		
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(accountWill);
+		ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME));
+		assertNull("Title attribute sneaked in", titleAttribute);
+		
+		accountWill.checkConsistence();		
 	}
 
 	@Test

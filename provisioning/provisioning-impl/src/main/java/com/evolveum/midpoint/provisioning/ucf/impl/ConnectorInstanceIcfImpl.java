@@ -707,7 +707,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
-		PrismObject<T> shadow = convertToResourceObject(co, shadowDefinition, true);
+		PrismObject<T> shadow = convertToResourceObject(co, shadowDefinition, false);
 
 		result.recordSuccess();
 		return shadow;
@@ -1470,7 +1470,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 				PrismObject<T> resourceObject;
 				try {
-					resourceObject = convertToResourceObject(connectorObject, objectDefinition, true);
+					resourceObject = convertToResourceObject(connectorObject, objectDefinition, false);
 				} catch (SchemaException e) {
 					throw new IntermediateException(e);
 				}
@@ -1715,7 +1715,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @param full
 	 *            if true it describes if the returned resource object should
 	 *            contain all of the attributes defined in the schema, if false
-	 *            the returned resource object will contain olny attributed with
+	 *            the returned resource object will contain only attributed with
 	 *            the non-null values.
 	 * @return new mapped ResourceObject instance.
 	 * @throws SchemaException
@@ -1812,13 +1812,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// Convert the values. While most values do not need
 					// conversions, some
 					// of them may need it (e.g. GuardedString)
+					boolean empty = true;
 					for (Object icfValue : icfAttr.getValue()) {
-						Object value = convertValueFromIcf(icfValue, qname);
-						resourceAttribute.add(new PrismPropertyValue<Object>(value));
-
+						if (icfValue != null) {
+							Object value = convertValueFromIcf(icfValue, qname);
+							empty = false;
+							resourceAttribute.add(new PrismPropertyValue<Object>(value));
+						}
 					}
 
-					attributesContainer.getValue().add(resourceAttribute);
+					if (!empty) {
+						attributesContainer.getValue().add(resourceAttribute);
+					}
 
 				}
 			}
@@ -1871,18 +1876,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				convertedAttributeValues.add(UcfUtil.convertValueToIcf(value, protector, attribute.getName()));
 			}
 
-			boolean empty = convertedAttributeValues.isEmpty();
-			for (Object o: convertedAttributeValues) {
-				if (o != null) {
-					empty = false;
-					break;
-				}
-			}
-			
-			if (!empty) {
-				Attribute connectorAttribute = AttributeBuilder.build(attrName, convertedAttributeValues);
-				attributes.add(connectorAttribute);
-			}
+			Attribute connectorAttribute = AttributeBuilder.build(attrName, convertedAttributeValues);
+
+			attributes.add(connectorAttribute);
 		}
 		return attributes;
 	}

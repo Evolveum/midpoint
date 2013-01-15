@@ -151,11 +151,12 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	 * that executes testResource and checks whether the schema was generated.
 	 */
 	@Test
-	public void test003Connection() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test003Connection");
+	public void test003Connection() throws Exception {
+		final String TEST_NAME = "test003Connection";
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyHacks.class.getName()
-				+ ".test003Connection");
+				+ "." + TEST_NAME);
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
 				result).asObjectable();
@@ -200,5 +201,5 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());
 		assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
 	}
-
+	
 }
