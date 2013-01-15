@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import org.hibernate.annotations.Index;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
 import java.sql.Timestamp;
@@ -50,6 +51,7 @@ public class RDateValue extends RValue<Date> {
     }
 
     @Index(name = "iDate")
+    @Column(name = "dateValue")
     @Override
     public Timestamp getValue() {
         return value;

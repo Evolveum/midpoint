@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import org.hibernate.annotations.Index;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.xml.namespace.QName;
 
@@ -48,6 +49,7 @@ public class RLongValue extends RValue<Long> {
     }
 
     @Index(name = "iLong")
+    @Column(name = "longValue")
     @Override
     public Long getValue() {
         return value;

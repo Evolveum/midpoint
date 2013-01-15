@@ -23,18 +23,13 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
-import com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
 
@@ -65,35 +60,4 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         System.out.print(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<\n");
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[]{getClass().getName()});
     }
-
-    @BeforeMethod
-    public void beforeMethod() throws Exception {
-        testDatabase(factory);
-    }
-
-    private void testDatabase(SessionFactory sessionFactory) throws Exception {
-        Session session = sessionFactory.openSession();
-        try {
-            TestSqlRepositoryFactory sqlRepoFactory = applicationContext.getBean(TestSqlRepositoryFactory.class);
-            AssertJUnit.assertNotNull(sqlRepoFactory);
-            AssertJUnit.assertNotNull(sqlRepoFactory.getSqlConfiguration());
-
-            LOGGER.info("jdbc url: {}", new Object[]{sqlRepoFactory.getSqlConfiguration().getJdbcUrl()});
-
-            session.beginTransaction();
-            for (RContainerType type : RContainerType.values()) {
-                long count = (Long) session.createQuery("select count(*) from " + type.getClazz().getSimpleName()).uniqueResult();
-                LOGGER.info(">>> {} {}", new Object[]{type.getClazz().getSimpleName(), count});
-//                AssertJUnit.assertEquals(0L, count);
-            }
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't test database.", ex);
-            session.getTransaction().rollback();
-            throw ex;
-        } finally {
-            session.close();
-        }
-    }
-
 }

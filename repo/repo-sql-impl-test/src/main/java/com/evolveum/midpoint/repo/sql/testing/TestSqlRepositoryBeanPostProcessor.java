@@ -78,7 +78,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
             Query query;
             if (useProcedure(factory.getSqlConfiguration())) {
                 LOGGER.info("Using oracle truncate procedure.");
-                query = session.createSQLQuery("{ call" + TRUNCATE_PROCEDURE + "() }");
+                query = session.createSQLQuery("{ call " + TRUNCATE_PROCEDURE + "() }");
                 query.executeUpdate();
             } else {
                 LOGGER.info("Using truncate function.");

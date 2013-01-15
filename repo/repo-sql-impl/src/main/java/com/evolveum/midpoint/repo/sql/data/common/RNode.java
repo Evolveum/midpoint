@@ -55,6 +55,7 @@ public class RNode extends RObject {
         return hostname;
     }
 
+    @Column(name = "clusteredNode")
     public Boolean getClustered() {
         return clustered;
     }

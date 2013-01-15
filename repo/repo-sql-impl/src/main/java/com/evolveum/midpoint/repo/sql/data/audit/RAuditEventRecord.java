@@ -139,6 +139,7 @@ public class RAuditEventRecord implements Serializable {
         return taskOID;
     }
 
+    @Column(name = "timestampValue")
     public Long getTimestamp() {
         return timestamp;
     }

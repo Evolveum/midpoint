@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import org.hibernate.annotations.Type;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Lob;
 import javax.xml.namespace.QName;
@@ -48,7 +49,9 @@ public class RClobValue extends RValue<String> {
         setValue(value);
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = "org.hibernate.type.TextType")
+    @Column(name = "clobValue")
     @Override
     public String getValue() {
         return value;

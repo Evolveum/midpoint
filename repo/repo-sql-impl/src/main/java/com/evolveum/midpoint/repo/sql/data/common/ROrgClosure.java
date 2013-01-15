@@ -2,14 +2,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -75,6 +68,7 @@ public class ROrgClosure implements Serializable {
 		this.descendant = descendant;
 	}
 
+    @Column(name = "depthValue")
 	public int getDepth() {
 		return depth;
 	}
