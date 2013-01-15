@@ -82,7 +82,7 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     @Override
     public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
-        notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifySucess"));
+        notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifySuccess"));
     }
 
     @Override
@@ -96,6 +96,19 @@ public class AccountOperationListener implements ResourceOperationListener {
     }
 
     private void notifyAny(OperationStatus status, ResourceOperationDescription operationDescription, Task task, OperationResult result) {
+        executeNotifyAny(status, operationDescription, task, result);
+
+        // todo work correctly with operationResult (in whole notification module)
+        if (result.isUnknown()) {
+            result.computeStatus();
+        }
+        result.recordSuccessIfUnknown();
+//        if (LOGGER.isTraceEnabled()) {
+//            LOGGER.trace("Returning operation result: " + result.dump());
+//        }
+    }
+
+    private void executeNotifyAny(OperationStatus status, ResourceOperationDescription operationDescription, Task task, OperationResult result) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("AccountOperationListener.notify (" + status + ") called with operationDescription = " + operationDescription.debugDump());
         }
@@ -133,16 +146,7 @@ public class AccountOperationListener implements ResourceOperationListener {
                 notificationManager.notify(request, entry, result);
             }
         }
-
-        // todo working with request
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-        result.recordSuccessIfUnknown();
-        LOGGER.trace("Returning operation result: " + result.dump());
     }
-
-
 
     private NotificationRequest createRequestIfApplicable(NotificationConfigurationEntryType entry,
                                                           OperationStatus status,
