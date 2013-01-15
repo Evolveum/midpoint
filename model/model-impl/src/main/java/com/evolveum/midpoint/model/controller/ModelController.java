@@ -310,6 +310,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 		
 		RepositoryCache.enter();
+        setRequesteeIfNecessary(task, deltas, result);
 		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = null;
 		try {
 		
@@ -420,8 +421,41 @@ public class ModelController implements ModelService, ModelInteractionService {
 			RepositoryCache.exit();
 		}
 	}
-	
-	private void encryptValues(ObjectDelta delta, OperationResult objectResult) throws SchemaException,
+
+    private void setRequesteeIfNecessary(Task task, Collection<ObjectDelta<? extends ObjectType>> deltas, OperationResult result) throws ObjectNotFoundException, SchemaException {
+
+        if (task.getRequesteeOid() != null) {
+            return;     // nothing to do
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Trying to find requestee within deltas: " + deltas);
+        }
+        String requesteeOid = null;
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
+            LOGGER.info("Trying to find requestee within delta: " + delta.debugDump());
+            if (UserType.class.isAssignableFrom(delta.getObjectTypeClass()) && delta.getOid() != null) {
+                if (requesteeOid == null) {
+                    requesteeOid = delta.getOid();
+                } else {
+                    if (!requesteeOid.equals(delta.getOid())) {
+                        LOGGER.warn("Ambiguous requestee in model operation; is it " + requesteeOid + " or " + delta.getOid() + "? deltas = " + deltas);
+                    }
+                }
+            }
+        }
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Result: requesteeOid = " + requesteeOid);
+        }
+        if (requesteeOid != null) {
+            task.setRequesteeOidImmediate(requesteeOid, result);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Requestee OID set to " + requesteeOid + "; deltas = " + deltas);
+            }
+        }
+    }
+
+    private void encryptValues(ObjectDelta delta, OperationResult objectResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		if (!delta.hasCompleteDefinition()) {

@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.notifications;
 
 import com.evolveum.midpoint.notifications.notifiers.Notifier;
+import com.evolveum.midpoint.notifications.request.NotificationRequest;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
@@ -58,21 +60,25 @@ public class NotificationManager {
     }
 
     public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry) {
+        notify(request, notificationConfigurationEntry, new OperationResult("dummy"));
+    }
+
+    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, OperationResult result) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Processing notification request " + request + " with regard to config entry " + notificationConfigurationEntry);
         }
         for (NotifierConfigurationType notifierConfiguration : notificationConfigurationEntry.getNotifier()) {
-            notify(request, notificationConfigurationEntry, notifierConfiguration);
+            notify(request, notificationConfigurationEntry, notifierConfiguration, result);
         }
     }
 
-    private void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, NotifierConfigurationType notifierConfiguration) {
+    private void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, NotifierConfigurationType notifierConfiguration, OperationResult result) {
         Notifier notifier = findNotifier(notifierConfiguration.getName());
         if (notifier == null) {
             LOGGER.error("Couldn't find notifier with name " + notifierConfiguration.getName() + ", notification to " + request.getUser() + " will not be sent.");
             return;
         }
-        notifier.notify(request, notificationConfigurationEntry, notifierConfiguration);
+        notifier.notify(request, notificationConfigurationEntry, notifierConfiguration, result);
     }
 
     private Notifier findNotifier(QName name) {

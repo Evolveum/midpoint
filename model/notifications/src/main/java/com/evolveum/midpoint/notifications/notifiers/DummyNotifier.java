@@ -23,9 +23,12 @@ package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.notifications.NotificationConstants;
 import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.NotificationRequest;
+import com.evolveum.midpoint.notifications.request.AccountNotificationRequest;
+import com.evolveum.midpoint.notifications.request.NotificationRequest;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,17 +92,25 @@ public class DummyNotifier implements Notifier, Dumpable {
 
         public Collection<String> getAccountsOids() {
             Set<String> oids = new HashSet<String>();
-            for (ObjectDelta<AccountShadowType> accountDelta : (List<ObjectDelta<AccountShadowType>>) request.getParameter(NotificationConstants.ACCOUNT_DELTAS)) {
-                oids.add(accountDelta.getOid());
+            if (request instanceof AccountNotificationRequest) {
+                oids.add(((AccountNotificationRequest) request).getAccountOperationDescription().getObjectDelta().getOid());
             }
             return oids;
+        }
+
+        public ChangeType getFirstChangeType() {
+            if (request instanceof AccountNotificationRequest) {
+                return ((AccountNotificationRequest) request).getAccountOperationDescription().getObjectDelta().getChangeType();
+            } else {
+                return null;
+            }
         }
     }
 
     public List<NotificationRecord> records = new ArrayList<NotificationRecord>();
 
     @Override
-    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, NotifierConfigurationType notifierConfiguration) {
+    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry, NotifierConfigurationType notifierConfiguration, OperationResult result) {
         NotificationRecord nr = new NotificationRecord();
         nr.request = request;
         nr.entry = notificationConfigurationEntry;

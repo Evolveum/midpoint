@@ -21,17 +21,18 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.notifications.NotificationConstants;
 import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.NotificationRequest;
+import com.evolveum.midpoint.notifications.OperationStatus;
+import com.evolveum.midpoint.notifications.request.AccountNotificationRequest;
+import com.evolveum.midpoint.notifications.request.NotificationRequest;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.transports.MailMessage;
 import com.evolveum.midpoint.notifications.transports.MailSender;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,8 +49,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 /**
  * @author mederly
@@ -59,7 +59,7 @@ public class SimpleAccountOperationNotifier implements Notifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleAccountOperationNotifier.class);
 
-    public static final String PARAMETER_SUBJECT = "subject";
+    public static final String PARAMETER_SUBJECT_PREFIX = "subjectPrefix";
 
     @Autowired(required = true)
     private MailSender mailSender;
@@ -81,27 +81,40 @@ public class SimpleAccountOperationNotifier implements Notifier {
     @Override
     public void notify(NotificationRequest request,
                        NotificationConfigurationEntryType notificationConfigurationEntry,
-                       NotifierConfigurationType notifierConfiguration) {
+                       NotifierConfigurationType notifierConfiguration,
+                       OperationResult result) {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("SimpleAccountOperationNotifier was called; notification request = " + request);
+        }
+
+        if (!(request instanceof AccountNotificationRequest)) {
+            LOGGER.error("SimpleAccountOperationNotifier got called with incompatible notification request; class = " + request.getClass());
+            return;
+        }
+
+        AccountNotificationRequest accountNotificationRequest = (AccountNotificationRequest) request;
 
         UserType userType = request.getUser();
+        if (userType == null) {
+            LOGGER.info("Unknown owner of changed account, notification will not be sent.");
+            return;
+        }
+
         String email = userType.getEmailAddress();
         if (StringUtils.isEmpty(email)) {
             LOGGER.info("Notification to " + userType.getName() + " will not be sent, because the user has no mail address set.");
             return;
         }
 
-        List<ObjectDelta<AccountShadowType>> accountDeltas = (List<ObjectDelta<AccountShadowType>>) request.getParameter(NotificationConstants.ACCOUNT_DELTAS);
-        ModelContext<UserType, AccountShadowType> modelContext = (ModelContext<UserType, AccountShadowType>) request.getParameter(NotificationConstants.MODEL_CONTEXT);
-
-        List<QName> situations = notificationConfigurationEntry.getSituation();
-
-        StringBuilder messageText = prepareMessageText(request, accountDeltas, modelContext, situations);
+        StringBuilder body = new StringBuilder();
+        StringBuilder subject = new StringBuilder(NotificationsUtil.getNotifierParameter(notifierConfiguration, PARAMETER_SUBJECT_PREFIX, ""));
+        prepareMessageText(accountNotificationRequest, body, subject);
 
         MailMessage mailMessage = new MailMessage();
-        mailMessage.setBody(messageText.toString());
+        mailMessage.setBody(body.toString());
         mailMessage.setContentType("text/plain");
-        String subject = NotificationsUtil.getNotifierParameter(notifierConfiguration, PARAMETER_SUBJECT, "Account operation notification");
-        mailMessage.setSubject(subject);
+        mailMessage.setSubject(subject.toString());
         mailMessage.setTo(email);
 
         if (LOGGER.isTraceEnabled()) {
@@ -110,134 +123,92 @@ public class SimpleAccountOperationNotifier implements Notifier {
         mailSender.send(mailMessage);
     }
 
-    private StringBuilder prepareMessageText(NotificationRequest request, List<ObjectDelta<AccountShadowType>> accountDeltas, ModelContext<UserType, AccountShadowType> modelContext, List<QName> situations) {
-        StringBuilder messageText = new StringBuilder();
+    private void prepareMessageText(AccountNotificationRequest request, StringBuilder body, StringBuilder subject) {
 
-        List<String> created = new ArrayList<String>();
-        List<String> modified = new ArrayList<String>();
-        List<String> deleted = new ArrayList<String>();
-//        for (ObjectDelta<AccountShadowType> accountDelta : accountDeltas) {
-//            if (accountDelta.isAdd()) {
-//                created.add(accountDelta);
+        UserType requestee = request.getUser();
+        ResourceOperationDescription rod = request.getAccountOperationDescription();
+        ObjectDelta<AccountShadowType> delta = (ObjectDelta<AccountShadowType>) rod.getObjectDelta();
+
+        body.append("Notification about account-related operation\n\n");
+        body.append("User (requestee): " + requestee.getFullName() + " (" + requestee.getName() + ", oid " + requestee.getOid() + ")\n");
+        body.append("Notification created on: " + new Date() + "\n\n");
+        body.append("Resource: " + rod.getResource().asObjectable().getName() + " (oid " + rod.getResource().getOid() + ")\n");
+        boolean named;
+        if (rod.getCurrentShadow() != null && rod.getCurrentShadow().asObjectable().getName() != null) {
+            body.append("Account: " + rod.getCurrentShadow().asObjectable().getName() + "\n");
+            named = true;
+        } else {
+            named = false;
+        }
+        body.append("\n");
+
+        body.append((named ? "The" : "An") + " account ");
+        switch (request.getOperationStatus()) {
+            case SUCCESS: body.append("has been successfully "); break;
+            case IN_PROGRESS: body.append("has been ATTEMPTED to be "); break;
+            case FAILURE: body.append("FAILED to be "); break;
+        }
+        if (delta.isAdd()) {
+            body.append("created on the resource.\n\n");
+            subject.append("Account creation notification");
+        } else if (delta.isModify()) {
+            body.append("modified on the resource. Modified attributes are:\n");
+            for (ItemDelta itemDelta : delta.getModifications()) {
+                body.append(" - " + itemDelta.getName().getLocalPart() + "\n");
+            }
+            body.append("\n");
+            subject.append("Account modification notification");
+        } else if (delta.isDelete()) {
+            body.append("removed from the resource.\n\n");
+            subject.append("Account deletion notification");
+        }
+
+        if (request.getOperationStatus() == OperationStatus.IN_PROGRESS) {
+            body.append("The operation will be retried.\n\n");
+        }
+
+        body.append("----------------------------------------\n");
+        body.append("Technical information:\n\n");
+        body.append(rod.debugDump(2));
+    }
+
+//    private String getLocalPart(QName name) {
+//        if (name == null) {
+//            return null;
+//        } else {
+//            return name.getLocalPart();
+//        }
+//    }
+//
+//    private String getResourceName(AccountShadowType account) {
+//        String oid = null;
+//        if (account.getResource() != null) {
+//            if (account.getResource().getName() != null) {
+//                return account.getResource().getName().getOrig();
 //            }
-//            if (accountDelta.isModify()) {
-//                modified.add(accountDelta);
-//            }
-//            if (accountDelta.isDelete()) {
-//                deleted.add(accountDelta);
+//            oid = account.getResource().getOid();
+//        } else {
+//            if (account.getResourceRef() != null) {
+//                oid = account.getResourceRef().getOid();
 //            }
 //        }
-
-        for (ModelProjectionContext<AccountShadowType> projectionContext : modelContext.getProjectionContexts()) {
-            // todo fixme this is copied from NotifierChangeHook, as distinguishing between add/modify account is not working reliably
-            ObjectDelta<AccountShadowType> delta = projectionContext.getPrimaryDelta();
-            if (delta == null) {
-                delta = projectionContext.getSecondaryDelta();
-            }
-            if (delta == null) {
-                LOGGER.warn("Null account delta in projection context " + projectionContext + ", skipping it.");
-                continue;
-            }
-
-            if (delta.isAdd() || SynchronizationPolicyDecision.ADD.equals(projectionContext.getSynchronizationPolicyDecision())) {
-                AccountShadowType newAccount = projectionContext.getObjectNew().asObjectable();
-                String name = newAccount.getName() != null ? newAccount.getName().getOrig() : "an account";
-                created.add(" - " + name + " on " + getResourceName(newAccount));
-            } else if (delta.isModify()) {
-                AccountShadowType newAccount = projectionContext.getObjectNew().asObjectable();
-                StringBuilder sb = new StringBuilder();
-                sb.append(" - " + newAccount.getName() + " on " + getResourceName(newAccount));
-                sb.append(", changing attributes: ");
-                boolean first = true;
-                for (ItemDelta itemDelta : delta.getModifications()) {
-                    if (!first) {
-                        sb.append(", ");
-                    } else {
-                        first = false;
-                    }
-                    if (itemDelta.getDefinition() != null && itemDelta.getDefinition().getDisplayName() != null) {
-                        sb.append(itemDelta.getDefinition().getDisplayName());
-                    } else {
-                        sb.append(getLocalPart(itemDelta.getName()));
-                    }
-                }
-                modified.add(sb.toString());
-            } else if (delta.isDelete()) {
-                AccountShadowType oldAccount = projectionContext.getObjectOld().asObjectable();
-                deleted.add(" - " + oldAccount.getName() + " on " + getResourceName(oldAccount));
-            }
-        }
-
-        boolean showCreated = situations.contains(NotificationConstants.ACCOUNT_CREATION_QNAME);
-        boolean showModified = situations.contains(NotificationConstants.ACCOUNT_MODIFICATION_QNAME);
-        boolean showDeleted = situations.contains(NotificationConstants.ACCOUNT_DELETION_QNAME);
-
-        if (showCreated && !created.isEmpty()) {
-            if (created.size() == 1) {
-                messageText.append("The following account has been created:\n");
-            } else {
-                messageText.append("The following " + created.size() + " accounts have been created:\n");
-            }
-            listAccounts(messageText, created);
-        }
-        if (showModified && !modified.isEmpty()) {
-            if (modified.size() == 1) {
-                messageText.append("The following account has been modified:\n");
-            } else {
-                messageText.append("The following " + modified.size() + " accounts have been modified:\n");
-            }
-            listAccounts(messageText, modified);
-        }
-        if (showDeleted && !deleted.isEmpty()) {
-            if (deleted.size() == 1) {
-                messageText.append("The following account has been deleted:\n");
-            } else {
-                messageText.append("The following " + deleted.size() + " accounts have been deleted:\n");
-            }
-            listAccounts(messageText, deleted);
-        }
-
-        messageText.append("This message was generated for user " + request.getUser().getName() + " on " + new java.util.Date() + ".\n");
-        return messageText;
-    }
-
-    private String getLocalPart(QName name) {
-        if (name == null) {
-            return null;
-        } else {
-            return name.getLocalPart();
-        }
-    }
-
-    private String getResourceName(AccountShadowType account) {
-        String oid = null;
-        if (account.getResource() != null) {
-            if (account.getResource().getName() != null) {
-                return account.getResource().getName().getOrig();
-            }
-            oid = account.getResource().getOid();
-        } else {
-            if (account.getResourceRef() != null) {
-                oid = account.getResourceRef().getOid();
-            }
-        }
-        if (oid == null) {
-            return ("(unknown resource)");
-        }
-        return NotificationsUtil.getResourceNameFromRepo(cacheRepositoryService, oid, new OperationResult("dummy"));
-    }
-
-    private void listAccounts(StringBuilder messageText, List<String> lines) {
-        boolean first = true;
-        for (String line : lines) {
-            if (first) {
-                first = false;
-            } else {
-                messageText.append(",\n");
-            }
-            messageText.append(line);
-        }
-        messageText.append(".\n\n");
-    }
+//        if (oid == null) {
+//            return ("(unknown resource)");
+//        }
+//        return NotificationsUtil.getResourceNameFromRepo(cacheRepositoryService, oid, new OperationResult("dummy"));
+//    }
+//
+//    private void listAccounts(StringBuilder messageText, List<String> lines) {
+//        boolean first = true;
+//        for (String line : lines) {
+//            if (first) {
+//                first = false;
+//            } else {
+//                messageText.append(",\n");
+//            }
+//            messageText.append(line);
+//        }
+//        messageText.append(".\n\n");
+//    }
 
 }

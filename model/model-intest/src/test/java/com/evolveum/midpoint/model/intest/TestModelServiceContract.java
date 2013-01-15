@@ -289,6 +289,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("Wrong user in notification record", USER_JACK_OID, record.getRequest().getUser().getOid());
         assertEquals("Wrong number of account OIDs in notification record", 1, record.getAccountsOids().size());
         assertEquals("Wrong account OID in notification record", accountOid, record.getAccountsOids().iterator().next());
+        assertEquals("Wrong change type in notification record", ChangeType.ADD, record.getFirstChangeType());
 	}
 	
 	@Test

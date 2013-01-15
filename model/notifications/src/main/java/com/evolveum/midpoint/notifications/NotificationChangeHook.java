@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.notifications.request.NotificationRequest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -48,7 +49,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One of interfaces of the notifier to midPoint. (Currently the only one.)
+ * One of interfaces of the notifier to midPoint.
+ *
+ * CURRENTLY A BIT OBSOLETE. Account changes are listened to using AccountOperationListener (at the level of provisioning).
  *
  * @author mederly
  */
@@ -70,11 +73,11 @@ public class NotificationChangeHook implements ChangeHook {
     private transient RepositoryService cacheRepositoryService;
 
     @PostConstruct
-    public void init() {
-        hookRegistry.registerChangeHook(HOOK_URI, this);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Notifier change hook registered.");
-        }
+    public void init() {//        hookRegistry.registerChangeHook(HOOK_URI, this);
+//        if (LOGGER.isTraceEnabled()) {
+//            LOGGER.trace("Notifier change hook registered.");
+//        }
+
     }
 
     @Override
@@ -176,8 +179,9 @@ public class NotificationChangeHook implements ChangeHook {
                 (delete && entry.getSituation().contains(NotificationConstants.ACCOUNT_DELETION_QNAME))) {
 
             NotificationRequest request = new NotificationRequest();
-            request.addParameter(NotificationConstants.ACCOUNT_DELTAS, accountDeltas);
-            request.addParameter(NotificationConstants.MODEL_CONTEXT, modelContext);
+// todo
+//            request.addParameter(NotificationConstants.ACCOUNT_DELTAS, accountDeltas);
+//            request.addParameter(NotificationConstants.MODEL_CONTEXT, modelContext);
             request.setUser(user.asObjectable());
             return request;
         }

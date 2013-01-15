@@ -265,6 +265,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
         }
     }
 
+    public void removeLastSubresult() {
+        if (subresults != null && !subresults.isEmpty()) {
+            subresults.remove(subresults.size()-1);
+        }
+    }
+
     /**
      * @return last subresult status, or null if there are no subresults.
      */

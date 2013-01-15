@@ -120,6 +120,12 @@ public class ChangeExecutor {
 		            // userDelta is composite, mixed from primary and secondary. The OID set into
 		            // it will be lost ... unless we explicitly save it
 		            focusContext.setOid(userDelta.getOid());
+                    if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
+                        task.setRequesteeOidImmediate(userDelta.getOid(), result);
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Set requestee OID to " + userDelta.getOid());
+                        }
+                    }
 		        } else {
 		            LOGGER.trace("Skipping change execute, because user delta is null");
 		        }

@@ -19,18 +19,15 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.notifications.notifiers;
-
-import com.evolveum.midpoint.notifications.request.NotificationRequest;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotifierConfigurationType;
+package com.evolveum.midpoint.notifications;
 
 /**
- * @author mederly
+ * Created with IntelliJ IDEA.
+ * User: mederly
+ * Date: 14.1.2013
+ * Time: 22:36
+ * To change this template use File | Settings | File Templates.
  */
-public interface Notifier {
-
-    public void notify(NotificationRequest request, NotificationConfigurationEntryType notificationConfigurationEntry,
-                       NotifierConfigurationType notifierConfiguration, OperationResult result);
+public enum OperationStatus {
+    SUCCESS, IN_PROGRESS, FAILURE;
 }

@@ -19,8 +19,9 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.notifications;
+package com.evolveum.midpoint.notifications.request;
 
+import com.evolveum.midpoint.notifications.OperationStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import javax.xml.namespace.QName;
@@ -35,27 +36,10 @@ public class NotificationRequest {
     // a user to which the notification has to be sent
     private UserType user;
 
-    /*
-     * concrete source data from which the notification has to be constructed
-     * these are a bit specific to the notifiers
-     * currently there are the following ones:
-     * - accountDeltas: a list of account deltas
-     * - modelContext: whole model context; for its complexity it would be better to work only with the deltas,
-     *   however, some information is not there (e.g. resource names, ...)
-     *
-     * THIS IS TO BE CHANGED LATER
-     */
-    private Map<String,Object> parameters = new HashMap<String,Object>();
+    // status of the operation
+    private OperationStatus operationStatus;
 
     private QName source;       // currently unused
-
-    public void addParameter(String name, Object value) {
-        parameters.put(name, value);
-    }
-
-    public Map<String, Object> getParameters() {
-        return parameters;
-    }
 
     public QName getSource() {
         return source;
@@ -69,15 +53,19 @@ public class NotificationRequest {
         return user;
     }
 
-    public Object getParameter(String name) {
-        return parameters.get(name);
+    public OperationStatus getOperationStatus() {
+        return operationStatus;
+    }
+
+    public void setOperationStatus(OperationStatus operationStatus) {
+        this.operationStatus = operationStatus;
     }
 
     @Override
     public String toString() {
         return "NotificationRequest{" +
                 "user=" + user +
-                ", parameters=" + parameters +
+                ", operationStatus=" + operationStatus +
                 ", source=" + source +
                 '}';
     }

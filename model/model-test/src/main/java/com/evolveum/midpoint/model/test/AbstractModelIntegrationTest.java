@@ -167,7 +167,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired(required = true)
 	protected PrismContext prismContext;
 
-    @Autowired(required = false)                    // not strictly required, because it is currently used only in model-intest (but this class is used in more modules)
+    @Autowired(required = false)  // dummyNotifier is currently used only in model-intest,
+                                  // but AbstractModelIntegrationTest is used in other modules as well.
+                                  // So until all POMs are modified we keep required=false here.
     protected DummyNotifier dummyNotifier;
 	
 	protected DummyAuditService dummyAuditService;

@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
- * Describes a failure to apply a change to a specific resource object.
+ * Describes an attempt to apply a change to a specific resource object.
  *
  * @author Radovan Semancik
  */
@@ -181,7 +181,7 @@ public class ResourceOperationDescription implements Dumpable, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		SchemaDebugUtil.indentDebugDump(sb, indent);
-		sb.append("ResourceObjectShadowFailureDescription(");
+		sb.append("ResourceOperationDescription(");
 		sb.append(sourceChannel);
 		sb.append(")\n");
 		
