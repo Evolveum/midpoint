@@ -48,7 +48,7 @@ public class RReferenceValue extends RValue<String> {
         setValue(oid);
     }
 
-    @Index(name = "iString")
+    @Index(name = "iOid")
     @Column(name = "oidValue")
     @Override
     public String getValue() {
