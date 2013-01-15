@@ -59,6 +59,7 @@ public class RAnyContainer implements Serializable {
     private Set<RLongValue> longs;
     private Set<RDateValue> dates;
     private Set<RClobValue> clobs;
+    private Set<RReferenceValue> references;
 
     @ForeignKey(name = "none")
     @MapsId("owner")
@@ -133,6 +134,19 @@ public class RAnyContainer implements Serializable {
         return dates;
     }
 
+    @ElementCollection
+    @ForeignKey(name = "fk_any_reference")
+    @CollectionTable(name = "m_any_reference", joinColumns =
+            {@JoinColumn(name = "owner_id"), @JoinColumn(name = "owner_oid"), @JoinColumn(name = "ownerType")})
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RReferenceValue> getReferences() {
+        return references;
+    }
+
+    public void setReferences(Set<RReferenceValue> references) {
+        this.references = references;
+    }
+
     public void setOwnerType(RContainerType ownerType) {
         this.ownerType = ownerType;
     }
@@ -176,6 +190,7 @@ public class RAnyContainer implements Serializable {
         if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
         if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
         if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
+        if (references != null ? !references.equals(that.references) : that.references != null) return false;
 
         return true;
     }
@@ -213,25 +228,22 @@ public class RAnyContainer implements Serializable {
             PrismContext prismContext) throws
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
-        if (repo.getClobs() != null) {
-            for (RClobValue value : repo.getClobs()) {
-                converter.convertFromRValue(value, containerValue);
-            }
+
+        convertValues(converter, containerValue, repo.getClobs());
+        convertValues(converter, containerValue, repo.getDates());
+        convertValues(converter, containerValue, repo.getLongs());
+        convertValues(converter, containerValue, repo.getStrings());
+        convertValues(converter, containerValue, repo.getReferences());
+    }
+
+    private static <T extends RValue> void convertValues(RAnyConverter converter, PrismContainerValue containerValue,
+                                                         Set<T> values) throws DtoTranslationException {
+        if (values == null) {
+            return;
         }
-        if (repo.getDates() != null) {
-            for (RDateValue value : repo.getDates()) {
-                converter.convertFromRValue(value, containerValue);
-            }
-        }
-        if (repo.getLongs() != null) {
-            for (RLongValue value : repo.getLongs()) {
-                converter.convertFromRValue(value, containerValue);
-            }
-        }
-        if (repo.getStrings() != null) {
-            for (RStringValue value : repo.getStrings()) {
-                converter.convertFromRValue(value, containerValue);
-            }
+
+        for (RValue value : values) {
+            converter.convertFromRValue(value, containerValue);
         }
     }
 
@@ -259,7 +271,7 @@ public class RAnyContainer implements Serializable {
 
         Set<RValue> values = new HashSet<RValue>();
         try {
-            List<Item> items = containerValue.getItems();
+            List<Item<?>> items = containerValue.getItems();
             for (Item item : items) {
                 values.addAll(converter.convertToRValue(item));
             }
@@ -283,6 +295,11 @@ public class RAnyContainer implements Serializable {
                     repo.setLongs(new HashSet<RLongValue>());
                 }
                 repo.getLongs().add((RLongValue) value);
+            } else if (value instanceof RReferenceValue) {
+                if (repo.getReferences() == null) {
+                    repo.setReferences(new HashSet<RReferenceValue>());
+                }
+                repo.getReferences().add((RReferenceValue) value);
             } else if (value instanceof RStringValue) {
                 if (repo.getStrings() == null) {
                     repo.setStrings(new HashSet<RStringValue>());

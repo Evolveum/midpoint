@@ -109,6 +109,12 @@ public class RAnyConverter {
                                 rValue = createClobValue(propertyValue);
                             }
                     }
+                } else if (value instanceof PrismReferenceValue) {
+                    PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                    RReferenceValue refValue = new RReferenceValue();
+                    refValue.setValue(referenceValue.getOid());
+                    //todo extend RReferenceValue and add filter, description and other fields...
+                    rValue = refValue;
                 }
 
                 rValue.setName(definition.getName());
@@ -270,28 +276,6 @@ public class RAnyConverter {
         return def;
     }
 
-    //couldn't be used, because without definition we can't save object in modify operation
-    private Item createDefinitionlessItem(RValue value) throws DtoTranslationException {
-        Item item;
-        switch (value.getValueType()) {
-            case PROPERTY:
-                item = new PrismProperty(value.getName());
-                break;
-            case CONTAINER:
-                item = new PrismContainer(value.getName());
-                break;
-            case OBJECT:
-                item = new PrismObject(value.getName(), null);
-                break;
-            case REFERENCE:
-                item = new PrismReference(value.getName());
-                break;
-            default:
-                throw new DtoTranslationException("Unknown value type: " + value.getValueType());
-        }
-        return item;
-    }
-
     private Element createElement(QName name) {
         if (document == null) {
             document = DOMUtil.getDocument();
@@ -316,16 +300,17 @@ public class RAnyConverter {
         }
 
         Object realValue = createRealValue(value);
-        if (realValue == null) {
+        if (!(value instanceof RReferenceValue) && realValue == null) {
             throw new SchemaException("Real value must not be null. Some error occurred when adding value "
                     + value + " to item " + item);
         }
         switch (value.getValueType()) {
             case REFERENCE:
-                //todo implement
-                // PrismReferenceValue referenceValue = new PrismReferenceValue();
-                // item.add(referenceValue);
-                throw new UnsupportedOperationException("Not implemented yet.");
+                PrismReferenceValue referenceValue = new PrismReferenceValue();
+                referenceValue.setOid((String)value.getValue());
+                //todo fix filter, description and other fields
+                item.add(referenceValue);
+                break;
             case PROPERTY:
                 PrismPropertyValue propertyValue = new PrismPropertyValue(realValue, null, null);
                 item.add(propertyValue);
@@ -349,6 +334,11 @@ public class RAnyConverter {
      * @throws SchemaException
      */
     private Object createRealValue(RValue rValue) throws SchemaException {
+        if (rValue instanceof RReferenceValue) {
+            //this is special case, reference doesn't have value, it only has a few properties (oid, filter, etc.)
+            return null;
+        }
+
         Object value = rValue.getValue();
         if (rValue instanceof RDateValue) {
             if (value instanceof Date) {
