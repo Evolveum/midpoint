@@ -36,6 +36,7 @@ public class TestConstants {
 	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
+    public static final QName EXTENSION_USER_REF_ELEMENT = new QName(NS_EXTENSION, "userRef");
 	
 	public static final File USER_FILE = new File("src/test/resources/common/user-jack.xml");
 	

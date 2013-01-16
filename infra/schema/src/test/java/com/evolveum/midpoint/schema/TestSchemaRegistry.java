@@ -17,18 +17,11 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.*;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
@@ -87,14 +80,32 @@ public class TestSchemaRegistry {
 		
 		// TODO
 	}
-	
-	@Test
+
+    @Test(enabled = false)
+    public void testReferenceInExtension() throws SchemaException, SAXException, IOException {
+
+        MidPointPrismContextFactory factory = getContextFactory();
+        PrismContext context = factory.createInitializedPrismContext();
+        SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+
+        schemaRegistry.loadPrismSchemaResource("xml/ns/public/common/common-2a.xsd");
+        schemaRegistry.loadPrismSchemaResource("schema/extension.xsd");     // fails with "undefined simple or complex type 'c:ObjectReferenceType'"
+
+        ItemDefinition itemDefinition = schemaRegistry.findItemDefinitionByElementName(TestConstants.EXTENSION_USER_REF_ELEMENT);
+        assertNotNull("userRef element definition was not found", itemDefinition);
+        System.out.println("UserRef definition:");
+        System.out.println(itemDefinition.dump());
+
+        assertEquals("Wrong userRef definition class", PrismReferenceDefinition.class, itemDefinition.getClass());
+    }
+
+    @Test
 	public void testUserType() throws SchemaException, SAXException, IOException {
 		
 		MidPointPrismContextFactory factory = getContextFactory();
 		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
-		
+
 		PrismObjectDefinition<UserType> userDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
 		assertNotNull("No user definition", userDefinition);
 		
