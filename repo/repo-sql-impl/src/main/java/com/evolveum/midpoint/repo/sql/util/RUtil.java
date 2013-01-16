@@ -60,8 +60,8 @@ public final class RUtil {
     public static final String NS_SQL_REPO = "http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd";
     public static final String SQL_REPO_OBJECTS = "sqlRepoObjects";
     public static final String SQL_REPO_OBJECT = "sqlRepoObject";
-    static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
-    static final QName CUSTOM_OBJECTS = new QName(NS_SQL_REPO, SQL_REPO_OBJECTS);
+    public static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
+    public static final QName CUSTOM_OBJECTS = new QName(NS_SQL_REPO, SQL_REPO_OBJECTS);
 
     private RUtil() {
     }
