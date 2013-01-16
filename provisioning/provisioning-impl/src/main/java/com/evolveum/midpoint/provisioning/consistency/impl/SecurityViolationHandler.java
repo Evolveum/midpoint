@@ -35,7 +35,7 @@ public class SecurityViolationHandler extends ErrorHandler{
 	
 	@Override
 	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
 		ObjectDelta delta = null;
@@ -59,7 +59,7 @@ public class SecurityViolationHandler extends ErrorHandler{
 		}
 		
 		if (op != FailedOperation.GET){
-		Task task = taskManager.createTaskInstance();
+//		Task task = taskManager.createTaskInstance();
 		ResourceOperationDescription operationDescription = createOperationDescription(shadow, shadow.getResource(),
 				delta, task, parentResult);
 		changeNotificationDispatcher.notifyFailure(operationDescription, task, parentResult);

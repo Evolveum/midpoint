@@ -45,18 +45,18 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 //	@Autowired
 //	@Qualifier("cacheRepositoryService")
 //	private RepositoryService cacheRepositoryService;
-	@Autowired
-	private ChangeNotificationDispatcher changeNotificationDispatcher;
+//	@Autowired
+//	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private PrismContext prismContext;
-	@Autowired(required = true)
-	private TaskManager taskManager;
+//	@Autowired(required = true)
+//	private TaskManager taskManager;
 
 	@Override
 	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
 		if (!isDoDiscovery(shadow.getResource())){
@@ -89,7 +89,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		if (resourceAccount != null) {
 			change.setCurrentShadow(resourceAccount);
 			// TODO: task initialization
-			Task task = taskManager.createTaskInstance();
+//			Task task = taskManager.createTaskInstance();
 			changeNotificationDispatcher.notifyChange(change, task, operationResult);
 		}
 

@@ -174,7 +174,7 @@ public abstract class ShadowCache {
 		} catch (Exception ex) {
 			try {
 				resultShadow = handleError(ex, repositoryShadow, FailedOperation.GET, resource, null, true,
-						parentResult);
+						null, parentResult);
 			} catch (GenericFrameworkException e) {
 				throw new SystemException(e);
 			} catch (ObjectAlreadyExistsException e) {
@@ -208,7 +208,8 @@ public abstract class ShadowCache {
 			ResourceObjectShadowType.F_ATTRIBUTES);
 	if (attributesContainer == null || attributesContainer.isEmpty()) {
 //		throw new SchemaException("Attempt to add shadow without any attributes: " + shadowType);
-		handleError(new SchemaException("Attempt to add shadow without any attributes: " + shadowType), shadowType, FailedOperation.ADD, resource, null, true, parentResult);
+			handleError(new SchemaException("Attempt to add shadow without any attributes: " + shadowType), shadowType,
+					FailedOperation.ADD, resource, null, true, task, parentResult);
 	}
 
 	Set<Operation> additionalOperations = new HashSet<Operation>();
@@ -221,7 +222,7 @@ public abstract class ShadowCache {
 		shadowType = shadowConverter.addShadow(resource, shadowType, additionalOperations, parentResult);
 		
 	} catch (Exception ex) {
-		shadowType = handleError(ex, shadowType, FailedOperation.ADD, resource, null, true, parentResult);
+		shadowType = handleError(ex, shadowType, FailedOperation.ADD, resource, null, true, task, parentResult);
 		return shadowType.getOid();
 	}
 	
@@ -293,7 +294,7 @@ public abstract class ShadowCache {
 				LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 						new Object[] { ex.getClass(), ex.getMessage(), ex });
 				try {
-					shadow = handleError(ex, shadow, FailedOperation.MODIFY, resource, modifications, true, parentResult);
+					shadow = handleError(ex, shadow, FailedOperation.MODIFY, resource, modifications, true, task, parentResult);
 					parentResult.computeStatus();
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError("While compensating communication problem for modify operation got: "
@@ -363,7 +364,7 @@ public abstract class ShadowCache {
 					shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
 				} catch (Exception ex) {
 					try {
-						handleError(ex, accountShadow, FailedOperation.DELETE, resource, null, true, parentResult);
+						handleError(ex, accountShadow, FailedOperation.DELETE, resource, null, true, task, parentResult);
 					} catch (ObjectAlreadyExistsException e) {
 						e.printStackTrace();
 					}
@@ -449,7 +450,7 @@ public abstract class ShadowCache {
 	
 	@SuppressWarnings("rawtypes")
 	protected <T extends ResourceObjectShadowType> T handleError(Exception ex, T shadow, FailedOperation op,
-			ResourceType resource, Collection<? extends ItemDelta> modifications, boolean compensate,
+			ResourceType resource, Collection<? extends ItemDelta> modifications, boolean compensate, Task task, 
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -472,7 +473,7 @@ public abstract class ShadowCache {
 		LOGGER.debug("Handling provisioning exception {}:{}", new Object[] { ex.getClass(), ex.getMessage() });
 		LOGGER.trace("Handling provisioning exception {}:{}", new Object[] { ex.getClass(), ex.getMessage(), ex });
 
-		return handler.handleError(shadow, op, ex, compensate, parentResult);
+		return handler.handleError(shadow, op, ex, compensate, task, parentResult);
 
 	}
 

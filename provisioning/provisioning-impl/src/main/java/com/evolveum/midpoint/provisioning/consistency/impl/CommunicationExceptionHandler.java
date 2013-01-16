@@ -80,7 +80,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 
 	@Override
 	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
 		Validate.notNull(shadow, "Shadow must not be null.");
@@ -98,7 +98,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			throw new CommunicationException(ex.getMessage(), ex);
 		}
 		
-		Task task = null; 
+//		Task task = null; 
 		ObjectDelta delta = null;
 		ResourceOperationDescription operationDescription = null;
 		switch (op) {
@@ -146,8 +146,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 									+ ObjectTypeUtil.toShortString(resource)
 									+ " is unreachable at the moment. Shadow is stored in the repository and the account will be created when the resource goes online");   // there will be something like ": Add object failed" appended, so the final dot was a bit ugly here
 			
-			task = taskManager.createTaskInstance();
-			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+//			task = taskManager.createTaskInstance();
 			delta = ObjectDelta.createAddDelta(shadow.asPrismObject());
 			operationDescription = createOperationDescription(shadow, resource, delta, task, operationResult);
 			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
@@ -185,9 +184,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 					.recordHandledError("Could not apply modifications to "+ObjectTypeUtil.toShortString(shadow)+" on the "
 									+ ObjectTypeUtil.toShortString(shadow.getResource())
 									+ ", because resource is unreachable. Modifications will be applied when the resource goes online");
-			task = taskManager.createTaskInstance();
-			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
-			
+//			task = taskManager.createTaskInstance();
+//			
 			operationDescription = createOperationDescription(shadow, shadow.getResource(), delta, task, operationResult);
 			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);
 			return shadow;
@@ -206,8 +204,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 									+ ", because resource is unreachable. Account will be delete when the resource goes online");
 //			operationResult.recordSuccess();
 			operationResult.computeStatus();
-			task = taskManager.createTaskInstance();
-			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+//			task = taskManager.createTaskInstance();
+//			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 			delta = ObjectDelta.createDeleteDelta(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), prismContext);
 			operationDescription = createOperationDescription(shadow, shadow.getResource(), delta, task, operationResult);
 			changeNotificationDispatcher.notifyInProgress(operationDescription, task, parentResult);

@@ -30,8 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 public abstract class ErrorHandler {
 	
-	@Autowired(required = true)
-	protected TaskManager taskManager;
+//	@Autowired(required = true)
+//	protected TaskManager taskManager;
 	@Autowired(required = true)
 	protected ChangeNotificationDispatcher changeNotificationDispatcher;
 //	@Autowired(required = true)
@@ -67,7 +67,7 @@ public abstract class ErrorHandler {
 		return resource.getConsistency().isDiscovery();
 	}
 	
-	public abstract <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
+	public abstract <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException;
 
 	
 	protected <T extends ResourceObjectShadowType> Collection<ItemDelta> createAttemptModification(T shadow,

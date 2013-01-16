@@ -52,7 +52,7 @@ public class GenericErrorHandler extends ErrorHandler{
 	
 	@Override
 	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate, 
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 		
 //		OperationResult result = OperationResult.createOperationResult(shadow.getResult());
@@ -63,7 +63,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		result.addParam("currentOperation", op);
 		result.addParam("reconciled", true);
 		
-		Task task = taskManager.createTaskInstance();
+//		Task task = taskManager.createTaskInstance();
 		
 		switch (op) {
 		case GET:

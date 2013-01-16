@@ -60,8 +60,8 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 //	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
-//	@Autowired(required = true)
-//	private TaskManager taskManager;
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	private String oid = null;
 	
@@ -90,7 +90,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 
 	@Override
 	public <T extends ResourceObjectShadowType> T handleError(T shadow, FailedOperation op, Exception ex, boolean compensate,
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
+			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
 		if (!isDoDiscovery(shadow.getResource())){
@@ -106,7 +106,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		}
 
 		LOGGER.trace("Start compensationg object not found situation while execution operation: {}", op.name());
-		Task task = taskManager.createTaskInstance();
+//		Task task = taskManager.createTaskInstance();
 		ObjectDelta delta = null;
 		switch (op) {
 		case DELETE:
@@ -146,7 +146,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// form the user
 			// TODO: task initialication
 //			Task task = taskManager.createTaskInstance();
-			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+//			task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 			changeNotificationDispatcher.notifyChange(change, task, handleErrorResult);
 			handleErrorResult.computeStatus();
 			String oidVal = null;
@@ -203,8 +203,11 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			// the model to decide, if the account will be revived or unlinked
 			// form the user
 			// TODO: task initialication
-			Task getTask = taskManager.createTaskInstance();
-			changeNotificationDispatcher.notifyChange(getChange, getTask, handleGetErrorResult);
+//			Task getTask = taskManager.createTaskInstance();
+			if (task == null){
+				task = taskManager.createTaskInstance();
+			}
+			changeNotificationDispatcher.notifyChange(getChange, task, handleGetErrorResult);
 			// String oidVal = null;
 			handleGetErrorResult.computeStatus();
 			foundReturnedValue(handleGetErrorResult, null);
