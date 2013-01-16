@@ -42,6 +42,7 @@ public class TestSchemaRegistry {
 
 	private static final String FOO_NAMESPACE = "http://example.com/xml/ns/foo";
 	private static final String USER_EXT_NAMESPACE = "http://example.com/xml/ns/user-extension";
+	private static final String EXTENSION_SCHEMA_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/test/extension";
 
 	/**
 	 * Test whether the midpoint prism context was constructed OK and if it can validate
@@ -81,15 +82,21 @@ public class TestSchemaRegistry {
 		// TODO
 	}
 
-    @Test(enabled = false)
+    @Test(enabled=false)
     public void testReferenceInExtension() throws SchemaException, SAXException, IOException {
 
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
-
-        schemaRegistry.loadPrismSchemaResource("xml/ns/public/common/common-2a.xsd");
+        
+        // Both common and extension schema should be parsed during creation of the context
+        // (src/test/resource/schema dir is scanned and any XSD placed there is parsed)
+        //schemaRegistry.loadPrismSchemaResource("xml/ns/public/common/common-2a.xsd");
         schemaRegistry.loadPrismSchemaResource("schema/extension.xsd");     // fails with "undefined simple or complex type 'c:ObjectReferenceType'"
+        
+        // Check that the extension schema was loaded
+        PrismSchema extensionSchema = schemaRegistry.findSchemaByNamespace(EXTENSION_SCHEMA_NAMESPACE);
+        assertNotNull("Extension schema not parsed", extensionSchema);
 
         ItemDefinition itemDefinition = schemaRegistry.findItemDefinitionByElementName(TestConstants.EXTENSION_USER_REF_ELEMENT);
         assertNotNull("userRef element definition was not found", itemDefinition);

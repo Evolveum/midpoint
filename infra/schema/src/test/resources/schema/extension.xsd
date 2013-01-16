@@ -30,6 +30,8 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
 
     <xsd:element name="stringType" type="xsd:string"/>
 
@@ -65,6 +67,6 @@
                 <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
             </xsd:appinfo>
         </xsd:annotation>
-    </xsd:element>
+    </xsd:element> 
 
 </xsd:schema>
