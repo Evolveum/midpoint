@@ -256,7 +256,12 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 
 		for (SelectorOptions<GetOperationOptions> option: options) {
+			try{
 			resolve(object, option, task, result);
+			} catch(ObjectNotFoundException ex){
+				result.recordFatalError(ex.getMessage(), ex);
+				return;
+			}
 		}
 	}
 	
@@ -1290,8 +1295,15 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	private <T extends ObjectType>  void updateDefinition(PrismObject<T> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (object.canRepresent(AccountShadowType.class)) {
-			ResourceType resourceType = getResource((AccountShadowType)object.asObjectable(), result);
+			ResourceType resourceType = null;
+			try{
+				resourceType = getResource((AccountShadowType)object.asObjectable(), result);
+			} catch (ObjectNotFoundException ex){
+				result.recordFatalError("Resource defined in account was not found: " + ex.getMessage(), ex);
+				return;
+			}
 			updateAccountShadowDefinition((PrismObject<? extends AccountShadowType>)object, resourceType);
+			
 		}
 	}
 	

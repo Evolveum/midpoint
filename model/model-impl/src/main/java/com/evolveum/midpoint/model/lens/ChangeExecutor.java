@@ -143,13 +143,16 @@ public class ChangeExecutor {
 						if (accDelta == null){
 							accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(), accCtx.getOid(), prismContext);
 						}
+	            	}
+	            	if (accDelta != null && accDelta.isDelete()){
+	            	
 						 executeChange(accDelta, accCtx, syncContext, task, result);
 			 	            
 			 	            // To make sure that the OID is set (e.g. after ADD operation)
 			 	            accCtx.setOid(accDelta.getOid());
 
 //						accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-					}
+	            	}
 	            } else{
 	            	if (accDelta == null || accDelta.isEmpty()) {
 		                if (LOGGER.isTraceEnabled()) {

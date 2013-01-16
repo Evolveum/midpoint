@@ -438,6 +438,9 @@ public class ObjectWrapper implements Serializable {
 	}
 	
 	private boolean hasResourceCapability(ResourceType resource){
+		if (resource == null){
+			return false;
+		}
 		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)){
 			return (ResourceTypeUtil.getEffectiveCapability(resource,  ActivationCapabilityType.class) == null) ? false : true; 
 		} 

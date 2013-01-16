@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -930,9 +931,9 @@ public class PageUser extends PageAdminUsers {
                 case DELETE:
                     newValue.applyDefinition(assignmentDef, false);
                     if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                        assDelta.addValueToAdd(newValue);
+                        assDelta.addValueToAdd(newValue.clone());
                     } else {
-                        assDelta.addValueToDelete(newValue);
+                        assDelta.addValueToDelete(newValue.clone());
                     }
                     break;
                 case MODIFY:
@@ -1011,15 +1012,17 @@ public class PageUser extends PageAdminUsers {
         //redirecting to user list page everytime user is created in repository during user add in gui,
         //and we're not taking care about account/assignment create errors (error message is still displayed)
         ObjectDelta delta = null;
+        
+        Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+        ModelExecuteOptions options = new ModelExecuteOptions();
+        options.setForce(forceAction);
         try {
-            delta = userWrapper.getObjectDelta();
+            
+        	delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
-            Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
-
-            ModelExecuteOptions options = new ModelExecuteOptions();
-            options.setForce(forceAction);
+           
             LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
 
             switch (userWrapper.getStatus()) {
@@ -1070,8 +1073,12 @@ public class PageUser extends PageAdminUsers {
 
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-            LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+			if (!executeForceDelete(userWrapper, task, options, result)) {
+				result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+			} else{
+				result.recomputeStatus();
+			}
         }
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
@@ -1098,6 +1105,91 @@ public class PageUser extends PageAdminUsers {
         
     }
     
+//    private ModelContext previewForceDelete(ObjectDelta delta, ModelExecuteOptions options, Task task, OperationResult parentResult){
+//    		OperationResult result = parentResult.createSubresult("Force preview operation");
+//		try {
+//			
+//			
+//			result.recomputeStatus();
+//			return context;
+//		} catch (Exception ex) {
+//			result.recordFatalError("Failed to preview changes: " + ex.getMessage(), ex);
+//			LoggingUtils.logException(LOGGER, "Failed to preview changes", ex);
+//
+//		}
+//		return null;
+//    }
+    
+	private boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
+			OperationResult parentResult){
+		if (forceAction) {
+			OperationResult result = parentResult.createSubresult("Force delete operation");
+//			List<UserAccountDto> accountDtos = accountsModel.getObject();
+//			List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+//			ObjectDelta<UserType> forceDeleteDelta = null;
+//			for (UserAccountDto accDto : accountDtos) {
+//				if (accDto.getStatus() == UserDtoStatus.DELETE) {
+//					ObjectWrapper accWrapper = accDto.getObject();
+//					ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF,
+//							userWrapper.getObject().getDefinition(), accWrapper.getObject());
+//					refDeltas.add(refDelta);
+//				}
+//			}
+//			if (!refDeltas.isEmpty()) {
+//				forceDeleteDelta = ObjectDelta.createModifyDelta(userWrapper.getObject().getOid(), refDeltas,
+//						UserType.class, getPrismContext());
+//			}
+//			PrismContainerDefinition def = userWrapper.getObject().findContainer(UserType.F_ASSIGNMENT).getDefinition();
+//			if (forceDeleteDelta == null) {
+//				forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userWrapper.getObject().getOid(),
+//						getPrismContext());
+//			}
+			try {
+				ObjectDelta<UserType> forceDeleteDelta = getChange(userWrapper);
+				if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
+					getModelService().executeChanges(WebMiscUtil.createDeltaCollection(forceDeleteDelta), options,
+							task, result);
+				}
+			} catch (Exception ex) {
+				result.recordFatalError("Failed to execute delete operation with force.");
+				LoggingUtils.logException(LOGGER, "Failed to execute delete operation with force", ex);
+				return false;
+			}
+
+			result.recomputeStatus();
+			result.recordSuccessIfUnknown();
+			return true;
+			}
+		return false;
+	}
+	
+	private ObjectDelta getChange(ObjectWrapper userWrapper) throws SchemaException{
+		
+			List<UserAccountDto> accountDtos = accountsModel.getObject();
+			List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+			ObjectDelta<UserType> forceDeleteDelta = null;
+			for (UserAccountDto accDto : accountDtos) {
+				if (accDto.getStatus() == UserDtoStatus.DELETE) {
+					ObjectWrapper accWrapper = accDto.getObject();
+					ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_ACCOUNT_REF,
+							userWrapper.getObject().getDefinition(), accWrapper.getObject());
+					refDeltas.add(refDelta);
+				}
+			}
+			if (!refDeltas.isEmpty()) {
+				forceDeleteDelta = ObjectDelta.createModifyDelta(userWrapper.getObject().getOid(), refDeltas,
+						UserType.class, getPrismContext());
+			}
+			PrismContainerDefinition def = userWrapper.getObject().findContainer(UserType.F_ASSIGNMENT).getDefinition();
+			if (forceDeleteDelta == null) {
+				forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userWrapper.getObject().getOid(),
+						getPrismContext());
+			}
+			
+			handleAssignmentDeltas(forceDeleteDelta, def);
+			return forceDeleteDelta;
+	}
+	
     private Object object;
 
    	public Object findParam(String param, String oid, OperationResult result) {
@@ -1126,11 +1218,16 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper userWrapper = userModel.getObject();
         ObjectDelta delta = null;
         ModelContext changes = null;
+        ModelExecuteOptions options = null;
+        if (forceAction){
+        	options = ModelExecuteOptions.createForce();
+        }
         try {
             delta = userWrapper.getObjectDelta();
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
+            
             switch (userWrapper.getStatus()) {
                 case ADDING:
                     PrismContainer password = delta.getObjectToAdd().findContainer(
@@ -1162,8 +1259,23 @@ public class PageUser extends PageAdminUsers {
 
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError(getString("pageUser.message.cantSubmitUser"), ex);
-            LoggingUtils.logException(LOGGER, getString("pageUser.message.cantSubmitUser"), ex);
+			if (forceAction) {
+				try{
+				ObjectDelta<UserType> forceDelta = getChange(userWrapper);
+				deltas = WebMiscUtil.createDeltaCollection(delta);
+				changes = getModelInteractionService().previewChanges(deltas
+						, options, task, result);
+//				changes = previewForceDelete(forceDelta, options, task, result);
+				result.recordSuccess();
+				} catch(Exception e){
+					result.recordFatalError(getString("pageUser.message.cantSubmitUser"), e);
+					LoggingUtils.logException(LOGGER, getString("pageUser.message.cantSubmitUser"), e);
+				}
+			}
+			else{
+				result.recordFatalError(getString("pageUser.message.cantSubmitUser"), ex);
+				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantSubmitUser"), ex);
+			}
         }
 
         if (result.isSuccess() || result.isHandledError()) {

@@ -123,6 +123,12 @@ public class InboundProcessor {
             	}
 //                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
+            	ObjectDelta<AccountShadowType> accountDelta = accountContext.getDelta();
+                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
+                    //we don't need to do inbound if account was deleted
+                    continue;
+                }
+
                 RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it " +
@@ -131,12 +137,7 @@ public class InboundProcessor {
                             + " not found in the context, but it should be there");
                 }
 
-                ObjectDelta<AccountShadowType> accountDelta = accountContext.getDelta();
-                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
-                    //we don't need to do inbound if account was deleted
-                    continue;
-                }
-
+                
                 processInboundExpressionsForAccount(usContext, accountContext, accountDefinition, aPrioriDelta, result);
             }
 

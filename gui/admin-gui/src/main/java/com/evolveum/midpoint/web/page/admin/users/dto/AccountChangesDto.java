@@ -97,7 +97,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 				// addAccountFromResourceForDelete(new SubmitResourceDto(oldAccountObject, false));
 			} else {
 				for (PrismObject prismAccount : accountsBeforeModify) {
-					if(prismAccount.getOid().equals(oldAccountObject.getOid())) {
+					if(oldAccountObject != null && prismAccount.getOid().equals(oldAccountObject.getOid())) {
 						// add deleted resource to changeList
 						// addAccountFromResourceForDelete(new SubmitResourceDto(prismAccount, false));
 					}

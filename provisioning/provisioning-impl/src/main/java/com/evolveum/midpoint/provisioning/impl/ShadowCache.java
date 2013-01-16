@@ -157,8 +157,13 @@ public abstract class ShadowCache {
 			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
 		}
 
-		ResourceType resource = getResource(repositoryShadow, parentResult);
-
+		ResourceType resource = null;
+		try{
+			resource = getResource(repositoryShadow, parentResult);
+		} catch(ObjectNotFoundException ex){
+			parentResult.recordFatalError("Resource defined in shadow was not found: " + ex.getMessage(), ex);
+			return repositoryShadow;
+		}
 		LOGGER.trace("Getting fresh object from ucf.");
 
 		T resultShadow = null;

@@ -208,8 +208,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						throw e;
 					}
 				} catch (ObjectNotFoundException e) {
+					if (GetOperationOptions.isRaw(options)){
+						logWarning(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
+					} else{
 					logFatalError(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
 					throw e;
+					}
 				} catch (CommunicationException e) {
 					logFatalError(LOGGER, result, "Resource defined is shadow is not available: "+ e.getMessage(), e);
 					throw e;

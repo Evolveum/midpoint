@@ -549,11 +549,22 @@ public class ContextLoader {
 						accountContext = getOrCreateAccountContext(context, account, result);
 						accountContext.setObjectOld(account);
 					} catch (ObjectNotFoundException e) {
-						// This is still OK. It means deleting an accountRef
-						// that points to non-existing object
-						// just log a warning
-						LOGGER.warn("Deleting accountRef of " + user + " that points to non-existing OID "
-								+ oid);
+						try{
+						// Broken accountRef. We need to try again with raw options, because the error should be thrown becaue of non-existent resource
+						GetOperationOptions options = GetOperationOptions.createRaw();
+						account = provisioningService.getObject(AccountShadowType.class, oid, options , result);
+						accountContext = getOrCreateBrokenAccountContext(context, oid);
+						accountContext.setFresh(true);
+						OperationResult getObjectSubresult = result.getLastSubresult();
+						getObjectSubresult.setErrorsHandled();
+						} catch (ObjectNotFoundException ex){
+							// This is still OK. It means deleting an accountRef
+							// that points to non-existing object
+							// just log a warning
+							LOGGER.warn("Deleting accountRef of " + user + " that points to non-existing OID "
+									+ oid);
+						}
+						
 					}
 				}
 				if (accountContext != null) {
