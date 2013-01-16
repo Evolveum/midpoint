@@ -82,17 +82,15 @@ public class TestSchemaRegistry {
 		// TODO
 	}
 
-    @Test(enabled=false)
+    @Test
     public void testReferenceInExtension() throws SchemaException, SAXException, IOException {
 
         MidPointPrismContextFactory factory = getContextFactory();
         PrismContext context = factory.createInitializedPrismContext();
         SchemaRegistry schemaRegistry = context.getSchemaRegistry();
         
-        // Both common and extension schema should be parsed during creation of the context
-        // (src/test/resource/schema dir is scanned and any XSD placed there is parsed)
-        //schemaRegistry.loadPrismSchemaResource("xml/ns/public/common/common-2a.xsd");
-        schemaRegistry.loadPrismSchemaResource("schema/extension.xsd");     // fails with "undefined simple or complex type 'c:ObjectReferenceType'"
+        // Common schema should be parsed during creation of the context
+        schemaRegistry.loadPrismSchemaResource("schema/extension.xsd");
         
         // Check that the extension schema was loaded
         PrismSchema extensionSchema = schemaRegistry.findSchemaByNamespace(EXTENSION_SCHEMA_NAMESPACE);

@@ -432,8 +432,7 @@ class DomToSchemaProcessor {
 	}
 	
 	private PrismReferenceDefinition processObjectReferenceDefinition(XSType xsType, QName elementName,
-			XSAnnotation annotation, ComplexTypeDefinition ctd, XSParticle elementParticle) throws SchemaException {
-		// Create a property definition (even if this is a XSD complex type)
+			XSAnnotation annotation, ComplexTypeDefinition containingCtd, XSParticle elementParticle) throws SchemaException {
 		QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 		QName primaryElementName = elementName;
 		Element objRefAnnotationElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_OBJECT_REFERENCE);
@@ -441,11 +440,16 @@ class DomToSchemaProcessor {
 		if (hasExplicitPrimaryElementName) {
 			primaryElementName = DOMUtil.getQNameValue(objRefAnnotationElement);
 		}
-		PrismReferenceDefinition definition = ctd.findItemDefinition(primaryElementName, PrismReferenceDefinition.class);
+		PrismReferenceDefinition definition = null;
+		if (containingCtd != null) {
+			definition = containingCtd.findItemDefinition(primaryElementName, PrismReferenceDefinition.class);
+		}
 		if (definition == null) {
 			SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
-			definition = definitionFactory.createReferenceDefinition(primaryElementName, typeName, ctd, prismContext, annotation, elementParticle);
-			ctd.add(definition);
+			definition = definitionFactory.createReferenceDefinition(primaryElementName, typeName, containingCtd, prismContext, annotation, elementParticle);
+			if (containingCtd != null) {
+				containingCtd.add(definition);
+			}
 		}
 		if (hasExplicitPrimaryElementName) {
 			// The elements that have explicit type name determine the target type name (if not yet set)
@@ -524,6 +528,13 @@ class DomToSchemaProcessor {
 					PrismContainerDefinition<?> propertyContainerDefinition = createPropertyContainerDefinition(xsType, xsElementDecl,
 							complexTypeDefinition, annotation, null, true);
 					schema.getDefinitions().add(propertyContainerDefinition);
+					
+				} else if (isObjectReference(xsElementDecl, xsType)) {
+						
+						PrismReferenceDefinition refDef = processObjectReferenceDefinition(xsType, elementName, annotation, 
+								null, null);
+
+						schema.getDefinitions().add(refDef);
 					
 				} else {
 					
@@ -644,6 +655,11 @@ class DomToSchemaProcessor {
 			return isPropertyContainer(xsType.getBaseType());
 		}
 		return false;
+	}
+	
+	private boolean isObjectReference(XSElementDecl xsElementDecl, XSType xsType) {
+		XSAnnotation annotation = xsType.getAnnotation();
+		return isObjectReference(xsType, annotation);
 	}
 	
 	private boolean isObjectReference(XSType xsType, XSAnnotation annotation) {
