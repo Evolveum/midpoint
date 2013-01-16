@@ -14,6 +14,7 @@ BEGIN
   delete from m_any_date;
   delete from m_any_long;
   delete from m_any_string;
+  delete from m_any_reference;
   delete from m_any;
 
   delete from m_reference;

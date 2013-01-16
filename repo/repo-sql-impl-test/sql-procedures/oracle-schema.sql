@@ -316,7 +316,6 @@
         connectorRef_targetOid varchar2(36 char),
         connectorRef_type number(10,0),
         consistency clob,
-        lastAvailabilityStatus number(10,0),
         name_norm varchar2(255 char),
         name_orig varchar2(255 char),
         namespace varchar2(255 char),

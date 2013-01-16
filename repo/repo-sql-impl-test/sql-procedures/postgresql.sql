@@ -6,6 +6,7 @@ begin
   truncate table m_any_date restart identity cascade;
   truncate table m_any_long restart identity cascade;
   truncate table m_any_string restart identity cascade;
+  truncate table m_any_reference restart identity cascade;
   truncate table m_assignment restart identity cascade;
   truncate table m_audit_delta restart identity cascade;
   truncate table m_audit_event restart identity cascade;
