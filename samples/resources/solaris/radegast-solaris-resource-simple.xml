@@ -27,11 +27,13 @@ using an Identity Connector Framework Solaris connector.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
 
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd">
@@ -115,8 +117,63 @@ using an Identity Connector Framework Solaris connector.
              This is the part where most of the customization takes place.
         -->
 
-	<!-- empty schema handling -->
-    <schemaHandling/>
+	<schemaHandling>
+		<accountType>
+			<name>default</name>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/name</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:comment</ref>
+				<displayName>Comment</displayName>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:shell</ref>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<value>/bin/bash</value>
+					</expression>
+				</outbound>
+			</attribute>
+            <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+            
+            <activation>
+                <enabled>
+                    <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </enabled>
+            </activation>
+		</accountType>
+	</schemaHandling>
 
 
 	</c:resource>
