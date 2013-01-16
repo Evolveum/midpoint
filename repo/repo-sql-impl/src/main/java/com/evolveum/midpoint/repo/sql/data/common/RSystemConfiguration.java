@@ -22,20 +22,19 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -61,7 +60,7 @@ public class RSystemConfiguration extends RObject {
     private String notificationConfiguration;
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getConnectorFramework() {
         return connectorFramework;
     }
@@ -93,29 +92,28 @@ public class RSystemConfiguration extends RObject {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getGlobalAccountSynchronizationSettings() {
         return globalAccountSynchronizationSettings;
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getLogging() {
         return logging;
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getModelHooks() {
         return modelHooks;
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getNotificationConfiguration() {
         return notificationConfiguration;
     }
-
 
     @Embedded
     public RPolyString getName() {
@@ -179,7 +177,8 @@ public class RSystemConfiguration extends RObject {
             return false;
         if (logging != null ? !logging.equals(that.logging) : that.logging != null) return false;
         if (modelHooks != null ? !modelHooks.equals(that.modelHooks) : that.modelHooks != null) return false;
-        if (notificationConfiguration != null ? !notificationConfiguration.equals(that.notificationConfiguration) : that.notificationConfiguration != null) return false;
+        if (notificationConfiguration != null ? !notificationConfiguration.equals(that.notificationConfiguration) : that.notificationConfiguration != null)
+            return false;
 
         return true;
     }

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
@@ -66,7 +67,7 @@ public class REmbeddedReference implements Serializable {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getDescription() {
         return description;
     }
@@ -77,7 +78,7 @@ public class REmbeddedReference implements Serializable {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getFilter() {
         return filter;
     }

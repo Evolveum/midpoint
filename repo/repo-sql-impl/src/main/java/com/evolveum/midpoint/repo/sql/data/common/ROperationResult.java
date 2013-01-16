@@ -24,10 +24,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
@@ -87,12 +87,14 @@ public class ROperationResult implements Serializable {
         return ownerOid;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getParams() {
         return params;
     }
 
-    @Type(type = "org.hibernate.type.MaterializedClobType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getPartialResults() {
         return partialResults;
     }
@@ -111,17 +113,20 @@ public class ROperationResult implements Serializable {
         this.owner = owner;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getDetails() {
         return details;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getLocalizedMessage() {
         return localizedMessage;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getMessage() {
         return message;
     }
@@ -130,7 +135,8 @@ public class ROperationResult implements Serializable {
         return messageCode;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getOperation() {
         return operation;
     }

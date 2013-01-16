@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
@@ -56,7 +57,7 @@ public class RCredentials {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     @Column(name = "passwordXml", nullable = true)
     public String getPassword() {
         return password;

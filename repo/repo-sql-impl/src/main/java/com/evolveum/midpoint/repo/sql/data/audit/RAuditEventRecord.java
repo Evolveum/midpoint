@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.repo.sql.data.common.ROperationResultStatusType;
-import com.evolveum.midpoint.repo.sql.data.common.RUtil;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
@@ -76,7 +76,7 @@ public class RAuditEventRecord implements Serializable {
     @CollectionTable(name = "m_audit_delta")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public Set<String> getDeltas() {
         return deltas;
     }
@@ -106,7 +106,7 @@ public class RAuditEventRecord implements Serializable {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getInitiator() {
         return initiator;
     }
@@ -121,12 +121,12 @@ public class RAuditEventRecord implements Serializable {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getTarget() {
         return target;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob @Type(type = RUtil.LOB_STRING_TYPE)
     public String getTargetOwner() {
         return targetOwner;
     }

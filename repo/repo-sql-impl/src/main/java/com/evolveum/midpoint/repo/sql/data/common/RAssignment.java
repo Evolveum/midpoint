@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
@@ -114,13 +115,13 @@ public class RAssignment extends RContainer implements ROwnable {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getAccountConstruction() {
         return accountConstruction;
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getDescription() {
         return description;
     }

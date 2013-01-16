@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -98,7 +99,7 @@ public abstract class RObject extends RContainer {
 	}
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
 	public String getDescription() {
 		return description;
 	}
@@ -205,7 +206,7 @@ public abstract class RObject extends RContainer {
 		for (ObjectReferenceType orgRef : jaxb.getParentOrgRef()) {
 			repo.getParentOrgRef().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
 		}
-		
+
 	}
 
 	public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;

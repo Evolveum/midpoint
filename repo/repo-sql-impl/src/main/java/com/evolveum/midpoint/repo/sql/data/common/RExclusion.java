@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -37,7 +38,7 @@ import javax.persistence.*;
  */
 @Entity
 @ForeignKey(name = "fk_exclusion")
-public class RExclusion extends RContainer implements ROwnable  {
+public class RExclusion extends RContainer implements ROwnable {
 
     //owner
     private RObject owner;
@@ -76,7 +77,7 @@ public class RExclusion extends RContainer implements ROwnable  {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getDescription() {
         return description;
     }

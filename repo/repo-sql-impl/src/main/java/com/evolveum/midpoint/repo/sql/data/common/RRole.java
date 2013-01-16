@@ -23,11 +23,11 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -46,24 +46,26 @@ import java.util.Set;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 public class RRole extends RObject {
 
-	@QueryAttribute(polyString = true)
-	private RPolyString name;
-	private Set<RAssignment> assignments;
-	private Set<RExclusion> exclusions;
-	private Set<RObjectReference> approverRefs;
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
+    private Set<RAssignment> assignments;
+    private Set<RExclusion> exclusions;
+    private Set<RObjectReference> approverRefs;
     private String approvalProcess;
     private String approvalSchema;
     private String approvalExpression;
     private String automaticallyApproved;
 
     @Column(nullable = true)
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getAutomaticallyApproved() {
         return automaticallyApproved;
     }
 
     @Column(nullable = true)
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getApprovalExpression() {
         return approvalExpression;
     }
@@ -74,61 +76,62 @@ public class RRole extends RObject {
     }
 
     @Column(nullable = true)
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getApprovalSchema() {
         return approvalSchema;
     }
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-	@ForeignKey(name = "none")
-	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public Set<RAssignment> getAssignments() {
-		if (assignments == null) {
-			assignments = new HashSet<RAssignment>();
-		}
-		return assignments;
-	}
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAssignment> getAssignments() {
+        if (assignments == null) {
+            assignments = new HashSet<RAssignment>();
+        }
+        return assignments;
+    }
 
-	@OneToMany(mappedBy = "owner", orphanRemoval = true)
-	@ForeignKey(name = "none")
-	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public Set<RExclusion> getExclusions() {
-		if (exclusions == null) {
-			exclusions = new HashSet<RExclusion>();
-		}
-		return exclusions;
-	}
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RExclusion> getExclusions() {
+        if (exclusions == null) {
+            exclusions = new HashSet<RExclusion>();
+        }
+        return exclusions;
+    }
 
     @Embedded
-	public RPolyString getName() {
-		return name;
-	}
+    public RPolyString getName() {
+        return name;
+    }
 
-	@OneToMany(mappedBy = "owner", orphanRemoval = true)
-	@ForeignKey(name = "none")
-	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public Set<RObjectReference> getApproverRefs() {
-		if (approverRefs == null){
-			approverRefs = new HashSet<RObjectReference>();
-		}
-		return approverRefs;
-	}
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getApproverRefs() {
+        if (approverRefs == null) {
+            approverRefs = new HashSet<RObjectReference>();
+        }
+        return approverRefs;
+    }
 
-	public void setApproverRefs(Set<RObjectReference> approverRefs) {
-		this.approverRefs = approverRefs;
-	}
+    public void setApproverRefs(Set<RObjectReference> approverRefs) {
+        this.approverRefs = approverRefs;
+    }
 
-	public void setName(RPolyString name) {
-		this.name = name;
-	}
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
 
-	public void setExclusions(Set<RExclusion> exclusions) {
-		this.exclusions = exclusions;
-	}
+    public void setExclusions(Set<RExclusion> exclusions) {
+        this.exclusions = exclusions;
+    }
 
-	public void setAssignments(Set<RAssignment> assignments) {
-		this.assignments = assignments;
-	}
+    public void setAssignments(Set<RAssignment> assignments) {
+        this.assignments = assignments;
+    }
 
     public void setApprovalProcess(String approvalProcess) {
         this.approvalProcess = approvalProcess;
@@ -147,24 +150,24 @@ public class RRole extends RObject {
     }
 
     @Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
-		if (!super.equals(o))
-			return false;
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
 
-		RRole rRole = (RRole) o;
+        RRole rRole = (RRole) o;
 
-		if (name != null ? !name.equals(rRole.name) : rRole.name != null)
-			return false;
-		if (assignments != null ? !assignments.equals(rRole.assignments) : rRole.assignments != null)
-			return false;
-		if (exclusions != null ? !exclusions.equals(rRole.exclusions) : rRole.exclusions != null)
-			return false;
-		if (approverRefs != null ? !approverRefs.equals(rRole.approverRefs) : rRole.approverRefs != null)
-			return false;
+        if (name != null ? !name.equals(rRole.name) : rRole.name != null)
+            return false;
+        if (assignments != null ? !assignments.equals(rRole.assignments) : rRole.assignments != null)
+            return false;
+        if (exclusions != null ? !exclusions.equals(rRole.exclusions) : rRole.exclusions != null)
+            return false;
+        if (approverRefs != null ? !approverRefs.equals(rRole.approverRefs) : rRole.approverRefs != null)
+            return false;
         if (approvalProcess != null ? !approvalProcess.equals(rRole.approvalProcess) : rRole.approvalProcess != null)
             return false;
         if (approvalSchema != null ? !approvalSchema.equals(rRole.approvalSchema) : rRole.approvalSchema != null)
@@ -185,29 +188,29 @@ public class RRole extends RObject {
         result = 31 * result + (approvalSchema != null ? approvalSchema.hashCode() : 0);
         result = 31 * result + (approvalExpression != null ? approvalExpression.hashCode() : 0);
         result = 31 * result + (automaticallyApproved != null ? automaticallyApproved.hashCode() : 0);
-		return result;
-	}
+        return result;
+    }
 
-	public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext) throws DtoTranslationException {
-		RObject.copyToJAXB(repo, jaxb, prismContext);
+    public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext) throws DtoTranslationException {
+        RObject.copyToJAXB(repo, jaxb, prismContext);
 
-		jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-		if (repo.getAssignments() != null) {
-			for (RAssignment rAssignment : repo.getAssignments()) {
-				jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-			}
-		}
-		if (repo.getExclusions() != null) {
-			for (RExclusion rExclusion : repo.getExclusions()) {
-				jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
-			}
-		}
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
+        if (repo.getAssignments() != null) {
+            for (RAssignment rAssignment : repo.getAssignments()) {
+                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
+            }
+        }
+        if (repo.getExclusions() != null) {
+            for (RExclusion rExclusion : repo.getExclusions()) {
+                jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
+            }
+        }
 
-		if (repo.getApproverRefs() != null) {
-			for (RObjectReference repoRef : repo.getApproverRefs()) {
-				jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
-			}
-		}
+        if (repo.getApproverRefs() != null) {
+            for (RObjectReference repoRef : repo.getApproverRefs()) {
+                jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
+            }
+        }
 
         jaxb.setApprovalProcess(repo.getApprovalProcess());
         try {
@@ -227,47 +230,47 @@ public class RRole extends RObject {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-	}
+    }
 
-	public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext)
-			throws DtoTranslationException {
-		RObject.copyFromJAXB(jaxb, repo, prismContext);
+    public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext)
+            throws DtoTranslationException {
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-		repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-		if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
-			repo.setAssignments(new HashSet<RAssignment>());
-		}
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
+            repo.setAssignments(new HashSet<RAssignment>());
+        }
 
-		ContainerIdGenerator gen = new ContainerIdGenerator();
-		for (AssignmentType assignment : jaxb.getAssignment()) {
-			RAssignment rAssignment = new RAssignment();
-			rAssignment.setOwner(repo);
+        ContainerIdGenerator gen = new ContainerIdGenerator();
+        for (AssignmentType assignment : jaxb.getAssignment()) {
+            RAssignment rAssignment = new RAssignment();
+            rAssignment.setOwner(repo);
 
-			RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
-			gen.generate(null, rAssignment);
+            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
+            gen.generate(null, rAssignment);
 
-			repo.getAssignments().add(rAssignment);
-		}
+            repo.getAssignments().add(rAssignment);
+        }
 
-		if (jaxb.getExclusion() != null && !jaxb.getExclusion().isEmpty()) {
-			repo.setExclusions(new HashSet<RExclusion>());
-		}
-		for (ExclusionType exclusion : jaxb.getExclusion()) {
-			RExclusion rExclusion = new RExclusion();
-			rExclusion.setOwner(repo);
+        if (jaxb.getExclusion() != null && !jaxb.getExclusion().isEmpty()) {
+            repo.setExclusions(new HashSet<RExclusion>());
+        }
+        for (ExclusionType exclusion : jaxb.getExclusion()) {
+            RExclusion rExclusion = new RExclusion();
+            rExclusion.setOwner(repo);
 
-			RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
-			gen.generate(null, rExclusion);
+            RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
+            gen.generate(null, rExclusion);
 
-			repo.getExclusions().add(rExclusion);
-		}
+            repo.getExclusions().add(rExclusion);
+        }
 
-		for (ObjectReferenceType accountRef : jaxb.getApproverRef()) {
-			RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
-			if (ref != null) {
-				repo.getApproverRefs().add(ref);
-			}
-		}
+        for (ObjectReferenceType accountRef : jaxb.getApproverRef()) {
+            RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
+            if (ref != null) {
+                repo.getApproverRefs().add(ref);
+            }
+        }
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
         try {
@@ -278,13 +281,13 @@ public class RRole extends RObject {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-	}
+    }
 
-	@Override
-	public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
-		RoleType object = new RoleType();
-		RRole.copyToJAXB(this, object, prismContext);
-		RUtil.revive(object, prismContext);
-		return object;
-	}
+    @Override
+    public RoleType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+        RoleType object = new RoleType();
+        RRole.copyToJAXB(this, object, prismContext);
+        RUtil.revive(object, prismContext);
+        return object;
+    }
 }

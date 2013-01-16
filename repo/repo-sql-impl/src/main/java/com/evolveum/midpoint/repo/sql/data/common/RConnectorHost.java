@@ -23,13 +23,12 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -50,7 +49,8 @@ public class RConnectorHost extends RObject {
     private Boolean protectConnection;
     private Integer timeout;
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getSharedSecret() {
         return sharedSecret;
     }

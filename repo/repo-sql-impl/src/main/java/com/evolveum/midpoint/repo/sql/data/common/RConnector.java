@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
@@ -98,7 +99,8 @@ public class RConnector extends RObject {
         return targetSystemType;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getXmlSchema() {
         return xmlSchema;
     }

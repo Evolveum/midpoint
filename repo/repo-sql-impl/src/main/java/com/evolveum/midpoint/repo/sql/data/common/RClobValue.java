@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
@@ -50,7 +51,7 @@ public class RClobValue extends RValue<String> {
     }
 
     @Lob
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = RUtil.LOB_STRING_TYPE)
     @Column(name = "clobValue")
     @Override
     public String getValue() {

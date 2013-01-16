@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -29,11 +28,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.hibernate.annotations.*;
 
@@ -84,7 +83,6 @@ public class RResourceObjectShadow extends RObject {
             @Column(name = "class_namespace"),
             @Column(name = "class_localPart")
     })
-  //  @Type(type="com.evolveum.midpoint.repo.sql.type.QNameType")
     public QName getObjectClass() {
         return objectClass;
     }
@@ -129,7 +127,8 @@ public class RResourceObjectShadow extends RObject {
         return failedOperationType;
     }
 
-    @Lob @Type(type = "org.hibernate.type.TextType")
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     @Column(nullable = true)
     public String getObjectChange() {
         return objectChange;
