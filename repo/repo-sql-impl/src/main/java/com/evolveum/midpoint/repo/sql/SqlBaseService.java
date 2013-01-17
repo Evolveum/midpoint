@@ -190,7 +190,7 @@ public class SqlBaseService {
 
     private boolean exceptionContainsText(Throwable ex, String text) {
         while (ex != null) {
-            if (ex.getMessage().contains(text)) {
+            if (StringUtils.isNotEmpty(ex.getMessage())) {
                 return true;
             }
             ex = ex.getCause();

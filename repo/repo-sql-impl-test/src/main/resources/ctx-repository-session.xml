@@ -52,8 +52,7 @@
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
-                <!--<prop key="hibernate.show_sql">true</prop>-->
-                <!--<prop key="hibernate.format_sql">true</prop>-->
+                <prop key="hibernate.show_sql">true</prop>
                 <prop key="hibernate.hbm2ddl.auto">#{testSqlRepositoryFactory.sqlConfiguration.hibernateHbm2ddl}</prop>
                 <prop key="hibernate.id.new_generator_mappings">true</prop>
             </props>
