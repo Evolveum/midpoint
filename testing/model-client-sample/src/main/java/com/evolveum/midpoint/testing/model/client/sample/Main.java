@@ -195,7 +195,7 @@ public class Main {
 	}
 
 	private static ModelPortType createModelPort(String[] args) {
-		String endpointUrl = "http://localhost:8080/midpoint/model/model";
+		String endpointUrl = "http://localhost:8080/midpoint/model/model-1";
 		String username = "administrator";
 		
 		if (args.length > 0) {

@@ -256,7 +256,7 @@
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
     <jaxws:endpoint id="modelWS"
-                    address="/model">
+                    address="/model-1">
         <jaxws:implementor>
             <bean parent="modelWebService"/>
         </jaxws:implementor>
