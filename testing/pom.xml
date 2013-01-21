@@ -56,5 +56,6 @@
     <modules>
         <module>sanity</module>
         <module>consistency-mechanism</module>
+        <module>model-client-sample</module>
     </modules>
 </project>
