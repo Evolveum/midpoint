@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2011 Evolveum
+  ~ Copyright (c) 2013 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -17,17 +17,17 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~
-  ~ Portions Copyrighted 2011 [name of copyright owner]
+  ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Infrastructure - schema</name>
-    <groupId>com.evolveum.midpoint.infra</groupId>
-    <artifactId>schema</artifactId>
+    <name>midPoint Model - api client</name>
+    <groupId>com.evolveum.midpoint.model</groupId>
+    <artifactId>model-client</artifactId>
     <packaging>jar</packaging>
     <parent>
-        <artifactId>infra</artifactId>
+        <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>2.1.1-SNAPSHOT</version>
     </parent>
@@ -68,19 +68,6 @@
     </pluginRepositories>
     <dependencies>
         <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>prism</artifactId>
-            <version>2.1.1-SNAPSHOT</version>
-        </dependency>
-        <!-- <dependency>
-            <groupId>com.sun.xsom</groupId>
-            <artifactId>xsom</artifactId>
-        </dependency> -->
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
         </dependency>
@@ -116,16 +103,6 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http-jetty</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-jms</artifactId>
-            <exclusions>
-				<exclusion>
-					<groupId>com.sun.xml.bind</groupId>
-					<artifactId>jaxb-xjc</artifactId>
-				</exclusion>
-			</exclusions>
-        </dependency> -->
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-management</artifactId>
@@ -148,6 +125,11 @@
             <artifactId>jaxb2-basics-runtime</artifactId>
             <version>0.6.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>util</artifactId>
+            <version>2.1.1-SNAPSHOT</version>
+        </dependency>        
         <!--  Testing dependecies  -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -163,6 +145,38 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <!-- Used to pull XSD files from the JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-schema-files</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>prism</artifactId>
+                                    <version>2.1-SNAPSHOT</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.infra</groupId>
+                                    <artifactId>schema</artifactId>
+                                    <version>2.1-SNAPSHOT</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
+                            <outputDirectory>${project.basedir}/target/midpoint-schema</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- <plugin>
                    <groupId>org.jvnet.jaxb2.maven2</groupId>
                    <artifactId>maven-jaxb2-plugin</artifactId>
@@ -201,10 +215,10 @@
                         <phase>generate-sources</phase>
                         <configuration>
                             <sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-                            <wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
+                            <wsdlRoot>${project.directory}/target/midpoint-schema</wsdlRoot>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
+                                    <wsdl>target/midpoint-schema/xml/ns/private/model/modelWrapper.wsdl</wsdl>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
@@ -216,18 +230,13 @@
                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
-                                        <!-- 										<extraargs>-version</extraargs> -->
-
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                                 <wsdlOption>
                                     <!-- Ugly hack. The fake WSDL includes all the XSD files we need to compile
                                                   This is the only way I found to generate equals and hashCode methods with CXF.
                                                   If you find anything better please correct it. -->
-                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
+                                    <wsdl>target/midpoint-schema/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
@@ -242,11 +251,6 @@
                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
-                                        <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
-                                        <!-- 										<extraargs>-version</extraargs> -->
-
-                                        <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>

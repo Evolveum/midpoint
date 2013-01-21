@@ -17,23 +17,27 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.util.xml;
 
 import org.jvnet.jaxb2_commons.lang.JAXBHashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
 /**
- * @author semancik
+ * Strategy for hashCode() methods used in JAXB generated code. The strategy is just returning
+ * a constant. This makes the hashing somehow less efficient if the JAXB objects differ just in
+ * the DOM parts. This this is quite unlikely under usual circumstances. However the main reason
+ * for this is to avoid namespace-related problems.
+ * 
+ * @author Radovan Semancik
  *
  */
+
 public class DomAwareHashCodeStrategy extends JAXBHashCodeStrategy {
 
 	@Override
 	protected int hashCodeInternal(ObjectLocator locator, int hashCode, Object value) {
-		// System.out.println("hash: "+DebugUtil.prettyPrint(value));
 		if (value instanceof Element) {
 			// Ignore DOM elements in hashcode.
 			return 1;

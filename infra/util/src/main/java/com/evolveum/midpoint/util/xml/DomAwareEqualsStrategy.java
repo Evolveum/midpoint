@@ -17,22 +17,19 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema;
-
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
+package com.evolveum.midpoint.util.xml;
 
 import org.jvnet.jaxb2_commons.lang.JAXBEqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
 /**
- * @author semancik
+ * Strategy for equals() methods used in JAXB generated code. The strategy is using our DOMUtil to
+ * compare DOM elements. The comparison is quite liberal when it comes to namespaces.
+ * 
+ * @author Radovan Semancik
  *
  */
 public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
