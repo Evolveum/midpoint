@@ -67,69 +67,32 @@
         </pluginRepository>
     </pluginRepositories>
     <dependencies>
-        <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-simple</artifactId>
-        </dependency>
+    	<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-databinding-aegis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-local</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http-jetty</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-management</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-common-utilities</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>xml-resolver</groupId>
-            <artifactId>xml-resolver</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ws.xmlschema</groupId>
-            <artifactId>xmlschema-core</artifactId>
-            <version>2.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jvnet.jaxb2_commons</groupId>
-            <artifactId>jaxb2-basics-runtime</artifactId>
-            <version>0.6.3</version>
-        </dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-ws-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+		</dependency>
+        <!-- This is needed only for equals methods. Simplify it now
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
             <version>2.1.1-SNAPSHOT</version>
-        </dependency>        
+        </dependency>         -->
         <!--  Testing dependecies  -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -144,6 +107,14 @@
         </dependency>
     </dependencies>
     <build>
+    	<resources>
+        	<resource>
+            	<directory>src/main/resources</directory>
+            </resource>
+            <resource>
+            	<directory>target/midpoint-schema</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <!-- Used to pull XSD files from the JAR -->
@@ -219,17 +190,17 @@
                             <wsdlOptions>
                                 <wsdlOption>
                                     <wsdl>target/midpoint-schema/xml/ns/private/model/modelWrapper.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
                                         <extraarg>-validate</extraarg>
                                         <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
+<!--                                        <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
+                                          <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
+                                        </extraarg>-->
                                     </extraargs>
                                 </wsdlOption>
                                 <wsdlOption>
@@ -237,20 +208,20 @@
                                                   This is the only way I found to generate equals and hashCode methods with CXF.
                                                   If you find anything better please correct it. -->
                                     <wsdl>target/midpoint-schema/xml/ns/private/fake/fakeWrapper.wsdl</wsdl>
-                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
+                                    <catalog>${basedir}/src/compile/resources/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
                                         <extraarg>-validate</extraarg>
                                         <extraarg>-xjc-Xts</extraarg>
-                                        <extraarg>-xjc-XhashCode</extraarg>
-                                        <extraarg>
+<!--                                        <extraarg>-xjc-XhashCode</extraarg>
+                                         <extraarg>
                                             -xjc-XhashCode-hashCodeStrategyClass=com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy
-                                        </extraarg>
+                                        </extraarg> 
                                         <extraarg>-xjc-Xequals</extraarg>
-                                        <extraarg>
+                                         <extraarg>
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
-                                        </extraarg>
+                                        </extraarg> -->
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
