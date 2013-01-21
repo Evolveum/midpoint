@@ -19,11 +19,13 @@
  */
 package com.evolveum.midpoint.util.xml;
 
+import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.JAXBEqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * Strategy for equals() methods used in JAXB generated code. The strategy is using our DOMUtil to
@@ -33,17 +35,20 @@ import com.evolveum.midpoint.util.DOMUtil;
  *
  */
 public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
+	
+	public static EqualsStrategy INSTANCE = new DomAwareEqualsStrategy();
 
 	@Override
 	protected boolean equalsInternal(ObjectLocator leftLocator,
 			ObjectLocator rightLocator, Object lhs, Object rhs) {
+//		System.out.println("DomAwareEqualsStrategy: "+PrettyPrinter.prettyPrint(lhs)+"<=>"+PrettyPrinter.prettyPrint(rhs));
 		if (lhs instanceof String && rhs instanceof String) {
 			return DOMUtil.compareTextNodeValues((String)lhs, (String)rhs);
 		} else if (lhs instanceof Element && rhs instanceof Element) {
 			final Element left = (Element) lhs;
 			final Element right = (Element) rhs;
 			boolean result = DOMUtil.compareElement(left, right, false);
-//			System.out.println("cmp: "+DebugUtil.prettyPrint(left)+"<=>"+DebugUtil.prettyPrint(right)+": "+result);
+//			System.out.println("cmp: "+PrettyPrinter.prettyPrint(left)+"<=>"+PrettyPrinter.prettyPrint(right)+": "+result);
 			return result;
 		} else {
 			return super.equalsInternal(leftLocator, rightLocator, lhs, rhs);

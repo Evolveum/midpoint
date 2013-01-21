@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 
 /**
  * @author semancik
@@ -218,6 +220,28 @@ public class TestJaxbSanity {
 		assertTrue("HashCode does not match (Objectable)", user1Type.hashCode() == user2Type.hashCode());
 	}
 
+	
+	@Test
+	public void testUnmarshallAndEqualsResourceSchema() throws JAXBException, SchemaException, FileNotFoundException {
+		System.out.println("\n\n ===[testUnmarshallAndEqualsResourceSchema]===\n");
+		
+		// GIVEN
+		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
+		assertNotNull(resource1Type);
+		Definition schemaDefinition1 = resource1Type.getSchema().getDefinition();
+		
+		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		assertNotNull(resource2Type);
+		Definition schemaDefinition2 = resource2Type.getSchema().getDefinition();
+		
+		// WHEN
+		boolean equals = schemaDefinition1.equals(schemaDefinition2);
+		
+		// THEN
+		assertTrue("Schema definition not equal", equals);
+		
+		assertEquals("Hashcode does not match", schemaDefinition1.hashCode(), schemaDefinition2.hashCode());
+	}
 	
 	@Test
 	public void testUnmarshallAndEqualsResource() throws JAXBException, SchemaException, FileNotFoundException {

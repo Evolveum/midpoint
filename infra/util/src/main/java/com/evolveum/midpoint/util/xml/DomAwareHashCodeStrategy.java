@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.util.xml;
 
+import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.lang.JAXBHashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
@@ -35,6 +36,8 @@ import org.w3c.dom.Element;
  */
 
 public class DomAwareHashCodeStrategy extends JAXBHashCodeStrategy {
+	
+	public static HashCodeStrategy INSTANCE = new DomAwareHashCodeStrategy();
 
 	@Override
 	protected int hashCodeInternal(ObjectLocator locator, int hashCode, Object value) {
