@@ -228,8 +228,12 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	abstract public Item instantiate(QName name);
 	
     <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
-        if (path.isEmpty() && clazz.isAssignableFrom(this.getClass())) {
-            return (T) this;
+        if (path.isEmpty()) {
+        	if (clazz.isAssignableFrom(this.getClass())) {
+        		return (T) this;
+        	} else {
+        		throw new IllegalArgumentException("Looking for definition of class " + clazz + " but found " + this);
+        	}
         } else {
             throw new IllegalArgumentException("No definition for path " + path + " in " + this);
         }
