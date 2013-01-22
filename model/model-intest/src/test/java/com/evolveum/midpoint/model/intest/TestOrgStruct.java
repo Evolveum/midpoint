@@ -101,6 +101,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         assertMonkeyIslandOrgSanity();
 	}
 	
+	/**
+	 * Scumm bar org also acts as a role, assigning account on dummy resource.
+	 */
 	@Test
     public void test101JackAssignScummBar() throws Exception {
 		final String TEST_NAME = "test101JackAssignScummBar";
@@ -108,6 +111,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        // Precondition
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         
         // WHEN
         assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
@@ -117,6 +123,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
         assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();

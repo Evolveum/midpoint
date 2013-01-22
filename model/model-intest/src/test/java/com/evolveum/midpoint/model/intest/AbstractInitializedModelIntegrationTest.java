@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -344,6 +345,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, -1, task, result);
         if (verbose) display("project orgs (-1)", projectOrgs);
         assertEquals("Unexpected number of functional orgs (-1)", NUM_PROJECT_ORGS, projectOrgs.size());
+        
+        PrismObject<OrgType> orgScummBar = modelService.getObject(OrgType.class, ORG_SCUMM_BAR_OID, null, task, result);
+        List<AssignmentType> scummBarAssignments = orgScummBar.asObjectable().getAssignment();
+        assertEquals("Unexpected number of scumm bar assignments: "+scummBarAssignments,  1, scummBarAssignments.size());
 	}
      	
 }
