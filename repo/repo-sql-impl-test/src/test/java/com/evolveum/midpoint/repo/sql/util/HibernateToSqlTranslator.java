@@ -43,7 +43,14 @@ public class HibernateToSqlTranslator {
 
     public static String toSql(Criteria criteria) {
         try {
-            CriteriaImpl c = (CriteriaImpl) criteria;
+
+            CriteriaImpl c = null;
+            if (criteria instanceof CriteriaImpl) {
+                c = (CriteriaImpl) criteria;
+            } else {
+                CriteriaImpl.Subcriteria  subcriteria = (CriteriaImpl.Subcriteria) criteria;
+                c = (CriteriaImpl) subcriteria.getParent();
+            }
             SessionImpl s = (SessionImpl) c.getSession();
             SessionFactoryImplementor factory = s.getSessionFactory();
             String[] implementors = factory.getImplementors(c.getEntityOrClassName());

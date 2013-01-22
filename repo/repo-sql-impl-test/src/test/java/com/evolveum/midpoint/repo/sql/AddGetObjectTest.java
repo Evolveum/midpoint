@@ -145,6 +145,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), result);
+                LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
                 checkContainersSize(newObject, object);
 
                 ObjectDelta delta = object.diff(newObject);
@@ -329,10 +330,18 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertNotNull("org root ref is null.", repoSystemConfig.asObjectable().getOrgRootRef());
         AssertJUnit.assertEquals(2, repoSystemConfig.asObjectable().getOrgRootRef().size());
-        AssertJUnit.assertEquals("10000000-0000-0000-0000-000000000003", repoSystemConfig.asObjectable()
-                .getOrgRootRef().get(0).getOid());
-        AssertJUnit.assertEquals("20000000-0000-0000-0000-000000000003", repoSystemConfig.asObjectable()
-                .getOrgRootRef().get(1).getOid());
+        List<ObjectReferenceType> orgRootRefs = repoSystemConfig.asObjectable().getOrgRootRef();
+        String[] refs = {"10000000-0000-0000-0000-000000000003", "20000000-0000-0000-0000-000000000003"};
+        for (String ref : refs) {
+            boolean found = false;
+            for (ObjectReferenceType orgRootRef : orgRootRefs) {
+                if (ref.equals(orgRootRef.getOid())) {
+                    found = true;
+                    break;
+                }
+            }
+            AssertJUnit.assertTrue(ref  + " was not found in org. root refs in system configuration.",found);
+        }
     }
 
 
