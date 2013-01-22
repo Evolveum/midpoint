@@ -20,7 +20,9 @@
  */
 package com.evolveum.midpoint.testing.model.client.sample;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -30,8 +32,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.Holder;
 import javax.xml.ws.BindingProvider;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -47,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -56,6 +61,9 @@ import org.apache.ws.security.WSConstants;
 import org.apache.ws.security.handler.WSHandlerConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 
@@ -82,11 +90,17 @@ public class Main {
 			
 			ModelPortType modelPort = createModelPort(args);
 			
-			getConfiguration(modelPort);
+			SystemConfigurationType configurationType = getConfiguration(modelPort);
+			System.out.println("Got system configuration");
+			System.out.println(configurationType);
 			
-			String oid = createUser(modelPort);
+			UserType userAdministrator = searchUserByName(modelPort, "administrator");
+			System.out.println("Got administrator user");
+			System.out.println(userAdministrator);
 			
-			changeUserPassword(modelPort, oid, "MIGHTYpirate");
+			String userGuybrushoid = createUserGuybrush(modelPort);
+			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -94,7 +108,7 @@ public class Main {
 		}
 	}
 
-	private static void getConfiguration(ModelPortType modelPort) throws FaultMessage {
+	private static SystemConfigurationType getConfiguration(ModelPortType modelPort) throws FaultMessage {
 
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -103,11 +117,10 @@ public class Main {
 		modelPort.getObject(getTypeUri(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, 
 				objectHolder, resultHolder);
 		
-		System.out.println("Got system configuration");
-		System.out.println(objectHolder.value);
+		return (SystemConfigurationType) objectHolder.value;
 	}
 
-	private static String createUser(ModelPortType modelPort) throws FaultMessage {
+	private static String createUserGuybrush(ModelPortType modelPort) throws FaultMessage {
 		Document doc = getDocumnent();
 		
 		UserType user = new UserType();
@@ -141,6 +154,57 @@ public class Main {
 		userDelta.getModification().add(passwordDelta);
 		
 		modelPort.modifyObject(getTypeUri(UserType.class), userDelta);
+	}
+
+	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
+		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
+		Element filter = parseElement(
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
+				  "<path>c:name</path>" +
+				  "<value>" + username + "</value>" +
+				"</equal>"
+		);
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		OperationOptionsType options = new OperationOptionsType();
+		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		
+		modelPort.searchObjects(getTypeUri(UserType.class), query, options, objectListHolder, resultHolder);
+		
+		ObjectListType objectList = objectListHolder.value;
+		List<ObjectType> objects = objectList.getObject();
+		if (objects.isEmpty()) {
+			return null;
+		}
+		if (objects.size() == 1) {
+			return (UserType) objects.get(0);
+		}
+		throw new IllegalStateException("Expected to find a single user with username '"+username+"' but found "+objects.size()+" users instead");
+	}
+
+	
+	
+	
+	private static Element parseElement(String stringXml) throws SAXException, IOException {
+		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
+		return getFirstChildElement(document);
+	}
+	
+	public static Element getFirstChildElement(Node parent) {
+		if (parent == null || parent.getChildNodes() == null) {
+			return null;
+		}
+
+		NodeList nodes = parent.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			Node child = nodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				return (Element) child;
+			}
+		}
+
+		return null;
 	}
 
 	private static <T> JAXBElement<T> toJaxbElement(QName name, T value) {
