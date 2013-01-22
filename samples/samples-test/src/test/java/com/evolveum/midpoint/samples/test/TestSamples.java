@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.testing.sanity;
+package com.evolveum.midpoint.samples.test;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -58,9 +58,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  */
 public class TestSamples {
 
-	public static final String SAMPLES_DIRECTORY_NAME = "../../samples/";
+	public static final String SAMPLES_DIRECTORY_NAME = "..";
 	// TODO: FIXME: remove the "org" dir once the schema is updated
-	public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "old", "experimental", "misc", "org" };
+	public static final String[] IGNORE_PATTERNS = new String[]{ "\\.svn", "pom.xml", "old", "experimental", "misc", "org", "samples-test", "model-.*" };
 	public static final String[] CHECK_PATTERNS = new String[]{ ".*.xml" };
 	public static final String OBJECT_RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateObject";
 	private static final String RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateFile";

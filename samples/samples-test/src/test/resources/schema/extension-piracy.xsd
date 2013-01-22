@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema 
+	xmlns="http://www.w3.org/2001/XMLSchema" 
+	targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+	xmlns:tns="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	elementFormDefault="qualified">
+	
+	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+	
+	<element name="ship" type="string">
+		<annotation>
+			<appinfo>
+				<a:maxOccurs>1</a:maxOccurs>
+			</appinfo>
+		</annotation>
+	</element>
+	
+</schema>

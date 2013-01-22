@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.testing.sanity;
+package com.evolveum.midpoint.samples.test;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -61,13 +61,13 @@ import static org.testng.AssertJUnit.assertEquals;
  * @author Radovan Semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-sanity-test-main.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-samples-test-main.xml"})
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class TestSampleImport extends AbstractIntegrationTest {
 	
-	private static final String SAMPLE_DIRECTORY_NAME = "../../samples/";
+	private static final String SAMPLE_DIRECTORY_NAME = "../";
 	private static final String SCHEMA_DIRECTORY_NAME = SAMPLE_DIRECTORY_NAME + "schema/";
-	private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/repo/user-administrator.xml";
+	private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/user-administrator.xml";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestSampleImport.class);
 	
