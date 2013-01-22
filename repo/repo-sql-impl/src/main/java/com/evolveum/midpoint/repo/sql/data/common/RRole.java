@@ -56,6 +56,17 @@ public class RRole extends RObject {
     private String approvalExpression;
     private String automaticallyApproved;
 
+    private String roleType;
+    private Boolean requestable;
+
+    public String getRoleType() {
+        return roleType;
+    }
+
+    public Boolean getRequestable() {
+        return requestable;
+    }
+
     @Column(nullable = true)
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -149,6 +160,14 @@ public class RRole extends RObject {
         this.automaticallyApproved = automaticallyApproved;
     }
 
+    public void setRoleType(String roleType) {
+        this.roleType = roleType;
+    }
+
+    public void setRequestable(Boolean requestable) {
+        this.requestable = requestable;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -176,6 +195,10 @@ public class RRole extends RObject {
             return false;
         if (automaticallyApproved != null ? !automaticallyApproved.equals(rRole.automaticallyApproved) : rRole.automaticallyApproved != null)
             return false;
+        if (roleType != null ? !roleType.equals(rRole.roleType) : rRole.roleType != null)
+            return false;
+        if (requestable != null ? !requestable.equals(rRole.requestable) : rRole.requestable != null)
+            return false;
 
         return true;
     }
@@ -188,6 +211,8 @@ public class RRole extends RObject {
         result = 31 * result + (approvalSchema != null ? approvalSchema.hashCode() : 0);
         result = 31 * result + (approvalExpression != null ? approvalExpression.hashCode() : 0);
         result = 31 * result + (automaticallyApproved != null ? automaticallyApproved.hashCode() : 0);
+        result = 31 * result + (roleType != null ? roleType.hashCode() : 0);
+        result = 31 * result + (requestable != null ? requestable.hashCode() : 0);
         return result;
     }
 
@@ -195,6 +220,8 @@ public class RRole extends RObject {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
+        jaxb.setRoleType(repo.getRoleType());
+        jaxb.setRequestable(repo.getRequestable());
         if (repo.getAssignments() != null) {
             for (RAssignment rAssignment : repo.getAssignments()) {
                 jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
@@ -235,6 +262,8 @@ public class RRole extends RObject {
     public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext)
             throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
+        repo.setRoleType(jaxb.getRoleType());
+        jaxb.setRequestable(jaxb.isRequestable());
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {

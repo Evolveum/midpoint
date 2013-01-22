@@ -17,8 +17,7 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_org")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-public class ROrg extends RObject {
+public class ROrg extends RRole {
 
     @QueryAttribute(polyString = true)
     private RPolyString displayName;
@@ -27,16 +26,9 @@ public class ROrg extends RObject {
     private String costCenter;
     @QueryAttribute(polyString = true)
     private RPolyString locality;
-    @QueryAttribute(polyString = true)
-    private RPolyString name;
 
     public String getCostCenter() {
         return costCenter;
-    }
-
-    @Embedded
-    public RPolyString getName() {
-        return name;
     }
 
     @Embedded
@@ -83,10 +75,6 @@ public class ROrg extends RObject {
     public void setOrgType(Set<String> orgType) {
         this.orgType = orgType;
     }
-    
-    public void setName(RPolyString name) {
-		this.name = name;
-	}
 
     @Override
     public boolean equals(Object o) {
@@ -118,9 +106,8 @@ public class ROrg extends RObject {
 
     public static void copyFromJAXB(OrgType jaxb, ROrg repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RObject.copyFromJAXB(jaxb, repo, prismContext);
+        RRole.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setCostCenter(jaxb.getCostCenter());
         repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
         repo.setIdentifier(jaxb.getIdentifier());
@@ -130,9 +117,8 @@ public class ROrg extends RObject {
 
     public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext);
+        RRole.copyToJAXB(repo, jaxb, prismContext);
 
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setCostCenter(repo.getCostCenter());
         jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
         jaxb.setIdentifier(repo.getIdentifier());
