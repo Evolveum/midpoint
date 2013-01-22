@@ -4466,6 +4466,24 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="roleType" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Type of a role, usually denotes a "layer" or "purpose" of the role.
+                    			Such as "business", "IT", "asset", etc.
+                    			This field has no special meaning in the IDM computation logic. Its purpose
+                    			is to organize roles for presentation (GUI) and management. It may influence
+                    			role lifecycle in later midpoint releases. 
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestable" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			If set to true then this role may be directly requested by the users.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
 					<xsd:element name="exclusion" type="tns:ExclusionType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -4824,11 +4842,13 @@
             	Organizational unit, division, section, object gropup, team or any other form of
             	organizing things and/or people.
             	
-            	TODO
+            	OrgType is also a role (RoleType). This feature may not be used for majority of
+            	OrgType instances. But it is very useful if membership in an org unit automatically
+            	grants some accounts or roles.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:ObjectType">
+            <xsd:extension base="c:RoleType">
                 <xsd:sequence>
                     <xsd:element name="displayName" type="t:PolyStringType">
                         <xsd:annotation>
