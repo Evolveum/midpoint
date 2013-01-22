@@ -236,11 +236,12 @@ public class AssignmentEvaluator {
 		assignmentPathSegment.setTarget(target);
 		if (target instanceof RoleType) {
 			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, sourceDescription, assignmentPath, result);
-		} else if (target instanceof OrgType) {
-			PrismReferenceValue refVal = new PrismReferenceValue();
-			refVal.setObject(target.asPrismObject());
-			refVal.setRelation(relation);
-			assignment.addOrgRefVal(refVal);
+			if (target instanceof OrgType) {
+				PrismReferenceValue refVal = new PrismReferenceValue();
+				refVal.setObject(target.asPrismObject());
+				refVal.setRelation(relation);
+				assignment.addOrgRefVal(refVal);
+			} 
 		} else {
 			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+sourceDescription);
 		}
