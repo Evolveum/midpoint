@@ -83,7 +83,7 @@
 		<module>model</module>
 		<module>gui</module>
 		<module>icf-connectors</module>
-		<module>samples</module>
+		<module>samples/model-client-sample</module>
 	</modules>
 	<profiles>
 		<profile>
