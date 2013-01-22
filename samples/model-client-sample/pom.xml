@@ -20,9 +20,9 @@
 <!--                                                         -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<name>midPoint Testing - Sanity</name>
+	<name>midPoint Samples - Model client sample</name>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.evolveum.midpoint.testing</groupId>
+	<groupId>com.evolveum.midpoint.samples</groupId>
 	<artifactId>model-client-sample</artifactId>
 	<!-- NOTE: no parent. We want this to be completely stand-alone. -->
 	<version>2.1.1-SNAPSHOT</version>
