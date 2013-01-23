@@ -18,12 +18,10 @@ begin
   truncate table m_generic_object restart identity cascade;
   truncate table m_node restart identity cascade;
   truncate table m_object restart identity cascade;
-  truncate table m_object_org_ref restart identity cascade;
   truncate table m_operation_result restart identity cascade;
   truncate table m_org restart identity cascade;
   truncate table m_org_closure restart identity cascade;
   truncate table m_org_org_type restart identity cascade;
-  truncate table m_org_sys_config restart identity cascade;
   truncate table m_password_policy restart identity cascade;
   truncate table m_reference restart identity cascade;
   truncate table m_resource restart identity cascade;
