@@ -120,7 +120,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // THEN
         display("Requestable roles", requestableRoles);
         
-        assertEquals("Unexpected number of requestable roles", 2, requestableRoles.size());
+        assertEquals("Unexpected number of requestable roles", 1, requestableRoles.size());
 	}
 
 	@Test
