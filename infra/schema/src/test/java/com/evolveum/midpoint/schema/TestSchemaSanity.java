@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -119,28 +121,6 @@ public class TestSchemaSanity {
 
 	private void assertMapping(DynamicNamespacePrefixMapper prefixMapper, String namespace, String prefix) {
 		assertEquals("Wrong prefix mapping for namespace "+namespace, prefix, prefixMapper.getPrefix(namespace));
-	}
-	
-	@Test
-	public void testCommonSchema() {
-		System.out.println("===[ testCommonSchema ]===");
-
-		// WHEN
-		// The context should have parsed common schema and also other midPoint schemas
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
-		// THEN
-		assertNotNull("No prism context", prismContext);
-
-		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-		assertNotNull("No schema registry in context", schemaRegistry);
-		
-		System.out.println("Schema registry:");
-		System.out.println(schemaRegistry.dump());
-
-		PrismSchema objectSchema = schemaRegistry.getObjectSchema();
-		System.out.println("Object schema:");
-		System.out.println(objectSchema.dump());
 	}
 	
 	@Test
@@ -237,6 +217,35 @@ public class TestSchemaSanity {
 		PrismPropertyDefinition definitionPropertyDef = schemaContainerDef.findPropertyDefinition(XmlSchemaType.F_DEFINITION);
 		assertNotNull("Null <definition> definition", definitionPropertyDef);
 //		assertFalse("schema/definition is NOT runtime", definitionPropertyDef.isRuntimeSchema());
+	}
+	
+	@Test
+	public void testRoleDefinition() {
+		System.out.println("===[ testRoleDefinition ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+				
+		// WHEN
+		PrismObjectDefinition<RoleType> roleDefinition = schemaRegistry.findObjectDefinitionByElementName(new QName(SchemaConstantsGenerated.NS_COMMON,"role"));
+		
+		// THEN
+		assertNotNull("No role definition", roleDefinition);
+		System.out.println("Role definition:");
+		System.out.println(roleDefinition.dump());
+		
+		PrismObjectDefinition<RoleType> roleDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+		assertTrue("Different role def", roleDefinition == roleDefinitionByClass);
+
+		assertEquals("Wrong compile-time class in role definition", RoleType.class, roleDefinition.getCompileTimeClass());
+		PrismAsserts.assertPropertyDefinition(roleDefinition, ObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
+		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_NAME, "Name");
+		PrismAsserts.assertItemDefinitionDisplayOrder(roleDefinition, ObjectType.F_NAME, 0);
+		PrismAsserts.assertPropertyDefinition(roleDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_DESCRIPTION, "Description");
+		PrismAsserts.assertItemDefinitionDisplayOrder(roleDefinition, ObjectType.F_DESCRIPTION, 10);
+		PrismAsserts.assertPropertyDefinition(roleDefinition, RoleType.F_REQUESTABLE, DOMUtil.XSD_BOOLEAN, 0, 1);
 	}
 	
 	@Test

@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.testing.model.client.sample;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -100,6 +102,10 @@ public class Main {
 			
 			String userGuybrushoid = createUserGuybrush(modelPort);
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
+			
+			Collection<RoleType> roles = listRequestableRoles(modelPort);
+			System.out.println("Found requestable roles");
+			System.out.println(roles);
 			
 			
 		} catch (Exception e) {
@@ -183,7 +189,24 @@ public class Main {
 		throw new IllegalStateException("Expected to find a single user with username '"+username+"' but found "+objects.size()+" users instead");
 	}
 
-	
+	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
+		Element filter = parseElement(
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
+				  "<path>c:requestable</path>" +
+				  "<value>true</value>" +
+				"</equal>"
+		);
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		OperationOptionsType options = new OperationOptionsType();
+		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		
+		modelPort.searchObjects(getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
+		
+		ObjectListType objectList = objectListHolder.value;
+		return (Collection) objectList.getObject();
+	}
 	
 	
 	private static Element parseElement(String stringXml) throws SAXException, IOException {

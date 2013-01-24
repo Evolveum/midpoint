@@ -27,5 +27,6 @@
     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
             <type>default</type>
     	</accountConstruction>
-    </assignment>    
+    </assignment>
+    <requestable>true</requestable>
 </role>

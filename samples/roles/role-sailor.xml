@@ -50,5 +50,6 @@
                     </outbound>
                 </attribute>
     	</accountConstruction>
-    </assignment>    
+    </assignment>
+    <requestable>true</requestable>
 </role>

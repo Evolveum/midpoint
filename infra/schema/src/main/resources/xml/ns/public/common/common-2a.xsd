@@ -46,7 +46,7 @@
 
             See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
             
-            Version: 2.1-SNAPSHOT
+            Version: 2a.1-SNAPSHOT
             Recommended namespace prefix: (default), c
         </xsd:documentation>
         <xsd:appinfo>
