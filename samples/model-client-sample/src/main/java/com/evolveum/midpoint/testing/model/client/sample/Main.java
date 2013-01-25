@@ -40,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 //import com.evolveum.midpoint.util.JAXBUtil;
 //import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -100,7 +102,11 @@ public class Main {
 			System.out.println("Got administrator user");
 			System.out.println(userAdministrator);
 			
-			String userGuybrushoid = createUserGuybrush(modelPort);
+			RoleType sailorRole = searchRoleByName(modelPort, "Sailor");
+			System.out.println("Got Sailor role");
+			System.out.println(sailorRole);
+			
+			String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
 			
 			Collection<RoleType> roles = listRequestableRoles(modelPort);
@@ -126,7 +132,7 @@ public class Main {
 		return (SystemConfigurationType) objectHolder.value;
 	}
 
-	private static String createUserGuybrush(ModelPortType modelPort) throws FaultMessage {
+	private static String createUserGuybrush(ModelPortType modelPort, RoleType role) throws FaultMessage {
 		Document doc = getDocumnent();
 		
 		UserType user = new UserType();
@@ -135,8 +141,19 @@ public class Main {
 		user.setGivenName(createPolyStringType("Guybrush", doc));
 		user.setFamilyName(createPolyStringType("Threepwood", doc));
 		user.setEmailAddress("guybrush@meleeisland.net");
+		user.getOrganization().add(createPolyStringType("Pirate Brethren International", doc));
 		user.getOrganizationalUnit().add(createPolyStringType("Pirate Wannabes", doc));
 		user.setCredentials(createPasswordCredentials("IwannaBEaPIRATE"));
+		
+		if (role != null) {
+			// create user with a role assignment
+			AssignmentType roleAssignment = new AssignmentType();
+			ObjectReferenceType roleRef = new ObjectReferenceType();
+			roleRef.setOid(role.getOid());
+			roleRef.setType(getTypeQName(RoleType.class));
+			roleAssignment.setTargetRef(roleRef);
+			user.getAssignment().add(roleAssignment);
+		}
 		
 		Holder<String> oidHolder = new Holder<String>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -187,6 +204,33 @@ public class Main {
 			return (UserType) objects.get(0);
 		}
 		throw new IllegalStateException("Expected to find a single user with username '"+username+"' but found "+objects.size()+" users instead");
+	}
+	
+	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage {
+		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
+		Element filter = parseElement(
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
+				  "<path>c:name</path>" +
+				  "<value>" + roleName + "</value>" +
+				"</equal>"
+		);
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		OperationOptionsType options = new OperationOptionsType();
+		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		
+		modelPort.searchObjects(getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
+		
+		ObjectListType objectList = objectListHolder.value;
+		List<ObjectType> objects = objectList.getObject();
+		if (objects.isEmpty()) {
+			return null;
+		}
+		if (objects.size() == 1) {
+			return (RoleType) objects.get(0);
+		}
+		throw new IllegalStateException("Expected to find a single role with name '"+roleName+"' but found "+objects.size()+" users instead");
 	}
 
 	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
@@ -261,6 +305,12 @@ public class Main {
 //		String typeUri = QNameUtil.qNameToUri(typeQName);
 		String typeUri = NS_COMMON + "#" + type.getSimpleName();
 		return typeUri;
+	}
+	
+	private static QName getTypeQName(Class<? extends ObjectType> type) {
+//		QName typeQName = JAXBUtil.getTypeQName(type);
+		QName typeQName = new QName(NS_COMMON, type.getSimpleName());
+		return typeQName;
 	}
 
 	private static CredentialsType createPasswordCredentials(String password) {
