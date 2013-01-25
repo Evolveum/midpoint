@@ -1828,20 +1828,40 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="organization" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name or (preferrably) immutable identifier of organization that the user belongs to.
+                                The format is deployment-specific. This property together with organizationalUnit
+                                may be used to provide easy-to-use data about organizational membership of the user.
+
+                                This is multi-valued property to allow membership of a user to several
+                                organizations. Please note that midPoint does not maintain ordering in
+                                multi-value properties therefore this is not usable to model a complex
+                                organization hierachies. Use OrgType instead.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Organization</a:displayName>
+                                <a:displayOrder>430</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                     <xsd:element name="organizationalUnit" type="t:PolyStringType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Name or (preferrably) immutable identifier of
-                                organizational unit that the user belongs to.
-                                The format is deployment-specific.
+                                Name or (preferrably) immutable identifier of organizational unit that the user belongs to.
+                                The format is deployment-specific. This property together with organization
+                                may be used to provide easy-to-use data about organizational membership of the user.
 
-                                This is multi-valued property to allow
-                                membership of a user to several
-                                organizational units.
+                                This is multi-valued property to allow membership of a user to several
+                                organizational units. Please note that midPoint does not maintain ordering in
+                                multi-value properties therefore this is not usable to model a complex
+                                organization hierachies. Use OrgType instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Organizational Unit</a:displayName>
-                                <a:displayOrder>430</a:displayOrder>
+                                <a:displayOrder>440</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1856,7 +1876,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>Locality</a:displayName>
-                                <a:displayOrder>440</a:displayOrder>
+                                <a:displayOrder>450</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
