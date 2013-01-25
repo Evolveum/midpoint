@@ -1051,6 +1051,10 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     			modification.revive(prismContext);
     		}
     	}
+        // todo is this correct? [pm]
+        if (this.prismContext == null) {
+            this.prismContext = prismContext;
+        }
 	}
     
     public void applyDefinition(PrismObjectDefinition<T> objectDefinition, boolean force) throws SchemaException {
