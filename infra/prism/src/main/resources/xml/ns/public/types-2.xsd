@@ -320,6 +320,7 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="changeType" type="tns:ChangeTypeType"/>
+        	<xsd:element name="objectType" type="xsd:QName"/>
         	<xsd:element name="objectToAdd" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>

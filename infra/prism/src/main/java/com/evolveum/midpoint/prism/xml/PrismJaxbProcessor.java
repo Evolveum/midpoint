@@ -438,6 +438,27 @@ public class PrismJaxbProcessor {
 		return value;
 	}
 	
+	public <T> T unmarshalObject(Object domOrJaxbElement, Class<T> type) throws SchemaException {
+		JAXBElement<T> element;
+		if (domOrJaxbElement instanceof JAXBElement<?>) {
+			element = (JAXBElement<T>) domOrJaxbElement;
+		} else if (domOrJaxbElement instanceof Node) {
+			try {
+				element = unmarshalElement((Node)domOrJaxbElement, type);
+			} catch (JAXBException e) {
+				throw new SchemaException(e.getMessage(),e);
+			}
+		} else {
+			throw new IllegalArgumentException("Unknown element type "+domOrJaxbElement);
+		}
+		if (element == null) {
+			return null;
+		}
+		T value = element.getValue();
+		adopt(value, type);
+		return value;
+	}
+	
 	public <T> JAXBElement<T> unmarshalElement(File file, Class<T> type) throws SchemaException, FileNotFoundException, JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument must not be null.");

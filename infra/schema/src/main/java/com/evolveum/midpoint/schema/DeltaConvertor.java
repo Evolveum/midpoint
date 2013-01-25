@@ -86,6 +86,38 @@ public class DeltaConvertor {
         return objectDelta;
     }
     
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(ObjectDeltaType objectDeltaType,
+            PrismContext prismContext) throws SchemaException {
+    	
+    	QName objectType = objectDeltaType.getObjectType();
+    	PrismObjectDefinition<T> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(objectType);
+    	Class<T> type = objDef.getCompileTimeClass();
+
+        if (objectDeltaType.getChangeType() == ChangeTypeType.ADD) {
+        	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.ADD, prismContext);
+            objectDelta.setOid(objectDeltaType.getOid());
+            Object element = objectDeltaType.getObjectToAdd().getAny();
+            T objectable = prismContext.getPrismJaxbProcessor().unmarshalObject(element, type);
+            objectDelta.setObjectToAdd(objectable.asPrismObject());
+            return objectDelta;
+        } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
+        	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY, prismContext);
+            objectDelta.setOid(objectDeltaType.getOid());
+	        for (ItemDeltaType propMod : objectDeltaType.getModification()) {
+	            ItemDelta itemDelta = createItemDelta(propMod, objDef);
+	            objectDelta.addModification(itemDelta);
+	        }
+	        return objectDelta;
+        } else if (objectDeltaType.getChangeType() == ChangeTypeType.DELETE) {
+        	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.DELETE, prismContext);
+            objectDelta.setOid(objectDeltaType.getOid());
+            return objectDelta;
+        } else {
+        	throw new SchemaException("Unknown change type "+objectDeltaType.getChangeType());
+        }
+
+    }
+    
     public static <T extends Objectable> Collection<? extends ItemDelta> toModifications(ObjectModificationType objectModification,
 			Class<T> type, PrismContext prismContext) throws SchemaException {
 		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
@@ -135,6 +167,9 @@ public class DeltaConvertor {
 	public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends Objectable> objectDelta) throws SchemaException {
 		ObjectDeltaType objectDeltaType = new ObjectDeltaType();
 		objectDeltaType.setChangeType(convertChangeType(objectDelta.getChangeType()));
+		Class<? extends Objectable> type = objectDelta.getObjectTypeClass();
+		PrismObjectDefinition<? extends Objectable> objDef = objectDelta.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		objectDeltaType.setObjectType(objDef.getTypeName());
 		objectDeltaType.setOid(objectDelta.getOid());
 		
 		if (objectDelta.getChangeType() == ChangeType.ADD) {

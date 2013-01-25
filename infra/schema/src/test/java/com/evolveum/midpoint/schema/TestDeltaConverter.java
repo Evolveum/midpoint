@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -61,6 +62,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -257,5 +259,52 @@ public class TestDeltaConverter {
     	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
     	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
     	assertEquals("Wrong element value", protectedString, valueElement.getValue());
+    }
+    
+    @Test
+    public void testObjectDeltaRoundtrip() throws Exception {
+    	System.out.println("===[ testObjectDeltaRoundtrip ]====");
+
+    	// GIVEN
+    	final String OID = "13235545";
+    	final String VALUE = "Very Costly Center";
+    	ObjectDelta<UserType> objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, OID,
+    			UserType.F_COST_CENTER, PrismTestUtil.getPrismContext(), VALUE);
+
+    	System.out.println("ObjectDelta");
+    	System.out.println(objectDelta.dump());
+
+    	// WHEN
+    	ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
+
+    	// THEN
+    	System.out.println("ObjectDeltaType (XML)");
+    	System.out.println(PrismTestUtil.marshalWrap(objectDeltaType));
+    	
+    	assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
+    	assertEquals("Wrong OID", OID, objectDeltaType.getOid());
+    	List<ItemDeltaType> modifications = objectDeltaType.getModification();
+    	assertNotNull("null modifications", modifications);
+    	assertEquals("Wrong number of modifications", 1, modifications.size());
+    	ItemDeltaType mod1 = modifications.iterator().next();
+    	assertEquals("Wrong mod type", ModificationTypeType.REPLACE, mod1.getModificationType());
+    	XPathHolder xpath = new XPathHolder(mod1.getPath());
+    	assertTrue("Wrong path: "+xpath, xpath.toPropertyPath().isEmpty());
+    	List<Object> valueElements = mod1.getValue().getAny();
+    	assertEquals("Wrong number of value elements", 1, valueElements.size());
+    	Element valueElement = (Element)valueElements.iterator().next();
+    	assertEquals("Wrong element name", UserType.F_COST_CENTER, DOMUtil.getQName(valueElement));
+    	assertEquals("Wrong element value", VALUE, valueElement.getTextContent());
+    	
+    	// WHEN
+    	ObjectDelta<Objectable> objectDeltaRoundtrip = DeltaConvertor.createObjectDelta(objectDeltaType, PrismTestUtil.getPrismContext());
+    	
+    	// THEN
+    	System.out.println("ObjectDelta (roundtrip)");
+    	System.out.println(objectDelta.dump());
+    	
+    	assertTrue("Roundtrip not equals", objectDelta.equals(objectDeltaRoundtrip));
+    	
+    	// TODO: more checks
     }
 }
