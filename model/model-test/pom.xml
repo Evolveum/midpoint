@@ -148,18 +148,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors.ldap</groupId>
-			<artifactId>ldap</artifactId>
+			<groupId>org.forgerock.openicf.connectors</groupId>
+			<artifactId>ldap-connector</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors.db</groupId>
-			<artifactId>databasetable</artifactId>
+			<groupId>org.forgerock.openicf.connectors</groupId>
+			<artifactId>databasetable-connector</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.forgerock.openicf.connectors.file</groupId>
-            <artifactId>openicf-csvfile-connector</artifactId>
+            <groupId>org.forgerock.openicf.connectors</groupId>
+            <artifactId>csvfile-connector</artifactId>
             <scope>test</scope>
         </dependency>
 		<dependency>

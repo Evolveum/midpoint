@@ -31,37 +31,14 @@
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>2.1.1-SNAPSHOT</version>
 	</parent>
-	<organization>
-		<name>evolveum</name>
-		<url>http://www.evolveum.com</url>
-	</organization>
-	<licenses>
-		<license>
-			<name>CDDL v1.0</name>
-			<url>http://www.sun.com/cddl/cddl.html</url>
-			<distribution>repo</distribution>
-			<comments>A business-friendly OSS license</comments>
-		</license>
-	</licenses>
-	<issueManagement>
-		<system>Atlassian JIRA</system>
-		<url>http://jira.evolveum.com/</url>
-	</issueManagement>
-	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-		<url>https://fisheye.evolveum.com/midpoint/</url>
-	</scm>
-	<!-- Special repository for scannotation -->
 	<repositories>
-		<repository>
-			<id>evolveum</id>
-			<name>repo</name>
-			<url>http://repo.evolveum.com/repo</url>
-		</repository>
-	</repositories>
+        	<repository>
+			<!-- We need this for scannotation -->
+			<id>jboss</id>
+			<url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+        	</repository>
+    	</repositories>
 	<dependencies>
-
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
@@ -157,18 +134,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors.ldap</groupId>
-			<artifactId>ldap</artifactId>
+			<groupId>org.forgerock.openicf.connectors</groupId>
+			<artifactId>ldap-connector</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.connectors.db</groupId>
-			<artifactId>databasetable</artifactId>
+			<groupId>org.forgerock.openicf.connectors</groupId>
+			<artifactId>databasetable-connector</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-            <groupId>org.forgerock.openicf.connectors.file</groupId>
-            <artifactId>openicf-csvfile-connector</artifactId>
+            		<groupId>org.forgerock.openicf.connectors</groupId>
+            		<artifactId>csvfile-connector</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

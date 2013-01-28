@@ -10,21 +10,17 @@ category of the enterprise identity management field. The basic features include
    - Management of identity-related parts of the enterprise security policy
    - Support for security auditing and reporting
 
-
 For more information please go to:
 
-  http://wiki.evolveum.com/display/midPoint
-
+  http://midpoint.evolveum.com/
 
 For bugtracking system please go to:
 
   http://jira.evolveum.com/
 
-
 Latest source from our SVN repository using the URL:
 
   https://svn.evolveum.com/midpoint/trunk
-
 
 This project is developed under open source license CDDL v1.0. You may get copy
 of licence in legal/CDDLv1.0.txt.

@@ -88,33 +88,7 @@
             </testResource>
         </testResources>        
     </build>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>CDDL v1.0</name>
-            <url>http://www.sun.com/cddl/cddl.html</url>
-            <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-        <url>https://fisheye.evolveum.com/midpoint/</url>
-    </scm>
     <repositories>
-        <repository>
-            <id>evolveum</id>
-            <name>repo</name>
-            <url>http://repo.evolveum.com/repo</url>
-        </repository>
         <repository> 
                 <id>wicket-tree</id> 
                 <name>Wicket-tree Repository</name> 
@@ -306,18 +280,18 @@
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
-            <groupId>org.forgerock.openicf.connectors.ldap</groupId>
-            <artifactId>ldap</artifactId>
+            <groupId>org.forgerock.openicf.connectors</groupId>
+            <artifactId>ldap-connector</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors.db</groupId>
-            <artifactId>databasetable</artifactId>
+            <groupId>org.forgerock.openicf.connectors</groupId>
+            <artifactId>databasetable-connector</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openicf.connectors.file</groupId>
-            <artifactId>openicf-csvfile-connector</artifactId>
+            <groupId>org.forgerock.openicf.connectors</groupId>
+            <artifactId>csvfile-connector</artifactId>
             <scope>runtime</scope>
         </dependency>
         <!-- end connectors -->

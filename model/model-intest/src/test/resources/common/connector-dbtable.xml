@@ -30,7 +30,7 @@
    <name>ICF org.identityconnectors.databasetable.DatabaseTableConnector</name>
    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
    <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
-   <connectorVersion>1.1.0.0-e1</connectorVersion>
+   <connectorVersion>1.1.0.e6296</connectorVersion>
    <connectorBundle>org.forgerock.openicf.connectors.db.databasetable</connectorBundle>
    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector</namespace>
    <schema>

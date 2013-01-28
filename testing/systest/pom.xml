@@ -31,9 +31,9 @@
 	</organization>
 	<repositories>
                 <repository>
-                        <id>central</id>
-                        <name>repo</name>
-                        <url>http://repo.evolveum.com/repo</url>
+                        <id>evolveum</id>
+                        <name>Evolveum</name>
+                        <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
                 </repository>
         </repositories>
         <properties>

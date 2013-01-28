@@ -32,6 +32,13 @@
         <artifactId>midpoint</artifactId>
         <version>2.1.1-SNAPSHOT</version>
     </parent>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>evolveum</id>
+            <name>Evolveum</name>
+            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
     <properties>
         <!-- Build system options -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -390,19 +397,19 @@
                 <version>1.1.1.0</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors.db</groupId>
-                <artifactId>databasetable</artifactId>
-                <version>1.1.0.0-e1</version>
+                <groupId>org.forgerock.openicf.connectors</groupId>
+                <artifactId>databasetable-connector</artifactId>
+                <version>1.1.0.e6296</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors.file</groupId>
-                <artifactId>openicf-csvfile-connector</artifactId>
-                <version>1.1.0.1-e6</version>
+                <groupId>org.forgerock.openicf.connectors</groupId>
+                <artifactId>csvfile-connector</artifactId>
+                <version>1.1.0.e6296</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.connectors.ldap</groupId>
-                <artifactId>ldap</artifactId>
-                <version>1.1.0.0-e1</version>
+                <groupId>org.forgerock.openicf.connectors</groupId>
+                <artifactId>ldap-connector</artifactId>
+                <version>1.1.0.e6320d</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -596,6 +603,7 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <version>2.4</version>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

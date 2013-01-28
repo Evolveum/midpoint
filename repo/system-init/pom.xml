@@ -31,34 +31,6 @@
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>2.1.1-SNAPSHOT</version>
 	</parent>
-	<organization>
-		<name>Evolveum</name>
-		<url>http://www.evolveum.com</url>
-	</organization>
-	<licenses>
-		<license>
-			<name>CDDL v1.0</name>
-			<url>http://www.sun.com/cddl/cddl.html</url>
-			<distribution>repo</distribution>
-			<comments>A business-friendly OSS license</comments>
-		</license>
-	</licenses>
-	<issueManagement>
-		<system>Atlassian JIRA</system>
-		<url>http://jira.evolveum.com/</url>
-	</issueManagement>
-	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-		<url>https://fisheye.evolveum.com/midpoint/</url>
-	</scm>
-	<repositories>
-		<repository>
-			<id>central</id>
-			<name>repo</name>
-			<url>http://repo.evolveum.com/repo</url>
-		</repository>
-	</repositories>
 	<build>
 		<resources>
 			<resource>

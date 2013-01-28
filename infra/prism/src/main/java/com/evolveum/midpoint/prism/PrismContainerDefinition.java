@@ -478,8 +478,8 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         if (isRuntimeSchema()) {
             sb.append(" dynamic");
         }
-        sb.append("\n");
         for (Definition def : getDefinitions()) {
+        	sb.append("\n");
             sb.append(def.debugDump(indent + 1));
         }
         return sb.toString();

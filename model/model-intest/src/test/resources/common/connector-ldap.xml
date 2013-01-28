@@ -22,19 +22,19 @@
 <c:connector xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
              oid="14e63399-8869-4787-9369-93f9d1311671">
    <c:name>ICF org.identityconnectors.ldap.LdapConnector</c:name>
-   <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector</c:namespace>
-   <c:connectorVersion>1.1.0.0-e1</c:connectorVersion>
+   <c:namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector</c:namespace>
+   <c:connectorVersion>1.1.0.e6320d</c:connectorVersion>
    <c:framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</c:framework>
-   <c:connectorBundle>org.forgerock.openicf.connectors.ldap.ldap</c:connectorBundle>
+   <c:connectorBundle>org.forgerock.openicf.connectors.ldap-connector</c:connectorBundle>
    <c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
    <c:schema>
       <definition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
                      xmlns:qn406="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
