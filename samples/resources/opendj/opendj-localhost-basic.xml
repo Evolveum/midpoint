@@ -33,8 +33,7 @@ This resource definition contains only the very basic definitions for midPoint t
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
 
 	<resource>
     
@@ -54,7 +53,7 @@ This resource definition contains only the very basic definitions for midPoint t
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
 		<connectorConfiguration
-			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
             <!-- Configuration specific for the LDAP connector -->

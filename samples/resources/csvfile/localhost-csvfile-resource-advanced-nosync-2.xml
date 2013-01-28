@@ -58,7 +58,7 @@ using an Identity Connector Framework connector.
 	
             <!-- Configuration specific for the CSVfile connector -->
 		<icfc:configurationProperties
-		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
+		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
 
 				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile-2.csv</icfccsvfile:filePath>
 				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>

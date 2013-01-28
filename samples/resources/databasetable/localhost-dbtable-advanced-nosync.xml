@@ -35,8 +35,7 @@ using an Identity Connector Framework DBTable connector.
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-	xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+	xmlns:my="http://myself.me/schemas/whatever">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
     
@@ -59,7 +58,7 @@ using an Identity Connector Framework DBTable connector.
 
             <!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
-			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
+			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector">
 				<icscdbtable:port>3306</icscdbtable:port>
 				<icscdbtable:quoting></icscdbtable:quoting>
 				<icscdbtable:host>localhost</icscdbtable:host>

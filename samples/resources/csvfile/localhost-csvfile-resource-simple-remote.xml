@@ -35,8 +35,7 @@ connector server.
 	xmlns:my="http://myself.me/schemas/whatever"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe">
@@ -59,7 +58,7 @@ connector server.
 		<c:connectorConfiguration>
 	
             <!-- Configuration specific for the CSVfile connector -->
-			<icfc:configurationProperties xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
+			<icfc:configurationProperties xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
 				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile-remote.csv</icfccsvfile:filePath>
 				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
 				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
