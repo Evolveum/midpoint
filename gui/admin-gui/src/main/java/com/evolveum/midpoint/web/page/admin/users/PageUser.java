@@ -549,16 +549,6 @@ public class PageUser extends PageAdminUsers {
                                 deleteAccountPerformed(target, item.getModel());
                             }
 
-//                            @Override
-//                            public void linkPerformed(AjaxRequestTarget target) {
-//                                linkAccountPerformed(target, item.getModel());
-//                            }
-//                            
-//                            @Override
-//                            public void undeletePerformed(AjaxRequestTarget target) {
-//                                undeleteAccountPerformed(target, item.getModel());
-//                            }
-
                             @Override
                             public void unlinkPerformed(AjaxRequestTarget target) {
                                 unlinkAccountPerformed(target, item.getModel());

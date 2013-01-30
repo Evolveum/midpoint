@@ -45,7 +45,8 @@ public class AccountOperationButtons extends Panel {
         AjaxLink unlink = new AjaxLink("unlink") {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                linkPerformed(target);
+            	unlinkPerformed(target);
+                
             }
         };
         add(unlink);
@@ -53,6 +54,7 @@ public class AccountOperationButtons extends Panel {
         Image unlinkImg = new Image("unlinkImg", new PackageResourceReference(AccountOperationButtons.class,
                 "UnLink.png"));
         unlink.add(unlinkImg);
+
 
         AjaxLink delete = new AjaxLink("delete") {
             @Override
@@ -65,11 +67,15 @@ public class AccountOperationButtons extends Panel {
         Image deleteImg = new Image("deleteImg", new PackageResourceReference(AccountOperationButtons.class,
                 "Delete.png"));
         delete.add(deleteImg);
-    }
+        
+        
+        }
 
     public void deletePerformed(AjaxRequestTarget target) {
     }
 
-    public void linkPerformed(AjaxRequestTarget target) {
+    public void unlinkPerformed(AjaxRequestTarget target) {
     }
+  
+    
 }
