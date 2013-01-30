@@ -167,6 +167,14 @@ public class PageUser extends PageAdminUsers {
 
     public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid){
     	
+    	userModel = new LoadableModel<ObjectWrapper>(false) {
+    		@Override
+    		protected ObjectWrapper load(){
+    			return loadUserAfterPreview(deltas, oid);
+    		}
+		};
+		
+    	
     	accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
 			@Override
 			protected List<UserAccountDto> load(){
@@ -175,15 +183,7 @@ public class PageUser extends PageAdminUsers {
 			
 		};
     	
-    	userModel = new LoadableModel<ObjectWrapper>(false) {
-    		@Override
-    		protected ObjectWrapper load(){
-    			return loadUserAfterPreview(deltas, oid);
-    		}
-		};
-		
-		
-		
+    	
 		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
 			
 			@Override
@@ -231,14 +231,21 @@ public class PageUser extends PageAdminUsers {
     		wrapper.setShowEmpty(false);
     	}
     	} catch (Exception ex){
-    		
+    		result.recordFatalError("Couldn't get user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
     	}
-    	 
+    	
+    	result.recomputeStatus();
+    	
+    	  if (!result.isSuccess()) {
+              showResultInSession(result);
+          }
     	
 		return wrapper;
 	}
     
     private List<UserAccountDto> loadAccountsAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas){
+    	OperationResult result = new OperationResult("Load accounts after preview");
     	List<UserAccountDto> wrappers = loadAccountWrappers();
 		for (UserAccountDto acc : wrappers) {
 			for (ObjectDelta delta : deltas) {
@@ -266,8 +273,9 @@ public class PageUser extends PageAdminUsers {
 						accountWrapper.setOldDelta(delta);
 						accountWrapper.setMinimalized(false);
 						PropertyDelta.applyTo(delta.getModifications(), accountWrapper.getObject());
-					} catch (SchemaException ex) {
-
+					} catch (Exception ex) {
+						result.recordFatalError("Couldn't load account after preview." + ex.getMessage(), ex);
+		                LoggingUtils.logException(LOGGER, "Couldn't load account after preview", ex);
 					}
 				}
 				
@@ -275,14 +283,11 @@ public class PageUser extends PageAdminUsers {
     	}
     	
     	for (ObjectDelta delta : deltas){
-//    		if (delta.isModify()){
-    			if (delta.getObjectToAdd() != null){
+    			if (delta.getObjectToAdd() != null && ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectToAdd().getClass())){
     				ObjectWrapper ow = new ObjectWrapper(null , null, delta.getObjectToAdd(), ContainerStatus.ADDING);
-//    				new UserAccountDto(ow, UserDtoStatus.ADD);
     				ow.setShowEmpty(true);
     				wrappers.add(new UserAccountDto(ow, UserDtoStatus.ADD));
     			}
-//    		}
   
     	}
     	
@@ -314,20 +319,8 @@ public class PageUser extends PageAdminUsers {
 					} 
 
 				}
-////				else if (delta.isModify() && AssignmentType.class.isAssignableFrom(delta.getObjectTypeClass())){
-////					try {
-////						acc.setOldDelta(delta);
-////						acc.setMinimized(false);
-////						PropertyDelta.applyTo(delta.getModifications(), accountWrapper.getObject());
-////					} catch (SchemaException ex) {
-////
-////					}
-////				}
-//				
 			}
     	}
-//    	
-    	
     	return wrappers;
 
 	}
@@ -994,9 +987,14 @@ public class PageUser extends PageAdminUsers {
                     LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
                 }
 
-                if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty() || accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty()) {
+                if (!UserDtoStatus.MODIFY.equals(account.getStatus())){
                     continue;
                 }
+                
+                if (delta.isEmpty() && (accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty())){
+                	continue;
+                }
+                
                 if (accountWrapper.getOldDelta() != null){
                 	delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
                 }
