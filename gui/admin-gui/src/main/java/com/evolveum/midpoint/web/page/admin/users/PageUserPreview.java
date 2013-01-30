@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -41,6 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -85,7 +84,14 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SubmitStatus;
 import com.evolveum.midpoint.web.page.admin.users.dto.SubmitUserDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserChangesDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.apache.wicket.util.string.StringValue;
 /**
  * @author mserbak
  */
@@ -358,6 +364,22 @@ public class PageUserPreview extends PageAdmin {
 			}
 		};
 		mainForm.add(cancelButton);
+		
+		AjaxLinkButton returnButton = new AjaxLinkButton("returnButton", createStringResource("pageUserPreview.button.return")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+            	String oid = null;
+            	if (previewChanges.getFocusContext().getObjectOld() != null){
+            		oid = previewChanges.getFocusContext().getObjectOld().getOid();
+            	} else if (previewChanges.getFocusContext().getObjectNew() != null){
+            		oid = previewChanges.getFocusContext().getObjectNew().getOid();
+            	}
+				setResponsePage(new PageUser(deltasChanges, oid));
+            }
+        };
+        mainForm.add(returnButton);
+
 	}
 
 	private List<SubmitAssignmentDto> loadAssignmentsChanges() {

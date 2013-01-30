@@ -60,7 +60,7 @@ public class TablePanel<T> extends Panel {
     }
 
     private void initLayout(List<IColumn<T>> columns, int itemsPerPage, ISortableDataProvider provider) {
-        DataTable<T> table = new DataTable<T>(TABLE, columns, provider, itemsPerPage);
+        DataTable<T> table = new SelectableDataTable<T>(TABLE, columns, provider, itemsPerPage);
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
         table.setOutputMarkupId(true);
         add(table);

@@ -358,8 +358,14 @@ public class PageResources extends PageAdminResources {
 
             @Override
             public String getObject() {
-                return createStringResource("pageResources.message.deleteResourceConfirm",
-                        WebMiscUtil.getSelectedData(getResourceTable()).size()).getString();
+            	List<ResourceDto> selectedResources = WebMiscUtil.getSelectedData(getResourceTable());
+            	if (selectedResources.size() == 1){
+            		return createStringResource("pageResources.message.deleteResourceConfirm",
+                            selectedResources.get(0).getName()).getString();
+				} else {
+					return createStringResource("pageResources.message.deleteResourcesConfirm",
+							WebMiscUtil.getSelectedData(getResourceTable()).size()).getString();
+				}
             }
         };
     }

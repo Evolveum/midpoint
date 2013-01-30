@@ -144,7 +144,7 @@ public class GenericErrorHandler extends ErrorHandler{
 						// changes with previous
 						cacheRepositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
 								result);
-						result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
+						result.recordHandledError("Modifications not applied to the account, because resource is unreachable. They are stored to the shadow and will be applied when the resource goes online.");
 					}
 
 				
@@ -155,15 +155,17 @@ public class GenericErrorHandler extends ErrorHandler{
 			result.recordStatus(OperationResultStatus.HANDLED_ERROR, "Account has been not created on the resource yet. Shadow deleted from the repository");
 			return null;
 		default:
+			result.recordFatalError("Can't process "
+					+ ObjectTypeUtil.toShortString(shadow) + ": "+ex.getMessage(), ex);
 			if (shadow.getOid() == null){
-				throw new GenericFrameworkException("Can't process shadow "
-						+ ObjectTypeUtil.toShortString(shadow) + ": Generic error in the connector: "+ex.getMessage(), ex);
+				throw new GenericFrameworkException("Can't process "
+						+ ObjectTypeUtil.toShortString(shadow) + ": "+ex.getMessage(), ex);
 			}
 			
 			Collection<ItemDelta> modification = createAttemptModification(shadow, null);
 			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
 			
-			throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
+			throw new GenericFrameworkException("Can't process "
 					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 		}		
 	}

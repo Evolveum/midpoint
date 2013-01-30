@@ -57,6 +57,7 @@ public class ObjectWrapper implements Serializable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
 	private PrismObject object;
+	private ObjectDelta oldDelta;
 	private ContainerStatus status;
 	private HeaderStatus headerStatus;
 	private String displayName;
@@ -86,6 +87,14 @@ public class ObjectWrapper implements Serializable {
 			headerStatus = HeaderStatus.NORMAL;
 		}
 		return headerStatus;
+	}
+	
+	public ObjectDelta getOldDelta() {
+		return oldDelta;
+	}
+	
+	public void setOldDelta(ObjectDelta oldDelta) {
+		this.oldDelta = oldDelta;
 	}
 	
 	public Boolean getEnableStatus() {

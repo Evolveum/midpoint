@@ -40,13 +40,43 @@ function initTable(){
 		      'border-color' : '#FFFFFF'
 		    };
 	
-	$(document).find(".sortedTable").each(function(index){
-		var row =  $(this).find("table tbody tr");
-		if(row.find(".tableCheckbox").length > 0) {
-			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents("tr:first").find("td").css(cssSelectedRow);
-			checkAllChecked($(this));
+	
+	$(".sortedTable table tbody tr").click(function(){
+		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
+			$(this).find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
+			$(this).find("td").css("background","#FFFFFF");
+			$(this).find("td").css("border-color","#F2F2F2");
+		} else {
+			$(this).find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
+			$(this).find("td").css("background","#d8f4d8");
+			$(this).find("td").css("border-color","#FFFFFF");
+			
 		}
+		checkAllChecked($(this).parents(".sortedTable"));
 	});
+	
+	$("td input[type='checkbox']").click(function(){
+		if($(this).is(":checked")){
+			$(this).attr("checked", false);
+			$(this).parents("tr").find("td").css("background","#d8f4d8");
+			$(this).parents("tr").find("td").css("border-color","#FFFFFF");
+			
+		} else {
+			$(this).attr("checked", true);
+			$(this).parents("tr").find("td").css("background","#FFFFFF");
+			$(this).parents("tr").find("td").css("border-color","#F2F2F2");
+		}
+		checkAllChecked($(this).parents(".sortedTable"));
+	});
+	
+//	$(document).find(".sortedTable").each(function(index){
+//		var row =  $(this).find("table tbody tr");
+//		if(row.find(".tableCheckbox").length > 0) {
+//			row.find(".tableCheckbox").find("input[type='checkbox']:checked").parents("tr:first").find("td").css(cssSelectedRow);
+//			checkAllChecked($(this));
+//		}
+//	});
+	
 	
 	$(document).find(".sortedTable .secondaryValue").each(function(){
 		$(this).parents("tr:first").find("td").css(cssSecondaryValue);
@@ -66,7 +96,7 @@ function initTable(){
 			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
 			$(this).parents(".sortedTable").find("tbody").find("td").css("background","#d8f4d8");
 			$(this).parents(".sortedTable").find("tbody").find("td").css("border-color","#FFFFFF");
-		} else {
+		} else {		
 			$(this).parents(".sortedTable").find("tbody").find("tr").each(function() {
 				var deleted = false;
 				$(this).find("img").each(function() {
@@ -111,8 +141,6 @@ function initTable(){
 			}
 		}
 	}
-	
-	
 	
 	
 	$(".sortedTable table tbody tr").mouseenter(function(){

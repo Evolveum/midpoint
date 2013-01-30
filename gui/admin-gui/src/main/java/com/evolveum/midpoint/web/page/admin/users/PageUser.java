@@ -21,10 +21,47 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.string.StringValue;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -51,7 +88,13 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.HeaderStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
@@ -59,32 +102,19 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AbstractAjaxBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.string.StringValue;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author lazyman
@@ -125,8 +155,185 @@ public class PageUser extends PageAdminUsers {
 
     //used to add force flag to operations if necessary, will be moved to some "page dto"
     private boolean forceAction;
+    
+	// it should be sent from submit. If the user is on the preview page and
+	// than he wants to get back to the edit page, the object delta is set, so
+	// we don't loose any changes
+    private ObjectDelta objectDelta;
+    
+    public ObjectDelta getObjectDelta() {
+		return objectDelta;
+	}
 
+    public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid){
+    	
+    	accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
+			@Override
+			protected List<UserAccountDto> load(){
+				return loadAccountsAfterPreview(deltas);
+			}
+			
+		};
+    	
+    	userModel = new LoadableModel<ObjectWrapper>(false) {
+    		@Override
+    		protected ObjectWrapper load(){
+    			return loadUserAfterPreview(deltas, oid);
+    		}
+		};
+		
+		
+		
+		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+			
+			@Override
+			protected List<AssignmentEditorDto> load(){
+				return loadAssignmentsAfterPreview(deltas);
+			}
+
+		};
+		
+		initLayout();
+    }
+    
+    private ObjectWrapper loadUserAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas, String oid) {
+    	
+    	Task task = getTaskManager().createTaskInstance();
+    	OperationResult result = new OperationResult("load after preview");
+    	PrismObject<UserType> user = null;
+  
+    	ObjectWrapper wrapper = null;
+    	try{
+    	
+    	
+		for (ObjectDelta delta : deltas){
+			if (delta.getObjectTypeClass().equals(UserType.class)){
+				user = getModelService().getObject(UserType.class, delta.getOid(), null, task, result);
+				ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_ACCOUNT_REF);
+				ObjectDelta clonedDelta = delta.clone();
+				if (refDelta != null && refDelta.isDelete()){
+					clonedDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
+				}
+				ContainerDelta assigmentDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
+				if (assigmentDelta != null && assigmentDelta.isDelete()){
+					ItemDelta.removeItemDelta(clonedDelta.getModifications(), new ItemPath(UserType.F_ASSIGNMENT), ContainerDelta.class);
+				}
+				
+				PropertyDelta.applyTo(clonedDelta.getModifications(), user);
+				wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
+				wrapper.setOldDelta(delta);
+		         wrapper.setShowEmpty(false);
+			}
+		}
+		if (wrapper == null && oid != null){
+    		user = getModelService().getObject(UserType.class, oid, null, task, result);
+    		wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
+    		wrapper.setShowEmpty(false);
+    	}
+    	} catch (Exception ex){
+    		
+    	}
+    	 
+    	
+		return wrapper;
+	}
+    
+    private List<UserAccountDto> loadAccountsAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas){
+    	List<UserAccountDto> wrappers = loadAccountWrappers();
+		for (UserAccountDto acc : wrappers) {
+			for (ObjectDelta delta : deltas) {
+				ObjectWrapper accountWrapper = acc.getObject();
+				if (delta.isModify() && delta.getObjectTypeClass().equals(UserType.class)) {
+					ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_ACCOUNT_REF);
+					if (refDelta == null){
+						continue;
+					}
+					if (refDelta.getValuesToDelete() != null) {
+						for (PrismReferenceValue refValue : refDelta.getValuesToDelete()) {
+							if (refValue.getObject() != null && refValue.getObject().getOid() != null && refValue.getObject().getOid().equals(accountWrapper.getObject().getOid())) {
+										acc.getObject().setHeaderStatus(HeaderStatus.DELETED);
+										acc.setStatus(UserDtoStatus.DELETE);
+									
+							} else if (refValue.getOid() != null && refValue.getOid().equals(accountWrapper.getObject().getOid())){
+								acc.getObject().setHeaderStatus(HeaderStatus.UNLINKED);
+								acc.setStatus(UserDtoStatus.UNLINK);
+							}
+						}
+					} 
+
+				}else if (delta.isModify() && ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectTypeClass())){
+					try {
+						accountWrapper.setOldDelta(delta);
+						accountWrapper.setMinimalized(false);
+						PropertyDelta.applyTo(delta.getModifications(), accountWrapper.getObject());
+					} catch (SchemaException ex) {
+
+					}
+				}
+				
+			}
+    	}
+    	
+    	for (ObjectDelta delta : deltas){
+//    		if (delta.isModify()){
+    			if (delta.getObjectToAdd() != null){
+    				ObjectWrapper ow = new ObjectWrapper(null , null, delta.getObjectToAdd(), ContainerStatus.ADDING);
+//    				new UserAccountDto(ow, UserDtoStatus.ADD);
+    				ow.setShowEmpty(true);
+    				wrappers.add(new UserAccountDto(ow, UserDtoStatus.ADD));
+    			}
+//    		}
+  
+    	}
+    	
+    	return wrappers;
+    }
+    
+    private List<AssignmentEditorDto> loadAssignmentsAfterPreview(
+			Collection<ObjectDelta<? extends ObjectType>> deltas) {
+    	List<AssignmentEditorDto> wrappers = loadAssignments();
+		for (AssignmentEditorDto acc : wrappers) {
+			for (ObjectDelta delta : deltas) {
+//				ObjectWrapper accountWrapper = acc.getObject();
+				if (delta.isModify() && delta.getObjectTypeClass().equals(UserType.class)) {
+					ContainerDelta containerDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
+					if (containerDelta == null){
+						continue;
+					}
+					if (containerDelta.getValuesToDelete() != null) {
+						for (Object value : containerDelta.getValuesToDelete()) {
+							if (value instanceof PrismContainerValue){
+								PrismContainerValue valueToDelete = (PrismContainerValue) value;
+								if (valueToDelete.equals(acc.getOldValue())){
+									acc.setStatus(UserDtoStatus.DELETE);
+									
+								}
+							}
+							
+						}
+					} 
+
+				}
+////				else if (delta.isModify() && AssignmentType.class.isAssignableFrom(delta.getObjectTypeClass())){
+////					try {
+////						acc.setOldDelta(delta);
+////						acc.setMinimized(false);
+////						PropertyDelta.applyTo(delta.getModifications(), accountWrapper.getObject());
+////					} catch (SchemaException ex) {
+////
+////					}
+////				}
+//				
+			}
+    	}
+//    	
+    	
+    	return wrappers;
+
+	}
+    
     public PageUser() {
+    	
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
@@ -155,17 +362,19 @@ public class PageUser extends PageAdminUsers {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = null;
         try {
-            if (!isEditingUser()) {
-                UserType userType = new UserType();
-                getMidpointApplication().getPrismContext().adopt(userType);
-                user = userType.asPrismObject();
-            } else {
-                Task task = createSimpleTask(OPERATION_LOAD_USER);
+        		if (!isEditingUser()) {
+                    UserType userType = new UserType();
+                    getMidpointApplication().getPrismContext().adopt(userType);
+                    user = userType.asPrismObject();
+                } else {
+                    Task task = createSimpleTask(OPERATION_LOAD_USER);
 
-                StringValue userOid = getPageParameters().get(PARAM_USER_ID);
-                user = getModelService().getObject(UserType.class, userOid.toString(), null, task, result);
-            }
-            result.recordSuccess();
+                    StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+                    user = getModelService().getObject(UserType.class, userOid.toString(), null, task, result);
+                    
+                }
+
+        	result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
@@ -340,8 +549,18 @@ public class PageUser extends PageAdminUsers {
                                 deleteAccountPerformed(target, item.getModel());
                             }
 
+//                            @Override
+//                            public void linkPerformed(AjaxRequestTarget target) {
+//                                linkAccountPerformed(target, item.getModel());
+//                            }
+//                            
+//                            @Override
+//                            public void undeletePerformed(AjaxRequestTarget target) {
+//                                undeleteAccountPerformed(target, item.getModel());
+//                            }
+
                             @Override
-                            public void linkPerformed(AjaxRequestTarget target) {
+                            public void unlinkPerformed(AjaxRequestTarget target) {
                                 unlinkAccountPerformed(target, item.getModel());
                             }
                         };
@@ -384,7 +603,9 @@ public class PageUser extends PageAdminUsers {
 				Collection<SelectorOptions<GetOperationOptions>> options =
 						SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-
+				if (reference.getOid() == null){
+					continue;
+				}
                 PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
                         reference.getOid(), options, task, subResult);
                 AccountShadowType accountType = account.asObjectable();
@@ -675,7 +896,7 @@ public class PageUser extends PageAdminUsers {
         accountsPanel.add(unlockAccount);
     }
 
-    private ModalWindow createModalWindow(String id, IModel<String> title) {
+    private ModalWindow createModalWindow(final String id, IModel<String> title) {
         final ModalWindow modal = new ModalWindow(id);
         add(modal);
 
@@ -704,20 +925,34 @@ public class PageUser extends PageAdminUsers {
             }
         });
 
-        modal.add(new AbstractAjaxBehavior() {
-            @Override
-            public void onRequest() {
-            }
+        modal.add(new AbstractDefaultAjaxBehavior() {
+           
 
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
                 response.renderOnDomReadyJavaScript("Wicket.Window.unloadConfirmation = false;");
-            }
-        });
+                response.renderJavaScript("$(document).ready(function() {\n" +
+                        "  $(document).bind('keyup', function(evt) {\n" +
+                        "    if (evt.keyCode == 27) {\n" +
+                        getCallbackScript() + "\n" +
+                        "        evt.preventDefault();\n" +
+                        "    }\n" +
+                        "  });\n" +
+                        "});", id);
 
+            }
+
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+				modal.close(target);
+				
+			}
+        });
+        
         return modal;
     }
 
+    
     private void initResourceModal() {
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
                 createStringResource("pageUser.title.selectResource"));
@@ -730,6 +965,7 @@ public class PageUser extends PageAdminUsers {
                 addSelectedAccountPerformed(target, newResources);
             }
         });
+        
         add(window);
     }
 
@@ -768,9 +1004,13 @@ public class PageUser extends PageAdminUsers {
                     LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
                 }
 
-                if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty()) {
+                if (!UserDtoStatus.MODIFY.equals(account.getStatus()) || delta.isEmpty() || accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty()) {
                     continue;
                 }
+                if (accountWrapper.getOldDelta() != null){
+                	delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
+                }
+                
                 subResult = result.createSubresult(OPERATION_MODIFY_ACCOUNT);
 
                 WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
@@ -802,9 +1042,19 @@ public class PageUser extends PageAdminUsers {
             try {
             	ObjectWrapper accountWrapper = account.getObject();
             	ObjectDelta delta = accountWrapper.getObjectDelta();
-            	 if (delta.isEmpty()) {
-            		 continue;
-            	 }
+				if (delta.isEmpty()) {
+					if (accountWrapper.getOldDelta() == null || accountWrapper.getOldDelta().isEmpty()) {
+						continue;
+					} else {
+						delta = accountWrapper.getOldDelta();
+					}
+				} else {
+					if (accountWrapper.getOldDelta()!= null && !accountWrapper.getOldDelta().isEmpty()){
+						delta = ObjectDelta.summarize(delta, accountWrapper.getOldDelta());
+					
+					} 
+				}
+            		 
             	 WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
             	 subResult = result.createSubresult(OPERATION_PREPARE_ACCOUNTS);
             	 deltas.add(delta);
@@ -1016,17 +1266,28 @@ public class PageUser extends PageAdminUsers {
         Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         ModelExecuteOptions options = new ModelExecuteOptions();
         options.setForce(forceAction);
-        try {
-            
+//        try {
+        
+            try{
         	delta = userWrapper.getObjectDelta();
+        	if (userWrapper.getOldDelta() != null){
+        		delta = ObjectDelta.summarize(delta, userWrapper.getOldDelta());
+        	}
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
            
             LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+            }catch (Exception ex){
+            	result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+ 				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+ 				showResult(result);
+ 				return;
+            }
 
             switch (userWrapper.getStatus()) {
                 case ADDING:
+                	try{
                     PrismObject<UserType> user = delta.getObjectToAdd();
                     WebMiscUtil.encryptCredentials(user, true, getMidpointApplication());
                     prepareUserForAdd(user);
@@ -1040,8 +1301,14 @@ public class PageUser extends PageAdminUsers {
                     } else {
                         result.recordSuccess();
                     }
+                	}catch (Exception ex){
+                		result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+         				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+                	}
                     break;
+                	
                 case MODIFYING:
+                	try{
                     WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
                     prepareUserDeltaForModify(delta);
 
@@ -1051,6 +1318,7 @@ public class PageUser extends PageAdminUsers {
 
                     List<ObjectDelta<? extends ObjectType>> accountDeltas = modifyAccounts(result);
                     Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+                    
                     if (!delta.isEmpty()) {
                         deltas.add(delta);
                     }
@@ -1065,21 +1333,30 @@ public class PageUser extends PageAdminUsers {
                     } else {
                         result.recordSuccess();
                     }
-                    break;
+                  
+                	 } catch (Exception ex) {
+             			if (!executeForceDelete(userWrapper, task, options, result)) {
+             				result.recordFatalError(getString("pageUser.message.cantUpdateUser"), ex);
+             				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantUpdateUser"), ex);
+             			} else{
+             				result.recomputeStatus();
+             			}
+                     }
+                	  break;
                 // support for add/delete containers (e.g. delete credentials)
                 default:
                     error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
             }
 
             result.recomputeStatus();
-        } catch (Exception ex) {
-			if (!executeForceDelete(userWrapper, task, options, result)) {
-				result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
-			} else{
-				result.recomputeStatus();
-			}
-        }
+//        } catch (Exception ex) {
+//			if (!executeForceDelete(userWrapper, task, options, result)) {
+//				result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
+//				LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+//			} else{
+//				result.recomputeStatus();
+//			}
+//        }
 
         boolean userAdded = delta != null && delta.isAdd() && StringUtils.isNotEmpty(delta.getOid());
 		if (userAdded || result.isSuccess() || result.isHandledError() || result.isInProgress()) {
@@ -1224,6 +1501,9 @@ public class PageUser extends PageAdminUsers {
         }
         try {
             delta = userWrapper.getObjectDelta();
+            if (userWrapper.getOldDelta() != null){
+            	delta = ObjectDelta.summarize(delta, userWrapper.getOldDelta());
+            }
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
@@ -1510,10 +1790,24 @@ public class PageUser extends PageAdminUsers {
         if (UserDtoStatus.ADD.equals(dto.getStatus())) {
             return;
         }
-        dto.setStatus(UserDtoStatus.UNLINK);
+		if (UserDtoStatus.UNLINK == dto.getStatus()) {
+			dto.setStatus(UserDtoStatus.MODIFY);
+		} else {
+			dto.setStatus(UserDtoStatus.UNLINK);
+		}
         target.add(getAccordionsItem());
     }
 
+//    private void linkAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
+//        UserAccountDto dto = model.getObject();
+//        if (UserDtoStatus.ADD.equals(dto.getStatus())) {
+//            return;
+//        }
+//        dto.setStatus(UserDtoStatus.MODIFY);
+//        target.add(getAccordionsItem());
+//    }
+
+    
     private void deleteAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
         List<UserAccountDto> accounts = accountsModel.getObject();
         UserAccountDto account = model.getObject();
@@ -1521,11 +1815,28 @@ public class PageUser extends PageAdminUsers {
         if (UserDtoStatus.ADD.equals(account.getStatus())) {
             accounts.remove(account);
         } else {
-            account.setStatus(UserDtoStatus.DELETE);
+        	if (UserDtoStatus.DELETE == account.getStatus()){
+        		account.setStatus(UserDtoStatus.MODIFY);
+        	} else{
+        		account.setStatus(UserDtoStatus.DELETE);
+        	}
         }
-        target.appendJavaScript("window.location.reload()");
+//        target.appendJavaScript("window.location.reload()");
         target.add(getAccordionsItem());
     }
+    
+//    private void undeleteAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
+////        List<UserAccountDto> accounts = accountsModel.getObject();
+//        UserAccountDto account = model.getObject();
+//        account.setStatus(UserDtoStatus.MODIFY);
+////        if (UserDtoStatus.ADD.equals(account.getStatus())) {
+////            accounts.remove(account);
+////        } else {
+////            account.setStatus(UserDtoStatus.DELETE);
+////        }
+////        target.appendJavaScript("window.location.reload()");
+//        target.add(getAccordionsItem());
+//    }
 
     private void unlockAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
         if (!isAnyAccountSelected(target)) {
