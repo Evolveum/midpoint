@@ -198,6 +198,10 @@ public class SimpleOp extends Op {
 
 	private Criterion createBaseCriteria(ObjectFilter filter, boolean pushNot, SimpleItem item, Object testedValue)
 			throws QueryException {
+        if (item.isAny) {
+            testedValue = RAnyConverter.getAggregatedRepoObject(testedValue);
+        }
+
 		// will be used later to support other filters than <equal>
 		String name = item.getQueryableItem();
 		Operation operation = getOperationType(filter);

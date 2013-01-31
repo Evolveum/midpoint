@@ -189,7 +189,7 @@ public class RAnyConverter {
         if (object instanceof Element) {
             object = getRealRepoValue(definition, (Element) object);
         } else {
-            object = updateJavaValueType(object);
+            object = getAggregatedRepoObject(object);
         }
 
         if (returnType.isAssignableFrom(object.getClass())) {
@@ -458,7 +458,7 @@ switch (valueType) {
             object = XmlTypeConverter.toJavaValue(value, typeName);
         }
 
-        object = updateJavaValueType(object);
+        object = getAggregatedRepoObject(object);
         if (object == null) {
             throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
         }
@@ -467,12 +467,12 @@ switch (valueType) {
     }
 
     /**
-     * Method provides aggregation of some java types
+     * Method provides aggregation of some java types (only simple types, which are indexed)
      *
      * @param object
      * @return aggregated object
      */
-    private static Object updateJavaValueType(Object object) {
+    public static Object getAggregatedRepoObject(Object object) {
         //check float/double to string
         if (object instanceof Float) {
             object = ((Float) object).toString();
