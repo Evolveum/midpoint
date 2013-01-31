@@ -39,6 +39,8 @@ import org.testng.annotations.BeforeMethod;
 
 import java.lang.reflect.Method;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -218,6 +220,13 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/task-dumy-green-livesync.xml";
 	protected static final String TASK_LIVE_SYNC_DUMMY_GREEN_OID = "10000000-0000-0000-5555-555500000404";
+	
+	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
+	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
+	protected static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
+	protected static final QName PIRACY_LOOT = new QName(NS_PIRACY, "loot");
+	protected static final QName PIRACY_BAD_LUCK = new QName(NS_PIRACY, "badLuck");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

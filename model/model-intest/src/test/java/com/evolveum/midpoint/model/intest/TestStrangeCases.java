@@ -57,8 +57,12 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -67,6 +71,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
@@ -102,6 +108,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -113,7 +120,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+	private static final File TEST_DIR = new File("src/test/resources/strange");
+	
+	private static final File USER_DEGHOULASH_FILE = new File(TEST_DIR, "user-deghoulash.xml");
+	private static final String USER_DEGHOULASH_OID = "c0c010c0-d34d-b33f-f00d-1d11dd11dd11";
 
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
 	
@@ -346,6 +356,149 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
         PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
+	}
+	
+	// Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
+	// this test, but we want to make sure that none of the underlying components will screw the things up.
+	
+	@Test
+    public void test300ExtensionSanity() throws Exception {
+		final String TEST_NAME = "test300ExtensionSanity";
+        displayTestTile(this, TEST_NAME);
+        
+        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismContainerDefinition<Containerable> extensionContainerDef = userDef.findContainerDefinition(UserType.F_EXTENSION);
+        PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_SHIP, DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_TALES, DOMUtil.XSD_STRING, 0, 1);
+        PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_WEAPON, DOMUtil.XSD_STRING, 0, -1);
+        PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_LOOT, DOMUtil.XSD_INT, 0, 1);
+        PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_BAD_LUCK, DOMUtil.XSD_LONG, 0, -1);
+	}
+	
+	@Test
+    public void test301AddUserDeGhoulash() throws Exception {
+		final String TEST_NAME = "test301AddUserDeGhoulash";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_DEGHOULASH_FILE);
+        ObjectDelta<UserType> userAddDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userAddDelta);
+                        
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+        assertAccounts(USER_JACK_OID, 0);
+                
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
+        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
+        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
+        dummyAuditService.assertExecutionSuccess();
+        
+        assertBasicGeGhoulashExtension(userDeGhoulash);
+	}
+	
+	@Test
+    public void test310SearchDeGhoulashByShip() throws Exception {
+		final String TEST_NAME = "test310SearchDeGhoulashByShip";
+        searchDeGhoulash(TEST_NAME, PIRACY_SHIP, "The Undead Pot");
+	}
+	
+	@Test
+    public void test311SearchDeGhoulashByTales() throws Exception {
+		final String TEST_NAME = "test311SearchDeGhoulashByTales";
+        searchDeGhoulash(TEST_NAME, PIRACY_TALES, "Only a dead meat is a good meat");
+	}
+
+	@Test
+    public void test312SearchDeGhoulashByWeaponSpoon() throws Exception {
+		final String TEST_NAME = "test312SearchDeGhoulashByWeaponSpoon";
+        searchDeGhoulash(TEST_NAME, PIRACY_WEAPON, "spoon");
+	}
+
+	@Test
+    public void test313SearchDeGhoulashByWeaponFork() throws Exception {
+		final String TEST_NAME = "test313SearchDeGhoulashByWeaponFork";
+        searchDeGhoulash(TEST_NAME, PIRACY_WEAPON, "fork");
+	}
+
+	@Test
+    public void test314SearchDeGhoulashByLoot() throws Exception {
+		final String TEST_NAME = "test314SearchDeGhoulashByLoot";
+        searchDeGhoulash(TEST_NAME, PIRACY_LOOT, 424242);
+	}
+
+	@Test
+    public void test315SearchDeGhoulashByBadLuck13() throws Exception {
+		final String TEST_NAME = "test315SearchDeGhoulashByBadLuck13";
+        searchDeGhoulash(TEST_NAME, PIRACY_BAD_LUCK, 13L);
+	}
+
+	@Test
+    public void test316SearchDeGhoulashByBadLuck28561() throws Exception {
+		final String TEST_NAME = "test316SearchDeGhoulashByBadLuck28561";
+        searchDeGhoulash(TEST_NAME, PIRACY_BAD_LUCK, 28561L);
+	}
+
+	
+    private <T> void searchDeGhoulash(String testName, QName propName, T propValue) throws Exception {
+        displayTestTile(this, testName);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + testName);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+                                
+        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, 
+        		new ItemPath(UserType.F_EXTENSION, propName), propValue);
+        ObjectQuery query = new ObjectQuery();
+		query.setFilter(filter);
+		// WHEN
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        assertFalse("No user found", users.isEmpty());
+        assertEquals("Wrong number of users found", 1, users.size());
+        PrismObject<UserType> userDeGhoulash = users.iterator().next();
+		display("Found user", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+                        
+		assertBasicGeGhoulashExtension(userDeGhoulash);
+	}
+    
+    private void assertBasicGeGhoulashExtension(PrismObject<UserType> userDeGhoulash) {
+    	assertExtension(userDeGhoulash, PIRACY_SHIP, "The Undead Pot");
+        assertExtension(userDeGhoulash, PIRACY_TALES, "Only a dead meat is a good meat");
+        assertExtension(userDeGhoulash, PIRACY_WEAPON, "fork", "spoon");
+        assertExtension(userDeGhoulash, PIRACY_LOOT, 424242);
+        assertExtension(userDeGhoulash, PIRACY_BAD_LUCK, 13L, 169L, 2197L, 28561L, 371293L, 131313131313131313L);
+    }
+
+	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {
+		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+		assertNotNull("No extension container in "+object, extensionContainer);
+		PrismProperty<T> extensionProperty = extensionContainer.findProperty(propName);
+		assertNotNull("No extension property "+propName+" in "+object, extensionProperty);
+		PrismAsserts.assertPropertyValues("Values of extension property "+propName, extensionProperty.getValues(), expectedValues);
 	}
 
 	/** 

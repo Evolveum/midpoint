@@ -110,6 +110,21 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		return createPropertyFilter(filterClass, null, objDef, propertyName, realValue);
 	}
 	
+	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, 
+			PrismContext prismContext, ItemPath propertyPath, Object realValue) throws SchemaException {
+		PrismObjectDefinition<? extends Objectable> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		PrismContainerDefinition<? extends Containerable> containerDef = objDef;
+		ItemPath parentPath = propertyPath.allExceptLast();
+		if (!parentPath.isEmpty()) {
+			containerDef = objDef.findContainerDefinition(parentPath);
+			if (containerDef == null) {
+				throw new SchemaException("No definition for container " + parentPath + " in object definition "
+						+ objDef);
+			}
+		}
+		return createPropertyFilter(filterClass, propertyPath.allExceptLast(), containerDef, ItemPath.getName(propertyPath.last()), realValue);
+	}
+	
 	public List<? extends PrismValue> getValues() {
 		return values;
 	}
