@@ -24,9 +24,7 @@
 <connectorHost oid="91919191-76e0-59e2-86d6-44cc44cc44cc" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 	<!--  -->
 	<name>ICF Connector server on localhost:8759</name>

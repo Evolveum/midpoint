@@ -403,7 +403,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
         
-        resource.runScript(request.getScriptText());
+        resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
         
         return null;
     }

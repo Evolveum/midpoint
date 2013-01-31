@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -1380,27 +1382,24 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test131AddScript() throws FileNotFoundException, JAXBException, ObjectAlreadyExistsException,
-			SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-			SecurityViolationException {
-		displayTestTile("test131AddScript");
+	public void test131AddScript() throws Exception {
+		final String TEST_NAME = "test131AddScript";
+		displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test131AddScript");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test131AddScript");
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
+		dummyResource.purgeScriptHistory();
 
 		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, AccountShadowType.class);
-
-		System.out.println(SchemaDebugUtil.prettyPrint(account));
-		System.out.println(account.asPrismObject().dump());
+		display("Account before add", account);
 
 		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
-		System.out.println(PrismTestUtil.marshalWrap(scriptsType));
+		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, syncTask, result);
+		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1411,14 +1410,12 @@ public class TestDummy extends AbstractDummyTest {
 		AccountShadowType accountType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_SCRIPT_OID,
 				result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "william", accountType.getName());
-//		assertEquals("william", accountType.getName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_SCRIPT_OID, null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "william", provisioningAccountType.getName());
-//		assertEquals("william", provisioningAccountType.getName());
 
 		// Check if the account was created in the dummy resource
 
@@ -1427,11 +1424,96 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Fullname is wrong", "William Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
-		// TODO:add check if script was caled
-		List<String> scriptsHistory = dummyResource.getScriptHistory();
-		for (String script : scriptsHistory) {
-			System.out.println("Script: " + script);
+		
+		assertScripts(dummyResource.getScriptHistory(), "In the beginning ...", "Hello World");
+	}
 
+	@Test
+	public void test132ModifyScript() throws Exception {
+		final String TEST_NAME = "test132ModifyScript";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		dummyResource.purgeScriptHistory();
+
+		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, 
+				ACCOUNT_NEW_SCRIPT_OID, RESOURCE_DUMMY_ATTR_FULLNAME_PATH, prismContext, "Will Turner");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, ACCOUNT_NEW_SCRIPT_OID, delta.getModifications(), 
+				scriptsType, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess("modifyObject has failed (result)", result);
+		syncServiceMock.assertNotifySuccessOnly();
+
+		// Check if the account was modified in the dummy resource
+
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
+		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+		assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
+		
+		assertScripts(dummyResource.getScriptHistory(), "Where am I?", "Still here");
+	}
+	
+	@Test
+	public void test133DeleteScript() throws Exception {
+		final String TEST_NAME = "test133DeleteScript";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		dummyResource.purgeScriptHistory();
+
+		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		
+		// WHEN
+		provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType,
+				task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess("modifyObject has failed (result)", result);
+		syncServiceMock.assertNotifySuccessOnly();
+
+		// Check if the account was modified in the dummy resource
+
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		assertNull("Dummy account not gone", dummyAccount);
+		
+		assertScripts(dummyResource.getScriptHistory(), "Goodbye World", "R.I.P.");
+	}
+	
+	private void assertScripts(List<ScriptHistoryEntry> scriptsHistory, String... expectedScripts) {
+		displayScripts(scriptsHistory);
+		assertEquals("Wrong number of scripts executed", expectedScripts.length, scriptsHistory.size());
+		Iterator<ScriptHistoryEntry> historyIter = scriptsHistory.iterator();
+		for (String expecedScript: expectedScripts) {
+			ScriptHistoryEntry actualScript = historyIter.next();
+			assertEquals("Wrong script code", expecedScript, actualScript.getCode());
+			assertEquals("We talk only gibberish here", "Gibberish", actualScript.getLanguage());
+		}
+	}
+
+	private void displayScripts(List<ScriptHistoryEntry> scriptsHistory) {
+		for (ScriptHistoryEntry script : scriptsHistory) {
+			display("Script", script);
 		}
 	}
 

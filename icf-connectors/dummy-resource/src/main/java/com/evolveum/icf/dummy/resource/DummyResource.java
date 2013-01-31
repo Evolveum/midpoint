@@ -64,7 +64,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DummyResource {
 
 	private Map<String,DummyAccount> accounts;
-	private List<String> scriptHistory;
+	private List<ScriptHistoryEntry> scriptHistory;
 	private DummyObjectClass accountObjectClass;
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
@@ -84,7 +84,7 @@ public class DummyResource {
 	
 	DummyResource() {
 		accounts = new ConcurrentHashMap<String, DummyAccount>();
-		scriptHistory = new ArrayList<String>();
+		scriptHistory = new ArrayList<ScriptHistoryEntry>();
 		accountObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas = new ArrayList<DummyDelta>();
@@ -230,7 +230,7 @@ public class DummyResource {
 	 * Returns script history ordered chronologically (oldest first).
 	 * @return script history
 	 */
-	public List<String> getScriptHistory() {
+	public List<ScriptHistoryEntry> getScriptHistory() {
 		return scriptHistory;
 	}
 	
@@ -248,8 +248,8 @@ public class DummyResource {
 	 * 
 	 * @param scriptCode code of the script
 	 */
-	public void runScript(String scriptCode) {
-		scriptHistory.add(scriptCode);
+	public void runScript(String language, String scriptCode, Map<String, Object> params) {
+		scriptHistory.add(new ScriptHistoryEntry(language, scriptCode, params));
 	}
 	
 	/**

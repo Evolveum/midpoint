@@ -24,11 +24,46 @@
         <c:operation>add</c:operation>
         <c:order>before</c:order>
         <c:host>resource</c:host>
-        <c:language>Groovy</c:language>
+        <c:language>Gibberish</c:language>
         <c:argument>
             <c:value>jbond</c:value>
             <c:name>HOMEDIR</c:name>
         </c:argument>
-        <c:code>print 'Hello World\n'</c:code>
+        <c:code>In the beginning ...</c:code>
+    </c:script>
+    <c:script>
+        <c:operation>add</c:operation>
+        <c:order>after</c:order>
+        <c:host>resource</c:host>
+        <c:language>Gibberish</c:language>
+        <c:code>Hello World</c:code>
+    </c:script>
+    <c:script>
+        <c:operation>modify</c:operation>
+        <c:order>before</c:order>
+        <c:host>resource</c:host>
+        <c:language>Gibberish</c:language>
+        <c:code>Where am I?</c:code>
+    </c:script>
+    <c:script>
+        <c:operation>modify</c:operation>
+        <c:order>after</c:order>
+        <c:host>resource</c:host>
+        <c:language>Gibberish</c:language>
+        <c:code>Still here</c:code>
+    </c:script>
+    <c:script>
+        <c:operation>delete</c:operation>
+        <c:order>before</c:order>
+        <c:host>resource</c:host>
+        <c:language>Gibberish</c:language>
+        <c:code>Goodbye World</c:code>
+    </c:script>
+    <c:script>
+        <c:operation>delete</c:operation>
+        <c:order>after</c:order>
+        <c:host>resource</c:host>
+        <c:language>Gibberish</c:language>
+        <c:code>R.I.P.</c:code>
     </c:script>
 </c:provisioningScripts>
