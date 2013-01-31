@@ -1428,7 +1428,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertScripts(dummyResource.getScriptHistory(), "In the beginning ...", "Hello World");
 	}
 
-	@Test
+	// MID-1113
+	@Test(enabled=false)
 	public void test132ModifyScript() throws Exception {
 		final String TEST_NAME = "test132ModifyScript";
 		displayTestTile(TEST_NAME);
