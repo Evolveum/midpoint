@@ -35,12 +35,40 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ship" type="xsd:string"/>
-            <xsd:element name="tales" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="loot" type="xsd:int" minOccurs="0"/>
-            <xsd:element name="badLuck" type="xsd:long" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="funeralTimestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="ship" type="xsd:string">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed/>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tales" type="xsd:string" minOccurs="0">
+            	<!-- This is NOT indexed -->
+            </xsd:element>
+            <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed/>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="loot" type="xsd:int" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed/>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="badLuck" type="xsd:long" minOccurs="0" maxOccurs="unbounded">
+            	<!-- This is NOT indexed -->
+            </xsd:element>
+            <xsd:element name="funeralTimestamp" type="xsd:dateTime" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed/>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
