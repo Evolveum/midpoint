@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -71,10 +72,13 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -124,8 +128,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	
 	private static final File USER_DEGHOULASH_FILE = new File(TEST_DIR, "user-deghoulash.xml");
 	private static final String USER_DEGHOULASH_OID = "c0c010c0-d34d-b33f-f00d-1d11dd11dd11";
+	private static final String USER_DEGHOULASH_NAME = "deghoulash";
 
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
+
+	private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP = 
+								XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
 	
 	private String accountGuybrushDummyRedOid;
 	
@@ -373,6 +381,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_WEAPON, DOMUtil.XSD_STRING, 0, -1);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_LOOT, DOMUtil.XSD_INT, 0, 1);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_BAD_LUCK, DOMUtil.XSD_LONG, 0, -1);
+        PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_FUNERAL_TIMESTAMP, DOMUtil.XSD_DATETIME, 0, 1);
 	}
 	
 	@Test
@@ -456,6 +465,12 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test316SearchDeGhoulashByBadLuck28561";
         searchDeGhoulash(TEST_NAME, PIRACY_BAD_LUCK, 28561L);
 	}
+	
+	@Test
+    public void test317SearchDeGhoulashByFuneralTimestamp() throws Exception {
+		final String TEST_NAME = "test317SearchDeGhoulashByFuneralTimestamp";
+        searchDeGhoulash(TEST_NAME, PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
+	}
 
 	
     private <T> void searchDeGhoulash(String testName, QName propName, T propValue) throws Exception {
@@ -465,11 +480,26 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + testName);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-                                
-        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, 
+                     
+        // Simple query
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, 
         		new ItemPath(UserType.F_EXTENSION, propName), propValue);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
+		// WHEN, THEN
+		searchDeGhoulash(testName, query, task, result);
+		
+		// Complex query, combine with a name. This results in join down in the database
+		filter = AndFilter.createAnd(
+				EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, USER_DEGHOULASH_NAME),
+				EqualsFilter.createEqual(UserType.class, prismContext, new ItemPath(UserType.F_EXTENSION, propName), propValue)
+			);
+		query.setFilter(filter);
+		// WHEN, THEN
+		searchDeGhoulash(testName, query, task, result);
+	}
+    
+    private <T> void searchDeGhoulash(String testName, ObjectQuery query, Task task, OperationResult result) throws Exception {
 		// WHEN
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 		
@@ -491,6 +521,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertExtension(userDeGhoulash, PIRACY_WEAPON, "fork", "spoon");
         assertExtension(userDeGhoulash, PIRACY_LOOT, 424242);
         assertExtension(userDeGhoulash, PIRACY_BAD_LUCK, 13L, 169L, 2197L, 28561L, 371293L, 131313131313131313L);
+        assertExtension(userDeGhoulash, PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
     }
 
 	private <O extends ObjectType, T> void assertExtension(PrismObject<O> object, QName propName, T... expectedValues) {

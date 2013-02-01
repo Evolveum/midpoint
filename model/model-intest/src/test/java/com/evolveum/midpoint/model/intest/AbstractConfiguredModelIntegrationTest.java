@@ -227,6 +227,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
 	protected static final QName PIRACY_LOOT = new QName(NS_PIRACY, "loot");
 	protected static final QName PIRACY_BAD_LUCK = new QName(NS_PIRACY, "badLuck");
+	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

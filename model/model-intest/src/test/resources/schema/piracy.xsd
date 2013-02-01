@@ -40,6 +40,7 @@
             <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="loot" type="xsd:int" minOccurs="0"/>
             <xsd:element name="badLuck" type="xsd:long" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="funeralTimestamp" type="xsd:dateTime" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
