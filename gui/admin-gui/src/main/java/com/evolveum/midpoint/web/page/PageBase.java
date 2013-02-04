@@ -70,7 +70,7 @@ public abstract class PageBase extends WebPage {
     private ModelService modelService;
     @SpringBean(name = "modelController")
     private ModelInteractionService modelInteractionService;
-    @SpringBean(name = "modelController")
+    @SpringBean(name = "modelDiagController")
     private ModelDiagnosticService modelDiagnosticService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
