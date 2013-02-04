@@ -26,6 +26,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -376,4 +377,23 @@ public interface RepositoryService {
 	 */
     @Deprecated
 	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    
+    /**
+	 * Provide repository run-time configuration and diagnostic information.
+	 */
+    public RepositoryDiag getRepositoryDiag();
+    
+    /**
+	 * Runs a short, non-descructive repository self test.
+	 * This methods should never throw a (checked) exception. All the results
+	 * should be recorded under the provided result structure (including fatal errors).
+	 * 
+	 * This should implement ONLY self-tests that are IMPLEMENTATION-SPECIFIC. It must not
+	 * implement self-tests that are generic and applies to all repository implementations.
+	 * Such self-tests must be implemented in higher layers.
+	 * 
+	 * If the repository has no self-tests then the method should return immediately
+	 * without changing the result structure. It must not throw an exception in this case.
+	 */
+    public void repositorySelfTest(OperationResult parentResult);
 }

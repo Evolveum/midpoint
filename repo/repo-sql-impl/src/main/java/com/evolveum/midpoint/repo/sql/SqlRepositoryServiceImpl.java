@@ -65,6 +65,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.QueryRegistry;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -92,6 +93,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 	private static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
+	private static final String IMPLEMENTAION_SHORT_NAME = "SQL";
+	private static final String IMPLEMENTAION_DESCRIPTION = "Implementation that stores data in generic relational" +
+			" (SQL) databases. It is using ORM (hibernate) on top of JDBC to access the database.";
 
 	private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid)
 			throws ObjectNotFoundException, SchemaException, DtoTranslationException {
@@ -1125,5 +1129,26 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 
 		return query;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getRepositoryDiag()
+	 */
+	@Override
+	public RepositoryDiag getRepositoryDiag() {
+		RepositoryDiag diag = new RepositoryDiag();
+		diag.setImplementationShortName(IMPLEMENTAION_SHORT_NAME);
+		diag.setImplementationDescription(IMPLEMENTAION_DESCRIPTION);
+		// TODO: add more information
+		return diag;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#repositorySelfTest(com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void repositorySelfTest(OperationResult parentResult) {
+		// TODO add some SQL-specific self-test methods
+		// No self-tests for now
 	}
 }

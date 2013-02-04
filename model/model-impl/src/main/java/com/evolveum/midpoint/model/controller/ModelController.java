@@ -47,6 +47,7 @@ import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelObjectResolver;
+import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -88,6 +89,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -145,7 +147,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService {
+public class ModelController implements ModelService, ModelInteractionService, ModelDiagnosticService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -1343,6 +1345,30 @@ public class ModelController implements ModelService, ModelInteractionService {
 //            }
 //        }
 //    }
+
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#getRepositoryDiag(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult) {
+		return cacheRepositoryService.getRepositoryDiag();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#repositorySelfTest(com.evolveum.midpoint.task.api.Task)
+	 */
+	@Override
+	public OperationResult repositorySelfTest(Task task) {
+		OperationResult testResult = new OperationResult(REPOSITORY_SELF_TEST);
+		// Give repository chance to run its own self-test if available
+		cacheRepositoryService.repositorySelfTest(testResult);
+		
+		// TODO: to additional model tests
+		
+		testResult.computeStatus();
+		return testResult;
+	}
 
 
 }

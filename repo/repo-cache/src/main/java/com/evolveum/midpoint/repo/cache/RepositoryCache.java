@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -286,5 +287,21 @@ public class RepositoryCache implements RepositoryService {
 		if (cache != null) {
 			cache.remove(oid);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getRepositoryDiag()
+	 */
+	@Override
+	public RepositoryDiag getRepositoryDiag() {
+		return repository.getRepositoryDiag();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#repositorySelfTest(com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public void repositorySelfTest(OperationResult parentResult) {
+		repository.repositorySelfTest(parentResult);
 	}
 }
