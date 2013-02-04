@@ -80,6 +80,10 @@ public class Main {
 	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	private static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	private static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
+	private static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
+	
+	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
+	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 	
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
@@ -108,6 +112,12 @@ public class Main {
 			
 			String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
+			
+			assignRoles(modelPort, userGuybrushoid, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
+			System.out.println("Assigned roles");
+			
+			unAssignRoles(modelPort, userGuybrushoid, ROLE_CAPTAIN_OID);
+			System.out.println("Unassigned roles");
 			
 			Collection<RoleType> roles = listRequestableRoles(modelPort);
 			System.out.println("Found requestable roles");
@@ -147,11 +157,7 @@ public class Main {
 		
 		if (role != null) {
 			// create user with a role assignment
-			AssignmentType roleAssignment = new AssignmentType();
-			ObjectReferenceType roleRef = new ObjectReferenceType();
-			roleRef.setOid(role.getOid());
-			roleRef.setType(getTypeQName(RoleType.class));
-			roleAssignment.setTargetRef(roleRef);
+			AssignmentType roleAssignment = createRoleAssignment(role.getOid());
 			user.getAssignment().add(roleAssignment);
 		}
 		
@@ -177,6 +183,46 @@ public class Main {
 		userDelta.getModification().add(passwordDelta);
 		
 		modelPort.modifyObject(getTypeUri(UserType.class), userDelta);
+	}
+	
+	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
+		modifyRoleAssignment(modelPort, userOid, true, roleOids);
+	}
+	
+	private static void unAssignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
+		modifyRoleAssignment(modelPort, userOid, false, roleOids);
+	}
+	
+	private static void modifyRoleAssignment(ModelPortType modelPort, String userOid, boolean isAdd, String... roleOids) throws FaultMessage {
+		Document doc = getDocumnent();
+		
+		ObjectModificationType userDelta = new ObjectModificationType();
+		userDelta.setOid(userOid);
+		
+		ItemDeltaType assignmentDelta = new ItemDeltaType();
+		if (isAdd) {
+			assignmentDelta.setModificationType(ModificationTypeType.ADD);
+		} else {
+			assignmentDelta.setModificationType(ModificationTypeType.DELETE);
+		}
+		ItemDeltaType.Value assignmentValue = new ItemDeltaType.Value();
+		for (String roleOid: roleOids) {
+			assignmentValue.getAny().add(toJaxbElement(COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
+		}
+		assignmentDelta.setValue(assignmentValue);
+		userDelta.getModification().add(assignmentDelta);
+		
+		modelPort.modifyObject(getTypeUri(UserType.class), userDelta);
+	}
+
+
+	private static AssignmentType createRoleAssignment(String roleOid) {
+		AssignmentType roleAssignment = new AssignmentType();
+		ObjectReferenceType roleRef = new ObjectReferenceType();
+		roleRef.setOid(roleOid);
+		roleRef.setType(getTypeQName(RoleType.class));
+		roleAssignment.setTargetRef(roleRef);
+		return roleAssignment;
 	}
 
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
