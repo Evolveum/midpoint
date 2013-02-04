@@ -72,6 +72,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private static final String USER_GIVEN_NAME = "Fëľïx";
 	private static final String USER_FAMILY_NAME = "Ţæĺêké";
 	private static final String[] USER_ORGANIZATION = {"COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła"};
+	private static final String[] USER_EMPLOYEE_TYPE = {"Ģŗąfųŀą", "CANTATOR"};
 
 	private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 	
@@ -128,6 +129,8 @@ public class ModelDiagController implements ModelDiagnosticService {
 		userType.setGivenName(toPolyStringType(USER_GIVEN_NAME));
 		userType.setFamilyName(toPolyStringType(USER_FAMILY_NAME));
 		userType.setTitle(toPolyStringType(INSANE_NATIONAL_STRING));
+		userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[0]);
+		userType.getEmployeeType().add(USER_EMPLOYEE_TYPE[1]);
 		userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[0]));
 		userType.getOrganization().add(toPolyStringType(USER_ORGANIZATION[1]));
 		
@@ -194,11 +197,41 @@ public class ModelDiagController implements ModelDiagnosticService {
 					subresult.recordSuccessIfUnknown();
 				} catch (SchemaException e) {
 					subresult.recordFatalError(e);
+					return;
 				} catch (RuntimeException e) {
 					subresult.recordFatalError(e);
 					return;
 				}
 			}
+
+			// MID-1116
+//			{
+//				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
+//				try {
+//					
+//					ObjectQuery query = new ObjectQuery();
+//					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_EMPLOYEE_TYPE,
+//							USER_EMPLOYEE_TYPE[0]);
+//					query.setFilter(filter);
+//					subresult.addParam("query", query);
+//					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+//					if (LOGGER.isTraceEnabled()) {
+//						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
+//					}
+//					assertSingleSearchResult("user", foundObjects, subresult);
+//					
+//					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
+//					checkUser(userRetrieved, name, subresult);
+//					
+//					subresult.recordSuccessIfUnknown();
+//				} catch (SchemaException e) {
+//					subresult.recordFatalError(e);
+//					return;
+//				} catch (RuntimeException e) {
+//					subresult.recordFatalError(e);
+//					return;
+//				}
+//			}
 			
 // MID-1116
 //			{
@@ -222,6 +255,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 //					subresult.recordSuccessIfUnknown();
 //				} catch (SchemaException e) {
 //					subresult.recordFatalError(e);
+//					return;
 //				} catch (RuntimeException e) {
 //					subresult.recordFatalError(e);
 //					return;
@@ -252,6 +286,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		checkUserPropertyPolyString(userRetrieved, UserType.F_GIVEN_NAME, subresult, USER_GIVEN_NAME);
 		checkUserPropertyPolyString(userRetrieved, UserType.F_FAMILY_NAME, subresult, USER_FAMILY_NAME);
 		checkUserPropertyPolyString(userRetrieved, UserType.F_TITLE, subresult, INSANE_NATIONAL_STRING);
+		checkUserProperty(userRetrieved, UserType.F_EMPLOYEE_TYPE, subresult, USER_EMPLOYEE_TYPE);
 		checkUserPropertyPolyString(userRetrieved, UserType.F_ORGANIZATION, subresult, USER_ORGANIZATION);
 	}
 
@@ -261,18 +296,48 @@ public class ModelDiagController implements ModelDiagnosticService {
 		assertTrue("Expected to find a single "+objectTypeMessage+" but found "+foundObjects.size(), foundObjects.size() == 1, result);
 		result.recordSuccessIfUnknown();
 	}
+	
+	private <O extends ObjectType,T> void checkUserProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
+		String propName = propQName.getLocalPart();
+		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
+		PrismProperty<T> prop = object.findProperty(propQName);
+		Collection<T> actualValues = prop.getRealValues();
+		result.addParam("actualValues", actualValues); 
+		assertMultivalue("User, property '"+propName+"'", expectedValues, actualValues, result);
+		result.recordSuccessIfUnknown();
+	}
+	
+	private <T> void assertMultivalue(String message, T expectedVals[], Collection<T> actualVals, OperationResult result) {
+		if (expectedVals.length != actualVals.size()) {
+			fail(message+": expected "+expectedVals.length+" values but has "+actualVals.size()+" values: "+actualVals, result);
+			return;
+		}
+		for (T expected: expectedVals) {
+			boolean found = false;
+			for (T actual: actualVals) {
+				if (expected.equals(actual)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				fail(message+": expected value '"+expected+"' not found in actual values "+actualVals, result);
+				return;
+			}
+		}
+	}
 
-	private <T extends ObjectType> void checkUserPropertyPolyString(PrismObject<T> object, QName propQName, OperationResult parentResult, String... expectedValues) {
+	private <O extends ObjectType> void checkUserPropertyPolyString(PrismObject<O> object, QName propQName, OperationResult parentResult, String... expectedValues) {
 		String propName = propQName.getLocalPart();
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
 		PrismProperty<PolyString> prop = object.findProperty(propQName);
 		Collection<PolyString> actualValues = prop.getRealValues();
 		result.addParam("actualValues", actualValues); 
-		assertPolyString("User, property '"+propName+"'", expectedValues, actualValues, result);
+		assertMultivaluePolyString("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}
 	
-	private void assertPolyString(String message, String expectedOrigs[], Collection<PolyString> actualPolyStrings, OperationResult result) {
+	private void assertMultivaluePolyString(String message, String expectedOrigs[], Collection<PolyString> actualPolyStrings, OperationResult result) {
 		if (expectedOrigs.length != actualPolyStrings.size()) {
 			fail(message+": expected "+expectedOrigs.length+" values but has "+actualPolyStrings.size()+" values: "+actualPolyStrings, result);
 			return;
