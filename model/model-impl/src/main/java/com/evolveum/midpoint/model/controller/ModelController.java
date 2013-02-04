@@ -147,7 +147,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  * @author Radovan Semancik
  */
 @Component
-public class ModelController implements ModelService, ModelInteractionService, ModelDiagnosticService {
+public class ModelController implements ModelService, ModelInteractionService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -166,7 +166,7 @@ public class ModelController implements ModelService, ModelInteractionService, M
 	public static final String CREATE_ACCOUNT = CLASS_NAME_WITH_DOT + "createAccount";
 	public static final String UPDATE_ACCOUNT = CLASS_NAME_WITH_DOT + "updateAccount";
 	public static final String PROCESS_USER_TEMPLATE = CLASS_NAME_WITH_DOT + "processUserTemplate";
-
+	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
 	@Autowired(required = true)
@@ -211,6 +211,9 @@ public class ModelController implements ModelService, ModelInteractionService, M
 	
 	@Autowired(required = true)
 	Protector protector;
+	
+	@Autowired(required = true)
+	ModelDiagController modelDiagController;
 	
 	
 	public ModelObjectResolver getObjectResolver() {
@@ -1345,30 +1348,5 @@ public class ModelController implements ModelService, ModelInteractionService, M
 //            }
 //        }
 //    }
-
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#getRepositoryDiag(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult) {
-		return cacheRepositoryService.getRepositoryDiag();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#repositorySelfTest(com.evolveum.midpoint.task.api.Task)
-	 */
-	@Override
-	public OperationResult repositorySelfTest(Task task) {
-		OperationResult testResult = new OperationResult(REPOSITORY_SELF_TEST);
-		// Give repository chance to run its own self-test if available
-		cacheRepositoryService.repositorySelfTest(testResult);
-		
-		// TODO: to additional model tests
-		
-		testResult.computeStatus();
-		return testResult;
-	}
-
 
 }

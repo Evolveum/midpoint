@@ -31,6 +31,7 @@ import java.util.Random;
 public class RandomString {
 
     private static final char[] symbols = new char[70];
+    private static final int READABLE_SYMBOLS_LENGTH = 62;
 
     static {
         for (int idx = 0; idx < 10; ++idx) {
@@ -49,19 +50,30 @@ public class RandomString {
         symbols[68] = '+';
         symbols[69] = '=';
     }
+
     private final Random random = new Random();
     private final char[] buf;
+    private boolean readable = false;
 
     public RandomString(int length) {
+    	this(length, false);
+    }
+    
+    public RandomString(int length, boolean readable) {
         if (length < 1) {
             throw new IllegalArgumentException("length < 1: " + length);
         }
         buf = new char[length];
+        this.readable = readable;
     }
 
     public String nextString() {
+    	int length = symbols.length;
+    	if (readable) {
+    		length = READABLE_SYMBOLS_LENGTH;
+    	}
         for (int idx = 0; idx < buf.length; ++idx) {
-            buf[idx] = symbols[random.nextInt(symbols.length)];
+            buf[idx] = symbols[random.nextInt(length)];
         }
         return new String(buf);
     }

@@ -1,0 +1,278 @@
+/**
+ * Copyright (c) 2013 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2013 [name of copyright owner]
+ */
+package com.evolveum.midpoint.model.controller;
+
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ModelDiagnosticService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.RandomString;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+/**
+ * @author semancik
+ *
+ */
+@Component
+public class ModelDiagController implements ModelDiagnosticService {
+	
+	public static final String CLASS_NAME_WITH_DOT = ModelDiagController.class.getName() + ".";
+	private static final String REPOSITORY_SELF_TEST_USER = CLASS_NAME_WITH_DOT + "repositorySelfTest.user";
+	
+	private static final String NAME_PREFIX = "selftest";
+	private static final int NAME_RANDOM_LENGTH = 5;
+	
+	private static final String USER_FULL_NAME = "Grăfula Fèlix Teleke z Tölökö";
+	private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
+
+	
+	@Autowired(required = true)
+	private PrismContext prismContext;
+	
+	@Autowired(required = true)
+	@Qualifier("repositoryService")
+	private transient RepositoryService repositoryService;
+	
+	private RandomString randomString;
+
+	ModelDiagController() {
+		randomString = new RandomString(NAME_RANDOM_LENGTH, true);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#getRepositoryDiag(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+	 */
+	@Override
+	public RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult) {
+		return repositoryService.getRepositoryDiag();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#repositorySelfTest(com.evolveum.midpoint.task.api.Task)
+	 */
+	@Override
+	public OperationResult repositorySelfTest(Task task) {
+		OperationResult testResult = new OperationResult(REPOSITORY_SELF_TEST);
+		// Give repository chance to run its own self-test if available
+		repositoryService.repositorySelfTest(testResult);
+		
+		repositorySelfTestUser(task, testResult);
+		
+		testResult.computeStatus();
+		return testResult;
+	}
+
+	private void repositorySelfTestUser(Task task, OperationResult testResult) {
+		OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_USER);
+		
+		PrismObject<UserType> user = getObjectDefinition(UserType.class).instantiate(); 
+		UserType userType = user.asObjectable();
+		
+		String name = generateRandomName();
+		PolyStringType namePolyStringType = toPolyStringType(name);
+		userType.setName(namePolyStringType);
+		userType.setFullName(toPolyStringType(USER_FULL_NAME));
+		userType.setTitle(toPolyStringType(INSANE_NATIONAL_STRING));
+		
+		String oid;
+		try {
+			oid = repositoryService.addObject(user, result);
+		} catch (ObjectAlreadyExistsException e) {
+			result.recordFatalError(e);
+			return;
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			return;
+		} catch (RuntimeException e) {
+			result.recordFatalError(e);
+			return;
+		}
+		
+		try {
+
+			{
+				OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
+				
+				PrismObject<UserType> userRetrieved;
+				try {
+					userRetrieved = repositoryService.getObject(UserType.class, oid, subresult);
+				} catch (ObjectNotFoundException e) {
+					result.recordFatalError(e);
+					return;
+				} catch (SchemaException e) {
+					result.recordFatalError(e);
+					return;
+				} catch (RuntimeException e) {
+					result.recordFatalError(e);
+					return;
+				}
+				
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.dump());
+				}
+				
+				checkUser(userRetrieved, name, subresult);
+				
+				subresult.recordSuccessIfUnknown();
+			}
+			
+			{
+				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects");
+				try {
+					
+					ObjectQuery query = new ObjectQuery();
+					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME, toPolyString(USER_FULL_NAME));
+					query.setFilter(filter);
+					subresult.addParam("query", query);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
+					}
+					assertSingleSearchResult("user", foundObjects, subresult);
+					
+					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
+					checkUser(userRetrieved, name, subresult);
+					
+					subresult.recordSuccessIfUnknown();
+				} catch (SchemaException e) {
+					subresult.recordFatalError(e);
+				}
+			}
+			
+
+		} finally {
+			
+			try {
+				repositoryService.deleteObject(UserType.class, oid, testResult);
+			} catch (ObjectNotFoundException e) {
+				result.recordFatalError(e);
+				return;
+			} catch (RuntimeException e) {
+				result.recordFatalError(e);
+				return;
+			}
+			
+			result.computeStatus();
+		}
+		
+	}
+
+	private void checkUser(PrismObject<UserType> userRetrieved, String name, OperationResult subresult) {
+		checkUserProperty(userRetrieved, UserType.F_NAME, name, subresult);
+		checkUserProperty(userRetrieved, UserType.F_FULL_NAME, USER_FULL_NAME, subresult);
+		checkUserProperty(userRetrieved, UserType.F_TITLE, INSANE_NATIONAL_STRING, subresult);
+	}
+
+	private void assertSingleSearchResult(String objectTypeMessage, List<PrismObject<UserType>> foundObjects, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(parentResult.getOperation()+".numberOfResults");
+		assertTrue("Found no "+objectTypeMessage, !foundObjects.isEmpty(), result);
+		assertTrue("Expected to find a single "+objectTypeMessage+" but found "+foundObjects.size(), foundObjects.size() == 1, result);
+		result.recordSuccessIfUnknown();
+	}
+
+	private <T extends ObjectType> void checkUserProperty(PrismObject<T> object, QName propQName, String expectedValue, OperationResult parentResult) {
+		String propName = propQName.getLocalPart();
+		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
+		PrismProperty<PolyString> prop = object.findProperty(propQName);
+		assertPolyString("User, property '"+propName+"'", expectedValue, prop.getValue().getValue(), result);
+		result.recordSuccessIfUnknown();
+	}
+	
+	private void assertPolyString(String message, String expectedOrig, PolyString actualPolyString, OperationResult result) {
+		assertEquals(message+ ", orig", expectedOrig, actualPolyString.getOrig(), result);
+		assertEquals(message+ ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
+	}
+
+	private void assertPolyStringType(String message, String expectedName, PolyStringType actualPolyStringType, OperationResult result) {
+		assertEquals(message+ ", orig", expectedName, actualPolyStringType.getOrig(), result);
+		assertEquals(message+ ", norm", polyStringNorm(expectedName), actualPolyStringType.getNorm(), result);
+	}
+
+	private String polyStringNorm(String orig) {
+		return prismContext.getDefaultPolyStringNormalizer().normalize(orig);
+	}
+	
+	private void assertTrue(String message, boolean condition, OperationResult result) {
+		if (!condition) {
+			result.recordFatalError(message);
+			LOGGER.error("Repository self-test assertion failed: {}", message);
+		}
+	}
+
+	private void assertEquals(String message, Object expected, Object actual, OperationResult result) {
+		if (!MiscUtil.equals(expected, actual)) {
+			String fullMessage = message + "; expected "+expected+", actual "+actual;
+			result.recordFatalError(fullMessage);
+			LOGGER.error("Repository self-test assertion failed: {}", fullMessage);
+		}
+	}
+
+	private String generateRandomName() {
+		return NAME_PREFIX + randomString.nextString();
+	}
+
+	private PolyStringType toPolyStringType(String orig) {
+		PolyStringType polyStringType = new PolyStringType();
+		polyStringType.setOrig(orig);
+		return polyStringType;
+	}
+	
+	private PolyString toPolyString(String orig) {
+		PolyString polyString = new PolyString(orig);
+		polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+		return polyString;
+	}
+
+
+	private <T extends ObjectType> PrismObjectDefinition<T> getObjectDefinition(Class<T> type) {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+	}
+
+}
