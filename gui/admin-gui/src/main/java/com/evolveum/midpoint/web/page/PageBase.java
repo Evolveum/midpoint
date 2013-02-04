@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.page;
 
+import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
@@ -52,6 +53,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
@@ -68,6 +70,8 @@ public abstract class PageBase extends WebPage {
     private ModelService modelService;
     @SpringBean(name = "modelController")
     private ModelInteractionService modelInteractionService;
+    @SpringBean(name = "modelController")
+    private ModelDiagnosticService modelDiagnosticService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
     @SpringBean(name = "workflowManager")
@@ -183,13 +187,17 @@ public abstract class PageBase extends WebPage {
     protected ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
+    
+    protected ModelDiagnosticService getModelDiagnosticService() {
+		return modelDiagnosticService;
+	}
 
     public String getString(String resourceKey, Object... objects) {
         return createStringResource(resourceKey, objects).getString();
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+        return new StringResourceModel(resourceKey, this, new Model<String>(), resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {
