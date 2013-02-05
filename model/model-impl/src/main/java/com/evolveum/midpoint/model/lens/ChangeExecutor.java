@@ -122,9 +122,6 @@ public class ChangeExecutor {
 		
 		            executeDelta(userDelta, focusContext, syncContext, task, result);
 		
-		            // userDelta is composite, mixed from primary and secondary. The OID set into
-		            // it will be lost ... unless we explicitly save it
-		            focusContext.setOid(userDelta.getOid());
                     if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
                         task.setRequesteeOidImmediate(userDelta.getOid(), result);
                         if (LOGGER.isTraceEnabled()) {
@@ -153,9 +150,6 @@ public class ChangeExecutor {
 	            	
 						 executeDelta(accDelta, accCtx, syncContext, task, result);
 			 	            
-			 	            // To make sure that the OID is set (e.g. after ADD operation)
-			 	            accCtx.setOid(accDelta.getOid());
-
 //						accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
 	            	}
 	            } else{
@@ -171,33 +165,8 @@ public class ChangeExecutor {
 		            }
 	            	
 	            	 executeDelta(accDelta, accCtx, syncContext, task, result);
-	 	            
-	 	            // To make sure that the OID is set (e.g. after ADD operation)
-	 	            accCtx.setOid(accDelta.getOid());
 
 	            }
-	            
-	           
-	             
-	            
-//	            if (accCtx.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN) {
-//	            	
-//		            if (accDelta == null || accDelta.isEmpty()) {
-//		                if (LOGGER.isTraceEnabled()) {
-//		                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
-//		                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
-//		                }
-//		                if (focusContext != null) {
-//		                	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
-//		                }
-//		                continue;
-//		            }
-//		            
-//		            executeChange(accDelta, accCtx, syncContext, task, result);
-//		            
-//		            // To make sure that the OID is set (e.g. after ADD operation)
-//		            accCtx.setOid(accDelta.getOid());
-//	            }
 	            
 	            if (focusContext != null) {
 	            	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
@@ -318,13 +287,13 @@ public class ChangeExecutor {
             throw new SystemException(ex);
         } finally {
         	result.computeStatus();
+        	ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
+            ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
+            userDeltaOp.setExecutionResult(result);
+    		userContext.addToExecutedDeltas(userDeltaOp);
         }
 //        updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountRef, result);
         
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-        ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
-        userDeltaOp.setExecutionResult(result);
-		userContext.addToExecutedDeltas(userDeltaOp);
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
@@ -348,15 +317,14 @@ public class ChangeExecutor {
             throw new SystemException(ex);
         } finally {
         	result.computeStatus();
+        	ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
+            ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
+            userDeltaOp.setExecutionResult(result);
+    		userContext.addToExecutedDeltas(userDeltaOp);
         }
         
       //setting new situation to account
 //        updateSituationInAccount(task, null, accountRef, result);
-
-        ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-        ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
-        userDeltaOp.setExecutionResult(result);
-		userContext.addToExecutedDeltas(userDeltaOp);
 
     }
 	
@@ -431,16 +399,15 @@ public class ChangeExecutor {
 	            executeDeletion(objectDelta, provisioningOptions, task, result);
 	        }
 	        
-	        result.computeStatus();
+	        // To make sure that the OID is set (e.g. after ADD operation)
+	        objectContext.setOid(objectDelta.getOid());
 	        
-	        // TODO: Should we record also the failed deltas? Probably we should! 
-	        ObjectDeltaOperation<T> objectDeltaOp = new ObjectDeltaOperation<T>(objectDelta.clone());
-	        objectDeltaOp.setExecutionResult(result);
-	        objectContext.addToExecutedDeltas(objectDeltaOp);
-        
     	} finally {
     		
     		result.computeStatus();
+    		ObjectDeltaOperation<T> objectDeltaOp = new ObjectDeltaOperation<T>(objectDelta.clone());
+	        objectDeltaOp.setExecutionResult(result);
+	        objectContext.addToExecutedDeltas(objectDeltaOp);
         
 	        if (LOGGER.isDebugEnabled()) {
 	        	if (LOGGER.isTraceEnabled()) {
