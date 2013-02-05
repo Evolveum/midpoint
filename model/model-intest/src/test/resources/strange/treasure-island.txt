@@ -1,39 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2013 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
-<!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2013 [name of copyright owner]     -->
-<!--                                                         -->
-
-<!-- DeGhoulash has a goulash of extension properties.
-     We will mix them and stir them in the tests. -->
-
-<user oid="c0c010c0-d34d-b33f-f00d-1d11dd11dd11" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <name>deghoulash</name>
-    <extension>
-    	<piracy:ship>The Undead Pot</piracy:ship>
-    	<!-- The 'tales' is a non-indexed property. It should be able to store a really long text. -->
-    	<piracy:tales>TREASURE ISLAND
+TREASURE ISLAND
 
 by Robert Louis Stevenson
 
@@ -237,19 +202,3 @@ out of this. Let that suffice."
 
 Soon after, Dr. Livesey's horse came to the door and he rode away, but
 the captain held his peace that evening, and for many evenings to come.
-</piracy:tales>
-    	<piracy:weapon>spoon</piracy:weapon>
-    	<piracy:weapon>fork</piracy:weapon>
-    	<piracy:loot>424242</piracy:loot>
-    	<piracy:badLuck>13</piracy:badLuck>
-    	<piracy:badLuck>169</piracy:badLuck>
-    	<piracy:badLuck>2197</piracy:badLuck>
-    	<piracy:badLuck>28561</piracy:badLuck>
-    	<piracy:badLuck>371293</piracy:badLuck>
-    	<piracy:badLuck>131313131313131313</piracy:badLuck>
-    	<piracy:funeralTimestamp>1771-01-02T11:22:33Z</piracy:funeralTimestamp>
-    </extension>
-	<fullName>Charles DeGhoulash</fullName>
-    <givenName>Charles</givenName>
-    <familyName>DeGhoulash</familyName>
-</user>

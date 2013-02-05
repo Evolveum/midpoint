@@ -31,6 +31,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -135,6 +137,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP = 
 								XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
 	
+	private static final File TREASURE_ISLAND_FILE = new File(TEST_DIR, "treasure-island.txt");
+	private static String treasureIsland;
+	
 	private String accountGuybrushDummyRedOid;
 	
 	public TestStrangeCases() throws JAXBException {
@@ -150,6 +155,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		PrismObject<AccountShadowType> accountGuybrushDummyRed = addObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, AccountShadowType.class, initResult);
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
+		
+		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE));
 	}
 
 	@Test
@@ -521,7 +528,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     
     private void assertBasicGeGhoulashExtension(PrismObject<UserType> userDeGhoulash) {
     	assertExtension(userDeGhoulash, PIRACY_SHIP, "The Undead Pot");
-        assertExtension(userDeGhoulash, PIRACY_TALES, "Only a dead meat is a good meat");
+        assertExtension(userDeGhoulash, PIRACY_TALES, treasureIsland);
         assertExtension(userDeGhoulash, PIRACY_WEAPON, "fork", "spoon");
         assertExtension(userDeGhoulash, PIRACY_LOOT, 424242);
         assertExtension(userDeGhoulash, PIRACY_BAD_LUCK, 13L, 169L, 2197L, 28561L, 371293L, 131313131313131313L);
