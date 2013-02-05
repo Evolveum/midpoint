@@ -216,11 +216,16 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (accountConstructionType.getResource() != null) {
 			resourceOid = accountConstructionType.getResource().getOid();
 		}
-		if (!getResource(result).getOid().equals(resourceOid)) {
+		ResourceType resource = getResource(result);
+		if (!resource.getOid().equals(resourceOid)) {
 			throw new IllegalStateException("The specified resource and the resource in construction does not match");
 		}
 		
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getResource(result), prismContext);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+		if (refinedSchema == null) {
+			// Refined schema may be null in some error-related border cases
+			throw new SchemaException("No (refined) schema for "+resource);
+		}
 		
 		refinedAccountDefinition = refinedSchema.getAccountDefinition(accountConstructionType.getIntent());
 		
@@ -228,7 +233,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			if (accountConstructionType.getIntent() != null) {
 				throw new SchemaException("No account type '"+accountConstructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			} else {
-				throw new SchemaException("No default account type found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
+				throw new SchemaException("No default account type found in " + resource + " as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			}
 		}
 	}

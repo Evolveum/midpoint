@@ -170,6 +170,7 @@
                             <wsdlOptions>
                                 <wsdlOption>
                                     <wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
+                                    <wsdlLocation>classpath:xml/ns/private/model/modelWrapper.wsdl</wsdlLocation>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>
                                     <extraargs>
                                         <extraarg>-impl</extraarg>

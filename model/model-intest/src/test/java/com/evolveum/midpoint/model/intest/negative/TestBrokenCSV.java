@@ -35,15 +35,20 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
+import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -54,9 +59,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * Tests the model service contract by using a broken CSV resource. Tests for negative test cases, mostly
@@ -96,7 +103,12 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenCSV.class);
 	
-	private PrismObject<ResourceType> resource;
+	protected static DummyResource dummyResource;
+	protected static DummyResourceContoller dummyResourceCtl;
+	protected ResourceType resourceDummyType;
+	protected PrismObject<ResourceType> resourceDummy;
+	
+	protected UserType userTypeJack;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -105,6 +117,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
 		modelService.postInit(initResult);
 		
+		// Resources
 		File targetDir = new File(TEST_TARGET_DIR);
 		if (!targetDir.exists()) {
 			targetDir.mkdirs();
@@ -114,11 +127,23 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
 		addObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILENAME, ConnectorType.class, initResult);
 		
+		dummyResourceCtl = DummyResourceContoller.create(null);
+		dummyResourceCtl.extendDummySchema();
+		dummyResource = dummyResourceCtl.getDummyResource();
+		
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
+		resourceDummyType = resourceDummy.asObjectable();
+		dummyResourceCtl.setResource(resourceDummy);
+		
 		importObjectFromFile(RESOURCE_CSVFILE_BROKEN_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_CSVFILE_NOTFOUND_FILENAME, initResult);
 		importObjectFromFile(RESOURCE_DUMMY_NOJARS_FILENAME, initResult);
 		
+		// Accounts
 		addObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, AccountShadowType.class, initResult);
+		
+		// Users
+		userTypeJack = addObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
@@ -149,7 +174,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_BROKEN_OID, null, task, result);
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_BROKEN_OID, null, task, result);
 		
 		// THEN
 		display("getObject resource", resource);
@@ -241,6 +266,8 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120SearchAccountByUsernameJack");
         OperationResult result = task.getResult();
         
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_BROKEN_OID, null, task, result);
+        
         try {
 
         	// WHEN
@@ -283,7 +310,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, null, task, result);
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, null, task, result);
 		
 		// THEN
 		display("getObject resource", resource);
@@ -312,7 +339,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         		ResourceType.F_CONNECTOR_REF, GetOperationOptions.createResolve());
 		
 		// WHEN
-		resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, options, task, result);
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_CSVFILE_NOTFOUND_OID, options, task, result);
 		
 		// THEN
 		display("getObject resource", resource);
@@ -355,7 +382,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-		resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NOJARS_OID, null, task, result);
+        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_NOJARS_OID, null, task, result);
 		
 		// THEN
 		display("getObject resource", resource);
@@ -369,6 +396,37 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
+	}
+	
+	/**
+	 * Assign two resources to a user. One of them is looney, the other is not. The result should be that
+	 * the account on the good resource is created.
+	 */
+	@Test
+    public void test400AssignTwoResoures() throws Exception {
+		final String TEST_NAME ="test400AssignTwoResoures";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_CSVFILE_NOTFOUND_OID, null, true);
+        userDelta.addModification(createAccountAssignmentModification(RESOURCE_DUMMY_OID, null, true));
+        display("input delta", userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("executeChanges result", result);
+//		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+        
+        DummyAccount jackDummyAccount = dummyResource.getAccountByUsername(USER_JACK_USERNAME);
+        assertNotNull("No jack dummy account", jackDummyAccount);
 	}
 
 }
