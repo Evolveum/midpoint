@@ -119,7 +119,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:element name="indexed">
+    <xsd:element name="indexed" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
                 Property marker annotation: indexed property. Property that has this

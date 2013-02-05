@@ -377,11 +377,17 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<Containerable> extensionContainerDef = userDef.findContainerDefinition(UserType.F_EXTENSION);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_SHIP, DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_SHIP, true);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_TALES, DOMUtil.XSD_STRING, 0, 1);
+        PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_TALES, false);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_WEAPON, DOMUtil.XSD_STRING, 0, -1);
+        PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_WEAPON, true);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_LOOT, DOMUtil.XSD_INT, 0, 1);
+        PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_LOOT, true);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_BAD_LUCK, DOMUtil.XSD_LONG, 0, -1);
+        PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_BAD_LUCK, null);
         PrismAsserts.assertPropertyDefinition(extensionContainerDef, PIRACY_FUNERAL_TIMESTAMP, DOMUtil.XSD_DATETIME, 0, 1);
+        PrismAsserts.assertIndexed(extensionContainerDef, PIRACY_FUNERAL_TIMESTAMP, true);
 	}
 	
 	@Test
@@ -429,12 +435,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test310SearchDeGhoulashByShip";
         searchDeGhoulash(TEST_NAME, PIRACY_SHIP, "The Undead Pot");
 	}
-	
-	@Test
-    public void test311SearchDeGhoulashByTales() throws Exception {
-		final String TEST_NAME = "test311SearchDeGhoulashByTales";
-        searchDeGhoulash(TEST_NAME, PIRACY_TALES, "Only a dead meat is a good meat");
-	}
+
+	// There is no test311SearchDeGhoulashByTales
+	// We cannot search by "tales". This is non-indexed string.
 
 	@Test
     public void test312SearchDeGhoulashByWeaponSpoon() throws Exception {
@@ -460,6 +463,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         searchDeGhoulash(TEST_NAME, PIRACY_BAD_LUCK, 13L);
 	}
 
+	// The "badLuck" property is non-indexed. But it is long, therefore it is still searchable
 	@Test
     public void test316SearchDeGhoulashByBadLuck28561() throws Exception {
 		final String TEST_NAME = "test316SearchDeGhoulashByBadLuck28561";

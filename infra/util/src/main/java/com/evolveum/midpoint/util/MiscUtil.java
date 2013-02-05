@@ -260,4 +260,11 @@ public class MiscUtil {
 		return true;
 	}
 
+	public static String getValueWithClass(Object object) {
+		if (object == null) {
+			return "null";
+		}
+		return "("+object.getClass().getSimpleName() + ")"  + object;
+	}
+
 }

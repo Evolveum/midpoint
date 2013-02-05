@@ -226,6 +226,13 @@ public class PrismAsserts {
 		assertEquals("Wrong definition maxOccurs for "+itemName, maxOccurs, definition.getMaxOccurs());
 	}
 	
+	public static void assertIndexed(PrismContainerDefinition<? extends Containerable> containerDef, QName itemQName,
+			Boolean expected) {
+		PrismPropertyDefinition propertyDefinition = containerDef.findPropertyDefinition(itemQName);
+		assertEquals("Wrong value of 'indexed' in property '"+PrettyPrinter.prettyPrint(itemQName)+" in "+containerDef, expected, propertyDefinition.isIndexed());
+	}
+
+	
 	public static<C extends Containerable> void assertValueId(String expectedId, PrismContainer<C> container) {
 		List<String> ids = new ArrayList<String>();
 		for (PrismContainerValue<C> value: container.getValues()) {
@@ -684,9 +691,9 @@ public class PrismAsserts {
 	}
 	
 	public static void assertEquals(String message, Object expected, Object actual) {
-		assert expected.equals(actual) : message 
-				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
-				+ ", was (" + actual.getClass().getSimpleName() + ")" + actual;
+		assert MiscUtil.equals(expected, actual) : message 
+				+ ": expected " + MiscUtil.getValueWithClass(expected)
+				+ ", was " + MiscUtil.getValueWithClass(actual);
 	}
 	
 	static void assertSame(String message, Object expected, Object actual) {
