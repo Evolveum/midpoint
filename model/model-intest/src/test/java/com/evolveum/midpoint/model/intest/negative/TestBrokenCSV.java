@@ -401,11 +401,33 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	/**
 	 * Assign two resources to a user. One of them is looney, the other is not. The result should be that
 	 * the account on the good resource is created.
+	 * 
+	 * This one dies on the lack of schema.
 	 */
 	// Work in progress, MID-1108
 	@Test(enabled=false)
-    public void test400AssignTwoResoures() throws Exception {
-		final String TEST_NAME ="test400AssignTwoResoures";
+    public void test400AssignTwoResouresNotFound() throws Exception {
+		testAssignTwoResoures("test400AssignTwoResoures", RESOURCE_CSVFILE_NOTFOUND_OID);
+	}
+
+	/**
+	 * Assign two resources to a user. One of them is looney, the other is not. The result should be that
+	 * the account on the good resource is created.
+	 * 
+	 * This one dies on connector error.
+	 */
+	// Work in progress, MID-1108
+	@Test(enabled=false)
+    public void test401AssignTwoResouresBroken() throws Exception {
+		testAssignTwoResoures("test401AssignTwoResouresBroken", RESOURCE_CSVFILE_BROKEN_OID);
+	}
+	
+	/**
+	 * Assign two resources to a user. One of them is looney, the other is not. The result should be that
+	 * the account on the good resource is created.
+	 */
+	// Work in progress, MID-1108
+	private void testAssignTwoResoures(final String TEST_NAME, String badResourceOid) throws Exception {
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -413,7 +435,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_CSVFILE_NOTFOUND_OID, null, true);
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, badResourceOid, null, true);
         userDelta.addModification(createAccountAssignmentModification(RESOURCE_DUMMY_OID, null, true));
         display("input delta", userDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -430,4 +452,5 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
         assertNotNull("No jack dummy account", jackDummyAccount);
 	}
 
+	
 }
