@@ -23,6 +23,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -33,6 +37,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -122,6 +127,7 @@ public class RRole extends RObject {
         return name;
     }
 
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RRoleApproverRef.DISCRIMINATOR)
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -299,7 +305,7 @@ public class RRole extends RObject {
         }
 
         for (ObjectReferenceType accountRef : jaxb.getApproverRef()) {
-            RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
+            RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, prismContext, repo, RReferenceOwner.ROLE_APPROVER);
             if (ref != null) {
                 repo.getApproverRefs().add(ref);
             }

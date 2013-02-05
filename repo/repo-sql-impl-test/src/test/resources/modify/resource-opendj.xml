@@ -58,7 +58,7 @@ object.
             object.
         </description>
 
-        <connectorRef type="ConnectorType">
+        <connectorRef type="ConnectorType" oid="123">
             <description>
                 Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
                 OID during import.

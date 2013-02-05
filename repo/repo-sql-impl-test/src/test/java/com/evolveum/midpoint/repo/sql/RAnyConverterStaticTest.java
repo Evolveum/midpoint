@@ -56,7 +56,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionInteger() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
 
@@ -75,7 +75,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionLong() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_P, "longType");
@@ -93,7 +93,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionShort() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_P, "shortType");
@@ -111,7 +111,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionDouble() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_P, "doubleType");
@@ -129,7 +129,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionFloat() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_P, "floatType");
@@ -147,7 +147,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionString() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_P, "floatType");
@@ -165,7 +165,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testExtensionClob() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_P, "locations");
@@ -201,7 +201,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testAttributesString() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_FOO_RESOURCE, "uid");
@@ -218,7 +218,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testAttributesDouble() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_FOO_RESOURCE, "uid");
@@ -244,7 +244,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testAttributesLong() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, GenericObjectType.class, prismContext);
 
         QName valueName = new QName(NS_FOO_RESOURCE, "uid");
@@ -261,7 +261,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     @Test
     public void testUserFullnameString() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         QueryInterpreter interpreter = new QueryInterpreter(session, UserType.class, prismContext);
 
         ItemDefinition def = interpreter.findDefinition(null, UserType.F_FULL_NAME);

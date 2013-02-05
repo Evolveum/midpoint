@@ -24,15 +24,15 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -74,15 +74,15 @@ public class RAnyConverter {
         this.prismContext = prismContext;
     }
 
-    Set<RValue> convertToRValue(Item item) throws DtoTranslationException {
+    Set<RAnyValue> convertToRValue(Item item) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getName() + "' without definition can't be saved.");
 
-        Set<RValue> rValues = new HashSet<RValue>();
+        Set<RAnyValue> rValues = new HashSet<RAnyValue>();
         try {
             ItemDefinition definition = item.getDefinition();
 
-            RValue rValue = null;
+            RAnyValue rValue = null;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismContainerValue) {
@@ -91,19 +91,19 @@ public class RAnyConverter {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                     switch (getValueType(definition.getTypeName())) {
                         case LONG:
-                            RLongValue longValue = new RLongValue();
+                            RAnyLong longValue = new RAnyLong();
                             longValue.setValue(extractValue(propertyValue, Long.class));
                             rValue = longValue;
                             break;
                         case DATE:
-                            RDateValue dateValue = new RDateValue();
+                            RAnyDate dateValue = new RAnyDate();
                             dateValue.setValue(extractValue(propertyValue, Timestamp.class));
                             rValue = dateValue;
                             break;
                         case STRING:
                         default:
                             if (isIndexable(definition)) {
-                                RStringValue strValue = new RStringValue();
+                                RAnyString strValue = new RAnyString();
                                 strValue.setValue(extractValue(propertyValue, String.class));
                                 rValue = strValue;
                             } else {
@@ -112,10 +112,7 @@ public class RAnyConverter {
                     }
                 } else if (value instanceof PrismReferenceValue) {
                     PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                    RReferenceValue refValue = new RReferenceValue();
-                    refValue.setValue(referenceValue.getOid());
-                    //todo extend RReferenceValue and add filter, description and other fields...
-                    rValue = refValue;
+                    rValue = RAnyReference.createReference(referenceValue);
                 }
 
                 rValue.setName(definition.getName());
@@ -135,8 +132,6 @@ public class RAnyConverter {
     private static boolean isIndexable(ItemDefinition definition) {
         if (definition instanceof PrismContainerDefinition) {
             return false;
-        } else if (definition instanceof PrismReferenceDefinition) {
-            return true;
         }
         if (!(definition instanceof PrismPropertyDefinition)) {
             throw new UnsupportedOperationException("Unknown definition type '"
@@ -172,13 +167,13 @@ public class RAnyConverter {
         return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
-    private RClobValue createClobValue(PrismValue prismValue) throws SchemaException {
+    private RAnyClob createClobValue(PrismValue prismValue) throws SchemaException {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         Element root = createElement(RUtil.CUSTOM_OBJECT);
         domProcessor.serializeValueToDom(prismValue, root);
         String value = DOMUtil.serializeDOMToString(root);
 
-        return new RClobValue(value);
+        return new RAnyClob(value);
     }
 
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
@@ -211,7 +206,7 @@ public class RAnyConverter {
         return type;
     }
 
-    void convertFromRValue(RValue value, PrismContainerValue any) throws DtoTranslationException {
+    void convertFromRValue(RAnyValue value, PrismContainerValue any) throws DtoTranslationException {
         Validate.notNull(value, "Value for converting must not be null.");
         Validate.notNull(any, "Parent prism container value must not be null.");
 
@@ -253,7 +248,7 @@ public class RAnyConverter {
         }
     }
 
-    private ItemDefinition createDefinitionForItem(RValue value) {
+    private ItemDefinition createDefinitionForItem(RAnyValue value) {
         ItemDefinition def;
         switch (value.getValueType()) {
             case PROPERTY:
@@ -285,7 +280,7 @@ public class RAnyConverter {
         return DOMUtil.createElement(document, name);
     }
 
-    private void addClobValueToItem(RClobValue value, Item item) throws SchemaException {
+    private void addClobValueToItem(RAnyClob value, Item item) throws SchemaException {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
@@ -294,22 +289,20 @@ public class RAnyConverter {
         item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
     }
 
-    private void addValueToItem(RValue value, Item item) throws SchemaException {
-        if (value instanceof RClobValue) {
-            addClobValueToItem((RClobValue) value, item);
+    private void addValueToItem(RAnyValue value, Item item) throws SchemaException {
+        if (value instanceof RAnyClob) {
+            addClobValueToItem((RAnyClob) value, item);
             return;
         }
 
         Object realValue = createRealValue(value);
-        if (!(value instanceof RReferenceValue) && realValue == null) {
+        if (!(value instanceof RAnyReference) && realValue == null) {
             throw new SchemaException("Real value must not be null. Some error occurred when adding value "
                     + value + " to item " + item);
         }
         switch (value.getValueType()) {
             case REFERENCE:
-                PrismReferenceValue referenceValue = new PrismReferenceValue();
-                referenceValue.setOid((String)value.getValue());
-                //todo fix filter, description and other fields
+                PrismReferenceValue referenceValue = RAnyReference.createReference((RAnyReference) value);
                 item.add(referenceValue);
                 break;
             case PROPERTY:
@@ -327,25 +320,25 @@ public class RAnyConverter {
 
     /**
      * Method restores aggregated object type to its real type, e.g. number 123.1 is type of double, but was
-     * saved as string. This method takes RValue instance and creates 123.1 double from string based on
+     * saved as string. This method takes RAnyValue instance and creates 123.1 double from string based on
      * provided definition.
      *
      * @param rValue
      * @return
      * @throws SchemaException
      */
-    private Object createRealValue(RValue rValue) throws SchemaException {
-        if (rValue instanceof RReferenceValue) {
+    private Object createRealValue(RAnyValue rValue) throws SchemaException {
+        if (rValue instanceof RAnyReference) {
             //this is special case, reference doesn't have value, it only has a few properties (oid, filter, etc.)
             return null;
         }
 
         Object value = rValue.getValue();
-        if (rValue instanceof RDateValue) {
+        if (rValue instanceof RAnyDate) {
             if (value instanceof Date) {
                 return XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
             }
-        } else if (rValue instanceof RLongValue) {
+        } else if (rValue instanceof RAnyLong) {
             if (DOMUtil.XSD_LONG.equals(rValue.getType())) {
                 return value;
             } else if (DOMUtil.XSD_INT.equals(rValue.getType())) {
@@ -353,7 +346,7 @@ public class RAnyConverter {
             } else if (DOMUtil.XSD_SHORT.equals(rValue.getType())) {
                 return ((Long) value).shortValue();
             }
-        } else if (rValue instanceof RStringValue) {
+        } else if (rValue instanceof RAnyString) {
             if (DOMUtil.XSD_STRING.equals(rValue.getType())) {
                 return value;
             } else if (DOMUtil.XSD_DOUBLE.equals(rValue.getType())) {
@@ -406,29 +399,28 @@ public class RAnyConverter {
         }
     }
 
-    
+
     public static <T extends ObjectType> String getAnySetType(ItemDefinition definition) throws
-    SchemaException {
-QName typeName = definition.getTypeName();
+            SchemaException {
+        QName typeName = definition.getTypeName();
 
-ValueType valueType = getValueType(typeName);
-switch (valueType) {
-    case DATE:
-        return "dates";
-    case LONG:
-        return "longs";
-    case STRING:
-    default:
-        boolean indexed = definition == null ? isIndexable(typeName) : isIndexable(definition);
-        if (indexed) {
-            return "strings";
-        } else {
-            return "clobs";
+        ValueType valueType = getValueType(typeName);
+        switch (valueType) {
+            case DATE:
+                return "dates";
+            case LONG:
+                return "longs";
+            case STRING:
+            default:
+                if (isIndexable(definition)) {
+                    return "strings";
+                } else {
+                    return "clobs";
+                }
         }
-}
-}
+    }
 
-    
+
     /**
      * This method provides transformation of {@link Element} value to its object form, e.g. <value>1</value> to
      * {@link Integer} number 1. It's based on element definition from schema registry or xsi:type attribute
@@ -497,7 +489,7 @@ switch (valueType) {
         }
 
         if (object instanceof Date) {
-            object = new Timestamp(((Date)object).getTime());
+            object = new Timestamp(((Date) object).getTime());
         }
 
         return object;

@@ -4,15 +4,21 @@ import javax.xml.namespace.QName;
 
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
+import org.hibernate.Query;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
+import org.hibernate.type.StringType;
+import org.hibernate.type.Type;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 
@@ -33,13 +39,28 @@ public class TreeOp extends Op {
 	// TODO: implement
 	public Criterion interpret(ObjectFilter filter, boolean pushNot) throws QueryException {
 
-		updateCriteria();
+		
 
-		OrgFilter org = null;
-		if (filter instanceof OrgFilter) {
-			org = (OrgFilter) filter;
+		if (!(filter instanceof OrgFilter)){
+			throw new QueryException("Wrong filter type to interpret. Expected that the filter will be instance of OrgFilter but it was: "+ filter.getClass().getSimpleName());
 		}
-
+		OrgFilter org = (OrgFilter) filter;
+		
+		if (org.isRoot()){
+//			Criteria pCriteria = getInterpreter().getCriteria(null);
+			DetachedCriteria dc = DetachedCriteria.forClass(ROrgClosure.class);
+			String[] strings = new String[1];
+			strings[0] = "descendant.oid";
+			Type[] type = new Type[1];
+			type[0] = StringType.INSTANCE;
+			dc.setProjection(Projections.sqlGroupProjection("descendant_oid", "descendant_oid having count(descendant_oid)=1", strings, type));
+//			pCriteria.add(Subqueries.in("this.oid", dc));
+			return Subqueries.propertyIn("oid", dc);
+//			Query rootOrgQuery = session.createQuery("select org from ROrg as org where org.oid in (select descendant.oid from ROrgClosure group by descendant.oid having count(descendant.oid)=1)");
+		}
+		
+		updateCriteria();
+		
 		if (org.getOrgRef() == null) {
 			throw new QueryException("No organization reference defined in the search query.");
 		}

@@ -21,18 +21,27 @@
   -->
 
 <configuration>
-	<appender name="X" class="ch.qos.logback.core.FileAppender">
-		<file>./target/test.log</file>
-		<encoder>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</encoder>
-	</appender>
-	<root level="INFO">
-		<appender-ref ref="X" />
-	</root>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
+    <root level="WARN">
+        <appender-ref ref="X"/>
+    </root>
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
     <logger name="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
-    <logger name="com.evolveum.midpoint" level="TRACE" />
+    <logger name="com.evolveum.midpoint" level="OFF"/>
+    <!--<logger name="org.hibernate" level="TRACE"/>-->
+    <!--<logger name="org.springframework" level="INFO" />-->
+
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="com.evolveum.midpoint.repo" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.testing" level="TRACE"/>
+
+    <logger name="com.evolveum.midpoint.prism.schema.SchemaRegistry" level="OFF"/>
+    <logger name="com.evolveum.midpoint.prism.schema.SchemaHandler" level="OFF"/>
 </configuration>
 

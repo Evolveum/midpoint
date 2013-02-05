@@ -67,6 +67,11 @@
         <property name="packagesToScan">
             <list>
                 <value>com.evolveum.midpoint.repo.sql.data.common</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.any</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.embedded</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.enums</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.id</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.type</value>
                 <value>com.evolveum.midpoint.repo.sql.data.audit</value>
             </list>
         </property>

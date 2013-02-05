@@ -23,7 +23,9 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyClob;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,7 +55,7 @@ public class SqlBaseService {
     private static final Trace LOGGER = TraceManager.getTrace(SqlBaseService.class);
     // how many times we want to repeat operation after lock acquisition,
     // pessimistic, optimistic exception
-    private static final int LOCKING_MAX_ATTEMPTS = 40;
+    static final int LOCKING_MAX_ATTEMPTS = 40;
 
     // timeout will be a random number between 0 and LOCKING_TIMEOUT_STEP * 2^exp where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser)
     private static final long LOCKING_TIMEOUT_STEP = 50;
@@ -77,39 +79,9 @@ public class SqlBaseService {
     }
 
     public void setSessionFactory(SessionFactory sessionFactory) {
-        // !!! HACK !!! https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
-        // problem with composite keys and object merging
-        fixCompositeIdentifierInMetaModel(RAnyContainer.class);
-
-        fixCompositeIdentifierInMetaModel(RObjectReference.class);
-
-        fixCompositeIdentifierInMetaModel(RAssignment.class);
-        fixCompositeIdentifierInMetaModel(RExclusion.class);
-        for (RContainerType type : ClassMapper.getKnownTypes()) {
-            fixCompositeIdentifierInMetaModel(type.getClazz());
-        }
-        // END HACK
+        RUtil.fixCompositeIDHandling(sessionFactory);
 
         this.sessionFactory = sessionFactory;
-    }
-
-    private void fixCompositeIdentifierInMetaModel(Class clazz) {
-        ClassMetadata classMetadata = sessionFactory.getClassMetadata(clazz);
-        if (classMetadata instanceof AbstractEntityPersister) {
-            AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
-            EntityMetamodel model = persister.getEntityMetamodel();
-            IdentifierProperty identifier = model.getIdentifierProperty();
-
-            try {
-                Field field = IdentifierProperty.class.getDeclaredField("hasIdentifierMapper");
-                field.setAccessible(true);
-                field.set(identifier, true);
-                field.setAccessible(false);
-            } catch (Exception ex) {
-                throw new SystemException("Attempt to fix entity meta model with hack failed, reason: "
-                        + ex.getMessage(), ex);
-            }
-        }
     }
 
     protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
@@ -154,11 +126,11 @@ public class SqlBaseService {
             LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
         }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+//        if (LOGGER.isDebugEnabled()) {
+            LOGGER.info("A serialization-related problem occurred when {} object with oid '{}', retrying after "
                     + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
                     attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
-        }
+//        }
 
         if (attempt >= LOCKING_MAX_ATTEMPTS) {
             LOGGER.error("A serialization-related problem occurred, maximum attempts (" + attempt + ") reached.", ex);

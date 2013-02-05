@@ -23,16 +23,28 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RCapabilities;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
+import com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -54,8 +66,29 @@ public class RResource extends RObject {
     private String scripts;
     private String synchronization;
     private String consistency;
-    private RResourceBussinesConfiguration business;
     private ROperationalState operationalState;
+    //resource business configuration, embedded component can't be used, because then it couldn't use
+    //non embedded approverRef relationship
+    private RResourceAdministrativeState administrativeState;
+    private Set<RObjectReference> approverRef;
+    //end of resource business configuration
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public RResourceAdministrativeState getAdministrativeState() {
+        return administrativeState;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RResourceApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getApproverRef() {
+        if (approverRef == null) {
+            approverRef = new HashSet<RObjectReference>();
+        }
+        return approverRef;
+    }
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -113,21 +146,20 @@ public class RResource extends RObject {
     }
 
     @Embedded
-    public RResourceBussinesConfiguration getBusiness() {
-        return business;
-    }
-
-    @Embedded
     public RPolyString getName() {
         return name;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setAdministrativeState(RResourceAdministrativeState administrativeState) {
+        this.administrativeState = administrativeState;
     }
 
-    public void setBusiness(RResourceBussinesConfiguration business) {
-        this.business = business;
+    public void setApproverRef(Set<RObjectReference> approverRef) {
+        this.approverRef = approverRef;
+    }
+
+    public void setName(RPolyString name) {
+        this.name = name;
     }
 
     public void setOperationalState(ROperationalState operationalState) {
@@ -245,9 +277,17 @@ public class RResource extends RObject {
             }
             jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCRIPTS),
                     repo.getScripts(), ProvisioningScriptsType.class, prismContext));
-            if (repo.getBusiness() != null && !repo.getBusiness().empty()) {
-                jaxb.setBusiness(repo.getBusiness().toJAXB(jaxb, new ItemPath(ResourceType.F_BUSINESS),
-                        prismContext));
+
+            if (!isResourceBusinessConfigurationEmpty(repo)) {
+                ResourceBusinessConfigurationType business = new ResourceBusinessConfigurationType();
+                jaxb.setBusiness(business);
+                if (repo.getAdministrativeState() != null) {
+                    business.setAdministrativeState(repo.getAdministrativeState().getAdministrativeState());
+                }
+                List<ObjectReferenceType> approvers = RUtil.safeSetReferencesToList(repo.getApproverRef(), prismContext);
+                if (!approvers.isEmpty()) {
+                    business.getApproverRef().addAll(approvers);
+                }
             }
             if (repo.getOperationalState() != null) {
                 jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
@@ -289,9 +329,10 @@ public class RResource extends RObject {
             repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
             repo.setConsistency(RUtil.toRepo(jaxb.getConsistency(), prismContext));
             if (jaxb.getBusiness() != null) {
-                RResourceBussinesConfiguration repoBusiness = new RResourceBussinesConfiguration();
-                RResourceBussinesConfiguration.copyFromJAXB(jaxb.getBusiness(), repoBusiness, prismContext);
-                repo.setBusiness(repoBusiness);
+                ResourceBusinessConfigurationType business = jaxb.getBusiness();
+                repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
+                        prismContext, repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER));
+                repo.setAdministrativeState(RResourceAdministrativeState.toRepoType(business.getAdministrativeState()));
             }
             if (jaxb.getOperationalState() != null) {
                 ROperationalState repoOpState = new ROperationalState();
@@ -302,6 +343,10 @@ public class RResource extends RObject {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
+    }
+
+    private static boolean isResourceBusinessConfigurationEmpty(RResource repo) {
+        return repo.getApproverRef().isEmpty() && repo.getAdministrativeState() == null;
     }
 
     @Override

@@ -135,7 +135,7 @@
             object.
         </description>
 
-        <connectorRef type="ConnectorType">
+        <connectorRef type="ConnectorType" oid="123">
             <description>
                 Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
                 OID during import.
@@ -743,6 +743,9 @@
                 <p:location key="work">There</p:location>
                 <p:location key="somewhere">There there over the corner</p:location>
             </p:locations>
+            <p:referenceType oid="12345678-1234-1234-1234-123456789012" type="c:UserType" relation="c:ObjectType">
+                <description>this is some description or something like that, which should be also stored in DB</description>
+            </p:referenceType>
         </extension>
         <objectType>http://myself.me/schemas/objects#SampleConfigType</objectType>
     </genericObject>

@@ -11,11 +11,16 @@ public class OrgFilter extends ObjectFilter {
 	private PrismReferenceValue baseOrgRef;
 	private Integer minDepth;
 	private Integer maxDepth;
+	private boolean root;
 
 	public OrgFilter(PrismReferenceValue baseOrgRef, Integer minDepth, Integer maxDepth) {
 		this.baseOrgRef = baseOrgRef;
 		this.minDepth = minDepth;
 		this.maxDepth = maxDepth;
+	}
+	
+	public OrgFilter() {
+		// TODO Auto-generated constructor stub
 	}
 
 	public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Integer minDepth, Integer maxDepth) {
@@ -28,6 +33,13 @@ public class OrgFilter extends ObjectFilter {
 
 	public static OrgFilter createOrg(String baseOrgRef) {
 		return new OrgFilter(new PrismReferenceValue(baseOrgRef), null, null);
+	}
+	
+	public static OrgFilter createRootOrg(){
+		OrgFilter filter = new OrgFilter();
+		filter.setRoot(true);
+		return filter;
+		
 	}
 	
 	public PrismReferenceValue getOrgRef() {
@@ -52,6 +64,14 @@ public class OrgFilter extends ObjectFilter {
 
 	public void setMaxDepth(Integer maxDepth) {
 		this.maxDepth = maxDepth;
+	}
+	
+	public void setRoot(boolean root) {
+		this.root = root;
+	}
+	
+	public boolean isRoot() {
+		return root;
 	}
 	
 	@Override

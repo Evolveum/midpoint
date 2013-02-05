@@ -40,7 +40,7 @@ import java.util.UUID;
  */
 public class ContainerOidGenerator implements IdentifierGenerator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ContainerIdGenerator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerOidGenerator.class);
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {

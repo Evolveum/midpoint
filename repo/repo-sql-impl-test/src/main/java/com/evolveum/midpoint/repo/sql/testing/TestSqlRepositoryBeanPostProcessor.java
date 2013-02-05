@@ -107,7 +107,8 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor, Ap
     }
 
     /**
-     * This method decides whether function or procedure (oracle, ms sql server) will be used to cleanup testing database.
+     * This method decides whether function or procedure (oracle, ms sql server)
+     * will be used to cleanup testing database.
      *
      * @param config
      * @return

@@ -26,6 +26,15 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
     <xsd:element name="shipName" type="xsd:string"/>
 
     <!-- account shadow extension -->
@@ -58,6 +67,7 @@
             <xsd:element name="longType" type="xsd:long"/>
             <xsd:element name="dateType" type="xsd:dateTime"/>
             <xsd:element name="locations" type="tns:LocationsType"/>
+            <xsd:element name="referenceType" type="c:ObjectReferenceType"/>
         </xsd:sequence>
     </xsd:complexType>
 

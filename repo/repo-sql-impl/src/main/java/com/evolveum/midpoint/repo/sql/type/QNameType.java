@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.type;
 
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.StringType;
@@ -36,6 +37,8 @@ import java.sql.SQLException;
  * @author lazyman
  */
 public class QNameType implements UserType {
+
+    public static final String EMPTY_QNAME_COLUMN_VALUE = " ";
 
     @Override
     public Object assemble(Serializable cached, Object owner) throws HibernateException {
@@ -147,7 +150,32 @@ public class QNameType implements UserType {
 //        if (StringUtils.isEmpty(localPart)) {
 //            return null;
 //        }
+        if (localPart == null) {
+            return null;
+        }
 
         return new QName(namespaceURI, localPart);
+    }
+
+    public static QName assembleQName(String namespaceURI, String localPart) {
+        if (StringUtils.isBlank(localPart)) {
+            return null;
+        }
+
+        String namespace = EMPTY_QNAME_COLUMN_VALUE.equals(namespaceURI) ? null : namespaceURI;
+
+        return new QName(namespace, localPart);
+    }
+
+    public static String[] disassembleQName(QName qname) {
+        String[] value = {EMPTY_QNAME_COLUMN_VALUE, EMPTY_QNAME_COLUMN_VALUE};
+        if (qname == null) {
+            return value;
+        }
+
+        value[0] = qname.getNamespaceURI() == null ? EMPTY_QNAME_COLUMN_VALUE : qname.getNamespaceURI();
+        value[1] = qname.getLocalPart() == null ? EMPTY_QNAME_COLUMN_VALUE : qname.getLocalPart();
+
+        return value;
     }
 }

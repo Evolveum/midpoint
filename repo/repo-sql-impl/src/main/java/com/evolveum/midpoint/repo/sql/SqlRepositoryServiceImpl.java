@@ -28,11 +28,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.PessimisticLockException;
-import org.hibernate.Query;
-import org.hibernate.Session;
+import org.hibernate.*;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -51,12 +47,12 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.RContainerId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.data.common.RTaskExclusivityStatusType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExclusivityStatusType;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.Definition;
 import com.evolveum.midpoint.repo.sql.query.EntityDefinition;
@@ -97,10 +93,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	private static final String IMPLEMENTAION_DESCRIPTION = "Implementation that stores data in generic relational" +
 			" (SQL) databases. It is using ORM (hibernate) on top of JDBC to access the database.";
 
-	private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid)
+    private SqlRepositoryFactory repositoryFactory;
+
+    public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
+        this.repositoryFactory = repositoryFactory;
+    }
+
+    private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid, boolean lockForUpdate)
 			throws ObjectNotFoundException, SchemaException, DtoTranslationException {
+
 		Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-		query.add(Restrictions.eq("oid", oid));
+
+        query.add(Restrictions.eq("oid", oid));
 		query.add(Restrictions.eq("id", 0L));
 
 		RObject object = (RObject) query.uniqueResult();
@@ -109,7 +113,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					+ "' was not found.", null, oid);
 		}
 
-		LOGGER.trace("Transforming data to JAXB type.");
+//        if (lockForUpdate) {
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("Locking object " + object + "... (session = " + session + ")");
+//            }
+//            session.buildLockRequest(new LockOptions(LockMode.PESSIMISTIC_WRITE)).lock(object);
+//            LOGGER.trace("Locked; doing refresh.");
+//            session.refresh(object);
+//            LOGGER.trace("Refreshed.");
+//        }
+
+        LOGGER.trace("Transforming data to JAXB type.");
 		PrismObject<T> objectType = object.toJAXB(getPrismContext()).asPrismObject();
 		validateObjectType(objectType, type);
 
@@ -130,13 +144,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		subResult.addParam("type", type.getName());
 		subResult.addParam("oid", oid);
 
-		while (true) {
-			try {
-				return getObjectAttempt(type, oid, subResult);
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-			}
-		}
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("getObject");
+
+        try {
+		    while (true) {
+			    try {
+				    return getObjectAttempt(type, oid, subResult);
+			    } catch (RuntimeException ex) {
+				    attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+			    }
+		    }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
 	}
 
 	private <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid, OperationResult result)
@@ -149,7 +171,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		try {
 			session = beginTransaction();
 
-			objectType = getObject(session, type, oid);
+			objectType = getObject(session, type, oid, false);
 
 			session.getTransaction().commit();
 		} catch (PessimisticLockException ex) {
@@ -338,6 +360,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			LOGGER.trace("Saved object '{}' with oid '{}'", new Object[] {
 					object.getCompileTimeClass().getSimpleName(), oid });
+
+            object.setOid(oid);
 		} catch (PessimisticLockException ex) {
 			rollbackTransaction(session);
 			throw ex;
@@ -352,6 +376,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			throw ex;
 		} catch (ConstraintViolationException ex) {
 			rollbackTransaction(session, ex, result, true);
+
+            LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", ex);
 			// we don't know if it's only name uniqueness violation, or something else,
 			// therefore we're throwing it always as ObjectAlreadyExistsException revert
 			// to the original oid and prevent of unexpected behaviour (e.g. by import with overwrite option)
@@ -409,6 +435,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // query.
         List<ROrgClosure> results = query.list();
         for (ROrgClosure o : results) {
+            LOGGER.info("adding {}\t{}\t{}", new Object[]{o.getAncestor().getOid(),
+                    o.getDescendant().getOid(), o.getDepth() + 1});                        //todo remove
             session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth() + 1));
         }
     }
@@ -427,14 +455,22 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		subResult.addParam("type", type.getName());
 		subResult.addParam("oid", oid);
 
-		while (true) {
-			try {
-				deleteObjectAttempt(type, oid, subResult);
-				return;
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-			}
-		}
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("deleteObject");
+
+        try {
+            while (true) {
+                try {
+                    deleteObjectAttempt(type, oid, subResult);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
 	}
 
 	private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
@@ -710,14 +746,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		final String operation = "modifying";
 		int attempt = 1;
 
-		while (true) {
-			try {
-				modifyObjectAttempt(type, oid, modifications, subResult);
-				return;
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
-			}
-		}
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("modifyObject");
+
+        try {
+            while (true) {
+                try {
+                    modifyObjectAttempt(type, oid, modifications, subResult);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+
 	}
 
 	private <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
@@ -733,7 +778,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			session = beginTransaction();
 
 			// get user
-			PrismObject<T> prismObject = getObject(session, type, oid);
+			PrismObject<T> prismObject = getObject(session, type, oid, true);
 			// apply diff
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("OBJECT before:\n{}", new Object[] { prismObject.dump() });
@@ -762,7 +807,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			recomputeHierarchy(prismObject.asObjectable(), session, modifications);
 
+            LOGGER.trace("Before commit...");
 			session.getTransaction().commit();
+            LOGGER.trace("Committed!");
 		} catch (PessimisticLockException ex) {
 			rollbackTransaction(session);
 			throw ex;
@@ -792,6 +839,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			handleGeneralException(ex, session, result);
 		} finally {
 			cleanupSessionAndResult(session, result);
+            LOGGER.trace("Session cleaned up.");
 		}
 
 	}
@@ -800,54 +848,56 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			Collection<? extends ItemDelta> modifications) throws SchemaException, DtoTranslationException {
 
 		for (ItemDelta delta : modifications) {
-			if (delta.getName().equals(OrgType.F_PARENT_ORG_REF)) {
-				// if modifiction is one of the modify or delete, delete old
-				// record in org closure table and in the next step fill the
-				// closure table with the new records
-				if (delta.isReplace() || delta.isDelete()) {
-					for (Object orgRefDValue : delta.getValuesToDelete()) {
-						if (!(orgRefDValue instanceof PrismReferenceValue)) {
-							throw new SchemaException(
-									"Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
-											+ orgRefDValue);
-						}
+			if (!delta.getName().equals(OrgType.F_PARENT_ORG_REF)) {
+                continue;
+            }
+            // if modification is one of the modify or delete, delete old
+            // record in org closure table and in the next step fill the
+            // closure table with the new records
+            if (delta.isReplace() || delta.isDelete()) {
+                for (Object orgRefDValue : delta.getValuesToDelete()) {
+                    if (!(orgRefDValue instanceof PrismReferenceValue)) {
+                        throw new SchemaException(
+                                "Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
+                                        + orgRefDValue);
+                    }
 
-						PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
-						RObject rObjectToModify = createDataObjectFromJAXB(orgType);
-						if (orgType.getClass().isAssignableFrom(OrgType.class)){
-						
-						List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
-						refillHierarchy(rObjectToModify, objectsToRecompute, session);
-						} else{
-							deleteHierarchy(rObjectToModify, session);
-							if (orgType.getParentOrgRef()!= null && !orgType.getParentOrgRef().isEmpty()){
-								for (ObjectReferenceType orgRef : orgType.getParentOrgRef()){
-									fillTransitiveHierarchy(rObjectToModify, orgRef.getOid(), session);
-								}
-							}
-						}
-					}
-					// List<RObject> objectsToRecompute =
-					// deleteFromHierarchy(createDataObjectFromJAXB(orgType),
-					// session);
-					// recompute(objectsToRecompute, session);
-					// fillHierarchy(orgType, session);
-				} else {
-					// fill closure table with new transitive relations
-					for (Object orgRefDValue : delta.getValuesToAdd()) {
-						if (!(orgRefDValue instanceof PrismReferenceValue)) {
-							throw new SchemaException(
-									"Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
-											+ orgRefDValue);
-						}
+                    PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
+                    RObject rObjectToModify = createDataObjectFromJAXB(orgType);
+                    if (orgType.getClass().isAssignableFrom(OrgType.class)){
 
-						PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
+                    List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
+                    refillHierarchy(rObjectToModify, objectsToRecompute, session);
+                    } else{
+                        deleteHierarchy(rObjectToModify, session);
+                        if (orgType.getParentOrgRef()!= null && !orgType.getParentOrgRef().isEmpty()){
+                            for (ObjectReferenceType orgRef : orgType.getParentOrgRef()){
+                                fillTransitiveHierarchy(rObjectToModify, orgRef.getOid(), session);
+                            }
+                        }
+                    }
+                }
+                // List<RObject> objectsToRecompute =
+                // deleteFromHierarchy(createDataObjectFromJAXB(orgType),
+                // session);
+                // recompute(objectsToRecompute, session);
+                // fillHierarchy(orgType, session);
+            } else {
+                // fill closure table with new transitive relations
+                for (Object orgRefDValue : delta.getValuesToAdd()) {
+                    if (!(orgRefDValue instanceof PrismReferenceValue)) {
+                        throw new SchemaException(
+                                "Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
+                                        + orgRefDValue);
+                    }
 
-						RObject rDescendant = createDataObjectFromJAXB(orgType);
-						fillTransitiveHierarchy(rDescendant, value.getOid(), session);
-					}
-				}
-			}
+                    PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
+
+                    RObject rDescendant = createDataObjectFromJAXB(orgType);
+                    LOGGER.trace("filling transitive hierarchy for descendant {}, ref {}", new Object[]{rDescendant.getOid(), value.getOid()});//todo remove
+                    fillTransitiveHierarchy(rDescendant, value.getOid(), session);
+                }
+            }
 		}
 	}
 
@@ -969,13 +1019,22 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		final String operation = "listing resource object shadows";
 		int attempt = 1;
-		while (true) {
-			try {
-				return listResourceObjectShadowsAttempt(resourceOid, resourceObjectShadowType, subResult);
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
-			}
-		}
+
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("listResourceObjectShadow");
+
+        try {
+            while (true) {
+                try {
+                    return listResourceObjectShadowsAttempt(resourceOid, resourceObjectShadowType, subResult);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(resourceOid, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
 	}
 
 	private <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(

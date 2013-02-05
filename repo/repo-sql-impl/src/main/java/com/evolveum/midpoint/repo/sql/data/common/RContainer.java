@@ -21,8 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;

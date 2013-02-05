@@ -43,6 +43,7 @@
         <icf>
             <scanClasspath>true</scanClasspath>
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+            <scanDirectory>/var/tmp</scanDirectory>
         </icf>
         <keystore>
             <keyStorePath>${midpoint.home}/keystore-test.jceks</keyStorePath>

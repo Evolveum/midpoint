@@ -42,4 +42,6 @@ public @interface QueryEntity {
     boolean any() default false;
 
     boolean embedded() default false;
+
+    boolean reference() default false;
 }

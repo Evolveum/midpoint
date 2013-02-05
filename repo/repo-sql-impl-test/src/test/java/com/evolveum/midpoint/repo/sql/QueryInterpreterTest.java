@@ -25,10 +25,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RConnector;
-import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
@@ -112,8 +109,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Criteria extension = main.createCriteria("extension", "e");
         Criteria stringExt = extension.createCriteria("strings", "s1");
 
-        Criteria resourceRef = main.createCriteria("resourceRef", "r");
-
         //or
         Criterion c1 = Restrictions.eq("accountType", "some account type");
         //or
@@ -127,7 +122,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
         c3.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
-        Criterion c4 = Restrictions.eq("r.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
+        Criterion c4 = Restrictions.eq("a.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
         Disjunction disjunction = Restrictions.disjunction();
         disjunction.add(c1);
@@ -224,13 +219,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
-        Criteria resourceRef = main.createCriteria("resourceRef", "r");
+//        Criteria resourceRef = main.createCriteria("a.resourceRef", "r");
 
         Criteria attributes = main.createCriteria("attributes", "a1");
         Criteria stringAttr = attributes.createCriteria("strings", "s");
 
         //and
-        Criterion c1 = Restrictions.eq("r.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
+        Criterion c1 = Restrictions.eq("a.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
@@ -263,12 +258,28 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
         Criteria refs = main.createCriteria("accountRefs", "a");
-        refs.add(Restrictions.eq("a.reference.targetOid", "123"));
+        refs.add(Restrictions.eq("a.targetOid", "123"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
         RefFilter filter = RefFilter.createReferenceEqual(UserType.class, UserType.F_ACCOUNT_REF, prismContext, "123");
         String real = getInterpretedQuery(session, UserType.class, filter);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+    }
+
+    @Test(enabled = false)  //TODO FIX THIS TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    public void queryParentOrgRefNullOid() throws Exception {
+        Session session = open();
+        Criteria main = session.createCriteria(ROrg.class, "o");
+        Criteria refs = main.createCriteria("parentOrgRef", "p");
+        refs.add(Restrictions.isNull("p.targetOid"));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, null));
+        String real = getInterpretedQuery(session, OrgType.class, query.getFilter());
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
@@ -307,7 +318,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     private Session open() {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         session.beginTransaction();
         return session;
     }

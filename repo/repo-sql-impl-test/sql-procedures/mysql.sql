@@ -36,6 +36,7 @@ DETERMINISTIC
     DELETE FROM m_password_policy;
     DELETE FROM m_resource;
     DELETE FROM m_user_employee_type;
+    DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
     DELETE FROM m_user;
     DELETE FROM m_org_org_type;

@@ -52,6 +52,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
+    private SqlPerformanceMonitor performanceMonitor;
+
     public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
         return sqlConfiguration;
@@ -62,6 +64,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         if (!initialized) {
             LOGGER.info("SQL repository was not initialized, nothing to destroy.");
             return;
+        }
+
+        if (performanceMonitor != null) {
+            performanceMonitor.shutdown();
         }
 
         if (!getSqlConfiguration().isEmbedded()) {
@@ -76,6 +82,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } else {
             LOGGER.info("H2 running as local instance (from file).");
         }
+
         LOGGER.info("Shutdown complete.");
 
         initialized = false;
@@ -120,6 +127,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             throw new RepositoryServiceFactoryException("Couldn't initialize query registry, reason: "
                     + ex.getMessage(), ex);
         }
+
+        performanceMonitor = new SqlPerformanceMonitor();
+        performanceMonitor.initialize();
+
         LOGGER.info("Repository initialization finished.");
 
         initialized = true;
@@ -127,7 +138,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     @Override
     public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-        return new SqlRepositoryServiceImpl();
+        return new SqlRepositoryServiceImpl(this);
     }
 
     /**
@@ -352,5 +363,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } else {
             LOGGER.info("File '{}' doesn't exist.", new Object[]{file.getAbsolutePath(), file.delete()});
         }
+    }
+
+    public SqlPerformanceMonitor getPerformanceMonitor() {
+        return performanceMonitor;
     }
 }

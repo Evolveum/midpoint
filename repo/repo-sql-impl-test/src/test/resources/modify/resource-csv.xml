@@ -46,7 +46,7 @@ object.
         <c:name>Localhost CSVfile</c:name>
 
         <!-- Reference to the ICF Flatfile connector. OID is "virtual" for now. -->
-        <connectorRef type="ConnectorType">
+        <connectorRef type="ConnectorType" oid="123">
             <filter>
                 <q:equal>
                     <q:value>

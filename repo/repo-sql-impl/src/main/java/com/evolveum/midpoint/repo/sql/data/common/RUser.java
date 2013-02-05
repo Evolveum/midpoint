@@ -23,18 +23,23 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
+import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -104,8 +109,8 @@ public class RUser extends RObject {
     private Set<RPolyString> organization;
 
     @ElementCollection
-    @ForeignKey(name = "fk_user_org")
-    @CollectionTable(name = "m_user_org", joinColumns = {
+    @ForeignKey(name = "fk_user_organization")
+    @CollectionTable(name = "m_user_organization", joinColumns = {
             @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
             @JoinColumn(name = "user_id", referencedColumnName = "id")
     })
@@ -114,6 +119,7 @@ public class RUser extends RObject {
         return organization;
     }
 
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RAccountRef.DISCRIMINATOR)
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -448,12 +454,7 @@ public class RUser extends RObject {
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
 
-        for (ObjectReferenceType accountRef : jaxb.getAccountRef()) {
-            RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, repo, prismContext);
-            if (ref != null) {
-                repo.getAccountRefs().add(ref);
-            }
-        }
+        repo.getAccountRefs().addAll(RUtil.safeListReferenceToSet(jaxb.getAccountRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
 
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
@@ -514,8 +515,9 @@ public class RUser extends RObject {
             jaxb.getOrganization().addAll(units);
         }
 
-        for (RObjectReference repoRef : repo.getAccountRefs()) {
-            jaxb.getAccountRef().add(repoRef.toJAXB(prismContext));
+        List accRefs = RUtil.safeSetReferencesToList(repo.getAccountRefs(), prismContext);
+        if (!accRefs.isEmpty()) {
+            jaxb.getAccountRef().addAll(accRefs);
         }
 
         for (RAssignment rAssignment : repo.getAssignments()) {

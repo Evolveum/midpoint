@@ -21,13 +21,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.List;
-import java.util.Set;
-
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSynchronizationSituationDescription;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationTypeType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,6 +44,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -50,7 +56,8 @@ import javax.xml.namespace.QName;
 @Table(name = "m_resource_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_resource_shadow",
         indexes = {@Index(name = "iResourceObjectShadowEnabled", columnNames = "enabled"),
-        @Index(name = "iResourceShadowName", columnNames = "name_norm")})
+                @Index(name = "iResourceShadowName", columnNames = "name_norm"),
+                @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid")})
 @ForeignKey(name = "fk_resource_object_shadow")
 public class RResourceObjectShadow extends RObject {
 
@@ -61,16 +68,16 @@ public class RResourceObjectShadow extends RObject {
     private QName objectClass;
     private RActivation activation;
     private ROperationResult result;
-    @QueryAttribute
-    private RObjectReference resourceRef;
+    @QueryAttribute(reference = true)
+    private REmbeddedReference resourceRef;
     private String objectChange;
     private Integer attemptNumber;
     @QueryAttribute
     private Boolean dead;
-    @QueryAttribute(enumerated=true)
+    @QueryAttribute(enumerated = true)
     private RFailedOperationTypeType failedOperationType;
     private String intent;
-    @QueryAttribute(enumerated=true)
+    @QueryAttribute(enumerated = true)
     private RSynchronizationSituation synchronizationSituation;
     private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
     //attributes
@@ -81,7 +88,7 @@ public class RResourceObjectShadow extends RObject {
 
     @Columns(columns = {
             @Column(name = "class_namespace"),
-            @Column(name = "class_localPart")
+            @Column(name = "class_localPart", length = RUtil.COLUMN_LENGTH_LOCALPART)
     })
     public QName getObjectClass() {
         return objectClass;
@@ -110,9 +117,8 @@ public class RResourceObjectShadow extends RObject {
         return result;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RObjectReference getResourceRef() {
+    @Embedded
+    public REmbeddedReference getResourceRef() {
         return resourceRef;
     }
 
@@ -138,7 +144,7 @@ public class RResourceObjectShadow extends RObject {
     public RPolyString getName() {
         return name;
     }
-    
+
     @ElementCollection
     @ForeignKey(name = "fk_shadow_sync_situation")
     @CollectionTable(name = "m_sync_situation_description", joinColumns = {
@@ -147,25 +153,28 @@ public class RResourceObjectShadow extends RObject {
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RSynchronizationSituationDescription> getSynchronizationSituationDescription() {
-		return synchronizationSituationDescription;
-	}
-    
+        if (synchronizationSituationDescription == null) {
+            synchronizationSituationDescription = new HashSet<RSynchronizationSituationDescription>();
+        }
+        return synchronizationSituationDescription;
+    }
+
     @Enumerated(EnumType.ORDINAL)
     public RSynchronizationSituation getSynchronizationSituation() {
-		return synchronizationSituation;
-	}
-    
+        return synchronizationSituation;
+    }
+
     public String getIntent() {
-		return intent;
-	}
-    
+        return intent;
+    }
+
     public XMLGregorianCalendar getSynchronizationTimestamp() {
-		return synchronizationTimestamp;
-	}
-    
+        return synchronizationTimestamp;
+    }
+
     public void setSynchronizationTimestamp(XMLGregorianCalendar synchronizationTimestamp) {
-		this.synchronizationTimestamp = synchronizationTimestamp;
-	}
+        this.synchronizationTimestamp = synchronizationTimestamp;
+    }
 
     public void setName(RPolyString name) {
         this.name = name;
@@ -183,7 +192,7 @@ public class RResourceObjectShadow extends RObject {
         this.objectChange = objectChange;
     }
 
-    public void setResourceRef(RObjectReference resourceRef) {
+    public void setResourceRef(REmbeddedReference resourceRef) {
         this.resourceRef = resourceRef;
     }
 
@@ -205,27 +214,27 @@ public class RResourceObjectShadow extends RObject {
     public void setObjectClass(QName objectClass) {
         this.objectClass = objectClass;
     }
-    
+
     public void setIntent(String intent) {
-		this.intent = intent;
-	}
-    
+        this.intent = intent;
+    }
+
     public void setSynchronizationSituation(RSynchronizationSituation synchronizationSituation) {
-		this.synchronizationSituation = synchronizationSituation;
-	}
-    
+        this.synchronizationSituation = synchronizationSituation;
+    }
+
     public Boolean isDead() {
-		return dead;
-	}
-    
+        return dead;
+    }
+
     public void setDead(Boolean dead) {
-		this.dead = dead;
-	}
-    
+        this.dead = dead;
+    }
+
     public void setSynchronizationSituationDescription(
-			Set<RSynchronizationSituationDescription> synchronizationSituationDescription) {
-		this.synchronizationSituationDescription = synchronizationSituationDescription;
-	}
+            Set<RSynchronizationSituationDescription> synchronizationSituationDescription) {
+        this.synchronizationSituationDescription = synchronizationSituationDescription;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -246,8 +255,10 @@ public class RResourceObjectShadow extends RObject {
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
         if (result != null ? !result.equals(that.result) : that.result != null) return false;
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
-        if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null) return false;
-        if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null) return false;
+        if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null)
+            return false;
+        if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null)
+            return false;
 
         return true;
     }
@@ -268,7 +279,7 @@ public class RResourceObjectShadow extends RObject {
     }
 
     public static void copyToJAXB(RResourceObjectShadow repo, ResourceObjectShadowType jaxb,
-            PrismContext prismContext) throws DtoTranslationException {
+                                  PrismContext prismContext) throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
@@ -290,20 +301,20 @@ public class RResourceObjectShadow extends RObject {
         if (repo.getFailedOperationType() != null) {
             jaxb.setFailedOperationType(repo.getFailedOperationType().getOperation());
         }
-        
-        if (repo.getSynchronizationSituation() != null){
-        	jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSyncType());
+
+        if (repo.getSynchronizationSituation() != null) {
+            jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSyncType());
         }
-        
+
         jaxb.setDead(repo.isDead());
 
         List situations = RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription());
         if (!situations.isEmpty()) {
             jaxb.getSynchronizationSituationDescription().addAll(situations);
         }
-        
+
         jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
-        
+
         try {
             jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
         } catch (Exception ex) {
@@ -318,7 +329,7 @@ public class RResourceObjectShadow extends RObject {
     }
 
     public static void copyFromJAXB(ResourceObjectShadowType jaxb, RResourceObjectShadow repo,
-            PrismContext prismContext) throws DtoTranslationException {
+                                    PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
@@ -336,22 +347,20 @@ public class RResourceObjectShadow extends RObject {
             ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
             repo.setResult(result);
         }
-        
-        if (jaxb.getSynchronizationSituation() != null){
-        	repo.setSynchronizationSituation(RSynchronizationSituation.toRepoType(jaxb.getSynchronizationSituation()));
+
+        if (jaxb.getSynchronizationSituation() != null) {
+            repo.setSynchronizationSituation(RSynchronizationSituation.toRepoType(jaxb.getSynchronizationSituation()));
         }
-        
-        repo.setSynchronizationSituationDescription(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
+
+        repo.getSynchronizationSituationDescription()
+                .addAll(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
-        repo.setResourceRef(RUtil.jaxbRefToRepo(jaxb.getResourceRef(), repo, prismContext));
+        repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
+
         repo.setAttemptNumber(jaxb.getAttemptNumber());
-//        if (jaxb.isDead() == null){
-//        	repo.setDead(false);
-//        }else {
-        	repo.setDead(jaxb.isDead());
-//        }
+        repo.setDead(jaxb.isDead());
         repo.setFailedOperationType(RFailedOperationTypeType.toRepoType(jaxb.getFailedOperationType()));
-        
+
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
                     "translated to resource reference.");

@@ -56,7 +56,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     @Test(enabled = false)
     public <T extends ObjectType> void perfTest() throws Exception {
-        Statistics stats = factory.getStatistics();
+        Statistics stats = getFactory().getStatistics();
         stats.setStatisticsEnabled(true);
 
         final File OBJECTS_FILE = new File("./src/test/resources/10k-users.xml");

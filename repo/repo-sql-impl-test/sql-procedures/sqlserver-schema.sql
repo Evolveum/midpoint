@@ -1,740 +1,742 @@
-
-    create table m_account_shadow (
-        accountType varchar(255),
-        allowedIdmAdminGuiAccess bit,
-        passwordXml varchar(MAX),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid)
-    );
-
-    create table m_any (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        ownerType int not null,
-        primary key (owner_id, owner_oid, ownerType)
-    );
-
-    create table m_any_clob (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        ownerType int not null,
-        clobValue varchar(MAX),
-        dynamicDef bit,
-        name_namespace varchar(255),
-        name_localPart varchar(255),
-        type_namespace varchar(255),
-        type_localPart varchar(255),
-        valueType int
-    );
-
-    create table m_any_date (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        ownerType int not null,
-        dateValue datetime2,
-        dynamicDef bit,
-        name_namespace varchar(255),
-        name_localPart varchar(255),
-        type_namespace varchar(255),
-        type_localPart varchar(255),
-        valueType int
-    );
-
-    create table m_any_long (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        ownerType int not null,
-        longValue bigint,
-        dynamicDef bit,
-        name_namespace varchar(255),
-        name_localPart varchar(255),
-        type_namespace varchar(255),
-        type_localPart varchar(255),
-        valueType int
-    );
-
-    create table m_any_reference (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        ownerType int not null,
-        oidValue varchar(255),
-        dynamicDef bit,
-        name_namespace varchar(255),
-        name_localPart varchar(255),
-        type_namespace varchar(255),
-        type_localPart varchar(255),
-        valueType int
-    );
-
-    create table m_any_string (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        ownerType int not null,
-        stringValue varchar(255),
-        dynamicDef bit,
-        name_namespace varchar(255),
-        name_localPart varchar(255),
-        type_namespace varchar(255),
-        type_localPart varchar(255),
-        valueType int
-    );
-
-    create table m_assignment (
-        accountConstruction varchar(MAX),
-        enabled bit,
-        validFrom datetime2,
-        validTo datetime2,
-        description varchar(MAX),
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        targetRef_description varchar(MAX),
-        targetRef_filter varchar(MAX),
-        targetRef_relationLocalPart varchar(255),
-        targetRef_relationNamespace varchar(255),
-        targetRef_targetOid varchar(36),
-        targetRef_type int,
-        id bigint not null,
-        oid varchar(36) not null,
-        extId bigint,
-        extOid varchar(36),
-        extType int,
-        primary key (id, oid)
-    );
-
-    create table m_audit_delta (
-        RAuditEventRecord_id bigint not null,
-        deltas varchar(MAX)
-    );
-
-    create table m_audit_event (
-        id bigint not null,
-        channel varchar(255),
-        eventIdentifier varchar(255),
-        eventStage int,
-        eventType int,
-        hostIdentifier varchar(255),
-        initiator varchar(MAX),
-        outcome int,
-        sessionIdentifier varchar(255),
-        target varchar(MAX),
-        targetOwner varchar(MAX),
-        taskIdentifier varchar(255),
-        taskOID varchar(255),
-        timestampValue bigint,
-        primary key (id)
-    );
-
-    create table m_connector (
-        connectorBundle varchar(255),
-        connectorType varchar(255),
-        connectorVersion varchar(255),
-        framework varchar(255),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        namespace varchar(255),
-        xmlSchema varchar(MAX),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid)
-    );
-
-    create table m_connector_host (
-        hostname varchar(255),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        port varchar(255),
-        protectConnection bit,
-        sharedSecret varchar(MAX),
-        timeout int,
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_connector_target_system (
-        connector_id bigint not null,
-        connector_oid varchar(36) not null,
-        targetSystemType varchar(255)
-    );
-
-    create table m_container (
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid)
-    );
-
-    create table m_exclusion (
-        description varchar(MAX),
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        policy int,
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid)
-    );
-
-    create table m_generic_object (
-        name_norm varchar(255),
-        name_orig varchar(255),
-        objectType varchar(255),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_node (
-        clusteredNode bit,
-        hostname varchar(255),
-        internalNodeIdentifier varchar(255),
-        jmxPort int,
-        lastCheckInTime datetime2,
-        name_norm varchar(255),
-        name_orig varchar(255),
-        nodeIdentifier varchar(255),
-        running bit,
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_object (
-        description varchar(MAX),
-        version bigint not null,
-        id bigint not null,
-        oid varchar(36) not null,
-        extId bigint,
-        extOid varchar(36),
-        extType int,
-        primary key (id, oid)
-    );
-
-    create table m_object_org_ref (
-        object_id bigint not null,
-        object_oid varchar(36) not null,
-        description varchar(MAX),
-        filter varchar(MAX),
-        relationLocalPart varchar(255),
-        relationNamespace varchar(255),
-        targetOid varchar(36),
-        type int
-    );
-
-    create table m_operation_result (
-        owner_oid varchar(36) not null,
-        owner_id bigint not null,
-        details varchar(MAX),
-        localizedMessage varchar(MAX),
-        message varchar(MAX),
-        messageCode varchar(255),
-        operation varchar(MAX),
-        params varchar(MAX),
-        partialResults varchar(MAX),
-        status int,
-        token bigint,
-        primary key (owner_oid, owner_id)
-    );
-
-    create table m_org (
-        costCenter varchar(255),
-        displayName_norm varchar(255),
-        displayName_orig varchar(255),
-        identifier varchar(255),
-        locality_norm varchar(255),
-        locality_orig varchar(255),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_org_closure (
-        id bigint not null,
-        depthValue int,
-        ancestor_id bigint,
-        ancestor_oid varchar(36),
-        descendant_id bigint,
-        descendant_oid varchar(36),
-        primary key (id)
-    );
-
-    create table m_org_org_type (
-        org_id bigint not null,
-        org_oid varchar(36) not null,
-        orgType varchar(255)
-    );
-
-    create table m_org_sys_config (
-        org_id bigint not null,
-        org_oid varchar(36) not null,
-        description varchar(MAX),
-        filter varchar(MAX),
-        relationLocalPart varchar(255),
-        relationNamespace varchar(255),
-        targetOid varchar(36),
-        type int
-    );
-
-    create table m_password_policy (
-        lifetime varchar(MAX),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        stringPolicy varchar(MAX),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_reference (
-        owner_id bigint not null,
-        owner_oid varchar(36) not null,
-        targetOid varchar(36) not null,
-        description varchar(MAX),
-        filter varchar(MAX),
-        reference_relationLocalPart varchar(255),
-        reference_relationNamespace varchar(255),
-        type int,
-        primary key (owner_id, owner_oid, targetOid)
-    );
-
-    create table m_resource (
-        business_administrativeState int,
-        capabilities_cachingMetadata varchar(MAX),
-        capabilities_configured varchar(MAX),
-        capabilities_native varchar(MAX),
-        configuration varchar(MAX),
-        connectorRef_description varchar(MAX),
-        connectorRef_filter varchar(MAX),
-        connectorRef_relationLocalPart varchar(255),
-        connectorRef_relationNamespace varchar(255),
-        connectorRef_targetOid varchar(36),
-        connectorRef_type int,
-        consistency varchar(MAX),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        namespace varchar(255),
-        o16_lastAvailabilityStatus int,
-        schemaHandling varchar(MAX),
-        scripts varchar(MAX),
-        synchronization varchar(MAX),
-        xmlSchema varchar(MAX),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_resource_approver_ref (
-        user_id bigint not null,
-        user_oid varchar(36) not null,
-        description varchar(MAX),
-        filter varchar(MAX),
-        relationLocalPart varchar(255),
-        relationNamespace varchar(255),
-        targetOid varchar(36),
-        type int
-    );
-
-    create table m_resource_shadow (
-        enabled bit,
-        validFrom datetime2,
-        validTo datetime2,
-        attemptNumber int,
-        dead bit,
-        failedOperationType int,
-        intent varchar(255),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        objectChange varchar(MAX),
-        class_namespace varchar(255),
-        class_localPart varchar(255),
-        synchronizationSituation int,
-        synchronizationTimestamp datetime2,
-        id bigint not null,
-        oid varchar(36) not null,
-        attrId bigint,
-        attrOid varchar(36),
-        attrType int,
-        primary key (id, oid)
-    );
-
-    create table m_role (
-        approvalExpression varchar(MAX),
-        approvalProcess varchar(255),
-        approvalSchema varchar(MAX),
-        automaticallyApproved varchar(MAX),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_sync_situation_description (
-        shadow_id bigint not null,
-        shadow_oid varchar(36) not null,
-        chanel varchar(255),
-        situation int,
-        timestamp datetime2
-    );
-
-    create table m_system_configuration (
-        connectorFramework varchar(MAX),
-        g36 varchar(MAX),
-        g23_description varchar(MAX),
-        globalPasswordPolicyRef_filter varchar(MAX),
-        g23_relationLocalPart varchar(255),
-        g23_relationNamespace varchar(255),
-        g23_targetOid varchar(36),
-        globalPasswordPolicyRef_type int,
-        logging varchar(MAX),
-        modelHooks varchar(MAX),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        notificationConfiguration varchar(MAX),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_task (
-        binding int,
-        canRunOnNode varchar(255),
-        category varchar(255),
-        claimExpirationTimestamp datetime2,
-        exclusivityStatus int,
-        executionStatus int,
-        handlerUri varchar(255),
-        lastRunFinishTimestamp datetime2,
-        lastRunStartTimestamp datetime2,
-        modelOperationState varchar(MAX),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        nextRunStartTime datetime2,
-        node varchar(255),
-        objectRef_description varchar(MAX),
-        objectRef_filter varchar(MAX),
-        objectRef_relationLocalPart varchar(255),
-        objectRef_relationNamespace varchar(255),
-        objectRef_targetOid varchar(36),
-        objectRef_type int,
-        otherHandlersUriStack varchar(MAX),
-        ownerRef_description varchar(MAX),
-        ownerRef_filter varchar(MAX),
-        ownerRef_relationLocalPart varchar(255),
-        ownerRef_relationNamespace varchar(255),
-        ownerRef_targetOid varchar(36),
-        ownerRef_type int,
-        parent varchar(255),
-        progress bigint,
-        recurrence int,
-        resultStatus int,
-        schedule varchar(MAX),
-        taskIdentifier varchar(255),
-        threadStopAction int,
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid)
-    );
-
-    create table m_user (
-        enabled bit,
-        validFrom datetime2,
-        validTo datetime2,
-        additionalName_norm varchar(255),
-        additionalName_orig varchar(255),
-        costCenter varchar(255),
-        allowedIdmAdminGuiAccess bit,
-        passwordXml varchar(MAX),
-        emailAddress varchar(255),
-        employeeNumber varchar(255),
-        familyName_norm varchar(255),
-        familyName_orig varchar(255),
-        fullName_norm varchar(255),
-        fullName_orig varchar(255),
-        givenName_norm varchar(255),
-        givenName_orig varchar(255),
-        honorificPrefix_norm varchar(255),
-        honorificPrefix_orig varchar(255),
-        honorificSuffix_norm varchar(255),
-        honorificSuffix_orig varchar(255),
-        locale varchar(255),
-        locality_norm varchar(255),
-        locality_orig varchar(255),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        nickName_norm varchar(255),
-        nickName_orig varchar(255),
-        preferredLanguage varchar(255),
-        telephoneNumber varchar(255),
-        timezone varchar(255),
-        title_norm varchar(255),
-        title_orig varchar(255),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    create table m_user_employee_type (
-        user_id bigint not null,
-        user_oid varchar(36) not null,
-        employeeType varchar(255)
-    );
-
-    create table m_user_organizational_unit (
-        user_id bigint not null,
-        user_oid varchar(36) not null,
-        norm varchar(255),
-        orig varchar(255)
-    );
-
-    create table m_user_template (
-        accountConstruction varchar(MAX),
-        name_norm varchar(255),
-        name_orig varchar(255),
-        propertyConstruction varchar(MAX),
-        id bigint not null,
-        oid varchar(36) not null,
-        primary key (id, oid),
-        unique (name_norm)
-    );
-
-    alter table m_account_shadow 
-        add constraint fk_account_shadow 
-        foreign key (id, oid) 
-        references m_resource_shadow;
-
-    alter table m_any_clob 
-        add constraint fk_any_clob 
-        foreign key (owner_id, owner_oid, ownerType) 
-        references m_any;
-
-    create index iDate on m_any_date (dateValue);
-
-    alter table m_any_date 
-        add constraint fk_any_date 
-        foreign key (owner_id, owner_oid, ownerType) 
-        references m_any;
-
-    create index iLong on m_any_long (longValue);
-
-    alter table m_any_long 
-        add constraint fk_any_long 
-        foreign key (owner_id, owner_oid, ownerType) 
-        references m_any;
-
-    create index iOid on m_any_reference (oidValue);
-
-    alter table m_any_reference 
-        add constraint fk_any_reference 
-        foreign key (owner_id, owner_oid, ownerType) 
-        references m_any;
-
-    create index iString on m_any_string (stringValue);
-
-    alter table m_any_string 
-        add constraint fk_any_string 
-        foreign key (owner_id, owner_oid, ownerType) 
-        references m_any;
-
-    create index iAssignmentEnabled on m_assignment (enabled);
-
-    alter table m_assignment 
-        add constraint fk_assignment 
-        foreign key (id, oid) 
-        references m_container;
-
-    alter table m_assignment 
-        add constraint fk_assignment_owner 
-        foreign key (owner_id, owner_oid) 
-        references m_object;
-
-    alter table m_audit_delta 
-        add constraint fk_audit_delta 
-        foreign key (RAuditEventRecord_id) 
-        references m_audit_event;
-
-    create index iConnectorName on m_connector (name_norm);
-
-    alter table m_connector 
-        add constraint fk_connector 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_connector_host 
-        add constraint fk_connector_host 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_connector_target_system 
-        add constraint fk_connector_target_system 
-        foreign key (connector_id, connector_oid) 
-        references m_connector;
-
-    alter table m_exclusion 
-        add constraint fk_exclusion 
-        foreign key (id, oid) 
-        references m_container;
-
-    alter table m_exclusion 
-        add constraint fk_exclusion_owner 
-        foreign key (owner_id, owner_oid) 
-        references m_object;
-
-    alter table m_generic_object 
-        add constraint fk_generic_object 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_node 
-        add constraint fk_node 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_object 
-        add constraint fk_container 
-        foreign key (id, oid) 
-        references m_container;
-
-    alter table m_object_org_ref 
-        add constraint fk_object_org_ref 
-        foreign key (object_id, object_oid) 
-        references m_object;
-
-    alter table m_operation_result 
-        add constraint fk_result_owner 
-        foreign key (owner_id, owner_oid) 
-        references m_object;
-
-    alter table m_org 
-        add constraint fk_org 
-        foreign key (id, oid) 
-        references m_object;
-
-    create index iDescendant on m_org_closure (descendant_oid, descendant_id);
-
-    create index iAncestor on m_org_closure (ancestor_oid, ancestor_id);
-
-    alter table m_org_closure 
-        add constraint fk_descendant 
-        foreign key (descendant_id, descendant_oid) 
-        references m_object;
-
-    alter table m_org_closure 
-        add constraint fk_ancestor 
-        foreign key (ancestor_id, ancestor_oid) 
-        references m_object;
-
-    alter table m_org_org_type 
-        add constraint fk_org_org_type 
-        foreign key (org_id, org_oid) 
-        references m_org;
-
-    alter table m_org_sys_config 
-        add constraint fk_org_unit 
-        foreign key (org_id, org_oid) 
-        references m_system_configuration;
-
-    alter table m_password_policy 
-        add constraint fk_password_policy 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_reference 
-        add constraint fk_reference_owner 
-        foreign key (owner_id, owner_oid) 
-        references m_container;
-
-    alter table m_resource 
-        add constraint fk_resource 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_resource_approver_ref 
-        add constraint fk_resource_approver_ref 
-        foreign key (user_id, user_oid) 
-        references m_resource;
-
-    create index iResourceObjectShadowEnabled on m_resource_shadow (enabled);
-
-    create index iResourceShadowName on m_resource_shadow (name_norm);
-
-    alter table m_resource_shadow 
-        add constraint fk_resource_object_shadow 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_role 
-        add constraint fk_role 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_sync_situation_description 
-        add constraint fk_shadow_sync_situation 
-        foreign key (shadow_id, shadow_oid) 
-        references m_resource_shadow;
-
-    alter table m_system_configuration 
-        add constraint fk_system_configuration 
-        foreign key (id, oid) 
-        references m_object;
-
-    create index iTaskName on m_task (name_norm);
-
-    alter table m_task 
-        add constraint fk_task 
-        foreign key (id, oid) 
-        references m_object;
-
-    create index iFullName on m_user (fullName_norm);
-
-    create index iLocality on m_user (locality_norm);
-
-    create index iHonorificSuffix on m_user (honorificSuffix_norm);
-
-    create index iEmployeeNumber on m_user (employeeNumber);
-
-    create index iGivenName on m_user (givenName_norm);
-
-    create index iFamilyName on m_user (familyName_norm);
-
-    create index iAdditionalName on m_user (additionalName_norm);
-
-    create index iHonorificPrefix on m_user (honorificPrefix_norm);
-
-    create index iUserEnabled on m_user (enabled);
-
-    alter table m_user 
-        add constraint fk_user 
-        foreign key (id, oid) 
-        references m_object;
-
-    alter table m_user_employee_type 
-        add constraint fk_user_employee_type 
-        foreign key (user_id, user_oid) 
-        references m_user;
-
-    alter table m_user_organizational_unit 
-        add constraint fk_user_org_unit 
-        foreign key (user_id, user_oid) 
-        references m_user;
-
-    alter table m_user_template 
-        add constraint fk_user_template 
-        foreign key (id, oid) 
-        references m_object;
-
-    create table hibernate_sequence (
-         next_val bigint 
-    );
-
-    insert into hibernate_sequence values ( 1 );
+CREATE TABLE m_account_shadow (
+  accountType              NVARCHAR(255),
+  allowedIdmAdminGuiAccess BIT,
+  passwordXml              NVARCHAR(MAX),
+  id                       BIGINT      NOT NULL,
+  oid                      NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_any (
+  owner_id  BIGINT      NOT NULL,
+  owner_oid NVARCHAR(36) NOT NULL,
+  ownerType INT         NOT NULL,
+  PRIMARY KEY (owner_id, owner_oid, ownerType)
+);
+
+CREATE TABLE m_any_clob (
+  checksum               NVARCHAR(32)  NOT NULL,
+  name_namespace         NVARCHAR(255) NOT NULL,
+  name_localPart         NVARCHAR(100) NOT NULL,
+  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
+  anyContainer_ownertype INT          NOT NULL,
+  type_namespace         NVARCHAR(255) NOT NULL,
+  type_localPart         NVARCHAR(100) NOT NULL,
+  dynamicDef             BIT,
+  clobValue              NVARCHAR(MAX),
+  valueType              INT,
+  PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart)
+);
+
+CREATE TABLE m_any_date (
+  name_namespace         NVARCHAR(255) NOT NULL,
+  name_localPart         NVARCHAR(100) NOT NULL,
+  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
+  anyContainer_ownertype INT          NOT NULL,
+  type_namespace         NVARCHAR(255) NOT NULL,
+  type_localPart         NVARCHAR(100) NOT NULL,
+  dateValue              DATETIME2    NOT NULL,
+  dynamicDef             BIT,
+  valueType              INT,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, dateValue)
+);
+
+CREATE TABLE m_any_long (
+  name_namespace         NVARCHAR(255) NOT NULL,
+  name_localPart         NVARCHAR(100) NOT NULL,
+  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
+  anyContainer_ownertype INT          NOT NULL,
+  type_namespace         NVARCHAR(255) NOT NULL,
+  type_localPart         NVARCHAR(100) NOT NULL,
+  longValue              BIGINT       NOT NULL,
+  dynamicDef             BIT,
+  valueType              INT,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
+);
+
+CREATE TABLE m_any_reference (
+  name_namespace         NVARCHAR(255) NOT NULL,
+  name_localPart         NVARCHAR(100) NOT NULL,
+  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
+  anyContainer_ownertype INT          NOT NULL,
+  type_namespace         NVARCHAR(255) NOT NULL,
+  type_localPart         NVARCHAR(100) NOT NULL,
+  targetoid              NVARCHAR(36) NOT NULL,
+  description            NVARCHAR(MAX),
+  dynamicDef             BIT,
+  filter                 NVARCHAR(MAX),
+  relation_namespace     NVARCHAR(255),
+  relation_localPart     NVARCHAR(100),
+  targetType             INT,
+  valueType              INT,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, targetoid)
+);
+
+CREATE TABLE m_any_string (
+  name_namespace         NVARCHAR(255) NOT NULL,
+  name_localPart         NVARCHAR(100) NOT NULL,
+  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
+  anyContainer_ownertype INT          NOT NULL,
+  type_namespace         NVARCHAR(255) NOT NULL,
+  type_localPart         NVARCHAR(100) NOT NULL,
+  stringValue            NVARCHAR(255) NOT NULL,
+  dynamicDef             BIT,
+  valueType              INT,
+  PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, stringValue)
+);
+
+CREATE TABLE m_assignment (
+  accountConstruction         NVARCHAR(MAX),
+  enabled                     BIT,
+  validFrom                   DATETIME2,
+  validTo                     DATETIME2,
+  description                 NVARCHAR(MAX),
+  owner_id                    BIGINT      NOT NULL,
+  owner_oid                   NVARCHAR(36) NOT NULL,
+  targetRef_description       NVARCHAR(MAX),
+  targetRef_filter            NVARCHAR(MAX),
+  targetRef_relationLocalPart NVARCHAR(100),
+  targetRef_relationNamespace NVARCHAR(255),
+  targetRef_targetOid         NVARCHAR(36),
+  targetRef_type              INT,
+  id                          BIGINT      NOT NULL,
+  oid                         NVARCHAR(36) NOT NULL,
+  extId                       BIGINT,
+  extOid                      NVARCHAR(36),
+  extType                     INT,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_audit_delta (
+  RAuditEventRecord_id BIGINT NOT NULL,
+  deltas               NVARCHAR(MAX)
+);
+
+CREATE TABLE m_audit_event (
+  id                BIGINT NOT NULL,
+  channel           NVARCHAR(255),
+  eventIdentifier   NVARCHAR(255),
+  eventStage        INT,
+  eventType         INT,
+  hostIdentifier    NVARCHAR(255),
+  initiator         NVARCHAR(MAX),
+  outcome           INT,
+  sessionIdentifier NVARCHAR(255),
+  target            NVARCHAR(MAX),
+  targetOwner       NVARCHAR(MAX),
+  taskIdentifier    NVARCHAR(255),
+  taskOID           NVARCHAR(255),
+  timestampValue    BIGINT,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE m_connector (
+  connectorBundle              NVARCHAR(255),
+  connectorHostRef_description NVARCHAR(MAX),
+  connectorHostRef_filter      NVARCHAR(MAX),
+  c16_relationLocalPart        NVARCHAR(100),
+  c16_relationNamespace        NVARCHAR(255),
+  connectorHostRef_targetOid   NVARCHAR(36),
+  connectorHostRef_type        INT,
+  connectorType                NVARCHAR(255),
+  connectorVersion             NVARCHAR(255),
+  framework                    NVARCHAR(255),
+  name_norm                    NVARCHAR(255),
+  name_orig                    NVARCHAR(255),
+  namespace                    NVARCHAR(255),
+  xmlSchema                    NVARCHAR(MAX),
+  id                           BIGINT      NOT NULL,
+  oid                          NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_connector_host (
+  hostname          NVARCHAR(255),
+  name_norm         NVARCHAR(255),
+  name_orig         NVARCHAR(255),
+  port              NVARCHAR(255),
+  protectConnection BIT,
+  sharedSecret      NVARCHAR(MAX),
+  timeout           INT,
+  id                BIGINT      NOT NULL,
+  oid               NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_connector_target_system (
+  connector_id     BIGINT      NOT NULL,
+  connector_oid    NVARCHAR(36) NOT NULL,
+  targetSystemType NVARCHAR(255)
+);
+
+CREATE TABLE m_container (
+  id  BIGINT      NOT NULL,
+  oid NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_exclusion (
+  description                 NVARCHAR(MAX),
+  owner_id                    BIGINT      NOT NULL,
+  owner_oid                   NVARCHAR(36) NOT NULL,
+  policy                      INT,
+  targetRef_description       NVARCHAR(MAX),
+  targetRef_filter            NVARCHAR(MAX),
+  targetRef_relationLocalPart NVARCHAR(100),
+  targetRef_relationNamespace NVARCHAR(255),
+  targetRef_targetOid         NVARCHAR(36),
+  targetRef_type              INT,
+  id                          BIGINT      NOT NULL,
+  oid                         NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_generic_object (
+  name_norm  NVARCHAR(255),
+  name_orig  NVARCHAR(255),
+  objectType NVARCHAR(255),
+  id         BIGINT      NOT NULL,
+  oid        NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_node (
+  clusteredNode          BIT,
+  hostname               NVARCHAR(255),
+  internalNodeIdentifier NVARCHAR(255),
+  jmxPort                INT,
+  lastCheckInTime        DATETIME2,
+  name_norm              NVARCHAR(255),
+  name_orig              NVARCHAR(255),
+  nodeIdentifier         NVARCHAR(255),
+  running                BIT,
+  id                     BIGINT      NOT NULL,
+  oid                    NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_object (
+  description NVARCHAR(MAX),
+  version     BIGINT      NOT NULL,
+  id          BIGINT      NOT NULL,
+  oid         NVARCHAR(36) NOT NULL,
+  extId       BIGINT,
+  extOid      NVARCHAR(36),
+  extType     INT,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_operation_result (
+  owner_oid        NVARCHAR(36) NOT NULL,
+  owner_id         BIGINT      NOT NULL,
+  details          NVARCHAR(MAX),
+  localizedMessage NVARCHAR(MAX),
+  message          NVARCHAR(MAX),
+  messageCode      NVARCHAR(255),
+  operation        NVARCHAR(MAX),
+  params           NVARCHAR(MAX),
+  partialResults   NVARCHAR(MAX),
+  status           INT,
+  token            BIGINT,
+  PRIMARY KEY (owner_oid, owner_id)
+);
+
+CREATE TABLE m_org (
+  costCenter       NVARCHAR(255),
+  displayName_norm NVARCHAR(255),
+  displayName_orig NVARCHAR(255),
+  identifier       NVARCHAR(255),
+  locality_norm    NVARCHAR(255),
+  locality_orig    NVARCHAR(255),
+  id               BIGINT      NOT NULL,
+  oid              NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_org_closure (
+  id             BIGINT NOT NULL,
+  depthValue     INT,
+  ancestor_id    BIGINT,
+  ancestor_oid   NVARCHAR(36),
+  descendant_id  BIGINT,
+  descendant_oid NVARCHAR(36),
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE m_org_org_type (
+  org_id  BIGINT      NOT NULL,
+  org_oid NVARCHAR(36) NOT NULL,
+  orgType NVARCHAR(255)
+);
+
+CREATE TABLE m_password_policy (
+  lifetime     NVARCHAR(MAX),
+  name_norm    NVARCHAR(255),
+  name_orig    NVARCHAR(255),
+  stringPolicy NVARCHAR(MAX),
+  id           BIGINT      NOT NULL,
+  oid          NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_reference (
+  reference_type INT          NOT NULL,
+  owner_id       BIGINT       NOT NULL,
+  owner_oid      NVARCHAR(36)  NOT NULL,
+  relLocalPart   NVARCHAR(100) NOT NULL,
+  relNamespace   NVARCHAR(255) NOT NULL,
+  targetOid      NVARCHAR(36)  NOT NULL,
+  description    NVARCHAR(MAX),
+  filter         NVARCHAR(MAX),
+  containerType  INT,
+  PRIMARY KEY (owner_id, owner_oid, relLocalPart, relNamespace, targetOid)
+);
+
+CREATE TABLE m_resource (
+  administrativeState            INT,
+  capabilities_cachingMetadata   NVARCHAR(MAX),
+  capabilities_configured        NVARCHAR(MAX),
+  capabilities_native            NVARCHAR(MAX),
+  configuration                  NVARCHAR(MAX),
+  connectorRef_description       NVARCHAR(MAX),
+  connectorRef_filter            NVARCHAR(MAX),
+  connectorRef_relationLocalPart NVARCHAR(100),
+  connectorRef_relationNamespace NVARCHAR(255),
+  connectorRef_targetOid         NVARCHAR(36),
+  connectorRef_type              INT,
+  consistency                    NVARCHAR(MAX),
+  name_norm                      NVARCHAR(255),
+  name_orig                      NVARCHAR(255),
+  namespace                      NVARCHAR(255),
+  o16_lastAvailabilityStatus     INT,
+  schemaHandling                 NVARCHAR(MAX),
+  scripts                        NVARCHAR(MAX),
+  synchronization                NVARCHAR(MAX),
+  xmlSchema                      NVARCHAR(MAX),
+  id                             BIGINT      NOT NULL,
+  oid                            NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_resource_shadow (
+  enabled                       BIT,
+  validFrom                     DATETIME2,
+  validTo                       DATETIME2,
+  attemptNumber                 INT,
+  dead                          BIT,
+  failedOperationType           INT,
+  intent                        NVARCHAR(255),
+  name_norm                     NVARCHAR(255),
+  name_orig                     NVARCHAR(255),
+  objectChange                  NVARCHAR(MAX),
+  class_namespace               NVARCHAR(255),
+  class_localPart               NVARCHAR(100),
+  resourceRef_description       NVARCHAR(MAX),
+  resourceRef_filter            NVARCHAR(MAX),
+  resourceRef_relationLocalPart NVARCHAR(100),
+  resourceRef_relationNamespace NVARCHAR(255),
+  resourceRef_targetOid         NVARCHAR(36),
+  resourceRef_type              INT,
+  synchronizationSituation      INT,
+  synchronizationTimestamp      DATETIME2,
+  id                            BIGINT      NOT NULL,
+  oid                           NVARCHAR(36) NOT NULL,
+  attrId                        BIGINT,
+  attrOid                       NVARCHAR(36),
+  attrType                      INT,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_role (
+  approvalExpression    NVARCHAR(MAX),
+  approvalProcess       NVARCHAR(255),
+  approvalSchema        NVARCHAR(MAX),
+  automaticallyApproved NVARCHAR(MAX),
+  name_norm             NVARCHAR(255),
+  name_orig             NVARCHAR(255),
+  requestable           BIT,
+  roleType              NVARCHAR(255),
+  id                    BIGINT      NOT NULL,
+  oid                   NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_sync_situation_description (
+  shadow_id      BIGINT      NOT NULL,
+  shadow_oid     NVARCHAR(36) NOT NULL,
+  chanel         NVARCHAR(255),
+  situation      INT,
+  timestampValue DATETIME2
+);
+
+CREATE TABLE m_system_configuration (
+  connectorFramework             NVARCHAR(MAX),
+  d22_description                NVARCHAR(MAX),
+  defaultUserTemplateRef_filter  NVARCHAR(MAX),
+  d22_relationLocalPart          NVARCHAR(100),
+  d22_relationNamespace          NVARCHAR(255),
+  d22_targetOid                  NVARCHAR(36),
+  defaultUserTemplateRef_type    INT,
+  g36                            NVARCHAR(MAX),
+  g23_description                NVARCHAR(MAX),
+  globalPasswordPolicyRef_filter NVARCHAR(MAX),
+  g23_relationLocalPart          NVARCHAR(100),
+  g23_relationNamespace          NVARCHAR(255),
+  g23_targetOid                  NVARCHAR(36),
+  globalPasswordPolicyRef_type   INT,
+  logging                        NVARCHAR(MAX),
+  modelHooks                     NVARCHAR(MAX),
+  name_norm                      NVARCHAR(255),
+  name_orig                      NVARCHAR(255),
+  notificationConfiguration      NVARCHAR(MAX),
+  id                             BIGINT      NOT NULL,
+  oid                            NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_task (
+  binding                     INT,
+  canRunOnNode                NVARCHAR(255),
+  category                    NVARCHAR(255),
+  claimExpirationTimestamp    DATETIME2,
+  exclusivityStatus           INT,
+  executionStatus             INT,
+  handlerUri                  NVARCHAR(255),
+  lastRunFinishTimestamp      DATETIME2,
+  lastRunStartTimestamp       DATETIME2,
+  modelOperationState         NVARCHAR(MAX),
+  name_norm                   NVARCHAR(255),
+  name_orig                   NVARCHAR(255),
+  nextRunStartTime            DATETIME2,
+  node                        NVARCHAR(255),
+  objectRef_description       NVARCHAR(MAX),
+  objectRef_filter            NVARCHAR(MAX),
+  objectRef_relationLocalPart NVARCHAR(100),
+  objectRef_relationNamespace NVARCHAR(255),
+  objectRef_targetOid         NVARCHAR(36),
+  objectRef_type              INT,
+  otherHandlersUriStack       NVARCHAR(MAX),
+  ownerRef_description        NVARCHAR(MAX),
+  ownerRef_filter             NVARCHAR(MAX),
+  ownerRef_relationLocalPart  NVARCHAR(100),
+  ownerRef_relationNamespace  NVARCHAR(255),
+  ownerRef_targetOid          NVARCHAR(36),
+  ownerRef_type               INT,
+  parent                      NVARCHAR(255),
+  progress                    BIGINT,
+  recurrence                  INT,
+  resultStatus                INT,
+  schedule                    NVARCHAR(MAX),
+  taskIdentifier              NVARCHAR(255),
+  threadStopAction            INT,
+  id                          BIGINT      NOT NULL,
+  oid                         NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_user (
+  enabled                  BIT,
+  validFrom                DATETIME2,
+  validTo                  DATETIME2,
+  additionalName_norm      NVARCHAR(255),
+  additionalName_orig      NVARCHAR(255),
+  costCenter               NVARCHAR(255),
+  allowedIdmAdminGuiAccess BIT,
+  passwordXml              NVARCHAR(MAX),
+  emailAddress             NVARCHAR(255),
+  employeeNumber           NVARCHAR(255),
+  familyName_norm          NVARCHAR(255),
+  familyName_orig          NVARCHAR(255),
+  fullName_norm            NVARCHAR(255),
+  fullName_orig            NVARCHAR(255),
+  givenName_norm           NVARCHAR(255),
+  givenName_orig           NVARCHAR(255),
+  honorificPrefix_norm     NVARCHAR(255),
+  honorificPrefix_orig     NVARCHAR(255),
+  honorificSuffix_norm     NVARCHAR(255),
+  honorificSuffix_orig     NVARCHAR(255),
+  locale                   NVARCHAR(255),
+  locality_norm            NVARCHAR(255),
+  locality_orig            NVARCHAR(255),
+  name_norm                NVARCHAR(255),
+  name_orig                NVARCHAR(255),
+  nickName_norm            NVARCHAR(255),
+  nickName_orig            NVARCHAR(255),
+  preferredLanguage        NVARCHAR(255),
+  telephoneNumber          NVARCHAR(255),
+  timezone                 NVARCHAR(255),
+  title_norm               NVARCHAR(255),
+  title_orig               NVARCHAR(255),
+  id                       BIGINT      NOT NULL,
+  oid                      NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+CREATE TABLE m_user_employee_type (
+  user_id      BIGINT      NOT NULL,
+  user_oid     NVARCHAR(36) NOT NULL,
+  employeeType NVARCHAR(255)
+);
+
+CREATE TABLE m_user_organization (
+  user_id  BIGINT      NOT NULL,
+  user_oid NVARCHAR(36) NOT NULL,
+  norm     NVARCHAR(255),
+  orig     NVARCHAR(255)
+);
+
+CREATE TABLE m_user_organizational_unit (
+  user_id  BIGINT      NOT NULL,
+  user_oid NVARCHAR(36) NOT NULL,
+  norm     NVARCHAR(255),
+  orig     NVARCHAR(255)
+);
+
+CREATE TABLE m_user_template (
+  accountConstruction  NVARCHAR(MAX),
+  name_norm            NVARCHAR(255),
+  name_orig            NVARCHAR(255),
+  propertyConstruction NVARCHAR(MAX),
+  id                   BIGINT      NOT NULL,
+  oid                  NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
+ALTER TABLE m_account_shadow
+ADD CONSTRAINT fk_account_shadow
+FOREIGN KEY (id, oid)
+REFERENCES m_resource_shadow;
+
+ALTER TABLE m_any_clob
+ADD CONSTRAINT fk_any_clob
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any;
+
+CREATE INDEX iDate ON m_any_date (dateValue);
+
+ALTER TABLE m_any_date
+ADD CONSTRAINT fk_any_date
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any;
+
+CREATE INDEX iLong ON m_any_long (longValue);
+
+ALTER TABLE m_any_long
+ADD CONSTRAINT fk_any_long
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any;
+
+CREATE INDEX iTargetOid ON m_any_reference (targetoid);
+
+ALTER TABLE m_any_reference
+ADD CONSTRAINT fk_any_reference
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any;
+
+CREATE INDEX iString ON m_any_string (stringValue);
+
+ALTER TABLE m_any_string
+ADD CONSTRAINT fk_any_string
+FOREIGN KEY (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownerType)
+REFERENCES m_any;
+
+CREATE INDEX iAssignmentEnabled ON m_assignment (enabled);
+
+ALTER TABLE m_assignment
+ADD CONSTRAINT fk_assignment
+FOREIGN KEY (id, oid)
+REFERENCES m_container;
+
+ALTER TABLE m_assignment
+ADD CONSTRAINT fk_assignment_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_audit_delta
+ADD CONSTRAINT fk_audit_delta
+FOREIGN KEY (RAuditEventRecord_id)
+REFERENCES m_audit_event;
+
+CREATE INDEX iConnectorName ON m_connector (name_norm);
+
+ALTER TABLE m_connector
+ADD CONSTRAINT fk_connector
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_connector_host
+ADD CONSTRAINT fk_connector_host
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_connector_target_system
+ADD CONSTRAINT fk_connector_target_system
+FOREIGN KEY (connector_id, connector_oid)
+REFERENCES m_connector;
+
+ALTER TABLE m_exclusion
+ADD CONSTRAINT fk_exclusion
+FOREIGN KEY (id, oid)
+REFERENCES m_container;
+
+ALTER TABLE m_exclusion
+ADD CONSTRAINT fk_exclusion_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_generic_object
+ADD CONSTRAINT fk_generic_object
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_node
+ADD CONSTRAINT fk_node
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_object
+ADD CONSTRAINT fk_object
+FOREIGN KEY (id, oid)
+REFERENCES m_container;
+
+ALTER TABLE m_operation_result
+ADD CONSTRAINT fk_result_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_org
+ADD CONSTRAINT fk_org
+FOREIGN KEY (id, oid)
+REFERENCES m_role;
+
+CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id);
+
+CREATE INDEX iAncestor ON m_org_closure (ancestor_oid, ancestor_id);
+
+ALTER TABLE m_org_closure
+ADD CONSTRAINT fk_descendant
+FOREIGN KEY (descendant_id, descendant_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_org_closure
+ADD CONSTRAINT fk_ancestor
+FOREIGN KEY (ancestor_id, ancestor_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_org_org_type
+ADD CONSTRAINT fk_org_org_type
+FOREIGN KEY (org_id, org_oid)
+REFERENCES m_org;
+
+ALTER TABLE m_password_policy
+ADD CONSTRAINT fk_password_policy
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_reference
+ADD CONSTRAINT fk_reference_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_container;
+
+ALTER TABLE m_resource
+ADD CONSTRAINT fk_resource
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+CREATE INDEX iResourceObjectShadowEnabled ON m_resource_shadow (enabled);
+
+CREATE INDEX iShadowResourceRef ON m_resource_shadow (resourceRef_targetOid);
+
+CREATE INDEX iResourceShadowName ON m_resource_shadow (name_norm);
+
+ALTER TABLE m_resource_shadow
+ADD CONSTRAINT fk_resource_object_shadow
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+CREATE INDEX iRequestable ON m_role (requestable);
+
+ALTER TABLE m_role
+ADD CONSTRAINT fk_role
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_sync_situation_description
+ADD CONSTRAINT fk_shadow_sync_situation
+FOREIGN KEY (shadow_id, shadow_oid)
+REFERENCES m_resource_shadow;
+
+ALTER TABLE m_system_configuration
+ADD CONSTRAINT fk_system_configuration
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+CREATE INDEX iTaskName ON m_task (name_norm);
+
+ALTER TABLE m_task
+ADD CONSTRAINT fk_task
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+CREATE INDEX iFullName ON m_user (fullName_norm);
+
+CREATE INDEX iLocality ON m_user (locality_norm);
+
+CREATE INDEX iHonorificSuffix ON m_user (honorificSuffix_norm);
+
+CREATE INDEX iEmployeeNumber ON m_user (employeeNumber);
+
+CREATE INDEX iGivenName ON m_user (givenName_norm);
+
+CREATE INDEX iFamilyName ON m_user (familyName_norm);
+
+CREATE INDEX iAdditionalName ON m_user (additionalName_norm);
+
+CREATE INDEX iHonorificPrefix ON m_user (honorificPrefix_norm);
+
+CREATE INDEX iUserEnabled ON m_user (enabled);
+
+ALTER TABLE m_user
+ADD CONSTRAINT fk_user
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+ALTER TABLE m_user_employee_type
+ADD CONSTRAINT fk_user_employee_type
+FOREIGN KEY (user_id, user_oid)
+REFERENCES m_user;
+
+ALTER TABLE m_user_organization
+ADD CONSTRAINT fk_user_organization
+FOREIGN KEY (user_id, user_oid)
+REFERENCES m_user;
+
+ALTER TABLE m_user_organizational_unit
+ADD CONSTRAINT fk_user_org_unit
+FOREIGN KEY (user_id, user_oid)
+REFERENCES m_user;
+
+ALTER TABLE m_user_template
+ADD CONSTRAINT fk_user_template
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
+CREATE TABLE hibernate_sequence (
+  next_val BIGINT
+);
+
+INSERT INTO hibernate_sequence VALUES (1);

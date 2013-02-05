@@ -22,12 +22,13 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -35,6 +36,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -45,7 +47,7 @@ import java.util.Set;
  * @author lazyman
  */
 @Entity
-@ForeignKey(name = "fk_container")
+@ForeignKey(name = "fk_object")
 public abstract class RObject extends RContainer {
 
 	@QueryAttribute
@@ -53,20 +55,26 @@ public abstract class RObject extends RContainer {
 	@QueryEntity(any = true)
 	private RAnyContainer extension;
 	private long version;
-	@QueryAttribute(multiValue = true)
-	private Set<REmbeddedReference> parentOrgRef;
 	private Set<ROrgClosure> descendants;
 	private Set<ROrgClosure> ancestors;
 
-	@ElementCollection
-	@ForeignKey(name = "fk_object_org_ref")
-	@CollectionTable(name = "m_object_org_ref", joinColumns = {
-			@JoinColumn(name = "object_oid", referencedColumnName = "oid"),
-			@JoinColumn(name = "object_id", referencedColumnName = "id") })
-	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
-	public Set<REmbeddedReference> getParentOrgRef() {
-		return parentOrgRef;
-	}
+    @QueryAttribute(name = "parentOrgRef", multiValue = true, reference = true)
+    private Set<RObjectReference> parentOrgRef;
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getParentOrgRef() {
+        if (parentOrgRef == null) {
+            parentOrgRef = new HashSet<RObjectReference>();
+        }
+        return parentOrgRef;
+    }
+
+    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
+        this.parentOrgRef = parentOrgRef;
+    }
 
 	@OneToOne(optional = true, orphanRemoval = true)
 	@ForeignKey(name = "none")
@@ -121,10 +129,6 @@ public abstract class RObject extends RContainer {
 
 	public void setVersion(long version) {
 		this.version = version;
-	}
-
-	public void setParentOrgRef(Set<REmbeddedReference> orgRefs) {
-		this.parentOrgRef = orgRefs;
 	}
 
 	@Override
@@ -200,13 +204,7 @@ public abstract class RObject extends RContainer {
 			RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
 		}
 
-		if (!jaxb.getParentOrgRef().isEmpty()) {
-			repo.setParentOrgRef(new HashSet<REmbeddedReference>());
-		}
-		for (ObjectReferenceType orgRef : jaxb.getParentOrgRef()) {
-			repo.getParentOrgRef().add(RUtil.jaxbRefToEmbeddedRepoRef(orgRef, prismContext));
-		}
-
+        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext, repo, RReferenceOwner.OBJECT_PARENT_ORG));
 	}
 
 	public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;

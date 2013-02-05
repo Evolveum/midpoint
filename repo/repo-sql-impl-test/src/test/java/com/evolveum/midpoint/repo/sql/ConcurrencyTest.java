@@ -59,7 +59,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     @Test
     public void concurrency001() throws Exception {
-        Session session = factory.openSession();
+        Session session = getFactory().openSession();
         session.doWork(new Work() {
             @Override
             public void execute(Connection connection) throws SQLException {
@@ -127,7 +127,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         Thread.sleep(1000);         // give the threads a chance to finish (before repo will be shut down)
 
         for (ModifierThread mt : mts) {
-            LOGGER.info("Modifier thread " + mt.id + " finished with an exception: " + mt.threadResult);
+            LOGGER.info("Modifier thread " + mt.id + " finished with an exception: ", mt.threadResult);
         }
 
         for (ModifierThread mt : mts) {

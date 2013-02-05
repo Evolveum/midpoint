@@ -1,43 +1,44 @@
-create or replace function cleanupTestDatabase() returns integer as $$
-begin
-  truncate table m_account_shadow restart identity cascade;
-  truncate table m_any restart identity cascade;
-  truncate table m_any_clob restart identity cascade;
-  truncate table m_any_date restart identity cascade;
-  truncate table m_any_long restart identity cascade;
-  truncate table m_any_string restart identity cascade;
-  truncate table m_any_reference restart identity cascade;
-  truncate table m_assignment restart identity cascade;
-  truncate table m_audit_delta restart identity cascade;
-  truncate table m_audit_event restart identity cascade;
-  truncate table m_connector restart identity cascade;
-  truncate table m_connector_host restart identity cascade;
-  truncate table m_connector_target_system restart identity cascade;
-  truncate table m_container restart identity cascade;
-  truncate table m_exclusion restart identity cascade;
-  truncate table m_generic_object restart identity cascade;
-  truncate table m_node restart identity cascade;
-  truncate table m_object restart identity cascade;
-  truncate table m_operation_result restart identity cascade;
-  truncate table m_org restart identity cascade;
-  truncate table m_org_closure restart identity cascade;
-  truncate table m_org_org_type restart identity cascade;
-  truncate table m_password_policy restart identity cascade;
-  truncate table m_reference restart identity cascade;
-  truncate table m_resource restart identity cascade;
-  truncate table m_resource_approver_ref restart identity cascade;
-  truncate table m_resource_shadow restart identity cascade;
-  truncate table m_role restart identity cascade;
-  truncate table m_sync_situation_description restart identity cascade;
-  truncate table m_system_configuration restart identity cascade;
-  truncate table m_task restart identity cascade;
-  truncate table m_user restart identity cascade;
-  truncate table m_user_employee_type restart identity cascade;
-  truncate table m_user_organizational_unit restart identity cascade;
-  truncate table m_user_template restart identity cascade;
+CREATE OR REPLACE FUNCTION cleanupTestDatabase()
+  RETURNS INTEGER AS $$
+BEGIN
+  TRUNCATE TABLE m_account_shadow RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_any RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_any_clob RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_any_date RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_any_long RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_any_string RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_any_reference RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_assignment RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_audit_delta RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_audit_event RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_connector RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_connector_host RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_connector_target_system RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_container RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_exclusion RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_generic_object RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_node RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_object RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_operation_result RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_org RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_org_closure RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_org_org_type RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_password_policy RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_reference RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_resource RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_resource_shadow RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_role RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_sync_situation_description RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_system_configuration RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_task RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_user RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_user_employee_type RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_user_organizational_unit RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_user_organization RESTART IDENTITY CASCADE;
+  TRUNCATE TABLE m_user_template RESTART IDENTITY CASCADE;
 
-  alter sequence hibernate_sequence restart with 1;
+  ALTER SEQUENCE hibernate_sequence RESTART WITH 1;
 
-  return 0;
-end;
-$$ language plpgsql;
+  RETURN 0;
+END;
+$$ LANGUAGE plpgsql;

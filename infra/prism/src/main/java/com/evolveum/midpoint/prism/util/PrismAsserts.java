@@ -195,12 +195,26 @@ public class PrismAsserts {
 		PrismPropertyDefinition definition = findProperty.getDefinition();
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
+
+    public static void assertPropertyDefinition(PrismProperty property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
+        assertDefinition(property, type, minOccurs, maxOccurs);
+
+        PrismPropertyDefinition definition = property.getDefinition();
+        assert equals(indexed, definition.isIndexed()) : "Property should have indexed=" + indexed + ", but it has indexed=" + definition.isIndexed();
+    }
+
+    public static void assertPropertyDefinition(PrismContainerDefinition<?> containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs, boolean indexed) {
+        assertPropertyDefinition(containerDef, propertyName, type, minOccurs, maxOccurs);
+
+        PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
+        assert equals(indexed, definition.isIndexed()) : "Property should have indexed=" + indexed + ", but it has indexed=" + definition.isIndexed();
+    }
 	
 	public static void assertPropertyDefinition(PrismContainerDefinition<?> containerDef, QName propertyName, QName type, int minOccurs, int maxOccurs) {
 		PrismPropertyDefinition definition = containerDef.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
-	
+
 	public static void assertItemDefinitionDisplayName(PrismContainerDefinition<?> containerDef, QName propertyName, String expectedDisplayName) {
 		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
 		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +

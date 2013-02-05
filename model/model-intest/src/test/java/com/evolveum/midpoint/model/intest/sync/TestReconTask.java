@@ -154,7 +154,7 @@ public class TestReconTask extends AbstractSynchronizationStoryTest {
 	}
 	
 	protected int getWaitTimeout() {
-		return 30000;
+		return 50000;
 	}
 
 	@Override

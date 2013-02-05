@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -48,6 +50,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -57,6 +60,8 @@ import static org.testng.AssertJUnit.assertNull;
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ListAccountShadowOwnerTest.class);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -95,12 +100,17 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
 
     @Test
     public void testLinkUnlink() throws Exception {
+        LOGGER.info("==[testLinkUnlink]==");
         // GIVEN
         OperationResult result = new OperationResult("testLinkUnlink");
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
         String userOid = repositoryService.addObject(user, result);
+        assertNotNull("User oid is null", userOid);
+        AssertJUnit.assertEquals("user oid is not equal to returned value", userOid, user.getOid());
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "account-shadow.xml"));
         String accountOid = repositoryService.addObject(account, result);
+        assertNotNull("Account oid is null, couldn't add account or what?", account);
+        AssertJUnit.assertEquals("account oid is not equal to returned value", accountOid, account.getOid());
         // precondition
         PrismObject<UserType> accountOwnerOid = repositoryService.listAccountShadowOwner(accountOid, result);
         assertNull("Account has owner and should not have (precondition)", accountOwnerOid);
