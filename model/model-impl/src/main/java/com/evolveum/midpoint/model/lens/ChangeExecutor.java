@@ -83,6 +83,10 @@ public class ChangeExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
 
+	private static final String OPERATION_EXECUTE_DELTA = ChangeExecutor.class.getName() + ".executeDelta";
+	private static final String OPERATION_LINK_ACCOUNT = ChangeExecutor.class.getName() + ".linkAccount";
+	private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkAccount";
+
     @Autowired(required = true)
     private transient TaskManager taskManager;
 
@@ -116,7 +120,7 @@ public class ChangeExecutor {
 		        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
 		        if (userDelta != null) {
 		
-		            executeChange(userDelta, focusContext, syncContext, task, result);
+		            executeDelta(userDelta, focusContext, syncContext, task, result);
 		
 		            // userDelta is composite, mixed from primary and secondary. The OID set into
 		            // it will be lost ... unless we explicitly save it
@@ -147,7 +151,7 @@ public class ChangeExecutor {
 	            	}
 	            	if (accDelta != null && accDelta.isDelete()){
 	            	
-						 executeChange(accDelta, accCtx, syncContext, task, result);
+						 executeDelta(accDelta, accCtx, syncContext, task, result);
 			 	            
 			 	            // To make sure that the OID is set (e.g. after ADD operation)
 			 	            accCtx.setOid(accDelta.getOid());
@@ -166,7 +170,7 @@ public class ChangeExecutor {
 		                continue;
 		            }
 	            	
-	            	 executeChange(accDelta, accCtx, syncContext, task, result);
+	            	 executeDelta(accDelta, accCtx, syncContext, task, result);
 	 	            
 	 	            // To make sure that the OID is set (e.g. after ADD operation)
 	 	            accCtx.setOid(accDelta.getOid());
@@ -294,10 +298,13 @@ public class ChangeExecutor {
         }
     }
 
-    private void linkAccount(String userOid, String accountOid, LensElementContext<UserType> userContext, Task task, OperationResult result) throws ObjectNotFoundException,
+    private void linkAccount(String userOid, String accountOid, LensElementContext<UserType> userContext, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
 
         LOGGER.trace("Linking account " + accountOid + " to user " + userOid);
+        
+        OperationResult result = parentResult.createSubresult(OPERATION_LINK_ACCOUNT);
+        
         PrismReferenceValue accountRef = new PrismReferenceValue();
         accountRef.setOid(accountOid);
         accountRef.setTargetType(AccountShadowType.COMPLEX_TYPE);
@@ -309,12 +316,13 @@ public class ChangeExecutor {
             cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
+        } finally {
+        	result.computeStatus();
         }
 //        updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountRef, result);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
         ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
-        // TODO: create better result, stand-alone result
         userDeltaOp.setExecutionResult(result);
 		userContext.addToExecutedDeltas(userDeltaOp);
     }
@@ -323,10 +331,12 @@ public class ChangeExecutor {
 		return userDefinition;
 	}
 
-	private void unlinkAccount(String userOid, PrismReferenceValue accountRef, LensElementContext<UserType> userContext, Task task, OperationResult result) throws
+	private void unlinkAccount(String userOid, PrismReferenceValue accountRef, LensElementContext<UserType> userContext, Task task, OperationResult parentResult) throws
             ObjectNotFoundException, SchemaException {
 
         LOGGER.trace("Deleting accountRef " + accountRef + " from user " + userOid);
+        
+        OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
         		UserType.F_ACCOUNT_REF, getUserDefinition(), accountRef.clone()); 
@@ -334,15 +344,17 @@ public class ChangeExecutor {
         try {
             cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
         } catch (ObjectAlreadyExistsException ex) {
+        	result.recordFatalError(ex);
             throw new SystemException(ex);
+        } finally {
+        	result.computeStatus();
         }
         
       //setting new situation to account
 //        updateSituationInAccount(task, null, accountRef, result);
-        
+
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
         ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
-        // TODO: create better result, stand-alone result
         userDeltaOp.setExecutionResult(result);
 		userContext.addToExecutedDeltas(userDeltaOp);
 
@@ -384,10 +396,10 @@ public class ChangeExecutor {
 	}
     
 	private <T extends ObjectType, F extends ObjectType, P extends ObjectType>
-    	void executeChange(ObjectDelta<T> objectDelta, LensElementContext<T> objectContext, LensContext<F,P> context, Task task, OperationResult result) 
+    	void executeDelta(ObjectDelta<T> objectDelta, LensElementContext<T> objectContext, LensContext<F,P> context, Task task, OperationResult parentResult) 
     			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
     			ConfigurationException, SecurityViolationException, RewindException {
-    	
+		
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
         }
@@ -401,6 +413,8 @@ public class ChangeExecutor {
     		logDeltaExecution(objectDelta, context, null);
     	}
 
+    	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
+    	
     	try {
     		
     		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(context.getOptions());
@@ -417,12 +431,16 @@ public class ChangeExecutor {
 	            executeDeletion(objectDelta, provisioningOptions, task, result);
 	        }
 	        
+	        result.computeStatus();
+	        
+	        // TODO: Should we record also the failed deltas? Probably we should! 
 	        ObjectDeltaOperation<T> objectDeltaOp = new ObjectDeltaOperation<T>(objectDelta.clone());
-	        // TODO: better standalone result
 	        objectDeltaOp.setExecutionResult(result);
 	        objectContext.addToExecutedDeltas(objectDeltaOp);
         
     	} finally {
+    		
+    		result.computeStatus();
         
 	        if (LOGGER.isDebugEnabled()) {
 	        	if (LOGGER.isTraceEnabled()) {
