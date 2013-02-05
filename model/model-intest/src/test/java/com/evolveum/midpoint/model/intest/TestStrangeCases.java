@@ -81,6 +81,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -224,7 +225,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
         assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
         
@@ -277,9 +278,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -329,9 +329,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -367,9 +366,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -429,9 +427,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
         
         assertBasicGeGhoulashExtension(userDeGhoulash);

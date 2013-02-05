@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -59,7 +60,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
 	private ObjectDelta<O> secondaryDelta;
-	private List<ObjectDelta<O>> executedDeltas = new ArrayList<ObjectDelta<O>>();
+	private List<ObjectDeltaOperation<O>> executedDeltas = new ArrayList<ObjectDeltaOperation<O>>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
 	private transient boolean isFresh = false;
@@ -153,7 +154,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         secondaryDelta.swallow(accountPasswordDelta);
     }
 	
-	public List<ObjectDelta<O>> getExecutedDeltas() {
+	public List<ObjectDeltaOperation<O>> getExecutedDeltas() {
 		return executedDeltas;
 	}
 	
@@ -161,7 +162,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		executedDeltas.clear();
 	}
 	
-	public void addToExecutedDeltas(ObjectDelta<O> executedDelta) {
+	public void addToExecutedDeltas(ObjectDeltaOperation<O> executedDelta) {
 		executedDeltas.add(executedDelta);
 	}
 

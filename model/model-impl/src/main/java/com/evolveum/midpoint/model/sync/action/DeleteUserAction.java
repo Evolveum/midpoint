@@ -110,13 +110,13 @@ public class DeleteUserAction extends BaseAction {
             subResult.recomputeStatus("Couldn't delete user '" + userType.getName() + "'.");
             result.recomputeStatus();
             
-            auditRecord.clearTimestamp();
-            auditRecord.setEventType(AuditEventType.DELETE_OBJECT);
-        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-        	auditRecord.setResult(result);
-        	auditRecord.clearDeltas();
-        	auditRecord.addDeltas(context.getAllChanges());
-        	getAuditService().audit(auditRecord, task);
+//            auditRecord.clearTimestamp();
+//            auditRecord.setEventType(AuditEventType.DELETE_OBJECT);
+//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
+//        	auditRecord.setResult(result);
+//        	auditRecord.clearDeltas();
+//        	auditRecord.addDeltas(context.getAllChanges());
+//        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;

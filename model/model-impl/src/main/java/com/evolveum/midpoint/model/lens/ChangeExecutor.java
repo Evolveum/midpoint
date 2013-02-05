@@ -47,6 +47,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -312,7 +313,10 @@ public class ChangeExecutor {
 //        updateSituationInAccount(task, SynchronizationSituationType.LINKED, accountRef, result);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-		userContext.addToExecutedDeltas(userDelta);
+        ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
+        // TODO: create better result, stand-alone result
+        userDeltaOp.setExecutionResult(result);
+		userContext.addToExecutedDeltas(userDeltaOp);
     }
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
@@ -337,7 +341,10 @@ public class ChangeExecutor {
 //        updateSituationInAccount(task, null, accountRef, result);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-		userContext.addToExecutedDeltas(userDelta);
+        ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
+        // TODO: create better result, stand-alone result
+        userDeltaOp.setExecutionResult(result);
+		userContext.addToExecutedDeltas(userDeltaOp);
 
     }
 	
@@ -410,7 +417,10 @@ public class ChangeExecutor {
 	            executeDeletion(objectDelta, provisioningOptions, task, result);
 	        }
 	        
-	        objectContext.addToExecutedDeltas(objectDelta.clone());
+	        ObjectDeltaOperation<T> objectDeltaOp = new ObjectDeltaOperation<T>(objectDelta.clone());
+	        // TODO: better standalone result
+	        objectDeltaOp.setExecutionResult(result);
+	        objectContext.addToExecutedDeltas(objectDeltaOp);
         
     	} finally {
         

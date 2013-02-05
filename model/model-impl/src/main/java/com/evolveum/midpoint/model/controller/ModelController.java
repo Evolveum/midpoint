@@ -88,6 +88,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -329,7 +330,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			if (ModelExecuteOptions.isRaw(options)) {
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
-				auditRecord.addDeltas(deltas);
+				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
 					if (ModelExecuteOptions.isCrypt(options)) {

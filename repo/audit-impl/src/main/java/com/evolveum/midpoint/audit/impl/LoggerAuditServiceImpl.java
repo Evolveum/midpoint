@@ -33,6 +33,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -96,7 +97,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 		sb.append(record.getEventIdentifier()).append(" stage ").append(record.getEventStage()).append("\n");
 		
 		sb.append("Deltas:");
-		for (ObjectDelta<?> delta: record.getDeltas()) {
+		for (ObjectDeltaOperation<?> delta: record.getDeltas()) {
 			sb.append("\n");
 			if (delta == null) {
 				sb.append("null");
@@ -131,16 +132,16 @@ public class LoggerAuditServiceImpl implements AuditService {
 		return user.getOid()+"("+user.getName()+")";
 	}
 
-	private String formatDeltaSummary(Collection<ObjectDelta<? extends ObjectType>> collection) {
+	private String formatDeltaSummary(Collection<ObjectDeltaOperation<? extends ObjectType>> collection) {
 		if (collection == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("[");
 		
-		Iterator<ObjectDelta<? extends ObjectType>> iterator = collection.iterator();
+		Iterator<ObjectDeltaOperation<? extends ObjectType>> iterator = collection.iterator();
 		while (iterator.hasNext()) {
-			ObjectDelta<?> delta = iterator.next();
-			sb.append(delta.getOid()).append(":").append(delta.getChangeType());
+			ObjectDeltaOperation<?> delta = iterator.next();
+			sb.append(delta.getObjectDelta().getOid()).append(":").append(delta.getObjectDelta().getChangeType());
 			if (iterator.hasNext()) {
 				sb.append(",");
 			}

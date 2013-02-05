@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,7 +34,10 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -143,31 +148,31 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 
 	public void assertAnyRequestDeltas() {
 		AuditEventRecord requestRecord = getRequestRecord();
-		Collection<ObjectDelta<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
+		Collection<ObjectDeltaOperation<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
 		assert requestDeltas != null && !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
 	}
 
-	public Collection<ObjectDelta<? extends ObjectType>> getExecutionDeltas() {
+	public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas() {
 		return getExecutionDeltas(0);
 	}
 	
-	public Collection<ObjectDelta<? extends ObjectType>> getExecutionDeltas(int index) {
+	public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas(int index) {
 		AuditEventRecord executionRecord = getExecutionRecord(index);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = executionRecord.getDeltas();
+		Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = executionRecord.getDeltas();
 		assert deltas != null : "Execution audit record has null deltas";
 		return deltas;
 	}
 
-	public ObjectDelta<?> getExecutionDelta(int index) {
-		Collection<ObjectDelta<? extends ObjectType>> deltas = getExecutionDeltas(index);
+	public ObjectDeltaOperation<?> getExecutionDelta(int index) {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = getExecutionDeltas(index);
 		assert deltas.size() == 1 : "Execution audit record has more than one deltas, it has "+deltas.size();
-		ObjectDelta<?> delta = deltas.iterator().next();
+		ObjectDeltaOperation<?> delta = deltas.iterator().next();
 		return delta;
 	}
 	
 	public void assertExecutionDeltaAdd() {
-		ObjectDelta<?> delta = getExecutionDelta(0);
-		assert delta.isAdd() : "Execution audit record is not add, it is "+delta;
+		ObjectDeltaOperation<?> delta = getExecutionDelta(0);
+		assert delta.getObjectDelta().isAdd() : "Execution audit record is not add, it is "+delta;
 	}
 	
 	public void assertExecutionSuccess() {
@@ -184,6 +189,33 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 	public void assertNoRecord() {
 		assert records.isEmpty() : "Expected no audit record but some sneaked in: "+records;
 	}
+	
+	public void asserHasDelta(ChangeType expectedChangeType, Class<?> expectedClass) {
+		asserHasDelta(null, 0, expectedChangeType, expectedClass);
+	}
+	
+	public void asserHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+		asserHasDelta(null, index, expectedChangeType, expectedClass);
+	}
+	
+	public void asserHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: getExecutionDeltas(index)) {
+			ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
+			if (delta.getObjectTypeClass() == expectedClass && delta.getChangeType() == expectedChangeType) {
+				return;
+			}
+		}
+		assert false : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+	}
+	
+	public void assertExecutionDeltas(int expectedNumber) {
+		assertExecutionDeltas(0, expectedNumber);
+	}
+	
+	public void assertExecutionDeltas(int index, int expectedNumber) {
+		assertEquals("Wrong number of execution deltas in audit trail", expectedNumber, getExecutionDeltas(index).size());
+	}
+
 
 	@Override
 	public String toString() {
@@ -208,5 +240,6 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 	public String dump() {
 		return debugDump();
 	}
+
 
 }

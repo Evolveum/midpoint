@@ -129,13 +129,13 @@ public class AddUserAction extends BaseAction {
             subResult.recomputeStatus();
             result.recomputeStatus();
             
-            auditRecord.clearTimestamp();
-            auditRecord.setEventType(AuditEventType.ADD_OBJECT);
-        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-        	auditRecord.setResult(result);
-        	auditRecord.clearDeltas();
-        	auditRecord.addDeltas(context.getAllChanges());
-        	getAuditService().audit(auditRecord, task);
+//            auditRecord.clearTimestamp();
+//            auditRecord.setEventType(AuditEventType.ADD_OBJECT);
+//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
+//        	auditRecord.setResult(result);
+//        	auditRecord.clearDeltas();
+//        	auditRecord.addDeltas(context.getAllChanges());
+//        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;

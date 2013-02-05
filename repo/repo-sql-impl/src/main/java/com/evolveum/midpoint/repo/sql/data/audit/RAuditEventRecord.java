@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.ROperationResultStatusType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
@@ -292,8 +293,9 @@ public class RAuditEventRecord implements Serializable {
                 repo.setDeltas(new HashSet<String>());
             }
 
-            for (ObjectDelta<?> delta : record.getDeltas()) {
-                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
+            for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
+            	// TODO: Record also the result, MID-1117
+                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta.getObjectDelta());
                 xml = RUtil.toRepo(xmlDelta, prismContext);
                 repo.getDeltas().add(xml);
             }

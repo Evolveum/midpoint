@@ -61,6 +61,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -381,7 +382,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		// Audit:request
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.SYNCHRONIZATION, AuditEventStage.REQUEST);
 		if (change.getObjectDelta() != null) {
-			auditRecord.addDelta(change.getObjectDelta());
+			auditRecord.addDelta(new ObjectDeltaOperation(change.getObjectDelta()));
 		}
 		if (change.getCurrentShadow() != null) {
 			auditRecord.setTarget(change.getCurrentShadow());

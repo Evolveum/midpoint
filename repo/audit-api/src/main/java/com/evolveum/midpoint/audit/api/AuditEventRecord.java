@@ -25,6 +25,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -79,7 +80,7 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	private AuditEventStage eventStage;
 	
 	// delta
-	private Collection<ObjectDelta<? extends ObjectType>> deltas;
+	private Collection<ObjectDeltaOperation<? extends ObjectType>> deltas;
 	
 	// delta order (primary, secondary)
 	
@@ -93,16 +94,16 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 	
 	public AuditEventRecord() {
-		this.deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		this.deltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
 	}
 	
 	public AuditEventRecord(AuditEventType eventType) {
-		this.deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		this.deltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
 		this.eventType = eventType;
 	}
 
 	public AuditEventRecord(AuditEventType eventType, AuditEventStage eventStage) {
-		this.deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		this.deltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
 		this.eventType = eventType;
 		this.eventStage = eventStage;
 	}
@@ -199,15 +200,15 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 		this.eventStage = eventStage;
 	}
 
-	public Collection<ObjectDelta<? extends ObjectType>> getDeltas() {
+	public Collection<ObjectDeltaOperation<? extends ObjectType>> getDeltas() {
 		return deltas;
 	}
 	
-	public void addDelta(ObjectDelta<? extends ObjectType> delta) {
+	public void addDelta(ObjectDeltaOperation<? extends ObjectType> delta) {
 		deltas.add(delta);
 	}
 
-	public void addDeltas(Collection<ObjectDelta<? extends ObjectType>> deltasToAdd) {
+	public void addDeltas(Collection<ObjectDeltaOperation<? extends ObjectType>> deltasToAdd) {
 		deltas.addAll(deltasToAdd);
 	}
 	
@@ -246,14 +247,14 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 			targetOwner.checkConsistence();
 		}
 		if (deltas != null) {
-			ObjectDelta.checkConsistence(deltas);
+			ObjectDeltaOperation.checkConsistence(deltas);
 		}
 	}
 	
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
-		clone.deltas = MiscSchemaUtil.cloneObjectDeltaCollection(this.deltas);
+		clone.deltas = MiscSchemaUtil.cloneObjectDeltaOperationCollection(this.deltas);
 		clone.eventIdentifier = this.eventIdentifier;
 		clone.eventStage = this.eventStage;
 		clone.eventType = this.eventType;

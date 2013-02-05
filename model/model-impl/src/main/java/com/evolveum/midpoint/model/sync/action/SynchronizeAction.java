@@ -120,13 +120,13 @@ public class SynchronizeAction extends BaseAction {
             subResult.recomputeStatus();
             result.recomputeStatus();
             
-            auditRecord.clearTimestamp();
-            auditRecord.setEventType(AuditEventType.MODIFY_OBJECT);
-        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
-        	auditRecord.setResult(result);
-        	auditRecord.clearDeltas();
-        	auditRecord.addDeltas(context.getAllChanges());
-        	getAuditService().audit(auditRecord, task);
+//            auditRecord.clearTimestamp();
+//            auditRecord.setEventType(AuditEventType.MODIFY_OBJECT);
+//        	auditRecord.setEventStage(AuditEventStage.EXECUTION);
+//        	auditRecord.setResult(result);
+//        	auditRecord.clearDeltas();
+//        	auditRecord.addDeltas(context.getAllChanges());
+//        	getAuditService().audit(auditRecord, task);
         }
 
         return userOid;

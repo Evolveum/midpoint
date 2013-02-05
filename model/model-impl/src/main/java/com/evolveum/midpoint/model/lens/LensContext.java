@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -386,8 +387,8 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     /**
      * Returns all executed deltas, user and all accounts.
      */
-    public Collection<ObjectDelta<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
-        Collection<ObjectDelta<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
         if (focusContext != null) {
 	        executedDeltas.addAll(focusContext.getExecutedDeltas());
         }

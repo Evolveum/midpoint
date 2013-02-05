@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -82,6 +83,26 @@ public class ObjectDeltaOperation<T extends ObjectType> implements Dumpable, Deb
 		if (objectDelta != null) {
 			objectDelta.checkConsistence();
 		}
+	}
+	
+	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneCollection(
+			Collection<ObjectDeltaOperation<? extends ObjectType>> origCollection) {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
+		for (ObjectDeltaOperation<? extends ObjectType> origDeltaOp: origCollection) {
+			ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = origDeltaOp.clone();
+			clonedCollection.add(clonedDeltaOp);
+		}
+		return clonedCollection;
+	}
+	
+	public static Collection<ObjectDeltaOperation<? extends ObjectType>> cloneDeltaCollection(
+			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
+		Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>(origCollection.size());
+		for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
+			ObjectDeltaOperation<? extends ObjectType> clonedDeltaOp = new ObjectDeltaOperation(origDelta.clone());
+			clonedCollection.add(clonedDeltaOp);
+		}
+		return clonedCollection;
 	}
 
 	@Override

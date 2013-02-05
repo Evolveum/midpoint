@@ -38,6 +38,7 @@ import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -282,16 +283,16 @@ public class Clockwork {
 		}
 		auditRecord.setChannel(context.getChannel());
 		if (stage == AuditEventStage.REQUEST) {
-			auditRecord.addDeltas(MiscSchemaUtil.cloneObjectDeltaCollection(context.getAllChanges()));
+			auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(context.getAllChanges()));
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setResult(result);
 			auditRecord.setOutcome(result.getComputeStatus());
-			Collection<ObjectDelta<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
+			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
 			if ((executedDeltas == null || executedDeltas.isEmpty()) && auditRecord.getOutcome() == OperationResultStatus.SUCCESS) {
 				// No deltas, nothing to audit in this wave
 				return;
 			}
-			auditRecord.addDeltas(MiscSchemaUtil.cloneObjectDeltaCollection(executedDeltas));
+			auditRecord.addDeltas(ObjectDeltaOperation.cloneCollection(executedDeltas));
 		} else {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}

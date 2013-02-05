@@ -276,10 +276,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
-        assertEquals("Wrong number of execution deltas", 2, auditExecution0Deltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -628,10 +627,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -680,9 +678,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -728,9 +725,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -783,9 +779,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -825,9 +820,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -913,10 +907,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -981,13 +974,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
-        assertEquals("Wrong number of execution deltas", 1, auditExecution0Deltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, AccountShadowType.class);
-        // Inbound
-        Collection<ObjectDelta<? extends ObjectType>> auditExecution1Deltas = dummyAuditService.getExecutionDeltas(1);
-        assertEquals("Wrong number of execution deltas", 1, auditExecution1Deltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution1Deltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(0, 1);
+        dummyAuditService.asserHasDelta(0, ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1, 1);
+        dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1028,10 +1018,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1084,10 +1073,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1141,9 +1129,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1194,10 +1181,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1253,8 +1239,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
-        assertEquals("Wrong number of execution deltas", 0, auditExecution0Deltas.size());
+        dummyAuditService.assertExecutionDeltas(0, 0);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
 	
@@ -1314,10 +1299,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecution0Deltas = dummyAuditService.getExecutionDeltas(0);
-        assertEquals("Wrong number of execution deltas", 3, auditExecution0Deltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecution0Deltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1369,10 +1353,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1432,10 +1415,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1574,10 +1556,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1623,9 +1604,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 		
@@ -1667,10 +1647,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 2, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1722,11 +1701,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 
@@ -1775,11 +1753,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 3, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.MODIFY, UserType.class);
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1819,9 +1796,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.ADD, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	
@@ -1859,9 +1835,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        Collection<ObjectDelta<? extends ObjectType>> auditExecutionDeltas = dummyAuditService.getExecutionDeltas();
-        assertEquals("Wrong number of execution deltas", 1, auditExecutionDeltas.size());
-        PrismAsserts.asserHasDelta("Audit execution deltas", auditExecutionDeltas, ChangeType.DELETE, UserType.class);
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
 	

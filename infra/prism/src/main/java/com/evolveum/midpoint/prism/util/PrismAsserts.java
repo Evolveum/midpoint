@@ -414,8 +414,7 @@ public class PrismAsserts {
 		}
 		assert false : message+": Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in collection "+deltas;
 	}
-	
-	
+		
 	public static <V extends PrismValue> void assertNoReplace(ItemDelta<V> delta) {
 		assertNoReplace(null, delta);
 	}
