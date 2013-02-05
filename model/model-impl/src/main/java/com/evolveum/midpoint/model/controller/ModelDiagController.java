@@ -125,6 +125,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		PolyStringType namePolyStringType = toPolyStringType(name);
 		userType.setName(namePolyStringType);
 		result.addContext("name", name);
+		userType.setDescription(SelfTestData.POLICIJA);
 		userType.setFullName(toPolyStringType(USER_FULL_NAME));
 		userType.setGivenName(toPolyStringType(USER_GIVEN_NAME));
 		userType.setFamilyName(toPolyStringType(USER_FAMILY_NAME));
@@ -282,6 +283,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
 	private void checkUser(PrismObject<UserType> userRetrieved, String name, OperationResult subresult) {
 		checkUserPropertyPolyString(userRetrieved, UserType.F_NAME, subresult, name);
+		checkUserProperty(userRetrieved, UserType.F_DESCRIPTION, subresult, SelfTestData.POLICIJA);
 		checkUserPropertyPolyString(userRetrieved, UserType.F_FULL_NAME, subresult, USER_FULL_NAME);
 		checkUserPropertyPolyString(userRetrieved, UserType.F_GIVEN_NAME, subresult, USER_GIVEN_NAME);
 		checkUserPropertyPolyString(userRetrieved, UserType.F_FAMILY_NAME, subresult, USER_FAMILY_NAME);
