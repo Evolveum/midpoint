@@ -236,6 +236,9 @@ public final class RUtil {
         Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
         if (list != null) {
             for (SynchronizationSituationDescriptionType str : list) {
+                if (str == null) {
+                    continue;
+                }
                 set.add(RSynchronizationSituationDescription.copyFromJAXB(str));
             }
         }
@@ -246,6 +249,9 @@ public final class RUtil {
     public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(Set<RSynchronizationSituationDescription> set) {
         List<SynchronizationSituationDescriptionType> list = new ArrayList<SynchronizationSituationDescriptionType>();
         for (RSynchronizationSituationDescription str : set) {
+            if (str == null) {
+                continue;
+            }
             list.add(RSynchronizationSituationDescription.copyToJAXB(str));
         }
         return list;
@@ -259,21 +265,6 @@ public final class RUtil {
         List<T> list = new ArrayList<T>();
         list.addAll(set);
 
-        return list;
-    }
-
-    @Deprecated
-    public static List<ObjectReferenceType> safeSetReferencesToList123(Set<REmbeddedReference> set, PrismContext prismContext) {
-        if (set == null || set.isEmpty()) {
-            return new ArrayList<ObjectReferenceType>();
-        }
-
-        List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
-        for (REmbeddedReference str : set) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            REmbeddedReference.copyToJAXB(str, ort, prismContext);
-            list.add(ort);
-        }
         return list;
     }
 

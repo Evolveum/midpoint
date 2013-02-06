@@ -3,6 +3,7 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
+import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -15,6 +16,11 @@ import java.io.Serializable;
 
 @Embeddable
 public class RSynchronizationSituationDescription implements Serializable {
+
+    /**
+     * This constant is fix for oracle DB, because it handles empty string as null.
+     */
+    private static final String UNDEFINED_CHANNEL = " ";
 
     @QueryAttribute(enumerated = true)
     private RSynchronizationSituation situation;
@@ -42,7 +48,7 @@ public class RSynchronizationSituationDescription implements Serializable {
 
     public String getChanel() {
         if (chanel == null) {
-            chanel = "";
+            chanel = UNDEFINED_CHANNEL;
         }
         return chanel;
     }
@@ -84,9 +90,7 @@ public class RSynchronizationSituationDescription implements Serializable {
     }
 
     public static RSynchronizationSituationDescription copyFromJAXB(SynchronizationSituationDescriptionType jaxb) {
-        if (jaxb == null) {
-            return null;
-        }
+        Validate.notNull(jaxb, "Synchronization situation description must not be null.");
 
         RSynchronizationSituationDescription repo = new RSynchronizationSituationDescription();
         repo.setChanel(jaxb.getChannel());
@@ -97,12 +101,12 @@ public class RSynchronizationSituationDescription implements Serializable {
     }
 
     public static SynchronizationSituationDescriptionType copyToJAXB(RSynchronizationSituationDescription repo) {
-        if (repo == null) {
-            return null;
-        }
+        Validate.notNull(repo, "Synchronization situation description must not be null.");
 
         SynchronizationSituationDescriptionType jaxb = new SynchronizationSituationDescriptionType();
-        jaxb.setChannel(repo.getChanel());
+        if (!UNDEFINED_CHANNEL.equals(repo.getChanel())) {
+            jaxb.setChannel(repo.getChanel());
+        }
         jaxb.setTimestamp(repo.getTimestampValue());
         if (repo.getSituation() != null) {
             jaxb.setSituation(repo.getSituation().getSyncType());

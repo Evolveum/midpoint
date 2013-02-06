@@ -22,9 +22,6 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyClob;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -37,14 +34,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.exception.GenericJDBCException;
 import org.hibernate.exception.LockAcquisitionException;
-import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.persister.entity.AbstractEntityPersister;
-import org.hibernate.tuple.IdentifierProperty;
-import org.hibernate.tuple.entity.EntityMetamodel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 
 /**
@@ -85,7 +77,7 @@ public class SqlBaseService {
     }
 
     protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
-            OperationResult result) {
+                                      OperationResult result) {
         if (!(ex instanceof PessimisticLockException) && !(ex instanceof LockAcquisitionException)
                 && !(ex instanceof HibernateOptimisticLockingFailureException)) {
             // it's not locking exception (optimistic, pesimistic lock or simple lock acquisition) understood by hibernate
@@ -126,10 +118,11 @@ public class SqlBaseService {
             LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
         }
 
+        //todo move to debug level
 //        if (LOGGER.isDebugEnabled()) {
-            LOGGER.info("A serialization-related problem occurred when {} object with oid '{}', retrying after "
-                    + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
-                    attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
+        LOGGER.info("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+                + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
+                attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
 //        }
 
         if (attempt >= LOCKING_MAX_ATTEMPTS) {
@@ -206,7 +199,7 @@ public class SqlBaseService {
                 result.recordHandledError(message);
             }
         }
-    	 
+
     	if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
             return;
         }
@@ -229,7 +222,7 @@ public class SqlBaseService {
 
         //fix for ORA-08177 can't serialize access for this transaction
         if (ex instanceof QueryTimeoutException) {
-            if (ex.getCause() != null && !(ex.getCause() instanceof SQLException)) {
+            if (ex.getCause() != null && (ex.getCause() instanceof SQLException)) {
                 SQLException sqlEx = (SQLException) ex.getCause();
                 if (sqlEx.getErrorCode() == 8177) {
                     //todo improve exception handling, maybe "javax.persistence.query.timeout" property can be used
