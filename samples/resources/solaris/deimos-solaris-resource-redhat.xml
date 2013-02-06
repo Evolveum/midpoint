@@ -61,7 +61,7 @@ using an Identity Connector Framework Solaris connector.
 				<icfcsolaris:port>23</icfcsolaris:port>
 				<icfcsolaris:host>deimos.lab.evolveum.com</icfcsolaris:host>
 				<icfcsolaris:loginUser>idm</icfcsolaris:loginUser>
-				<icfcsolaris:password><clearValue>qwe123</clearValue></icfcsolaris:password>
+				<icfcsolaris:password><clearValue>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:password>
 				<icfcsolaris:connectionType>TELNET</icfcsolaris:connectionType>
 				<icfcsolaris:loginShellPrompt>$</icfcsolaris:loginShellPrompt>
 				<icfcsolaris:sudoAuthorization>true</icfcsolaris:sudoAuthorization>
@@ -175,6 +175,97 @@ using an Identity Connector Framework Solaris connector.
                     </inbound>
                 </enabled>
             </activation>
+            
+            <protected>
+                <icfs:name>root</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>bin</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>daemon</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>adm</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>lp</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>sync</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>shutdown</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>halt</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>mail</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>uucp</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>operator</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>games</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>gopher</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>ftp</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>nobody</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>dbus</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>vcsa</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>rpc</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>abrt</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>haldaemon</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>ntp</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>saslauth</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>postfix</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>rpcuser</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>nfsnobody</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>sshd</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>tcpdump</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>oprofile</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>idm</icfs:name>
+            </protected>
+            <protected>
+                <icfs:name>midpoint</icfs:name>
+            </protected>
 		</accountType>
 	</schemaHandling>
 
