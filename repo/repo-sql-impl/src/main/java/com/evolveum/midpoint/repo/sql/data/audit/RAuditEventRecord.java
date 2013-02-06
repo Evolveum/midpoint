@@ -23,14 +23,11 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -64,7 +61,7 @@ public class RAuditEventRecord implements Serializable {
     private RAuditEventType eventType;
     private RAuditEventStage eventStage;
     //collection of object deltas
-    private Set<String> deltas;
+    private Set<RObjectDeltaOperation> deltas;
     private String channel;
     private ROperationResultStatusType outcome;
 
@@ -72,13 +69,13 @@ public class RAuditEventRecord implements Serializable {
         return channel;
     }
 
-    @ElementCollection
     @ForeignKey(name = "fk_audit_delta")
-    @CollectionTable(name = "m_audit_delta")
+    @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public Set<String> getDeltas() {
+    public Set<RObjectDeltaOperation> getDeltas() {
+        if (deltas == null) {
+            deltas = new HashSet<RObjectDeltaOperation>();
+        }
         return deltas;
     }
 
@@ -127,7 +124,8 @@ public class RAuditEventRecord implements Serializable {
         return target;
     }
 
-    @Lob @Type(type = RUtil.LOB_STRING_TYPE)
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getTargetOwner() {
         return targetOwner;
     }
@@ -149,7 +147,7 @@ public class RAuditEventRecord implements Serializable {
         this.channel = channel;
     }
 
-    public void setDeltas(Set<String> deltas) {
+    public void setDeltas(Set<RObjectDeltaOperation> deltas) {
         this.deltas = deltas;
     }
 
@@ -289,15 +287,11 @@ public class RAuditEventRecord implements Serializable {
                 repo.setInitiator(xml);
             }
 
-            if (!record.getDeltas().isEmpty()) {
-                repo.setDeltas(new HashSet<String>());
-            }
-
             for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
-            	// TODO: Record also the result, MID-1117
-                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta.getObjectDelta());
-                xml = RUtil.toRepo(xmlDelta, prismContext);
-                repo.getDeltas().add(xml);
+                if (delta == null) {
+                    continue;
+                }
+                repo.getDeltas().add(RObjectDeltaOperation.toRepo(repo, delta, prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

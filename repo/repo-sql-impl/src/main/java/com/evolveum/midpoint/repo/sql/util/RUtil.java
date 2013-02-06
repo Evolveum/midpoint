@@ -26,18 +26,19 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RSynchronizationSituationDescription;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.SessionFactory;
@@ -232,21 +233,23 @@ public final class RUtil {
         return list;
     }
 
-    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(List<SynchronizationSituationDescriptionType> list) {
+    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(RResourceObjectShadow owner,
+                                                                                   List<SynchronizationSituationDescriptionType> list) {
         Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
         if (list != null) {
             for (SynchronizationSituationDescriptionType str : list) {
                 if (str == null) {
                     continue;
                 }
-                set.add(RSynchronizationSituationDescription.copyFromJAXB(str));
+                set.add(RSynchronizationSituationDescription.copyFromJAXB(owner, str));
             }
         }
 
         return set;
     }
 
-    public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(Set<RSynchronizationSituationDescription> set) {
+    public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(
+            Set<RSynchronizationSituationDescription> set) {
         List<SynchronizationSituationDescriptionType> list = new ArrayList<SynchronizationSituationDescriptionType>();
         for (RSynchronizationSituationDescription str : set) {
             if (str == null) {
@@ -345,13 +348,16 @@ public final class RUtil {
     }
 
     /**
-     * This method is used to override "hasIdentifierMapper" in EntityMetamodels of entities which have
-     * composite id and class defined for it. It's workeround for bug as found in forum
+     * This method is used to override "hasIdentifierMapper" in EntityMetaModels of entities which have
+     * composite id and class defined for it. It's workaround for bug as found in forum
      * https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
      *
      * @param sessionFactory
      */
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
+        fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
+
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
@@ -389,5 +395,75 @@ public final class RUtil {
                         + ex.getMessage(), ex);
             }
         }
+    }
+
+    public static void copyResultToJAXB(OperationResult repo, OperationResultType jaxb, PrismContext prismContext) throws
+            DtoTranslationException {
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Validate.notNull(repo, "Repo object must not be null.");
+
+        jaxb.setDetails(repo.getDetails());
+        jaxb.setMessage(repo.getMessage());
+        jaxb.setMessageCode(repo.getMessageCode());
+        jaxb.setOperation(repo.getOperation());
+        if (repo.getStatus() != null) {
+            jaxb.setStatus(repo.getStatus().getStatus());
+        }
+        jaxb.setToken(repo.getToken());
+
+        try {
+            jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class, new ItemPath(
+                    OperationResultType.F_LOCALIZED_MESSAGE), repo.getLocalizedMessage(), LocalizedMessageType.class,
+                    prismContext));
+            jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_PARAMS),
+                    repo.getParams(), ParamsType.class, prismContext));
+
+            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
+                OperationResultType result = RUtil.toJAXB(repo.getPartialResults(), OperationResultType.class,
+                        prismContext);
+                jaxb.getPartialResults().addAll(result.getPartialResults());
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+    }
+
+    public static void copyResultFromJAXB(OperationResultType jaxb, OperationResult repo, PrismContext prismContext)
+            throws DtoTranslationException {
+        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Validate.notNull(repo, "Repo object must not be null.");
+
+        repo.setDetails(jaxb.getDetails());
+        repo.setMessage(jaxb.getMessage());
+        repo.setMessageCode(jaxb.getMessageCode());
+        repo.setOperation(jaxb.getOperation());
+        repo.setStatus(ROperationResultStatusType.toRepoType(jaxb.getStatus()));
+        repo.setToken(jaxb.getToken());
+
+        try {
+            repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage(), prismContext));
+            repo.setParams(RUtil.toRepo(jaxb.getParams(), prismContext));
+
+            if (!jaxb.getPartialResults().isEmpty()) {
+                OperationResultType result = new OperationResultType();
+                result.getPartialResults().addAll(jaxb.getPartialResults());
+                repo.setPartialResults(RUtil.toRepo(result, prismContext));
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+    }
+
+    public static String computeChecksum(Object... objects) {
+        StringBuilder builder = new StringBuilder();
+        for (Object object : objects) {
+            if (object == null) {
+                continue;
+            }
+
+            builder.append(object.toString());
+        }
+
+        return DigestUtils.md5Hex(builder.toString());
     }
 }

@@ -63,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UnknownJavaObjectTy
 /**
  * Nested Operation Result.
  * 
- * This class provides informations for better error handling in complex
+ * This class provides information for better error handling in complex
  * operations. It contains a status (success, failure, warning, ...) and an
  * error message. It also contains a set of sub-results - results on inner
  * operations.

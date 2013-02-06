@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationTypeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
@@ -145,12 +144,8 @@ public class RResourceObjectShadow extends RObject {
         return name;
     }
 
-    @ElementCollection
     @ForeignKey(name = "fk_shadow_sync_situation")
-    @CollectionTable(name = "m_sync_situation_description", joinColumns = {
-            @JoinColumn(name = "shadow_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "shadow_id", referencedColumnName = "id")
-    })
+    @OneToMany(mappedBy = "shadow", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RSynchronizationSituationDescription> getSynchronizationSituationDescription() {
         if (synchronizationSituationDescription == null) {
@@ -353,7 +348,7 @@ public class RResourceObjectShadow extends RObject {
         }
 
         repo.getSynchronizationSituationDescription()
-                .addAll(RUtil.listSyncSituationToSet(jaxb.getSynchronizationSituationDescription()));
+                .addAll(RUtil.listSyncSituationToSet(repo, jaxb.getSynchronizationSituationDescription()));
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
 

@@ -65,7 +65,7 @@ CREATE TABLE m_any_reference (
   anyContainer_ownertype INT4         NOT NULL,
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
-  targetoid              VARCHAR(255) NOT NULL,
+  targetoid              VARCHAR(36)  NOT NULL,
   description            TEXT,
   dynamicDef             BOOLEAN,
   filter                 TEXT,
@@ -113,8 +113,19 @@ CREATE TABLE m_assignment (
 );
 
 CREATE TABLE m_audit_delta (
-  RAuditEventRecord_id INT8 NOT NULL,
-  deltas               TEXT
+  checksum         VARCHAR(32) NOT NULL,
+  record_id        INT8        NOT NULL,
+  delta            TEXT,
+  details          TEXT,
+  localizedMessage TEXT,
+  message          TEXT,
+  messageCode      VARCHAR(255),
+  operation        TEXT,
+  params           TEXT,
+  partialResults   TEXT,
+  status           INT4,
+  token            INT8,
+  PRIMARY KEY (checksum, record_id)
 );
 
 CREATE TABLE m_audit_event (
@@ -373,11 +384,13 @@ CREATE TABLE m_role (
 );
 
 CREATE TABLE m_sync_situation_description (
-  shadow_id      INT8        NOT NULL,
   shadow_oid     VARCHAR(36) NOT NULL,
+  shadow_id      INT8        NOT NULL,
+  checksum       VARCHAR(32) NOT NULL,
   chanel         VARCHAR(255),
   situation      INT4,
-  timestampValue TIMESTAMP
+  timestampValue TIMESTAMP,
+  PRIMARY KEY (shadow_oid, shadow_id, checksum)
 );
 
 CREATE TABLE m_system_configuration (
@@ -568,7 +581,7 @@ REFERENCES m_object;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
-FOREIGN KEY (RAuditEventRecord_id)
+FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 
 CREATE INDEX iConnectorName ON m_connector (name_norm);
