@@ -2,15 +2,15 @@ CREATE TABLE m_account_shadow (
   accountType              NVARCHAR(255),
   allowedIdmAdminGuiAccess BIT,
   passwordXml              NVARCHAR(MAX),
-  id                       BIGINT      NOT NULL,
+  id                       BIGINT       NOT NULL,
   oid                      NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_any (
-  owner_id  BIGINT      NOT NULL,
+  owner_id  BIGINT       NOT NULL,
   owner_oid NVARCHAR(36) NOT NULL,
-  ownerType INT         NOT NULL,
+  ownerType INT          NOT NULL,
   PRIMARY KEY (owner_id, owner_oid, ownerType)
 );
 
@@ -18,9 +18,9 @@ CREATE TABLE m_any_clob (
   checksum               NVARCHAR(32)  NOT NULL,
   name_namespace         NVARCHAR(255) NOT NULL,
   name_localPart         NVARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_id  BIGINT        NOT NULL,
   anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INT          NOT NULL,
+  anyContainer_ownertype INT           NOT NULL,
   type_namespace         NVARCHAR(255) NOT NULL,
   type_localPart         NVARCHAR(100) NOT NULL,
   dynamicDef             BIT,
@@ -32,12 +32,12 @@ CREATE TABLE m_any_clob (
 CREATE TABLE m_any_date (
   name_namespace         NVARCHAR(255) NOT NULL,
   name_localPart         NVARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_id  BIGINT        NOT NULL,
   anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INT          NOT NULL,
+  anyContainer_ownertype INT           NOT NULL,
   type_namespace         NVARCHAR(255) NOT NULL,
   type_localPart         NVARCHAR(100) NOT NULL,
-  dateValue              DATETIME2    NOT NULL,
+  dateValue              DATETIME2     NOT NULL,
   dynamicDef             BIT,
   valueType              INT,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, dateValue)
@@ -46,12 +46,12 @@ CREATE TABLE m_any_date (
 CREATE TABLE m_any_long (
   name_namespace         NVARCHAR(255) NOT NULL,
   name_localPart         NVARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_id  BIGINT        NOT NULL,
   anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INT          NOT NULL,
+  anyContainer_ownertype INT           NOT NULL,
   type_namespace         NVARCHAR(255) NOT NULL,
   type_localPart         NVARCHAR(100) NOT NULL,
-  longValue              BIGINT       NOT NULL,
+  longValue              BIGINT        NOT NULL,
   dynamicDef             BIT,
   valueType              INT,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
@@ -60,12 +60,12 @@ CREATE TABLE m_any_long (
 CREATE TABLE m_any_reference (
   name_namespace         NVARCHAR(255) NOT NULL,
   name_localPart         NVARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_id  BIGINT        NOT NULL,
   anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INT          NOT NULL,
+  anyContainer_ownertype INT           NOT NULL,
   type_namespace         NVARCHAR(255) NOT NULL,
   type_localPart         NVARCHAR(100) NOT NULL,
-  targetoid              NVARCHAR(36) NOT NULL,
+  targetoid              NVARCHAR(36)  NOT NULL,
   description            NVARCHAR(MAX),
   dynamicDef             BIT,
   filter                 NVARCHAR(MAX),
@@ -79,9 +79,9 @@ CREATE TABLE m_any_reference (
 CREATE TABLE m_any_string (
   name_namespace         NVARCHAR(255) NOT NULL,
   name_localPart         NVARCHAR(100) NOT NULL,
-  anyContainer_owner_id  BIGINT       NOT NULL,
+  anyContainer_owner_id  BIGINT        NOT NULL,
   anyContainer_owner_oid NVARCHAR(36)  NOT NULL,
-  anyContainer_ownertype INT          NOT NULL,
+  anyContainer_ownertype INT           NOT NULL,
   type_namespace         NVARCHAR(255) NOT NULL,
   type_localPart         NVARCHAR(100) NOT NULL,
   stringValue            NVARCHAR(255) NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE m_assignment (
   validFrom                   DATETIME2,
   validTo                     DATETIME2,
   description                 NVARCHAR(MAX),
-  owner_id                    BIGINT      NOT NULL,
+  owner_id                    BIGINT       NOT NULL,
   owner_oid                   NVARCHAR(36) NOT NULL,
   targetRef_description       NVARCHAR(MAX),
   targetRef_filter            NVARCHAR(MAX),
@@ -104,7 +104,7 @@ CREATE TABLE m_assignment (
   targetRef_relationNamespace NVARCHAR(255),
   targetRef_targetOid         NVARCHAR(36),
   targetRef_type              INT,
-  id                          BIGINT      NOT NULL,
+  id                          BIGINT       NOT NULL,
   oid                         NVARCHAR(36) NOT NULL,
   extId                       BIGINT,
   extOid                      NVARCHAR(36),
@@ -113,8 +113,19 @@ CREATE TABLE m_assignment (
 );
 
 CREATE TABLE m_audit_delta (
-  RAuditEventRecord_id BIGINT NOT NULL,
-  deltas               NVARCHAR(MAX)
+  checksum         NVARCHAR(32) NOT NULL,
+  record_id        BIGINT       NOT NULL,
+  delta            NVARCHAR(MAX),
+  details          NVARCHAR(MAX),
+  localizedMessage NVARCHAR(MAX),
+  message          NVARCHAR(MAX),
+  messageCode      NVARCHAR(255),
+  operation        NVARCHAR(MAX),
+  params           NVARCHAR(MAX),
+  partialResults   NVARCHAR(MAX),
+  status           INT,
+  token            BIGINT,
+  PRIMARY KEY (checksum, record_id)
 );
 
 CREATE TABLE m_audit_event (
@@ -150,7 +161,7 @@ CREATE TABLE m_connector (
   name_orig                    NVARCHAR(255),
   namespace                    NVARCHAR(255),
   xmlSchema                    NVARCHAR(MAX),
-  id                           BIGINT      NOT NULL,
+  id                           BIGINT       NOT NULL,
   oid                          NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -163,27 +174,27 @@ CREATE TABLE m_connector_host (
   protectConnection BIT,
   sharedSecret      NVARCHAR(MAX),
   timeout           INT,
-  id                BIGINT      NOT NULL,
+  id                BIGINT       NOT NULL,
   oid               NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_connector_target_system (
-  connector_id     BIGINT      NOT NULL,
+  connector_id     BIGINT       NOT NULL,
   connector_oid    NVARCHAR(36) NOT NULL,
   targetSystemType NVARCHAR(255)
 );
 
 CREATE TABLE m_container (
-  id  BIGINT      NOT NULL,
+  id  BIGINT       NOT NULL,
   oid NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_exclusion (
   description                 NVARCHAR(MAX),
-  owner_id                    BIGINT      NOT NULL,
+  owner_id                    BIGINT       NOT NULL,
   owner_oid                   NVARCHAR(36) NOT NULL,
   policy                      INT,
   targetRef_description       NVARCHAR(MAX),
@@ -192,7 +203,7 @@ CREATE TABLE m_exclusion (
   targetRef_relationNamespace NVARCHAR(255),
   targetRef_targetOid         NVARCHAR(36),
   targetRef_type              INT,
-  id                          BIGINT      NOT NULL,
+  id                          BIGINT       NOT NULL,
   oid                         NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -201,7 +212,7 @@ CREATE TABLE m_generic_object (
   name_norm  NVARCHAR(255),
   name_orig  NVARCHAR(255),
   objectType NVARCHAR(255),
-  id         BIGINT      NOT NULL,
+  id         BIGINT       NOT NULL,
   oid        NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -217,7 +228,7 @@ CREATE TABLE m_node (
   name_orig              NVARCHAR(255),
   nodeIdentifier         NVARCHAR(255),
   running                BIT,
-  id                     BIGINT      NOT NULL,
+  id                     BIGINT       NOT NULL,
   oid                    NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -225,8 +236,8 @@ CREATE TABLE m_node (
 
 CREATE TABLE m_object (
   description NVARCHAR(MAX),
-  version     BIGINT      NOT NULL,
-  id          BIGINT      NOT NULL,
+  version     BIGINT       NOT NULL,
+  id          BIGINT       NOT NULL,
   oid         NVARCHAR(36) NOT NULL,
   extId       BIGINT,
   extOid      NVARCHAR(36),
@@ -236,7 +247,7 @@ CREATE TABLE m_object (
 
 CREATE TABLE m_operation_result (
   owner_oid        NVARCHAR(36) NOT NULL,
-  owner_id         BIGINT      NOT NULL,
+  owner_id         BIGINT       NOT NULL,
   details          NVARCHAR(MAX),
   localizedMessage NVARCHAR(MAX),
   message          NVARCHAR(MAX),
@@ -256,7 +267,7 @@ CREATE TABLE m_org (
   identifier       NVARCHAR(255),
   locality_norm    NVARCHAR(255),
   locality_orig    NVARCHAR(255),
-  id               BIGINT      NOT NULL,
+  id               BIGINT       NOT NULL,
   oid              NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -272,7 +283,7 @@ CREATE TABLE m_org_closure (
 );
 
 CREATE TABLE m_org_org_type (
-  org_id  BIGINT      NOT NULL,
+  org_id  BIGINT       NOT NULL,
   org_oid NVARCHAR(36) NOT NULL,
   orgType NVARCHAR(255)
 );
@@ -282,15 +293,15 @@ CREATE TABLE m_password_policy (
   name_norm    NVARCHAR(255),
   name_orig    NVARCHAR(255),
   stringPolicy NVARCHAR(MAX),
-  id           BIGINT      NOT NULL,
+  id           BIGINT       NOT NULL,
   oid          NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_reference (
-  reference_type INT          NOT NULL,
-  owner_id       BIGINT       NOT NULL,
+  reference_type INT           NOT NULL,
+  owner_id       BIGINT        NOT NULL,
   owner_oid      NVARCHAR(36)  NOT NULL,
   relLocalPart   NVARCHAR(100) NOT NULL,
   relNamespace   NVARCHAR(255) NOT NULL,
@@ -322,7 +333,7 @@ CREATE TABLE m_resource (
   scripts                        NVARCHAR(MAX),
   synchronization                NVARCHAR(MAX),
   xmlSchema                      NVARCHAR(MAX),
-  id                             BIGINT      NOT NULL,
+  id                             BIGINT       NOT NULL,
   oid                            NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -349,7 +360,7 @@ CREATE TABLE m_resource_shadow (
   resourceRef_type              INT,
   synchronizationSituation      INT,
   synchronizationTimestamp      DATETIME2,
-  id                            BIGINT      NOT NULL,
+  id                            BIGINT       NOT NULL,
   oid                           NVARCHAR(36) NOT NULL,
   attrId                        BIGINT,
   attrOid                       NVARCHAR(36),
@@ -366,18 +377,20 @@ CREATE TABLE m_role (
   name_orig             NVARCHAR(255),
   requestable           BIT,
   roleType              NVARCHAR(255),
-  id                    BIGINT      NOT NULL,
+  id                    BIGINT       NOT NULL,
   oid                   NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_sync_situation_description (
-  shadow_id      BIGINT      NOT NULL,
+  checksum       NVARCHAR(32) NOT NULL,
+  shadow_id      BIGINT       NOT NULL,
   shadow_oid     NVARCHAR(36) NOT NULL,
   chanel         NVARCHAR(255),
   situation      INT,
-  timestampValue DATETIME2
+  timestampValue DATETIME2,
+  PRIMARY KEY (checksum, shadow_id, shadow_oid)
 );
 
 CREATE TABLE m_system_configuration (
@@ -400,7 +413,7 @@ CREATE TABLE m_system_configuration (
   name_norm                      NVARCHAR(255),
   name_orig                      NVARCHAR(255),
   notificationConfiguration      NVARCHAR(MAX),
-  id                             BIGINT      NOT NULL,
+  id                             BIGINT       NOT NULL,
   oid                            NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -441,7 +454,7 @@ CREATE TABLE m_task (
   schedule                    NVARCHAR(MAX),
   taskIdentifier              NVARCHAR(255),
   threadStopAction            INT,
-  id                          BIGINT      NOT NULL,
+  id                          BIGINT       NOT NULL,
   oid                         NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -479,27 +492,27 @@ CREATE TABLE m_user (
   timezone                 NVARCHAR(255),
   title_norm               NVARCHAR(255),
   title_orig               NVARCHAR(255),
-  id                       BIGINT      NOT NULL,
+  id                       BIGINT       NOT NULL,
   oid                      NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_user_employee_type (
-  user_id      BIGINT      NOT NULL,
+  user_id      BIGINT       NOT NULL,
   user_oid     NVARCHAR(36) NOT NULL,
   employeeType NVARCHAR(255)
 );
 
 CREATE TABLE m_user_organization (
-  user_id  BIGINT      NOT NULL,
+  user_id  BIGINT       NOT NULL,
   user_oid NVARCHAR(36) NOT NULL,
   norm     NVARCHAR(255),
   orig     NVARCHAR(255)
 );
 
 CREATE TABLE m_user_organizational_unit (
-  user_id  BIGINT      NOT NULL,
+  user_id  BIGINT       NOT NULL,
   user_oid NVARCHAR(36) NOT NULL,
   norm     NVARCHAR(255),
   orig     NVARCHAR(255)
@@ -510,7 +523,7 @@ CREATE TABLE m_user_template (
   name_norm            NVARCHAR(255),
   name_orig            NVARCHAR(255),
   propertyConstruction NVARCHAR(MAX),
-  id                   BIGINT      NOT NULL,
+  id                   BIGINT       NOT NULL,
   oid                  NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -568,7 +581,7 @@ REFERENCES m_object;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
-FOREIGN KEY (RAuditEventRecord_id)
+FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 
 CREATE INDEX iConnectorName ON m_connector (name_norm);

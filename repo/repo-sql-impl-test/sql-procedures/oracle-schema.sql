@@ -67,7 +67,7 @@ CREATE TABLE m_any_reference (
   anyContainer_ownertype NUMBER(10, 0)      NOT NULL,
   type_namespace         VARCHAR2(255 CHAR) NOT NULL,
   type_localPart         VARCHAR2(100 CHAR) NOT NULL,
-  targetoid              VARCHAR2(255 CHAR) NOT NULL,
+  targetoid              VARCHAR2(36 CHAR)  NOT NULL,
   description            CLOB,
   dynamicDef             NUMBER(1, 0),
   filter                 CLOB,
@@ -115,8 +115,19 @@ CREATE TABLE m_assignment (
 ) INITRANS 30;
 
 CREATE TABLE m_audit_delta (
-  RAuditEventRecord_id NUMBER(19, 0) NOT NULL,
-  deltas               CLOB
+  checksum         VARCHAR2(32 CHAR) NOT NULL,
+  record_id        NUMBER(19, 0)     NOT NULL,
+  delta            CLOB,
+  details          CLOB,
+  localizedMessage CLOB,
+  message          CLOB,
+  messageCode      VARCHAR2(255 CHAR),
+  operation        CLOB,
+  params           CLOB,
+  partialResults   CLOB,
+  status           NUMBER(10, 0),
+  token            NUMBER(19, 0),
+  PRIMARY KEY (checksum, record_id)
 ) INITRANS 30;
 
 CREATE TABLE m_audit_event (
@@ -375,11 +386,13 @@ CREATE TABLE m_role (
 ) INITRANS 30;
 
 CREATE TABLE m_sync_situation_description (
+  checksum       VARCHAR2(32 CHAR) NOT NULL,
   shadow_id      NUMBER(19, 0)     NOT NULL,
   shadow_oid     VARCHAR2(36 CHAR) NOT NULL,
   chanel         VARCHAR2(255 CHAR),
   situation      NUMBER(10, 0),
-  timestampValue TIMESTAMP
+  timestampValue TIMESTAMP,
+  PRIMARY KEY (checksum, shadow_id, shadow_oid)
 ) INITRANS 30;
 
 CREATE TABLE m_system_configuration (
@@ -570,7 +583,7 @@ REFERENCES m_object;
 
 ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
-FOREIGN KEY (RAuditEventRecord_id)
+FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
 
 CREATE INDEX iConnectorName ON m_connector (name_norm) INITRANS 30;

@@ -65,8 +65,11 @@ public final class RUtil {
 
     /**
      * This constant is used for mapping type for {@link javax.persistence.Lob} fields.
+     * {@link org.hibernate.type.MaterializedClobType} was not working properly with PostgreSQL,
+     * causing TEXT types (clobs) to be saved not in table row but somewhere else and it always
+     * messed up UTF-8 encoding
      */
-    public static final String LOB_STRING_TYPE = "org.hibernate.type.MaterializedClobType";
+    public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
     /**
      * This constant is used for {@link QName#localPart} column size in databases.

@@ -78,7 +78,7 @@ CREATE TABLE m_any_reference (
   anyContainer_ownertype INTEGER      NOT NULL,
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
-  targetoid              VARCHAR(255) NOT NULL,
+  targetoid              VARCHAR(36)  NOT NULL,
   description            LONGTEXT,
   dynamicDef             BOOLEAN,
   filter                 LONGTEXT,
@@ -129,8 +129,19 @@ CREATE TABLE m_assignment (
   DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
 
 CREATE TABLE m_audit_delta (
-  RAuditEventRecord_id BIGINT NOT NULL,
-  deltas               LONGTEXT
+  checksum         VARCHAR(32) NOT NULL,
+  record_id        BIGINT      NOT NULL,
+  delta            LONGTEXT,
+  details          LONGTEXT,
+  localizedMessage LONGTEXT,
+  message          LONGTEXT,
+  messageCode      VARCHAR(255),
+  operation        LONGTEXT,
+  params           LONGTEXT,
+  partialResults   LONGTEXT,
+  status           INTEGER,
+  token            BIGINT,
+  PRIMARY KEY (checksum, record_id)
 )
   DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
 
@@ -408,11 +419,13 @@ CREATE TABLE m_role (
   DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
 
 CREATE TABLE m_sync_situation_description (
+  checksum       VARCHAR(32) NOT NULL,
   shadow_id      BIGINT      NOT NULL,
   shadow_oid     VARCHAR(36) NOT NULL,
   chanel         VARCHAR(255),
   situation      INTEGER,
-  timestampValue DATETIME(6)
+  timestampValue DATETIME(6),
+  PRIMARY KEY (checksum, shadow_id, shadow_oid)
 )
   DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
 
@@ -618,9 +631,9 @@ FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_object (id, oid);
 
 ALTER TABLE m_audit_delta
-ADD INDEX fk_audit_delta (RAuditEventRecord_id),
+ADD INDEX fk_audit_delta (record_id),
 ADD CONSTRAINT fk_audit_delta
-FOREIGN KEY (RAuditEventRecord_id)
+FOREIGN KEY (record_id)
 REFERENCES m_audit_event (id);
 
 CREATE INDEX iConnectorName ON m_connector (name_norm);
