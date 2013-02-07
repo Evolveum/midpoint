@@ -147,6 +147,10 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
+	
+	// This is not really used in the code. It is here just to make sure that the JUL logger is loaded
+	// by the parent classloader so we can correctly adjust the log levels from the main code
+	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryIcfImpl.class.getName());
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;

@@ -54,6 +54,7 @@ public class LogfileTestTailer {
 	public static final String LEVEL_TRACE = "TRACE";
 	
 	private static final Pattern markerPattern = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+"+MARKER+"\\s+(\\w+).*");
+	private static final Pattern markerPatternPrefix = Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\S+\\s+.*"+MARKER+"\\s+(\\w+).*");
 	public static final Pattern auditPattern = 
 			Pattern.compile(".*\\[[^]]*\\]\\s+(\\w+)\\s+\\("+LoggingConfigurationManager.AUDIT_LOGGER_NAME+"\\):\\s*(.*)");
 	
@@ -66,6 +67,7 @@ public class LogfileTestTailer {
 	private List<String> auditMessages = new ArrayList<String>();
 	private String expectedMessage;
 	private String expectedMessageLine;
+	private boolean allowPrefix = false;
 	
 	public LogfileTestTailer() throws IOException {
 		reset();
@@ -75,6 +77,14 @@ public class LogfileTestTailer {
 		reader.skip(file.length());
 	}
 	
+	public boolean isAllowPrefix() {
+		return allowPrefix;
+	}
+
+	public void setAllowPrefix(boolean allowPrefix) {
+		this.allowPrefix = allowPrefix;
+	}
+
 	public void close() throws IOException {
 		reader.close();
 		fileReader.close();
@@ -106,7 +116,11 @@ public class LogfileTestTailer {
 	}
 
 	private void processLogLine(String line) {
-		Matcher matcher = markerPattern.matcher(line);
+		Pattern pattern = markerPattern;
+		if (allowPrefix) {
+			pattern = markerPatternPrefix;
+		}
+		Matcher matcher = pattern.matcher(line);
 		while (matcher.find()) {
 			seenMarker = true;
 			String level = matcher.group(1);

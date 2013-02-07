@@ -94,7 +94,13 @@ configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
 	
+	// We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnector.class);
+    // We also want to see if the libraries that use JUL are logging properly
+    private static final java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(DummyConnector.class.getName());
+    
+    // Marker used in logging tests
+    public static final String LOG_MARKER = "_M_A_R_K_E_R_";
     
     /**
      * Place holder for the {@link Configuration} passed into the init() method
@@ -496,6 +502,22 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         configuration.validate();
         //TODO: implement
 
+        // Produce log messages on all levels. The tests may check if they are really logged.
+        log.error(LOG_MARKER + " DummyConnectorIcfError");
+        log.info(LOG_MARKER + " DummyConnectorIcfInfo");
+        log.warn(LOG_MARKER + " DummyConnectorIcfWarn");
+        log.ok(LOG_MARKER + " DummyConnectorIcfOk");
+        
+        log.info("Dummy Connector JUL logger as seen by the connector: " + julLogger + "; classloader " + julLogger.getClass().getClassLoader());
+        
+        // Same thing using JUL
+        julLogger.severe(LOG_MARKER + " DummyConnectorJULsevere");
+		julLogger.warning(LOG_MARKER + " DummyConnectorJULwarning");
+		julLogger.info(LOG_MARKER + " DummyConnectorJULinfo");
+		julLogger.fine(LOG_MARKER + " DummyConnectorJULfine");
+		julLogger.finer(LOG_MARKER + " DummyConnectorJULfiner");
+		julLogger.finest(LOG_MARKER + " DummyConnectorJULfinest");
+        
         log.info("Test configuration was successful.");
         log.info("test::end");
     }

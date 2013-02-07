@@ -32,9 +32,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.intest.util.LogfileTestTailer;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -64,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -74,15 +77,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLoggingConfiguration extends AbstractIntegrationTest {
+public class TestLoggingConfiguration extends AbstractConfiguredModelIntegrationTest {
 	
-	@Autowired(required = true)
-	protected ModelService modelService;
-	@Autowired(required = true)
-	protected TaskManager taskManager;
-	@Autowired(required = true)
-	protected PrismContext prismContext;
-
+	final String JUL_LOGGER_NAME = "com.exmple.jul.logger"; 
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 	}
@@ -242,16 +240,45 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 
 
 	@Test
-	public void test020JulLogging() throws Exception {
-		final String TEST_NAME = "test020JulLogging";
+	public void test020JulLoggingDisabled() throws Exception {
+		final String TEST_NAME = "test020JulLoggingDisabled";
 		displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
 		
-		final String LOGGER_NAME = TestLoggingConfiguration.class.getName()+".jul";
+		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
+				
+		// WHEN
+		julLogger.severe(LogfileTestTailer.MARKER + " JULsevere");
+		julLogger.warning(LogfileTestTailer.MARKER + " JULwarning");
+		julLogger.info(LogfileTestTailer.MARKER + " JULinfo");
+		julLogger.fine(LogfileTestTailer.MARKER + " JULfine");
+		julLogger.finer(LogfileTestTailer.MARKER + " JULfiner");
+		julLogger.finest(LogfileTestTailer.MARKER + " JULfinest");
 		
-		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(LOGGER_NAME);
+		tailer.tail();
+		
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "JULsevere");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "JULwarning");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "JULinfo");
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
+		tailer.assertMarkerNotLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
+		
+		tailer.close();
+		
+	}
+
+	@Test
+	public void test021JulLoggingEnabled() throws Exception {
+		final String TEST_NAME = "test021JulLoggingEnabled";
+		displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		LogfileTestTailer tailer = new LogfileTestTailer();
+		
+		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(JUL_LOGGER_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
@@ -264,7 +291,7 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		applyTestLoggingConfig(logging);
 		
 		ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
-		classLogerCongif.setPackage(LOGGER_NAME);
+		classLogerCongif.setPackage(JUL_LOGGER_NAME);
 		classLogerCongif.setLevel(LoggingLevelType.ALL);
 		logging.getClassLogger().add(classLogerCongif );
 				
@@ -291,6 +318,72 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
 		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
 		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
+		
+		tailer.close();
+		
+	}
+	
+	/**
+	 * Test if connectors log properly. The dummy connector logs on all levels when the
+	 * "test" operation is invoked. So let's try it.
+	 */
+	@Test
+	public void test030ConnectorLogging() throws Exception {
+		final String TEST_NAME = "test030ConnectorLogging";
+		displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		LogfileTestTailer tailer = new LogfileTestTailer();
+		// ICF logging is prefixing the messages;
+		tailer.setAllowPrefix(true);
+		
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		importObjectFromFile(RESOURCE_DUMMY_FILENAME, result);
+		
+		// Setup
+		PrismObject<SystemConfigurationType> systemConfiguration = 
+			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+		
+		applyTestLoggingConfig(logging);
+		
+		ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
+		classLogerCongif.setPackage(DummyConnector.class.getPackage().getName());
+		classLogerCongif.setLevel(LoggingLevelType.ALL);
+		logging.getClassLogger().add(classLogerCongif );
+				
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
+				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
+				logging);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
+		
+		modelService.executeChanges(deltas, null, task, result);
+				
+		// INFO part
+		
+		java.util.logging.Logger dummyConnctorJulLogger = java.util.logging.Logger.getLogger(DummyConnector.class.getName());
+		LOGGER.info("Dummy connector JUL logger as seen by the test: {}; classloader {}", 
+				dummyConnctorJulLogger, dummyConnctorJulLogger.getClass().getClassLoader());
+		
+		// WHEN
+		modelService.testResource(RESOURCE_DUMMY_OID, task);
+		
+		// THEN
+		tailer.tail();
+		
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "DummyConnectorIcfError");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "DummyConnectorIcfWarn");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorIcfInfo");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "DummyConnectorIcfOk");
+		
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "DummyConnectorJULsevere");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "DummyConnectorJULwarning");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "DummyConnectorJULinfo");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorJULfine");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "DummyConnectorJULfiner");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "DummyConnectorJULfinest");
 		
 		tailer.close();
 		

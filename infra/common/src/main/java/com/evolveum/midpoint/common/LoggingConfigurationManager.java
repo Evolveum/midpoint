@@ -109,13 +109,14 @@ public class LoggingConfigurationManager {
 		//Get messages if error occurred;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		StatusPrinter.setPrintStream(new PrintStream(baos));
-		StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+		StatusPrinter.print(lc);
 
 		String internalLog = null;
 		try {
 			internalLog = baos.toString("UTF8");
 		} catch (UnsupportedEncodingException e) {
-			//Nothing never happend
+			// should never happen
+			LOGGER.error("Woops?", e);
 		}
 
 		if (!StringUtils.isEmpty(internalLog)) {
@@ -127,7 +128,7 @@ public class LoggingConfigurationManager {
 					res.recordPartialError(internalLogLines[i]);
 				res.appendDetail(internalLogLines[i]);
 			}
-			System.out.println(internalLog);
+			LOGGER.trace("LogBack internal log:\n{}",internalLog);
 		} else {
 			res.recordSuccess();
 		}		
@@ -147,6 +148,8 @@ public class LoggingConfigurationManager {
 		
 		// LevelChangePropagator to propagate log level changes to JUL
 		// this keeps us from performance impact of disable JUL logging statements
+		// WARNING: if deployed in Tomcat then this propagates only to the JUL loggers in current classloader.
+		// It means that ICF connector loggers are not affected by this
 		sb.append("\t<contextListener class=\"ch.qos.logback.classic.jul.LevelChangePropagator\">\n");
 		sb.append("\t\t<resetJUL>true</resetJUL>\n");
 		sb.append("\t</contextListener>\n");

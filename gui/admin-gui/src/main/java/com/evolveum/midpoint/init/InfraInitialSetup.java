@@ -39,5 +39,7 @@ public class InfraInitialSetup {
 
     public void init() {
     	PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+    	// Make sure that JUL is loaded in the main classloader
+    	java.util.logging.Logger logger = java.util.logging.Logger.getLogger(InfraInitialSetup.class.getName());
     }
 }
