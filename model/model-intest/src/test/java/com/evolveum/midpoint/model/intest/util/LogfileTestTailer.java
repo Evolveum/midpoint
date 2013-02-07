@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class LogfileTestTailer {
 	
 	private static final String LOG_FILENAME = "target/test.log";
-	private static final String MARKER = "_M_A_R_K_E_R_";
+	public static final String MARKER = "_M_A_R_K_E_R_";
 	
 	public static final String LEVEL_ERROR = "ERROR";
 	public static final String LEVEL_WARN = "WARN";

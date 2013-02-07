@@ -73,6 +73,11 @@
 			<artifactId>staxmate</artifactId>
 			<version>2.0.1</version>
 		</dependency>
+		<dependency>
+			<!-- Some of the the third-party libs are still using JUL. We want them in our logs. -->
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+		</dependency>
 		<!-- this dependency probably can be removed after protector 
 		class is implemented (just for development purposes only) -->
 		<dependency>

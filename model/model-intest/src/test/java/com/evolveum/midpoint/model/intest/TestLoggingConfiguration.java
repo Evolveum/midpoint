@@ -116,12 +116,13 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 
 	@Test
 	public void test002InitialConfiguration() throws Exception {
-		displayTestTile("test002InitialConfiguration");
+		final String TEST_NAME = "test002InitialConfiguration";
+		displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
 		
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test002InitialConfiguration");
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = 
@@ -176,15 +177,16 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 		integrationTestToolsLogger.setLevel(LoggingLevelType.TRACE);
 		logging.getClassLogger().add(integrationTestToolsLogger);
 	}
-
+	
 	@Test
-	public void test003AddModelSubsystemLogger() throws Exception {
-		displayTestTile("test003AddModelSubsystemLogger");
+	public void test010AddModelSubsystemLogger() throws Exception {
+		final String TEST_NAME = "test010AddModelSubsystemLogger";
+		displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer();
 		
-		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test003AddModelSubsystemLogger");
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		// Precondition
@@ -239,6 +241,62 @@ public class TestLoggingConfiguration extends AbstractIntegrationTest {
 	}
 
 
+	@Test
+	public void test020JulLogging() throws Exception {
+		final String TEST_NAME = "test020JulLogging";
+		displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		LogfileTestTailer tailer = new LogfileTestTailer();
+		
+		final String LOGGER_NAME = TestLoggingConfiguration.class.getName()+".jul";
+		
+		java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(LOGGER_NAME);
+		
+		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// Setup
+		PrismObject<SystemConfigurationType> systemConfiguration = 
+			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
+		
+		applyTestLoggingConfig(logging);
+		
+		ClassLoggerConfigurationType classLogerCongif = new ClassLoggerConfigurationType();
+		classLogerCongif.setPackage(LOGGER_NAME);
+		classLogerCongif.setLevel(LoggingLevelType.ALL);
+		logging.getClassLogger().add(classLogerCongif );
+				
+		ObjectDelta<SystemConfigurationType> systemConfigDelta = ObjectDelta.createModificationReplaceProperty(SystemConfigurationType.class, 
+				AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_LOGGING, prismContext, 
+				logging);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(systemConfigDelta);
+		
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// WHEN
+		julLogger.severe(LogfileTestTailer.MARKER + " JULsevere");
+		julLogger.warning(LogfileTestTailer.MARKER + " JULwarning");
+		julLogger.info(LogfileTestTailer.MARKER + " JULinfo");
+		julLogger.fine(LogfileTestTailer.MARKER + " JULfine");
+		julLogger.finer(LogfileTestTailer.MARKER + " JULfiner");
+		julLogger.finest(LogfileTestTailer.MARKER + " JULfinest");
+		
+		tailer.tail();
+		
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_ERROR, "JULsevere");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_WARN, "JULwarning");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_INFO, "JULinfo");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfine");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_DEBUG, "JULfiner");
+		tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, "JULfinest");
+		
+		tailer.close();
+		
+	}
+
+	
 	@Test
 	public void test101EnableBasicAudit() throws Exception {
 		displayTestTile("test101EnableBasicAudit");

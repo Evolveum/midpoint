@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -57,10 +58,14 @@ public class LoggingConfigurationManager {
 
 	public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
 
-		OperationResult res = result.createSubresult("Logging reconfiguration configuration");
+		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
 		LOGGER.info("Changing logging configuration (current config version: {}, new version {})", currentlyUsedVersion, version);
         currentlyUsedVersion = version;
 
+		// Initialize JUL bridge
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+        
 		//Get current log configuration
 		LoggerContext lc = (LoggerContext) TraceManager.getILoggerFactory();
 
@@ -125,7 +130,7 @@ public class LoggingConfigurationManager {
 			System.out.println(internalLog);
 		} else {
 			res.recordSuccess();
-		}
+		}		
 
 		return;
 	}
@@ -139,6 +144,12 @@ public class LoggingConfigurationManager {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<configuration scan=\"false\" debug=\"true\">\n");
+		
+		// LevelChangePropagator to propagate log level changes to JUL
+		// this keeps us from performance impact of disable JUL logging statements
+		sb.append("\t<contextListener class=\"ch.qos.logback.classic.jul.LevelChangePropagator\">\n");
+		sb.append("\t\t<resetJUL>true</resetJUL>\n");
+		sb.append("\t</contextListener>\n");
 
 		//find and configure ALL logger and bring it to top of turbo stack
 		for (SubSystemLoggerConfigurationType ss : config.getSubSystemLogger()) {
