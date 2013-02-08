@@ -21,23 +21,20 @@
 
 package com.evolveum.midpoint.tools.ninja;
 
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+
 /**
+ * Simple mock identifier generator to satisfy spring dependencies.
+ *
  * @author lazyman
  */
-public class ImportObjects {
+public class LightweightIdentifierGeneratorMock implements LightweightIdentifierGenerator {
 
-    private String filePath;
+    private int sequence;
 
-    public ImportObjects(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public boolean execute() {
-        System.out.println("Starting objects import.");
-
-
-
-        System.out.println("Objects import finished.");
-        return true;
+    @Override
+    public LightweightIdentifier generate() {
+        return new LightweightIdentifier(System.currentTimeMillis(), 0, ++sequence);
     }
 }

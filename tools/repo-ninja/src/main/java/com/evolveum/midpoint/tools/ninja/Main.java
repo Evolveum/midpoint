@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.tools.ninja;
 
 import org.apache.commons.cli.*;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author lazyman
@@ -30,9 +29,9 @@ import org.apache.commons.lang.StringUtils;
 public class Main {
 
     public static final Option help = new Option("h", "help", false, "Prints this help.");
-    public static final Option validate = new Option("v", "validate", true,
+    public static final Option validate = new Option("v", "validate", false,
             "Validate SQL database by repository context loading and Hibernate2DDL validate. " +
-                    "Validation is against <midpoint.home> folder path provided by this option.");
+                    "Validation is against <midpoint.home> folder.");
     public static final Option create = new Option("c", "create", true,
             "Create tables with sql script provided by this option.");
     public static final Option importOp = new Option("i", "import", true,
@@ -64,10 +63,9 @@ public class Main {
                 return;
             }
 
-            if (!validate(line, options)) {
-                return;
-            }
-
+            //repository validation, if proper option is present
+            boolean valid = validate(line, options);
+            //import DDL, if proper option is present
             if (line.hasOption(create.getOpt())) {
                 ImportDDL ddl = new ImportDDL(createDDLConfig(line));
                 if (!ddl.execute()) {
@@ -75,12 +73,12 @@ public class Main {
                     return;
                 }
 
-                if (!validate(line, options)) {
-                    return;
-                }
+                //repository validation after DDL import, if proper option is present
+                valid = validate(line, options);
             }
 
-            if (line.hasOption(importOp.getOpt())) {
+            //import objects, only if repository validation didn't fail (in case it was tested)
+            if (valid && line.hasOption(importOp.getOpt())) {
                 String path = line.getOptionValue(importOp.getOpt());
                 ImportObjects objects = new ImportObjects(path);
                 objects.execute();
@@ -109,17 +107,11 @@ public class Main {
 
     private static boolean validate(CommandLine line, Options options) {
         if (!line.hasOption(validate.getOpt())) {
+            System.out.println("Skipping repository validation.");
             return true;
         }
 
-        String path = line.getOptionValue(validate.getOpt());
-        if (StringUtils.isEmpty(path)) {
-            System.out.println("Path for <midpoint.home> folder was not defined.");
-            printHelp(options);
-            return false;
-        }
-
-        RepoValidator validator = new RepoValidator(path);
+        RepoValidator validator = new RepoValidator();
         boolean valid = validator.execute();
         if (!valid) {
             System.out.println("Validation was unsuccessful, skipping other steps.");
@@ -130,6 +122,6 @@ public class Main {
 
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("Main [-c <arg>][-h][-i <arg>][-v <arg>][-d <arg>][-u <arg>][-U <arg>][-p <arg>][-P]", options);
+        formatter.printHelp("Main [-c <arg>][-h][-i <arg>][-v][-d <arg>][-u <arg>][-U <arg>][-p <arg>][-P]", options);
     }
 }

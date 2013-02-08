@@ -24,10 +24,7 @@ package com.evolveum.midpoint.tools.ninja;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -45,6 +42,8 @@ public class ImportDDL {
     }
 
     public boolean execute() {
+        System.out.println("Starting DDL import.");
+
         File script = new File(config.getFilePath());
         if (!script.exists() || !script.canRead()) {
             System.out.println("DDL script file '" + config.getFilePath() + "' doesn't exist or can't be read.");
@@ -59,54 +58,58 @@ public class ImportDDL {
                 return false;
             }
 
-            System.out.println("Reading DDL script file '" + script.getAbsolutePath() + "'.");
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(script), "utf-8"));
-            StringBuilder query = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                //skip comments
-                if (line.length() == 0 || line.length() > 0 && line.charAt(0) == '-') {
-                    continue;
-                }
-
-                if (query.length() != 0) {
-                    query.append(' ');
-                }
-                query.append(line.trim());
-
-                //If one command complete
-                if (query.charAt(query.length() - 1) == ';') {
-                    query.deleteCharAt(query.length() - 1);
-                    try {
-                        String queryStr = query.toString();
-                        System.out.println("Executing query: " + queryStr);
-
-                        Statement stmt = connection.createStatement();
-                        stmt.execute(queryStr);
-                        stmt.close();
-                    } catch (SQLException ex) {
-                        System.out.println("Exception occurred during SQL statement '" + query.toString()
-                                + "' execute, reason: " + ex.getMessage());
-                    }
-                    query = new StringBuilder();
-                }
-            }
+            readScript(script, reader, connection);
         } catch (Exception ex) {
             System.out.println("Exception occurred, reason: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             IOUtils.closeQuietly(reader);
-
             try {
                 if (connection != null && !connection.isClosed()) {
                     connection.close();
                 }
             } catch (Exception ex) {
-                System.out.println("Couldn't close JDBC connection.");
+                System.out.println("Couldn't close JDBC connection, reason: " + ex.getMessage());
             }
         }
 
+        System.out.println("DDL import finished.");
         return true;
+    }
+
+    private void readScript(File script, BufferedReader reader, Connection connection) throws IOException {
+        System.out.println("Reading DDL script file '" + script.getAbsolutePath() + "'.");
+        reader = new BufferedReader(new InputStreamReader(new FileInputStream(script), "utf-8"));
+        StringBuilder query = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            //skip comments
+            if (line.length() == 0 || line.length() > 0 && line.charAt(0) == '-') {
+                continue;
+            }
+
+            if (query.length() != 0) {
+                query.append(' ');
+            }
+            query.append(line.trim());
+
+            //If one command complete
+            if (query.charAt(query.length() - 1) == ';') {
+                query.deleteCharAt(query.length() - 1);
+                try {
+                    String queryStr = query.toString();
+                    System.out.println("Executing query: " + queryStr);
+
+                    Statement stmt = connection.createStatement();
+                    stmt.execute(queryStr);
+                    stmt.close();
+                } catch (SQLException ex) {
+                    System.out.println("Exception occurred during SQL statement '" + query.toString()
+                            + "' execute, reason: " + ex.getMessage());
+                }
+                query = new StringBuilder();
+            }
+        }
     }
 
     private Connection createConnection() {
