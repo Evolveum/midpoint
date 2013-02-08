@@ -337,6 +337,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		String stringID = keyToNamespaceSuffix(key);
 		StringBuilder connectorName = new StringBuilder("ICF ");
 		connectorName.append(key.getConnectorName());
+		connectorName.append(" v");
+		connectorName.append(key.getBundleVersion());
 		if (hostType != null) {
 			connectorName.append(" @");
 			connectorName.append(hostType.getName());

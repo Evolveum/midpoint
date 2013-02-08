@@ -224,7 +224,7 @@ public class ConnectorTypeManager {
 		// We need the host to have OID, so we can properly link connectors to
 		// it
 		if (hostType != null && hostType.getOid() == null) {
-			throw new SystemException("Discovery attempt with non-persistent " + ObjectTypeUtil.toShortString(hostType));
+			throw new SystemException("Discovery attempt with non-persistent " + hostType);
 		}
 
 		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
@@ -241,7 +241,7 @@ public class ConnectorTypeManager {
 
 		for (ConnectorType foundConnector : foundConnectors) {
 
-			LOGGER.trace("Found connector " + ObjectTypeUtil.toShortString(foundConnector));
+			LOGGER.trace("Found connector {}", foundConnector);
 
 			boolean inRepo = true;
 			try {
@@ -257,8 +257,7 @@ public class ConnectorTypeManager {
 			}
 			if (!inRepo) {
 
-				LOGGER.trace("Connector " + ObjectTypeUtil.toShortString(foundConnector)
-						+ " not in the repository, \"dicovering\" it");
+				LOGGER.trace("Connector {} not in the repository, \"dicovering\" it", foundConnector);
 
 				// First of all we need to "embed" connectorHost to the
 				// connectorType. The UCF does not
@@ -275,11 +274,10 @@ public class ConnectorTypeManager {
 					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null);
 					PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
 					if (connectorSchema == null) {
-						LOGGER.warn("Connector {} haven't provided configuration schema",
-								ObjectTypeUtil.toShortString(foundConnector));
+						LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
 					} else {
 						LOGGER.trace("Generated connector schema for {}: {} definitions",
-								ObjectTypeUtil.toShortString(foundConnector), connectorSchema.getDefinitions().size());
+								foundConnector, connectorSchema.getDefinitions().size());
 						Document xsdDoc = null;
 						// Convert to XSD
 						xsdDoc = connectorSchema.serializeToXsd();
@@ -344,25 +342,8 @@ public class ConnectorTypeManager {
 		return discoveredConnectors;
 	}
 
-	/**
-	 * @param localConnector
-	 * @return
-	 * @throws SchemaException
-	 */
-//	@SuppressWarnings("unchecked")
 	private boolean isInRepo(ConnectorType connectorType, OperationResult result) throws SchemaException {
-//		Document doc = DOMUtil.getDocument();
-//		Element filter = QueryUtil
-//				.createAndFilter(
-//						doc,
-//						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
-//								connectorType.getFramework()),
-//						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
-//								connectorType.getConnectorType()));
-
-//		PrismObjectDefinition def = connectorType.asPrismObject().getDefinition();
-		AndFilter filter = AndFilter
-		.createAnd(
+		AndFilter filter = AndFilter.createAnd(
 				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_FRAMEWORK, connectorType.getFramework()),
 				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, connectorType.getConnectorType()));
 	
