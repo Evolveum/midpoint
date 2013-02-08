@@ -29,22 +29,32 @@ import org.apache.commons.lang.StringUtils;
  */
 public class Main {
 
+    public static final Option help = new Option("h", "help", false, "Prints this help.");
+    public static final Option validate = new Option("v", "validate", true,
+            "Validate SQL database by repository context loading and Hibernate2DDL validate. " +
+                    "Validation is against <midpoint.home> folder path provided by this option.");
+    public static final Option create = new Option("c", "create", true,
+            "Create tables with sql script provided by this option.");
+    public static final Option importOp = new Option("i", "import", true,
+            "Import objects from XML file provided by this option.");
+    public static final Option driver = new Option("d", "driver", true, "JDBC driver class");
+    public static final Option url = new Option("u", "url", true, "JDBC url");
+    public static final Option username = new Option("U", "username", true, "JDBC username");
+    public static final Option password = new Option("p", "password", true, "JDBC password");
+    public static final Option Password = new Option("P", "password-prompt", false, "JDBC password (prompt)");
+
+
     public static void main(String[] args) {
         Options options = new Options();
-
-        Option help = new Option("h", "help", false,
-                "Prints this help.");
         options.addOption(help);
-        Option validate = new Option("v", "validate", true,
-                "Validate SQL database by repository context loading and Hibernate2DDL validate. " +
-                        "Validation is against <midpoint.home> folder path provided by this option.");
         options.addOption(validate);
-        Option create = new Option("c", "create", true,
-                "Create tables with sql script provided by this option.");
         options.addOption(create);
-        Option importOp = new Option("i", "import", true,
-                "Import objects from XML file provided by this option.");
         options.addOption(importOp);
+        options.addOption(driver);
+        options.addOption(url);
+        options.addOption(username);
+        options.addOption(password);
+        options.addOption(Password);
 
         try {
             CommandLineParser parser = new GnuParser();
@@ -54,19 +64,18 @@ public class Main {
                 return;
             }
 
-            if (!validate(line, validate, options)) {
+            if (!validate(line, options)) {
                 return;
             }
 
             if (line.hasOption(create.getOpt())) {
-                String path = line.getOptionValue(create.getOpt());
-                ImportDDL ddl = null;//new ImportDDL(path);
+                ImportDDL ddl = new ImportDDL(createDDLConfig(line));
                 if (!ddl.execute()) {
                     System.out.println("DLL import was unsuccessful, skipping other steps.");
                     return;
                 }
 
-                if (!validate(line, validate, options)) {
+                if (!validate(line, options)) {
                     return;
                 }
             }
@@ -85,7 +94,20 @@ public class Main {
         }
     }
 
-    private static boolean validate(CommandLine line, Option validate, Options options) {
+    private static ImportDDLConfig createDDLConfig(CommandLine line) {
+        ImportDDLConfig config = new ImportDDLConfig();
+        config.setDriver(line.getOptionValue(driver.getOpt()));
+        config.setUrl(line.getOptionValue(url.getOpt()));
+        config.setUsername(line.getOptionValue(username.getOpt()));
+        config.setPassword(line.getOptionValue(password.getOpt()));
+        config.setPromptForPassword(line.hasOption(Password.getOpt()));
+
+        config.setFilePath(line.getOptionValue(create.getOpt()));
+
+        return config;
+    }
+
+    private static boolean validate(CommandLine line, Options options) {
         if (!line.hasOption(validate.getOpt())) {
             return true;
         }
@@ -108,6 +130,6 @@ public class Main {
 
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("Main [-c <arg>][-h][-i <arg>][-v <arg>]", options);
+        formatter.printHelp("Main [-c <arg>][-h][-i <arg>][-v <arg>][-d <arg>][-u <arg>][-U <arg>][-p <arg>][-P]", options);
     }
 }

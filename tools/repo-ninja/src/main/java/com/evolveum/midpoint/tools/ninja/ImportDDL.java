@@ -38,34 +38,28 @@ import java.sql.Statement;
  */
 public class ImportDDL {
 
-    private String driver;
-    private String url;
-    private String username;
-    private String password;
+    private ImportDDLConfig config;
 
-    private String filePath;
-
-    public ImportDDL(String filePath, String driver, String url, String username, String password) {
-        this.filePath = filePath;
-
-        this.driver = driver;
-        this.url = url;
-        this.username = username;
-        this.password = password;
+    public ImportDDL(ImportDDLConfig config) {
+        this.config = config;
     }
 
     public boolean execute() {
-        File script = new File(filePath);
+        File script = new File(config.getFilePath());
         if (!script.exists() || !script.canRead()) {
-            System.out.println("DDL script file '" + filePath + "' doesn't exist or can't be read.");
+            System.out.println("DDL script file '" + config.getFilePath() + "' doesn't exist or can't be read.");
             return false;
         }
 
         Connection connection = null;
         BufferedReader reader = null;
         try {
-            connection = createConnection(driver, url, username, password);
+            connection = createConnection();
+            if (connection == null) {
+                return false;
+            }
 
+            System.out.println("Reading DDL script file '" + script.getAbsolutePath() + "'.");
             reader = new BufferedReader(new InputStreamReader(new FileInputStream(script), "utf-8"));
             StringBuilder query = new StringBuilder();
             String line;
@@ -75,16 +69,20 @@ public class ImportDDL {
                     continue;
                 }
 
-                query.append(' ').append(line);
-
+                if (query.length() != 0) {
+                    query.append(' ');
+                }
+                query.append(line.trim());
 
                 //If one command complete
                 if (query.charAt(query.length() - 1) == ';') {
                     query.deleteCharAt(query.length() - 1);
-
                     try {
+                        String queryStr = query.toString();
+                        System.out.println("Executing query: " + queryStr);
+
                         Statement stmt = connection.createStatement();
-                        stmt.execute(query.toString());
+                        stmt.execute(queryStr);
                         stmt.close();
                     } catch (SQLException ex) {
                         System.out.println("Exception occurred during SQL statement '" + query.toString()
@@ -93,7 +91,6 @@ public class ImportDDL {
                     query = new StringBuilder();
                 }
             }
-
         } catch (Exception ex) {
             System.out.println("Exception occurred, reason: " + ex.getMessage());
             ex.printStackTrace();
@@ -112,17 +109,37 @@ public class ImportDDL {
         return true;
     }
 
-    private Connection createConnection(String driver, String url, String username, String password) {
+    private Connection createConnection() {
+        System.out.println("Creating JDBC connection.");
+
+        String password = !config.isPromptForPassword() ? config.getPassword() : promptForPassword();
         try {
-            Class.forName(driver);
-            return DriverManager.getConnection(url, username, password);
+            Class.forName(config.getDriver());
+            return DriverManager.getConnection(config.getUrl(), config.getUsername(), password);
         } catch (Exception ex) {
             String pwd = password == null ? "<null>" : StringUtils.repeat("*", password.length());
-            System.out.print("Couldn't create JDBC connection to '" + url + "' with username '" + username
-                    + "' and password '" + pwd + "', reason: " + ex.getMessage());
+            System.out.print("Couldn't create JDBC connection to '" + config.getUrl() + "' with username '"
+                    + config.getUsername() + "' and password '" + pwd + "', reason: " + ex.getMessage());
             ex.printStackTrace();
         }
 
         return null;
+    }
+
+    private String promptForPassword() {
+        String password = null;
+        BufferedReader reader = null;
+        try {
+            System.out.print("Password: ");
+            reader = new BufferedReader(new InputStreamReader(System.in, "utf-8"));
+            password = reader.readLine();
+        } catch (Exception ex) {
+            System.out.println("Exception occurred during password prompt, reason: " + ex.getMessage());
+            ex.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
+
+        return password;
     }
 }
