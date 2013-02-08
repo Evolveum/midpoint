@@ -21,6 +21,18 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -37,10 +49,10 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.type.QNameType;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,17 +60,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -380,7 +381,32 @@ public class SimpleOp extends Op {
 			} else {
 				item.item = attrDef.getRealName();
 				if (attrDef.isPolyString()) {
+					if (attrDef.isMultiValue()){
+						String realName = attrDef.getJpaName();
+		                ItemPath propPath = path;
+						if (propPath == null || propPath.isEmpty()){
+							propPath = new ItemPath(new QName(RUtil.NS_SQL_REPO, realName));
+						}
+						addNewCriteriaToContext(propPath, realName);
+						item.item = "norm";
+						item.alias = getInterpreter().getAlias(propPath);
+		                LOGGER.trace("Found alias '{}' for path.", new Object[] { item.alias });
+					}else{
 					item.item += ".norm";
+					}
+				} else{
+					if (attrDef.isMultiValue()){
+						String realName = attrDef.getJpaName();
+		                ItemPath propPath = path;
+						if (propPath == null || propPath.isEmpty()){
+							propPath = new ItemPath(new QName(RUtil.NS_SQL_REPO, realName));
+						}
+						addNewCriteriaToContext(propPath, realName);
+						System.out.println("atrr real name: " + attrDef.getRealName());
+						item.alias = getInterpreter().getAlias(propPath);
+						item.item = "elements";
+		                LOGGER.trace("Found alias '{}' for path.", new Object[] { item.alias });
+					}
 				}
 			}
 
@@ -466,6 +492,7 @@ public class SimpleOp extends Op {
 		}
 	}
 
+	
 	private void addNewCriteriaToContext(ItemPath propPath, String realName) {
 		ItemPath lastPropPath = propPath.allExceptLast();
 		if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
@@ -476,6 +503,7 @@ public class SimpleOp extends Op {
 		// create new criteria for this relationship
 		String alias = getInterpreter().createAlias(ItemPath.getName(propPath.last()));
 		Criteria criteria = pCriteria.createCriteria(realName, alias);
+		
 		// save criteria and alias to our query context
 		getInterpreter().setCriteria(propPath, criteria);
 		getInterpreter().setAlias(propPath, alias);

@@ -206,62 +206,62 @@ public class ModelDiagController implements ModelDiagnosticService {
 			}
 
 			// MID-1116
-//			{
-//				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
-//				try {
-//					
-//					ObjectQuery query = new ObjectQuery();
-//					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_EMPLOYEE_TYPE,
-//							USER_EMPLOYEE_TYPE[0]);
-//					query.setFilter(filter);
-//					subresult.addParam("query", query);
-//					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
-//					if (LOGGER.isTraceEnabled()) {
-//						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
-//					}
-//					assertSingleSearchResult("user", foundObjects, subresult);
-//					
-//					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
-//					checkUser(userRetrieved, name, subresult);
-//					
-//					subresult.recordSuccessIfUnknown();
-//				} catch (SchemaException e) {
-//					subresult.recordFatalError(e);
-//					return;
-//				} catch (RuntimeException e) {
-//					subresult.recordFatalError(e);
-//					return;
-//				}
-//			}
+			{
+				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
+				try {
+					
+					ObjectQuery query = new ObjectQuery();
+					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_EMPLOYEE_TYPE,
+							USER_EMPLOYEE_TYPE[0]);
+					query.setFilter(filter);
+					subresult.addParam("query", query);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
+					}
+					assertSingleSearchResult("user", foundObjects, subresult);
+					
+					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
+					checkUser(userRetrieved, name, subresult);
+					
+					subresult.recordSuccessIfUnknown();
+				} catch (SchemaException e) {
+					subresult.recordFatalError(e);
+					return;
+				} catch (RuntimeException e) {
+					subresult.recordFatalError(e);
+					return;
+				}
+			}
 			
 // MID-1116
-//			{
-//				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
-//				try {
-//					
-//					ObjectQuery query = new ObjectQuery();
-//					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
-//							toPolyString(USER_ORGANIZATION[1]));
-//					query.setFilter(filter);
-//					subresult.addParam("query", query);
-//					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
-//					if (LOGGER.isTraceEnabled()) {
-//						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
-//					}
-//					assertSingleSearchResult("user", foundObjects, subresult);
-//					
-//					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
-//					checkUser(userRetrieved, name, subresult);
-//					
-//					subresult.recordSuccessIfUnknown();
-//				} catch (SchemaException e) {
-//					subresult.recordFatalError(e);
-//					return;
-//				} catch (RuntimeException e) {
-//					subresult.recordFatalError(e);
-//					return;
-//				}
-//			}
+			{
+				OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
+				try {
+					
+					ObjectQuery query = new ObjectQuery();
+					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
+							toPolyString(USER_ORGANIZATION[1]));
+					query.setFilter(filter);
+					subresult.addParam("query", query);
+					List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , subresult);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
+					}
+					assertSingleSearchResult("user", foundObjects, subresult);
+					
+					PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
+					checkUser(userRetrieved, name, subresult);
+					
+					subresult.recordSuccessIfUnknown();
+				} catch (SchemaException e) {
+					subresult.recordFatalError(e);
+					return;
+				} catch (RuntimeException e) {
+					subresult.recordFatalError(e);
+					return;
+				}
+			}
 			
 
 		} finally {
