@@ -28,7 +28,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.query.QueryEntity;
 import com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator;
@@ -40,8 +39,6 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Where;
-import org.hibernate.annotations.WhereJoinTable;
-
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.List;
