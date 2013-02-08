@@ -46,7 +46,7 @@ public class ImportDDL {
 
         File script = new File(config.getFilePath());
         if (!script.exists() || !script.canRead()) {
-            System.out.println("DDL script file '" + config.getFilePath() + "' doesn't exist or can't be read.");
+            System.out.println("DDL script file '" + script.getAbsolutePath() + "' doesn't exist or can't be read.");
             return false;
         }
 

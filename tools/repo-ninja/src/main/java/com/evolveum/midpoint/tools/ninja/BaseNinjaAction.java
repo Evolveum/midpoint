@@ -26,26 +26,19 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * @author lazyman
  */
-public class RepoValidator extends BaseNinjaAction {
+public abstract class BaseNinjaAction {
 
-    public boolean execute() {
-        System.out.println("Starting validation.");
+    public static final String[] CONTEXTS = {"classpath:ctx-ninja.xml", "classpath:ctx-common.xml",
+            "classpath:ctx-configuration.xml", "classpath*:ctx-repository.xml", "classpath:ctx-repo-cache.xml"};
 
-        boolean valid = true;
-        ClassPathXmlApplicationContext context = null;
-        try {
-            context = new ClassPathXmlApplicationContext(CONTEXTS);
-        } catch (Exception ex) {
-            System.out.println("Exception occurred during context loading, reason: " + ex.getMessage());
-            ex.printStackTrace();
-
-            valid = false;
-        } finally {
-            destroyContext(context);
+    protected void destroyContext(ClassPathXmlApplicationContext context) {
+        if (context != null) {
+            try {
+                context.destroy();
+            } catch (Exception ex) {
+                System.out.println("Exception occurred during context shutdown, reason: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-
-        String success = valid ? "SUCCESS" : "FAIL";
-        System.out.println("Finished validation. " + success);
-        return valid;
     }
 }
