@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
@@ -367,6 +368,8 @@ public class ShadowConverter {
 							filteredOperations.add(newOp);
 						}
 					}
+				}else if (origOperation instanceof ExecuteProvisioningScriptOperation){
+					filteredOperations.add(origOperation);					
 				}
 			}
 			if (filteredOperations.isEmpty()){

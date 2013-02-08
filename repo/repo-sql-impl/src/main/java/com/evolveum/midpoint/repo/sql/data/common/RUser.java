@@ -40,6 +40,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Where;
+import org.hibernate.annotations.WhereJoinTable;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -83,6 +84,7 @@ public class RUser extends RObject {
     private String telephoneNumber;
     @QueryAttribute
     private String employeeNumber;
+    @QueryAttribute(multiValue = true)
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
     @QueryAttribute
@@ -106,6 +108,7 @@ public class RUser extends RObject {
     @QueryAttribute(name = "accountRef", multiValue = true, reference = true)
     private Set<RObjectReference> accountRefs;
     private Set<RAssignment> assignments;
+    @QueryAttribute(multiValue = true, polyString = true)
     private Set<RPolyString> organization;
 
     @ElementCollection

@@ -1429,7 +1429,7 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	// MID-1113
-	@Test(enabled=false)
+	@Test
 	public void test132ModifyScript() throws Exception {
 		final String TEST_NAME = "test132ModifyScript";
 		displayTestTile(TEST_NAME);
