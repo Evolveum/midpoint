@@ -60,7 +60,7 @@ public class Main {
 
             if (line.hasOption(create.getOpt())) {
                 String path = line.getOptionValue(create.getOpt());
-                ImportDDL ddl = new ImportDDL(path);
+                ImportDDL ddl = null;//new ImportDDL(path);
                 if (!ddl.execute()) {
                     System.out.println("DLL import was unsuccessful, skipping other steps.");
                     return;
