@@ -62,6 +62,9 @@ public class LoggingConfigurationManager {
 		LOGGER.info("Changing logging configuration (current config version: {}, new version {})", currentlyUsedVersion, version);
         currentlyUsedVersion = version;
 
+        // JUL Bridge initialization was here. (SLF4JBridgeHandler)
+        // But it was moved to a later phase as suggested by http://jira.qos.ch/browse/LOGBACK-740
+        
 		// Initialize JUL bridge
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
@@ -131,7 +134,11 @@ public class LoggingConfigurationManager {
 			LOGGER.trace("LogBack internal log:\n{}",internalLog);
 		} else {
 			res.recordSuccess();
-		}		
+		}
+		
+		// Initialize JUL bridge
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
 
 		return;
 	}
@@ -145,14 +152,6 @@ public class LoggingConfigurationManager {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<configuration scan=\"false\" debug=\"true\">\n");
-		
-		// LevelChangePropagator to propagate log level changes to JUL
-		// this keeps us from performance impact of disable JUL logging statements
-		// WARNING: if deployed in Tomcat then this propagates only to the JUL loggers in current classloader.
-		// It means that ICF connector loggers are not affected by this
-		sb.append("\t<contextListener class=\"ch.qos.logback.classic.jul.LevelChangePropagator\">\n");
-		sb.append("\t\t<resetJUL>true</resetJUL>\n");
-		sb.append("\t</contextListener>\n");
 
 		//find and configure ALL logger and bring it to top of turbo stack
 		for (SubSystemLoggerConfigurationType ss : config.getSubSystemLogger()) {
@@ -275,6 +274,16 @@ public class LoggingConfigurationManager {
 				sb.append("\n");
 			}
 		}
+		
+		// LevelChangePropagator to propagate log level changes to JUL
+		// this keeps us from performance impact of disable JUL logging statements
+		// WARNING: if deployed in Tomcat then this propagates only to the JUL loggers in current classloader.
+		// It means that ICF connector loggers are not affected by this
+		// MAGIC: moved to the end of the "file" as suggested in http://jira.qos.ch/browse/LOGBACK-740
+		sb.append("\t<contextListener class=\"ch.qos.logback.classic.jul.LevelChangePropagator\">\n");
+		sb.append("\t\t<resetJUL>true</resetJUL>\n");
+		sb.append("\t</contextListener>\n");
+		
 		sb.append("</configuration>");
 		return sb.toString();
 	}
