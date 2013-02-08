@@ -254,7 +254,7 @@ public class PageReports extends PageAdminReports {
 				OperationResult result = new OperationResult(OPERATION_CREATE_RESOURCE_LIST);
 				Task task = createSimpleTask(OPERATION_CREATE_RESOURCE_LIST);
 				try {
-					list = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task,
+					list = getModelService().searchObjects(ResourceType.class, new ObjectQuery(), SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()), task,
 							result);
 					result.recordSuccess();
 				} catch (Exception ex) {
@@ -312,11 +312,16 @@ public class PageReports extends PageAdminReports {
 					}
 				}){
 
-					@Override
-					protected void onSelectionChanged(Object newSelection) {
-						userFilterDto.getObject().setResource((PrismObject<ResourceType>)newSelection);
-					}
-			
+			@Override
+			protected boolean wantOnSelectionChangedNotifications() {
+				return true;
+			}
+
+			@Override
+			protected void onSelectionChanged(Object newSelection) {
+				userFilterDto.getObject().setResource((PrismObject<ResourceType>) newSelection);
+			}
+
 		};
 		resourceChoice.setNullValid(false);
 		item.add(resourceChoice);
@@ -490,6 +495,7 @@ public class PageReports extends PageAdminReports {
 		try {
             ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
 			// Loading template
+                        
 			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
 			report = JasperCompileManager.compileReport(design);
 			Map params = new HashMap();

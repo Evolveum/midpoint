@@ -3,11 +3,12 @@
 	<property name="ireport.zoom" value="1.6105100000000019"/>
 	<property name="ireport.x" value="34"/>
 	<property name="ireport.y" value="0"/>
-	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
-	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
-	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
-	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
-	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
+	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
+	<style name="Detail" mode="Transparent" fontName="DejaVu Sans"/>
+	<style name="Row" mode="Transparent" fontName="DejaVu Sans">
 		<conditionalStyle>
 			<style mode="Opaque" backcolor="#F0EFEF"/>
 		</conditionalStyle>
@@ -29,7 +30,7 @@
 	<field name="objectClass" class="javax.xml.namespace.QName"/>
 	<field name="email" class="java.lang.String"/>
 	<field name="emplNum" class="java.lang.String"/>
-	<field name="activation" class="com.evolveum.midpoint.repo.sql.data.common.RActivation">
+	<field name="activation" class="com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation">
 		<fieldDescription><![CDATA[activation]]></fieldDescription>
 	</field>
 	<variable name="id" class="java.lang.Long"/>
@@ -43,7 +44,7 @@
 				<staticText>
 					<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
 					<textElement verticalAlignment="Middle">
-						<font fontName="Times New Roman" size="28" isBold="true"/>
+						<font fontName="DejaVu Sans" size="26" isBold="true"/>
 					</textElement>
 					<text><![CDATA[Reports Results]]></text>
 				</staticText>
@@ -57,30 +58,30 @@
 					<printWhenExpression><![CDATA[!$F{resourceName}.isEmpty()]]></printWhenExpression>
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Times New Roman" size="16" isBold="true"/>
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Resource:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss" isBlankWhenNull="true">
 				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="92" y="84" width="708" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
-					<font size="16" isBold="false"/>
+					<font size="14" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{resourceName}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="153" height="20">
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="170" height="20">
 					<!--<printWhenExpression><![CDATA[!$F{userName}.isEmpty()]]></printWhenExpression>-->
 				</reportElement>
 				<textElement verticalAlignment="Middle">
-					<font fontName="Times New Roman" size="16" isBold="true"/>
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Report generated on:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="156" y="115" width="644" height="20" forecolor="#000000"/>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="172" y="115" width="644" height="20" forecolor="#000000"/>
 				<textElement verticalAlignment="Middle">
-					<font size="16" isBold="false"/>
+					<font size="14" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
@@ -159,56 +160,56 @@
 				<textField isStretchWithOverflow="true" pattern="">
 					<reportElement uuid="ce5dda3a-5a1a-440a-b875-b194986e56cd" style="Detail" positionType="Float" mode="Transparent" x="607" y="0" width="110" height="20" isPrintWhenDetailOverflows="true"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12"/>
+						<font size="10"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{objectClass}.getLocalPart()]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="false">
 					<reportElement uuid="ce5dda3a-5a1a-440a-b875-b194986e56cd" style="Detail" positionType="Float" mode="Transparent" x="717" y="0" width="85" height="20"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12"/>
+						<font size="10"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{accType}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true">
 					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" positionType="Float" mode="Transparent" x="441" y="0" width="166" height="20"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12" isStrikeThrough="false"/>
+						<font size="10" isStrikeThrough="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{accName}]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="183" y="0" width="91" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12" isBold="false"/>
+						<font size="10" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="92" y="0" width="91" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12" isBold="false"/>
+						<font size="10" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="1" y="0" width="91" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12" isBold="false"/>
+						<font size="10" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{userName}]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="274" y="0" width="69" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12" isBold="false"/>
+						<font size="10" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{activation}.isEnabled()]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss" isBlankWhenNull="true">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="343" y="0" width="98" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="12" isBold="false"/>
+						<font size="10" isBold="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{emplNum}]]></textFieldExpression>
 				</textField>
@@ -235,21 +236,21 @@
 				<textField>
 					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Column header" x="680" y="1" width="80" height="20" forecolor="#000000"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="10" isBold="true"/>
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" x="2" y="1" width="197" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="true"/>
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Column header" x="760" y="1" width="40" height="20" forecolor="#000000"/>
 					<textElement verticalAlignment="Middle">
-						<font size="10" isBold="true"/>
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 				</textField>
