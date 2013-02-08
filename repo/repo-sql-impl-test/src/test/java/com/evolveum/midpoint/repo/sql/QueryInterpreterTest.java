@@ -219,8 +219,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
-//        Criteria resourceRef = main.createCriteria("a.resourceRef", "r");
-
         Criteria attributes = main.createCriteria("attributes", "a1");
         Criteria stringAttr = attributes.createCriteria("strings", "s");
 
@@ -248,11 +246,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void queryEmail() throws Exception {
-        //todo query some Set<String> stuff and embedded stuff and Set<RObjectReference> value
-    }
-
-    @Test
     public void queryUserAccountRef() throws Exception {
         LOGGER.info("===[{}]===", new Object[]{"queryUserAccountRef"});
         Session session = open();
@@ -267,22 +260,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
-    }
 
-    @Test(enabled = false)  //TODO FIX THIS TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    public void queryParentOrgRefNullOid() throws Exception {
-        Session session = open();
-        Criteria main = session.createCriteria(ROrg.class, "o");
-        Criteria refs = main.createCriteria("parentOrgRef", "p");
-        refs.add(Restrictions.isNull("p.targetOid"));
-
-        String expected = HibernateToSqlTranslator.toSql(main);
-
-        ObjectQuery query = ObjectQuery.createObjectQuery(RefFilter.createReferenceEqual(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, null));
-        String real = getInterpretedQuery(session, OrgType.class, query.getFilter());
-
-        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
-        AssertJUnit.assertEquals(expected, real);
+        close(session);
     }
 
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectFilter filter) throws
