@@ -31,8 +31,8 @@ import java.util.List;
 public class MyPasswordsDto implements Serializable {
 
     public static final String F_ACCOUNTS = "accounts";
+    public static final String F_PASSWORD = "password";
 
-    private boolean changeIdmPassword;
     private List<PasswordAccountDto> accounts;
     private String password;
 
@@ -43,8 +43,8 @@ public class MyPasswordsDto implements Serializable {
         return accounts;
     }
 
-    public void setChangeIdmPassword(boolean changeIdmPassword) {
-        this.changeIdmPassword = changeIdmPassword;
+    public String getPassword() {
+        return password;
     }
 
     public void setPassword(String password) {

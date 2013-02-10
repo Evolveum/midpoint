@@ -215,7 +215,7 @@ public final class WebMiscUtil {
         encryptProtectedString(string, encrypt, app);
     }
 
-    private static void encryptProtectedString(ProtectedStringType string, boolean encrypt, MidPointApplication app) {
+    public static void encryptProtectedString(ProtectedStringType string, boolean encrypt, MidPointApplication app) {
         if (string == null) {
             return;
         }
@@ -289,5 +289,11 @@ public final class WebMiscUtil {
         //todo imrove with activation dates...
 
         return (Boolean) enabled.getRealValue();
+    }
+
+    public static boolean isSuccessOrHandledError(OperationResult result) {
+        Validate.notNull(result, "Operation result must not be null.");
+
+        return result.isSuccess() || result.isHandledError();
     }
 }

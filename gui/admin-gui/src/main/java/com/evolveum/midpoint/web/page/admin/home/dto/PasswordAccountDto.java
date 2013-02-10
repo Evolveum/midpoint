@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 /**
  * @author lazyman
  */
-public class PasswordAccountDto extends Selectable {
+public class PasswordAccountDto extends Selectable implements Comparable<PasswordAccountDto> {
 
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_RESOURCE_NAME = "resourceName";
@@ -36,12 +36,21 @@ public class PasswordAccountDto extends Selectable {
     private String displayName;
     private String resourceName;
     private boolean enabled;
+    /**
+     * true if this DTO represents default midpoint account;
+     */
+    private boolean midpoint;
 
     public PasswordAccountDto(String oid, String displayName, String resourceName, boolean enabled) {
+        this(oid, displayName, resourceName, enabled, false);
+    }
+
+    public PasswordAccountDto(String oid, String displayName, String resourceName, boolean enabled, boolean midpoint) {
         this.displayName = displayName;
         this.resourceName = resourceName;
         this.enabled = enabled;
         this.oid = oid;
+        this.midpoint = midpoint;
     }
 
     public String getResourceName() {
@@ -58,5 +67,43 @@ public class PasswordAccountDto extends Selectable {
 
     public String getOid() {
         return oid;
+    }
+
+    public boolean isMidpoint() {
+        return midpoint;
+    }
+
+    @Override
+    public int compareTo(PasswordAccountDto o) {
+        if (o == null) {
+            return 1;
+        }
+
+        if (isMidpoint() != o.isMidpoint()) {
+            return isMidpoint() ? -1 : 1;
+        }
+
+        int value = compareString(getResourceName(), o.getResourceName());
+        if (value != 0) {
+            return value;
+        }
+
+        return compareString(getDisplayName(), o.getDisplayName());
+    }
+
+    private int compareString(String s1, String s2) {
+        if (s1 == s2) {
+            return 0;
+        }
+
+        if (s1 == null) {
+            return -1;
+        }
+
+        if (s2 == null) {
+            return 1;
+        }
+
+        return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
     }
 }

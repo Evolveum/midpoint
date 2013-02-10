@@ -21,10 +21,13 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -44,8 +47,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -53,11 +55,11 @@ import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -104,6 +106,8 @@ public class PageMyPasswords extends PageAdminHome {
             PrismObject<UserType> user = getModelService().getObject(UserType.class, userOid, null, task,
                     result.createSubresult(OPERATION_LOAD_USER));
 
+            dto.getAccounts().add(createDefaultPasswordAccountDto(user));
+
             PrismReference reference = user.findReference(UserType.F_ACCOUNT_REF);
             if (reference == null || reference.getValues() == null) {
                 LOGGER.debug("No accounts found for user {}.", new Object[]{userOid});
@@ -134,7 +138,14 @@ public class PageMyPasswords extends PageAdminHome {
             LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
         }
 
+        Collections.sort(dto.getAccounts());
+
         return dto;
+    }
+
+    private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
+        return new PasswordAccountDto(user.getOid(), getString("PageMyPasswords.accountMidpoint"),
+                getString("PageMyPasswords.resourceMidpoint"), WebMiscUtil.isActivationEnabled(user), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<AccountShadowType> account) {
@@ -162,7 +173,8 @@ public class PageMyPasswords extends PageAdminHome {
         accounts.setShowPaging(false);
         mainForm.add(accounts);
 
-        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new Model<String>());
+        PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL,
+                new PropertyModel<String>(model, MyPasswordsDto.F_PASSWORD));
         mainForm.add(passwordPanel);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
@@ -220,14 +232,52 @@ public class PageMyPasswords extends PageAdminHome {
     }
 
     private void savePerformed(AjaxRequestTarget target) {
+        List<PasswordAccountDto> accounts = WebMiscUtil.getSelectedData(
+                (TablePanel) get(ID_MAIN_FORM + ":" + ID_ACCOUNTS));
+        if (accounts.isEmpty()) {
+            warn(getString("PageMyPasswords.noAccountSelected"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
         OperationResult result = new OperationResult(OPERATION_SAVE_PASSWORD);
         try {
-            List<PasswordAccountDto> accounts = model.getObject().getAccounts();
+            MyPasswordsDto dto = model.getObject();
+            ProtectedStringType password = new ProtectedStringType();
+            password.setClearValue(dto.getPassword());
+            WebMiscUtil.encryptProtectedString(password, true, getMidpointApplication());
+
+            final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+                    CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            for (PasswordAccountDto accDto : dto.getAccounts()) {
+                PrismObjectDefinition objDef = accDto.isMidpoint() ?
+                        registry.findObjectDefinitionByCompileTimeClass(UserType.class) :
+                        registry.findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+
+                PropertyDelta delta =PropertyDelta.createModificationReplaceProperty(valuePath, objDef, password);
+
+                Class<? extends ObjectType> type = accDto.isMidpoint() ? UserType.class : AccountShadowType.class;
+                deltas.add(ObjectDelta.createModifyDelta(accDto.getOid(), delta, type, getPrismContext()));
+            }
+
+            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD), result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save password changes", ex);
-            //todo error handling
+            result.recordFatalError("Couldn't save password changes.", ex);
+        } finally {
+            result.recomputeStatus();
         }
-        //todo implement
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResultInSession(result);
+            //todo move to PageDashboard.class
+            setResponsePage(PageHome.class);
+        }
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
