@@ -1,9 +1,24 @@
-1. Validation, Import DDL script, Import objects to SQL Server 2008
+1. run validation and sql script against database
 
--c /home/lazyman/Work/evolveum/midpoint/trunk/repo/repo-sql-impl-test/sql-procedures/sqlserver-schema.sql
--p qwer1234X <or -P and password will be prompted>
--U bamboo
--u jdbc:sqlserver://192.168.1.27:11433;database=midpoint
--d com.microsoft.sqlserver.jdbc.SQLServerDriver
+run.sh \
+-c /home/lazyman/Work/evolveum/midpoint/trunk/repo/repo-sql-impl-test/sql-procedures/sqlserver-schema.sql \
+-p qwer1234X \
+-U bamboo \
+-u jdbc:sqlserver://192.168.1.27:11433\;database=midpoint \
+-d com.microsoft.sqlserver.jdbc.SQLServerDriver \
 -v
--i /home/lazyman/Work/evolveum/midpoint/trunk/tools/repo-ninja/src/test/resources/objects.xml
+
+
+2. repository validation (set proper midpoint.home in run.sh)
+
+run.sh \
+-v
+
+
+3. run sql script against database
+run.sh \
+-c /home/lazyman/Work/evolveum/midpoint/trunk/repo/repo-sql-impl-test/sql-procedures/sqlserver-schema.sql \
+-p qwer1234X \
+-U bamboo \
+-u jdbc:sqlserver://192.168.1.27:11433\;database=midpoint \
+-d com.microsoft.sqlserver.jdbc.SQLServerDriver
