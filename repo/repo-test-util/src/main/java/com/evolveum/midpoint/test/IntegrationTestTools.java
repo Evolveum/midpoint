@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -124,7 +125,9 @@ public class IntegrationTestTools {
 			if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
 				fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
 			}
-			if (result.getStatus() != OperationResultStatusType.SUCCESS && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE) {
+			if (result.getStatus() != OperationResultStatusType.SUCCESS
+                    && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
+                    && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
 				fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
 			}
 		}
@@ -158,7 +161,9 @@ public class IntegrationTestTools {
 				if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
 					fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
 				} 
-				if (result.getStatus() != OperationResultStatusType.SUCCESS && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE) {
+				if (result.getStatus() != OperationResultStatusType.SUCCESS
+                        && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
+                        && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
 					fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
 				}
 			}

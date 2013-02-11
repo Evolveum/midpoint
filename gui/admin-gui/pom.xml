@@ -318,10 +318,10 @@
                 <version>0.5.0</version>
         </dependency>
         <dependency>
-	<groupId>com.lowagie</groupId>
-	<artifactId>itext</artifactId>
-	<version>2.1.7</version>
-</dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <version>2.1.7</version>
+        </dependency>
         <!-- Jasper reports -->
         <dependency>
 			<groupId>net.sf.jasperreports</groupId>
@@ -331,9 +331,13 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>4.0.1.Final</version>
 			<scope>compile</scope>
 		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

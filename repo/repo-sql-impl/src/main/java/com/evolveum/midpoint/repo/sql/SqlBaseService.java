@@ -236,7 +236,7 @@ public class SqlBaseService {
     }
 
     protected void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
-        LOGGER.debug("General exception occurred.", ex);
+        LOGGER.debug("General runtime exception occurred.", ex);
 
         if (isExceptionRelatedToSerialization(ex)) {
             rollbackTransaction(session, ex, result, false);
@@ -252,7 +252,7 @@ public class SqlBaseService {
     }
 
     protected void handleGeneralCheckedException(Exception ex, Session session, OperationResult result) {
-        LOGGER.debug("General exception occurred.", ex);
+        LOGGER.debug("General checked exception occurred.", ex);
 
         boolean fatal = !isExceptionRelatedToSerialization(ex);
         rollbackTransaction(session, ex, result, fatal);
