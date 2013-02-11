@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,17 +80,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session.save(newRecord);
 
             session.getTransaction().commit();
-        } catch (PessimisticLockException ex) {
-            rollbackTransaction(session);
-            throw ex;
-        } catch (LockAcquisitionException ex) {
-            rollbackTransaction(session);
-            throw ex;
-        } catch (HibernateOptimisticLockingFailureException ex) {
-            rollbackTransaction(session);
-            throw ex;
-        } catch (Exception ex) {
-            handleGeneralException(ex, session, null);
+        } catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, null);
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, null);
         } finally {
             cleanupSessionAndResult(session, null);
         }

@@ -235,24 +235,28 @@ public class SqlBaseService {
         }
     }
 
-    protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
+    protected void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
         LOGGER.debug("General exception occurred.", ex);
 
         if (isExceptionRelatedToSerialization(ex)) {
-            //todo improve exception handling, maybe "javax.persistence.query.timeout" property can be used
-            rollbackTransaction(session);
-            throw (RuntimeException) ex;
+            rollbackTransaction(session, ex, result, false);
+            throw ex;       // this exception will be caught and processed in logOperationAttempt, so it's safe to pass any RuntimeException here
+        } else {
+            rollbackTransaction(session, ex, result, true);
+            if (ex instanceof SystemException) {
+                throw (SystemException) ex;
+            } else {
+                throw new SystemException(ex.getMessage(), ex);
+            }
         }
+    }
 
-        rollbackTransaction(session, ex, result, true);
-        if (ex instanceof GenericJDBCException) {
-            //fix for table timeout lock in H2, this exception will be wrapped as system exception
-            //in SqlRepositoryServiceImpl#logOperationAttempt if necessary
-            throw (GenericJDBCException) ex;
-        }
-        if (ex instanceof SystemException) {
-            throw (SystemException) ex;
-        }
+    protected void handleGeneralCheckedException(Exception ex, Session session, OperationResult result) {
+        LOGGER.debug("General exception occurred.", ex);
+
+        boolean fatal = !isExceptionRelatedToSerialization(ex);
+        rollbackTransaction(session, ex, result, fatal);
         throw new SystemException(ex.getMessage(), ex);
     }
+
 }

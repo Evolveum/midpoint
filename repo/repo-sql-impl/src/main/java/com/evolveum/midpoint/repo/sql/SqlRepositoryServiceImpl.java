@@ -140,13 +140,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         RObject object = (RObject) session.get(RObject.class, new RContainerId(0L, oid), lockOptions);
         LOGGER.trace("Got it.");
 
-//		Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-//
-//        query.add(Restrictions.eq("oid", oid));
-//		query.add(Restrictions.eq("id", 0L));
-//
-//		RObject object = (RObject) query.uniqueResult();
-
 		if (object == null) {
             throwObjectNotFoundException(type, oid);
         }
@@ -207,26 +200,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             objectType = getObject(session, type, oid, false);
 
 			session.getTransaction().commit();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			rollbackTransaction(session, ex, result, true);
 			throw ex;
-		} catch (Exception ex) {
-			if (ex instanceof SchemaException) {
-                rollbackTransaction(session, ex, "Schema error while getting object with oid: "
-                        + oid + ". Reason: " + ex.getMessage(), result, true);
-				throw (SchemaException) ex;
-			}
-			handleGeneralException(ex, session, result);
-		} finally {
+		} catch (SchemaException ex) {
+            rollbackTransaction(session, ex, "Schema error while getting object with oid: "
+                    + oid + ". Reason: " + ex.getMessage(), result, true);
+            throw ex;
+        } catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, result);
+        } finally {
 			cleanupSessionAndResult(session, result);
 		}
 
@@ -291,18 +276,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			userType = user.toJAXB(getPrismContext());
 
 			session.getTransaction().commit();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (Exception ex) {
-			handleGeneralException(ex, session, result);
-		} finally {
+		} catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, result);
+        } finally {
 			cleanupSessionAndResult(session, result);
 		}
 
@@ -399,15 +377,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 					object.getCompileTimeClass().getSimpleName(), oid });
 
             object.setOid(oid);
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
 			rollbackTransaction(session, ex, result, true);
 			throw ex;
@@ -428,13 +397,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 			throw new ObjectAlreadyExistsException("Conflicting object already exists" 
 					+ (constraintName == null ? "" : " (violated constraint '"+constraintName+"')"), ex);
-		} catch (Exception ex) {
-			if (ex instanceof SchemaException) {
-                rollbackTransaction(session, ex, result, true);
-				throw (SchemaException) ex;
-			}
-			handleGeneralException(ex, session, result);
-		} finally {
+		} catch (SchemaException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, result);
+        } finally {
 			cleanupSessionAndResult(session, result);
 		}
 
@@ -539,21 +507,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 
 			session.getTransaction().commit();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			rollbackTransaction(session, ex, result, true);
 			throw ex;
-		} catch (Exception ex) {
-			handleGeneralException(ex, session, result);
-		} finally {
+		} catch (SchemaException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, result);
+        } finally {
 			cleanupSessionAndResult(session, result);
 		}
 	}
@@ -656,17 +619,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			LOGGER.trace("Selecting total count.");
 			Long longCount = (Long) criteria.uniqueResult();
 			count = longCount.intValue();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (Exception ex) {
-			handleGeneralException(ex, session, result);
+		} catch (QueryException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+			handleGeneralRuntimeException(ex, session, result);
 		} finally {
 			cleanupSessionAndResult(session, result);
 		}
@@ -746,21 +702,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 
 			session.getTransaction().commit();
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (Exception ex) {
-			if (ex instanceof SchemaException) {
-                rollbackTransaction(session, ex, result, true);
-				throw (SchemaException) ex;
-			}
-			handleGeneralException(ex, session, result);
+		} catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (QueryException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+			handleGeneralRuntimeException(ex, session, result);
 		} finally {
 			cleanupSessionAndResult(session, result);
 		}
@@ -855,15 +802,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Before commit...");
 			session.getTransaction().commit();
             LOGGER.trace("Committed!");
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			rollbackTransaction(session, ex, result, true);
 			throw ex;
@@ -876,12 +814,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             //todo improve (we support only 5 DB, so we should probably do some hacking in here)
 			throw new ObjectAlreadyExistsException(ex);
-		} catch (Exception ex) {
-			if (ex instanceof SchemaException) {
-                rollbackTransaction(session, ex, result, true);
-				throw (SchemaException) ex;
-			}
-			handleGeneralException(ex, session, result);
+		} catch (SchemaException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+			handleGeneralRuntimeException(ex, session, result);
 		} finally {
 			cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
@@ -1109,17 +1048,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 			session.getTransaction().commit();
 			LOGGER.trace("Done.");
-		} catch (PessimisticLockException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (LockAcquisitionException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw ex;
-		} catch (Exception ex) {
-			handleGeneralException(ex, session, result);
+		} catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+			handleGeneralRuntimeException(ex, session, result);
 		} finally {
 			cleanupSessionAndResult(session, result);
 		}
@@ -1150,14 +1082,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 			session.getTransaction().commit();
 			LOGGER.trace("Task status updated.");
-		} catch (HibernateOptimisticLockingFailureException ex) {
-			rollbackTransaction(session);
-			throw new SystemException(ex.getMessage(), ex);
 		} catch (ObjectNotFoundException ex) {
 			rollbackTransaction(session, ex, result, true);
 			throw ex;
-		} catch (Exception ex) {
-			handleGeneralException(ex, session, result);
+		} catch (RuntimeException ex) {
+			handleGeneralRuntimeException(ex, session, result);
 		} finally {
 			cleanupSessionAndResult(session, result);
 		}
