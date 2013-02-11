@@ -133,7 +133,7 @@ public class SqlRepositoryConfiguration {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;
-            useReadOnlyTransactions = true;
+            useReadOnlyTransactions = false;
         } else {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
