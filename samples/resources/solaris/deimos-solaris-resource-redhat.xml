@@ -58,13 +58,13 @@ using an Identity Connector Framework Solaris connector.
 	
             <!-- Configuration specific for the LDAP connector -->
 			<icfc:configurationProperties>
-				<icfcsolaris:port>23</icfcsolaris:port>
+				<icfcsolaris:port>22</icfcsolaris:port>
 				<icfcsolaris:host>deimos.lab.evolveum.com</icfcsolaris:host>
 				<icfcsolaris:loginUser>idm</icfcsolaris:loginUser>
 				<icfcsolaris:password><clearValue>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:password>
-				<icfcsolaris:connectionType>TELNET</icfcsolaris:connectionType>
-				<icfcsolaris:loginShellPrompt>$</icfcsolaris:loginShellPrompt>
-				<icfcsolaris:rootShellPrompt>$</icfcsolaris:rootShellPrompt>
+				<icfcsolaris:connectionType>SSH</icfcsolaris:connectionType>
+				<icfcsolaris:loginShellPrompt>\$</icfcsolaris:loginShellPrompt>
+				<icfcsolaris:rootShellPrompt>\$</icfcsolaris:rootShellPrompt>
 				<icfcsolaris:sudoAuthorization>true</icfcsolaris:sudoAuthorization>
 				<icfcsolaris:credentials><clearValue>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:credentials>
 				<icfcsolaris:unixMode>linux</icfcsolaris:unixMode>
