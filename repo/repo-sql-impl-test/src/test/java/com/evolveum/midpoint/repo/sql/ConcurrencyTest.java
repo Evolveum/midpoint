@@ -23,13 +23,23 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.hibernate.Session;
 import org.hibernate.jdbc.Work;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,6 +51,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,11 +65,125 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConcurrencyTest.class);
 
-    private static final long WAIT_TIME = 60000;
-    private static final long WAIT_STEP = 500;
+    //private static final long WAIT_TIME = 60000;
+    //private static final long WAIT_STEP = 500;
 
-    @Test
-    public void concurrency001() throws Exception {
+    @Test(enabled = true)
+    public void concurrency001_TwoWriters_OneAttributeEach__NoReader() throws Exception {
+
+        ModifierThread[] mts = new ModifierThread[]{
+                new ModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true, null, true),
+                new ModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true, null, true),
+//                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
+//                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS, false),
+//                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER, false),
+//                new ModifierThread(6, oid, UserType.F_EMPLOYEE_NUMBER, false),
+//                new ModifierThread(8, oid, UserType.F_EMAIL_ADDRESS),
+//                new ModifierThread(9, oid, UserType.F_EMPLOYEE_NUMBER)
+        };
+
+        concurrencyUniversal("Test1", 30000L, 500L, mts, null);
+    }
+
+    @Test(enabled = true)
+    public void concurrency002_FourWriters_OneAttributeEach__NoReader() throws Exception {
+
+        ModifierThread[] mts = new ModifierThread[]{
+                new ModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true, null, true),
+                new ModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true, null, true),
+                new ModifierThread(3, new ItemPath(UserType.F_DESCRIPTION), false, null, true),
+                new ModifierThread(4, new ItemPath(UserType.F_EMAIL_ADDRESS), false, null, true)
+        };
+
+        concurrencyUniversal("Test2", 60000L, 500L, mts, null);
+    }
+
+    @Test(enabled = true)
+    public void concurrency003_OneWriter_TwoAttributes__OneReader() throws Exception {
+
+        ModifierThread[] mts = new ModifierThread[]{
+                new ModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
+                        new ItemPath(
+                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                                new IdItemPathSegment("1"),
+                                new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+                        true)
+        };
+
+
+        Checker checker = new Checker() {
+            @Override
+            public void check(int iteration, String oid) throws Exception {
+
+                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, new OperationResult("dummy"));
+
+                String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
+                String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
+                LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription);
+                if (!givenName.equals(assignmentDescription)) {
+                    String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;
+                    LOGGER.error(msg);
+                    throw new AssertionError(msg);
+                }
+            }
+        };
+
+        concurrencyUniversal("Test3", 60000L, 0L, mts, checker);
+    }
+
+    @Test(enabled = true)
+    public void concurrency004_TwoWriters_TwoAttributesEach__OneReader() throws Exception {
+
+        ModifierThread[] mts = new ModifierThread[]{
+                new ModifierThread(1, new ItemPath(UserType.F_GIVEN_NAME), true,
+                        new ItemPath(
+                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                                new IdItemPathSegment("1"),
+                                new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
+                        true),
+
+                new ModifierThread(2, new ItemPath(UserType.F_FAMILY_NAME), true,
+                        new ItemPath(
+                                new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                                new IdItemPathSegment("1"),
+                                new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION)),
+                        true),
+        };
+
+
+        Checker checker = new Checker() {
+            @Override
+            public void check(int iteration, String oid) throws Exception {
+
+                PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, new OperationResult("dummy"));
+
+                String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
+                String familyName = userRetrieved.asObjectable().getFamilyName().getOrig();
+                String assignmentDescription = userRetrieved.asObjectable().getAssignment().get(0).getDescription();
+                String referenceDescription = userRetrieved.asObjectable().getAssignment().get(0).getAccountConstruction().getDescription();
+                LOGGER.info("[" + iteration + "] givenName = " + givenName + ", assignment description = " + assignmentDescription + ", familyName = " + familyName + ", referenceDescription = " + referenceDescription);
+                if (!givenName.equals(assignmentDescription)) {
+                    String msg = "Inconsistent object state: GivenName = " + givenName + ", assignment description = " + assignmentDescription;
+                    LOGGER.error(msg);
+                    throw new AssertionError(msg);
+                }
+                if (!familyName.equals(referenceDescription)) {
+                    String msg = "Inconsistent object state: FamilyName = " + familyName + ", account construction description = " + referenceDescription;
+                    LOGGER.error(msg);
+                    throw new AssertionError(msg);
+                }
+            }
+        };
+
+        concurrencyUniversal("Test4", 60000L, 0L, mts, checker);
+    }
+
+    private interface Checker {
+        void check(int iteration, String oid) throws Exception;
+    }
+
+    private void concurrencyUniversal(String name, long duration, long waitStep, ModifierThread[] modifierThreads, Checker checker) throws Exception {
+
         Session session = getFactory().openSession();
         session.doWork(new Work() {
             @Override
@@ -70,53 +195,49 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         final File file = new File("src/test/resources/concurrency/user.xml");
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(file);
+        user.asObjectable().setName(new PolyStringType(name));
 
-        OperationResult result = new OperationResult("Concurrency Test 001");
+        OperationResult result = new OperationResult("Concurrency Test");
         String oid = repositoryService.addObject(user, result);
 
         LOGGER.info("*** Object added: " + oid + " ***");
 
-        /*
-         *  Two threads: each repeatedly modifies its own attribute of the user
-         *   - thread1: givenName
-         *   - thread2: familyName
-         *  ... and checks whether its modifications are preserved.
-         *
-         *  Modifications are following:
-         *  - from empty value to "1", "2", ... and so on
-         *  (for both attributes)
-         *
-         */
-
-        ModifierThread[] mts = new ModifierThread[]{
-                new ModifierThread(1, oid, UserType.F_GIVEN_NAME, true),
-                new ModifierThread(2, oid, UserType.F_FAMILY_NAME, true),
-//                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
-//                new ModifierThread(4, oid, UserType.F_EMAIL_ADDRESS, false),
-//                new ModifierThread(5, oid, UserType.F_TELEPHONE_NUMBER, false),
-//                new ModifierThread(6, oid, UserType.F_EMPLOYEE_NUMBER, false),
-//                new ModifierThread(8, oid, UserType.F_EMAIL_ADDRESS),
-//                new ModifierThread(9, oid, UserType.F_EMPLOYEE_NUMBER)
-        };
-
         LOGGER.info("*** Starting modifier threads ***");
-        for (ModifierThread mt : mts) {
+
+//        modifierThreads[1].setOid(oid);
+//        modifierThreads[1].runOnce();
+//        if(true) return;
+
+        for (ModifierThread mt : modifierThreads) {
+            mt.setOid(oid);
             mt.start();
         }
 
-        LOGGER.info("*** Waiting " + WAIT_TIME + " ms ***");
+        LOGGER.info("*** Waiting " + duration + " ms ***");
+        long startTime = System.currentTimeMillis();
+        int readIteration = 1;
         main:
-        for (long time = 0; time < WAIT_TIME; time += WAIT_STEP) {
-            Thread.sleep(WAIT_STEP);
-            for (ModifierThread mt : mts) {
+        while (System.currentTimeMillis() - startTime < duration) {
+
+            if (checker != null) {
+                checker.check(readIteration, oid);
+            }
+
+            if (waitStep > 0L) {
+                Thread.sleep(waitStep);
+            }
+
+            for (ModifierThread mt : modifierThreads) {
                 if (!mt.isAlive()) {
                     LOGGER.error("At least one of threads died prematurely, finishing waiting.");
                     break main;
                 }
             }
+
+            readIteration++;
         }
 
-        for (ModifierThread mt : mts) {
+        for (ModifierThread mt : modifierThreads) {
             mt.stop = true;             // stop the threads
             System.out.println("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
             LOGGER.info("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
@@ -126,11 +247,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         Thread.sleep(1000);         // give the threads a chance to finish (before repo will be shut down)
 
-        for (ModifierThread mt : mts) {
+        for (ModifierThread mt : modifierThreads) {
             LOGGER.info("Modifier thread " + mt.id + " finished with an exception: ", mt.threadResult);
         }
 
-        for (ModifierThread mt : mts) {
+        for (ModifierThread mt : modifierThreads) {
             AssertJUnit.assertTrue("Modifier thread " + mt.id + " finished with an exception: " + mt.threadResult, mt.threadResult == null);
         }
     }
@@ -139,17 +260,34 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         int id;
         String oid;                 // object to modify
-        QName attribute;           // attribute to modify
+        ItemPath attribute1;           // attribute to modify
+        ItemPath attribute2;           // attribute to modify
         boolean poly;
+        boolean checkValue;
         volatile Throwable threadResult;
         volatile int counter = 1;
 
-        ModifierThread(int id, String oid, QName attribute, boolean poly) {
+        ModifierThread(int id, ItemPath attribute1, boolean poly, ItemPath attribute2, boolean checkValue) {
             this.id = id;
-            this.oid = oid;
-            this.attribute = attribute;
+            this.attribute1 = attribute1;
+            this.attribute2 = attribute2;
             this.poly = poly;
-            this.setName("Modifier for " + attribute.getLocalPart());
+            this.setName("Modifier for " + attributeNames());
+            this.checkValue = checkValue;
+        }
+
+        private String attributeNames() {
+            return lastName(attribute1) + (attribute2 != null ? "/" + lastName(attribute2) : "");
+        }
+
+        private String lastName(ItemPath path) {
+            List<ItemPathSegment> segments = path.getSegments();
+            for (int i = segments.size()-1; i >= 0; i++) {
+                if (segments.get(i) instanceof NameItemPathSegment) {
+                    return ((NameItemPathSegment) segments.get(i)).getName().getLocalPart();
+                }
+            }
+            return "?";
         }
 
         public volatile boolean stop = false;
@@ -157,36 +295,64 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         @Override
         public void run() {
             try {
-                run1();
+                while (!stop) {
+                    runOnce();
+                }
             } catch (Throwable t) {
                 LoggingUtils.logException(LOGGER, "Unexpected exception: " + t, t);
                 threadResult = t;
             }
         }
 
-        public void run1() {
+        public void runOnce() {
 
-            PrismObjectDefinition<?> userPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
             OperationResult result = new OperationResult("run");
 
-            while (!stop) {
+            LOGGER.info(" --- Iteration number " + counter + " for " + attributeNames() + " ---");
+            PrismObjectDefinition<?> userPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 
-                LOGGER.info(" --- Iteration number " + counter + " for " + attribute.getLocalPart() + " ---");
+            String prefix = lastName(attribute1);
+            String dataWritten = "[" + prefix + ":" + Integer.toString(counter++) + "]";
 
-                String prefix = attribute.getLocalPart();
+            PrismPropertyDefinition propertyDefinition1 = userPrismDefinition.findPropertyDefinition(attribute1);
+            if (propertyDefinition1 == null) {
+                throw new IllegalArgumentException("No definition for " + attribute1 + " in " + userPrismDefinition);
+            }
+            PropertyDelta delta1 = new PropertyDelta(attribute1, propertyDefinition1);
+            delta1.setValueToReplace(new PrismPropertyValue(poly ? new PolyString(dataWritten) : dataWritten));
+            List<PropertyDelta> deltas = new ArrayList<PropertyDelta>();
+            deltas.add(delta1);
 
-                String dataWritten = "[" + prefix + ":" + Integer.toString(counter++) + "]";
-
-                PropertyDelta<?> delta = PropertyDelta.createReplaceDeltaOrEmptyDelta(userPrismDefinition, attribute, poly ? new PolyString(dataWritten) : new String(dataWritten));
-                List<? extends PropertyDelta<?>> deltas = Arrays.asList(delta);
-                try {
-                    repositoryService.modifyObject(UserType.class, oid, deltas, result);
-                } catch (Exception e) {
-                    threadResult = new RuntimeException("modifyObject failed while modifying attribute " + attribute.getLocalPart() + " to value " + dataWritten, e);
-                    LOGGER.error("modifyObject failed while modifying attribute " + attribute.getLocalPart() + " to value " + dataWritten, e);
-                    threadResult = e;
-                    return;     // finish processing
+            PrismPropertyDefinition propertyDefinition2 = null;
+            if (attribute2 != null) {
+                propertyDefinition2 = userPrismDefinition.findPropertyDefinition(attribute2);
+                if (propertyDefinition2 == null) {
+                    throw new IllegalArgumentException("No definition for " + attribute2 + " in " + userPrismDefinition);
                 }
+                PropertyDelta delta2 = new PropertyDelta(attribute2, propertyDefinition2);
+                if (AccountConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
+                    AccountConstructionType act = new AccountConstructionType();
+                    act.setDescription(dataWritten);
+                    delta2.setValueToReplace(new PrismPropertyValue<AccountConstructionType>(act));
+                } else {
+                    delta2.setValueToReplace(new PrismPropertyValue(dataWritten));
+                }
+                deltas.add(delta2);
+            }
+
+            try {
+                repositoryService.modifyObject(UserType.class, oid, deltas, result);
+            } catch (Exception e) {
+                String msg = "modifyObject failed while modifying attribute(s) " + attributeNames()
+                        + " to value " + dataWritten;
+                threadResult = new RuntimeException(msg, e);
+                LOGGER.error(msg, e);
+                threadResult = e;
+                stop = true;
+                return;     // finish processing
+            }
+
+            if (checkValue) {
 
                 try {
                     Thread.sleep(100);
@@ -197,9 +363,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 try {
                     user = repositoryService.getObject(UserType.class, oid, result);
                 } catch (Exception e) {
-                    threadResult = new RuntimeException("getObject failed while getting attribute " + attribute.getLocalPart(), e);
-                    LOGGER.error("getObject failed while getting attribute " + attribute.getLocalPart(), e);
+                    String msg = "getObject failed while getting attribute(s) " + attributeNames();
+                    threadResult = new RuntimeException(msg, e);
+                    LOGGER.error(msg, e);
                     threadResult = e;
+                    stop = true;
                     return;     // finish processing
                 }
 
@@ -207,19 +375,38 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
                 String dataRead;
                 if (poly) {
-                    dataRead = user.getPropertyRealValue(attribute, PolyString.class).getOrig();
+                    dataRead = user.findProperty(attribute1).getRealValue(PolyString.class).getOrig();
                 } else {
-                    dataRead = user.getPropertyRealValue(attribute, String.class);
+                    dataRead = user.findProperty(attribute1).getRealValue(String.class);
                 }
 
                 if (!dataWritten.equals(dataRead)) {
-                    threadResult = new RuntimeException("Data read back (" + dataRead + ") does not match the data written (" + dataWritten + ") on attribute " + attribute.getLocalPart());
+                    threadResult = new RuntimeException("Data read back (" + dataRead + ") does not match the data written (" + dataWritten + ") on attribute " + attribute1);
                     LOGGER.error("compare failed", threadResult);
+                    stop = true;
                     return;
                 }
 
-            }
+                if (attribute2 != null) {
+                    if (AccountConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
+                        dataRead = user.findProperty(attribute2).getRealValue(AccountConstructionType.class).getDescription();
+                    } else {
+                        dataRead = user.findProperty(attribute2).getRealValue(String.class);
+                    }
 
+                    if (!dataWritten.equals(dataRead)) {
+                        threadResult = new RuntimeException("Data read back (" + dataRead + ") does not match the data written (" + dataWritten + ") on attribute " + attribute2);
+                        LOGGER.error("compare failed", threadResult);
+                        stop = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+        public void setOid(String oid) {
+            this.oid = oid;
         }
     }
+
 }

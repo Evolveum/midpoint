@@ -78,37 +78,16 @@ public class SqlBaseService {
 
     protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
                                       OperationResult result) {
-        if (!(ex instanceof PessimisticLockException) && !(ex instanceof LockAcquisitionException)
-                && !(ex instanceof HibernateOptimisticLockingFailureException)) {
-            // it's not locking exception (optimistic, pesimistic lock or simple lock acquisition) understood by hibernate
-            // however, it still could be such exception... wrapped in e.g. TransactionException
-            // so we have a look inside - we try to find SQLException there
 
-            // these error codes / SQL states we consider related to locking:
-            //  code 50200 [table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code]
-            //  code 40001 [DEADLOCK_1 in H2]
-            //  state 40001 [serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems]
-            //  state 40P01 [deadlock in PostgreSQL]
-            //
-            // sql states should be somewhat standardized; sql error codes are vendor-specific
-            // todo: so it is probably not very safe to test for code 50200/40001 without testing for h2
-            // but the risk of problem is quite low here, so let it be...
+        boolean serializationException = isExceptionRelatedToSerialization(ex);
 
-            SQLException sqlException = findSqlException(ex);
-            boolean serializationCodeFound = sqlException != null && (sqlException.getErrorCode() == 50200 || sqlException.getErrorCode() == 40001 ||
-                    "40001".equals(sqlException.getSQLState()) || "40P01".equals(sqlException.getSQLState()));
-
-            //oracle 08177 code check (serialization problem
-            serializationCodeFound = serializationCodeFound || (sqlException != null) && (sqlException.getErrorCode() == 8177);
-
-            if (!serializationCodeFound) {
-                // to be sure that we won't miss anything related to deadlocks, here is an ugly hack that checks it (with some probability...)
-                boolean serializationTextFound = ex.getMessage() != null && (exceptionContainsText(ex, "deadlock") || exceptionContainsText(ex, "could not serialize access"));
-                if (serializationTextFound) {
-                    LOGGER.error("Transaction serialization-related problem (e.g. deadlock) was not caught correctly!", ex);
-                }
-                throw ex;
+        if (!serializationException) {
+            // to be sure that we won't miss anything related to deadlocks, here is an ugly hack that checks it (with some probability...)
+            boolean serializationTextFound = ex.getMessage() != null && (exceptionContainsText(ex, "deadlock") || exceptionContainsText(ex, "could not serialize access"));
+            if (serializationTextFound) {
+                LOGGER.error("Transaction serialization-related problem (e.g. deadlock) was probably not caught correctly!", ex);
             }
+            throw ex;
         }
 
         double waitTimeInterval = LOCKING_TIMEOUT_STEP * Math.pow(2, attempt > LOCKING_EXP_THRESHOLD ? LOCKING_EXP_THRESHOLD : (attempt-1));
@@ -118,12 +97,11 @@ public class SqlBaseService {
             LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
         }
 
-        //todo move to debug level
-//        if (LOGGER.isDebugEnabled()) {
-        LOGGER.info("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
                 + "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
                 attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
-//        }
+        }
 
         if (attempt >= LOCKING_MAX_ATTEMPTS) {
             LOGGER.error("A serialization-related problem occurred, maximum attempts (" + attempt + ") reached.", ex);
@@ -141,6 +119,47 @@ public class SqlBaseService {
             }
         }
         return ++attempt;
+    }
+
+    private boolean isExceptionRelatedToSerialization(Exception ex) {
+
+        if (ex instanceof PessimisticLockException
+                || ex instanceof LockAcquisitionException
+                || ex instanceof HibernateOptimisticLockingFailureException) {
+            return true;
+        }
+
+        // it's not locking exception (optimistic, pesimistic lock or simple lock acquisition) understood by hibernate
+        // however, it still could be such exception... wrapped in e.g. TransactionException
+        // so we have a look inside - we try to find SQLException there
+
+        SQLException sqlException = findSqlException(ex);
+        if (sqlException == null) {
+            return false;
+        }
+
+        // these error codes / SQL states we consider related to locking:
+        //  code 50200 [table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code]
+        //  code 40001 [DEADLOCK_1 in H2]
+        //  state 40001 [serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems]
+        //  state 40P01 [deadlock in PostgreSQL]
+        //  code ORA-08177: can't serialize access for this transaction in Oracle
+        //  code ORA-01466 ["unable to read data - table definition has changed"] in Oracle
+        //  code ORA-01555: snapshot too old: rollback segment number  with name "" too small
+        //  code ORA-22924: snapshot too old
+        //
+        // sql states should be somewhat standardized; sql error codes are vendor-specific
+        // todo: so it is probably not very safe to test for codes without testing for specific database (h2, oracle)
+        // but the risk of problem is quite low here, so let it be...
+
+        return sqlException.getErrorCode() == 50200
+                || sqlException.getErrorCode() == 40001
+                || "40001".equals(sqlException.getSQLState())
+                || "40P01".equals(sqlException.getSQLState())
+                || sqlException.getErrorCode() == 8177
+                || sqlException.getErrorCode() == 1466
+                || sqlException.getErrorCode() == 1555
+                || sqlException.getErrorCode() == 22924;
     }
 
     private SQLException findSqlException(Throwable ex) {
@@ -164,17 +183,16 @@ public class SqlBaseService {
     }
 
     protected Session beginTransaction() {
-        Session session = getSessionFactory().openSession();
-        // we're forcing transaction isolation throught MidPointConnectionCustomizer
-        // session.doWork(new Work() {
-        //
-        //      @Override
-        //      public void execute(Connection connection) throws SQLException {
-        //          connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        //      }
-        // });
-        session.beginTransaction();
+        return beginTransaction(false);
+    }
 
+    protected Session beginTransaction(boolean readOnly) {
+        Session session = getSessionFactory().openSession();
+        session.beginTransaction();
+        if (readOnly) {
+            LOGGER.trace("Marking transaction as read only.");
+            session.createSQLQuery("SET TRANSACTION READ ONLY").executeUpdate();
+        }
         return session;
     }
 
@@ -220,16 +238,10 @@ public class SqlBaseService {
     protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
         LOGGER.debug("General exception occurred.", ex);
 
-        //fix for ORA-08177 can't serialize access for this transaction
-        if (ex instanceof QueryTimeoutException) {
-            if (ex.getCause() != null && (ex.getCause() instanceof SQLException)) {
-                SQLException sqlEx = (SQLException) ex.getCause();
-                if (sqlEx.getErrorCode() == 8177) {
-                    //todo improve exception handling, maybe "javax.persistence.query.timeout" property can be used
-                    rollbackTransaction(session);
-                    throw (QueryTimeoutException)ex;
-                }
-            }
+        if (isExceptionRelatedToSerialization(ex)) {
+            //todo improve exception handling, maybe "javax.persistence.query.timeout" property can be used
+            rollbackTransaction(session);
+            throw (RuntimeException) ex;
         }
 
         rollbackTransaction(session, ex, result, true);

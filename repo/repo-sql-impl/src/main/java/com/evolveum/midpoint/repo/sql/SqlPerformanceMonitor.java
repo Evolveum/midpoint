@@ -1,8 +1,12 @@
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -19,10 +23,17 @@ public class SqlPerformanceMonitor {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlPerformanceMonitor.class);
 
+    public static final int LEVEL_NONE = 0;
+    public static final int LEVEL_DETAILS = 10;
+
+    private int level = 0;
+
     private AtomicLong currentHandle = new AtomicLong();
 
     private ConcurrentMap<Long,OperationRecord> outstandingOperations = new ConcurrentHashMap<Long, OperationRecord>();
     private List<OperationRecord> finishedOperations = Collections.synchronizedList(new ArrayList<OperationRecord>());
+
+    private SqlRepositoryFactory sqlRepositoryFactory;
 
     class OperationRecord {
         String kind;
@@ -56,15 +67,42 @@ public class SqlPerformanceMonitor {
         }
     }
 
-    public void initialize() {
+    public void initialize(SqlRepositoryFactory sqlRepositoryFactory) {
         outstandingOperations.clear();
         finishedOperations.clear();
-        LOGGER.info("SQL Performance Monitor initialized.");
+        this.sqlRepositoryFactory = sqlRepositoryFactory;
+        this.level = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
+        if (level >= LEVEL_NONE) {
+            LOGGER.info("SQL Performance Monitor initialized (level = " + level + ").");
+        }
     }
 
     public void shutdown() {
-        LOGGER.info("SQL Performance Monitor shutting down.");
-        LOGGER.info("Statistics:\n" + getFormattedStatistics());
+        if (level > LEVEL_NONE) {
+            LOGGER.info("SQL Performance Monitor shutting down.");
+            LOGGER.info("Statistics:\n" + getFormattedStatistics());
+            String file = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsFile();
+            if (file != null) {
+                writeStatisticsToFile(file);
+            }
+        }
+    }
+
+    private void writeStatisticsToFile(String file) {
+        try {
+            PrintWriter pw = new PrintWriter(new FileWriter(file, true));
+            for (OperationRecord or : finishedOperations) {
+                pw.println(new Date(or.startTime) + "\t" + or.kind + "\t" + or.attempts + "\t" + or.totalTime + "\t" + or.wastedTime);
+            }
+            for (OperationRecord or : outstandingOperations.values()) {
+                pw.println(new Date(or.startTime) + "\t" + or.kind + "\t" + "?" + "\t" + "?" + "\t" + or.wastedTime);
+            }
+            pw.close();
+            LOGGER.trace("" + (finishedOperations.size() + outstandingOperations.size()) + " record(s) written to file " + file);
+        } catch (IOException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't write repository performance statistics to file " + file, e);
+        }
+
     }
 
     class StatEntry {
@@ -126,6 +164,11 @@ public class SqlPerformanceMonitor {
 
 
     public long registerOperationStart(String kind) {
+
+        if (level <= LEVEL_NONE) {
+            return 0L;
+        }
+
         long handle = currentHandle.getAndIncrement();
         Long threadId = Thread.currentThread().getId();
         if (outstandingOperations.containsKey(threadId)) {
@@ -138,6 +181,11 @@ public class SqlPerformanceMonitor {
     }
 
     public void registerOperationFinish(long opHandle, int attempt) {
+
+        if (level <= LEVEL_NONE) {
+            return;
+        }
+
         Long threadId = Thread.currentThread().getId();
         OperationRecord operation = outstandingOperations.get(threadId);
 
@@ -161,6 +209,11 @@ public class SqlPerformanceMonitor {
     }
 
     public void registerOperationNewTrial(long opHandle, int attempt) {
+
+        if (level <= LEVEL_NONE) {
+            return;
+        }
+
         Long threadId = Thread.currentThread().getId();
         OperationRecord operation = outstandingOperations.get(threadId);
 

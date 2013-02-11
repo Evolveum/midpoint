@@ -129,7 +129,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         performanceMonitor = new SqlPerformanceMonitor();
-        performanceMonitor.initialize();
+        performanceMonitor.initialize(this);
 
         LOGGER.info("Repository initialization finished.");
 

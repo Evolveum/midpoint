@@ -22,6 +22,9 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 
@@ -31,6 +34,8 @@ import org.apache.commons.lang.StringUtils;
  * @author lazyman
  */
 public class SqlRepositoryConfiguration {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryConfiguration.class);
 
     public static final String PROPERTY_BASE_DIR = "baseDir";
     public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
@@ -45,6 +50,14 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
     public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
+
+    // concurrency properties
+    public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
+    public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
+    public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
+    public static final String PROPERTY_USE_READ_ONLY_TRANSACTIONS = "useReadOnlyTransactions";
+    public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
+    public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
     //embedded configuration
     private boolean embedded = true;
@@ -62,6 +75,13 @@ public class SqlRepositoryConfiguration {
     private String hibernateDialect;
     private String hibernateHbm2ddl;
 
+    private TransactionIsolation transactionIsolation;
+    private boolean lockForUpdateViaHibernate;
+    private boolean lockForUpdateViaSql;
+    private boolean useReadOnlyTransactions;
+    private String performanceStatisticsFile;
+    private int performanceStatisticsLevel;
+
     public SqlRepositoryConfiguration(Configuration configuration) {
         setAsServer(configuration.getBoolean("asServer", asServer));
         setBaseDir(configuration.getString("baseDir", baseDir));
@@ -76,6 +96,56 @@ public class SqlRepositoryConfiguration {
         setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
         setFileName(configuration.getString("fileName", fileName));
         setDropIfExists(configuration.getBoolean("dropIfExists", dropIfExists));
+
+        computeDefaultConcurrencyParameters();
+
+        setTransactionIsolation(configuration.getString(PROPERTY_TRANSACTION_ISOLATION, transactionIsolation.value()));
+        setLockForUpdateViaHibernate(configuration.getBoolean(PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE, lockForUpdateViaHibernate));
+        setLockForUpdateViaSql(configuration.getBoolean(PROPERTY_LOCK_FOR_UPDATE_VIA_SQL, lockForUpdateViaSql));
+        setUseReadOnlyTransactions(configuration.getBoolean(PROPERTY_USE_READ_ONLY_TRANSACTIONS, useReadOnlyTransactions));
+        setPerformanceStatisticsFile(configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE, performanceStatisticsFile));
+        setPerformanceStatisticsLevel(configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, performanceStatisticsLevel));
+
+    }
+
+    private void computeDefaultConcurrencyParameters() {
+        if (hibernateDialect == null || hibernateDialect.equals("org.hibernate.dialect.H2Dialect")) {
+            transactionIsolation = TransactionIsolation.SERIALIZABLE;
+            lockForUpdateViaHibernate = false;
+            lockForUpdateViaSql = false;
+            useReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
+        } else if (hibernateDialect.equals("org.hibernate.dialect.MySQL5InnoDBDialect")) {
+            transactionIsolation = TransactionIsolation.SERIALIZABLE;
+            lockForUpdateViaHibernate = false;
+            lockForUpdateViaSql = false;
+            useReadOnlyTransactions = true;
+        } else if (hibernateDialect.equals("org.hibernate.dialect.Oracle10gDialect")) {
+            transactionIsolation = TransactionIsolation.READ_COMMITTED;
+            lockForUpdateViaHibernate = true;
+            lockForUpdateViaSql = false;
+            useReadOnlyTransactions = true;
+        } else if (hibernateDialect.equals("org.hibernate.dialect.PostgreSQLDialect ")) {
+            transactionIsolation = TransactionIsolation.SERIALIZABLE;
+            lockForUpdateViaHibernate = false;
+            lockForUpdateViaSql = false;
+            useReadOnlyTransactions = true;
+        } else if (hibernateDialect.equals("com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect")) {
+            transactionIsolation = TransactionIsolation.SERIALIZABLE;
+            lockForUpdateViaHibernate = false;
+            lockForUpdateViaSql = false;
+            useReadOnlyTransactions = true;
+        } else {
+            transactionIsolation = TransactionIsolation.SERIALIZABLE;
+            lockForUpdateViaHibernate = false;
+            lockForUpdateViaSql = false;
+            useReadOnlyTransactions = true;
+            LOGGER.warn("Fine-tuned concurrency parameters defaults for hibernate dialect " + hibernateDialect
+                    + " not found; using the following defaults: transactionIsolation = " + transactionIsolation
+                    + ", lockForUpdateViaHibernate = " + lockForUpdateViaHibernate
+                    + ", lockForUpdateViaSql = " + lockForUpdateViaSql
+                    + ", useReadOnlyTransactions = " + useReadOnlyTransactions
+                    + ". Please override them if necessary.");
+        }
     }
 
     /**
@@ -251,5 +321,60 @@ public class SqlRepositoryConfiguration {
 
     public void setDropIfExists(boolean dropIfExists) {
         this.dropIfExists = dropIfExists;
+    }
+
+    public TransactionIsolation getTransactionIsolation() {
+        return transactionIsolation;
+    }
+
+    public void setTransactionIsolation(TransactionIsolation transactionIsolation) {
+        this.transactionIsolation = transactionIsolation;
+    }
+
+    public void setTransactionIsolation(String transactionIsolation) {
+        this.transactionIsolation = TransactionIsolation.fromValue(transactionIsolation);
+
+        // ugly hack, but I know of no way to work around
+        MidPointConnectionCustomizer.setTransactionIsolation(this.transactionIsolation);
+    }
+
+    public boolean isLockForUpdateViaHibernate() {
+        return lockForUpdateViaHibernate;
+    }
+
+    public void setLockForUpdateViaHibernate(boolean lockForUpdateViaHibernate) {
+        this.lockForUpdateViaHibernate = lockForUpdateViaHibernate;
+    }
+
+    public boolean isLockForUpdateViaSql() {
+        return lockForUpdateViaSql;
+    }
+
+    public void setLockForUpdateViaSql(boolean lockForUpdateViaSql) {
+        this.lockForUpdateViaSql = lockForUpdateViaSql;
+    }
+
+    public boolean isUseReadOnlyTransactions() {
+        return useReadOnlyTransactions;
+    }
+
+    public void setUseReadOnlyTransactions(boolean useReadOnlyTransactions) {
+        this.useReadOnlyTransactions = useReadOnlyTransactions;
+    }
+
+    public String getPerformanceStatisticsFile() {
+        return performanceStatisticsFile;
+    }
+
+    public void setPerformanceStatisticsFile(String performanceStatisticsFile) {
+        this.performanceStatisticsFile = performanceStatisticsFile;
+    }
+
+    public int getPerformanceStatisticsLevel() {
+        return performanceStatisticsLevel;
+    }
+
+    public void setPerformanceStatisticsLevel(int performanceStatisticsLevel) {
+        this.performanceStatisticsLevel = performanceStatisticsLevel;
     }
 }

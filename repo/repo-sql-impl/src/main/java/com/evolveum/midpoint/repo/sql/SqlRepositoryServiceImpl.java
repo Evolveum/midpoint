@@ -102,26 +102,54 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid, boolean lockForUpdate)
 			throws ObjectNotFoundException, SchemaException, DtoTranslationException {
 
-		Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+        boolean lockedForUpdateViaHibernate = false;
+        boolean lockedForUpdateViaSql = false;
 
-        query.add(Restrictions.eq("oid", oid));
-		query.add(Restrictions.eq("id", 0L));
+        LockOptions lockOptions = new LockOptions();
+        if (lockForUpdate) {
+            if (repositoryFactory.getSqlConfiguration().isLockForUpdateViaHibernate()) {
+                lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
+                lockedForUpdateViaHibernate = true;
+            } else if (repositoryFactory.getSqlConfiguration().isLockForUpdateViaSql()) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
+                }
+                long time = System.currentTimeMillis();
+                SQLQuery q = session.createSQLQuery("select id from m_container where id = 0 and oid = ? for update");
+                q.setString(0, oid);
+                Object result = q.uniqueResult();
+                if (result == null) {
+                    return throwObjectNotFoundException(type, oid);
+                }
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Locked via SQL (in " + (System.currentTimeMillis() - time) + " ms)");
+                }
+                lockedForUpdateViaSql = true;
+            }
+        }
 
-		RObject object = (RObject) query.uniqueResult();
+        if (LOGGER.isTraceEnabled()) {
+            if (lockedForUpdateViaHibernate) {
+                LOGGER.trace("Getting object " + oid + " with locking for update (via hibernate)");
+            } else if (lockedForUpdateViaSql) {
+                LOGGER.trace("Getting object " + oid + ", already locked for update (via SQL)");
+            } else {
+                LOGGER.trace("Getting object " + oid + " without locking for update");
+            }
+        }
+        RObject object = (RObject) session.get(RObject.class, new RContainerId(0L, oid), lockOptions);
+        LOGGER.trace("Got it.");
+
+//		Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+//
+//        query.add(Restrictions.eq("oid", oid));
+//		query.add(Restrictions.eq("id", 0L));
+//
+//		RObject object = (RObject) query.uniqueResult();
+
 		if (object == null) {
-			throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
-					+ "' was not found.", null, oid);
-		}
-
-//        if (lockForUpdate) {
-//            if (LOGGER.isTraceEnabled()) {
-//                LOGGER.trace("Locking object " + object + "... (session = " + session + ")");
-//            }
-//            session.buildLockRequest(new LockOptions(LockMode.PESSIMISTIC_WRITE)).lock(object);
-//            LOGGER.trace("Locked; doing refresh.");
-//            session.refresh(object);
-//            LOGGER.trace("Refreshed.");
-//        }
+            throwObjectNotFoundException(type, oid);
+        }
 
         LOGGER.trace("Transforming data to JAXB type.");
 		PrismObject<T> objectType = object.toJAXB(getPrismContext()).asPrismObject();
@@ -130,7 +158,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return objectType;
 	}
 
-	@Override
+    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid) throws ObjectNotFoundException {
+        throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
+            + "' was not found.", null, oid);
+    }
+
+    @Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		Validate.notNull(type, "Object type must not be null.");
@@ -169,9 +202,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		Session session = null;
 		try {
-			session = beginTransaction();
+			session = beginReadOnlyTransaction();
 
-			objectType = getObject(session, type, oid, false);
+            objectType = getObject(session, type, oid, false);
 
 			session.getTransaction().commit();
 		} catch (PessimisticLockException ex) {
@@ -204,7 +237,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return objectType;
 	}
 
-	@Override
+    private Session beginReadOnlyTransaction() {
+        return beginTransaction(repositoryFactory.getSqlConfiguration().isUseReadOnlyTransactions());
+    }
+
+    @Override
 	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Oid must not be null or empty.");
@@ -230,7 +267,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		UserType userType = null;
 		Session session = null;
 		try {
-			session = beginTransaction();
+			session = beginReadOnlyTransaction();
 			LOGGER.trace("Selecting account shadow owner for account {}.", new Object[] { accountOid });
 			Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
 					+ " as user left join user.accountRefs as ref where ref.targetOid = :oid");
@@ -605,7 +642,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		Session session = null;
 		try {
-			session = beginTransaction();
+			session = beginReadOnlyTransaction();
 			LOGGER.trace("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
@@ -657,15 +694,23 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		subResult.addParam("query", query);
 		// subResult.addParam("paging", paging);
 
-		final String operation = "searching";
+        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("searchObjects");
+
+        final String operation = "searching";
 		int attempt = 1;
-		while (true) {
-			try {
-				return searchObjectsAttempt(type, query, subResult);
-			} catch (RuntimeException ex) {
-				attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
-			}
-		}
+        try {
+            while (true) {
+                try {
+                    return searchObjectsAttempt(type, query, subResult);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
 
 	}
 
@@ -675,7 +720,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		Session session = null;
 		try {
-			session = beginTransaction();
+			session = beginReadOnlyTransaction();
 			LOGGER.trace("Updating query criteria.");
 			Criteria criteria;
 			if (query != null && query.getFilter() != null) {
@@ -1044,7 +1089,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		Session session = null;
 		try {
-			session = beginTransaction();
+			session = beginReadOnlyTransaction();
 			Query query = session.createQuery("select shadow from " + ClassMapper.getHQLType(resourceObjectShadowType)
 					+ " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
 			query.setString("oid", resourceOid);

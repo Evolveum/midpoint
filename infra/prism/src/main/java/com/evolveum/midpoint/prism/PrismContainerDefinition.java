@@ -214,6 +214,9 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
             return findPropertyDefinition(firstName);
         }
         PrismContainerDefinition pcd = findContainerDefinition(firstName);
+        if (pcd == null) {
+            throw new IllegalArgumentException("There is no " + firstName + " subcontainer in " + this);
+        }
         return pcd.findPropertyDefinition(path.rest());
     }
 

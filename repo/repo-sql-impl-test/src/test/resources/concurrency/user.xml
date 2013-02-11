@@ -19,20 +19,21 @@
   ~ Portions Copyrighted 2012 [name of copyright owner]
   -->
 
-<user version="1" oid="f65963e3-9d47-4b18-aaf3-000000000000"
+<user version="1"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
-    <name>concurrentModifyUser</name>
+    <name>concurrentModifyUser002</name>
     <fullName>
-        <t:orig>Test UserX00002</t:orig>
-        <t:norm>test userx00002</t:norm>
+        <t:orig>will be replaced</t:orig>
+        <t:norm>will be replaced</t:norm>
     </fullName>
-    <givenName></givenName>
-    <familyName></familyName>
+    <givenName>d</givenName>
+    <familyName>d</familyName>
     <emailAddress>testuserX00002@example.com</emailAddress>
-    <locality>
-        <t:orig>L</t:orig>
-        <t:norm>l</t:norm>
-    </locality>
-    <employeeNumber>en1234</employeeNumber>
+    <assignment id="1">
+        <description>d</description>
+        <accountConstruction>
+            <description>d</description>
+        </accountConstruction>
+    </assignment>
 </user>

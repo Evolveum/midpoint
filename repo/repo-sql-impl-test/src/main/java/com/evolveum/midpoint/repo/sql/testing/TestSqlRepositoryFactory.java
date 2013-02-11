@@ -74,6 +74,13 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, PROPERTY_JDBC_URL);
         updateConfigurationStringProperty(configuration, PROPERTY_JDBC_USERNAME);
 
+        updateConfigurationStringProperty(configuration, PROPERTY_TRANSACTION_ISOLATION);
+        updateConfigurationBooleanProperty(configuration, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);
+        updateConfigurationBooleanProperty(configuration, PROPERTY_LOCK_FOR_UPDATE_VIA_SQL);
+        updateConfigurationBooleanProperty(configuration, PROPERTY_USE_READ_ONLY_TRANSACTIONS);
+        updateConfigurationStringProperty(configuration, PROPERTY_PERFORMANCE_STATISTICS_FILE);
+        updateConfigurationStringProperty(configuration, PROPERTY_PERFORMANCE_STATISTICS_LEVEL);
+
         super.init(configuration);
     }
 
@@ -110,6 +117,13 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_PASSWORD);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_URL);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_USERNAME);
+
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_TRANSACTION_ISOLATION);
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_SQL);
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_READ_ONLY_TRANSACTIONS);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_PERFORMANCE_STATISTICS_FILE);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_PERFORMANCE_STATISTICS_LEVEL);
     }
 
     private void updateConfigurationIntegerProperty(Configuration configuration, String propertyName) {
