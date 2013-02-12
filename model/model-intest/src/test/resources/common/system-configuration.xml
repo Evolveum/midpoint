@@ -29,5 +29,15 @@
                 <c:name>c:dummyNotifier</c:name>
             </c:notifier>
         </c:entry>
+        <c:entry>
+            <c:situation>c:accountCreation</c:situation>
+            <c:situation>c:accountModification</c:situation>
+            <c:situation>c:accountDeletion</c:situation>
+            <c:situation>c:failure</c:situation>
+            <c:situation>c:inProgress</c:situation>
+            <c:notifier>
+                <c:name>c:dummyNotifier</c:name>
+            </c:notifier>
+        </c:entry>
     </notificationConfiguration>
 </systemConfiguration>

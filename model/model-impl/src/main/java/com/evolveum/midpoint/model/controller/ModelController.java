@@ -446,7 +446,7 @@ public class ModelController implements ModelService, ModelInteractionService {
         }
         String requesteeOid = null;
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
-            LOGGER.info("Trying to find requestee within delta: " + delta.debugDump());
+            //LOGGER.trace("Trying to find requestee within delta: " + delta.debugDump());
             if (UserType.class.isAssignableFrom(delta.getObjectTypeClass()) && delta.getOid() != null) {
                 if (requesteeOid == null) {
                     requesteeOid = delta.getOid();

@@ -140,23 +140,25 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
-        for (NotificationConfigurationEntryType entry : systemConfigurationType.getNotificationConfiguration().getEntry()) {
-            NotificationRequest request = createRequestIfApplicable(entry, status, operationDescription, task, result);
-            if (request != null) {
-                notificationManager.notify(request, entry, result);
+        AccountNotificationRequest request = createRequest(status, operationDescription, task, result);
+        if (request != null) {
+            for (NotificationConfigurationEntryType entry : systemConfigurationType.getNotificationConfiguration().getEntry()) {
+                if (isRequestApplicable(request, entry)) {
+                    notificationManager.notify(request, entry, result);
+                }
             }
         }
     }
 
-    private NotificationRequest createRequestIfApplicable(NotificationConfigurationEntryType entry,
-                                                          OperationStatus status,
-                                                          ResourceOperationDescription operationDescription,
-                                                          Task task,
-                                                          OperationResult result) {
+    private AccountNotificationRequest createRequest(OperationStatus status,
+                                                     ResourceOperationDescription operationDescription,
+                                                     Task task,
+                                                     OperationResult result) {
 
         AccountNotificationRequest request = new AccountNotificationRequest();
         request.setAccountOperationDescription(operationDescription);
         request.setOperationStatus(status);
+        request.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
@@ -165,13 +167,15 @@ public class AccountOperationListener implements ResourceOperationListener {
             return null;        // appropriate message is already logged
         }
         request.setUser(user.asObjectable());
+        return request;
+    }
 
-        ChangeType type = operationDescription.getObjectDelta().getChangeType();
-        if (typeMatches(type, entry.getSituation(), operationDescription) && statusMatches(status, entry.getSituation())) {
-            return request;
-        } else {
-            return null;
-        }
+    private boolean isRequestApplicable(AccountNotificationRequest request, NotificationConfigurationEntryType entry) {
+
+        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
+        OperationStatus status = request.getOperationStatus();
+        ChangeType type = opDescr.getObjectDelta().getChangeType();
+        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
     }
 
     private PrismObject<UserType> findRequestee(String accountOid, Task task, OperationResult result, boolean isDelete) {
@@ -193,6 +197,9 @@ public class AccountOperationListener implements ResourceOperationListener {
         String userOid = task.getRequesteeOid();
         if (userOid == null) {
             LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task), cannot send the notification.");
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Task = " + task.dump());
+            }
             return null;
         }
         if (LOGGER.isTraceEnabled()) {

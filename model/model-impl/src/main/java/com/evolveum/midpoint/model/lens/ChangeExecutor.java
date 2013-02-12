@@ -125,7 +125,7 @@ public class ChangeExecutor {
                     if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
                         task.setRequesteeOidImmediate(userDelta.getOid(), result);
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Set requestee OID to " + userDelta.getOid());
+                            LOGGER.trace("Set requestee OID to " + userDelta.getOid() + "; task = " + task.dump());
                         }
                     }
 		        } else {

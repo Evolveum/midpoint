@@ -60,6 +60,7 @@ public class SimpleAccountOperationNotifier implements Notifier {
     private static final Trace LOGGER = TraceManager.getTrace(SimpleAccountOperationNotifier.class);
 
     public static final String PARAMETER_SUBJECT_PREFIX = "subjectPrefix";
+    public static final String PARAMETER_TECHNICAL_INFORMATION = "technicalInformation";
 
     @Autowired(required = true)
     private MailSender mailSender;
@@ -109,7 +110,8 @@ public class SimpleAccountOperationNotifier implements Notifier {
 
         StringBuilder body = new StringBuilder();
         StringBuilder subject = new StringBuilder(NotificationsUtil.getNotifierParameter(notifierConfiguration, PARAMETER_SUBJECT_PREFIX, ""));
-        prepareMessageText(accountNotificationRequest, body, subject);
+        boolean techInfo = "true".equals(NotificationsUtil.getNotifierParameter(notifierConfiguration, PARAMETER_TECHNICAL_INFORMATION, "false"));
+        prepareMessageText(accountNotificationRequest, body, subject, techInfo);
 
         MailMessage mailMessage = new MailMessage();
         mailMessage.setBody(body.toString());
@@ -123,7 +125,7 @@ public class SimpleAccountOperationNotifier implements Notifier {
         mailSender.send(mailMessage);
     }
 
-    private void prepareMessageText(AccountNotificationRequest request, StringBuilder body, StringBuilder subject) {
+    private void prepareMessageText(AccountNotificationRequest request, StringBuilder body, StringBuilder subject, boolean techInfo) {
 
         UserType requestee = request.getUser();
         ResourceOperationDescription rod = request.getAccountOperationDescription();
@@ -167,9 +169,11 @@ public class SimpleAccountOperationNotifier implements Notifier {
             body.append("The operation will be retried.\n\n");
         }
 
-//        body.append("----------------------------------------\n");
-//        body.append("Technical information:\n\n");
-//        body.append(rod.debugDump(2));
+        if (techInfo) {
+            body.append("----------------------------------------\n");
+            body.append("Technical information:\n\n");
+            body.append(rod.debugDump(2));
+        }
     }
 
 //    private String getLocalPart(QName name) {

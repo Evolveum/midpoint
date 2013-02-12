@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.notifications.request;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 
 /**
@@ -34,11 +35,41 @@ public class AccountNotificationRequest extends NotificationRequest {
 
     private ResourceOperationDescription accountOperationDescription;
 
+    private ChangeType changeType;
+
+    // the following two are currently unused
+    private boolean activationRequested;
+    private boolean deactivationRequested;
+
     public ResourceOperationDescription getAccountOperationDescription() {
         return accountOperationDescription;
     }
 
     public void setAccountOperationDescription(ResourceOperationDescription accountOperationDescription) {
         this.accountOperationDescription = accountOperationDescription;
+    }
+
+    public boolean isActivationRequested() {
+        return activationRequested;
+    }
+
+    public void setActivationRequested(boolean activationRequested) {
+        this.activationRequested = activationRequested;
+    }
+
+    public boolean isDeactivationRequested() {
+        return deactivationRequested;
+    }
+
+    public void setDeactivationRequested(boolean deactivationRequested) {
+        this.deactivationRequested = deactivationRequested;
+    }
+
+    public ChangeType getChangeType() {
+        return changeType;
+    }
+
+    public void setChangeType(ChangeType changeType) {
+        this.changeType = changeType;
     }
 }
