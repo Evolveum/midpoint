@@ -210,12 +210,8 @@ public class SqlBaseService {
             message = ex.getMessage();
         }
 
-        if (result != null) {
-            if (fatal) {
-                result.recordFatalError(message, ex);
-            } else {
-                result.recordHandledError(message);
-            }
+        if (result != null && fatal) {      // non-fatal errors will NOT be put into OperationResult, not to confuse the user
+            result.recordFatalError(message, ex);
         }
 
     	if (session == null || session.getTransaction() == null || !session.getTransaction().isActive()) {
