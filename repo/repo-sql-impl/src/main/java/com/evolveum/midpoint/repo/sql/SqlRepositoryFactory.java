@@ -49,6 +49,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private static final String USER_HOME_VARIABLE = "user.home";
     private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
     private static final long C3P0_CLOSE_WAIT = 500L;
+    private static final long H2_CLOSE_WAIT = 2000L;
     private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
@@ -76,20 +77,25 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             return;
         }
 
+        LOGGER.info("Waiting " + C3P0_CLOSE_WAIT + " ms for the connection pool to be closed.");
+        try {
+            Thread.sleep(C3P0_CLOSE_WAIT);
+        } catch (InterruptedException e) {
+            // just ignore
+        }
+
         if (getSqlConfiguration().isAsServer()) {
-
-            LOGGER.info("Waiting " + C3P0_CLOSE_WAIT + " ms for the connection pool to be closed.");
-            try {
-                Thread.sleep(C3P0_CLOSE_WAIT);
-            } catch (InterruptedException e) {
-                // just ignore
-            }
-
             LOGGER.info("Shutting down embedded H2");
             if (server != null && server.isRunning(true))
                 server.stop();
         } else {
-            LOGGER.info("H2 running as local instance (from file).");
+            LOGGER.info("H2 running as local instance (from file); waiting " + H2_CLOSE_WAIT + " ms for the DB to be closed.");
+            try {
+                Thread.sleep(H2_CLOSE_WAIT);
+            } catch (InterruptedException e) {
+                // just ignore
+            }
+
         }
 
         LOGGER.info("Shutdown complete.");
