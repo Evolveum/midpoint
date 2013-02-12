@@ -281,6 +281,7 @@ public class PageMyPasswords extends PageAdminHome {
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageDashboard.class);
+        //todo move to PageDashboard.class
+        setResponsePage(PageHome.class);
     }
 }
