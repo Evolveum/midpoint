@@ -280,7 +280,7 @@ public class PrismDomProcessor {
 			// This may be a JAXB parsed or constructed bean without a context.
 			// Make sure the context is set.
 			containerValue.revive(parent.getPrismContext());
-			parent.add(containerValue);
+			parent.add(containerValue.clone());
 			containerValue.applyDefinition(def);
 			return containerValue;
 		}
