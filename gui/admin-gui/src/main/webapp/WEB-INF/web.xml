@@ -59,6 +59,10 @@
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
+    <listener>
+        <listener-class>com.evolveum.midpoint.web.util.MidpointServletContextListener</listener-class>
+    </listener>
+
     <filter>
         <filter-name>MidPointProfilingServletFilter</filter-name>
         <filter-class>com.evolveum.midpoint.web.util.MidPointProfilingServletFilter</filter-class>

@@ -402,7 +402,7 @@ public class SimpleOp extends Op {
 							propPath = new ItemPath(new QName(RUtil.NS_SQL_REPO, realName));
 						}
 						addNewCriteriaToContext(propPath, realName);
-						System.out.println("atrr real name: " + attrDef.getRealName());
+						//System.out.println("atrr real name: " + attrDef.getRealName());
 						item.alias = getInterpreter().getAlias(propPath);
 						item.item = "elements";
 		                LOGGER.trace("Found alias '{}' for path.", new Object[] { item.alias });

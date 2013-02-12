@@ -48,6 +48,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
     private static final String USER_HOME_VARIABLE = "user.home";
     private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
+    private static final long C3P0_CLOSE_WAIT = 500L;
     private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
@@ -76,6 +77,14 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         if (getSqlConfiguration().isAsServer()) {
+
+            LOGGER.info("Waiting " + C3P0_CLOSE_WAIT + " ms for the connection pool to be closed.");
+            try {
+                Thread.sleep(C3P0_CLOSE_WAIT);
+            } catch (InterruptedException e) {
+                // just ignore
+            }
+
             LOGGER.info("Shutting down embedded H2");
             if (server != null && server.isRunning(true))
                 server.stop();
