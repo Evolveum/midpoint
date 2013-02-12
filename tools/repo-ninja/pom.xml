@@ -65,6 +65,18 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
+
+        <!-- JDBC DRIVERS -->
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${jdbc.postgres}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${jdbc.mysql}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -73,15 +85,12 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
-                        <index>true</index>
+                        <index>false</index>
                         <manifest>
-                            <!--<classpathPrefix>lib/</classpathPrefix>-->
-                            <!--<addClasspath>true</addClasspath>-->
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <addClasspath>true</addClasspath>
                             <mainClass>com.evolveum.midpoint.tools.ninja.Main</mainClass>
                         </manifest>
-                        <manifestEntries>
-                            <Class-Path>./lib/*</Class-Path>
-                        </manifestEntries>
                     </archive>
                     <outputDirectory>${project.build.directory}/release</outputDirectory>
                 </configuration>
@@ -102,28 +111,6 @@
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>false</overWriteSnapshots>
                             <overWriteIfNewer>true</overWriteIfNewer>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <id>copy-resources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/release</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/other</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
                         </configuration>
                     </execution>
                 </executions>
