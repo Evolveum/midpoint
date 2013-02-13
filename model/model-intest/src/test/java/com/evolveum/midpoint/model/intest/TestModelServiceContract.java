@@ -1443,14 +1443,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(dummyResource, prismContext);
         PrismContainerDefinition accountDefinition = refinedSchema.getAccountDefinition((String) null);
-        PrismPropertyDefinition quote2Definition = accountDefinition.findPropertyDefinition(new QName(
+        PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new QName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE2_NAME));
-        assertNotNull("drink attribute definition not found", quote2Definition);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
+        assertNotNull("gossip attribute definition not found", gossipDefinition);
 
         AccountConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
-        radt.setRef(quote2Definition.getName());
+        radt.setRef(gossipDefinition.getName());
         MappingType outbound = new MappingType();
         radt.setOutbound(outbound);
 
@@ -1459,7 +1459,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         MappingType value = new MappingType();
 
-        PrismProperty property = quote2Definition.instantiate();
+        PrismProperty property = gossipDefinition.instantiate();
         property.add(new PrismPropertyValue<String>("q"));
 
         List evaluators = expression.getExpressionEvaluator();
@@ -1502,7 +1502,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
         DummyAccount dummyAccount = getDummyAccount(null, USER_JACK_USERNAME);
         display(dummyAccount.debugDump());
-        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE2_NAME, "q");
+        assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "q");
         //assertEquals("Missing or incorrect attribute value", "soda", dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class));
 
 //        // Check audit

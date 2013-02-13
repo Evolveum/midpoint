@@ -43,12 +43,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -91,6 +93,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
+	private final String EXISTING_GOSSIP = "Black spot!"; 
+	
 	public TestRbac() throws JAXBException {
 		super();
 	}
@@ -100,6 +104,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 			throws Exception {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		
 	}
 	
 	@Test
@@ -141,6 +146,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "location", "Caribbean");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Caribbean has ever seen");
 	}
 	
 	/**
@@ -155,6 +162,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        // gossip is a tolerant attribute. Make sure there there is something to tolerate
+ 		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
+ 		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+ 				EXISTING_GOSSIP);
+        
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
         
@@ -164,6 +176,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
 	
 	@Test
@@ -214,6 +228,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "weapon", "rum");
         
+        // gossip is a tolerant attribute. Make sure there there is something to tolerate
+  		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
+  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+  				EXISTING_GOSSIP);
+        
         // WHEN
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
@@ -229,6 +248,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         // The account already has a value for 'weapon', it should be unchanged. But it is not.
         // The relative change does cannot see the existing value so it adds its own.
         assertDefaultDummyAccountAttribute("jack", "weapon", "rum", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
         
 	}
 	
@@ -258,6 +279,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
         
 	}
 	
@@ -285,6 +308,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
         
 	}
 	
@@ -308,6 +333,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
 	
 	@Test
@@ -330,6 +357,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", EXISTING_GOSSIP);
 	}
 	
 	@Test
@@ -375,6 +404,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "location", "Tortuga");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Tortuga has ever seen");
 	}
 	
 	/**
@@ -389,6 +420,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        // gossip is a tolerant attribute. Make sure there there is something to tolerate
+  		DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
+  		jackDummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+  				EXISTING_GOSSIP);
+        
         // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Isla de Muerta"));
         
@@ -398,6 +434,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "title", "Bloody Pirate");
         assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Isla de Muerta has ever seen", EXISTING_GOSSIP);
 	}
 	
 	/**
@@ -421,6 +459,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount("jack", "Jack Sparrow", true);
         assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, EXISTING_GOSSIP);
 	}
 	
 	/**
@@ -474,6 +513,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute("jack", "location", "Isla de Muerta");
         // Outbound mapping for weapon is weak, therefore the mapping in role should override it 
         assertDefaultDummyAccountAttribute("jack", "weapon", "cutlass");
+        assertDefaultDummyAccountAttribute("jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Isla de Muerta has ever seen");
 	}
 	
 	@Test

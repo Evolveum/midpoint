@@ -106,7 +106,7 @@
                   <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                  <xsd:element name="quote2" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="gossip" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -254,8 +254,8 @@
 				</outbound>
 			</attribute>
             <attribute>
-                <ref>ri:quote2</ref>
-                <displayName>Quote2</displayName>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
             </attribute>
 

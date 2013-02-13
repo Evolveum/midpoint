@@ -61,6 +61,22 @@
 					</expression>
 				</outbound>
             </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <outbound>
+                	<source>
+                		<path>$user/fullName</path>
+                	</source>
+                	<source>
+                		<path>$user/locality</path>
+                	</source>
+                	<expression>
+						<script>
+							<code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code> 
+						</script>
+					</expression>
+				</outbound>
+            </attribute>
     	</accountConstruction>
     </assignment>
     <requestable>true</requestable>

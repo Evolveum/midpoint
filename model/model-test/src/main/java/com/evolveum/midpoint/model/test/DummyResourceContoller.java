@@ -64,7 +64,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME = "drink";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
-    public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE2_NAME = "quote2";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME = "gossip";
 	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
@@ -111,6 +111,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		accountObjectClass.add(drinkAttrDef);
 		DummyAttributeDefinition quoteAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
 		accountObjectClass.add(quoteAttrDef);
+		DummyAttributeDefinition gossipAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
+		accountObjectClass.add(gossipAttrDef);
 		isExtendedSchema = true;
 	}
 	
