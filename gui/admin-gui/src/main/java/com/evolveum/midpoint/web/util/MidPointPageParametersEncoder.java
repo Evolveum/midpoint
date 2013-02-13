@@ -65,13 +65,13 @@ public class MidPointPageParametersEncoder implements IPageParametersEncoder {
 
         for (Iterator<String> segment = request.getUrl().getSegments().iterator(); segment.hasNext(); ) {
             String key = segment.next();
-            String value;
-            if (!segment.hasNext()) {
-                value = segment.next();
-            } else {
-                value = null;
+            if (segment.hasNext()) {
+                String value = segment.next();
+
+                if (value != null) {
+                    parameters.add(key, value);
+                }
             }
-            parameters.add(key, value);
         }
 
         return parameters.isEmpty() ? null : parameters;
