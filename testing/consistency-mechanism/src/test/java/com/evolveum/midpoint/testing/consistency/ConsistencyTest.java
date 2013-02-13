@@ -1924,7 +1924,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		// WHEN
 		addObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
-		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 50000);
+		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
 
 		// THEN
 		
