@@ -55,11 +55,11 @@ function initTable(){
 		checkAllChecked($(this).parents(".sortedTable"));
 	});
 	
-	$("td input[type='checkbox']").click(function(){
+	$(".sortedTable td input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
 			$(this).attr("checked", false);
-			$(this).parents("tr").find("td").css("background","#d8f4d8");
-			$(this).parents("tr").find("td").css("border-color","#FFFFFF");
+			$(this).closest("tr").find("td").css("background","#d8f4d8");
+			$(this).closest("tr").find("td").css("border-color","#FFFFFF");
 			
 		} else {
 			$(this).attr("checked", true);
@@ -68,7 +68,7 @@ function initTable(){
 		}
 		checkAllChecked($(this).parents(".sortedTable"));
 	});
-	
+//	
 //	$(document).find(".sortedTable").each(function(index){
 //		var row =  $(this).find("table tbody tr");
 //		if(row.find(".tableCheckbox").length > 0) {
