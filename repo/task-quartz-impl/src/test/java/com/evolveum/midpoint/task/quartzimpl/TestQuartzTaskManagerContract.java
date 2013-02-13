@@ -878,7 +878,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
             @Override
             public void timeout() {
             }
-        }, 20000, 2000);
+        }, 30000, 2000);
 
         // Check task status
 
