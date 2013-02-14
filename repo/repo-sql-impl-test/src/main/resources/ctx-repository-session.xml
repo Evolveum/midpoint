@@ -26,7 +26,7 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="testSqlDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true"
+    <bean id="testC3p0DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" lazy-init="true"
           destroy-method="close">
         <property name="driverClass" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
         <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
@@ -42,13 +42,20 @@
                   value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer"/>
     </bean>
 
+    <bean id="testJndiDataSource" class="org.springframework.jndi.JndiObjectFactoryBean" lazy-init="true">
+        <property name="jndiName" value="#{testSqlRepositoryFactory.sqlConfiguration.dataSource}"/>
+    </bean>
+
+    <bean name="testSqlDataSource" class="com.evolveum.midpoint.repo.sql.CompositeDataSource" lazy-init="true">
+        <property name="configuration" value="#{testSqlRepositoryFactory.sqlConfiguration}"/>
+        <property name="testing" value="true"/>
+    </bean>
+
     <!-- Hibernate session factory -->
     <bean id="testSessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
           depends-on="testSqlDataSource" lazy-init="true">
 
-        <property name="dataSource">
-            <ref bean="testSqlDataSource"/>
-        </property>
+        <property name="dataSource" value="#{testSqlDataSource.dataSource}" />
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>

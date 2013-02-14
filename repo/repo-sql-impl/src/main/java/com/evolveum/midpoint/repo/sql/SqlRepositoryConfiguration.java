@@ -50,6 +50,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
     public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
+    public static final String PROPERTY_DATASOURCE = "dataSource";
 
     // concurrency properties
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
@@ -74,6 +75,7 @@ public class SqlRepositoryConfiguration {
     private String jdbcPassword;
     private String hibernateDialect;
     private String hibernateHbm2ddl;
+    private String dataSource;
 
     private TransactionIsolation transactionIsolation;
     private boolean lockForUpdateViaHibernate;
@@ -83,19 +85,20 @@ public class SqlRepositoryConfiguration {
     private int performanceStatisticsLevel;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
-        setAsServer(configuration.getBoolean("asServer", asServer));
-        setBaseDir(configuration.getString("baseDir", baseDir));
-        setDriverClassName(configuration.getString("driverClassName", driverClassName));
-        setEmbedded(configuration.getBoolean("embedded", embedded));
-        setHibernateDialect(configuration.getString("hibernateDialect", hibernateDialect));
-        setHibernateHbm2ddl(configuration.getString("hibernateHbm2ddl", hibernateHbm2ddl));
-        setJdbcPassword(configuration.getString("jdbcPassword", jdbcPassword));
-        setJdbcUrl(configuration.getString("jdbcUrl", jdbcUrl));
-        setJdbcUsername(configuration.getString("jdbcUsername", jdbcUsername));
-        setPort(configuration.getInt("port", port));
-        setTcpSSL(configuration.getBoolean("tcpSSL", tcpSSL));
-        setFileName(configuration.getString("fileName", fileName));
-        setDropIfExists(configuration.getBoolean("dropIfExists", dropIfExists));
+        setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, asServer));
+        setBaseDir(configuration.getString(PROPERTY_BASE_DIR, baseDir));
+        setDriverClassName(configuration.getString(PROPERTY_DRIVER_CLASS_NAME, driverClassName));
+        setEmbedded(configuration.getBoolean(PROPERTY_EMBEDDED, embedded));
+        setHibernateDialect(configuration.getString(PROPERTY_HIBERNATE_DIALECT, hibernateDialect));
+        setHibernateHbm2ddl(configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, hibernateHbm2ddl));
+        setJdbcPassword(configuration.getString(PROPERTY_JDBC_PASSWORD, jdbcPassword));
+        setJdbcUrl(configuration.getString(PROPERTY_JDBC_URL, jdbcUrl));
+        setJdbcUsername(configuration.getString(PROPERTY_JDBC_USERNAME, jdbcUsername));
+        setPort(configuration.getInt(PROPERTY_PORT, port));
+        setTcpSSL(configuration.getBoolean(PROPERTY_TCP_SSL, tcpSSL));
+        setFileName(configuration.getString(PROPERTY_FILE_NAME, fileName));
+        setDropIfExists(configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, dropIfExists));
+        setDataSource(configuration.getString(PROPERTY_DATASOURCE, null));
 
         computeDefaultConcurrencyParameters();
 
@@ -105,7 +108,6 @@ public class SqlRepositoryConfiguration {
         setUseReadOnlyTransactions(configuration.getBoolean(PROPERTY_USE_READ_ONLY_TRANSACTIONS, useReadOnlyTransactions));
         setPerformanceStatisticsFile(configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE, performanceStatisticsFile));
         setPerformanceStatisticsLevel(configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, performanceStatisticsLevel));
-
     }
 
     private void computeDefaultConcurrencyParameters() {
@@ -155,11 +157,12 @@ public class SqlRepositoryConfiguration {
      *          if configuration is invalid.
      */
     public void validate() throws RepositoryServiceFactoryException {
-        notEmpty(getJdbcUrl(), "JDBC Url is empty or not defined.");
-        notEmpty(getJdbcUsername(), "JDBC user name is empty or not defined.");
-        notNull(getJdbcPassword(), "JDBC password is not defined.");
-
-        notEmpty(getDriverClassName(), "Driver class name is empty or not defined.");
+        if (StringUtils.isEmpty(getDataSource())) {
+            notEmpty(getJdbcUrl(), "JDBC Url is empty or not defined.");
+            notEmpty(getJdbcUsername(), "JDBC user name is empty or not defined.");
+            notNull(getJdbcPassword(), "JDBC password is not defined.");
+            notEmpty(getDriverClassName(), "Driver class name is empty or not defined.");
+        }
 
         notEmpty(getHibernateDialect(), "Hibernate dialect is empty or not defined.");
         notEmpty(getHibernateHbm2ddl(), "Hibernate hbm2ddl option is empty or not defined.");
@@ -376,5 +379,13 @@ public class SqlRepositoryConfiguration {
 
     public void setPerformanceStatisticsLevel(int performanceStatisticsLevel) {
         this.performanceStatisticsLevel = performanceStatisticsLevel;
+    }
+
+    public String getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource;
     }
 }
