@@ -112,6 +112,10 @@ public class XmlTypeConverter {
             return (T) Long.valueOf(stringContent);
         } else if (type.equals(long.class)) {
             return (T) Long.valueOf(stringContent);
+        } else if (type.equals(Byte.class)) {
+            return (T) Byte.valueOf(stringContent);
+        } else if (type.equals(byte.class)) {
+            return (T) Byte.valueOf(stringContent);
         } else if (type.equals(float.class)) {
             return (T) Float.valueOf(stringContent);
         } else if (type.equals(Float.class)) {
@@ -265,6 +269,8 @@ public class XmlTypeConverter {
             return ((Integer) val).toString();
         } else if (type.equals(long.class) || type.equals(Long.class)) {
             return ((Long) val).toString();
+        } else if (type.equals(byte.class) || type.equals(Byte.class)) {
+            return ((Byte) val).toString();
         } else if (type.equals(float.class) || type.equals(Float.class)) {
             return ((Float) val).toString();
         } else if (type.equals(double.class) || type.equals(Double.class)) {

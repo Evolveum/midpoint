@@ -82,6 +82,8 @@ public class XsdTypeMapper {
         addMapping(Long.class, DOMUtil.XSD_LONG, false);
         addMapping(short.class, DOMUtil.XSD_SHORT, true);
         addMapping(Short.class, DOMUtil.XSD_SHORT, false);
+        addMapping(byte.class, DOMUtil.XSD_BYTE, true);
+        addMapping(Byte.class, DOMUtil.XSD_BYTE, false);
         //great idea end
         addMapping(boolean.class, DOMUtil.XSD_BOOLEAN, true);
         addMapping(Boolean.class, DOMUtil.XSD_BOOLEAN, false);
