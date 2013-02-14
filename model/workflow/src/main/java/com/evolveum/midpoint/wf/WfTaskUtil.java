@@ -545,47 +545,47 @@ public class WfTaskUtil {
 
     public void markRejection(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 
-        ModelOperationStateType state = task.getModelOperationState();
-        state.setStage(null);
-        task.setModelOperationState(state);
-        try {
-            task.savePendingModifications(result);
-        } catch (ObjectAlreadyExistsException ex) {
-            throw new SystemException(ex);
-        }
-
-        markTaskAsClosed(task, result);         // brutal hack
+//        ModelOperationStateType state = task.getModelOperationState();
+//        state.setStage(null);
+//        task.setModelOperationState(state);
+//        try {
+//            task.savePendingModifications(result);
+//        } catch (ObjectAlreadyExistsException ex) {
+//            throw new SystemException(ex);
+//        }
+//
+//        markTaskAsClosed(task, result);         // brutal hack
     }
 
 
     public void markAcceptation(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 
-        ModelOperationStateType state = task.getModelOperationState();
-        ModelOperationStageType stage = state.getStage();
-        switch (state.getStage()) {
-            case PRIMARY: stage = ModelOperationStageType.SECONDARY; break;
-            case SECONDARY: stage = ModelOperationStageType.EXECUTE; break;
-            case EXECUTE: stage = null; break;      // should not occur
-            default: throw new SystemException("Unknown model operation stage: " + state.getStage());
-        }
-        state.setStage(stage);
-        task.setModelOperationState(state);
-        try {
-            task.savePendingModifications(result);
-        } catch (ObjectAlreadyExistsException ex) {
-            throw new SystemException(ex);
-        }
-
-        // todo continue with model operation
-
-        markTaskAsClosed(task, result);         // brutal hack
-
-//        switch (state.getKindOfOperation()) {
-//            case ADD: modelController.addObjectContinuing(task, result); break;
-//            case MODIFY: modelController.modifyObjectContinuing(task, result); break;
-//            case DELETE: modelController.deleteObjectContinuing(task, result); break;
-//            default: throw new SystemException("Unknown kind of model operation: " + state.getKindOfOperation());
+//        ModelOperationStateType state = task.getModelOperationState();
+//        ModelOperationStageType stage = state.getStage();
+//        switch (state.getStage()) {
+//            case PRIMARY: stage = ModelOperationStageType.SECONDARY; break;
+//            case SECONDARY: stage = ModelOperationStageType.EXECUTE; break;
+//            case EXECUTE: stage = null; break;      // should not occur
+//            default: throw new SystemException("Unknown model operation stage: " + state.getStage());
 //        }
+//        state.setStage(stage);
+//        task.setModelOperationState(state);
+//        try {
+//            task.savePendingModifications(result);
+//        } catch (ObjectAlreadyExistsException ex) {
+//            throw new SystemException(ex);
+//        }
+//
+//        // todo continue with model operation
+//
+//        markTaskAsClosed(task, result);         // brutal hack
+//
+////        switch (state.getKindOfOperation()) {
+////            case ADD: modelController.addObjectContinuing(task, result); break;
+////            case MODIFY: modelController.modifyObjectContinuing(task, result); break;
+////            case DELETE: modelController.deleteObjectContinuing(task, result); break;
+////            default: throw new SystemException("Unknown kind of model operation: " + state.getKindOfOperation());
+////        }
 
     }
 
@@ -607,8 +607,8 @@ public class WfTaskUtil {
     }
 
     void setModelOperationState(Task task, ModelContext context) throws IOException {
-        ModelOperationStateType state = new ModelOperationStateType();
-        state.setOperationData(SerializationUtil.toString(context));
-        task.setModelOperationState(state);
+//        ModelOperationStateType state = new ModelOperationStateType();
+//        state.setOperationData(SerializationUtil.toString(context));
+//        task.setModelOperationState(state);
     }
 }

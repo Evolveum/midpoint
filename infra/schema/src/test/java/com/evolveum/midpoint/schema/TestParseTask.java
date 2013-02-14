@@ -29,11 +29,9 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExclusivityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -211,8 +209,6 @@ public class TestParseTask {
 		PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
 		TaskExecutionStatusType executionStatus = executionStatusValue.getValue();
 		assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNABLE, executionStatus);
-		
-		assertPropertyDefinition(task, "exclusivityStatus", JAXBUtil.getTypeQName(TaskExclusivityStatusType.class), 1, 1);
 		
 		// TODO: more tests
 		

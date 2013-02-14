@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStack;
@@ -57,22 +56,18 @@ public class RTask extends RObject {
     private String taskIdentifier;
     @QueryAttribute(enumerated = true)
     private RTaskExecutionStatusType executionStatus;
-    private RTaskExclusivityStatusType exclusivityStatus;
     private String node;
     @QueryAttribute
     private String category;
-    private XMLGregorianCalendar claimExpirationTimestamp;
     private String handlerUri;
     private String otherHandlersUriStack;
     private ROperationResult result;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
-    private XMLGregorianCalendar nextRunStartTime;
     private Long progress;
     private RTaskRecurrenceType recurrence;
     private RTaskBindingType binding;
     private String schedule;
-    private String modelOperationState;
 
     private REmbeddedReference objectRef;
     private REmbeddedReference ownerRef;
@@ -120,13 +115,6 @@ public class RTask extends RObject {
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(nullable = true)
-    public String getModelOperationState() {
-        return modelOperationState;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
     public String getOtherHandlersUriStack() {
         return otherHandlersUriStack;
     }
@@ -142,11 +130,6 @@ public class RTask extends RObject {
     @Column(nullable = true)
     public RTaskBindingType getBinding() {
         return binding;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    public RTaskExclusivityStatusType getExclusivityStatus() {
-        return exclusivityStatus;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -198,10 +181,6 @@ public class RTask extends RObject {
         this.parent = parent;
     }
 
-    public XMLGregorianCalendar getClaimExpirationTimestamp() {
-        return claimExpirationTimestamp;
-    }
-
     public void setCategory(String category) {
         this.category = category;
     }
@@ -218,11 +197,6 @@ public class RTask extends RObject {
     @Column(nullable = true)
     public XMLGregorianCalendar getLastRunStartTimestamp() {
         return lastRunStartTimestamp;
-    }
-
-    @Column(nullable = true)
-    public XMLGregorianCalendar getNextRunStartTime() {
-        return nextRunStartTime;
     }
 
     @Column(nullable = true)
@@ -244,14 +218,6 @@ public class RTask extends RObject {
         this.binding = binding;
     }
 
-    public void setClaimExpirationTimestamp(XMLGregorianCalendar claimExpirationTimestamp) {
-        this.claimExpirationTimestamp = claimExpirationTimestamp;
-    }
-
-    public void setExclusivityStatus(RTaskExclusivityStatusType exclusivityStatus) {
-        this.exclusivityStatus = exclusivityStatus;
-    }
-
     public void setExecutionStatus(RTaskExecutionStatusType executionStatus) {
         this.executionStatus = executionStatus;
     }
@@ -266,10 +232,6 @@ public class RTask extends RObject {
 
     public void setLastRunStartTimestamp(XMLGregorianCalendar lastRunStartTimestamp) {
         this.lastRunStartTimestamp = lastRunStartTimestamp;
-    }
-
-    public void setNextRunStartTime(XMLGregorianCalendar nextRunStartTime) {
-        this.nextRunStartTime = nextRunStartTime;
     }
 
     public void setNode(String node) {
@@ -292,10 +254,6 @@ public class RTask extends RObject {
         this.taskIdentifier = taskIdentifier;
     }
 
-    public void setModelOperationState(String modelOperationState) {
-        this.modelOperationState = modelOperationState;
-    }
-
     public void setOtherHandlersUriStack(String otherHandlersUriStack) {
         this.otherHandlersUriStack = otherHandlersUriStack;
     }
@@ -314,18 +272,11 @@ public class RTask extends RObject {
 
         if (name != null ? !name.equals(rTask.name) : rTask.name != null) return false;
         if (binding != rTask.binding) return false;
-        if (claimExpirationTimestamp != null ? !claimExpirationTimestamp.equals(rTask.claimExpirationTimestamp) : rTask.claimExpirationTimestamp != null)
-            return false;
-        if (exclusivityStatus != rTask.exclusivityStatus) return false;
         if (executionStatus != rTask.executionStatus) return false;
         if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) return false;
         if (lastRunFinishTimestamp != null ? !lastRunFinishTimestamp.equals(rTask.lastRunFinishTimestamp) : rTask.lastRunFinishTimestamp != null)
             return false;
         if (lastRunStartTimestamp != null ? !lastRunStartTimestamp.equals(rTask.lastRunStartTimestamp) : rTask.lastRunStartTimestamp != null)
-            return false;
-        if (modelOperationState != null ? !modelOperationState.equals(rTask.modelOperationState) : rTask.modelOperationState != null)
-            return false;
-        if (nextRunStartTime != null ? !nextRunStartTime.equals(rTask.nextRunStartTime) : rTask.nextRunStartTime != null)
             return false;
         if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
         if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) return false;
@@ -354,19 +305,15 @@ public class RTask extends RObject {
         result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
         result1 = 31 * result1 + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
         result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
-        result1 = 31 * result1 + (exclusivityStatus != null ? exclusivityStatus.hashCode() : 0);
         result1 = 31 * result1 + (node != null ? node.hashCode() : 0);
-        result1 = 31 * result1 + (claimExpirationTimestamp != null ? claimExpirationTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (handlerUri != null ? handlerUri.hashCode() : 0);
         result1 = 31 * result1 + (otherHandlersUriStack != null ? otherHandlersUriStack.hashCode() : 0);
         result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
-        result1 = 31 * result1 + (nextRunStartTime != null ? nextRunStartTime.hashCode() : 0);
         result1 = 31 * result1 + (progress != null ? progress.hashCode() : 0);
         result1 = 31 * result1 + (recurrence != null ? recurrence.hashCode() : 0);
         result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
         result1 = 31 * result1 + (schedule != null ? schedule.hashCode() : 0);
-        result1 = 31 * result1 + (modelOperationState != null ? modelOperationState.hashCode() : 0);
         result1 = 31 * result1 + (resultStatus != null ? resultStatus.hashCode() : 0);
         result1 = 31 * result1 + (canRunOnNode != null ? canRunOnNode.hashCode() : 0);
         result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
@@ -382,10 +329,6 @@ public class RTask extends RObject {
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setTaskIdentifier(repo.getTaskIdentifier());
-        jaxb.setClaimExpirationTimestamp(repo.getClaimExpirationTimestamp());
-        if (repo.getExclusivityStatus() != null) {
-            jaxb.setExclusivityStatus(repo.getExclusivityStatus().getStatus());
-        }
         if (repo.getExecutionStatus() != null) {
             jaxb.setExecutionStatus(repo.getExecutionStatus().getStatus());
         }
@@ -397,7 +340,6 @@ public class RTask extends RObject {
         if (repo.getBinding() != null) {
             jaxb.setBinding(repo.getBinding().getBinding());
         }
-        jaxb.setNextRunStartTime(repo.getNextRunStartTime());
         if (repo.getRecurrence() != null) {
             jaxb.setRecurrence(repo.getRecurrence().getRecurrence());
         }
@@ -423,8 +365,6 @@ public class RTask extends RObject {
         }
 
         try {
-            jaxb.setModelOperationState(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_MODEL_OPERATION_STATE),
-                    repo.getModelOperationState(), ModelOperationStateType.class, prismContext));
             jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK),
                     repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
             jaxb.setSchedule(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_SCHEDULE), repo.getSchedule(),
@@ -440,8 +380,6 @@ public class RTask extends RObject {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
-        repo.setClaimExpirationTimestamp(jaxb.getClaimExpirationTimestamp());
-        repo.setExclusivityStatus(RTaskExclusivityStatusType.toRepoType(jaxb.getExclusivityStatus()));
         repo.setExecutionStatus(RTaskExecutionStatusType.toRepoType(jaxb.getExecutionStatus()));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setLastRunFinishTimestamp(jaxb.getLastRunFinishTimestamp());
@@ -449,7 +387,6 @@ public class RTask extends RObject {
         repo.setNode(jaxb.getNode());
         repo.setProgress(jaxb.getProgress());
         repo.setBinding(RTaskBindingType.toRepoType(jaxb.getBinding()));
-        repo.setNextRunStartTime(jaxb.getNextRunStartTime());
         repo.setRecurrence(RTaskRecurrenceType.toRepoType(jaxb.getRecurrence()));
         repo.setResultStatus(ROperationResultStatusType.toRepoType(jaxb.getResultStatus()));
         repo.setCanRunOnNode(jaxb.getCanRunOnNode());
@@ -468,7 +405,6 @@ public class RTask extends RObject {
         }
 
         try {
-            repo.setModelOperationState(RUtil.toRepo(jaxb.getModelOperationState(), prismContext));
             repo.setOtherHandlersUriStack(RUtil.toRepo(jaxb.getOtherHandlersUriStack(), prismContext));
             repo.setSchedule(RUtil.toRepo(jaxb.getSchedule(), prismContext));
         } catch (Exception ex) {

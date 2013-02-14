@@ -21,39 +21,18 @@
 
 package com.evolveum.midpoint.model.controller;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.lens.Clockwork;
-import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.SerializationUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
-import org.apache.commons.codec.binary.Base64;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.hooks.ChangeHook;
-import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStateType;
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * Handles a "ModelOperation task" - executes a given model operation in a context
@@ -66,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationState
  *  - ModelOperationKindType: add, modify, delete,
  *  - ModelOperationStageType: primary, secondary, execute,
  *  - OperationData (base64-encoded serialized data structure, specific to MOKT/MOST)
+ *
+ *  CURRENTLY NOT WORKING (will be revived in midpoint 2.2)
  *
  * @author mederly
  */
@@ -102,30 +83,30 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		 * Call the model operation body.
 		 */
 
-		ModelOperationStateType state = task.getModelOperationState();
-		if (state == null) {
-			String message = "The task " + task + " cannot be processed by ModelOperationTaskHandler, as it does not contain modelOperationState element."; 
-			LOGGER.error(message);
-			result.recordFatalError(message);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-		} else {
-            LensContext context;
-            try {
-                context = (LensContext) SerializationUtil.fromString(state.getOperationData());
-                context.adopt(prismContext);
-                clockwork.run(context, task, result);
-                if (result.isUnknown()) {
-                    result.computeStatus();
-                }
-                runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-            } catch (Exception e) { // todo
-                String message = "An exception occurred within model operation, in task " + task;
-                LoggingUtils.logException(LOGGER, message, e);
-                result.recordPartialError(message, e);
-                // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
-                runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			}
-		}
+//		ModelOperationStateType state = task.getModelOperationState();
+//		if (state == null) {
+//			String message = "The task " + task + " cannot be processed by ModelOperationTaskHandler, as it does not contain modelOperationState element.";
+//			LOGGER.error(message);
+//			result.recordFatalError(message);
+//			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+//		} else {
+//            LensContext context;
+//            try {
+//                context = (LensContext) SerializationUtil.fromString(state.getOperationData());
+//                context.adopt(prismContext);
+//                clockwork.run(context, task, result);
+//                if (result.isUnknown()) {
+//                    result.computeStatus();
+//                }
+//                runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+//            } catch (Exception e) { // todo
+//                String message = "An exception occurred within model operation, in task " + task;
+//                LoggingUtils.logException(LOGGER, message, e);
+//                result.recordPartialError(message, e);
+//                // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
+//                runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+//			}
+//		}
 
         task.getResult().recomputeStatus();
 		runResult.setOperationResult(task.getResult());
@@ -169,45 +150,39 @@ public class ModelOperationTaskHandler implements TaskHandler {
 	 * @param methodName only for error reporting purposes
 	 * @return null if context is not present or the operation is not to be executed (this is a bit of hack, should be put into separate method, perhaps)
 	 */
-	static Object getContext(Task task, OperationResult parentResult, String methodName) {
-		
-    	ModelOperationStateType state = task.getModelOperationState();
-
-    	if (state == null) {
-    		String message = "Model operation for task " + task + " does not carry ModelOperationState, exiting the " + methodName + " method.";
-    		LOGGER.info(message);
-    		parentResult.recordStatus(OperationResultStatus.FATAL_ERROR, message);
-    		return null;
-    	}
-//    	if (!state.isShouldBeExecuted()) {
-//    		String message = "Model operation for task " + task + " (phase " + state.getPhase() + ") is not to be continued. Exiting the " + methodName + " method.";
+//	static Object getContext(Task task, OperationResult parentResult, String methodName) {
+//
+//    	ModelOperationStateType state = task.getModelOperationState();
+//
+//    	if (state == null) {
+//    		String message = "Model operation for task " + task + " does not carry ModelOperationState, exiting the " + methodName + " method.";
 //    		LOGGER.info(message);
-//    		parentResult.recordStatus(OperationResultStatus.SUCCESS, message);
+//    		parentResult.recordStatus(OperationResultStatus.FATAL_ERROR, message);
 //    		return null;
 //    	}
-    	
-    	Object data;
-    	try {
-    		
-        	String dataAsString = state.getOperationData();
-        	LOGGER.info("DataAsString (from task new) = " + dataAsString);
-        	if (dataAsString == null)
-        		throw new Exception("Operation data is not present.");
-    		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(dataAsString)));
-    		data = ois.readObject();
-    		if (data == null)
-    			throw new Exception("Operation data is not present.");
-    		
-    	} catch(Exception e) {
-//    		String message = "Model operation for task " + task + " (phase " + state.getPhase() + ") could not be executed: ";
-//    		LoggingUtils.logException(LOGGER, message, e);
-//    		parentResult.recordFatalError(message, e);
-    		return null;
-    	}
-
-    	LOGGER.info("Operation data class = " + data.getClass().getName());
-    	return data;
-	}
+//
+//    	Object data;
+//    	try {
+//
+//        	String dataAsString = state.getOperationData();
+//        	LOGGER.info("DataAsString (from task new) = " + dataAsString);
+//        	if (dataAsString == null)
+//        		throw new Exception("Operation data is not present.");
+//    		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(dataAsString)));
+//    		data = ois.readObject();
+//    		if (data == null)
+//    			throw new Exception("Operation data is not present.");
+//
+//    	} catch(Exception e) {
+////    		String message = "Model operation for task " + task + " (phase " + state.getPhase() + ") could not be executed: ";
+////    		LoggingUtils.logException(LOGGER, message, e);
+////    		parentResult.recordFatalError(message, e);
+//    		return null;
+//    	}
+//
+//    	LOGGER.info("Operation data class = " + data.getClass().getName());
+//    	return data;
+//	}
 	
 	/*
 	 * The following methods are not static, as they require the hookRegistry bean.

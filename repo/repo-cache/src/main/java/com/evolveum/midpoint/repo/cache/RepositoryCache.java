@@ -269,26 +269,6 @@ public class RepositoryCache implements RepositoryService {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 	}
 
-	@Override
-	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			ConcurrencyException, SchemaException {
-		repository.claimTask(oid, parentResult);
-		Map<String, PrismObject<ObjectType>> cache = getCache();
-		if (cache != null) {
-			cache.remove(oid);
-		}
-	}
-
-	@Override
-	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
-		repository.releaseTask(oid, parentResult);
-		Map<String, PrismObject<ObjectType>> cache = getCache();
-		if (cache != null) {
-			cache.remove(oid);
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getRepositoryDiag()
 	 */

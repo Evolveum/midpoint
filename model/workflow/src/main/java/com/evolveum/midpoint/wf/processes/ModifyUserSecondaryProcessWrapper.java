@@ -21,16 +21,12 @@
 
 package com.evolveum.midpoint.wf.processes;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.WfHook;
 import com.evolveum.midpoint.wf.WfTaskUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,34 +57,34 @@ public class ModifyUserSecondaryProcessWrapper //implements ProcessWrapper {
     }
 
     //@Override
-    public StartProcessInstruction startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
-
-        if (true)
-            return null;
-
-        if (stage == ModelOperationStageType.SECONDARY) {
-            ObjectDelta<? extends ObjectType> change = changes.iterator().next();
-            if (change.getObjectTypeClass() == UserType.class) {
-                for (ItemDelta delta : change.getModifications()) {
-                    if (delta.getValuesToReplace() != null) {
-                        for (Object o : delta.getValuesToReplace()) {
-                            if (o instanceof PrismPropertyValue) {
-                                Object real = ((PrismPropertyValue<Object>) o).getValue();
-                                if (real instanceof String && ((String) real).startsWith("testwf2")) {
-                                    StartProcessInstruction startCommand = new StartProcessInstruction();
-                                    startCommand.setProcessName("ModifyUserSecondary");
-                                    startCommand.addProcessVariable("changes", dump(changes));
-                                    startCommand.setSimple(true);
-                                    return startCommand;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
+//    public StartProcessInstruction startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
+//
+//        if (true)
+//            return null;
+//
+//        if (stage == ModelOperationStageType.SECONDARY) {
+//            ObjectDelta<? extends ObjectType> change = changes.iterator().next();
+//            if (change.getObjectTypeClass() == UserType.class) {
+//                for (ItemDelta delta : change.getModifications()) {
+//                    if (delta.getValuesToReplace() != null) {
+//                        for (Object o : delta.getValuesToReplace()) {
+//                            if (o instanceof PrismPropertyValue) {
+//                                Object real = ((PrismPropertyValue<Object>) o).getValue();
+//                                if (real instanceof String && ((String) real).startsWith("testwf2")) {
+//                                    StartProcessInstruction startCommand = new StartProcessInstruction();
+//                                    startCommand.setProcessName("ModifyUserSecondary");
+//                                    startCommand.addProcessVariable("changes", dump(changes));
+//                                    startCommand.setSimple(true);
+//                                    return startCommand;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     //@Override
     public void finishProcess(WfProcessInstanceEventType event, Task task, OperationResult result) throws Exception {

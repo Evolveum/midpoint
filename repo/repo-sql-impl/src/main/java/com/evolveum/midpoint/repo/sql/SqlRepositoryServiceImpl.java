@@ -21,22 +21,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.*;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.exception.LockAcquisitionException;
-import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
-import org.springframework.stereotype.Repository;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -47,18 +31,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.RResourceObjectShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExclusivityStatusType;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
-import com.evolveum.midpoint.repo.sql.query.Definition;
-import com.evolveum.midpoint.repo.sql.query.EntityDefinition;
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
-import com.evolveum.midpoint.repo.sql.query.QueryRegistry;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -66,20 +45,26 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExclusivityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.hibernate.*;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.stereotype.Repository;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -551,27 +536,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			session.delete(objectToDelete);
 		}
 
-	}
-
-	@Deprecated
-	@Override
-	public void claimTask(String oid, OperationResult result) throws ObjectNotFoundException, ConcurrencyException,
-			SchemaException {
-		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(result, "Operation result must not be null.");
-
-		OperationResult subResult = result.createSubresult(CLAIM_TASK);
-		updateTaskExclusivity(oid, TaskExclusivityStatusType.CLAIMED, subResult);
-	}
-
-	@Deprecated
-	@Override
-	public void releaseTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(result, "Operation result must not be null.");
-
-		OperationResult subResult = result.createSubresult(RELEASE_TASK);
-		updateTaskExclusivity(oid, TaskExclusivityStatusType.RELEASED, subResult);
 	}
 
 	@Override
@@ -1057,39 +1021,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		}
 
 		return list;
-	}
-
-	@Deprecated
-	private void updateTaskExclusivity(String oid, TaskExclusivityStatusType newStatus, OperationResult result)
-			throws ObjectNotFoundException {
-
-		LOGGER.trace("Updating task '{}' exclusivity to '{}'", new Object[] { oid, newStatus });
-		Session session = null;
-		try {
-			LOGGER.trace("Looking for task.");
-			session = beginTransaction();
-			Query query = session.createQuery("from " + ClassMapper.getHQLType(TaskType.class)
-					+ " as task where task.oid = :oid and task.id = 0");
-			query.setString("oid", oid);
-
-			RTask task = (RTask) query.uniqueResult();
-			if (task == null) {
-				throw new ObjectNotFoundException("Task with oid '" + oid + "' was not found.");
-			}
-			LOGGER.trace("Task found, updating exclusivity status.");
-			task.setExclusivityStatus(RTaskExclusivityStatusType.toRepoType(newStatus));
-			session.save(task);
-
-			session.getTransaction().commit();
-			LOGGER.trace("Task status updated.");
-		} catch (ObjectNotFoundException ex) {
-			rollbackTransaction(session, ex, result, true);
-			throw ex;
-		} catch (RuntimeException ex) {
-			handleGeneralRuntimeException(ex, session, result);
-		} finally {
-			cleanupSessionAndResult(session, result);
-		}
 	}
 
 	private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {

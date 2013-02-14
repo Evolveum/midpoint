@@ -143,22 +143,6 @@ public interface Task extends Dumpable {
     boolean isPersistent();
 	
 	/**
-	 * Returns task exclusivity status.
-	 * 
-	 * @see TaskExclusivityStatus
-	 * 
-	 * @return task exclusivity status.
-	 */
-//	public TaskExclusivityStatus getExclusivityStatus();
-	
-//	void setExclusivityStatus(TaskExclusivityStatus value);
-
-//	void setExclusivityStatusImmediate(TaskExclusivityStatus value, OperationResult parentResult)
-//			throws ObjectNotFoundException, SchemaException;
-
-
-
-	/**
 	 * Returns task recurrence status.
 	 * 
 	 * @return task recurrence status
@@ -520,8 +504,6 @@ public interface Task extends Dumpable {
 
     boolean isResilient();
 
-    ModelOperationStateType getModelOperationState();
-
     //void pushHandlerUri(String uri, ScheduleType scheduleType);
 
     void setCategory(String category);
@@ -544,8 +526,6 @@ public interface Task extends Dumpable {
      * @throws SchemaException
      */
     void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException;
-
-    void setModelOperationState(ModelOperationStateType state);
 
 //    void replaceCurrentHandlerUri(String newUri, ScheduleType scheduleType);
 

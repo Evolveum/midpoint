@@ -42,7 +42,6 @@ import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelOperationStateType;
 
 import org.jvnet.jaxb2_commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -238,44 +237,44 @@ public class WfCore {
             }
         }
 
-        ModelOperationStateType state = task.getModelOperationState();
-        if (state == null || StringUtils.isEmpty(state.getOperationData())) {
-            throw new IllegalStateException("The task does not contain model operation context; task = " + task);
-        }
-        ModelContext context;
-        try {
-            context = (ModelContext) SerializationUtil.fromString(state.getOperationData());
-        } catch (IOException e) {
-            throw new IllegalStateException("Model Context could not be fetched from the task due to IOException; task = " + task, e);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Model Context could not be fetched from the task due to ClassNotFoundException; task = " + task, e);
-        }
+//        ModelOperationStateType state = task.getModelOperationState();
+//        if (state == null || StringUtils.isEmpty(state.getOperationData())) {
+//            throw new IllegalStateException("The task does not contain model operation context; task = " + task);
+//        }
+//        ModelContext context;
+//        try {
+//            context = (ModelContext) SerializationUtil.fromString(state.getOperationData());
+//        } catch (IOException e) {
+//            throw new IllegalStateException("Model Context could not be fetched from the task due to IOException; task = " + task, e);
+//        } catch (ClassNotFoundException e) {
+//            throw new IllegalStateException("Model Context could not be fetched from the task due to ClassNotFoundException; task = " + task, e);
+//        }
+//
+//        ProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, wrappers);
+//        wrapper.finishProcess(context, event, task, result);
+//        try {
+//            state.setOperationData(SerializationUtil.toString(context));
+//            task.setModelOperationState(state);
+//            task.finishHandler(result);
+//            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+//                taskManager.unpauseTask(task, result);
+//            }
+//        } catch (ObjectNotFoundException e) {
+//            throw new IllegalStateException(e);         // todo fixme
+//        } catch (SchemaException e) {
+//            throw new IllegalStateException(e);         // todo fixme
+//        } catch (IOException e) {
+//            throw new SystemException(e);               // todo fixme (serialization error)
+//        }
 
-        ProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, wrappers);
-        wrapper.finishProcess(context, event, task, result);
-        try {
-            state.setOperationData(SerializationUtil.toString(context));
-            task.setModelOperationState(state);
-            task.finishHandler(result);
-            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
-                taskManager.unpauseTask(task, result);
-            }
-        } catch (ObjectNotFoundException e) {
-            throw new IllegalStateException(e);         // todo fixme
-        } catch (SchemaException e) {
-            throw new IllegalStateException(e);         // todo fixme
-        } catch (IOException e) {
-            throw new SystemException(e);               // todo fixme (serialization error)
-        }
-
-//		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
-
-//		// let us mark the task result as SUCCESS
-//		OperationResult or = task.getResult();		// 'or' should really be non-null here
-//		if (or != null) {
-//			or.recordSuccess();
-//			wfTaskUtil.setTaskResult(task.getOid(), or);
-//		}
+////		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
+////
+////		// let us mark the task result as SUCCESS
+////		OperationResult or = task.getResult();		// 'or' should really be non-null here
+////		if (or != null) {
+////			or.recordSuccess();
+////			wfTaskUtil.setTaskResult(task.getOid(), or);
+////		}
     }
 
     ProcessWrapper findProcessWrapper(Map<String, Object> vars, String id, OperationResult result) throws WorkflowException {

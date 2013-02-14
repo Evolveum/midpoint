@@ -412,7 +412,6 @@ to "false". The only way of resetting the flag is to change user's password.
         <taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
         <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"/>
         <recurrence>recurring</recurrence>

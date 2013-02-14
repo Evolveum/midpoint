@@ -342,42 +342,6 @@ public interface RepositoryService {
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 	
-	/**
-	 * <p>Claim a task.</p>
-	 * <p>
-	 * The task can be claimed only by a single node in the cluster. Attempt to claim an
-	 * already claimed task results in an exception. The claim must be atomic. It is kind
-	 * of a lock for the system.
-	 * </p>
-	 * 
-	 * @param oid task OID
-	 * @param parentResult parentResult parent OperationResult (in/out)
-	 * @throws ObjectNotFoundException the task with specified OID was not found
-	 * @throws ConcurrencyException attempt to claim already claimed task
-	 * @throws SchemaException error dealing with storage schema
-	 * @throws IllegalArgumentException
-	 *             wrong OID format or a specified object is not a task
-	 */
-    @Deprecated
-	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
-	
-	/**
-	 * <p>Release a claimed task.</p>
-	 * <p>
-	 * Note: Releasing a task that is not claimed is not an error. Warning should be logged, but this
-	 * should not throw any exception.
-	 * </p>
-	 *  
-	 * @param oid task OID
-	 * @param parentResult parentResult parent OperationResult (in/out)
-	 * @throws ObjectNotFoundException the task with specified OID was not found
-	 * @throws SchemaException error dealing with storage schema
-	 * @throws IllegalArgumentException
-	 *             wrong OID format or a specified object is not a task
-	 */
-    @Deprecated
-	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-    
     /**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */

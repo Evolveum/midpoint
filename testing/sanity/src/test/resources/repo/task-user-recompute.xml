@@ -37,7 +37,7 @@
 	<!-- No task identifier. It will be generated during import -->
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
-	<exclusivityStatus>released</exclusivityStatus>
+
 	<handlerUri>http://midpoint.evolveum.com/model/sync/recompute-handler-1</handlerUri>
 	<recurrence>single</recurrence>
 	<binding>tight</binding>

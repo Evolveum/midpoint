@@ -39,7 +39,7 @@
 	<taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3dddd</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
-	<exclusivityStatus>released</exclusivityStatus>
+
 	<handlerUri>http://midpoint.evolveum.com/model/sync/reconciliation-handler-1</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"/>
 	<recurrence>recurring</recurrence>

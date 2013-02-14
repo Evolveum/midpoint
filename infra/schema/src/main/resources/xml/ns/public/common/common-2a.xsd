@@ -830,16 +830,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="exclusivityStatus" type="tns:TaskExclusivityStatusType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                (DEPRECATED) Originally: Exclusivity status tells about task "locking" to a particular node.
-
-                                Currently *not* used, because tasks are managed by Quartz scheduler,
-                                who maintains this information in its own data structure (job store).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="node" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -847,17 +837,6 @@
                                 (In case of node crash, the value here may be out-of-date.)
 
                                 NOTE: This attribute is currently not used, its use is planned.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="claimExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                (DEPRECATED) Originally: Expiration of the claim. If a "claimed" task is found
-                                after the moment specified in this attribute, the task is no longer considered claimed.
-                                Should be only present if exclusivity status is "claimed".
-
-                                Currently *not* used, because claiming/releasing of tasks is done by Quartz.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -929,16 +908,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="nextRunStartTime" type="xsd:dateTime" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                (DEPRECATED) Originally: A time when the following run is to be executed.
-								(It is set usually after task execution cycle, along with lastRunFinishTimestamp.)
-
-                                Currently it is not used, because task start time is managed by Quartz.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="progress" type="xsd:long" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -993,15 +962,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="modelOperationState" type="tns:ModelOperationStateType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The state of the current operation on the model (EXPERIMENTAL, maybe
-                                will be moved into extension).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1084,40 +1044,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CLOSED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="TaskExclusivityStatusType">
-        <xsd:annotation>
-            <xsd:documentation>
-                (DEPRECATED) Exclusivity status tells about task "locking" to a particular node.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="claimed">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The tasks is being held by one of the IDM nodes. The node is either executing the task or making
-                        some kind of "exclusive" operation on the task. Only one node may "claim" a task. Claimed tasks
-                        has an allocated *thread* that is used for task execution.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CLAIMED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="released">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The task is free for all nodes to participate. Any node may try to "claim" the task to execute
-                        it or make another step in the task lifecycle. Released task is not being executed by an IDM
-                        node and therefore does not have an allocated thread.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RELEASED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1336,30 +1262,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="missedScheduleTolerance" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED:
-
-                        Original meaning:
-
-                        Used in connection with cronLikePattern. If the task is not run
-                        at a given time instant (e.g. Monday 8:00 AM), e.g. because the
-                        midPoint is not running at that moment, what is the end of the
-                        period in which it would be possible to execute this week's task run?
-                        Given in seconds. E.g., 3600 means that this weekly task would be able
-                        to start from Monday 8:00 AM to Monday 9:00 AM. E.g. 86400 means the whole day.
-                        
-                        If 0, the task can be run at any time after a missed scheduled time instant.
-                        UNSTABLE. This element may change.
-
-                        Current situation: Events like this are handled by Quartz.
-                        This tolerance is set globally for all tasks via configuration.
-                        However, individual tasks can be configured how they should behave
-                        when their scheduled start is missed (see actionOnMisfire attribute).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="misfireAction" type="tns:MisfireActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1427,116 +1329,6 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
-
-    <xsd:complexType name="ModelOperationStateType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A state of a (possibly long-running) operation within the model.
-
-                The purpose of this data structure is to keep a state of a possibly long-running operation
-                at the level of the model. It is expected to be stored within a task, and used by ModelController to
-                (1) remember its state between invocation of various hooks, which may interrupt the operation
-                execution and defer it until some event occurs (e.g. the workflow hook, which may request
-                a user approval in order to the operation be continued)
-                (2) *MAYBE* transfer information between ModelControl and its hooks
-
-                EXPERIMENTAL. This type may change.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="kindOfOperation" type="tns:ModelOperationKindType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A kind of operation that is to be (being) executed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="stage" type="tns:ModelOperationStageType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        In which stage is this operation?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="operationData" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Serialized version of operation's data. Most typically, it is an array of
-                        ObjectDelta's, or a SyncContext (all serialized as String, for now).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:simpleType name="ModelOperationKindType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="add">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ADD"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="modify">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MODIFY"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="delete">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DELETE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="ModelOperationStageType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="primary">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PRIMARY"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="secondary">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SECONDARY"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="execute">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXECUTE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <!-- ################################## -->
     <!-- ##    Identity Schema Layer     ## -->

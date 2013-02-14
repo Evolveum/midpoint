@@ -36,8 +36,6 @@ public enum TaskPersistenceStatus {
 	 * synchronous foreground tasks may use this approach. As the task data only
 	 * exists while the task is being executed, the user or the client
 	 * application needs to (synchronously) wait for a task to complete.
-	 * Transient tasks can only exist in a "claimed" exclusivity state, as there
-	 * is no way how to release them without storing them to a repository first.
 	 */
 	TRANSIENT,
 

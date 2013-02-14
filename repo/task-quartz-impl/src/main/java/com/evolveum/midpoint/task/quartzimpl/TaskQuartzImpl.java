@@ -1730,39 +1730,6 @@ public class TaskQuartzImpl implements Task {
     }
 
     /*
-     *  Model Operation State
-     */
-
-    @Override
-    public ModelOperationStateType getModelOperationState() {
-        return taskPrism.asObjectable().getModelOperationState();
-    }
-
-    @Override
-    public void setModelOperationState(ModelOperationStateType value) {
-        processModificationBatched(setModelOperationStateAndPrepareDelta(value));
-    }
-
-    public void setModelOperationStateImmediate(ModelOperationStateType value, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException {
-        try {
-            processModificationNow(setModelOperationStateAndPrepareDelta(value), parentResult);
-        } catch (ObjectAlreadyExistsException ex) {
-            throw new SystemException(ex);
-        }
-    }
-
-    public void setModelOperationStateTransient(ModelOperationStateType value) {
-        taskPrism.asObjectable().setModelOperationState(value);
-    }
-
-    private PropertyDelta<?> setModelOperationStateAndPrepareDelta(ModelOperationStateType value) {
-        setModelOperationStateTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
-                taskManager.getTaskObjectDefinition(), TaskType.F_MODEL_OPERATION_STATE, value) : null;
-    }
-
-    /*
     *  Other methods
     */
 

@@ -3002,14 +3002,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 display("Task while waiting for task manager to pick up the task", task);
                 // wait until the task is finished
                 return task.getLastRunFinishTimestamp() != null;
-//                if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {			we cannot check exclusivity status for now
-//                    // wait until the first run is finished
-//                    if (task.getLastRunFinishTimestamp() == null) {
-//                        return false;
-//                    }
-//                    return true;
-//                }
-//                return false;
             }
 
             @Override

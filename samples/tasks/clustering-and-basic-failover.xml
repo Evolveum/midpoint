@@ -49,7 +49,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000001</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>
@@ -68,7 +68,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000002</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>
@@ -87,7 +87,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000003</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>
@@ -106,7 +106,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000004</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>
@@ -125,7 +125,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000005</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>
@@ -144,7 +144,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000006</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>
@@ -163,7 +163,7 @@ so please do not edit unless you know what you are doing.
         <taskIdentifier>10000001-0000-0000-0000-123450000007</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <exclusivityStatus>released</exclusivityStatus>
+
         <category>Demo</category>
         <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
         <recurrence>recurring</recurrence>

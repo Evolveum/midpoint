@@ -35,7 +35,7 @@
     <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionStatus>runnable</executionStatus>
-    <exclusivityStatus>released</exclusivityStatus>
+
     <category>Demo</category>
     <handlerUri>http://midpoint.evolveum.com/repo/noop-handler-1</handlerUri>
     <recurrence>single</recurrence>
