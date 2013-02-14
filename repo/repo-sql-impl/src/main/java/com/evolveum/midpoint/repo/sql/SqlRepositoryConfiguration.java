@@ -126,7 +126,8 @@ public class SqlRepositoryConfiguration {
             lockForUpdateViaHibernate = true;
             lockForUpdateViaSql = false;
             useReadOnlyTransactions = true;
-        } else if (hibernateDialect.equals("org.hibernate.dialect.PostgreSQLDialect")) {
+        } else if (hibernateDialect.equals("org.hibernate.dialect.PostgreSQLDialect")
+                || hibernateDialect.equals("org.hibernate.dialect.PostgresPlusDialect")) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
             lockForUpdateViaHibernate = false;
             lockForUpdateViaSql = false;

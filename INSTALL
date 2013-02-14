@@ -22,9 +22,9 @@ http://wiki.evolveum.com/display/midPoint/Installing+midPoint+from+Source+Code
 
 After building, the war file is located in the following place:
 
-   gui/admin-gui/target/idm.war
+   gui/admin-gui/target/midpoint.war
 
-Please deploy it to your Tomcat application server (copying idm.war to <tomcat>/webapps should do the trick).
+Please deploy it to your Tomcat application server (copying midpoint.war to <tomcat>/webapps should do the trick).
 
 3. Comments
 
