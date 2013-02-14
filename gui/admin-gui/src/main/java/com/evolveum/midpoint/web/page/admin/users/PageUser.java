@@ -1259,7 +1259,7 @@ public class PageUser extends PageAdminUsers {
             try{
         	delta = userWrapper.getObjectDelta();
         	if (userWrapper.getOldDelta() != null){
-        		delta = ObjectDelta.summarize(delta, userWrapper.getOldDelta());
+        		delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
         	}
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
@@ -1490,7 +1490,7 @@ public class PageUser extends PageAdminUsers {
         try {
             delta = userWrapper.getObjectDelta();
             if (userWrapper.getOldDelta() != null){
-            	delta = ObjectDelta.summarize(delta, userWrapper.getOldDelta());
+            	delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
             }
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
