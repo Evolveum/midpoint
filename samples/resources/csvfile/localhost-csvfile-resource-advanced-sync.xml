@@ -302,29 +302,10 @@ object.
 	<stringPolicy>
 		<description>Testing string policy</description>
 		<limitations>
-			<minLength>6</minLength>
-			<maxLength>10</maxLength>
-			<minUniqueChars>3</minUniqueChars>
+			<minLength>5</minLength>
+			<minUniqueChars>2</minUniqueChars>
 			<checkAgainstDictionary>true</checkAgainstDictionary>
 			<checkPattern />
-			<limit>
-				<description>Alphas</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>6</maxOccurs>
-				<mustBeFirst>true</mustBeFirst>
-				<characterClass>
-					<value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
-				</characterClass>
-			</limit>
-			<limit>
-				<description>Numbers</description>
-				<minOccurs>1</minOccurs>
-				<maxOccurs>5</maxOccurs>
-				<mustBeFirst>false</mustBeFirst>
-				<characterClass>
-					<value>1234567890</value>
-				</characterClass>
-			</limit>
 		</limitations>
 	</stringPolicy>
 </valuePolicy>
