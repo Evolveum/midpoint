@@ -141,6 +141,7 @@ public class AceEditor<T> extends TextArea<T> {
 
     public String createJavascriptEditableRefresh() {
         StringBuilder builder = new StringBuilder();
+        builder.append("if(false ==Wicket.Browser.isIELessThan9()) {");
         builder.append("window.");
         builder.append(editorId);
         builder.append(".setReadOnly(");
@@ -156,6 +157,12 @@ public class AceEditor<T> extends TextArea<T> {
         builder.append("');");
         builder.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
         builder.append(setFocus(isReadonly()));
+        builder.append("}");
+        if(isReadonly()){
+        	builder.append("$('#" + getMarkupId() + "').attr('readonly','readonly');");
+        } else {
+        	builder.append("$('#" + getMarkupId() + "').attr('readonly','false').focus();");
+		}
         return builder.toString();
     }
 }
