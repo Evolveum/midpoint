@@ -90,6 +90,12 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(setFocus(isReadonly()));
         script.append("$('#" + editorId + "').append(\"" + helpButton + "\");");
         script.append("if($.browser.msie){$('#" + editorId + "').find('.ace_gutter').hide();}");
+        script.append("} else {");
+        if(isReadonly()){
+        	script.append("$('#" + getMarkupId() + "').attr('readonly','readonly').css('background','#F4F4F4');");
+        } else {
+        	script.append("$('#" + getMarkupId() + "').attr('readonly',false).focus().css('background','#FFF');");
+		}
         script.append("}");
         return script.toString();
     }
@@ -157,12 +163,13 @@ public class AceEditor<T> extends TextArea<T> {
         builder.append("');");
         builder.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
         builder.append(setFocus(isReadonly()));
-        builder.append("}");
+        builder.append("} else {");
         if(isReadonly()){
-        	builder.append("$('#" + getMarkupId() + "').attr('readonly','readonly');");
+        	builder.append("$('#" + getMarkupId() + "').attr('readonly','readonly').css('background','#F4F4F4');");
         } else {
-        	builder.append("$('#" + getMarkupId() + "').attr('readonly','false').focus();");
+        	builder.append("$('#" + getMarkupId() + "').attr('readonly',false).focus().css('background','#FFF');");
 		}
+        builder.append("}");
         return builder.toString();
     }
 }
