@@ -77,6 +77,8 @@ public class NotificationManager {
         if (notifier == null) {
             LOGGER.error("Couldn't find notifier with name " + notifierConfiguration.getName() + ", notification to " + request.getUser() + " will not be sent.");
             return;
+        } else {
+            LOGGER.trace("Found notifier {}", notifier);
         }
         notifier.notify(request, notificationConfigurationEntry, notifierConfiguration, result);
     }

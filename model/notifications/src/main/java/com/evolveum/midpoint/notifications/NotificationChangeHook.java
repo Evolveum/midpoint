@@ -51,7 +51,7 @@ import java.util.List;
 /**
  * One of interfaces of the notifier to midPoint.
  *
- * CURRENTLY A BIT OBSOLETE. Account changes are listened to using AccountOperationListener (at the level of provisioning).
+ * CURRENTLY A BIT OBSOLETE (and not used at this moment). Account changes are listened to using AccountOperationListener (at the level of provisioning).
  *
  * @author mederly
  */

@@ -122,7 +122,7 @@ public class SimpleAccountOperationNotifier implements Notifier {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Sending mail message " + mailMessage);
         }
-        mailSender.send(mailMessage);
+        mailSender.send(mailMessage, result);
     }
 
     private void prepareMessageText(AccountNotificationRequest request, StringBuilder body, StringBuilder subject, boolean techInfo) {

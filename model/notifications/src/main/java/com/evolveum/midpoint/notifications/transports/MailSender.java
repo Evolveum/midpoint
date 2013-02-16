@@ -30,7 +30,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailTransportSecurityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -51,17 +53,25 @@ public class MailSender {
 
     private static final Trace LOGGER = TraceManager.getTrace(MailSender.class);
 
+    private static final String DOT_CLASS = MailSender.class.getName() + ".";
+
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
-    public void send(MailMessage mailMessage) {
+    public void send(MailMessage mailMessage, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
+        result.addParam("mailMessage recipient", mailMessage.getTo());
+        result.addParam("mailMessage subject", mailMessage.getSubject());
 
         PrismObject<SystemConfigurationType> systemConfiguration = NotificationsUtil.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
         if (systemConfiguration == null || systemConfiguration.asObjectable().getNotificationConfiguration() == null
                 || systemConfiguration.asObjectable().getNotificationConfiguration().getMail() == null
                 || systemConfiguration.asObjectable().getNotificationConfiguration().getMail().getServer().isEmpty()) {
-            LOGGER.warn("Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.") ;
+            String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
+            LOGGER.warn(msg) ;
+            result.recordWarning(msg);
             return;
         }
 
@@ -70,12 +80,32 @@ public class MailSender {
 
         for (MailServerConfigurationType mailServerConfigurationType : mailConfigurationType.getServer()) {
 
+            OperationResult resultForServer = result.createSubresult(DOT_CLASS + "send.forServer");
+            resultForServer.addContext("server", mailServerConfigurationType.getHost());
+            resultForServer.addContext("port", mailServerConfigurationType.getPort());
+
             Properties properties = System.getProperties();
-            properties.setProperty( "mail.smtp.host", mailServerConfigurationType.getHost());
+            properties.setProperty("mail.smtp.host", mailServerConfigurationType.getHost());
             if (mailServerConfigurationType.getPort() != null) {
                 properties.setProperty("mail.smtp.port", String.valueOf(mailServerConfigurationType.getPort()));
             }
-            Session session = Session.getDefaultInstance(properties);
+            MailTransportSecurityType mailTransportSecurityType = mailServerConfigurationType.getTransportSecurity();
+
+            boolean sslEnabled = false, starttlsEnable = false, starttlsRequired = false;
+            switch (mailTransportSecurityType) {
+                case STARTTLS_ENABLED: starttlsEnable = true; break;
+                case STARTTLS_REQUIRED: starttlsEnable = true; starttlsRequired = true; break;
+                case SSL: sslEnabled = true; break;
+            }
+            properties.put("mail.smtp.ssl.enable", "" + sslEnabled);
+            properties.put("mail.smtp.starttls.enable", "" + starttlsEnable);
+            properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Using mail properties: " + properties);
+            }
+
+            Session session = Session.getInstance(properties);
 
             try {
                 MimeMessage message = new MimeMessage(session);
@@ -83,13 +113,24 @@ public class MailSender {
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(mailMessage.getTo()));
                 message.setSubject(mailMessage.getSubject());
                 message.setContent(mailMessage.getBody(), mailMessage.getContentType());
-                Transport.send(message);
+                Transport t = session.getTransport("smtp");
+                if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
+                    t.connect(mailServerConfigurationType.getUsername(), mailServerConfigurationType.getPassword());
+                } else {
+                    t.connect();
+                }
+                t.sendMessage(message, message.getAllRecipients());
                 LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + mailServerConfigurationType.getHost() + ".");
+                resultForServer.recordSuccess();
+                result.recordSuccess();
                 return;
             } catch (MessagingException mex) {
-                LoggingUtils.logException(LOGGER, "Couldn't send mail message to " + mailMessage.getTo() + " via " + mailServerConfigurationType.getHost() + ", trying another mail server, if there is any", mex);
+                String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + mailServerConfigurationType.getHost() + ", trying another mail server, if there is any";
+                LoggingUtils.logException(LOGGER, msg, mex);
+                resultForServer.recordFatalError(msg, mex);
             }
         }
         LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.") ;
+        result.recordWarning("Mail notification to " + mailMessage.getTo() + " could not be sent.");
     }
 }

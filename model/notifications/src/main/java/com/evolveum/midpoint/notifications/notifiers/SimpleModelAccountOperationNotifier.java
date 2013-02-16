@@ -72,14 +72,14 @@ public class SimpleModelAccountOperationNotifier implements Notifier {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
-    public static final QName NAME = new QName(SchemaConstants.NS_C, "simpleAccountOperationNotifier");
+    public static final QName NAME = new QName(SchemaConstants.NS_C, "simpleModelAccountOperationNotifier");
 
     @Autowired(required = true)
     private NotificationManager notificationManager;
 
     @PostConstruct
     public void init() {
-        notificationManager.registerNotifier(NAME, this);
+//        notificationManager.registerNotifier(NAME, this);
     }
 
     @Override

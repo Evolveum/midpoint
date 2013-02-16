@@ -5771,26 +5771,83 @@
             <xsd:element name="username" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to authenticate to the mail server. (Not implemented yet.)
+                        How to authenticate to the mail server.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="password" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to authenticate to the mail server. (Not implemented yet.)
+                        How to authenticate to the mail server.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="tls" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="transportSecurity" type="tns:MailTransportSecurityType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Whether to use SSL/TLS. (Not implemented yet.)
+                        How to ensure transport-level security when sending the message.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="MailTransportSecurityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to ensure transport-level security when sending the message.
+                SSL/STARTTLS settings are currently EXPERIMENTAL (e.g. there is no support
+                for setting certificate validation-related properties; default behavior
+                of javax.mail implementation is used).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No attempts to ensure transport security.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="starttlsEnabled">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses STARTTLS feature, if available on the server.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STARTTLS_ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="starttlsRequired">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses STARTTLS feature. If it is not available on the server, the mesage sending fails.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STARTTLS_REQUIRED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ssl">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Employs (older) mechanism of using SSL/TLS - wraps whole SMTP connection in SSL/TLS.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SSL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
 </xsd:schema>
 
