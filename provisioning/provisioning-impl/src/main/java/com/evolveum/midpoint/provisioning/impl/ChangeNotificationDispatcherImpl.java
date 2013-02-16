@@ -117,6 +117,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by object change listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange").recordWarning("Change listener has thrown unexpected exception", e);
 				}
 			}
 		} else {
@@ -146,6 +147,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by operation failure listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyFailure").recordWarning("Operation failure listener has thrown unexpected exception", e);
 				}
 			}
 		} else {
@@ -175,6 +177,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by operation success listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifySuccess").recordWarning("Operation success listener has thrown unexpected exception", e);
 				}
 			}
 		} else {
@@ -204,6 +207,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by operation in-progress listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyInProgress").recordWarning("Operation in-progress listener has thrown unexpected exception", e);
 				}
 			}
 		} else {

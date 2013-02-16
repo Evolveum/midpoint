@@ -102,10 +102,19 @@ public class MailSender {
             properties.put("mail.smtp.starttls.required", "" + starttlsRequired);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Using mail properties: " + properties);
+                LOGGER.debug("Using mail properties: ");
+                for (Object key : properties.keySet()) {
+                    if (key instanceof String && ((String) key).startsWith("mail.")) {
+                        LOGGER.debug(" - " + key + " = " + properties.get(key));
+                    }
+                }
             }
 
             Session session = Session.getInstance(properties);
+
+            if (mailConfigurationType.isDebug() == Boolean.TRUE) {
+                session.setDebug(true);
+            }
 
             try {
                 MimeMessage message = new MimeMessage(session);
