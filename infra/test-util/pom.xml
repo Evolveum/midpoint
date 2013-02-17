@@ -40,14 +40,6 @@
 		</repository>
 	</repositories>
 	<dependencies>
-<!--		<dependency>
-			<groupId>org.basex</groupId>
-			<artifactId>basex-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.basex</groupId>
-			<artifactId>basex</artifactId>
-		</dependency> -->
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>

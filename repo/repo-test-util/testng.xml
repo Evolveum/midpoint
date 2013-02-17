@@ -24,6 +24,6 @@
 	<listeners>
 		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
 	</listeners>
-  	<test name="repo-basex-test" preserve-order="false" enabled="false">
+  	<test name="repo-test" preserve-order="false" enabled="false">
   	</test>
 </suite>

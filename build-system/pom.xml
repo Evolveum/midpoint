@@ -47,19 +47,14 @@
         <verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
         <aspectj.version>1.6.12</aspectj.version>
-        <basex.version>6.7.1</basex.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <cxf.version>2.4.3</cxf.version>
         <cxf-xjc.version>2.4.0</cxf-xjc.version>
         <camel.version>2.10.2</camel.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <el.version>2.2</el.version>
-        <icefaces.version>2.0.1</icefaces.version>
-        <icepush.version>2.0.1</icepush.version>
         <jaxb.version>2.2.3</jaxb.version>
         <jaxb-xjc.version>2.2.4-1</jaxb-xjc.version>
-        <jsf.version>2.1.0</jsf.version>
         <junit.version>4.8.2</junit.version>
         <mysql.connector.version>5.1.17</mysql.connector.version>
         <opendj.version>2.4.3</opendj.version>
@@ -172,16 +167,6 @@
                 <version>4.1.10</version>
             </dependency>
             <dependency>
-                <groupId>com.sun.faces</groupId>
-                <artifactId>jsf-api</artifactId>
-                <version>${jsf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.faces</groupId>
-                <artifactId>jsf-impl</artifactId>
-                <version>${jsf.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-impl</artifactId>
                 <version>${jaxb.version}</version>
@@ -233,11 +218,6 @@
                 <version>1.0</version>
             </dependency>
             <dependency>
-                <groupId>javax.el</groupId>
-                <artifactId>el-api</artifactId>
-                <version>${el.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>1</version>
@@ -254,16 +234,6 @@
                 <version>2.5</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>jstl</artifactId>
-                <version>1.2</version>
-            </dependency>
-            <!-- 			<dependency> -->
-            <!-- 				<groupId>log4j</groupId> -->
-            <!-- 				<artifactId>log4j</artifactId> -->
-            <!-- 				<version>1.2.16</version> -->
-            <!-- 			</dependency> -->
             <dependency>
                 <groupId>net.sf.saxon</groupId>
                 <artifactId>saxonhe</artifactId>
@@ -357,40 +327,9 @@
                 <version>1.4.0</version>
             </dependency>
             <dependency>
-                <groupId>org.basex</groupId>
-                <artifactId>basex-api</artifactId>
-                <version>${basex.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.basex</groupId>
-                <artifactId>basex</artifactId>
-                <version>${basex.version}.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.web</groupId>
-                <artifactId>el-impl</artifactId>
-                <version>${el.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj</artifactId>
                 <version>${opendj.version}</version>
-            </dependency>
-            <!-- ice faces  -->
-            <dependency>
-                <groupId>org.icefaces</groupId>
-                <artifactId>icefaces-compat</artifactId>
-                <version>${icefaces.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.icefaces</groupId>
-                <artifactId>icefaces-ace</artifactId>
-                <version>${icefaces.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.icepush</groupId>
-                <artifactId>icepush</artifactId>
-                <version>${icepush.version}</version>
             </dependency>
             <!--  Identity conectors  -->
             <dependency>
