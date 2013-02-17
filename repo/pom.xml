@@ -40,7 +40,6 @@
         <module>repo-sql-impl</module>
         <module>repo-sql-impl-test</module>
         <module>task-api</module>
-<!--         <module>task-impl</module> -->
         <module>task-quartz-impl</module>
     </modules>
 </project>
