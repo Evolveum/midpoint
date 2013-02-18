@@ -4223,29 +4223,23 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:complexType name="RoleType">
+    <xsd:complexType name="AbstractRoleType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                A role that implies assignments.
-                The role may "grant" accounts on resources, attributes and
-                entitlements for such accounts. The role can also assign
+            	Abstract class that conins the "essence" of a role.
+            	This is kind of "Roleable" interface when speaking in Java terms.
+            	
+                A role implies assignments. The role may "grant" accounts on resources, 
+                attributes and entitlements for such accounts. The role can also assign
                 organizational units, other roles or various IDM objects
                 that can be assigned directly to user. Role is in fact just
                 a named set of assignments.
-
-                The specific roles are also called technical role or IT role,
-                however this definition is an abstract definition of concept
-                that can span wide area of interpretation.
 
                 This is the basic building block of role-based access
                 control (RBAC) in the provisioning system. It defines what
                 rights (e.g. accounts) should be given to user, how they
                 should look like (attributes) and what groups or native
                 roles to assign to them (entitlements).
-
-                This role definition is quite simplistic now. It does not
-                support rule-derived values or any other advanced dynamics.
-                Yet. It will be extended later in the development.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -4277,17 +4271,6 @@
                                 http://wiki.evolveum.com/display/midPoint/Account+Synchronization+Settings).
                             </xsd:documentation>
                         </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="roleType" type="xsd:string" minOccurs="0">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			Type of a role, usually denotes a "layer" or "purpose" of the role.
-                    			Such as "business", "IT", "asset", etc.
-                    			This field has no special meaning in the IDM computation logic. Its purpose
-                    			is to organize roles for presentation (GUI) and management. It may influence
-                    			role lifecycle in later midpoint releases. 
-                    		</xsd:documentation>
-                    	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="requestable" type="xsd:boolean" minOccurs="0" default="false">
                     	<xsd:annotation>
@@ -4347,6 +4330,46 @@
                                 from Board of Directors"). This is an expression that should yield a boolean value.
                             </xsd:documentation>
                         </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RoleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A role that implies assignments.
+                The role may "grant" accounts on resources, attributes and
+                entitlements for such accounts. The role can also assign
+                organizational units, other roles or various IDM objects
+                that can be assigned directly to user. Role is in fact just
+                a named set of assignments.
+
+                The specific roles are also called technical role or IT role,
+                however this definition is an abstract definition of concept
+                that can span wide area of interpretation.
+
+                This is the basic building block of role-based access
+                control (RBAC) in the provisioning system. It defines what
+                rights (e.g. accounts) should be given to user, how they
+                should look like (attributes) and what groups or native
+                roles to assign to them (entitlements).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractRoleType">
+                <xsd:sequence>
+                    <xsd:element name="roleType" type="xsd:string" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Type of a role, usually denotes a "layer" or "purpose" of the role.
+                    			Such as "business", "IT", "asset", etc.
+                    			This field has no special meaning in the IDM computation logic. Its purpose
+                    			is to organize roles for presentation (GUI) and management. It may influence
+                    			role lifecycle in later midpoint releases. 
+                    		</xsd:documentation>
+                    	</xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -4660,7 +4683,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:RoleType">
+            <xsd:extension base="c:AbstractRoleType">
                 <xsd:sequence>
                     <xsd:element name="displayName" type="t:PolyStringType">
                         <xsd:annotation>
