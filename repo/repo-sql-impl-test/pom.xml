@@ -59,12 +59,10 @@
         <dependency>
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${jdbc.postgres}</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>${jdbc.mysql}</version>
         </dependency>
 
         <dependency>
