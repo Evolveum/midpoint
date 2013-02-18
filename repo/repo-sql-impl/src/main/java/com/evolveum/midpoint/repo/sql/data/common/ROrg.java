@@ -18,8 +18,11 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_org")
-public class ROrg extends RRole {
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
+public class ROrg extends RAbstractRole {
 
+    @QueryAttribute(polyString = true)
+    private RPolyString name;
     @QueryAttribute(polyString = true)
     private RPolyString displayName;
     private String identifier;
@@ -27,6 +30,15 @@ public class ROrg extends RRole {
     private String costCenter;
     @QueryAttribute(polyString = true)
     private RPolyString locality;
+
+    @Embedded
+    public RPolyString getName() {
+        return name;
+    }
+
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
 
     public String getCostCenter() {
         return costCenter;
@@ -83,13 +95,14 @@ public class ROrg extends RRole {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        ROrg rOrg = (ROrg) o;
+        ROrg that = (ROrg) o;
 
-        if (costCenter != null ? !costCenter.equals(rOrg.costCenter) : rOrg.costCenter != null) return false;
-        if (displayName != null ? !displayName.equals(rOrg.displayName) : rOrg.displayName != null) return false;
-        if (identifier != null ? !identifier.equals(rOrg.identifier) : rOrg.identifier != null) return false;
-        if (locality != null ? !locality.equals(rOrg.locality) : rOrg.locality != null) return false;
-        if (orgType != null ? !orgType.equals(rOrg.orgType) : rOrg.orgType != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null)return false;
+        if (costCenter != null ? !costCenter.equals(that.costCenter) : that.costCenter != null) return false;
+        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
+        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
+        if (locality != null ? !locality.equals(that.locality) : that.locality != null) return false;
+        if (orgType != null ? !orgType.equals(that.orgType) : that.orgType != null) return false;
 
         return true;
     }
@@ -97,6 +110,7 @@ public class ROrg extends RRole {
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
         result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
         result = 31 * result + (orgType != null ? orgType.hashCode() : 0);
@@ -107,8 +121,9 @@ public class ROrg extends RRole {
 
     public static void copyFromJAXB(OrgType jaxb, ROrg repo, PrismContext prismContext) throws
             DtoTranslationException {
-        RRole.copyFromJAXB(jaxb, repo, prismContext);
+        RAbstractRole.copyFromJAXB(jaxb, repo, prismContext);
 
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setCostCenter(jaxb.getCostCenter());
         repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
         repo.setIdentifier(jaxb.getIdentifier());
@@ -118,8 +133,9 @@ public class ROrg extends RRole {
 
     public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
-        RRole.copyToJAXB(repo, jaxb, prismContext);
+        RAbstractRole.copyToJAXB(repo, jaxb, prismContext);
 
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setCostCenter(repo.getCostCenter());
         jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
         jaxb.setIdentifier(repo.getIdentifier());
