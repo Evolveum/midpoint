@@ -32,7 +32,6 @@ import java.io.Serializable;
  * @author lazyman
  */
 @Entity
-@Polymorphism(type = PolymorphismType.EXPLICIT)
 @IdClass(RContainerId.class)
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RContainer implements Serializable {
