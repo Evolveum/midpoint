@@ -195,7 +195,8 @@ public abstract class RAbstractRole extends RObject {
         return result;
     }
 
-    public static void copyToJAXB(RAbstractRole repo, AbstractRoleType jaxb, PrismContext prismContext) throws DtoTranslationException {
+    public static void copyToJAXB(RAbstractRole repo, AbstractRoleType jaxb, PrismContext prismContext)
+            throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setRequestable(repo.getRequestable());

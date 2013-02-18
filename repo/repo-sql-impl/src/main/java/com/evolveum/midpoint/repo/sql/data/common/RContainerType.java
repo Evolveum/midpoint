@@ -43,7 +43,8 @@ public enum RContainerType {
     USER(RUser.class),
     USER_TEMPLATE(RUserTemplate.class),
     NODE(RNode.class),
-    ORG(ROrg.class);
+    ORG(ROrg.class),
+    ABSTRACT_ROLE(RAbstractRole.class);
 
     private Class<? extends RContainer> clazz;
 

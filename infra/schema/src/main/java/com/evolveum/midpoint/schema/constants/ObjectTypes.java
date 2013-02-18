@@ -75,7 +75,10 @@ public enum ObjectTypes {
 
     NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, false),
 
-    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false);
+    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false),
+
+    ABSTRACT_ROLE("schema.objectTypes.abstractRole", AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE,
+            AbstractRoleType.class, false);
 
     private String localizationKey;
     private QName type;
