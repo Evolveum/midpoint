@@ -1,5 +1,16 @@
 -- INITRANS added because we use serializable transactions http://docs.oracle.com/cd/B14117_01/appdev.101/b10795/adfns_sq.htm#1025374
 
+CREATE TABLE m_abstract_role (
+  approvalExpression    CLOB,
+  approvalProcess       VARCHAR2(255 CHAR),
+  approvalSchema        CLOB,
+  automaticallyApproved CLOB,
+  requestable           NUMBER(1, 0),
+  id                    NUMBER(19, 0)     NOT NULL,
+  oid                   VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (id, oid)
+) INITRANS 30;
+
 CREATE TABLE m_account_shadow (
   accountType              VARCHAR2(255 CHAR),
   allowedIdmAdminGuiAccess NUMBER(1, 0),
@@ -269,9 +280,12 @@ CREATE TABLE m_org (
   identifier       VARCHAR2(255 CHAR),
   locality_norm    VARCHAR2(255 CHAR),
   locality_orig    VARCHAR2(255 CHAR),
+  name_norm        VARCHAR2(255 CHAR),
+  name_orig        VARCHAR2(255 CHAR),
   id               NUMBER(19, 0)     NOT NULL,
   oid              VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (id, oid)
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 ) INITRANS 30;
 
 CREATE TABLE m_org_closure (
@@ -371,16 +385,11 @@ CREATE TABLE m_resource_shadow (
 ) INITRANS 30;
 
 CREATE TABLE m_role (
-  approvalExpression    CLOB,
-  approvalProcess       VARCHAR2(255 CHAR),
-  approvalSchema        CLOB,
-  automaticallyApproved CLOB,
-  name_norm             VARCHAR2(255 CHAR),
-  name_orig             VARCHAR2(255 CHAR),
-  requestable           NUMBER(1, 0),
-  roleType              VARCHAR2(255 CHAR),
-  id                    NUMBER(19, 0)     NOT NULL,
-  oid                   VARCHAR2(36 CHAR) NOT NULL,
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
+  roleType  VARCHAR2(255 CHAR),
+  id        NUMBER(19, 0)     NOT NULL,
+  oid       VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 ) INITRANS 30;
@@ -527,6 +536,13 @@ CREATE TABLE m_user_template (
   UNIQUE (name_norm)
 ) INITRANS 30;
 
+CREATE INDEX iRequestable ON m_abstract_role (requestable) INITRANS 30;
+
+ALTER TABLE m_abstract_role
+ADD CONSTRAINT fk_abstract_role
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
 ALTER TABLE m_account_shadow
 ADD CONSTRAINT fk_account_shadow
 FOREIGN KEY (id, oid)
@@ -632,7 +648,7 @@ REFERENCES m_object;
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
-REFERENCES m_role;
+REFERENCES m_abstract_role;
 
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id) INITRANS 30;
 
@@ -679,12 +695,10 @@ ADD CONSTRAINT fk_resource_object_shadow
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
-CREATE INDEX iRequestable ON m_role (requestable) INITRANS 30;
-
 ALTER TABLE m_role
 ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
-REFERENCES m_object;
+REFERENCES m_abstract_role;
 
 ALTER TABLE m_sync_situation_description
 ADD CONSTRAINT fk_shadow_sync_situation

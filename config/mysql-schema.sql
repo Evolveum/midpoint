@@ -6,6 +6,23 @@
 #   DEFAULT COLLATE utf8_general_ci
 # ;
 
+# replace "ENGINE = InnoDB" with "DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB"
+# replace "DATETIME" with "DATETIME(6)"
+
+CREATE TABLE m_abstract_role (
+  approvalExpression    LONGTEXT,
+  approvalProcess       VARCHAR(255),
+  approvalSchema        LONGTEXT,
+  automaticallyApproved LONGTEXT,
+  requestable           BOOLEAN,
+  id                    BIGINT      NOT NULL,
+  oid                   VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
 CREATE TABLE m_account_shadow (
   accountType              VARCHAR(255),
   allowedIdmAdminGuiAccess BOOLEAN,
@@ -14,7 +31,9 @@ CREATE TABLE m_account_shadow (
   oid                      VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_any (
   owner_id  BIGINT      NOT NULL,
@@ -22,7 +41,9 @@ CREATE TABLE m_any (
   ownerType INTEGER     NOT NULL,
   PRIMARY KEY (owner_id, owner_oid, ownerType)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_any_clob (
   checksum               VARCHAR(32)  NOT NULL,
@@ -38,7 +59,9 @@ CREATE TABLE m_any_clob (
   valueType              INTEGER,
   PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_any_date (
   name_namespace         VARCHAR(255) NOT NULL,
@@ -48,12 +71,14 @@ CREATE TABLE m_any_date (
   anyContainer_ownertype INTEGER      NOT NULL,
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
-  dateValue              DATETIME(6)     NOT NULL,
+  dateValue              DATETIME(6)  NOT NULL,
   dynamicDef             BOOLEAN,
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, dateValue)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_any_long (
   name_namespace         VARCHAR(255) NOT NULL,
@@ -68,7 +93,9 @@ CREATE TABLE m_any_long (
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_any_reference (
   name_namespace         VARCHAR(255) NOT NULL,
@@ -88,7 +115,9 @@ CREATE TABLE m_any_reference (
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, targetoid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_any_string (
   name_namespace         VARCHAR(255) NOT NULL,
@@ -103,7 +132,9 @@ CREATE TABLE m_any_string (
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, stringValue)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_assignment (
   accountConstruction         LONGTEXT,
@@ -126,7 +157,9 @@ CREATE TABLE m_assignment (
   extType                     INTEGER,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_audit_delta (
   checksum         VARCHAR(32) NOT NULL,
@@ -143,7 +176,9 @@ CREATE TABLE m_audit_delta (
   token            BIGINT,
   PRIMARY KEY (checksum, record_id)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_audit_event (
   id                BIGINT NOT NULL,
@@ -162,7 +197,9 @@ CREATE TABLE m_audit_event (
   timestampValue    BIGINT,
   PRIMARY KEY (id)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_connector (
   connectorBundle              VARCHAR(255),
@@ -183,7 +220,9 @@ CREATE TABLE m_connector (
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_connector_host (
   hostname          VARCHAR(255),
@@ -198,21 +237,27 @@ CREATE TABLE m_connector_host (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_connector_target_system (
   connector_id     BIGINT      NOT NULL,
   connector_oid    VARCHAR(36) NOT NULL,
   targetSystemType VARCHAR(255)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_container (
   id  BIGINT      NOT NULL,
   oid VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_exclusion (
   description                 LONGTEXT,
@@ -229,7 +274,9 @@ CREATE TABLE m_exclusion (
   oid                         VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_generic_object (
   name_norm  VARCHAR(255),
@@ -240,7 +287,9 @@ CREATE TABLE m_generic_object (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_node (
   clusteredNode          BOOLEAN,
@@ -257,7 +306,9 @@ CREATE TABLE m_node (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_object (
   description LONGTEXT,
@@ -269,7 +320,9 @@ CREATE TABLE m_object (
   extType     INTEGER,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR(36) NOT NULL,
@@ -285,7 +338,9 @@ CREATE TABLE m_operation_result (
   token            BIGINT,
   PRIMARY KEY (owner_oid, owner_id)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_org (
   costCenter       VARCHAR(255),
@@ -294,11 +349,16 @@ CREATE TABLE m_org (
   identifier       VARCHAR(255),
   locality_norm    VARCHAR(255),
   locality_orig    VARCHAR(255),
+  name_norm        VARCHAR(255),
+  name_orig        VARCHAR(255),
   id               BIGINT      NOT NULL,
   oid              VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid)
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_org_closure (
   id             BIGINT NOT NULL,
@@ -309,14 +369,18 @@ CREATE TABLE m_org_closure (
   descendant_oid VARCHAR(36),
   PRIMARY KEY (id)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_org_org_type (
   org_id  BIGINT      NOT NULL,
   org_oid VARCHAR(36) NOT NULL,
   orgType VARCHAR(255)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_password_policy (
   lifetime     LONGTEXT,
@@ -328,7 +392,9 @@ CREATE TABLE m_password_policy (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_reference (
   reference_type INTEGER      NOT NULL,
@@ -342,7 +408,9 @@ CREATE TABLE m_reference (
   containerType  INTEGER,
   PRIMARY KEY (owner_id, owner_oid, relLocalPart, relNamespace, targetOid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_resource (
   administrativeState            INTEGER,
@@ -370,7 +438,9 @@ CREATE TABLE m_resource (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_resource_shadow (
   enabled                       BOOLEAN,
@@ -400,23 +470,22 @@ CREATE TABLE m_resource_shadow (
   attrType                      INTEGER,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_role (
-  approvalExpression    LONGTEXT,
-  approvalProcess       VARCHAR(255),
-  approvalSchema        LONGTEXT,
-  automaticallyApproved LONGTEXT,
-  name_norm             VARCHAR(255),
-  name_orig             VARCHAR(255),
-  requestable           BOOLEAN,
-  roleType              VARCHAR(255),
-  id                    BIGINT      NOT NULL,
-  oid                   VARCHAR(36) NOT NULL,
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  roleType  VARCHAR(255),
+  id        BIGINT      NOT NULL,
+  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_sync_situation_description (
   checksum       VARCHAR(32) NOT NULL,
@@ -427,7 +496,9 @@ CREATE TABLE m_sync_situation_description (
   timestampValue DATETIME(6),
   PRIMARY KEY (checksum, shadow_id, shadow_oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_system_configuration (
   connectorFramework             LONGTEXT,
@@ -454,7 +525,9 @@ CREATE TABLE m_system_configuration (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_task (
   binding                     INTEGER,
@@ -491,7 +564,9 @@ CREATE TABLE m_task (
   oid                         VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_user (
   enabled                  BOOLEAN,
@@ -531,14 +606,18 @@ CREATE TABLE m_user (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_user_employee_type (
   user_id      BIGINT      NOT NULL,
   user_oid     VARCHAR(36) NOT NULL,
   employeeType VARCHAR(255)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_user_organization (
   user_id  BIGINT      NOT NULL,
@@ -546,7 +625,9 @@ CREATE TABLE m_user_organization (
   norm     VARCHAR(255),
   orig     VARCHAR(255)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_user_organizational_unit (
   user_id  BIGINT      NOT NULL,
@@ -554,7 +635,9 @@ CREATE TABLE m_user_organizational_unit (
   norm     VARCHAR(255),
   orig     VARCHAR(255)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
 
 CREATE TABLE m_user_template (
   accountConstruction  LONGTEXT,
@@ -566,7 +649,17 @@ CREATE TABLE m_user_template (
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 )
-  DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ENGINE = InnoDB;
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
+CREATE INDEX iRequestable ON m_abstract_role (requestable);
+
+ALTER TABLE m_abstract_role
+ADD INDEX fk_abstract_role (id, oid),
+ADD CONSTRAINT fk_abstract_role
+FOREIGN KEY (id, oid)
+REFERENCES m_object (id, oid);
 
 ALTER TABLE m_account_shadow
 ADD INDEX fk_account_shadow (id, oid),
@@ -692,7 +785,7 @@ ALTER TABLE m_org
 ADD INDEX fk_org (id, oid),
 ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
-REFERENCES m_role (id, oid);
+REFERENCES m_abstract_role (id, oid);
 
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id);
 
@@ -746,13 +839,11 @@ ADD CONSTRAINT fk_resource_object_shadow
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
 
-CREATE INDEX iRequestable ON m_role (requestable);
-
 ALTER TABLE m_role
 ADD INDEX fk_role (id, oid),
 ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
-REFERENCES m_object (id, oid);
+REFERENCES m_abstract_role (id, oid);
 
 ALTER TABLE m_sync_situation_description
 ADD INDEX fk_shadow_sync_situation (shadow_id, shadow_oid),

@@ -1,3 +1,14 @@
+CREATE TABLE m_abstract_role (
+  approvalExpression    NVARCHAR(MAX),
+  approvalProcess       NVARCHAR(255),
+  approvalSchema        NVARCHAR(MAX),
+  automaticallyApproved NVARCHAR(MAX),
+  requestable           BIT,
+  id                    BIGINT       NOT NULL,
+  oid                   NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
 CREATE TABLE m_account_shadow (
   accountType              NVARCHAR(255),
   allowedIdmAdminGuiAccess BIT,
@@ -267,9 +278,12 @@ CREATE TABLE m_org (
   identifier       NVARCHAR(255),
   locality_norm    NVARCHAR(255),
   locality_orig    NVARCHAR(255),
+  name_norm        NVARCHAR(255),
+  name_orig        NVARCHAR(255),
   id               BIGINT       NOT NULL,
   oid              NVARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid)
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 );
 
 CREATE TABLE m_org_closure (
@@ -369,16 +383,11 @@ CREATE TABLE m_resource_shadow (
 );
 
 CREATE TABLE m_role (
-  approvalExpression    NVARCHAR(MAX),
-  approvalProcess       NVARCHAR(255),
-  approvalSchema        NVARCHAR(MAX),
-  automaticallyApproved NVARCHAR(MAX),
-  name_norm             NVARCHAR(255),
-  name_orig             NVARCHAR(255),
-  requestable           BIT,
-  roleType              NVARCHAR(255),
-  id                    BIGINT       NOT NULL,
-  oid                   NVARCHAR(36) NOT NULL,
+  name_norm NVARCHAR(255),
+  name_orig NVARCHAR(255),
+  roleType  NVARCHAR(255),
+  id        BIGINT       NOT NULL,
+  oid       NVARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
@@ -525,6 +534,13 @@ CREATE TABLE m_user_template (
   UNIQUE (name_norm)
 );
 
+CREATE INDEX iRequestable ON m_abstract_role (requestable);
+
+ALTER TABLE m_abstract_role
+ADD CONSTRAINT fk_abstract_role
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
 ALTER TABLE m_account_shadow
 ADD CONSTRAINT fk_account_shadow
 FOREIGN KEY (id, oid)
@@ -630,7 +646,7 @@ REFERENCES m_object;
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
-REFERENCES m_role;
+REFERENCES m_abstract_role;
 
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid, descendant_id);
 
@@ -677,12 +693,10 @@ ADD CONSTRAINT fk_resource_object_shadow
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
-CREATE INDEX iRequestable ON m_role (requestable);
-
 ALTER TABLE m_role
 ADD CONSTRAINT fk_role
 FOREIGN KEY (id, oid)
-REFERENCES m_object;
+REFERENCES m_abstract_role;
 
 ALTER TABLE m_sync_situation_description
 ADD CONSTRAINT fk_shadow_sync_situation
