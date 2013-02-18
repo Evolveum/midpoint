@@ -153,12 +153,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.addParam("file", filePath);
 		LOGGER.trace("addObjectFromFile: {}", filePath);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(new File(filePath), type);
-		addObject(type, object, result);
+		addObject(type, object, "from file "+filePath, result);
 		result.recordSuccess();
 		return object;
 	}
-		
+	
 	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object,
+			OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+		addObject(type, object, null, result);
+	}
+		
+	protected <T extends ObjectType> void addObject(Class<T> type, PrismObject<T> object, String contextDesc,
 			OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		if (object.canRepresent(TaskType.class)) {
 			Assert.assertNotNull(taskManager, "Task manager is not initialized");
@@ -174,13 +179,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			Assert.assertNotNull(repositoryService, "Repository service is not initialized");
 			try{
-			String oid = repositoryService.addObject(object, result);
-			object.setOid(oid);
+				String oid = repositoryService.addObject(object, result);
+				object.setOid(oid);
 			} catch(ObjectAlreadyExistsException ex){
-				result.recordFatalError(ex.getMessage(), ex);
+				result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
 				throw ex;
 			} catch(SchemaException ex){
-				result.recordFatalError(ex.getMessage(), ex);
+				result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
 				throw ex;
 			}
 		}
