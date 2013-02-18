@@ -76,6 +76,7 @@ public abstract class RObject extends RContainer {
         this.parentOrgRef = parentOrgRef;
     }
 
+    @com.evolveum.midpoint.repo.sql.query2.definition.Any(jaxbNameLocalPart = "extension")
 	@OneToOne(optional = true, orphanRemoval = true)
 	@ForeignKey(name = "none")
 	@Cascade({ org.hibernate.annotations.CascadeType.ALL })

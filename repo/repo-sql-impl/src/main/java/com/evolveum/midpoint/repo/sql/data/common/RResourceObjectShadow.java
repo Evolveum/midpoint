@@ -93,6 +93,7 @@ public class RResourceObjectShadow extends RObject {
         return objectClass;
     }
 
+    @com.evolveum.midpoint.repo.sql.query2.definition.Any(jaxbNameLocalPart = "attributes")
     @OneToOne(optional = true, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
