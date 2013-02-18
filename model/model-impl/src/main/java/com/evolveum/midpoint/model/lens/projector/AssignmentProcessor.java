@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -673,22 +674,22 @@ public class AssignmentProcessor {
 		AssignmentPath pathA = constructionA.getAssignmentPath();
 		AssignmentPath pathB = constructionB.getAssignmentPath();
 		for (AssignmentPathSegment segmentA: pathA.getSegments()) {
-			if (segmentA.getTarget() != null && segmentA.getTarget() instanceof RoleType) {
+			if (segmentA.getTarget() != null && segmentA.getTarget() instanceof AbstractRoleType) {
 				for (AssignmentPathSegment segmentB: pathB.getSegments()) {
-					if (segmentB.getTarget() != null && segmentB.getTarget() instanceof RoleType) {
-						checkExclusion((RoleType)segmentA.getTarget(), (RoleType)segmentB.getTarget());
+					if (segmentB.getTarget() != null && segmentB.getTarget() instanceof AbstractRoleType) {
+						checkExclusion((AbstractRoleType)segmentA.getTarget(), (AbstractRoleType)segmentB.getTarget());
 					}
 				}
 			}
 		}
 	}
 
-	private void checkExclusion(RoleType roleA, RoleType roleB) throws PolicyViolationException {
+	private void checkExclusion(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
 		checkExclusionOneWay(roleA, roleB);
 		checkExclusionOneWay(roleB, roleA);
 	}
 
-	private void checkExclusionOneWay(RoleType roleA, RoleType roleB) throws PolicyViolationException {
+	private void checkExclusionOneWay(AbstractRoleType roleA, AbstractRoleType roleB) throws PolicyViolationException {
 		for (ExclusionType exclusionA :roleA.getExclusion()) {
 			ObjectReferenceType targetRef = exclusionA.getTargetRef();
 			if (roleB.getOid().equals(targetRef.getOid())) {

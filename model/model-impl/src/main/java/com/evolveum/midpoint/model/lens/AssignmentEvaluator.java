@@ -46,11 +46,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -234,8 +234,8 @@ public class AssignmentEvaluator {
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		assignmentPathSegment.setTarget(target);
-		if (target instanceof RoleType) {
-			evaluateRole(assignment, assignmentPathSegment, (RoleType)target, source, sourceDescription, assignmentPath, result);
+		if (target instanceof AbstractRoleType) {
+			evaluateAbstractRole(assignment, assignmentPathSegment, (AbstractRoleType)target, source, sourceDescription, assignmentPath, result);
 			if (target instanceof OrgType) {
 				PrismReferenceValue refVal = new PrismReferenceValue();
 				refVal.setObject(target.asPrismObject());
@@ -247,7 +247,7 @@ public class AssignmentEvaluator {
 		}
 	}
 
-	private void evaluateRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, RoleType role, ObjectType source, String sourceDescription,
+	private void evaluateAbstractRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, AbstractRoleType role, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		for (AssignmentType roleAssignment : role.getAssignment()) {

@@ -194,7 +194,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		LOGGER.trace("addObjectsFromFile: {}", filePath);
 		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(new File(filePath));
 		for (PrismObject<T> object: objects) {
-			addObject(type, object, result);
+			try {
+				addObject(type, object, result);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
+			} catch (SchemaException e) {
+				new SchemaException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
+			}
 		}
 		result.recordSuccess();
 		return objects;

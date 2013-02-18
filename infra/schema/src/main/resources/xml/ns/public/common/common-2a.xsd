@@ -2189,6 +2189,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:cachingMetadata" minOccurs="0"/>
+            <xsd:element name="generationConstraints" type="tns:SchemaGenerationConstraintsType" minOccurs="0"/>
             <xsd:element name="definition" minOccurs="0">
             	<xsd:complexType>
             		<xsd:sequence>
@@ -2239,6 +2240,26 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="cachingMetadata" type="tns:CachingMetadataType"/>
+    
+    <xsd:complexType name="SchemaGenerationConstraintsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="generateObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specification of an object class that has to be automatically generated into a schema.
+            			If at least one generateObjectClass specification is present then only the objectclasses
+            			specified by the generateObjectClass elements will be generated an no other object class
+            			will be passed into the schema.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="SchemaHandlingType">
         <xsd:annotation>
