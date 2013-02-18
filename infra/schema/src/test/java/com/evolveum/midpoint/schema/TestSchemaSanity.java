@@ -210,7 +210,7 @@ public class TestSchemaSanity {
 		PrismAsserts.assertDefinition(schemaContainerDef, ResourceType.F_SCHEMA, XmlSchemaType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Schema is runtime", schemaContainerDef.isRuntimeSchema());
 		assertEquals("Wrong compile-time class for <schema> in resource definition", XmlSchemaType.class, schemaContainerDef.getCompileTimeClass());
-		assertEquals("Unexpected number of definitions in <schema>", 2, schemaContainerDef.getDefinitions().size());
+		assertEquals("Unexpected number of definitions in <schema>", 3, schemaContainerDef.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_CACHING_METADATA, 
 				CachingMetadataType.COMPLEX_TYPE, 0, 1);		
 		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_DEFINITION, DOMUtil.XSD_ANY, 0, 1);
