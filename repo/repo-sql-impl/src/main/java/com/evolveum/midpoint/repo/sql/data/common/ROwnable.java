@@ -28,7 +28,7 @@ public interface ROwnable {
 
     /**
      * @return Returns owner of container. For example for {@link RAssignment} method must
-     *         return {@link RUser} or {@link RRole}
+     *         return {@link RUser} or {@link RAbstractRole}
      */
     RContainer getContainerOwner();
 }

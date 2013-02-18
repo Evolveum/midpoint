@@ -81,8 +81,8 @@ public class ContainerIdGenerator implements IdentifierGenerator {
                 Long id = getNextId(user.getAssignments());
                 LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
                 return id;
-            } else if (parent instanceof RRole) {
-                RRole role = (RRole) parent;
+            } else if (parent instanceof RAbstractRole) {
+                RAbstractRole role = (RAbstractRole) parent;
 
                 Set<RContainer> containers = new HashSet<RContainer>();
                 if (role.getAssignments() != null) {
