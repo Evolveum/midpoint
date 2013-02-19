@@ -43,7 +43,7 @@ sub line($$$$) {
     printf("| %7s | %10d | %25s | %10d | \n",$status,$attempt,scalar(localtime($startTime)),$duration);
 }
 
-my $maxAttempts = 3;
+my $maxAttempts = undef;
 my $command = join(' ',@ARGV) || usage();
 
 header();
