@@ -28,9 +28,11 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -82,6 +84,7 @@ public class InitialDataImport {
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
         for (String file : FILES_FOR_IMPORT) {
             OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 

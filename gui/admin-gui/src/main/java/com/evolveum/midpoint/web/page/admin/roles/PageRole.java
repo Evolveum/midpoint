@@ -196,7 +196,7 @@ public class PageRole extends PageAdminRoles {
 
         OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
         try {
-            Task task = getTaskManager().createTaskInstance(OPERATION_SAVE_ROLE);
+        	Task task = createSimpleTask(OPERATION_SAVE_ROLE);
             if (!isEditing()) {
                 //we're adding new role
                 PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();

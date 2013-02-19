@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -90,7 +91,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notNullArgument(objectType, "Object must not be null.");
 
 		Task task = createTaskInstance(ADD_OBJECT);
-        setTaskOwner(task);
 		OperationResult operationResult = task.getResult();
 		try {
 			PrismObject object = objectType.asPrismObject();
@@ -114,7 +114,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(GET_OBJECT);
-			setTaskOwner(task);
 			operationResult = task.getResult();
 			
 			PrismObject<? extends ObjectType> object = model.getObject(
@@ -137,7 +136,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(LIST_OBJECTS);
-			setTaskOwner(task);
 			operationResult = task.getResult();
 			ObjectQuery query = ObjectQuery.createObjectQuery(PagingConvertor.createObjectPaging(paging));
 			List<PrismObject<? extends ObjectType>> list = (List) model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
@@ -164,7 +162,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(SEARCH_OBJECTS);
-			setTaskOwner(task);
 			operationResult = task.getResult();
 			ObjectQuery q = QueryConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
@@ -189,7 +186,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(MODIFY_OBJECT);
-	        setTaskOwner(task);
 			operationResult = task.getResult();
 			Class<? extends ObjectType> type = ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change, type, prismContext);
@@ -211,7 +207,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(DELETE_OBJECT);
-	        setTaskOwner(task);
 			operationResult = task.getResult();
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
 					task, operationResult);
@@ -231,7 +226,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
-			setTaskOwner(task);
 			operationResult = task.getResult();
 			PrismObject<UserType> user = model.listAccountShadowOwner(accountOid, task, operationResult);
 			handleOperationResult(operationResult, result);
@@ -256,7 +250,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(LIST_RESOURCE_OBJECT_SHADOWS);
-			setTaskOwner(task);
 			operationResult = task.getResult();
 			List<PrismObject<ResourceObjectShadowType>> list = model.listResourceObjectShadows(
 					resourceOid, (Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
@@ -286,7 +279,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = null;
 		try {
 			Task task = createTaskInstance(LIST_RESOURCE_OBJECTS);
-			setTaskOwner(task);
 			operationResult = task.getResult();
 			List<PrismObject<? extends ResourceObjectShadowType>> list = model.listResourceObjects(
 					resourceOid, objectType, PagingConvertor.createObjectPaging(paging), task, operationResult);
@@ -309,7 +301,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		try {
 			Task task = createTaskInstance(TEST_RESOURCE);
-			setTaskOwner(task);
 			OperationResult testResult = model.testResource(resourceOid, task);
 			return handleOperationResult(testResult);
 		} catch (Exception ex) {
@@ -387,8 +378,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullArgument(objectClass, "Object class must not be null.");
 
-		Task task = taskManager.createTaskInstance(IMPORT_FROM_RESOURCE);
-        setTaskOwner(task);
+		Task task = createTaskInstance(IMPORT_FROM_RESOURCE);
 		OperationResult operationResult = task.getResult();
 
 		try {
@@ -415,7 +405,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
     private Task createTaskInstance(String operationName) {
 		// TODO: better task initialization
-		return taskManager.createTaskInstance(operationName);
+		Task task = taskManager.createTaskInstance(operationName);
+		setTaskOwner(task);
+		task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+		return task;
 	}
 	
 	/**

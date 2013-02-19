@@ -36,6 +36,7 @@ import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -167,21 +168,35 @@ public abstract class SchemaConstants {
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";
 
+	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
+	
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
 	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2";
 
-	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
+	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
 	// Synchronization constants
-	public static final String NS_CHANNEL = NS_PROVISIONING + "/channels-2";
-	public static final QName CHANGE_CHANNEL_SYNC = new QName(NS_CHANNEL, "synchronization");
-	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_CHANNEL, "reconciliation");
-	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_CHANNEL, "discovery");
-	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
+	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-2";
+	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
+	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
+	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
+	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
+	
+	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
+	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-2";
+	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
+	public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
+	
+	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
+	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-2";
+	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
+	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
+	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
+	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
 	

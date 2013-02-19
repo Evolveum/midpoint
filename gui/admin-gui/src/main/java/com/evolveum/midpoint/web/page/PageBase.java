@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -214,6 +215,7 @@ public abstract class PageBase extends WebPage {
             return task;
         }
         task.setOwner(user.getUser().asPrismObject());
+        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 
         return task;
     }

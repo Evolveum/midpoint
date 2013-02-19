@@ -1175,7 +1175,7 @@ private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> condit
 			currentShadowType.setActivation(ShadowCacheUtil.completeActivation(currentShadowType, resourceType, null));
 		}
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
-		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
+		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
 		return shadowChangeDescription;
 
 	}
