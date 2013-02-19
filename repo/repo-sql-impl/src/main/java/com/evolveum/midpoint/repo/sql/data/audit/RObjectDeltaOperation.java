@@ -265,8 +265,10 @@ public class RObjectDeltaOperation implements OperationResult {
         auditDelta.setRecord(record);
 
         try {
-            ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(operation.getObjectDelta());
-            auditDelta.setDelta(RUtil.toRepo(xmlDelta, prismContext));
+            if (operation.getObjectDelta() != null) {
+                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(operation.getObjectDelta());
+                auditDelta.setDelta(RUtil.toRepo(xmlDelta, prismContext));
+            }
 
             if (operation.getExecutionResult() != null) {
                 RUtil.copyResultFromJAXB(operation.getExecutionResult().createOperationResultType(),

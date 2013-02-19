@@ -248,11 +248,10 @@ public class SqlBaseService {
     }
 
     protected void handleGeneralCheckedException(Exception ex, Session session, OperationResult result) {
-        LOGGER.debug("General checked exception occurred.", ex);
+        LOGGER.error("General checked exception occurred.", ex);
 
         boolean fatal = !isExceptionRelatedToSerialization(ex);
         rollbackTransaction(session, ex, result, fatal);
         throw new SystemException(ex.getMessage(), ex);
     }
-
 }
