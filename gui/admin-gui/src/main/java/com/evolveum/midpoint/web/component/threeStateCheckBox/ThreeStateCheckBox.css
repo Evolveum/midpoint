@@ -56,3 +56,7 @@
 .checked_highlighted {
 	background-image: url("checked_highlighted.gif");
 }
+
+.disabled{
+	background-image: url("disabled.png");
+}

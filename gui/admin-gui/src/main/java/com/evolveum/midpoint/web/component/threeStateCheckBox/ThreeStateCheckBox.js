@@ -19,13 +19,18 @@ var DEFAULT_CONFIG = {
 	CHECKED_HILI : 'treeStateCheckBox checked_highlighted'
 };
 
-function initThreeStateCheckBox(threeStateCheckBoxId) {
+function initThreeStateCheckBox(threeStateCheckBoxId, enabled) {
 	var CHECKBOX = new Object();
 	checkbox[threeStateCheckBoxId] = CHECKBOX;
 	CHECKBOX.ID = threeStateCheckBoxId;
-	CHECKBOX.FIRST_STATE = "";
-	createThreeStateImageNode(threeStateCheckBoxId);
-	updateStateAndImage(threeStateCheckBoxId);
+	if (enabled == 'false'){
+		var imageNode = document.getElementById(threeStateCheckBoxId + ".Img");
+		replaceImage(imageNode.id,'treeStateCheckBox disabled');
+	}else{
+		CHECKBOX.FIRST_STATE = "";
+		createThreeStateImageNode(threeStateCheckBoxId);
+		updateStateAndImage(threeStateCheckBoxId);
+	}
 }
 
 function getNextStateFromValue(theValue, fieldId) {

@@ -79,6 +79,7 @@ public class ThreeStateCheckBox extends HiddenField<String> {
 				"ThreeStateCheckBox.js"));
 		response.renderCSSReference(new PackageResourceReference(ThreeStateCheckBox.class,
 				"ThreeStateCheckBox.css"));
-		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "')");
+		boolean enabled = isEnabled();
+		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "', '"+enabled+"')");
 	}
 }
