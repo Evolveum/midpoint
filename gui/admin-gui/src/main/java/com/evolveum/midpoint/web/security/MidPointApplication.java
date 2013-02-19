@@ -138,7 +138,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         mount(new MountedMapper("/admin", PageHome.class, encoder));
         mount(new MountedMapper("/admin/home", PageHome.class, encoder));    //todo remove
-        mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
+        //todo dashboard is not finished yet
+//        mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
         mount(new MountedMapper("/admin/myPasswords", PageMyPasswords.class, encoder));
 
         // todo mount used for performance tests, will be implemented properly in next release
@@ -156,14 +157,15 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
 
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
-        mount(new MountedMapper("/admin/resourceEdit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
+        //todo resource wizard is not finished
+//        mount(new MountedMapper("/admin/resourceEdit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
         mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
         mount(new MountedMapper("/admin/resources/account", PageAccount.class, new OnePageParameterEncoder(PageAccount.PARAM_ACCOUNT_ID)));
         mount(new MountedMapper("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID)));
         mount(new MountedMapper("/admin/resources/content/entitlements", PageContentEntitlements.class, new OnePageParameterEncoder(PageContentEntitlements.PARAM_RESOURCE_ID)));
-        
-        mount(new MountedMapper("/admin/workItems", PageWorkItems.class, encoder));
+
         mount(new MountedMapper("/admin/workItem", PageWorkItem.class, new OnePageParameterEncoder(PageWorkItem.PARAM_TASK_ID)));
+        mount(new MountedMapper("/admin/workItems", PageWorkItems.class, encoder));
         mount(new MountedMapper("/admin/workItems/allRequests", PageProcessInstancesAll.class, encoder));
         mount(new MountedMapper("/admin/workItems/myRequests", PageProcessInstancesRequestedBy.class, encoder));
         mount(new MountedMapper("/admin/workItems/aboutMeRequests", PageProcessInstancesRequestedFor.class, encoder));
