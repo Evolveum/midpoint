@@ -46,7 +46,7 @@ object.
         <!-- Resource name. It will be displayed in GUI.  -->
         <c:name>Localhost CSVfile</c:name>
 
-        <!-- Reference to the ICF Flatfile connector. OID is "virtual" for now. -->
+        <!-- Reference to the ICF CSVFile connector. -->
         <connectorRef type="ConnectorType">
             <filter>
                 <q:equal>

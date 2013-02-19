@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines CSV resource.
+
+This definition is tailored for import from the CSV File.
+
+-->
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+           xmlns:my="http://myself.me/schemas/whatever"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+
+    <c:resource oid="4e2e5dee-7aa1-11e2-a914-001e8c717e5b">
+
+        <c:name>CSVfile Import</c:name>
+
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+				<q:path>c:connectorType</q:path>
+                    <q:value>org.forgerock.openicf.csvfile.CSVFileConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+
+        <c:connectorConfiguration>
+            <icfc:configurationProperties
+					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
+                <icfccsvfile:filePath>/var/tmp/midpoint-import.csv</icfccsvfile:filePath>
+                <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+                <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
+                <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+                <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+                <icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
+                <icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
+                <!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
+                <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
+            </icfc:configurationProperties>
+        </c:connectorConfiguration>
+
+        <schemaHandling>
+            <accountType>
+                <name>default</name>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                        	<path>$user/name</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                        	<path>$user/name</path>
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:firstname</ref>
+                    <displayName>First Name</displayName>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                        	<path>$user/givenName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/givenName</path>
+                        </target>
+                    </inbound>
+
+                </attribute>
+                <attribute>
+                    <ref>ri:lastname</ref>
+                    <displayName>Last Name</displayName>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                        	<path>$user/familyName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/familyName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <credentials>
+                    <password>
+                        <outbound>
+							<expression>
+								<asIs/>
+							</expression>
+						</outbound>
+                        <inbound>
+                            <strength>weak</strength>
+                            <expression>
+                                <generate/>
+                            </expression>
+                        </inbound>
+	                </password>
+                </credentials>
+                <activation>
+                    <enabled>
+                        <outbound/>
+                        <inbound>
+							<strength>weak</strength>
+                        </inbound>
+                    </enabled>
+                </activation>
+            </accountType>
+        </schemaHandling>
+     	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+            <configured>
+				<cap:activation>
+					<cap:enableDisable>
+						<cap:attribute>ri:disabled</cap:attribute>
+						<cap:enableValue>false</cap:enableValue>
+						<cap:disableValue>true</cap:disableValue>
+					</cap:enableDisable>
+				</cap:activation>
+			</configured>
+        </capabilities>
+        <synchronization>
+        	<objectSynchronization>
+	            <enabled>true</enabled>	
+	            <correlation>
+	                <q:equal>
+	                    <q:path>c:name</q:path>
+	                    <expression>
+	                        <path>$account/attributes/icfs:name</path>
+	                    </expression>
+	                </q:equal>
+	            </correlation>
+	
+	            <reaction>
+	                <situation>linked</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	            </reaction>
+	            <reaction>
+	                <situation>deleted</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	            </reaction>
+	            <reaction>
+	                <situation>unlinked</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	            </reaction>
+	            <reaction>
+	                <situation>unmatched</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	            </reaction>
+			</objectSynchronization>
+        </synchronization>
+    </c:resource>
+
+</c:objects>
