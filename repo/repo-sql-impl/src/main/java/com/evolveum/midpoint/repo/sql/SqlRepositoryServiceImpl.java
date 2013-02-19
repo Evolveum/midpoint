@@ -425,7 +425,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // query.
         List<ROrgClosure> results = query.list();
         for (ROrgClosure o : results) {
-            LOGGER.info("adding {}\t{}\t{}", new Object[]{o.getAncestor().getOid(),
+            LOGGER.trace("adding {}\t{}\t{}", new Object[]{o.getAncestor().getOid(),
                     o.getDescendant().getOid(), o.getDepth() + 1});                        //todo remove
             session.save(new ROrgClosure(o.getAncestor(), newDescendant, o.getDepth() + 1));
         }
