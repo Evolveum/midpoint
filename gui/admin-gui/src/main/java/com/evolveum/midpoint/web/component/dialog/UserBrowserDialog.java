@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -45,9 +42,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -65,8 +60,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,13 +72,11 @@ public class UserBrowserDialog extends ModalWindow {
     private static final Trace LOGGER = TraceManager.getTrace(UserBrowserDialog.class);
     private IModel<UserBrowserDto> model;
     private boolean initialized;
-    private PrismContext prismContext;
 
-    public UserBrowserDialog(String id, PrismContext prismContext) {
+    public UserBrowserDialog(String id) {
         super(id);
 
         setTitle(createStringResource("userBrowserDialog.title"));
-        this.prismContext = prismContext;
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(UserBrowserDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         setInitialWidth(900);
@@ -262,6 +253,7 @@ public class UserBrowserDialog extends ModalWindow {
         try {
 			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
+            PrismContext prismContext = getPageBase().getPrismContext();
 			PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
 			if (normalizer == null) {
 				normalizer = new PrismDefaultPolyStringNormalizer();

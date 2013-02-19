@@ -144,7 +144,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initDialog() {
-        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE, getPrismContext()) {
+        UserBrowserDialog dialog = new UserBrowserDialog(MODAL_ID_OWNER_CHANGE) {
 
             @Override
             public void userDetailsPerformed(AjaxRequestTarget target, UserType user) {
