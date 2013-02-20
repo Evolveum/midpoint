@@ -266,7 +266,7 @@ public class PasswordPolicyUtils {
 			// memorize validChars
 			allValidChars.addAll(validChars);
 
-			// Count how many character for this limitiation are there
+			// Count how many character for this limitation are there
 			int count = 0;
 			for (String s : passwd) {
 				if (validChars.contains(s)) {
@@ -279,16 +279,16 @@ public class PasswordPolicyUtils {
 				l.setMinOccurs(0);
 			}
 			if (l.getMinOccurs() > count) {
-				String msg = "Required minimal occurence (" + l.getMinOccurs()
-						+ ") of characters in password is not met (occurence of characters in password "
+				String msg = "Required minimal occurrence (" + l.getMinOccurs()
+						+ ") of characters in password is not met (occurrence of characters in password "
 						+ count + ").";
-				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters",
+				limitResult.addSubresult(new OperationResult("Check minimal occurrence of characters",
 						OperationResultStatus.FATAL_ERROR, msg));
 				message.append(msg);
 				message.append("\n");
 			} 
 //			else {
-//				limitResult.addSubresult(new OperationResult("Check minimal occurence of characters in password OK.",
+//				limitResult.addSubresult(new OperationResult("Check minimal occurrence of characters in password OK.",
 //						OperationResultStatus.SUCCESS, "PASSED"));
 //			}
 
@@ -296,17 +296,17 @@ public class PasswordPolicyUtils {
 			if (l.getMaxOccurs() != null) {
 
 				if (l.getMaxOccurs() < count) {
-					String msg = "Required maximal occurence (" + l.getMaxOccurs()
-							+ ") of characters in password was exceeded (occurence of characters in password "
+					String msg = "Required maximal occurrence (" + l.getMaxOccurs()
+							+ ") of characters in password was exceeded (occurrence of characters in password "
 							+ count + ").";
-					limitResult.addSubresult(new OperationResult("Check maximal occurence of characters",
+					limitResult.addSubresult(new OperationResult("Check maximal occurrence of characters",
 							OperationResultStatus.FATAL_ERROR, msg));
 					message.append(msg);
 					message.append("\n");
 				} 
 //				else {
 //					limitResult.addSubresult(new OperationResult(
-//							"Check maximal occurence of characters in password OK.", OperationResultStatus.SUCCESS,
+//							"Check maximal occurrence of characters in password OK.", OperationResultStatus.SUCCESS,
 //							"PASSED"));
 //				}
 			}

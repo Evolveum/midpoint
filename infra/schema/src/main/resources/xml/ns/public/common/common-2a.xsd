@@ -5094,7 +5094,7 @@
                                 TODO: better documentation
                             </xsd:documentation>
                             <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:PasswordPolicyType</a:objectReferenceTargetType>
+                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
