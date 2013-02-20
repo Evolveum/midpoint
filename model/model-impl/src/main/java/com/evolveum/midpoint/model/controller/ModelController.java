@@ -1191,11 +1191,13 @@ public class ModelController implements ModelService, ModelInteractionService {
 		if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
 			OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
 			subresult.recordWarning("No synchronization settings in "+resource+", import will probably do nothing");
+			LOGGER.warn("No synchronization settings in "+resource+", import will probably do nothing");
 		} else {
 			ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
 			if (syncType.isEnabled() != null && !syncType.isEnabled()) {
 				OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
 				subresult.recordWarning("Synchronization is disabled for "+resource+", import will probably do nothing");
+				LOGGER.warn("Synchronization is disabled for "+resource+", import will probably do nothing");
 			}
 		}
 		
