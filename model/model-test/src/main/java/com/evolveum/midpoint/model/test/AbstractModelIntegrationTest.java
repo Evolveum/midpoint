@@ -1036,7 +1036,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		waitForTaskFinish(task, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskFinish(final Task task, final boolean checkSubresult, int timeout) throws Exception {
+	protected void waitForTaskFinish(final Task task, final boolean checkSubresult,final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
@@ -1060,7 +1060,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 				OperationResult result = task.getResult();
 				LOGGER.debug("Result of timed-out task:\n{}", result.dump());
-				assert false : "Timeout while waiting for "+task+" to finish. Last result "+result;
+				assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
 			}
 		};
 		IntegrationTestTools.waitFor("Waiting for "+task+" finish", checker , timeout, DEFAULT_TASK_SLEEP_TIME);
@@ -1070,7 +1070,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		waitForTaskFinish(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
+	protected void waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
 		Checker checker = new Checker() {
 			@Override
@@ -1091,7 +1091,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
 					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
-					assert false : "Timeout while waiting for "+freshTask+" to finish. Last result "+result;
+					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
 				} catch (SchemaException e) {
@@ -1106,7 +1106,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		waitForTaskStart(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskStart(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
+	protected void waitForTaskStart(final String taskOid, final boolean checkSubresult,final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskStart");
 		Checker checker = new Checker() {
 			@Override
@@ -1126,7 +1126,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
 					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
-					assert false : "Timeout while waiting for "+freshTask+" to start. Last result "+result;
+					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to start. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
 				} catch (SchemaException e) {
@@ -1141,7 +1141,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		waitForTaskNextRun(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskNextRun(final String taskOid, final boolean checkSubresult, int timeout) throws Exception {
+	protected void waitForTaskNextRun(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextRun");
 		Task origTask = taskManager.getTask(taskOid, waitResult);
 		final Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
@@ -1174,7 +1174,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
 					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
-					assert false : "Timeout while waiting for "+freshTask+" next run. Last result "+result;
+					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
 				} catch (SchemaException e) {
