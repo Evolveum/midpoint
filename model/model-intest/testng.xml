@@ -30,7 +30,6 @@
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractDeprecated"/>
         	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
         	<class name="com.evolveum.midpoint.model.intest.TestRbac"/>
-        	<class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
             <class name="com.evolveum.midpoint.model.intest.TestSegregationOfDuties"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
@@ -41,7 +40,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiConnector"/>
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
-            <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenCSV"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
             <class name="com.evolveum.midpoint.model.intest.TestDiag"/>
         </classes>
@@ -57,6 +55,12 @@
             <class name="com.evolveum.midpoint.model.intest.importer.ImportRefTest"/>
             <class name="com.evolveum.midpoint.model.intest.importer.ImportTest"/>
             <class name="com.evolveum.midpoint.model.intest.importer.BadImportTest"/>
+        </classes>
+    </test>
+    <test name="Model Integration 2" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
+            <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenCSV"/>
         </classes>
     </test>
 </suite>
