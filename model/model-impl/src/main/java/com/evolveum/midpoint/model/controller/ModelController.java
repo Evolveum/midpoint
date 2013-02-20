@@ -123,6 +123,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -1185,6 +1186,17 @@ public class ModelController implements ModelService, ModelInteractionService {
 			result.recordFatalError("Object not found");
 			RepositoryCache.exit();
 			throw ex;
+		}
+		
+		if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
+			OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
+			subresult.recordWarning("No synchronization settings in "+resource+", import will probably do nothing");
+		} else {
+			ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
+			if (syncType.isEnabled() != null && !syncType.isEnabled()) {
+				OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
+				subresult.recordWarning("Synchronization is disabled for "+resource+", import will probably do nothing");
+			}
 		}
 		
 		result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
