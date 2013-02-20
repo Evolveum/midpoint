@@ -127,8 +127,10 @@ public class DOMUtil {
 
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
+	private static final int RANDOM_ATTR_PREFIX_MAX_ITERATIONS = 30;
 	// To generate random namespace prefixes
 	private static Random rnd = new Random();
+	
 	private static final DocumentBuilder loader;
 
 	static {
@@ -580,11 +582,26 @@ public class DOMUtil {
 			// Empty prefix means default namespace
 			if (prefix == null) {
 				// generate random prefix
-				prefix = RANDOM_ATTR_PREFIX_PREFIX + rnd.nextInt(RANDOM_ATTR_PREFIX_RND);
+				boolean gotIt = false;
+				for(int i=0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
+					prefix = generatePrefix();
+					if (element.lookupNamespaceURI(prefix) == null) {
+						// the prefix if free
+						gotIt = true;
+						break;
+					}
+				}
+				if (!gotIt) {
+					throw new IllegalStateException("Unable to generate unique prefix for namespace "+namespaceUri+" even after "+RANDOM_ATTR_PREFIX_MAX_ITERATIONS+" attempts");
+				}
 				setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
 			}
 		}
 		return prefix;
+	}
+
+	private static String generatePrefix() {
+		return RANDOM_ATTR_PREFIX_PREFIX + rnd.nextInt(RANDOM_ATTR_PREFIX_RND);
 	}
 
 	public static boolean isNamespaceDefinition(Attr attr) {

@@ -44,6 +44,7 @@ public class DOMUtilTest {
 	private static final String DEFAULT_NS = "http://foo.com/default";
 	private static final String ELEMENT_TOP_LOCAL = "top";
 	private static final String FOO_NS = "http://foo.com/foo";
+	private static final QName QNAME_ATTR_QNAME = new QName(ELEMENT_NS, "qname");
 	
 	private static final String XSD_TYPE_FILENAME = "src/test/resources/domutil/xsi-type.xml";
 	private static final String QNAMES_FILENAME = "src/test/resources/domutil/qnames.xml";
@@ -55,7 +56,9 @@ public class DOMUtilTest {
 	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
-			NS_W3C_XML_SCHEMA_PREFIX); 
+			NS_W3C_XML_SCHEMA_PREFIX);
+	private static final int MAX_GENERATE_QNAME_ITERATIONS = 200;
+
 	
 	public DOMUtilTest() {
 	}
@@ -189,6 +192,43 @@ public class DOMUtilTest {
 		assertEquals("bar decl", "http://foo.com/bar", decls.get("bar"));
 		assertEquals("foo decl", "http://foo.com/foo", decls.get("foo"));
 		assertEquals("default decl", "http://foo.com/default", decls.get(null));
+	}
+	
+	@Test
+	public void testGeneratedQNamePrefixes() {
+		System.out.println("===[ testGeneratedQNamePrefixes ]===");
+		// GIVEN
+		Document doc = DOMUtil.getDocument();
+		
+		Element topElement = doc.createElementNS(ELEMENT_NS, ELEMENT_TOP_LOCAL);
+		doc.appendChild(topElement);
+		
+		System.out.println("Before");
+		System.out.println(DOMUtil.serializeDOMToString(topElement));
+		
+		// WHEN		
+		for(int i=0; i<MAX_GENERATE_QNAME_ITERATIONS; i++) {
+			Element el = DOMUtil.createElement(doc, new QName(ELEMENT_NS, ELEMENT_LOCAL+i), topElement, topElement);
+			topElement.appendChild(el);
+			String namespace = "http://exaple.com/gen/"+i;
+			QName qNameValue = new QName(namespace, "val"+i);
+			DOMUtil.setQNameAttribute(el, QNAME_ATTR_QNAME, qNameValue, topElement);
+			
+			QName qNameValueAfter = DOMUtil.getQNameAttribute(el, QNAME_ATTR_QNAME);
+			assertEquals("Bada boom! wrong element QName in iteration "+i, qNameValue, qNameValueAfter);
+		}
+		
+		// THEN
+		System.out.println("After");
+		System.out.println(DOMUtil.serializeDOMToString(topElement));
+		
+		for(int i=0; i<MAX_GENERATE_QNAME_ITERATIONS; i++) {
+			Element el = DOMUtil.getChildElement(topElement, ELEMENT_LOCAL+i);
+			String namespace = "http://exaple.com/gen/"+i;
+			QName qNameValue = new QName(namespace, "val"+i);
+			QName qNameValueAfter = DOMUtil.getQNameAttribute(el, QNAME_ATTR_QNAME);
+			assertEquals("BIG bada boom! wrong element QName in iteration "+i, qNameValue, qNameValueAfter);
+		}
 	}
 
 }

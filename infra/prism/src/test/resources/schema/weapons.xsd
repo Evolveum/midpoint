@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+  
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/test/weapons"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/weapons"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    
+    <xsd:complexType name="WeaponBrandType">
+    	<xsd:sequence>
+    		<xsd:element name="manufacturer" type="xsd:string" minOccurs="1"/>
+    		<xsd:element name="model" type="xsd:string" minOccurs="0"/>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

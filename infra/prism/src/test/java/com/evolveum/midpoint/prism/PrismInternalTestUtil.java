@@ -72,6 +72,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	public static final String NS_ADHOC = "http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd";
+	public static final String NS_WEAPONS = "http://midpoint.evolveum.com/xml/ns/test/weapons";
+	public static final String NS_WEAPONS_PREFIX = "w";
 	
 	// FOO schema
 	public static final QName USER_QNAME = new QName(NS_FOO,"user");
@@ -119,12 +121,15 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	
 	public static final QName ATTRIBUTES_TYPE_QNAME = new QName(NS_FOO,"AttributesType");
 	
+	public static final QName DUMMY_PROTECTED_STRING_TYPE = new QName(NS_FOO, "DummyProtectedStringType");
+	
 	// extension.xsd
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
 	public static final QName EXTENSION_INDEXED_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "indexedString");
+	public static final QName EXTENSION_BLADE_TYPE_QNAME = new QName(NS_EXTENSION, "BladeType");
 	
 	// These are NOT in the extension.xsd but are used as dynamic elements
 	public static final QName EXTENSION_BAR_ELEMENT = new QName(NS_EXTENSION, "bar");
@@ -142,6 +147,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
 	public static final QName USER_ADHOC_BOTTLES_ELEMENT = new QName(NS_ADHOC, "bottles");
 	
+	public static final QName WEAPONS_WEAPON_BRAND_TYPE_QNAME = new QName(NS_WEAPONS, "WeaponBrandType");
+	
 	public static PrismContext constructInitializedPrismContext() throws SchemaException, SAXException, IOException {
 		PrismContext context = constructPrismContext();
 		context.initialize();
@@ -157,6 +164,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
+		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
 		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
 		return context;

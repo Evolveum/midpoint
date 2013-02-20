@@ -302,6 +302,17 @@
         	<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="DummyProtectedStringType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			This type mimmicks a complex type that may be used in properties.
+    		</xsd:documentation>
+    	</xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="value" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>
 

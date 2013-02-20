@@ -82,5 +82,12 @@
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
+    
+    <xsd:complexType name="BladeType">
+    	<xsd:sequence>
+    		<xsd:element name="shape" type="xsd:string" minOccurs="1"/>
+    		<xsd:element name="edges" type="xsd:int" minOccurs="0"/>
+    	</xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>

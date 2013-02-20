@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -57,7 +58,10 @@ public class TestPrismSchemaConstruction {
 	private static final QName WEAPON_TYPE_QNAME = new QName(NS_MY_SCHEMA, WEAPON_TYPE_LOCAL_NAME);
 	private static final QName WEAPON_KIND_QNAME = new QName(NS_MY_SCHEMA, "kind");
 	private static final String WEAPON_LOCAL_NAME = "weapon";
-	
+	private static final String WEAPON_BRAND_LOCAL_NAME = "brand";
+	private static final int SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS = 10;
+	private static final String WEAPON_PASSWORD_LOCAL_NAME = "password";
+	private static final String WEAPON_BLADE_LOCAL_NAME = "blade";
 	
 	
 	@BeforeSuite
@@ -82,12 +86,40 @@ public class TestPrismSchemaConstruction {
 	}
 	
 	@Test
-	public void testSchemaRoundtrip() throws SchemaException, SAXException, IOException {
+	public void testSchemaRoundtrip() throws Exception {
 		System.out.println("===[ testSchemaRoundtrip ]===");
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
+		
+		schemaRoundtrip(ctx);
+	}
 	
+	@Test
+	public void testSchemaRoundtripLoopShareContext() throws Exception {
+		System.out.println("===[ testSchemaRoundtripLoopShareContext ]===");
+		
+		PrismContext ctx = constructInitializedPrismContext();
+		for(int i=0; i < SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS; i++) {
+			System.out.println("\n--- attempt "+i+"---");
+			schemaRoundtrip(ctx);
+		}
+	}
+
+	@Test
+	public void testSchemaRoundtripLoopNewContext() throws Exception {
+		System.out.println("===[ testSchemaRoundtripLoopNewContext ]===");
+		
+		for(int i=0; i < SCHEMA_ROUNDTRIP_LOOP_ATTEMPTS; i++) {
+			System.out.println("\n--- attempt "+i+"---");
+			PrismContext ctx = constructInitializedPrismContext();
+			schemaRoundtrip(ctx);
+		}
+	}
+
+	
+	private void schemaRoundtrip(PrismContext ctx) throws SchemaException, SAXException, IOException {
+		
 		PrismSchema schema = constructSchema(ctx);
 		assertSchema(schema);
 		
@@ -116,6 +148,9 @@ public class TestPrismSchemaConstruction {
 		ComplexTypeDefinition weaponTypeDef = schema.createComplexTypeDefinition(WEAPON_TYPE_QNAME);
 		PrismPropertyDefinition kindPropertyDef = weaponTypeDef.createPropertyDefinifion(WEAPON_KIND_QNAME, DOMUtil.XSD_STRING);
 		kindPropertyDef.setDisplayName("Weapon kind");
+		weaponTypeDef.createPropertyDefinition(WEAPON_BRAND_LOCAL_NAME, PrismInternalTestUtil.WEAPONS_WEAPON_BRAND_TYPE_QNAME);
+		weaponTypeDef.createPropertyDefinition(WEAPON_PASSWORD_LOCAL_NAME, PrismInternalTestUtil.DUMMY_PROTECTED_STRING_TYPE);
+		weaponTypeDef.createPropertyDefinition(WEAPON_BLADE_LOCAL_NAME, PrismInternalTestUtil.EXTENSION_BLADE_TYPE_QNAME);
 		
 		schema.createPropertyContainerDefinition(WEAPON_LOCAL_NAME, WEAPON_TYPE_LOCAL_NAME);
 		
@@ -128,8 +163,30 @@ public class TestPrismSchemaConstruction {
 		Collection<Definition> definitions = schema.getDefinitions();
 		assertNotNull("Null definitions", definitions);
 		assertFalse("Empty definitions", definitions.isEmpty());
-		assertEquals("Unexpected number of definitions", 2, definitions.size());
+		assertEquals("Unexpected number of definitions in schema", 2, definitions.size());
 		
+		Iterator<Definition> schemaDefIter = definitions.iterator();
+		ComplexTypeDefinition weaponTypeDef = (ComplexTypeDefinition)schemaDefIter.next();
+		assertEquals("Unexpected number of definitions in weaponTypeDef", 4, weaponTypeDef.getDefinitions().size());
+		Iterator<ItemDefinition> weaponTypeDefIter = weaponTypeDef.getDefinitions().iterator();
+		PrismPropertyDefinition kindPropertyDef = (PrismPropertyDefinition) weaponTypeDefIter.next();
+		PrismAsserts.assertDefinition(kindPropertyDef, WEAPON_KIND_QNAME, DOMUtil.XSD_STRING, 1, 1);
+		assertEquals("Wrong kindPropertyDef displayName", "Weapon kind", kindPropertyDef.getDisplayName());
+		
+		PrismPropertyDefinition brandPropertyDef = (PrismPropertyDefinition) weaponTypeDefIter.next();
+		PrismAsserts.assertDefinition(brandPropertyDef, new QName(NS_MY_SCHEMA, WEAPON_BRAND_LOCAL_NAME), 
+				PrismInternalTestUtil.WEAPONS_WEAPON_BRAND_TYPE_QNAME, 1, 1);
+		
+		PrismPropertyDefinition passwordPropertyDef = (PrismPropertyDefinition) weaponTypeDefIter.next();
+		PrismAsserts.assertDefinition(passwordPropertyDef, new QName(NS_MY_SCHEMA, WEAPON_PASSWORD_LOCAL_NAME), 
+				PrismInternalTestUtil.DUMMY_PROTECTED_STRING_TYPE, 1, 1);
+		
+		PrismPropertyDefinition bladePropertyDef = (PrismPropertyDefinition) weaponTypeDefIter.next();
+		PrismAsserts.assertDefinition(bladePropertyDef, new QName(NS_MY_SCHEMA, WEAPON_BLADE_LOCAL_NAME), 
+				PrismInternalTestUtil.EXTENSION_BLADE_TYPE_QNAME, 1, 1);
+		
+		PrismContainerDefinition<?> weaponContDef = (PrismContainerDefinition<?>)schemaDefIter.next();
+		assertEquals("Wrong complex type def in weaponContDef", weaponTypeDef, weaponContDef.getComplexTypeDefinition());
 		// TODO: more asserts
 		
 	}

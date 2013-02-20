@@ -60,7 +60,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		return defaultNamespace;
 	}
 
-	public void setDefaultNamespace(String defaultNamespace) {
+	public synchronized void setDefaultNamespace(String defaultNamespace) {
 		this.defaultNamespace = defaultNamespace;
 	}
 	
@@ -75,15 +75,19 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	}
 
 	@Override
-	public void registerPrefix(String namespace, String prefix, boolean isDefaultNamespace) {
-		globalNamespacePrefixMap.put(namespace, prefix);
+	public synchronized void registerPrefix(String namespace, String prefix, boolean isDefaultNamespace) {
+		registerPrefixGlobal(namespace, prefix);
 		if (isDefaultNamespace || prefix == null) {
 			defaultNamespace = namespace;
 		}
 	}
 	
+	public static synchronized void registerPrefixGlobal(String namespace, String prefix) {
+		globalNamespacePrefixMap.put(namespace, prefix);
+	}
+	
 	@Override
-	public void registerPrefixLocal(String namespace, String prefix) {
+	public synchronized void registerPrefixLocal(String namespace, String prefix) {
 		localNamespacePrefixMap.put(namespace, prefix);
 	}
 	
@@ -95,7 +99,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		return getPrefixExplicit(namespace);
 	}
 	
-	public String getPrefixExplicit(String namespace) {
+	public synchronized String getPrefixExplicit(String namespace) {
 		String prefix = localNamespacePrefixMap.get(namespace);
 		if (prefix == null) {
 			return getPreferredPrefix(namespace);
@@ -173,7 +177,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 	}
 	
 	@Override
-	public GlobalDynamicNamespacePrefixMapper clone() {
+	public synchronized GlobalDynamicNamespacePrefixMapper clone() {
 		GlobalDynamicNamespacePrefixMapper clone = new GlobalDynamicNamespacePrefixMapper();
 		clone.defaultNamespace = this.defaultNamespace;
 		clone.localNamespacePrefixMap = clonePrefixMap(this.localNamespacePrefixMap);
