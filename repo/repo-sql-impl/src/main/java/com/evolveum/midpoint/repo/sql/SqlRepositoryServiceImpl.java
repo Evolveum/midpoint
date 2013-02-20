@@ -350,10 +350,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
                 long time = System.currentTimeMillis();
-                LOGGER.debug("Org. structure closure table update started.");
+                LOGGER.trace("Org. structure closure table update started.");
                 objectType.setOid(oid);
                 fillHierarchy(objectType, session);
-                LOGGER.debug("Org. structure closure table update finished ({} ms).", new Object[]{(System.currentTimeMillis() - time)});
+                LOGGER.trace("Org. structure closure table update finished ({} ms).", new Object[]{(System.currentTimeMillis() - time)});
             }
 
 			session.getTransaction().commit();
@@ -599,7 +599,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
+		LOGGER.trace("Searching objects of type '{}', query (on trace level), offset {}, count {}.", new Object[] {
 				type.getSimpleName(),
 				((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().getOffset()),
 				((query == null || query.getPaging() == null) ? "undefined" : query.getPaging().getMaxSize()) });

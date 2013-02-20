@@ -118,6 +118,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 					LOGGER.error("Exception {} thrown by object change listener {}: {}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
                     parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange").recordWarning("Change listener has thrown unexpected exception", e);
+                    throw e;
 				}
 			}
 		} else {
