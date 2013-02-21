@@ -455,11 +455,16 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		syncSituationDeltas.add(syncSituationDelta);
 		}
 		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object));
-	
+		
 		try {
 
 			repositoryService.modifyObject(objectType.getClass(), object.getOid(), syncSituationDeltas, parentResult);
 		} catch (ObjectNotFoundException ex) {
+			if (change.getObjectDelta() != null && change.getObjectDelta().isDelete()){
+				LOGGER.warn("Could not update situation in account, because account does not exist. {}", ex);
+				parentResult.recordPartialError("Could not update situation in account, because account does not exist. ", ex);
+				return;
+			}
 			LoggingUtils.logException(LOGGER,
 					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
 							+ ObjectTypeUtil.toShortString(objectType), ex);
