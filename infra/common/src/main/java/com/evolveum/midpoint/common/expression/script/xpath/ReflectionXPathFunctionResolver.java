@@ -31,8 +31,8 @@ import javax.xml.xpath.XPathFunction;
 import javax.xml.xpath.XPathFunctionException;
 import javax.xml.xpath.XPathFunctionResolver;
 
-import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
-import com.evolveum.midpoint.common.expression.FunctionLibrary;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;

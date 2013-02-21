@@ -971,6 +971,9 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     }
     
     public void checkConsistence(boolean requireOid, boolean requireDefinition, boolean prohibitRaw) {
+    	if (prismContext == null) {
+    		throw new IllegalStateException("No prism context in "+this);
+    	}
     	if (getChangeType() == ChangeType.ADD) {
 			if (getModifications() != null && !getModifications().isEmpty()) {
 				throw new IllegalStateException("Modifications present in ADD delta "+this);

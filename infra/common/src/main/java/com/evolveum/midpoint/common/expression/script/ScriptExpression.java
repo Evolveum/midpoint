@@ -20,9 +20,9 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
-import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
-import com.evolveum.midpoint.common.expression.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;

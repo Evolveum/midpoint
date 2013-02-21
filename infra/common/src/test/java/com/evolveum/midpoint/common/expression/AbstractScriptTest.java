@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;

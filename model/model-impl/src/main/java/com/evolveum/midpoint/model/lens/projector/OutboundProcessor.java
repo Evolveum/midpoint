@@ -110,6 +110,8 @@ public class OutboundProcessor {
         ObjectDeltaObject<AccountShadowType> accountOdo = accCtx.getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
+        
+        String operation = accCtx.getOperation()==null?null:accCtx.getOperation().getValue();
 
         for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
 			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
@@ -141,6 +143,7 @@ public class OutboundProcessor {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, accCtx.getIteration());
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, accCtx.getIterationToken());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
 			mapping.setRootNode(userOdo);
 			mapping.setOriginType(OriginType.OUTBOUND);
 			

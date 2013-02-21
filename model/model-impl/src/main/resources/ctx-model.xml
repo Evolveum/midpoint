@@ -42,17 +42,17 @@
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
     <context:spring-configured/>
     
-    <bean id="basicFunctionObject" class="com.evolveum.midpoint.common.expression.BasicExpressionFunctions"
+    <bean id="basicFunctionObject" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.common.expression.BasicExpressionFunctionsXPath"
+    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath"
           scope="singleton">
-          <constructor-arg type="com.evolveum.midpoint.common.expression.BasicExpressionFunctions" ref="basicFunctionObject"/>
+          <constructor-arg type="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions" ref="basicFunctionObject"/>
     </bean>
     
-    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.common.expression.FunctionLibrary"
+    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="basic"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"/>
@@ -63,8 +63,22 @@
             <ref bean="basicFunctionObjectXml"/>
         </property>
     </bean>
+
+    <bean id="logFunctionObject" class="com.evolveum.midpoint.common.expression.functions.LogExpressionFunctions"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+    </bean>
     
-    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.FunctionLibrary"
+    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+          scope="singleton">
+        <property name="variableName" value="log"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-2"/>
+        <property name="genericFunctions">
+            <ref bean="logFunctionObject"/>
+        </property>
+    </bean>
+    
+    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="midpoint"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
@@ -97,6 +111,7 @@
           <constructor-arg>
         	<list>
         		<ref bean="basicFunctionLibrary"/>
+        		<ref bean="logFunctionLibrary"/>
         		<ref bean="midpointFunctionLibrary"/>
         	</list>
         </constructor-arg>

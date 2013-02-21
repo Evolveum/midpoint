@@ -26,8 +26,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
-import com.evolveum.midpoint.common.expression.FunctionLibrary;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectResolver;

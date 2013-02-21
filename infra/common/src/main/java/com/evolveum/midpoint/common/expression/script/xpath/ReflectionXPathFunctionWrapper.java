@@ -27,8 +27,9 @@ import java.util.List;
 import javax.xml.xpath.XPathFunction;
 import javax.xml.xpath.XPathFunctionException;
 
-import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
-import com.evolveum.midpoint.common.expression.BasicExpressionFunctionsXPath;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath;
+import com.evolveum.midpoint.common.expression.functions.LogExpressionFunctions;
 import com.evolveum.midpoint.util.ReflectionUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,7 +63,7 @@ private static final Object LOG_FUNCTION_NAME = "logDebug";
 	@Override
 	public Object evaluate(List argList) throws XPathFunctionException {
 		if (enableDebug && LOG_FUNCTION_NAME.equals(functionName)) {
-			BasicExpressionFunctions.LOGGER.debug("Expression debug: {}", ReflectionUtil.debugDumpArgList(argList));
+			LogExpressionFunctions.LOGGER.debug("{}", ReflectionUtil.debugDumpArgList(argList));
 			return null;
 		}
 				

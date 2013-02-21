@@ -46,6 +46,11 @@ public class TraceManager {
         return new TraceImpl(LOGGER);
     }
     
+    public static Trace getTrace(String loggerName) {
+        Logger LOGGER = org.slf4j.LoggerFactory.getLogger(loggerName);
+        return new TraceImpl(LOGGER);
+    }
+    
     public static ILoggerFactory getILoggerFactory() {
     	return LoggerFactory.getILoggerFactory();
     }

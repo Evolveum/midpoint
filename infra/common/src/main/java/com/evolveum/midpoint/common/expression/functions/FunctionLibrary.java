@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2012 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.expression;
+package com.evolveum.midpoint.common.expression.functions;
 
 /**
  * @author semancik

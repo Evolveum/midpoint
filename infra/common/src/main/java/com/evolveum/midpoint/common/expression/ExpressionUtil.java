@@ -23,6 +23,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath;
+import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;

@@ -207,6 +207,19 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		}
 		return false;
 	}
+    
+    public boolean isModify() {
+		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
+			return true;
+		}
+		if (ObjectDelta.isModify(getPrimaryDelta())) {
+			return true;
+		}
+		if (ObjectDelta.isModify(getSecondaryDelta())) {
+			return true;
+		}
+		return false;
+	}
 
 	public boolean isDelete() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
@@ -825,6 +838,16 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	@Override
 	public String toString() {
 		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() + ")";
+	}
+
+	public AccountOperation getOperation() {
+		if (isAdd()) {
+			return AccountOperation.ADD;
+		}
+		if (isDelete()) {
+			return AccountOperation.DELETE;
+		}
+		return AccountOperation.MODIFY;
 	}
 
 }

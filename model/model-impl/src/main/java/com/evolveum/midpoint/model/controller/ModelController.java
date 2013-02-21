@@ -323,6 +323,10 @@ public class ModelController implements ModelService, ModelInteractionService {
 			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
 		}
 		
+		for(ObjectDelta<? extends ObjectType> delta: deltas) {
+			delta.checkConsistence();
+		}
+		
 		RepositoryCache.enter();
         setRequesteeIfNecessary(task, deltas, result);
 		Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = null;

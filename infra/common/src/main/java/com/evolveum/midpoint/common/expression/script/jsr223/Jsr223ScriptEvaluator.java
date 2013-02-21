@@ -35,8 +35,8 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.BasicExpressionFunctions;
-import com.evolveum.midpoint.common.expression.FunctionLibrary;
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
+import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;

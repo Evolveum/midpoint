@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.expression;
+package com.evolveum.midpoint.common.expression.functions;
 
 import java.util.ArrayList;
 import java.util.Collection;

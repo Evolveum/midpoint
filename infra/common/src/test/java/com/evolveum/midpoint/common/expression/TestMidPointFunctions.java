@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
