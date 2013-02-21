@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescr
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
@@ -198,6 +199,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("GET");
         PrismObject<TaskType> getTask = null;
         getTask = repositoryService.getObject(TaskType.class, taskOid, result);
+        String lastVersion = getTask.getVersion();
         AssertJUnit.assertTrue(task.equivalent(getTask));
         TaskType taskType = null;
         taskType = getTask.asObjectable();
@@ -220,6 +222,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
         AssertJUnit.assertEquals("1", objectRef.getOid());
+        SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
+        lastVersion = getTask.getVersion();
 
         checkReference(taskOid);
         System.out.println("MODIFY");
@@ -238,6 +242,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         objectRef = taskType.getObjectRef();
         AssertJUnit.assertEquals("2", objectRef.getOid());
         LOGGER.info(prismContext.silentMarshalObject(taskType, LOGGER));
+        SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
+        lastVersion = getTask.getVersion();
 
         modifications.clear();
         delta = new ReferenceDelta(def);
@@ -253,6 +259,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
         AssertJUnit.assertEquals("1", objectRef.getOid());
+        SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
+        lastVersion = getTask.getVersion();
     }
 
     private void checkReference(String taskOid) {
@@ -346,6 +354,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         user = prismContext.getPrismDomProcessor().parseObject(userFile);
         PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, result);
         AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
+        String lastVersion = readUser.getVersion();
 
         Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
@@ -363,6 +372,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         readUser = repositoryService.getObject(UserType.class, oid, result);
         AssertJUnit.assertTrue("User was not modified correctly", user.diff(readUser).isEmpty());
+        
+        SqlRepoTestUtil.assertVersionProgress(lastVersion, readUser.getVersion());
     }
 
     @Test
