@@ -68,7 +68,7 @@ public class PasswordPanel extends InputPanel {
         password2.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(password2);
         
-        password1.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+        password1.add(new AjaxFormComponentUpdatingBehavior("onChange") {
 			
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -119,7 +119,7 @@ public class PasswordPanel extends InputPanel {
             if (StringUtils.isEmpty(s1) && StringUtils.isEmpty(s2)) {
                 return;
             }
-
+            
             boolean equal = s1 != null ? s1.equals(s2) : s2 == null;
             if (!equal) {
                 error(p1.newValidatable(), "passwordPanel.error");
