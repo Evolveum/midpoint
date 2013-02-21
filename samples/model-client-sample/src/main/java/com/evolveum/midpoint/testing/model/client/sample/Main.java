@@ -111,7 +111,10 @@ public class Main {
 			System.out.println(sailorRole);
 			
 			String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
+			System.out.println("Created user, OID: "+userGuybrushoid);
+			
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
+			System.out.println("Created user password");
 			
 			assignRoles(modelPort, userGuybrushoid, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
 			System.out.println("Assigned roles");
@@ -123,6 +126,10 @@ public class Main {
 			System.out.println("Found requestable roles");
 			System.out.println(roles);
 			
+			// Uncomment the following line if you want to see what midPoint really did
+			// ... because deleting the user will delete also all the traces (except logs and audit of course).
+			deleteUser(modelPort, userGuybrushoid);
+			System.out.println("Deleted user");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -298,6 +305,9 @@ public class Main {
 		return (Collection) objectList.getObject();
 	}
 	
+	private static void deleteUser(ModelPortType modelPort, String userGuybrushoid) throws FaultMessage {
+		modelPort.deleteObject(getTypeUri(UserType.class), userGuybrushoid);
+	}
 	
 	private static Element parseElement(String stringXml) throws SAXException, IOException {
 		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
