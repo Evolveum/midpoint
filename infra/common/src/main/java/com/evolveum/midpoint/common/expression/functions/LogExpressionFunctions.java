@@ -41,23 +41,23 @@ public class LogExpressionFunctions {
 		this.prismContext = prismContext;
 	}
 	
-	public void error(String format, String... args) {
+	public void error(String format, Object... args) {
 		LOGGER.error(format, args);
 	}
 	
-	public void warn(String format, String... args) {
+	public void warn(String format, Object... args) {
 		LOGGER.warn(format, args);
 	}
 
-	public void info(String format, String... args) {
+	public void info(String format, Object... args) {
 		LOGGER.info(format, args);
 	}
 	
-	public void debug(String format, String... args) {
+	public void debug(String format, Object... args) {
 		LOGGER.debug(format, args);
 	}
 
-	public void trace(String format, String... args) {
+	public void trace(String format, Object... args) {
 		LOGGER.trace(format, args);
 	}
 

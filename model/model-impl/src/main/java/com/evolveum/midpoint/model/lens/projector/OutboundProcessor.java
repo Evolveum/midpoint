@@ -111,7 +111,7 @@ public class OutboundProcessor {
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
         
-        String operation = accCtx.getOperation()==null?null:accCtx.getOperation().getValue();
+        String operation = accCtx.getOperation().getValue();
 
         for (QName attributeName : rAccount.getNamesOfAttributesWithOutboundExpressions()) {
 			RefinedAttributeDefinition refinedAttributeDefinition = rAccount.getAttributeDefinition(attributeName);
