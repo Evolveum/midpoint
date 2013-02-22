@@ -44,6 +44,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_ACTIVATION = "activation";
+    public static final String F_RELATION = "relation";
 
     private String name;
     private AssignmentEditorDtoType type;
@@ -197,6 +198,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
     public String getDescription() {
         return newAssignment.getDescription();
+    }
+
+    public String getRelation() {
+        ObjectReferenceType ref = newAssignment.getTargetRef();
+        if (ref == null || ref.getRelation() == null) {
+            return null;
+        }
+
+        return ref.getRelation().getLocalPart();
     }
 
     public void setDescription(String description) {

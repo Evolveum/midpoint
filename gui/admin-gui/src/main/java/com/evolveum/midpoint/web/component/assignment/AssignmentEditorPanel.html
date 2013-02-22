@@ -32,8 +32,16 @@
             <div wicket:id="body" class="assignmentBody">
                 <!--body-->
                 <div class="assignmentDescription">
-                    <span><wicket:message key="AssignmentEditorPanel.description"/></span>
+                    <span style="width: 70px; display: inline-block;">
+                        <wicket:message key="AssignmentEditorPanel.description"/>
+                    </span>
                     <input type="text" wicket:id="description"/>
+                </div>
+                <div class="assignmentDescription">
+                    <span style="width: 70px; display: inline-block;">
+                        <wicket:message key="AssignmentEditorPanel.relation"/>
+                    </span>
+                    <input type="text" wicket:id="relation"/>
                 </div>
                 
                 <div class="assignmentBlock">

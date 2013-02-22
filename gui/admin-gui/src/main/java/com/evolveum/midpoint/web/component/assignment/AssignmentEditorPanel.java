@@ -85,6 +85,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
+    private static final String ID_RELATION = "relation";
     private static final String ID_ENABLED = "enabled";
     private static final String ID_VALID_FROM = "validFrom";
     private static final String ID_VALID_TO = "validTo";
@@ -238,6 +239,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         TextField description = new TextField(ID_DESCRIPTION,
                 new PropertyModel(getModel(), AssignmentEditorDto.F_DESCRIPTION));
         body.add(description);
+
+        TextField relation = new TextField(ID_RELATION, new PropertyModel(getModel(), AssignmentEditorDto.F_RELATION));
+        relation.setEnabled(false);
+        body.add(relation);
 
         ThreeStateCheckPanel enabled = new ThreeStateCheckPanel(ID_ENABLED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_ACTIVATION + ".enabled"));
