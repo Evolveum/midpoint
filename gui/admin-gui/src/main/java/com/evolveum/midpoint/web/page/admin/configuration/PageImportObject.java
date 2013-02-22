@@ -89,7 +89,7 @@ public class PageImportObject extends PageAdminConfiguration {
 
 	private void initLayout() {
 		importTypesList.add(getString("pageImportObject.importFromFile"));
-		importTypesList.add(getString("pageImportObject.importFromXml"));
+		importTypesList.add(getString("pageImportObject.useEmbeddedEditor"));
 
 		final Form mainForm = new Form("mainForm");
 		add(mainForm);

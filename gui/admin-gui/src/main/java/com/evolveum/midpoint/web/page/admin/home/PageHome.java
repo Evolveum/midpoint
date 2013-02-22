@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
@@ -204,6 +205,13 @@ public class PageHome extends PageAdminHome {
         workItems.setOutputMarkupId(true);
         accordion.getBodyContainer().add(workItems);
         initWorkItems(workItems);
+
+        workItems.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getWorkflowManager().isEnabled();
+            }
+        });
 	}
 
 	private List<SimpleAccountDto> loadAccounts(PrismObject<UserType> prismUser) {
