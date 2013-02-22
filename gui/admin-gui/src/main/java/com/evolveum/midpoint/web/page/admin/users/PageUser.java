@@ -744,7 +744,7 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                submitPerformed(target);
+                previewSavePerformed(target);
             }
 
             @Override
@@ -1511,7 +1511,7 @@ public class PageUser extends PageAdminUsers {
    		return object;
    	}
 
-    private void submitPerformed(AjaxRequestTarget target) {
+    private void previewSavePerformed(AjaxRequestTarget target) {
         LOGGER.debug("Submit user.");
 
         Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
@@ -1522,10 +1522,8 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper userWrapper = userModel.getObject();
         ObjectDelta delta = null;
         ModelContext changes = null;
-        ModelExecuteOptions options = null;
-        if (forceAction){
-        	options = ModelExecuteOptions.createForce();
-        }
+        ModelExecuteOptions options = forceAction ? ModelExecuteOptions.createForce() : null;
+
         try {
             delta = userWrapper.getObjectDelta();
             if (userWrapper.getOldDelta() != null){

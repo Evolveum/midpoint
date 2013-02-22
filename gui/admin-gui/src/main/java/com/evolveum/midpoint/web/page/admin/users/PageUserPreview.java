@@ -127,7 +127,7 @@ public class PageUserPreview extends PageAdmin {
 		userChangesDto = new UserChangesDto(previewChanges.getFocusContext());
 		accountChangesDto = new AccountChangesDto(previewChanges.getProjectionContexts(),
 				accountsBeforeModify);
-		getSession().setAttribute("prismAccounts", null);
+		getSession().setAttribute("prismAccounts", null);   //todo delete, what is this for? [lazyman]
 		initLayout();
 	}
 
@@ -428,9 +428,6 @@ public class PageUserPreview extends PageAdmin {
 
 			for (SubmitDeltaObjectDto itemDeltaDto : userPropertiesDelta) {
 				PropertyDelta propertyDelta = (PropertyDelta) itemDeltaDto.getItemDelta();
-				if (propertyDelta.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-					continue;
-				}
 				List<SubmitPropertiesDto> values = new ArrayList<SubmitPropertiesDto>();
 
 				if (propertyDelta.getValuesToAdd() != null) {
@@ -438,16 +435,12 @@ public class PageUserPreview extends PageAdmin {
 						if (value instanceof PrismContainerValue) {
 							PrismContainerValue containerValues = (PrismContainerValue) value;
 
-							PropertyDelta delta = null;
-
 							for (Object propertyValueObject : containerValues.getItems()) {
 								if (propertyValueObject instanceof PrismContainer) {
 									continue;
 								}
 								PrismProperty propertyValue = (PrismProperty) propertyValueObject;
-								delta = new PropertyDelta(propertyValue.getDefinition());
-								values.add(new SubmitPropertiesDto((PrismPropertyValue) propertyValue
-										.getValue(), SubmitStatus.ADDING));
+								values.add(new SubmitPropertiesDto(propertyValue.getValue(), SubmitStatus.ADDING));
 							}
 							continue;
 						}
@@ -495,7 +488,7 @@ public class PageUserPreview extends PageAdmin {
 					PrismPropertyValue oldValue = (PrismPropertyValue) valueObject;
 
 					// add old value to list oldValues
-					oldValues.add(oldValue.getValue() != null ? oldValue.getValue().toString() : "");
+					oldValues.add(readableValue(oldValue));
 
 					// test if imported values contains current old value. If
 					// not exist, will add
@@ -504,14 +497,14 @@ public class PageUserPreview extends PageAdmin {
 							continue;
 						}
 						exist = false;
-						String newValueObjectString = newValue.getSubmitedProperties().getValue().toString();
-						if (newValueObjectString.equals(oldValue.getValue().toString())) {
+						String newValueObjectString = readableValue(newValue.getSubmitedProperties());
+						if (newValueObjectString.equals(readableValue(oldValue))) {
 							exist = true;
 							break;
 						}
 					}
 					if (!exist) {
-						newValues.add(oldValue.getValue().toString());
+						newValues.add(readableValue(oldValue));
 					}
 				}
 			}
@@ -523,20 +516,35 @@ public class PageUserPreview extends PageAdmin {
 			if (newValue.getStatus().equals(SubmitStatus.DELETING)) {
 				continue;
 			}
-			String stringValue;
-			Object newValueObject = newValue.getSubmitedProperties().getValue();
-			if (newValueObject instanceof PolyString) {
-				PolyString polyStringValue = (PolyString) newValueObject;
-				stringValue = polyStringValue.getOrig() != null ? newValueObject.toString() : "";
-			} else {
-				stringValue = newValueObject != null ? newValueObject.toString() : "";
-			}
+			String stringValue = readableValue(newValue.getSubmitedProperties());
 			newValues.add(stringValue);
 		}
 
 		return new SubmitUserDto(attribute, StringUtils.join(oldValues, ", "),
 				StringUtils.join(newValues, ", "), getString("OriginType." + originType), secondaryValue);
 	}
+
+    private String readableValue(PrismPropertyValue prismValue) {
+        if (prismValue == null || prismValue.getValue() == null) {
+            return getString("PageUserPreview.nullValue");
+        }
+
+        Object value = prismValue.getValue();
+        if (value instanceof ProtectedStringType) {
+            ProtectedStringType pString = (ProtectedStringType) value;
+            if (pString.getClearValue() == null && pString.getEncryptedData() == null) {
+                return getString("PageUserPreview.nullValue");
+            }
+            return getString("PageUserPreview.passwordValue");
+        } else if (value instanceof PolyString) {
+            PolyString poly = (PolyString) value;
+            return poly.getOrig() != null ? poly.getOrig() : getString("PageUserPreview.nullValue");
+        } else if ((value instanceof String) && StringUtils.isEmpty((String) value)) {
+            return getString("PageUserPreview.emptyValue");
+        }
+
+        return value.toString();
+    }
 
 	private String getReferenceFromAssignment(PrismValue assignment) {
 		Task task = createSimpleTask("getRefFromAssignment: Load role");
