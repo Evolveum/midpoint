@@ -146,10 +146,26 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			return (T)rawValue;
 		}
 		
+		// Primitive types
 		if (expectedType == boolean.class && rawValue instanceof Boolean) {
 			return (T) ((Boolean)rawValue);
 		}
-		
+		if (expectedType.equals(int.class) && rawValue instanceof Integer) {
+			return (T)((Integer)rawValue);
+		}
+		if (expectedType.equals(long.class) && rawValue instanceof Long) {
+			return (T)((Long)rawValue);
+		}
+		if (expectedType.equals(float.class) && rawValue instanceof Float) {
+			return (T)((Float)rawValue);
+		}
+		if (expectedType.equals(double.class) && rawValue instanceof Double) {
+			return (T)((Double)rawValue);
+		}
+		if (expectedType.equals(byte.class) && rawValue instanceof Byte) {
+			return (T)((Byte)rawValue);
+		}
+
 		if (expectedType.equals(PolyString.class) && rawValue instanceof String) {
 			return (T) new PolyString((String)rawValue);
 		}

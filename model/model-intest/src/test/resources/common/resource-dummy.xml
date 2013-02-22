@@ -215,7 +215,9 @@
 				<outbound>
 					<channel>http://pirates.net/avast</channel>
 					<expression>
-						<value>10000</value>
+						<script>
+							<code>9999 + 1</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
