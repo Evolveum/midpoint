@@ -198,6 +198,7 @@ public class TaskManagerConfiguration {
     static {
         addDbInfo("org.hibernate.dialect.H2Dialect", "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.PostgreSQLDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
+        addDbInfo("org.hibernate.dialect.PostgresPlusDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
         addDbInfo("org.hibernate.dialect.MySQLDialect", "tables_mysql.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.MySQLInnoDBDialect", "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         addDbInfo("org.hibernate.dialect.OracleDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
@@ -266,7 +267,12 @@ public class TaskManagerConfiguration {
         notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or in SQL repository configuration).");
         notNull(jdbcUser, "JDBC user name must be specified (either explicitly or in SQL repository configuration).");
         notNull(jdbcPassword, "JDBC password must be specified (either explicitly or in SQL repository configuration).");
-        notEmpty(jdbcDriverDelegateClass, "JDBC driver delegate class must be specified (either explicitly or through one of supported Hibernate dialects).");
+        if (StringUtils.isEmpty(jdbcDriverDelegateClass)) {
+            throw new TaskManagerConfigurationException("JDBC driver delegate class must be specified (either explicitly or "
+                    + "through one of supported Hibernate dialects). It seems that the currently specified dialect ("
+                    + hibernateDialect + ") is not among supported dialects (" + delegates.keySet() + "). "
+                    + "Please check " + TaskManagerConfiguration.class.getName() + " class or specify driver delegate explicitly.");
+        }
         notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");
     }
 
