@@ -97,6 +97,7 @@ public class PageUsers extends PageAdminUsers {
     public static final String PARAM_GIVEN_NAME = "givenName";
     public static final String PARAM_FAMILY_NAME = "familyName";
     public static final String PARAM_FROM = "from";
+    public static final String PARAM_USERS_RETURN = "users";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";

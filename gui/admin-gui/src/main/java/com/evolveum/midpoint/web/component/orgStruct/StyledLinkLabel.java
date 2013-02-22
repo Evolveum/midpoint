@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.LabeledLinkPanel;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -133,7 +134,9 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
         }
 
         PageParameters parameters = new PageParameters();
+        parameters.add(PageUser.PARAM_RETURN_PAGE, PageOrgStruct.PARAM_ORG_RETURN);
         parameters.add(PageUser.PARAM_USER_ID, t.getOid());
+        
         setResponsePage(PageUser.class, parameters);
     }
 

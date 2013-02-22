@@ -145,7 +145,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         // todo mount used for performance tests, will be implemented properly in next release
         // mount(new MountedMapperWithoutPageComponentInfo("/admin/users", PageUsers.class, new PageUsersEncoder()));
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
-        mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
+        mount(new MountedMapper("/admin/user", PageUser.class, encoder));
+//        mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
         mount(new MountedMapper("/admin/userPreview", PageUserPreview.class, encoder));
         mount(new MountedMapper("/admin/orgStruct", PageOrgStruct.class, encoder));
 

@@ -53,6 +53,7 @@ public class PageOrgStruct extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgStruct.class);
 
+    public static final String PARAM_ORG_RETURN = "org";
     private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
 	private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 	private IModel<List<PrismObject<OrgType>>> roots;

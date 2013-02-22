@@ -122,6 +122,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";
+    public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
@@ -137,6 +138,9 @@ public class PageUser extends PageAdminUsers {
     private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
     private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
+    
+    //TODO: uncoment later -> confirm to leave the page when changes were made
+//    private static final String MODAL_ID_CONFIRM_CANCEL = "confirmCancelPopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ACCOUNT_BUTTONS = "accountsButtons";
@@ -159,11 +163,11 @@ public class PageUser extends PageAdminUsers {
 	// it should be sent from submit. If the user is on the preview page and
 	// than he wants to get back to the edit page, the object delta is set, so
 	// we don't loose any changes
-    private ObjectDelta objectDelta;
-    
-    public ObjectDelta getObjectDelta() {
-		return objectDelta;
-	}
+//    private ObjectDelta objectDelta;
+//    
+//    public ObjectDelta getObjectDelta() {
+//		return objectDelta;
+//	}
 
     public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid){
     	
@@ -520,6 +524,26 @@ public class PageUser extends PageAdminUsers {
             }
         };
         add(dialog);
+        
+        //TODO: uncoment later -> check for unsaved changes
+//        dialog = new ConfirmationDialog(MODAL_ID_CONFIRM_CANCEL,
+//                createStringResource("pageUser.title.confirmCancel"), new AbstractReadOnlyModel<String>() {
+//
+//            @Override
+//            public String getObject() {
+//                return createStringResource("pageUser.message.cancelConfirm",
+//                        getSelectedAssignments().size()).getString();
+//            }
+//        }) {
+//
+//            @Override
+//            public void yesPerformed(AjaxRequestTarget target) {
+//                close(target);
+//                setResponsePage(PageUsers.class);
+////                deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
+//            }
+//        };
+//        add(dialog);
     }
 
     private void initAccounts(AccordionItem accounts) {
@@ -971,7 +995,22 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
-        setResponsePage(PageUsers.class);
+    	//uncoment later -> check for changes to not allow leave the page when some changes were made
+//    	try{
+//    	if (userModel.getObject().getOldDelta() != null && !userModel.getObject().getOldDelta().isEmpty() || userModel.getObject().getObjectDelta() != null && !userModel.getObject().getObjectDelta().isEmpty()){
+//    		showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
+//    	} else{
+    		StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
+    		if (PageOrgStruct.PARAM_ORG_RETURN.equals(orgReturn.toString())){
+    			setResponsePage(PageOrgStruct.class);
+    		} else {
+    			setResponsePage(PageUsers.class);
+    		}
+    		
+//    	}
+//    	}catch(Exception ex){
+//    		LoggingUtils.logException(LOGGER, "Could not return to user list", ex);
+//    	}
     }
 
     private List<ObjectDelta<? extends ObjectType>> modifyAccounts(OperationResult result) {
