@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatusType;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -873,5 +874,11 @@ public class IntegrationTestTools {
     		assertNotInMessageRecursive(e.getCause(), substring);
     	}
     }
+    
+    public static void assertNoRepoCache() {
+		if (RepositoryCache.exists()) {
+			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
+		}
+	}
 
 }

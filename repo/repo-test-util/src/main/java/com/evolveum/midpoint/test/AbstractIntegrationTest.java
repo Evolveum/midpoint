@@ -333,12 +333,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		result.computeStatus();
 		assertSuccess("Aplying sync settings failed (result)", result);
 	}
-	
-	protected void assertNoRepoCache() {
-		if (RepositoryCache.exists()) {
-			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
-		}
-	}
 
 
 }
