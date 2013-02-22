@@ -123,9 +123,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		if (primaryDelta != null && primaryDelta.containsModification(itemDelta)) {
 			return true;
 		}
-		for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
-			if (waveSecondaryDelta.containsModification(itemDelta)) {
-				return true;
+		if (secondaryDeltas != null) {
+			for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
+				if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta)) {
+					return true;
+				}
 			}
 		}
 		return false;
