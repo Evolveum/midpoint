@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -66,6 +67,11 @@ T object = rowItem.getModel().getObject();
 	        			boolean enabled = !resource.isSigned();
 	        			resource.setSelected(enabled);
 	        			resource.setSigned(enabled);
+	        		} else if (object instanceof TaskDto){
+	        			TaskDto task = (TaskDto) object;
+	        			boolean enabled = !task.isSigned();
+	        			task.setSelected(enabled);
+	        			task.setSigned(enabled);
 	        		}
 	        		return;
 	        	}
