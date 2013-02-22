@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.util.SqlRepoTestUtil;
+import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;

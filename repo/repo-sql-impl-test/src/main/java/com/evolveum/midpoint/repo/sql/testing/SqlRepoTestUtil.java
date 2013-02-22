@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2013 [name of copyright owner]
  */
-package com.evolveum.midpoint.repo.sql.util;
+package com.evolveum.midpoint.repo.sql.testing;
 
 import org.testng.AssertJUnit;
 
