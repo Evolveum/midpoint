@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -180,7 +181,15 @@ public class MiscSchemaUtil {
 	public static Collection<ObjectDelta<? extends ObjectType>> createCollection(ObjectDelta<?>... deltas) {
     	return (Collection)MiscUtil.createCollection(deltas);
     }
-
+    
+    /**
+     * Convenience method that helps avoid some compiler warnings.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Collection<? extends ItemDelta<?>> createCollection(ItemDelta<?>... deltas) {
+    	return (Collection)MiscUtil.createCollection(deltas);
+    }
+    
 	public static Collection<ObjectDelta<? extends ObjectType>> cloneObjectDeltaCollection(
 			Collection<ObjectDelta<? extends ObjectType>> origCollection) {
 		if (origCollection == null) {
