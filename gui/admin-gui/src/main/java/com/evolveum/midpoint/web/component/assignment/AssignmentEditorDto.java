@@ -62,7 +62,6 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         Validate.notNull(type, "Type must not be null.");
         Validate.notNull(assignment, "Assignment must not be null.");
 
-        this.name = getNameForTargetObject(targetObject);
         this.type = type;
         this.status = status;
         this.oldAssignment = assignment;
@@ -78,6 +77,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
             AccountConstructionType construction = oldAssignment.getAccountConstruction();
             newAssignment.setAccountConstruction(construction.clone());
         }
+
+        this.name = getNameForTargetObject(targetObject);
     }
 
     private String getNameForTargetObject(ObjectType object) {
@@ -101,6 +102,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
         if (StringUtils.isNotEmpty(displayName)) {
             builder.append(displayName);
+        }
+
+        if (StringUtils.isNotEmpty(getRelation())) {
+            builder.append(" (").append(getRelation()).append(')');
         }
 
         return builder.toString();
