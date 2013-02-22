@@ -287,7 +287,7 @@ public class PageUser extends PageAdminUsers {
     	}
     	
     	for (ObjectDelta delta : deltas){
-    			if (delta.getObjectToAdd() != null && ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectToAdd().getClass())){
+    			if (delta.getObjectToAdd() != null && ResourceObjectShadowType.class.isAssignableFrom(delta.getObjectToAdd().getCompileTimeClass())){
     				ObjectWrapper ow = new ObjectWrapper(null , null, delta.getObjectToAdd(), ContainerStatus.ADDING);
     				ow.setShowEmpty(true);
     				wrappers.add(new UserAccountDto(ow, UserDtoStatus.ADD));
