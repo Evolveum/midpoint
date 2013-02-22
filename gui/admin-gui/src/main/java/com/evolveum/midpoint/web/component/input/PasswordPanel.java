@@ -72,11 +72,9 @@ public class PasswordPanel extends InputPanel {
 			
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				boolean required = false;
-				if(!StringUtils.isEmpty(password1.getModel().getObject())) {
-					required = true;
-				}
+				boolean required = !StringUtils.isEmpty(password1.getModel().getObject());
 				password2.setRequired(required);
+
 				target.add(password2);
 				target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
 			}

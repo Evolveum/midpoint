@@ -405,34 +405,34 @@ public class ObjectWrapper implements Serializable {
 						}
 					}
 
-					PrismPropertyValue val = valueWrapper.getValue();
-					val.setOriginType(OriginType.USER_ACTION);
+                    PrismPropertyValue newValCloned = clone(valueWrapper.getValue());
+                    PrismPropertyValue oldValCloned = clone(valueWrapper.getOldValue());
 					switch (valueWrapper.getStatus()) {
 					case ADDED:
 						if (SchemaConstants.PATH_PASSWORD.equals(path)) {
 							// password change will always look like add,
 							// therefore we push replace
-							pDelta.setValuesToReplace(Arrays.asList(val.clone()));
+							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
 						} else {
-							pDelta.addValueToAdd(val.clone());
+							pDelta.addValueToAdd(newValCloned);
 						}
 						break;
 					case DELETED:
-						pDelta.addValueToDelete(val.clone());
+						pDelta.addValueToDelete(newValCloned);
 						break;
 					case NOT_CHANGED:
 						// this is modify...
 						if (propertyDef.isSingleValue()) {
-							if (val.getValue() != null) {
-								pDelta.setValuesToReplace(Arrays.asList(val.clone()));
+							if (newValCloned.getValue() != null) {
+								pDelta.setValuesToReplace(Arrays.asList(newValCloned));
 							} else {
-								pDelta.addValueToDelete(valueWrapper.getOldValue().clone());
+								pDelta.addValueToDelete(oldValCloned);
 							}
 						} else {
-							if (val.getValue() != null) {
-								pDelta.addValueToAdd(val.clone());
+							if (newValCloned.getValue() != null) {
+								pDelta.addValueToAdd(newValCloned);
 							}
-							pDelta.addValueToDelete(valueWrapper.getOldValue().clone());
+							pDelta.addValueToDelete(oldValCloned);
 						}
 						break;
 					}
@@ -445,6 +445,19 @@ public class ObjectWrapper implements Serializable {
 
 		return delta;
 	}
+
+    private PrismPropertyValue clone(PrismPropertyValue value) {
+        if (value == null) {
+            return null;
+        }
+        PrismPropertyValue cloned = value.clone();
+        cloned.setOriginType(OriginType.USER_ACTION);
+        if (value.getValue() instanceof ProtectedStringType) {
+            cloned.setValue(((ProtectedStringType)value.getValue()).clone());
+        }
+
+        return cloned;
+    }
 	
 	private boolean hasResourceCapability(ResourceType resource){
 		if (resource == null){
