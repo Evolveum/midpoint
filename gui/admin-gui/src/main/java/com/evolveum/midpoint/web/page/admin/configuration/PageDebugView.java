@@ -2,7 +2,11 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -12,6 +16,7 @@ import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
@@ -34,6 +39,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class PageDebugView extends PageAdminConfiguration {
 
@@ -179,21 +186,50 @@ public class PageDebugView extends PageAdminConfiguration {
         Task task = createSimpleTask(OPERATION_SAVE_OBJECT);
         OperationResult result = task.getResult();
         try {
-            PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
 
             PrismObject<ObjectType> oldObject = dto.getObject();
-            PrismObject<ObjectType> newObject = domProcessor.parseObject(editor.getModel().getObject());
-            ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
-            ModelExecuteOptions options = ModelExecuteOptions.createRaw();
             
-            if(encrypt.getObject()) {
-            	options.setCrypt(true);
-            }  
+            final Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
+            EventHandler handler = new EventHandler() {
+				@Override
+				public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+					return EventResult.cont();
+				}				
+				@Override
+				public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+						OperationResult objectResult) {
+					objectHolder.setValue((PrismObject<ObjectType>) object);
+					return EventResult.cont();
+				}
+				
+				@Override
+				public void handleGlobalError(OperationResult currentResult) {
+				}
+			};
+			Validator validator = new Validator(getPrismContext(), handler );
+            validator.setVerbose(true);
+            validator.setValidateSchema(true);
+            String newXmlString = editor.getModel().getObject();
+            validator.validateObject(newXmlString, result);
+            
+            result.computeStatus();
+            
+            if (result.isAcceptable()) {
+                PrismObject<ObjectType> newObject = objectHolder.getValue();
+                
+                ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
+                ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+                
+                if(encrypt.getObject()) {
+                	options.setCrypt(true);
+                }  
 
-            getModelService().executeChanges(deltas, options, task, result);
+                getModelService().executeChanges(deltas, options, task, result);
+                
+                result.computeStatus();            	
+            }
             
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save object.", ex);
         }

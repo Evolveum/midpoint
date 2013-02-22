@@ -308,25 +308,50 @@ public class Validator {
 	private EventResult readFromStreamAndValidate(XMLStreamReader stream, OperationResult objectResult,
 			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult) {
 
+		objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
+
+		Document objectDoc;
 		try {
-			objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
-
 			// Parse the object from stream to DOM
-			Document objectDoc = domConverter.buildDocument(stream);
+			objectDoc = domConverter.buildDocument(stream);
+		} catch (XMLStreamException ex) {
+			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(), ex);
+			if (handler != null) {
+				handler.handleGlobalError(validatorResult);
+			}
+			objectResult.recordFatalError(ex);
+			return EventResult.skipObject();
+		}
 
-			objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
+		objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
 
-			// This element may not have complete namespace definitions for a
-			// stand-alone
-			// processing, therefore copy namespace definitions from the root
-			// element
-			Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
-			DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
+		// This element may not have complete namespace definitions for a
+		// stand-alone
+		// processing, therefore copy namespace definitions from the root
+		// element
+		Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
+		DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
 
+		return validateObjectInternal(objectElement, objectResult, validatorResult);
+			
+	}
+	
+	public EventResult validateObject(String stringXml, OperationResult objectResult) {
+		Document objectDoc = DOMUtil.parseDocument(stringXml);
+		Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
+		return validateObjectInternal(objectElement, objectResult, objectResult);
+	}
+	
+	public EventResult validateObject(Element objectElement, OperationResult objectResult) {
+		return validateObjectInternal(objectElement, objectResult, objectResult);
+	}
+
+	private EventResult validateObjectInternal(Element objectElement, OperationResult objectResult, OperationResult validatorResult) {
+		try {
 			Node postValidationTree = null;
 
 			if (validateSchemas) {
-				postValidationTree = validateSchema(objectDoc, objectResult);
+				postValidationTree = validateSchema(objectElement, objectResult);
 				if (postValidationTree == null) {
 					// There was an error
 					return EventResult.skipObject(objectResult.getMessage());
@@ -416,18 +441,11 @@ public class Validator {
 			}
 			objectResult.recordFatalError(ex);
 			return EventResult.skipObject();
-
-		} catch (XMLStreamException ex) {
-			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(), ex);
-			if (handler != null) {
-				handler.handleGlobalError(validatorResult);
-			}
-			objectResult.recordFatalError(ex);
-			return EventResult.skipObject();
 		}
+		
 	}
 
-	private Node validateSchema(Document objectDoc, OperationResult objectResult) {
+	private Node validateSchema(Element objectDoc, OperationResult objectResult) {
 		OperationResult result = objectResult.createSubresult(Validator.class.getName() + ".validateSchema");
 		DOMResult validationResult = new DOMResult();
 		try {
