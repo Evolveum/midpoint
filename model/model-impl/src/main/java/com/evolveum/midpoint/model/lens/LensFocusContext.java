@@ -106,6 +106,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
     
     public void swallowToProjectionWaveSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
+    	if (alreadyHaveDelta(propDelta)) {
+    		return;
+    	}
 		ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
 		if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
@@ -115,7 +118,20 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
         
-    /**
+	private boolean alreadyHaveDelta(ItemDelta<?> itemDelta) {
+		ObjectDelta<O> primaryDelta = getPrimaryDelta();
+		if (primaryDelta != null && primaryDelta.containsModification(itemDelta)) {
+			return true;
+		}
+		for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
+			if (waveSecondaryDelta.containsModification(itemDelta)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
      * Returns user delta, both primary and secondary (merged together) for a current wave.
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */

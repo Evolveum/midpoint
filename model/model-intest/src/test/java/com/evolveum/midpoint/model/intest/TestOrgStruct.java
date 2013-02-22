@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -376,6 +377,61 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
+	}
+	
+	/**
+	 * Assign jack to functional orgstruct again.
+	 */
+	@Test
+    public void test301JackAssignMinistryOfOffense() throws Exception {
+		final String TEST_NAME = "test301JackAssignMinistryOfOffense";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_OFFENSE_OID, task, result);
+        
+        // THEN
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignments(userJack, 1);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(userJack, 1);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	/**
+	 * Delete jack while he is still assigned.
+	 */
+	@Test
+    public void test309DeleteJack() throws Exception {
+		final String TEST_NAME = "test309DeleteJack";
+        displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+        result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+        try {
+        	PrismObject<UserType> user = getUser(USER_JACK_OID);
+        	AssertJUnit.fail("Jack survived!");
+        } catch (ObjectNotFoundException e) {
+        	// This is expected
+        }
 	}
 
 }
