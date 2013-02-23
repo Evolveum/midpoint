@@ -150,20 +150,21 @@ public class LocalNodeManager {
             throw new TaskManagerInitializationException("Cannot create JDBC connection to Quartz Job Store", e);
         }
         try {
-            try {
-                connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
-            } catch (SQLException ignored) {
+            if (!doQuartzTablesExist(connection)) {
                 try {
                     Reader scriptReader = getResourceReader(configuration.getSqlSchemaFile());
 
                     ScriptRunner runner = new ScriptRunner(connection, false, true);
                     runner.runScript(scriptReader);
 
-//                    connection.prepareStatement(statements).executeUpdate();
                 } catch (IOException ex) {
                     throw new TaskManagerInitializationException("Could not read Quartz database schema file: " + configuration.getSqlSchemaFile(), ex);
                 } catch (SQLException e) {
                     throw new TaskManagerInitializationException("Could not create Quartz JDBC Job Store tables from " + configuration.getSqlSchemaFile(), e);
+                }
+
+                if (!doQuartzTablesExist(connection)) {
+                    throw new TaskManagerInitializationException("Quartz tables seem not to exist even after running creation script.");
                 }
             }
         } finally {
@@ -171,6 +172,17 @@ public class LocalNodeManager {
                 connection.close();
             } catch (SQLException ignored) {
             }
+        }
+    }
+
+    private boolean doQuartzTablesExist(Connection connection) {
+        try {
+            connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
+            LOGGER.trace("Quartz tables seem to exist (at least QRTZ_JOB_DETAILS does).");
+            return true;
+        } catch (SQLException ignored) {
+            LOGGER.trace("Quartz tables seem not to exist (at least QRTZ_JOB_DETAILS does not), we got an exception when trying to access it", ignored);
+            return false;
         }
     }
 
