@@ -74,11 +74,12 @@ public class ValuePolicyGenerator {
 				+ policy.getDescription());
 		inputResult.addSubresult(generatorResult);
 
-//		if (policy.getLimitations() != null && policy.getLimitations().getMinLength() != null){
-//			generateMinimalSize = true;
-//		}
+		// if (policy.getLimitations() != null &&
+		// policy.getLimitations().getMinLength() != null){
+		// generateMinimalSize = true;
+		// }
 		// setup default values where missing
-//		PasswordPolicyUtils.normalize(pp);
+		// PasswordPolicyUtils.normalize(pp);
 
 		// Optimize usage of limits ass hashmap of limitas and key is set of
 		// valid chars for each limitation
@@ -95,12 +96,15 @@ public class ValuePolicyGenerator {
 		}
 
 		// Get global limitations
-		int minLen = policy.getLimitations().getMinLength() == null ? 0 : policy.getLimitations().getMinLength().intValue();
-		if (minLen != 0 && minLen > defaultLength){
+		int minLen = policy.getLimitations().getMinLength() == null ? 0 : policy.getLimitations().getMinLength()
+				.intValue();
+		if (minLen != 0 && minLen > defaultLength) {
 			defaultLength = minLen;
 		}
-		int maxLen = (policy.getLimitations().getMaxLength() == null ? defaultLength : policy.getLimitations().getMaxLength().intValue());
-		int unique = policy.getLimitations().getMinUniqueChars() == null ? minLen : policy.getLimitations().getMinUniqueChars().intValue();
+		int maxLen = (policy.getLimitations().getMaxLength() == null ? defaultLength : policy.getLimitations()
+				.getMaxLength().intValue());
+		int unique = policy.getLimitations().getMinUniqueChars() == null ? minLen : policy.getLimitations()
+				.getMinUniqueChars().intValue();
 
 		// test correctness of definition
 		if (unique > minLen) {
@@ -109,8 +113,8 @@ public class ValuePolicyGenerator {
 			reportBug
 					.recordWarning("There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
 		}
-		
-		if (minLen == 0 && maxLen == 0){
+
+		if (minLen == 0 && maxLen == 0) {
 			minLen = defaultLength;
 			generateMinimalSize = true;
 		}
@@ -130,8 +134,8 @@ public class ValuePolicyGenerator {
 
 		// If any limitation was found to be first
 		if (!mustBeFirst.isEmpty()) {
-			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null,
-					false, false, generatorResult);
+			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null, false, false,
+					generatorResult);
 			int intersectionCardinality = mustBeFirst.keySet().size();
 			ArrayList<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
 			// If no intersection was found then raise error
@@ -211,7 +215,7 @@ public class ValuePolicyGenerator {
 		/* ***************************************
 		 * Generate chars to not exceed maximal
 		 */
-		
+
 		for (int i = 0; i < minLen; i++) {
 			// test if max is reached
 			if (password.length() == maxLen) {
@@ -235,23 +239,28 @@ public class ValuePolicyGenerator {
 			// If something goes badly then go out
 			if (null == chars) {
 				// we hope this never happend.
-				generatorResult
-						.recordFatalError("No valid characters to generate, but no all limitation are reached");
+				generatorResult.recordFatalError("No valid characters to generate, but no all limitation are reached");
 				return null;
 			}
 
 			// if selection is empty then no more characters and we can close
 			// our work
 			if (chars.isEmpty()) {
-				if (!StringUtils.isBlank(password.toString()) && password.length() >= minLen){
-					break;
-				}				
-				password.append(RandomStringUtils.randomAlphanumeric(minLen));
+				if (i == 0) {
+					password.append(RandomStringUtils.randomAlphanumeric(minLen));
+					
+				}
 				break;
+//				if (!StringUtils.isBlank(password.toString()) && password.length() >= minLen) {
+//					break;
+//				}
+				// check uf this is a firs cycle and if we need to user some
+				// default (alphanum) character class.
+				
 			}
 
 			// Find lowest possible cardinality and then generate char
-			for (int card = 1; card < lims.keySet().size(); card++) {
+			for (int card = 1; card <= lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
@@ -286,8 +295,8 @@ public class ValuePolicyGenerator {
 	 * Count cardinality
 	 */
 	private static HashMap<Integer, ArrayList<String>> cardinalityCounter(
-			HashMap<StringLimitType, ArrayList<String>> lims, ArrayList<String> password,
-			Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
+			HashMap<StringLimitType, ArrayList<String>> lims, ArrayList<String> password, Boolean skipMatchedLims,
+			boolean uniquenessReached, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
 		for (StringLimitType l : lims.keySet()) {
@@ -299,8 +308,7 @@ public class ValuePolicyGenerator {
 			// If max is exceed then error unable to continue
 			if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
 				OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
-				o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">"
-						+ l.getMaxOccurs());
+				o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
 				op.addSubresult(o);
 				return null;
 				// if max is all ready reached or skip enabled for minimal skip
@@ -329,8 +337,7 @@ public class ValuePolicyGenerator {
 				int i = charIntersectionCounter(lims.get(l), password);
 				if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
 					OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
-					o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">"
-							+ l.getMaxOccurs());
+					o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
 					op.addSubresult(o);
 					return null;
 				} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
