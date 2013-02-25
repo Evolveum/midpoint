@@ -212,23 +212,38 @@ public class PageUser extends PageAdminUsers {
     	
 		for (ObjectDelta delta : deltas){
 			if (delta.getObjectTypeClass().equals(UserType.class)){
-				user = getModelService().getObject(UserType.class, delta.getOid(), null, task, result);
-				ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_ACCOUNT_REF);
-				ObjectDelta clonedDelta = delta.clone();
-				if (refDelta != null && refDelta.isDelete()){
-					clonedDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
+					if (delta.isAdd()) {
+//						UserType userType = new UserType();
+//						getMidpointApplication().getPrismContext().adopt(userType);
+						if (delta.getObjectToAdd() == null){
+							result.recordFatalError("Could not load user after preview.");
+							showResult(result);
+							return null;
+						}
+						user = delta.getObjectToAdd();
+//						user = userType.asPrismObject();
+						wrapper = new ObjectWrapper(null, null, user, ContainerStatus.ADDING);
+						wrapper.setShowEmpty(true);
+						return wrapper;
+					}
+					user = getModelService().getObject(UserType.class, delta.getOid(), null, task, result);
+					ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_ACCOUNT_REF);
+					ObjectDelta clonedDelta = delta.clone();
+					if (refDelta != null && refDelta.isDelete()) {
+						clonedDelta.removeReferenceModification(UserType.F_ACCOUNT_REF);
+					}
+					ContainerDelta assigmentDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
+					if (assigmentDelta != null && assigmentDelta.isDelete()) {
+						ItemDelta.removeItemDelta(clonedDelta.getModifications(), new ItemPath(UserType.F_ASSIGNMENT),
+								ContainerDelta.class);
+					}
+
+					PropertyDelta.applyTo(clonedDelta.getModifications(), user);
+					wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
+					wrapper.setOldDelta(delta);
+					wrapper.setShowEmpty(false);
 				}
-				ContainerDelta assigmentDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
-				if (assigmentDelta != null && assigmentDelta.isDelete()){
-					ItemDelta.removeItemDelta(clonedDelta.getModifications(), new ItemPath(UserType.F_ASSIGNMENT), ContainerDelta.class);
-				}
-				
-				PropertyDelta.applyTo(clonedDelta.getModifications(), user);
-				wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
-				wrapper.setOldDelta(delta);
-		         wrapper.setShowEmpty(false);
 			}
-		}
 		if (wrapper == null && oid != null){
     		user = getModelService().getObject(UserType.class, oid, null, task, result);
     		wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
