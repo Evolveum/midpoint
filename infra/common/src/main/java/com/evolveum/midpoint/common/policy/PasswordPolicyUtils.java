@@ -153,13 +153,6 @@ public class PasswordPolicyUtils {
 		return op.isSuccess();
 	}
 	
-	public static boolean validatePassword(ProtectedStringType password, ValuePolicyType pp) {
-		
-		OperationResult op = validatePassword(password.getClearValue(), pp);
-//		result.addSubresult(op);
-		return op.isSuccess();
-	}
-
 	/**
 	 * Check provided password against provided policy
 	 * 

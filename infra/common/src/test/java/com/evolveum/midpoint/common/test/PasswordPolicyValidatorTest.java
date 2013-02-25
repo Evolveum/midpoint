@@ -69,7 +69,7 @@ public class PasswordPolicyValidatorTest {
 
 	}
 
-	public static final String BASE_PATH = "src/test/resources/";
+	public static final String BASE_PATH = "src/test/resources/policy/";
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
 
@@ -95,7 +95,6 @@ public class PasswordPolicyValidatorTest {
 				.compareTo(sp.getCharacterClass().getValue()));
 	}
 
-	/*******************************************************************************************/
 	@Test
 	public void stringPolicyUtilsComplexTest() {
 		String filename = "password-policy-complex.xml";
@@ -112,54 +111,20 @@ public class PasswordPolicyValidatorTest {
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 	}
-
-	/**
-	 * @throws FileNotFoundException 
-	 * @throws SchemaException  
-	 *  *****************************************************************************************/
+	
 	@Test
-	public void passwordGeneratorComplexTest() throws JAXBException, SchemaException, FileNotFoundException {
+	public void testPasswordGeneratorComplexNegative() throws Exception {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
 		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
-		String psswd;
-		// generate minimal size passwd
-		for (int i = 0; i < 100; i++) {
-			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, true, op);
-			LOGGER.error("Generated password:" + psswd);
-			op.computeStatus();
-			if (!op.isSuccess()) {
-				LOGGER.error("Result:" + op.dump());
-			}
-			AssertJUnit.assertTrue(op.isSuccess());
-			assertNotNull(psswd);
-			ProtectedStringType ps = new ProtectedStringType();
-			ps.setClearValue(psswd);
-			boolean result = PasswordPolicyUtils.validatePassword(ps, pp);
-			assertTrue(result);
-		}
-		// genereata to meet as possible
-		LOGGER.error("-------------------------");
-		// Generate up to possible
-		for (int i = 0; i < 100; i++) {
-			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, false, op);
-			LOGGER.error("Generated password:" + psswd);
-			op.computeStatus();
-			if (!op.isSuccess()) {
-				LOGGER.error("Result:" + op.dump());
-			}
-			AssertJUnit.assertTrue(op.isSuccess());
-			assertNotNull(psswd);
-
-		}
+		
 		op = new OperationResult("passwordGeneratorComplexTest");
 		// Make switch some cosistency
 		pp.getStringPolicy().getLimitations().setMinLength(2);
 		pp.getStringPolicy().getLimitations().setMinUniqueChars(5);
-		psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, op);
+		String psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, op);
 		op.computeStatus();
 		assertNotNull(psswd);
 		AssertJUnit.assertTrue(op.isAcceptable());
@@ -168,17 +133,72 @@ public class PasswordPolicyValidatorTest {
 		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
 			l.setMustBeFirst(true);
 		}
-		LOGGER.error("Negative testing: passwordGeneratorComplexTest");
+		LOGGER.info("Negative testing: passwordGeneratorComplexTest");
 		psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, op);
 		assertNull(psswd);
 		op.computeStatus();
 		AssertJUnit.assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
 	}
+	
+	@Test
+	public void testPasswordGeneratorComplex() throws Exception {
+		passwordGeneratorTest("testPasswordGeneratorComplex", "password-policy-complex.xml");
+	}
+	
+	@Test
+	public void testPasswordGeneratorLong() throws Exception {
+		passwordGeneratorTest("testPasswordGeneratorLong", "password-policy-long.xml");
+	}
 
-	/**
-	 * @throws FileNotFoundException 
-	 * @throws SchemaException 
-	 * *****************************************************************************************/
+	@Test
+	public void testPasswordGeneratorNumeric() throws Exception {
+		passwordGeneratorTest("testPasswordGeneratorNumeric", "password-policy-numeric.xml");
+	}
+
+	public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, FileNotFoundException {
+		LOGGER.info("===[ {} ]===", TEST_NAME);
+		String pathname = BASE_PATH + policyFilename;
+		File file = new File(pathname);
+		LOGGER.info("Positive testing {}: {}", TEST_NAME, policyFilename);
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		OperationResult op = new OperationResult(TEST_NAME);
+		
+		String psswd;
+		// generate minimal size passwd
+		for (int i = 0; i < 100; i++) {
+			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, true, op);
+			LOGGER.info("Generated password:" + psswd);
+			op.computeStatus();
+			if (!op.isSuccess()) {
+				LOGGER.info("Result:" + op.dump());
+				AssertJUnit.fail("Password generator failed:\n"+op.dump());
+			}
+			assertNotNull(psswd);
+			assertPassword(psswd, pp);
+		}
+		// genereata to meet as possible
+		LOGGER.info("-------------------------");
+		// Generate up to possible
+		for (int i = 0; i < 100; i++) {
+			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, false, op);
+			LOGGER.info("Generated password:" + psswd);
+			op.computeStatus();
+			if (!op.isSuccess()) {
+				LOGGER.info("Result:" + op.dump());
+			}
+			AssertJUnit.assertTrue(op.isSuccess());
+			assertNotNull(psswd);
+
+		}
+	}
+
+	private void assertPassword(String passwd, ValuePolicyType pp) {
+		OperationResult validationResult = PasswordPolicyUtils.validatePassword(passwd, pp);
+		if (!validationResult.isSuccess()) {
+			AssertJUnit.fail(validationResult.dump());
+		}
+	}
+
 	@Test
 	public void passwordValidationTest() throws JAXBException, SchemaException, FileNotFoundException {
 		String filename = "password-policy-complex.xml";
@@ -203,10 +223,6 @@ public class PasswordPolicyValidatorTest {
 		return (op.isSuccess());
 	}
 
-	/**
-	 * @throws FileNotFoundException 
-	 * @throws SchemaException 
-	 * *****************************************************************************************/
 	@Test
 	public void passwordValidationMultipleTest() throws JAXBException, SchemaException, FileNotFoundException {
 		String filename = "password-policy-complex.xml";
@@ -231,10 +247,6 @@ public class PasswordPolicyValidatorTest {
 		
 	}
 
-	/**
-	 * @throws FileNotFoundException 
-	 * @throws SchemaException 
-	 ** ****************************************************************************************/
 	@Test
 	public void XMLPasswordPolicy() throws JAXBException, SchemaException, FileNotFoundException {
 

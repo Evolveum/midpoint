@@ -98,8 +98,9 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
         
         StringPolicyType elementStringPolicy = null;
         if (generateEvaluatorType.getValuePolicyRef() != null) {
-        	objectResolver.resolve(generateEvaluatorType.getValuePolicyRef(), ValuePolicyType.class,
+        	ValuePolicyType valuePolicyType = objectResolver.resolve(generateEvaluatorType.getValuePolicyRef(), ValuePolicyType.class,
         			"resolving value policy reference in "+contextDescription, result);
+        	elementStringPolicy = valuePolicyType.getStringPolicy();
         }
         
 		return new GenerateExpressionEvaluator<V>(generateEvaluatorType, outputDefinition, protector, elementStringPolicy, prismContext);

@@ -123,7 +123,7 @@ public class ValuePolicyGenerator {
 		 */
 		HashMap<StringLimitType, ArrayList<String>> mustBeFirst = new HashMap<StringLimitType, ArrayList<String>>();
 		for (StringLimitType l : lims.keySet()) {
-			if (l.isMustBeFirst()) {
+			if (l.isMustBeFirst() != null && l.isMustBeFirst()) {
 				mustBeFirst.put(l, lims.get(l));
 			}
 		}
@@ -308,7 +308,7 @@ public class ValuePolicyGenerator {
 			} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
 				continue;
 				// other cases minimum is not reached
-			} else if (i >= l.getMinOccurs() && !skipMatchedLims) {
+			} else if ((l.getMinOccurs() == null || i >= l.getMinOccurs()) && !skipMatchedLims) {
 				continue;
 			}
 			for (String s : chars) {

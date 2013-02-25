@@ -76,6 +76,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 		this.generateEvaluatorType = generateEvaluatorType;
 		this.outputDefinition = outputDefinition;
 		this.protector = protector;
+		this.elementStringPolicy = elementStringPolicy;
 		this.prismContext = prismContext;
 	}
 
