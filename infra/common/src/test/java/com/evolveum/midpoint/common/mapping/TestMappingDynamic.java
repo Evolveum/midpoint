@@ -87,6 +87,9 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestMappingDynamic {
 	
+	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
+	private static final String PATTERN_NUMERIC = "^\\d+$";
+	
 	private MappingTestEvaluator evaluator;
 	    
     @BeforeClass
@@ -987,7 +990,7 @@ public class TestMappingDynamic {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		System.out.println("Generated value (1): " + value1);
-		assertGeneratedValue(value1, stringPolicy, false);
+		assertGeneratedValue(value1, stringPolicy, null);
 
 		// WHEN (2)
 		mapping.evaluate(opResult);
@@ -996,7 +999,7 @@ public class TestMappingDynamic {
 		outputTriple = mapping.getOutputTriple();
 		String value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
 		System.out.println("Generated value (2): " + value2);
-		assertGeneratedValue(value2, stringPolicy, false);
+		assertGeneratedValue(value2, stringPolicy, null);
 		PrismAsserts.assertTripleNoPlus(outputTriple);
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
@@ -1006,16 +1009,17 @@ public class TestMappingDynamic {
     @Test
     public void testGeneratePolicy() throws Exception {
     	final String TEST_NAME = "testGeneratePolicy";
-    	generatePolicy(TEST_NAME, "mapping-generate-policy.xml", "c0c010c0-d34d-b33f-f00d-999888111111.xml", false);
+    	generatePolicy(TEST_NAME, "mapping-generate-policy.xml", "c0c010c0-d34d-b33f-f00d-999888111111.xml", null);
     }
     
     @Test
     public void testGeneratePolicyNumericString() throws Exception {
     	final String TEST_NAME = "testGeneratePolicyNumericString";
-    	generatePolicy(TEST_NAME, "mapping-generate-policy-numeric.xml", "c0c010c0-d34d-b33f-f00d-999888111112.xml", true);
+    	generatePolicy(TEST_NAME, "mapping-generate-policy-numeric.xml", "c0c010c0-d34d-b33f-f00d-999888111112.xml", 
+    			PATTERN_NUMERIC);
     }
     	
-    private void generatePolicy(final String TEST_NAME, String mappingFileName, String policyFileName, boolean numeric)
+    private void generatePolicy(final String TEST_NAME, String mappingFileName, String policyFileName, String pattern)
     		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
     	System.out.println("===[ "+TEST_NAME+"]===");
     	// GIVEN
@@ -1039,7 +1043,8 @@ public class TestMappingDynamic {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		System.out.println("Generated value (1): " + value1);
-		assertGeneratedValue(value1, stringPolicy, numeric);
+		assertNotNull("Generated null value", value1);
+		assertGeneratedValue(value1, stringPolicy, pattern);
 
 		// WHEN (2)
 		mapping.evaluate(opResult);
@@ -1048,14 +1053,15 @@ public class TestMappingDynamic {
 		outputTriple = mapping.getOutputTriple();
 		String value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
 		System.out.println("Generated value (2): " + value2);
-		assertGeneratedValue(value2, stringPolicy, numeric);
+		assertNotNull("Generated null value", value2);
+		assertGeneratedValue(value2, stringPolicy, pattern);
 		PrismAsserts.assertTripleNoPlus(outputTriple);
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		assertFalse("Generated the same value", value1.equals(value2));
     }
         
-	private void assertGeneratedValue(String value, StringPolicyType stringPolicy, boolean numeric) {
+	private void assertGeneratedValue(String value, StringPolicyType stringPolicy, String pattern) {
 		if (stringPolicy == null) {
 			assertEquals("Unexpected generated value length", GenerateExpressionEvaluator.DEFAULT_LENGTH, value.length());
 		} else {
@@ -1063,8 +1069,76 @@ public class TestMappingDynamic {
 			assertTrue("Value '"+value+"' too long, maxLength="+stringPolicy.getLimitations().getMaxLength()+", length="+value.length(), value.length() <= stringPolicy.getLimitations().getMaxLength());
 			// TODO: better validation
 		}
+		if (pattern != null) {
+			assertTrue("Value '"+value+"' does not match pattern '"+pattern+"'", value.matches(pattern));
+		}
 	}
 
+	@Test
+    public void testGeneratePolicyNumericInt() throws Exception {
+    	final String TEST_NAME = "testGeneratePolicyNumericInt";
+    	generatePolicyNumeric(TEST_NAME, "mapping-generate-policy-numeric.xml", 
+    			"c0c010c0-d34d-b33f-f00d-999888111112.xml", "intType", Integer.class);
+    }
+	
+	@Test
+    public void testGeneratePolicyNumericInteger() throws Exception {
+    	final String TEST_NAME = "testGeneratePolicyNumericInt";
+    	generatePolicyNumeric(TEST_NAME, "mapping-generate-policy-numeric.xml", 
+    			"c0c010c0-d34d-b33f-f00d-999888111112.xml", "integerType", Integer.class);
+    }
+	
+	@Test
+    public void testGeneratePolicyNumericLong() throws Exception {
+    	final String TEST_NAME = "testGeneratePolicyNumericInt";
+    	generatePolicyNumeric(TEST_NAME, "mapping-generate-policy-numeric.xml", 
+    			"c0c010c0-d34d-b33f-f00d-999888111112.xml", "longType", Long.class);
+    }
+    	
+    private <T> void generatePolicyNumeric(final String TEST_NAME, String mappingFileName,
+    		String policyFileName, String extensionPropName, Class<T> clazz)
+    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	// GIVEN
+    	Mapping<PrismPropertyValue<T>> mapping = evaluator.createMapping(mappingFileName, 
+    			TEST_NAME, new ItemPath(
+    					UserType.F_EXTENSION,
+    					new QName(NS_EXTENSION, extensionPropName)), null);
+    	
+    	// This is just for validation. The expression has to resolve reference of its own
+    	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
+    			new File(MappingTestEvaluator.OBJECTS_DIR, policyFileName));
+    	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
+    	    	
+		OperationResult opResult = new OperationResult(TEST_NAME);
+    	
+		// WHEN (1)
+    	mapping.evaluate(opResult);
+
+		// THEN (1)
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
+		T value1 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
+		PrismAsserts.assertTripleNoPlus(outputTriple);
+		PrismAsserts.assertTripleNoMinus(outputTriple);
+
+		System.out.println("Generated value (1): " + value1);
+		assertNotNull("Generated null value", value1);
+		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC);
+
+		// WHEN (2)
+		mapping.evaluate(opResult);
+
+		// THEN (2)
+		outputTriple = mapping.getOutputTriple();
+		T value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
+		System.out.println("Generated value (2): " + value2);
+		assertNotNull("Generated null value", value2);
+		PrismAsserts.assertTripleNoPlus(outputTriple);
+		PrismAsserts.assertTripleNoMinus(outputTriple);
+
+		assertFalse("Generated the same value", value1.equals(value2));
+		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC);
+    }
 
 	@Test
     public void testGenerateProtectedString() throws Exception {

@@ -43,6 +43,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -93,9 +94,13 @@ public class XmlTypeConverter {
             return javaValue;
         }
     }
+    
+    public static <T> T toJavaValue(String stringContent, Class<T> type) {
+    	return toJavaValue(stringContent, type, false);
+    }
 
 	@SuppressWarnings("unchecked")
-	public static <T> T toJavaValue(String stringContent, Class<T> type) {
+	public static <T> T toJavaValue(String stringContent, Class<T> type, boolean exceptionOnUnknown) {
         if (type.equals(String.class)) {
             return (T) stringContent;
         } else if (type.equals(char.class)) {
@@ -124,6 +129,8 @@ public class XmlTypeConverter {
             return (T) Double.valueOf(stringContent);
         } else if (type.equals(Double.class)) {
             return (T) Double.valueOf(stringContent);
+        } else if (type.equals(BigInteger.class)) {
+            return (T) new BigInteger(stringContent);
         } else if (type.equals(byte[].class)) {
             byte[] decodedData = Base64.decodeBase64(stringContent);
             return (T) decodedData;
@@ -137,7 +144,11 @@ public class XmlTypeConverter {
         } else if (type.equals(PolyString.class)) {
         	return (T) new PolyString(stringContent);
         } else {
-            return null;
+        	if (exceptionOnUnknown) {
+        		throw new IllegalArgumentException("Unknown conversion type "+type);
+        	} else {
+        		return null;
+        	}
         }
     }
 

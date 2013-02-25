@@ -52,6 +52,7 @@ import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluat
 import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -197,7 +198,11 @@ public class MappingTestEvaluator {
 		
 		// Default target
 		if (defaultTargetPropertyPath != null) {
-			mapping.setDefaultTargetDefinition(userDefinition.findItemDefinition(defaultTargetPropertyPath));
+			ItemDefinition targetDefDefinition = userDefinition.findItemDefinition(defaultTargetPropertyPath);
+			if (targetDefDefinition == null) {
+				throw new IllegalArgumentException("The item path '"+defaultTargetPropertyPath+"' does not have a definition in "+userDefinition);
+			}
+			mapping.setDefaultTargetDefinition(targetDefDefinition);
 		}
 		
         return mapping;
