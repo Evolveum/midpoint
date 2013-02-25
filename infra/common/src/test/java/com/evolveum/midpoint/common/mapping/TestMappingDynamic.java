@@ -1013,6 +1013,12 @@ public class TestMappingDynamic {
     }
     
     @Test
+    public void testGeneratePolicyBad() throws Exception {
+    	final String TEST_NAME = "testGeneratePolicy";
+    	generatePolicy(TEST_NAME, "mapping-generate-policy-bad.xml", "c0c010c0-d34d-b33f-f00d-999888111113.xml", null);
+    }
+    
+    @Test
     public void testGeneratePolicyNumericString() throws Exception {
     	final String TEST_NAME = "testGeneratePolicyNumericString";
     	generatePolicy(TEST_NAME, "mapping-generate-policy-numeric.xml", "c0c010c0-d34d-b33f-f00d-999888111112.xml", 

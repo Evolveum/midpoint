@@ -24,8 +24,8 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	
-	<name>Testing Complex Password Policy</name>
-	<description>Testing complex password policy</description>
+	<name>Testing Bad Password Policy</name>
+	<description>This policy is intentionally insane. The limits conflict with overall length limits. This should fail.</description>
 	<lifetime>
 		<expiration>999</expiration>
 		<warnBeforeExpiration>9</warnBeforeExpiration>
@@ -36,8 +36,8 @@
 	<stringPolicy>
 		<description>Testing string policy</description>
 		<limitations>
-			<minLength>10</minLength>
-			<maxLength>15</maxLength>
+			<minLength>14</minLength>
+			<maxLength>17</maxLength>
 			<minUniqueChars>3</minUniqueChars>
 			<checkAgainstDictionary>true</checkAgainstDictionary>
 			<checkPattern />
@@ -73,15 +73,15 @@
 			</limit>
 			<limit>
 				<description>Specials</description>
-				<minOccurs>2</minOccurs>
-				<maxOccurs>5</maxOccurs>
+				<minOccurs>1</minOccurs>
+				<maxOccurs>2</maxOccurs>
 				<mustBeFirst>false</mustBeFirst>
 				<characterClass ref="special" />
 			</limit>
 			<limit>
 				<description>Alphanum</description>
 				<minOccurs>1</minOccurs>
-				<maxOccurs>12</maxOccurs>
+				<maxOccurs>3</maxOccurs>
 				<mustBeFirst>false</mustBeFirst>
 				<characterClass ref="alphanum" />
 			</limit>
