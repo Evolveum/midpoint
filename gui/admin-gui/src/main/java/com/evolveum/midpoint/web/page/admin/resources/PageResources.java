@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
@@ -80,8 +78,8 @@ public class PageResources extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
     private static final String DOT_CLASS = PageResources.class.getName() + ".";
-    private static final String TEST_RESOURCE = DOT_CLASS + "testResource";
-    private static final String SYNC_STATUS = DOT_CLASS + "syncStatus";
+    private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
+    private static final String OPERATION_SYNC_STATUS = DOT_CLASS + "syncStatus";
     private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
@@ -404,7 +402,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void showSyncStatus(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-        OperationResult result = new OperationResult(SYNC_STATUS);
+        OperationResult result = new OperationResult(OPERATION_SYNC_STATUS);
         ResourceDto dto = rowModel.getObject();
         if (dto == null) {
             result.recordFatalError("Fail to synchronize resource");
@@ -446,14 +444,14 @@ public class PageResources extends PageAdminResources {
 		}
 
 		try {
-			result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_RESOURCE));
+			result = getModelService().testResource(dto.getOid(), createSimpleTask(OPERATION_TEST_RESOURCE));
 			ResourceController.updateResourceState(dto.getState(), result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Fail to test resource connection", ex);
 		}
 
 		if (result == null) {
-			result = new OperationResult(TEST_RESOURCE);
+			result = new OperationResult(OPERATION_TEST_RESOURCE);
 		}
 
 		if (!result.isSuccess()) {
