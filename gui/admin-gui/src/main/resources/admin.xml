@@ -65,4 +65,7 @@
         </c:password>
         <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
     </c:credentials>
+    <c:activation>
+        <c:enabled>true</c:enabled>
+    </c:activation>
 </c:user>

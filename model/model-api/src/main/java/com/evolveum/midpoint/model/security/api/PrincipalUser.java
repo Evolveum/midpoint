@@ -87,24 +87,29 @@ public class PrincipalUser implements Serializable {//   } UserDetails {
         	return false;
         }
         
-        if (user.getActivation() != null) {
-        	ActivationType activation = user.getActivation();
-        	long time = System.currentTimeMillis();
-        	if (activation.getValidFrom() != null) {
-        		long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
-        		if (time < from) {
-        			return false;
-        		}
-        	}
-        	if (activation.getValidTo() != null) {
-        		long to = MiscUtil.asDate(activation.getValidTo()).getTime();
-        		if (to > time) {
-        			return false;
-        		}
-        	}
+        if (user.getActivation() == null) {
+            return false;
+        }
+
+        ActivationType activation = user.getActivation();
+        long time = System.currentTimeMillis();
+        if (activation.getValidFrom() != null) {
+            long from = MiscUtil.asDate(activation.getValidFrom()).getTime();
+            if (time < from) {
+                return false;
+            }
+        }
+        if (activation.getValidTo() != null) {
+            long to = MiscUtil.asDate(activation.getValidTo()).getTime();
+            if (to > time) {
+                return false;
+            }
+        }
+        if (activation.isEnabled() == null) {
+            return false;
         }
         
-        return true;
+        return activation.isEnabled();
     }
 
     public UserType getUser() {
