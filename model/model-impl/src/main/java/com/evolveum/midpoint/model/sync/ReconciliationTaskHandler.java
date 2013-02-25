@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -156,6 +157,67 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			}
 			freshnessInterval = freshnessIntervalPropertyValue.getValue();
 		}
+		
+		try {
+			scanForUnfinishedOperations(task, resourceOid, opResult);
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Reconciliation: Object does not exist, OID: {}", ex.getMessage(), ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordPartialError("Resource does not exist, OID: " + resourceOid, ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+//			return runResult;
+		} catch (ObjectAlreadyExistsException ex) {
+			LOGGER.error("Reconciliation: Object already exist: {}", ex.getMessage(), ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordPartialError("Object already exist: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+//			return runResult;
+		} catch (CommunicationException ex) {
+			LOGGER.error("Reconciliation: Communication error: {}", ex.getMessage(), ex);
+			// Error, but not critical. Just try later.
+			opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (SchemaException ex) {
+			LOGGER.error("Reconciliation: Error dealing with schema: {}", ex.getMessage(), ex);
+			// Not sure about this. But most likely it is a misconfigured
+			// resource or connector
+			// It may be worth to retry. Error is fatal, but may not be
+			// permanent.
+			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+//			return runResult;
+		} catch (RuntimeException ex) {
+			LOGGER.error("Reconciliation: Internal Error: {}", ex.getMessage(), ex);
+			// Can be anything ... but we can't recover from that.
+			// It is most likely a programming error. Does not make much sense
+			// to retry.
+			opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (ConfigurationException ex) {
+			LOGGER.error("Reconciliation: Configuration error: {}", ex.getMessage(), ex);
+			// Not sure about this. But most likely it is a misconfigured
+			// resource or connector
+			// It may be worth to retry. Error is fatal, but may not be
+			// permanent.
+			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (SecurityViolationException ex) {
+			LOGGER.error("Recompute: Security violation: {}", ex.getMessage(), ex);
+			opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+//			return runResult;
+		}
+
 
 		try {
 			PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult);
@@ -186,7 +248,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
-//			return runResult;
+			return runResult;
 		} catch (RuntimeException ex) {
 			LOGGER.error("Reconciliation: Internal Error: {}", ex.getMessage(), ex);
 			// Can be anything ... but we can't recover from that.
@@ -211,75 +273,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
-//			return runResult;
+			return runResult;
 		}
 		
-		try {
-			scanForUnfinishedOperations(task, resourceOid, opResult);
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Reconciliation: Resource does not exist, OID: {}", resourceOid, ex);
-			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Resource does not exist, OID: " + resourceOid, ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (ObjectAlreadyExistsException ex) {
-			LOGGER.error("Reconciliation: Object already exist: {}", ex.getMessage(), ex);
-			// This is bad. The resource does not exist. Permanent problem.
-			opResult.recordFatalError("Object already exist: " + ex.getMessage(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (CommunicationException ex) {
-			LOGGER.error("Reconciliation: Communication error: {}", ex.getMessage(), ex);
-			// Error, but not critical. Just try later.
-			opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (SchemaException ex) {
-			LOGGER.error("Reconciliation: Error dealing with schema: {}", ex.getMessage(), ex);
-			// Not sure about this. But most likely it is a misconfigured
-			// resource or connector
-			// It may be worth to retry. Error is fatal, but may not be
-			// permanent.
-			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (RuntimeException ex) {
-			LOGGER.error("Reconciliation: Internal Error: {}", ex.getMessage(), ex);
-			// Can be anything ... but we can't recover from that.
-			// It is most likely a programming error. Does not make much sense
-			// to retry.
-			opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (ConfigurationException ex) {
-			LOGGER.error("Reconciliation: Configuration error: {}", ex.getMessage(), ex);
-			// Not sure about this. But most likely it is a misconfigured
-			// resource or connector
-			// It may be worth to retry. Error is fatal, but may not be
-			// permanent.
-			opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		} catch (SecurityViolationException ex) {
-			LOGGER.error("Recompute: Security violation: {}", ex.getMessage(), ex);
-			opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			runResult.setProgress(progress);
-			return runResult;
-		}
-
+		
 
 		opResult.computeStatus("Reconciliation run has failed");
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
 		LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
+		LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
 		return runResult;
 	}
 
@@ -430,7 +434,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		for (PrismObject<AccountShadowType> shadow : shadows) {
 
 			try {
-				provisioningService.finishOperation(shadow, task, opResult);
+				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+				provisioningService.finishOperation(shadow, options, task, opResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
 			} catch (Exception ex) {
 				Collection<? extends ItemDelta> modifications = PropertyDelta
