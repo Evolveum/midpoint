@@ -991,7 +991,7 @@ public class TestMappingDynamic {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		System.out.println("Generated value (1): " + value1);
-		assertGeneratedValue(value1, stringPolicy, null);
+		assertGeneratedValue(value1, stringPolicy, null, false);
 
 		// WHEN (2)
 		mapping.evaluate(opResult);
@@ -1000,7 +1000,7 @@ public class TestMappingDynamic {
 		outputTriple = mapping.getOutputTriple();
 		String value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
 		System.out.println("Generated value (2): " + value2);
-		assertGeneratedValue(value2, stringPolicy, null);
+		assertGeneratedValue(value2, stringPolicy, null, false);
 		PrismAsserts.assertTripleNoPlus(outputTriple);
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
@@ -1056,7 +1056,7 @@ public class TestMappingDynamic {
 
 		System.out.println("Generated value (1): " + value1);
 		assertNotNull("Generated null value", value1);
-		assertGeneratedValue(value1, stringPolicy, pattern);
+		assertGeneratedValue(value1, stringPolicy, pattern, false);
 
 		// WHEN (2)
 		mapping.evaluate(opResult);
@@ -1066,18 +1066,20 @@ public class TestMappingDynamic {
 		String value2 = MappingTestEvaluator.getSingleValue("plus set", outputTriple.getZeroSet());
 		System.out.println("Generated value (2): " + value2);
 		assertNotNull("Generated null value", value2);
-		assertGeneratedValue(value2, stringPolicy, pattern);
+		assertGeneratedValue(value2, stringPolicy, pattern, false);
 		PrismAsserts.assertTripleNoPlus(outputTriple);
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		assertFalse("Generated the same value", value1.equals(value2));
     }
         
-	private void assertGeneratedValue(String value, StringPolicyType stringPolicy, String pattern) {
+	private void assertGeneratedValue(String value, StringPolicyType stringPolicy, String pattern, boolean ignoreMin) {
 		if (stringPolicy == null) {
 			assertEquals("Unexpected generated value length", GenerateExpressionEvaluator.DEFAULT_LENGTH, value.length());
 		} else {
-			assertTrue("Value '"+value+"' too short, minLength="+stringPolicy.getLimitations().getMinLength()+", length="+value.length(), value.length() >= stringPolicy.getLimitations().getMinLength());
+			if (!ignoreMin) {
+				assertTrue("Value '"+value+"' too short, minLength="+stringPolicy.getLimitations().getMinLength()+", length="+value.length(), value.length() >= stringPolicy.getLimitations().getMinLength());
+			}
 			assertTrue("Value '"+value+"' too long, maxLength="+stringPolicy.getLimitations().getMaxLength()+", length="+value.length(), value.length() <= stringPolicy.getLimitations().getMaxLength());
 			// TODO: better validation
 		}
@@ -1135,7 +1137,8 @@ public class TestMappingDynamic {
 
 		System.out.println("Generated value (1): " + value1);
 		assertNotNull("Generated null value", value1);
-		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC);
+		// We need to ignore the minLength. Conversion string -> number -> string may lose the leading zeroes
+		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC, true);
 
 		// WHEN (2)
 		mapping.evaluate(opResult);
@@ -1149,7 +1152,7 @@ public class TestMappingDynamic {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 
 		assertFalse("Generated the same value", value1.equals(value2));
-		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC);
+		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC, true);
     }
 
 	@Test
