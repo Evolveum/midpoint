@@ -317,7 +317,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 				// calling shadow cache to add object
 				oid = getShadowCache(Mode.STANDARD).addShadow((ResourceObjectShadowType) object.asObjectable(), scripts,
-						null, task, result);
+						null, options, task, result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
 				result.computeStatus();
 			} catch (GenericFrameworkException ex) {
@@ -690,6 +690,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				return true;
 			}
 		};
+		
+		
 
 		searchObjectsIterative(type, query, handler, result);
 		// TODO: better error handling
@@ -915,47 +917,48 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return objectList;
 	}
 	
-	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, Task task, OperationResult parentResult)
+	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException {
 		Validate.notNull(object, "Object for finishing operation must not be null.");
-		
+		OperationResult result = parentResult.createSubresult(ProvisioningServiceImpl.class.getName() +".finishOperation");
 		ResourceObjectShadowType shadow = object.asObjectable();
 		
 		try{
+//			ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
 			if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-				getShadowCache(Mode.RECON).addShadow(shadow, null, null, task, parentResult);
+				getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
 //				finishAdd(shadow, resource, parentResult);
 			} else if (FailedOperationTypeType.MODIFY == shadow.getFailedOperationType()){
-				getShadowCache(Mode.RECON).modifyShadow(shadow, null, shadow.getOid(), new ArrayList<ItemDelta>(), null, null, task, parentResult);
+				getShadowCache(Mode.RECON).modifyShadow(shadow, null, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);
 			} else if (FailedOperationTypeType.DELETE == shadow.getFailedOperationType()){
-				getShadowCache(Mode.RECON).deleteShadow(shadow, null, null, null, task, parentResult);
+				getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, null, task, result);
 //		operationFinisher.finishOperation(shadow, parentResult);
 			}
 		} catch (CommunicationException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: communication problem: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: communication problem: " + e.getMessage(), e);
 			throw e;
 		} catch (GenericFrameworkException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: generic error in the connector: " + e.getMessage(),
+			logFatalError(LOGGER, result, "Couldn't finish operation: generic error in the connector: " + e.getMessage(),
 					e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (SchemaException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: schema problem: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: schema problem: " + e.getMessage(), e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: object doesn't exist: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: object doesn't exist: " + e.getMessage(), e);
 			throw e;
 		} catch (RuntimeException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: unexpected problem: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: unexpected problem: " + e.getMessage(), e);
 			throw new SystemException("Internal error: " + e.getMessage(), e);
 		} catch (ConfigurationException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: configuration problem: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: configuration problem: " + e.getMessage(), e);
 			throw e;
 		} catch (SecurityViolationException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: security violation: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: security violation: " + e.getMessage(), e);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			logFatalError(LOGGER, parentResult, "Couldn't finish operation: object after modification would conflict with another existing object: " + e.getMessage(), e);
+			logFatalError(LOGGER, result, "Couldn't finish operation: object after modification would conflict with another existing object: " + e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -1344,6 +1347,7 @@ private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> condit
 			return getCacheRepositoryService().getObject(type, oid, result);
 		} catch (ObjectNotFoundException e) {
 			logFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
+//			result.recordFatalError("Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
 			throw e;
 		} catch (SchemaException ex) {
 			logFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);

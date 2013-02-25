@@ -83,7 +83,7 @@ public class GenericErrorHandler extends ErrorHandler{
 						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 			}
 //				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
-					provisioningService.finishOperation(shadow.asPrismObject(), task, result);
+					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
 //					String oid = provisioningService.addObject(shadow.asPrismObject(), null, result);
 					result.computeStatus();
 					if (result.isSuccess()){
@@ -124,7 +124,7 @@ public class GenericErrorHandler extends ErrorHandler{
 					PropertyDelta.applyTo(modifications, shadow.asPrismObject());
 //				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 //				
-					provisioningService.finishOperation(shadow.asPrismObject(), task, result);						
+					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);						
 //					provisioningService.addObject(shadow.asPrismObject(), null, result);
 					// if (oid != null){
 					// shadow = shadowCache.getShadow(AccountShadowType.class,

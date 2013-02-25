@@ -190,7 +190,7 @@ public abstract class ShadowCache {
 	public abstract String afterAddOnResource(ResourceObjectShadowType shadowType, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 	
 	public String addShadow(ResourceObjectShadowType shadowType, ProvisioningScriptsType scripts,
-			ResourceType resource, Task task, OperationResult parentResult) throws CommunicationException,
+			ResourceType resource, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 	Validate.notNull(shadowType, "Object to add must not be null.");
@@ -222,7 +222,7 @@ public abstract class ShadowCache {
 		shadowType = shadowConverter.addShadow(resource, shadowType, additionalOperations, parentResult);
 		
 	} catch (Exception ex) {
-		shadowType = handleError(ex, shadowType, FailedOperation.ADD, resource, null, true, task, parentResult);
+		shadowType = handleError(ex, shadowType, FailedOperation.ADD, resource, null, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
 		return shadowType.getOid();
 	}
 	
@@ -294,7 +294,7 @@ public abstract class ShadowCache {
 				LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 						new Object[] { ex.getClass(), ex.getMessage(), ex });
 				try {
-					shadow = handleError(ex, shadow, FailedOperation.MODIFY, resource, modifications, true, task, parentResult);
+					shadow = handleError(ex, shadow, FailedOperation.MODIFY, resource, modifications, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
 					parentResult.computeStatus();
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError("While compensating communication problem for modify operation got: "
@@ -364,7 +364,7 @@ public abstract class ShadowCache {
 					shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
 				} catch (Exception ex) {
 					try {
-						handleError(ex, accountShadow, FailedOperation.DELETE, resource, null, true, task, parentResult);
+						handleError(ex, accountShadow, FailedOperation.DELETE, resource, null, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
 					} catch (ObjectAlreadyExistsException e) {
 						e.printStackTrace();
 					}

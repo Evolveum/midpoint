@@ -79,7 +79,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 
 		ObjectQuery query = createQueryByIcfName(shadow);
-		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, operationResult);
+		final List<PrismObject<AccountShadowType>> foundAccount = getExistingAccount(query, task, operationResult);
 
 		PrismObject<AccountShadowType> resourceAccount = null;
 		if (!foundAccount.isEmpty() && foundAccount.size() == 1) {
@@ -98,8 +98,12 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		if (operationResult.isSuccess()) {
 			parentResult.recordSuccess();
 		}
+		
+		if (compensate){
 		throw new ObjectAlreadyExistsException(ex.getMessage(), ex);
-
+		}
+	
+		return shadow;
 	}
 
 	private ObjectQuery createQueryByIcfName(ResourceObjectShadowType shadow) throws SchemaException {
@@ -119,7 +123,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		return query;
 	}
 
-	private List<PrismObject<AccountShadowType>> getExistingAccount(ObjectQuery query, OperationResult parentResult)
+	private List<PrismObject<AccountShadowType>> getExistingAccount(ObjectQuery query, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 			SecurityViolationException {
 		final List<PrismObject<AccountShadowType>> foundAccount = new ArrayList<PrismObject<AccountShadowType>>();

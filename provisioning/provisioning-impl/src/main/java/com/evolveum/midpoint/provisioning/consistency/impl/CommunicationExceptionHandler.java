@@ -94,7 +94,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		// operations, we can know that it is down
 		modifyResourceAvailabilityStatus(shadow.getResource(), AvailabilityStatusType.DOWN, operationResult);
 		
-		if (!isPostpone(shadow.getResource())){
+		if (!isPostpone(shadow.getResource()) || !compensate){
 			throw new CommunicationException(ex.getMessage(), ex);
 		}
 		

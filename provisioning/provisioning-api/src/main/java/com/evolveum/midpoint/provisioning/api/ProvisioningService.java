@@ -400,7 +400,7 @@ public interface ProvisioningService {
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	
-	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, Task task, OperationResult parentResult)
+	public <T extends ResourceObjectShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException;
 

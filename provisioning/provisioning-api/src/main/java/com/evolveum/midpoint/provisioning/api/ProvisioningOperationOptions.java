@@ -19,12 +19,13 @@ public class ProvisioningOperationOptions {
 		this.completePostponed = doDiscovery;
 	}
 	
+	//by default we want to complete postponed operation, we skip only if the option is set to false..
 	public static boolean isCompletePostponed(ProvisioningOperationOptions options){
 		if (options == null) {
-			return false;
+			return true;
 		}
 		if (options.completePostponed == null) {
-			return false;
+			return true;
 		}
 		return options.completePostponed;
 	}
