@@ -82,6 +82,7 @@ public class DOMUtil {
 
 	public static final String NS_W3C_XSI_PREFIX = "xsi";
 	public static final QName XSI_TYPE = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "type", NS_W3C_XSI_PREFIX);
+	public static final QName XSI_NIL = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "nil", NS_W3C_XSI_PREFIX);
 	public static final QName XML_ID_ATTRIBUTE = new QName(W3C_XML_XML_URI, "id", W3C_XML_XML_PREFIX);
 
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
@@ -1080,5 +1081,13 @@ public class DOMUtil {
     public static boolean isElementName(Element element, QName name) {
         return name.equals(getQNameWithoutPrefix(element));
     }
+
+	public static boolean isNil(Element element) {
+		String nilString = element.getAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart());
+		if (nilString == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(nilString);
+	}
 
 }

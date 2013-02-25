@@ -507,7 +507,9 @@ public class PrismDomProcessor {
 
 		for (Object valueElement : valueElements) {
 			T realValue = parsePrismPropertyRealValue(valueElement, propertyDefinition);
-			prop.add(new PrismPropertyValue<T>(realValue));
+			if (realValue != null) {
+				prop.add(new PrismPropertyValue<T>(realValue));
+			}
 		}
 		return prop;
 	}
@@ -527,6 +529,9 @@ public class PrismDomProcessor {
 			// Need to convert the DOM representation to something more
 			// java-like
 			Element element = (Element) valueElement;
+			if (DOMUtil.isNil(element)) {
+				return null;
+			}
 			if (propertyDefinition.getTypeName().equals(DOMUtil.XSD_ANY)) {
 				// No conversion. Element is the value. Almost.
 				// Extract the namespace declarations from explicit elements
@@ -603,9 +608,9 @@ public class PrismDomProcessor {
 	 * 
 	 * @throws SchemaException
 	 */
-	public <T extends Containerable> Collection<? extends Item<?>> parseContainerItems(
+	public <T extends Containerable, V extends PrismValue> Collection<? extends Item<V>> parseContainerItems(
 			PrismContainerDefinition<T> containingPcd, List<Object> valueElements) throws SchemaException {
-		Collection<Item<?>> items = new ArrayList<Item<?>>(valueElements.size());
+		Collection<Item<V>> items = new ArrayList<Item<V>>(valueElements.size());
 		for (int i = 0; i < valueElements.size(); i++) {
 			Object valueElement = valueElements.get(i);
 			QName elementQName = JAXBUtil.getElementQName(valueElement);
@@ -628,7 +633,7 @@ public class PrismDomProcessor {
 							+ containingPcd);
 				}
 			}
-			Item<?> item = parseItem(itemValueElements, elementQName, itemDefinition);
+			Item<V> item = parseItem(itemValueElements, elementQName, itemDefinition);
 			items.add(item);
 		}
 		return items;
@@ -891,19 +896,19 @@ public class PrismDomProcessor {
 	 * method to call. Value elements have the same element name. They may be
 	 * elements of a property or a container.
 	 */
-	public Item<?> parseItem(List<? extends Object> valueElements, QName itemName, ItemDefinition def)
+	public <V extends PrismValue> Item<V> parseItem(List<? extends Object> valueElements, QName itemName, ItemDefinition def)
 			throws SchemaException {
 		if (def == null) {
 			// Assume property in a container with runtime definition
-			return parsePrismPropertyRaw(valueElements, itemName);
+			return (Item<V>) parsePrismPropertyRaw(valueElements, itemName);
 		}
 		if (def instanceof PrismContainerDefinition) {
-			return parsePrismContainer(valueElements, itemName, (PrismContainerDefinition<?>) def);
+			return (Item<V>) parsePrismContainer(valueElements, itemName, (PrismContainerDefinition<?>) def);
 		} else if (def instanceof PrismPropertyDefinition) {
-			return parsePrismProperty(valueElements, itemName, (PrismPropertyDefinition) def);
+			return (Item<V>) parsePrismProperty(valueElements, itemName, (PrismPropertyDefinition) def);
 		}
 		if (def instanceof PrismReferenceDefinition) {
-			return parsePrismReference(valueElements, itemName, (PrismReferenceDefinition) def);
+			return (Item<V>) parsePrismReference(valueElements, itemName, (PrismReferenceDefinition) def);
 		} else {
 			throw new IllegalArgumentException("Attempt to parse unknown definition type " + def.getClass().getName());
 		}

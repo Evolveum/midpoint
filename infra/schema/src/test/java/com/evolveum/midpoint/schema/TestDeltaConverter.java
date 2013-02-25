@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -149,6 +150,37 @@ public class TestDeltaConverter {
     	
     	objectDelta.assertDefinitions();
     }
+    
+    @Test
+    public void testModifyGivenName() throws Exception {
+    	System.out.println("===[ testModifyGivenName ]====");
+    	
+    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-givenname.xml"),
+    			ObjectModificationType.class);
+    	
+    	// WHEN
+    	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
+    			PrismTestUtil.getPrismContext());
+    	
+    	// THEN
+    	assertNotNull("No object delta", objectDelta);
+    	objectDelta.checkConsistence();
+    	assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
+    	PropertyDelta<String> givenNameDelta = objectDelta.findPropertyDelta(UserType.F_GIVEN_NAME);
+    	assertNotNull("No givenName delta", givenNameDelta);
+    	Collection<PrismPropertyValue<String>> valuesToReplace = givenNameDelta.getValuesToReplace();
+    	assertEquals("Wrong number of values to add", 0, valuesToReplace.size());
+    	
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	// apply to user
+    	objectDelta.applyTo(user);
+    	
+    	PrismProperty<String> protectedStringProperty = user.findProperty(UserType.F_GIVEN_NAME);
+    	assertNull("givenName porperty sneaked in after delta was applied", protectedStringProperty);
+    	
+    	objectDelta.assertDefinitions();
+    }
+    
     
     @Test
     public void testAddAssignment() throws SchemaException, FileNotFoundException, JAXBException {

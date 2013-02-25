@@ -205,6 +205,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String USER_JACK_DERBY_LOGIN = "jsparrow";
 
     private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = REQUEST_DIR_NAME + "user-modify-fullname-locality.xml";
+    private static final String REQUEST_USER_MODIFY_GIVENNAME_FILENAME = REQUEST_DIR_NAME + "user-modify-givenname.xml";
     private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = REQUEST_DIR_NAME + "user-modify-password.xml";
     private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = REQUEST_DIR_NAME + "user-modify-activation-disable.xml";
     private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = REQUEST_DIR_NAME + "user-modify-activation-enable.xml";
@@ -1550,6 +1551,80 @@ public class TestSanity extends AbstractModelIntegrationTest {
         System.out.println("RS: " + rs);
 
         assertFalse("Account was not deleted in database", rs.next());
+
+    }
+    
+    /**
+     * We are going to modify the user. As the user has an account, the user
+     * changes should be also applied to the account (by schemaHandling).
+     *
+     * @throws DirectoryException
+     */
+    @Test
+    public void test048ModifyUserRemoveGivenName() throws Exception {
+    	final String TEST_NAME = "test048ModifyUserRemoveGivenName";
+        displayTestTile(TEST_NAME);
+        
+        // GIVEN
+        assertNoRepoCache();
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+                REQUEST_USER_MODIFY_GIVENNAME_FILENAME, ObjectModificationType.class);
+
+        // WHEN
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+        // THEN
+        assertNoRepoCache();
+        displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
+        assertSuccess("modifyObject has failed", result);
+
+        // Check if user object was modified in the repo
+
+        OperationResult repoResult = new OperationResult("getObject");
+        PrismObject<UserType> repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, repoResult);
+        UserType repoUserType = repoUser.asObjectable(); 
+        display("repository user", repoUser);
+
+        PrismAsserts.assertEqualsPolyString("wrong value for fullName", "Cpt. Jack Sparrow", repoUserType.getFullName());
+        assertNull("Value for givenName still present", repoUserType.getGivenName());
+
+        // Check if appropriate accountRef is still there
+
+        List<ObjectReferenceType> accountRefs = repoUserType.getAccountRef();
+        assertEquals(1, accountRefs.size());
+        ObjectReferenceType accountRef = accountRefs.iterator().next();
+        accountRef.getOid().equals(accountShadowOidOpendj);
+
+        // Check if shadow is still in the repo and that it is untouched
+
+        repoResult = new OperationResult("getObject");
+        PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj, repoResult);
+        repoResult.computeStatus();
+        assertSuccess("getObject(repo) has failed", repoResult);
+        display("repository shadow", repoShadow);
+        AssertJUnit.assertNotNull(repoShadow);
+        AccountShadowType repoShadowType = repoShadow.asObjectable();
+        AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
+
+        // check attributes in the shadow: should be only identifiers (ICF UID)
+
+        String uid = checkRepoShadow(repoShadow);
+
+        // Check if LDAP account was updated
+        SearchResultEntry entry = openDJController.searchAndAssertByEntryUuid(uid);
+
+        display(entry);
+
+        OpenDJController.assertAttribute(entry, "uid", "jack");
+        OpenDJController.assertNoAttribute(entry, "givenName");
+        OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+        // These two should be assigned from the User modification by
+        // schemaHandling
+        OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+        OpenDJController.assertAttribute(entry, "displayName", "Cpt. Jack Sparrow");
+        // This will get translated from "somewhere" to this (outbound expression in schemeHandling)
+        OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+        OpenDJController.assertAttribute(entry, "postalAddress", "Number 1");
 
     }
 

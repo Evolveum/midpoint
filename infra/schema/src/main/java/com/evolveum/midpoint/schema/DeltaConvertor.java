@@ -218,14 +218,14 @@ public class DeltaConvertor {
      * Creates delta from PropertyModificationType (XML). The values inside the PropertyModificationType are converted to java.
      * That's the reason this method needs schema and objectType (to locate the appropriate definitions).
      */
-    public static ItemDelta createItemDelta(ItemDeltaType propMod,
+    public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod,
             Class<? extends Objectable> objectType, PrismContext prismContext) throws SchemaException {
         PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry().
         		findObjectDefinitionByCompileTimeClass(objectType);
         return createItemDelta(propMod, objectDefinition);
     }
 
-    public static ItemDelta createItemDelta(ItemDeltaType propMod, PrismContainerDefinition pcDef) throws
+    public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef) throws
             SchemaException {
     	XPathHolder xpath = new XPathHolder(propMod.getPath());
         ItemPath parentPath = xpath.toPropertyPath();
@@ -236,7 +236,7 @@ public class DeltaConvertor {
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
-        Collection<? extends Item<?>> items = pcDef.getPrismContext().getPrismDomProcessor().
+        Collection<? extends Item<V>> items = pcDef.getPrismContext().getPrismDomProcessor().
         						parseContainerItems(containingPcd, propMod.getValue().getAny());
         if (items.size() > 1) {
             throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
@@ -244,8 +244,8 @@ public class DeltaConvertor {
         if (items.size() < 1) {
             throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
         }
-        Item<?> item = items.iterator().next();
-        ItemDelta itemDelta = item.createDelta(parentPath.subPath(item.getName()));
+        Item<V> item = items.iterator().next();
+        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getName()));
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
         	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(item.getValues()));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {

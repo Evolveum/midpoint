@@ -537,6 +537,23 @@ public class OpenDJController extends AbstractResourceController {
 		}
 	}
 	
+	public static void assertNoAttribute(SearchResultEntry response, String name) {
+		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
+		if (attrs == null || attrs.size() == 0) {
+			return;
+		}
+		assertEquals("Too many \"attributes\" for "+name+": ",
+				1, attrs.size());
+		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
+		if (attribute.size() == 0) {
+			return;
+		}
+		if (attribute.isEmpty()) {
+			return;
+		}
+		AssertJUnit.fail("Attribute "+name+" exists while not expecting it: "+attribute);
+	}
+	
 	public Entry addEntryFromLdifFile(String filename) throws IOException, LDIFException {
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
