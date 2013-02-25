@@ -106,8 +106,13 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 		if (stringPolicyType != null) {
 			if (stringPolicyType.getLimitations().getMinLength() != null) {
 				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
+			} else{
+				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
 			}
-			stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
+			params.getResult().computeStatus();
+			if (params.getResult().isError()){
+				throw new ExpressionEvaluationException("Failed to generate value according to policy: " + stringPolicyType.getDescription() +". "+ params.getResult().getMessage());
+			}
 		}
         
         if (stringValue == null){

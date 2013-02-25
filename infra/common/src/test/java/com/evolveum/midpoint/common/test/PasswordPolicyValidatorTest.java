@@ -179,17 +179,17 @@ public class PasswordPolicyValidatorTest {
 		// genereata to meet as possible
 		LOGGER.info("-------------------------");
 		// Generate up to possible
-//		for (int i = 0; i < 100; i++) {
-//			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, false, op);
-//			LOGGER.info("Generated password:" + psswd);
-//			op.computeStatus();
-//			if (!op.isSuccess()) {
-//				LOGGER.info("Result:" + op.dump());
-//			}
-//			AssertJUnit.assertTrue(op.isSuccess());
-//			assertNotNull(psswd);
-//
-//		}
+		for (int i = 0; i < 100; i++) {
+			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, false, op);
+			LOGGER.info("Generated password:" + psswd);
+			op.computeStatus();
+			if (!op.isSuccess()) {
+				LOGGER.info("Result:" + op.dump());
+			}
+			AssertJUnit.assertTrue(op.isSuccess());
+			assertNotNull(psswd);
+
+		}
 	}
 
 	private void assertPassword(String passwd, ValuePolicyType pp) {

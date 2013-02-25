@@ -199,7 +199,7 @@ public class ValuePolicyGenerator {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-					LOGGER.trace(password.toString());
+//					LOGGER.trace(password.toString());
 					break;
 				}
 			}
@@ -264,16 +264,18 @@ public class ValuePolicyGenerator {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-					LOGGER.trace(password.toString());
+//					LOGGER.trace(password.toString());
 					break;
 				}
 			}
 		}
 
 		if (password.length() < minLen) {
-			generatorResult.recordFatalError("Unable to generate password and meet minimal size of password."
-					+ password.length() + "<" + minLen);
-			return null;
+			generatorResult.recordFatalError("Unable to generate password and meet minimal size of password. Password lenght: " 
+					+ password.length() + ", required: " + minLen);
+			LOGGER.trace("Unable to generate password and meet minimal size of password. Password lenght: {}, required: {}",
+					password.length(), minLen);
+			return null; 
 		}
 
 		generatorResult.recordSuccess();
