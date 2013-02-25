@@ -1416,7 +1416,12 @@ public class PageUser extends PageAdminUsers {
 					}
 				}
 			}
-			setResponsePage(PageUsers.class);
+			StringValue returnPage = getPageParameters().get(PARAM_RETURN_PAGE);
+			if (!StringUtils.isBlank(returnPage.toString()) && PageOrgStruct.PARAM_ORG_RETURN.equals(returnPage.toString())){
+				setResponsePage(PageOrgStruct.class);
+			} else {
+				setResponsePage(PageUsers.class);
+			}
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
