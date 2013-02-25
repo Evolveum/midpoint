@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -1015,7 +1016,12 @@ public class TestMappingDynamic {
     @Test
     public void testGeneratePolicyBad() throws Exception {
     	final String TEST_NAME = "testGeneratePolicy";
-    	generatePolicy(TEST_NAME, "mapping-generate-policy-bad.xml", "c0c010c0-d34d-b33f-f00d-999888111113.xml", null);
+    	try {
+    		generatePolicy(TEST_NAME, "mapping-generate-policy-bad.xml", "c0c010c0-d34d-b33f-f00d-999888111113.xml", null);
+    		AssertJUnit.fail("Unexpected success");
+    	} catch (ExpressionEvaluationException e) {
+    		// This is expected, the policy is broken
+    	}
     }
     
     @Test
