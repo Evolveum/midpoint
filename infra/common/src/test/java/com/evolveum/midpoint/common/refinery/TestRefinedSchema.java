@@ -193,6 +193,40 @@ public class TestRefinedSchema {
         System.out.println("Parsed account:");
         System.out.println(accObject.dump());
 
+        assertAccountShadow(accObject, resource, prismContext);
+    }
+    
+    @Test
+    public void testApplyAttributeDefinition() throws JAXBException, SchemaException, SAXException, IOException {
+    	System.out.println("\n===[ testApplyAttributeDefinition ]===\n");
+
+        // GIVEN
+    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
+        
+        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resource, prismContext);
+        RefinedAccountDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
+        System.out.println("Refined account definition:");
+        System.out.println(defaultAccountDefinition.dump());
+
+        PrismObject<AccountShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
+        PrismContainer<Containerable> attributesContainer = accObject.findContainer(AccountShadowType.F_ATTRIBUTES);
+        System.out.println("Attributes container:");
+        System.out.println(attributesContainer.dump());
+        
+        // WHEN
+        attributesContainer.applyDefinition(defaultAccountDefinition, true);
+
+        // THEN
+        System.out.println("Parsed account:");
+        System.out.println(accObject.dump());
+
+        assertAccountShadow(accObject, resource, prismContext);
+    }
+    
+    private void assertAccountShadow(PrismObject<AccountShadowType> accObject, PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException, JAXBException {
+    	ResourceType resourceType = resource.asObjectable();
         QName objectClassQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.C_NAME, PrismTestUtil.createPolyString("jack"));
         PrismAsserts.assertPropertyValue(accObject, SchemaConstants.I_OBJECT_CLASS, objectClassQName);
@@ -228,6 +262,8 @@ public class TestRefinedSchema {
         PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
         Element accDomElement = jaxbProcessor.marshalObjectToDom(accObjectType, new QName(SchemaConstants.NS_C, "account"), DOMUtil.getDocument());
         System.out.println("Result of JAXB marshalling:\n"+DOMUtil.serializeDOMToString(accDomElement));
+        
+        accObject.checkConsistence(true, true);
     }
     
 	private QName getAttrQName(PrismObject<ResourceType> resource, String localPart) {

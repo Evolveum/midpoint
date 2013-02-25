@@ -107,6 +107,7 @@
                   <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="gossip" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="water" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -259,6 +260,10 @@
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <ignore>true</ignore>
             </attribute>
 
             <credentials>

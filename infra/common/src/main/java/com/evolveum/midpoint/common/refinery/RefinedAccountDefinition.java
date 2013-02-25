@@ -395,9 +395,9 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             String attrContextDescription = road.getName() + ", in " + contextDescription;
             ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), accountTypeDefType,
             		attrContextDescription);
-            if (attrDefType != null && RefinedAttributeDefinition.isIgnored(attrDefType)) {
-                continue;
-            }
+            // We MUST NOT skip ignored attribute definitions here. We must include them in the schema as
+            // the shadows will still have that attributes and we will need their type definition to work
+            // well with them. They may also be mandatory. We cannot pretend that they do not exist.
 
             RefinedAttributeDefinition rAttrDef = RefinedAttributeDefinition.parse(road, attrDefType, objectClassDef, 
             		prismContext, "in account type " + accountTypeDefType.getName() + ", in " + contextDescription);

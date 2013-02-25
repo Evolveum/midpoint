@@ -644,8 +644,12 @@ public class PrismAsserts {
 	}
 
 	private static <T> void assertSet(String inMessage, String setName, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) {
-		assertNotNull("Null "+setName+" set in " + inMessage, actualPValues);
-		assertEquals("Wrong number of values in " + inMessage, expectedValues.length, actualPValues.size());
+		assertValues(setName+" set in "+inMessage, actualPValues, expectedValues);
+	}
+	
+	public static <T> void assertValues(String message, Collection<PrismPropertyValue<T>> actualPValues, T[] expectedValues) {
+		assertNotNull("Null set in " + message, actualPValues);
+		assertEquals("Wrong number of values in " + message, expectedValues.length, actualPValues.size());
 		for (PrismPropertyValue<?> actualPValue: actualPValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
@@ -654,7 +658,7 @@ public class PrismAsserts {
 				}
 			}
 			if (!found) {
-				fail("Unexpected value "+actualPValue+" in " + inMessage + "; expected (real values) "
+				fail("Unexpected value "+actualPValue+" in " + message + "; expected (real values) "
 						+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualPValues);
 			}
 		}

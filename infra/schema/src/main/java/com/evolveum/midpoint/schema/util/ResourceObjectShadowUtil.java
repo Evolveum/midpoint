@@ -165,21 +165,21 @@ public class ResourceObjectShadowUtil {
 		return realValues.iterator().next();
 	}
 
-	public static List<Object> getAttributeValues(ResourceObjectShadowType shadowType, QName attrName) {
+	public static <T> List<T> getAttributeValues(ResourceObjectShadowType shadowType, QName attrName) {
 		return getAttributeValues(shadowType.asPrismObject(), attrName);
 	}
 	
-	public static List<Object> getAttributeValues(PrismObject<ResourceObjectShadowType> shadow, QName attrName) {
-		PrismContainer attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+	public static <T> List<T> getAttributeValues(PrismObject<? extends ResourceObjectShadowType> shadow, QName attrName) {
+		PrismContainer<?> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			return null;
 		}
-		PrismProperty<?> attr = attributesContainer.findProperty(attrName);
+		PrismProperty<T> attr = attributesContainer.findProperty(attrName);
 		if (attr == null) {
 			return null;
 		}
-		List<Object> values = new ArrayList<Object>();
-		for (PrismPropertyValue<?> pval : attr.getValues()) {
+		List<T> values = new ArrayList<T>();
+		for (PrismPropertyValue<T> pval : attr.getValues()) {
 			values.add(pval.getValue());
 		}
 		if (values.isEmpty()) {

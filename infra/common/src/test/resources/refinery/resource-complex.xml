@@ -337,6 +337,10 @@
 					</expression>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:userPassword</ref>
+				<ignore>true</ignore>
+			</attribute>
 			<protected>
 				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
 			</protected>

@@ -41,5 +41,6 @@
 		<ri:cn>Jack Sparrow</ri:cn>
 		<ri:givenName>Jack</ri:givenName>
 		<ri:sn>Sparrow</ri:sn>
+		<ri:userPassword>ZGVhZCBtZW4gdGVsbCBubyB0YWxlcwo=</ri:userPassword>
 	</attributes>
 </account>

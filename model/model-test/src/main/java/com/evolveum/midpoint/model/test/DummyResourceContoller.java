@@ -65,6 +65,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME = "drink";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME = "quote";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME = "gossip";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
 	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
@@ -97,23 +98,21 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public void extendDummySchema() throws ConnectException, FileNotFoundException {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
-		accountObjectClass.add(titleAttrDef);
-		DummyAttributeDefinition shipAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
-		accountObjectClass.add(shipAttrDef);
-		DummyAttributeDefinition locationAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, String.class, false, false);
-		accountObjectClass.add(locationAttrDef);
-		DummyAttributeDefinition lootAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
-		accountObjectClass.add(lootAttrDef);
-		DummyAttributeDefinition weaponAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, String.class, false, true);
-		accountObjectClass.add(weaponAttrDef);
-		DummyAttributeDefinition drinkAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class, false, true);
-		accountObjectClass.add(drinkAttrDef);
-		DummyAttributeDefinition quoteAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
-		accountObjectClass.add(quoteAttrDef);
-		DummyAttributeDefinition gossipAttrDef = new DummyAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
-		accountObjectClass.add(gossipAttrDef);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, String.class, false, false);
 		isExtendedSchema = true;
+	}
+	
+	private void addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
+		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
+		accountObjectClass.add(attrDef);
 	}
 	
 	public QName getAttributeFullnameQName() {
