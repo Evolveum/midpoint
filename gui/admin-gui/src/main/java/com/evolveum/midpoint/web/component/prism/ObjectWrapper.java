@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.RestartResponseException;
 
@@ -99,10 +101,8 @@ public class ObjectWrapper implements Serializable {
 	
 	public Boolean getEnableStatus() {
 		ContainerWrapper activation = null;
-		String containerName = "";
 		ItemPath resourceActivationPath = new ItemPath(ResourceObjectShadowType.F_ACTIVATION);
 		for (ContainerWrapper container : getContainers()) {
-			containerName = container.getObject().getDisplayName();
 			Class clazz = container.getItem().getCompileTimeClass();
 			if(clazz != null) {
 				if(clazz.equals(RoleType.class) || clazz.equals(ObjectType.class)) {
@@ -396,8 +396,9 @@ public class ObjectWrapper implements Serializable {
                     //todo this is bad hack because now we have not tri-state checkbox
 					if (SchemaConstants.PATH_ACTIVATION.equals(path)) {
 						
-						if (object.asObjectable() instanceof AccountShadowType	&& (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null || ((ResourceObjectShadowType) object
-										.asObjectable()).getActivation().isEnabled() == null)) {
+						if (object.asObjectable() instanceof AccountShadowType
+                                && (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null
+                                || ((ResourceObjectShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
 							
 							if (!hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource())){
 								continue;
@@ -423,13 +424,13 @@ public class ObjectWrapper implements Serializable {
 					case NOT_CHANGED:
 						// this is modify...
 						if (propertyDef.isSingleValue()) {
-							if (newValCloned.getValue() != null) {
+							if (newValCloned != null && newValCloned.getValue() != null) {
 								pDelta.setValuesToReplace(Arrays.asList(newValCloned));
 							} else {
 								pDelta.addValueToDelete(oldValCloned);
 							}
 						} else {
-							if (newValCloned.getValue() != null) {
+							if (newValCloned != null && newValCloned.getValue() != null) {
 								pDelta.addValueToAdd(newValCloned);
 							}
 							pDelta.addValueToDelete(oldValCloned);
@@ -454,6 +455,13 @@ public class ObjectWrapper implements Serializable {
         cloned.setOriginType(OriginType.USER_ACTION);
         if (value.getValue() instanceof ProtectedStringType) {
             cloned.setValue(((ProtectedStringType)value.getValue()).clone());
+        }
+        if (value.getValue() instanceof PolyString) {
+            PolyString poly = (PolyString) value.getValue();
+            if (StringUtils.isEmpty(poly.getOrig())) {
+                return null;
+            }
+            cloned.setValue(new PolyString(poly.getOrig(), poly.getNorm()));
         }
 
         return cloned;
@@ -511,7 +519,6 @@ public class ObjectWrapper implements Serializable {
 				if (container.findProperty(property.getName()) != null) {
 					continue;
 				}
-				container.add(property);
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
 					if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 						continue;
@@ -520,8 +527,16 @@ public class ObjectWrapper implements Serializable {
 					if (property.hasRealValue(valueWrapper.getValue())) {
 						continue;
 					}
-					property.addValue(valueWrapper.getValue().clone());
+
+                    PrismPropertyValue cloned = clone(valueWrapper.getValue());
+                    if (cloned != null) {
+                        property.addValue(cloned);
+                    }
 				}
+
+                if (!property.isEmpty()) {
+                    container.add(property);
+                }
 			}
 		}
 
