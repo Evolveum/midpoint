@@ -253,9 +253,16 @@ icfs:name = icfs:uid so this not yet possible -->
 			<checkAgainstDictionary>false</checkAgainstDictionary>
 			<checkPattern />
 			<limit>
+				<description>Numeric characters (first digit - excluding zero)</description>
+				<minOccurs>1</minOccurs>
+				<mustBeFirst>true</mustBeFirst>
+				<characterClass>
+					<value>9</value>
+				</characterClass>
+			</limit>
+			<limit>
 				<description>Numeric characters</description>
-				<!--<minOccurs>1</minOccurs>
-				<mustBeFirst>false</mustBeFirst>-->
+				<mustBeFirst>false</mustBeFirst>
 				<characterClass>
 					<value>1234567890</value>
 				</characterClass>
