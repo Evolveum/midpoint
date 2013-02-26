@@ -100,6 +100,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -312,7 +313,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+	public void executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -323,9 +324,14 @@ public class ModelController implements ModelService, ModelInteractionService {
 			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
 		}
 		
-		for(ObjectDelta<? extends ObjectType> delta: deltas) {
-			delta.checkConsistence();
-		}
+		OperationResultRunner.run(result, new Runnable() {
+			@Override
+			public void run() {
+				for(ObjectDelta<? extends ObjectType> delta: deltas) {
+					delta.checkConsistence();
+				}
+			}
+		});
 		
 		RepositoryCache.enter();
         setRequesteeIfNecessary(task, deltas, result);

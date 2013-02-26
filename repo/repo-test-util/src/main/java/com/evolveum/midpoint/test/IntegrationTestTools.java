@@ -409,6 +409,10 @@ public class IntegrationTestTools {
 		assertEqualsCollection(message, expectedValues, values);
 	}
 	
+	public static <T> void assertNoAttribute(PrismObject<? extends ResourceObjectShadowType> shadow, QName name) {	
+		assertNull("Found attribute "+name+" in "+shadow+" while not expecting it", getAttributeValues(shadow, name));
+	}
+	
 	public static <T> void assertEqualsCollection(String message, Collection<T> expectedValues, Collection<T> actualValues) {
 		if (expectedValues == null && actualValues == null) {
 			return;

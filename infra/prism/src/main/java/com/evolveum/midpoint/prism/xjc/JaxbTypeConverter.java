@@ -37,6 +37,9 @@ public class JaxbTypeConverter {
     }
 	
 	private static PolyStringType toPolyStringType(PolyString polyString) {
+		if (polyString == null) {
+			return null;
+		}
 		PolyStringType polyStringType = new PolyStringType();
 		polyStringType.setOrig(polyString.getOrig());
 		polyStringType.setNorm(polyString.getNorm());
@@ -51,6 +54,9 @@ public class JaxbTypeConverter {
 	}
 
 	private static PolyString fromPolyStringType(PolyStringType polyStringType) {
+		if (polyStringType == null || polyStringType.getOrig() == null) {
+			return null;
+		}
 		PolyString polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
 		return polyString;
 	}

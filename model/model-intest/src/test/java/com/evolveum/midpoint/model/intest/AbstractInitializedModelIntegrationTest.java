@@ -228,6 +228,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	}
 	
 	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName) {
+		assertUserJack(user, fullName, givenName, familyName, "Caribbean");
+	}
+	
+	protected void assertUserJack(PrismObject<UserType> user, String fullName, String givenName, String familyName, String locality) {
 		assertUser(user, USER_JACK_OID, "jack", fullName, givenName, familyName);
 		UserType userType = user.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong jack honorificPrefix", "Cpt.", userType.getHonorificPrefix());
@@ -236,7 +240,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertEquals("Wrong jack telephoneNumber", "555-1234", userType.getTelephoneNumber());
 		assertEquals("Wrong jack employeeNumber", "emp1234", userType.getEmployeeNumber());
 		assertEquals("Wrong jack employeeType", "CAPTAIN", userType.getEmployeeType().get(0));
-		PrismAsserts.assertEqualsPolyString("Wrong jack locality", "Caribbean", userType.getLocality());
+		if (locality == null) {
+			assertNull("Locality sneaked to user jack", userType.getLocality());
+		} else {
+			PrismAsserts.assertEqualsPolyString("Wrong jack locality", locality, userType.getLocality());
+		}
 	}
 	
 	protected void assertDummyShadowRepo(PrismObject<AccountShadowType> accountShadow, String oid, String username) {

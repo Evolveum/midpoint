@@ -158,7 +158,11 @@ public final class PrismForJAXBUtil {
 				throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 			}
 	    	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(value);
-	    	property.setValue(new PrismPropertyValue(propertyRealValue));
+	    	if (propertyRealValue == null) {
+	    		container.removeProperty(name);
+	    	} else {
+	    		property.setValue(new PrismPropertyValue(propertyRealValue));
+	    	}
         }
     }
 

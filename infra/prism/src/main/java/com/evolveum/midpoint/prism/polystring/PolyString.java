@@ -53,12 +53,18 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
 	
 	public PolyString(String orig) {
 		super();
+		if (orig == null) {
+			throw new IllegalArgumentException("Cannot create PolyString with null orig");
+		}
 		this.orig = orig;
 	}
 	
 	public PolyString(String orig, String norm) {
 		super();
 		this.orig = orig;
+		if (orig == null) {
+			throw new IllegalArgumentException("Cannot create PolyString with null orig");
+		}
 		this.norm = norm;
 	}
 

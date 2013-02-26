@@ -125,8 +125,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(new ProtectedStringType()),
                     new PrismPropertyValue(new ProtectedStringType()), ValueStatus.ADDED);
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString(null)),
-                    new PrismPropertyValue(new PolyString(null)), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, new PrismPropertyValue((PolyString)null),
+                    new PrismPropertyValue((PolyString)(null)), ValueStatus.ADDED);
         } else if (isThisPropertyActivationEnabled()) {
             wrapper = new ValueWrapper(this, new PrismPropertyValue(true), new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
