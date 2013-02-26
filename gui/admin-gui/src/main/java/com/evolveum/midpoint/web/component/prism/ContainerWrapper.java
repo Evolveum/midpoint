@@ -257,7 +257,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
     boolean isPropertyVisible(PropertyWrapper property) {
         PrismPropertyDefinition def = property.getItem().getDefinition();
-        if (!def.canRead()) {
+        if (!def.canRead() || def.isIgnored()) {
             return false;
         }
 
