@@ -95,6 +95,15 @@ public class ValueWrapper<T> implements Serializable {
         this.status = status;
     }
 
+    public void normalize() {
+        if (value.getValue() instanceof PolyString)  {
+            PolyString poly = (PolyString) value.getValue();
+            if (poly.getOrig()==null) {
+                value.setValue((T) new PolyString(""));
+            }
+        }
+    }
+
     public boolean hasValueChanged() {
         return oldValue != null ? !oldValue.equals(value) : value != null;
     }

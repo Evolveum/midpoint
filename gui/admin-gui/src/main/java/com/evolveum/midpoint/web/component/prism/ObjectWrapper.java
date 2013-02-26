@@ -386,6 +386,7 @@ public class ObjectWrapper implements Serializable {
 						: new ItemPath();
 				PropertyDelta pDelta = new PropertyDelta(path, propertyDef.getName(), propertyDef);
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
+                    valueWrapper.normalize();
 					ValueStatus valueStatus = valueWrapper.getStatus();
 					if (!valueWrapper.hasValueChanged()
 							&& (ValueStatus.NOT_CHANGED.equals(valueStatus) || ValueStatus.ADDED.equals(valueStatus))) {
@@ -520,6 +521,7 @@ public class ObjectWrapper implements Serializable {
 					continue;
 				}
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {
+                    valueWrapper.normalize();
 					if (!valueWrapper.hasValueChanged() || ValueStatus.DELETED.equals(valueWrapper.getStatus())) {
 						continue;
 					}

@@ -118,6 +118,7 @@ public class AccountChangesDto extends PageAdmin implements Serializable {
 					}
 					for (Object valueObject : propertyValue.getValues()) {
 						ValueWrapper value = (ValueWrapper) valueObject;
+                        value.normalize();
 						if (value.getValue().getValue() != null) {
 							values.add(new SubmitAccountChangesDto(value.getValue(), SubmitStatus.ADDING));
 						}
