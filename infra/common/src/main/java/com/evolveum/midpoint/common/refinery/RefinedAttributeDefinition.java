@@ -222,50 +222,56 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         return attributeDefinition.getHelp();
     }
 
-    static RefinedAttributeDefinition parse(ResourceAttributeDefinition attrDef, ResourceAttributeDefinitionType attrDefType,
+    static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
     		ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext, 
                                             String contextDescription) throws SchemaException {
 
-        RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(attrDef, prismContext);
+        RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(schemaAttrDef, prismContext);
 
-        if (attrDefType != null && attrDefType.getDisplayName() != null) {
-            rAttrDef.setDisplayName(attrDefType.getDisplayName());
+        if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
+            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
         } else {
-            if (attrDef.getDisplayName() != null) {
-                rAttrDef.setDisplayName(attrDef.getDisplayName());
+            if (schemaAttrDef.getDisplayName() != null) {
+                rAttrDef.setDisplayName(schemaAttrDef.getDisplayName());
             }
         }
 
-        if (attrDefType != null && attrDefType.getDescription() != null) {
-            rAttrDef.setDescription(attrDefType.getDescription());
-        }
+        if (schemaHandlingAttrDefType != null) {
+        	
+        	if (schemaHandlingAttrDefType.getDescription() != null) {
+            	rAttrDef.setDescription(schemaHandlingAttrDefType.getDescription());
+        	}
 
-        if (attrDefType != null) {
-
-        	if (attrDefType.isTolerant() == null) {
+        	if (schemaHandlingAttrDefType.isTolerant() == null) {
         		rAttrDef.tolerant = true;
         	} else {
-        		rAttrDef.tolerant = attrDefType.isTolerant();
+        		rAttrDef.tolerant = schemaHandlingAttrDefType.isTolerant();
         	}
         	
-            if (attrDefType.getOutbound() != null) {
-                rAttrDef.setOutboundMappingType(attrDefType.getOutbound());
+            if (schemaHandlingAttrDefType.getOutbound() != null) {
+                rAttrDef.setOutboundMappingType(schemaHandlingAttrDefType.getOutbound());
             }
 
-            if (attrDefType.getInbound() != null) {
-                rAttrDef.setInboundMappingTypes(attrDefType.getInbound());
+            if (schemaHandlingAttrDefType.getInbound() != null) {
+                rAttrDef.setInboundMappingTypes(schemaHandlingAttrDefType.getInbound());
             }
         
-            rAttrDef.minOccurs = attrDefType.getMinOccurs();
-            rAttrDef.maxOccurs = attrDefType.getMaxOccurs();
+            rAttrDef.minOccurs = schemaHandlingAttrDefType.getMinOccurs();
+            rAttrDef.maxOccurs = schemaHandlingAttrDefType.getMaxOccurs();
+            
+            if (schemaHandlingAttrDefType.isIgnore() == null) {
+            	rAttrDef.ignored = schemaAttrDef.isIgnored();
+            } else {
+            	rAttrDef.ignored = schemaHandlingAttrDefType.isIgnore();
+            }
+            
+        } else {
+        	rAttrDef.ignored = schemaAttrDef.isIgnored();
         }
         
-        
-        rAttrDef.ignored = attrDef.isIgnored();
-        
-        rAttrDef.create = parseAccess(attrDefType, AccessType.CREATE, attrDef.canCreate());
-        rAttrDef.update = parseAccess(attrDefType, AccessType.UPDATE, attrDef.canUpdate());
-        rAttrDef.read = parseAccess(attrDefType, AccessType.READ, attrDef.canRead());
+        rAttrDef.create = parseAccess(schemaHandlingAttrDefType, AccessType.CREATE, schemaAttrDef.canCreate());
+        rAttrDef.update = parseAccess(schemaHandlingAttrDefType, AccessType.UPDATE, schemaAttrDef.canUpdate());
+        rAttrDef.read = parseAccess(schemaHandlingAttrDefType, AccessType.READ, schemaAttrDef.canRead());
 
         return rAttrDef;
 
@@ -306,6 +312,9 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         }
         if (getOutboundMappingType() != null) {
             sb.append(",OUT");
+        }
+        if (getInboundMappingTypes() != null) {
+            sb.append(",IN");
         }
 		return sb.toString();
 	}

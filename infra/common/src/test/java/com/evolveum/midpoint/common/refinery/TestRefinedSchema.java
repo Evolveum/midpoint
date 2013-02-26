@@ -105,6 +105,11 @@ public class TestRefinedSchema {
         System.out.println(rSchema.dump());
 
         assertRefinedSchema(resourceType, rSchema, true);
+        
+        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
+        assertNotNull("No userPassword attribute", userPasswordAttribute);
+        assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
     }
 
     @Test
