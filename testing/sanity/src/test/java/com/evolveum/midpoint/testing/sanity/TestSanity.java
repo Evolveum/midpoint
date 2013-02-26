@@ -2942,7 +2942,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("getTask result", result);
         assertSuccess("getTask has failed", result);
         AssertJUnit.assertNotNull(task);
-        display("Task after pickup", task);
+        display("Task after finish", task);
         AssertJUnit.assertNotNull(task.getTaskIdentifier());
         assertFalse(task.getTaskIdentifier().isEmpty());
 
@@ -2950,8 +2950,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Task after pickup in the repository", o.asObjectable());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
-        // The task may still be claimed if we are too fast
-        //AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
         // .. and last run should not be zero
         assertNotNull(task.getLastRunStartTimestamp());
@@ -2965,7 +2963,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Test for presence of a result. It should be there and it should
         // indicate success
         OperationResult taskResult = task.getResult();
+        display("Recompute task result", taskResult);
         AssertJUnit.assertNotNull(taskResult);
+        assertSuccess("Recompute task result", taskResult);
 
         // STOP the task. We don't need it any more and we don't want to give it a chance to run more than once
         taskManager.deleteTask(TASK_USER_RECOMPUTE_OID, result);

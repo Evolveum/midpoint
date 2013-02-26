@@ -180,7 +180,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
-		opResult.computeStatus("Recompute run has failed");
+		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
@@ -212,6 +212,7 @@ public class RecomputeTaskHandler implements TaskHandler {
 				OperationResult subResult = result.createSubresult(OperationConstants.RECOMPUTE_USER);
 				subResult.addContext(OperationResult.CONTEXT_OBJECT, user);
 				recomputeUser(user, task, subResult);
+				subResult.computeStatus();
 			}
 			offset += SEARCH_MAX_SIZE;
 		}
