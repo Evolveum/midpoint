@@ -256,7 +256,7 @@ icfs:name = icfs:uid so this not yet possible -->
 				<minOccurs>1</minOccurs>
 				<mustBeFirst>true</mustBeFirst>
 				<characterClass>
-					<value>9</value>
+					<value>123456789</value>
 				</characterClass>
 			</limit>
 			<limit>
