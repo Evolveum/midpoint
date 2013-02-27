@@ -25,7 +25,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,7 +40,6 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -75,6 +73,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
     private static final String DOT_CLASS = AssignmentEditorPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 
     private static final String ID_MAIN = "main";
     private static final String ID_HEADER = "headerPanel";
@@ -113,11 +113,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private void initPanelLayout() {
-    	final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER);
+        final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER);
         headerPanel.add(new AttributeAppender("class", createHeaderClassModel(getModel()), " "));
-    	headerPanel.setOutputMarkupId(true);
-    	add(headerPanel);
-    	
+        headerPanel.setOutputMarkupId(true);
+        add(headerPanel);
+
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
 
@@ -375,12 +375,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         WebMarkupContainer parent = (WebMarkupContainer) get(createComponentPath(ID_MAIN, ID_BODY,
                 ID_CONSTRUCTION_CONTAINER));
 
-        target.add(parent.get(ID_ATTRIBUTES), parent.get(createComponentPath(ID_SHOW_EMPTY, ID_SHOW_EMPTY_LABEL)));
+        target.add(parent.get(ID_ATTRIBUTES), parent.get(createComponentPath(ID_SHOW_EMPTY, ID_SHOW_EMPTY_LABEL)),
+                getPageBase().getFeedbackPanel());
     }
 
     private List<ACAttributeDto> loadAttributes() {
         AssignmentEditorDto dto = getModel().getObject();
 
+        OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
         List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
         try {
             AccountConstructionType construction = WebMiscUtil.getValue(dto.getOldValue(),
@@ -388,7 +390,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
             PrismObject<ResourceType> resource = construction.getResource() != null
                     ? construction.getResource().asPrismObject() : null;
             if (resource == null) {
-                resource = getReference(construction.getResourceRef(), new OperationResult("asdf"));//todo fix
+                resource = getReference(construction.getResourceRef(), result);
             }
 
             PrismContext prismContext = getPageBase().getPrismContext();
@@ -408,9 +410,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 attributes.add(ACAttributeDto.createACAttributeDto(propertyDef,
                         findOrCreateValueConstruction(propertyDef, attrConstructions), prismContext));
             }
+            result.recordSuccess();
         } catch (Exception ex) {
-            //todo error handling
-            ex.printStackTrace();
+            LoggingUtils.logException(LOGGER, "Exception occurred during assignment attribute loading", ex);
+            result.recordFatalError("Exception occurred during assignment attribute loading.", ex);
+        } finally {
+            result.recomputeStatus();
         }
 
         Collections.sort(attributes, new Comparator<ACAttributeDto>() {
@@ -423,15 +428,19 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
         dto.setAttributes(attributes);
 
+        if (!result.isSuccess() && !result.isHandledError()) {
+            getPageBase().showResultInSession(result);
+        }
+
         return attributes;
     }
 
     private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
-        OperationResult subResult = result.createSubresult("aaaaaaaaaa");   //todo fix
+        OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
         subResult.addParam("targetRef", ref.getOid());
         PrismObject target = null;
         try {
-            Task task = getPageBase().createSimpleTask("aaaaaaaaaa");    //todo fix
+            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RESOURCE);
             target = getPageBase().getModelService().getObject(ObjectType.class, ref.getOid(), null, task,
                     subResult);
             subResult.recordSuccess();
@@ -444,7 +453,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     }
 
     private ResourceAttributeDefinitionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
-                                                                List<ResourceAttributeDefinitionType> attrConstructions) {
+                                                                          List<ResourceAttributeDefinitionType> attrConstructions) {
         for (ResourceAttributeDefinitionType construction : attrConstructions) {
             if (attrDef.getName().equals(construction.getRef())) {
                 return construction;
