@@ -77,6 +77,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
+
+                selectable.setSigned(selected);
             }
         }
     }
