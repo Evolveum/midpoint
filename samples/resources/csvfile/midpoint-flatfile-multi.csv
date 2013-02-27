@@ -1,0 +1,2 @@
+"id","firstname","lastname","disabled","password","groups"
+"user01","User01","User01","false","secret","group1;group2;group3"
