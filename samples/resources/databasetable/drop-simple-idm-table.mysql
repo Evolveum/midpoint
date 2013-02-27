@@ -1,2 +1,3 @@
 DROP TABLE IF EXISTS midpoint_tests.idrepo;
+DROP TABLE IF EXISTS midpoint_tests.idrepo2;
 DROP DATABASE IF EXISTS midpoint_tests;
