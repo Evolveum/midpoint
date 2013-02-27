@@ -160,7 +160,6 @@ icfs:name = icfs:uid so this not yet possible -->
 					<ref>ri:firstName</ref>
 					<displayName>First name</displayName>
 					<description>Definition of Firstname attribute handling.</description>
-					<ignore/>
 					<outbound>
 						<source>
 							<path>$user/givenName</path>
