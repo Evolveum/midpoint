@@ -3,7 +3,7 @@
 
 CREATE DATABASE IF NOT EXISTS midpoint_tests CHARACTER SET utf8 COLLATE utf8_bin;
 
-CREATE TABLE midpoint_tests.idrepo (
+CREATE TABLE midpoint_tests.idrepo2 (
 	id		INT(10) NOT NULL auto_increment,
 	userId	VARCHAR(16) NOT NULL,
 	password	VARCHAR(16) NOT NULL,

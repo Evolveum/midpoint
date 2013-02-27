@@ -65,7 +65,7 @@ using an Identity Connector Framework DBTable connector.
 				<icscdbtable:user>midpoint_tests</icscdbtable:user>
 				<icscdbtable:password><clearValue>secret</clearValue></icscdbtable:password>
 				<icscdbtable:database>midpoint_tests</icscdbtable:database>
-				<icscdbtable:table>idrepo</icscdbtable:table>
+				<icscdbtable:table>idrepo2</icscdbtable:table>
 				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
 				<icscdbtable:passwordColumn>password</icscdbtable:passwordColumn>
 				<icscdbtable:jdbcDriver>com.mysql.jdbc.Driver</icscdbtable:jdbcDriver>
