@@ -287,6 +287,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (valuesToReplace != null) {
 			if (!PrismValue.containsRealValue(valuesToReplace, newValue)) {
 				valuesToReplace.add(newValue);
+				newValue.setParent(this);
 			}
 		} else {
 			if (!removeValueToDelete(newValue)) {

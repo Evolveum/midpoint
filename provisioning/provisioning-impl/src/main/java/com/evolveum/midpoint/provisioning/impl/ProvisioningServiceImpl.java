@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -709,6 +710,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
+		
+		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
+			ItemDelta.checkConsistence(modifications);
+		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");
 		result.addParam("modifications", modifications);

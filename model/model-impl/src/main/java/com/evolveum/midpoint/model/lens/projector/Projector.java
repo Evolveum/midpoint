@@ -204,6 +204,8 @@ public class Projector {
 		        context.incrementProjectionWave();
 	        }
 	        
+	        if (CONSISTENCY_CHECKS) context.checkConsistence();
+	        
 	        result.recordSuccess();
 	        
 		} catch (SchemaException e) {

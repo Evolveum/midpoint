@@ -69,6 +69,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	
 	private DummyResource dummyResource;
 	private boolean isExtendedSchema = false;
+	private String instanceName;
 
 	
 	public static DummyResourceContoller create(String instanceName) {
@@ -78,6 +79,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public static DummyResourceContoller create(String instanceName, PrismObject<ResourceType> resource) {
 		DummyResourceContoller ctl = new DummyResourceContoller();
 		
+		ctl.instanceName = instanceName;
 		ctl.dummyResource = DummyResource.getInstance(instanceName);
 		ctl.dummyResource.reset();
 		ctl.populateWithDefaultSchema();
@@ -91,6 +93,9 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return dummyResource;
 	}
 
+	public String getName() {
+		return instanceName;
+	}
 
 	public void populateWithDefaultSchema() {
 		dummyResource.populateWithDefaultSchema();

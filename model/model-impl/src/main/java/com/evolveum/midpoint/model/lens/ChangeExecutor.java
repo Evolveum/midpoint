@@ -372,6 +372,8 @@ public class ChangeExecutor {
             throw new IllegalArgumentException("Null change");
         }
         
+        if (CONSISTENCY_CHECKS) objectDelta.checkConsistence();
+        
         // Other types than user type may not be definition-complete (e.g. accounts and resources are completed in provisioning)
         if (UserType.class.isAssignableFrom(objectDelta.getObjectTypeClass())) {
         	objectDelta.assertDefinitions();

@@ -48,7 +48,7 @@
     </assignment>    
     <assignment>
     	<accountConstruction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000104" type="c:ResourceType"/>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
     	</accountConstruction>
     </assignment>    
 </role>

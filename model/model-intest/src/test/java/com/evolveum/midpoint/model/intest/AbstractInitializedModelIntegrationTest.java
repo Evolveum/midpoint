@@ -108,6 +108,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyGreenType;
 	protected PrismObject<ResourceType> resourceDummyGreen;
 	
+	protected static DummyResource dummyResourceYellow;
+	protected static DummyResourceContoller dummyResourceCtlYellow;
+	protected ResourceType resourceDummyYellowType;
+	protected PrismObject<ResourceType> resourceDummyYellow;
 	
 	protected ResourceType resourceDummySchemalessType;
 	protected PrismObject<ResourceType> resourceDummySchemaless;
@@ -134,42 +138,44 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
-		
-		dummyResourceCtlRed = DummyResourceContoller.create(RESOURCE_DUMMY_RED_NAME, resourceDummyRed);
-		dummyResourceCtlRed.extendDummySchema();
-		dummyResourceRed = dummyResourceCtlRed.getDummyResource();
-		
-		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
-		dummyResourceCtlBlue.extendDummySchema();
-		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
-		
-		dummyResourceCtlWhite = DummyResourceContoller.create(RESOURCE_DUMMY_WHITE_NAME, resourceDummyWhite);
-		dummyResourceCtlWhite.extendDummySchema();
-		dummyResourceWhite = dummyResourceCtlWhite.getDummyResource();
-
-		dummyResourceCtlGreen = DummyResourceContoller.create(RESOURCE_DUMMY_GREEN_NAME, resourceDummyGreen);
-		dummyResourceCtlGreen.extendDummySchema();
-		dummyResourceGreen = dummyResourceCtlGreen.getDummyResource();
-		
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
 		
+		dummyResourceCtlRed = DummyResourceContoller.create(RESOURCE_DUMMY_RED_NAME, resourceDummyRed);
+		dummyResourceCtlRed.extendDummySchema();
+		dummyResourceRed = dummyResourceCtlRed.getDummyResource();
 		resourceDummyRed = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_RED_FILENAME, RESOURCE_DUMMY_RED_OID, initTask, initResult); 
 		resourceDummyRedType = resourceDummyRed.asObjectable();
 		dummyResourceCtlRed.setResource(resourceDummyRed);
 		
+		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
+		dummyResourceCtlBlue.extendDummySchema();
+		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
 		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLUE_FILENAME, RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
 		dummyResourceCtlBlue.setResource(resourceDummyBlue);		
 		
+		dummyResourceCtlWhite = DummyResourceContoller.create(RESOURCE_DUMMY_WHITE_NAME, resourceDummyWhite);
+		dummyResourceCtlWhite.extendDummySchema();
+		dummyResourceWhite = dummyResourceCtlWhite.getDummyResource();
 		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
 		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
 		dummyResourceCtlWhite.setResource(resourceDummyWhite);
-		
+
+		dummyResourceCtlGreen = DummyResourceContoller.create(RESOURCE_DUMMY_GREEN_NAME, resourceDummyGreen);
+		dummyResourceCtlGreen.extendDummySchema();
+		dummyResourceGreen = dummyResourceCtlGreen.getDummyResource();
 		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
 		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 		dummyResourceCtlGreen.setResource(resourceDummyGreen);
+		
+		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
+		dummyResourceCtlYellow.extendDummySchema();
+		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
+		resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILENAME, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
+		resourceDummyYellowType = resourceDummyYellow.asObjectable();
+		dummyResourceCtlYellow.setResource(resourceDummyYellow);
 		
 		resourceDummySchemaless = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SCHEMALESS_FILENAME, RESOURCE_DUMMY_SCHEMALESS_OID, initTask, initResult); 
 		resourceDummySchemalessType = resourceDummySchemaless.asObjectable();

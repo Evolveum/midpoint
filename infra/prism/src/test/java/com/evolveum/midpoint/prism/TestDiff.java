@@ -64,9 +64,11 @@ public class TestDiff {
 		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 		
 		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
 		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("test name"));
 		
 		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
 		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("test name"));
 		
 		// WHEN
@@ -75,6 +77,8 @@ public class TestDiff {
         // THEN
         assertNotNull(delta);
         assertEquals("Unexpected number of midifications", 0, delta.getModifications().size());
+        assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
+        delta.checkConsistence();
     }
 
 	@Test
@@ -84,9 +88,11 @@ public class TestDiff {
 		PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 		
 		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
 		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("test name"));
 		
 		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
 		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("other name"));
 		
 		// WHEN
@@ -97,6 +103,8 @@ public class TestDiff {
         System.out.println(delta.dump());
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
         PrismAsserts.assertPropertyReplace(delta, UserType.F_NAME, PrismTestUtil.createPolyStringType("other name"));
+        assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
+        delta.checkConsistence();
     }
 
     @Test
@@ -107,11 +115,13 @@ public class TestDiff {
     	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 		
 		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
 		PrismProperty<String> anamesProp1 = user1.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
 		anamesProp1.addRealValue("foo");
 		anamesProp1.addRealValue("bar");
 		
 		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
 		PrismProperty<String> anamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
 		anamesProp2.addRealValue("foo");
 		anamesProp2.addRealValue("bar");
@@ -122,6 +132,8 @@ public class TestDiff {
         // THEN
         assertNotNull(delta);
         assertEquals("Unexpected number of midifications", 0, delta.getModifications().size());
+        assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
+        delta.checkConsistence();
     }
 
     @Test
@@ -132,11 +144,13 @@ public class TestDiff {
     	PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
 		
 		PrismObject<UserType> user1 = userDef.instantiate();
+		user1.setOid(USER_JACK_OID);
 		PrismProperty<String> anamesProp1 = user1.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
 		anamesProp1.addRealValue("foo");
 		anamesProp1.addRealValue("bar");
 		
 		PrismObject<UserType> user2 = userDef.instantiate();
+		user2.setOid(USER_JACK_OID);
 		PrismProperty<String> anamesProp2 = user2.findOrCreateProperty(UserType.F_ADDITIONAL_NAMES);
 		anamesProp2.addRealValue("foo");
 		anamesProp2.addRealValue("bar");
@@ -150,7 +164,8 @@ public class TestDiff {
         System.out.println(delta.dump());
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ADDITIONAL_NAMES, "baz");
-    	
+        assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
+        delta.checkConsistence();
     }
 
     @Test
@@ -176,7 +191,7 @@ public class TestDiff {
         assertNotNull(modifications);
         System.out.println(DebugUtil.debugDump(modifications));
         assertEquals("Unexpected number of midifications", 0, modifications.size());
-    	
+    	ItemDelta.checkConsistence(modifications);
     }
 
     @Test
@@ -211,7 +226,7 @@ public class TestDiff {
         				new IdItemPathSegment("1"),
         				new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
         		"chamalalia patlama paprtala");
-    	
+        ItemDelta.checkConsistence(modifications);
     }
     
     @Test
@@ -241,7 +256,7 @@ public class TestDiff {
         		modifications, 
         		new ItemPath(AssignmentType.F_DESCRIPTION),
         		"chamalalia patlama paprtala");
-    	
+        ItemDelta.checkConsistence(modifications);
     }
 
     @Test
@@ -278,7 +293,7 @@ public class TestDiff {
         				new IdItemPathSegment("1"),
         				new NameItemPathSegment(AssignmentType.F_DESCRIPTION)),
         		"chamalalia patlama paprtala");
-    	
+        ItemDelta.checkConsistence(modifications);
     }
 
 }

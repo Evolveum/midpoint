@@ -516,9 +516,12 @@ public class TestDelta {
         assertEquals("Unexpected number of assignment values", 1, assignment.size());
     }
 	
+	/**
+	 * MODIFY/add + MODIFY/add
+	 */
 	@Test
-    public void testObjectDeltaUnionSimple() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaUnionSimple ]===\n");
+    public void testObjectDeltaUnion01Simple() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaUnion01Simple ]===\n");
 		// GIVEN
 		
 		//Delta
@@ -531,12 +534,15 @@ public class TestDelta {
         ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
         
         // THEN
-        assertUnionDelta(userDeltaUnion);
+        assertUnion01Delta(userDeltaUnion);
     }
 	
+	/**
+	 * MODIFY/add + MODIFY/add
+	 */	
 	@Test
-    public void testObjectDeltaUnionMetadata() throws Exception {
-		System.out.println("\n\n===[ testObjectDeltaUnionMetadata ]===\n");
+    public void testObjectDeltaUnion01Metadata() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaUnion01Metadata ]===\n");
 		// GIVEN
 		
     	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
@@ -556,15 +562,11 @@ public class TestDelta {
         ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
         
         // THEN
-        assertUnionDelta(userDeltaUnion);
+        assertUnion01Delta(userDeltaUnion);
     }
 	
-	private void assertUnionDelta(ObjectDelta<UserType> userDeltaUnion) {
-        assertEquals("Wrong OID", USER_FOO_OID, userDeltaUnion.getOid());
-        PrismAsserts.assertIsModify(userDeltaUnion);
-        PrismAsserts.assertModifications(userDeltaUnion, 1);
-        PropertyDelta<PolyString> fullNameDeltaUnion = userDeltaUnion.findPropertyDelta(UserType.F_FULL_NAME);
-        assertNotNull("No fullName delta after union", fullNameDeltaUnion);
+	private void assertUnion01Delta(ObjectDelta<UserType> userDeltaUnion) {
+		PropertyDelta<PolyString> fullNameDeltaUnion = getCheckedPropertyDeltaFromUnion(userDeltaUnion);
         Collection<PrismPropertyValue<PolyString>> valuesToAdd = fullNameDeltaUnion.getValuesToAdd();
         assertNotNull("No valuesToAdd in fullName delta after union", valuesToAdd);
         assertEquals("Unexpected size of valuesToAdd in fullName delta after union", 1, valuesToAdd.size());
@@ -573,6 +575,70 @@ public class TestDelta {
         		PrismTestUtil.createPolyString("baz"), valueToAdd.getValue());
 	}
 	
+	/**
+	 * MODIFY/replace + MODIFY/replace
+	 */
+	@Test
+    public void testObjectDeltaUnion02() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaUnion02 ]===\n");
+		// GIVEN
+		
+		//Delta
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext());
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
+        
+        // THEN
+        PropertyDelta<PolyString> fullNameDeltaUnion = getCheckedPropertyDeltaFromUnion(userDeltaUnion);
+        Collection<PrismPropertyValue<PolyString>> valuesToReplace = fullNameDeltaUnion.getValuesToReplace();
+        assertNotNull("No valuesToReplace in fullName delta after union", valuesToReplace);
+        assertEquals("Unexpected size of valuesToReplace in fullName delta after union", 1, valuesToReplace.size());
+        PrismPropertyValue<PolyString> valueToReplace = valuesToReplace.iterator().next();
+        assertEquals("Unexcted value in valueToReplace in fullName delta after union", 
+        		PrismTestUtil.createPolyString("baz"), valueToReplace.getValue());
+    }
+	
+	/**
+	 * MODIFY/replace + MODIFY/add
+	 */
+	@Test
+    public void testObjectDeltaUnion03() throws Exception {
+		System.out.println("\n\n===[ testObjectDeltaUnion03 ]===\n");
+		// GIVEN
+		
+		//Delta
+    	ObjectDelta<UserType> userDelta1 = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext());
+    	ObjectDelta<UserType> userDelta2 = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
+    			UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(), PrismTestUtil.createPolyString("baz"));
+				
+		// WHEN
+        ObjectDelta<UserType> userDeltaUnion = ObjectDelta.union(userDelta1, userDelta2);
+        
+        // THEN
+        PropertyDelta<PolyString> fullNameDeltaUnion = getCheckedPropertyDeltaFromUnion(userDeltaUnion);
+        Collection<PrismPropertyValue<PolyString>> valuesToReplace = fullNameDeltaUnion.getValuesToReplace();
+        assertNotNull("No valuesToReplace in fullName delta after union", valuesToReplace);
+        assertEquals("Unexpected size of valuesToReplace in fullName delta after union", 1, valuesToReplace.size());
+        PrismPropertyValue<PolyString> valueToReplace = valuesToReplace.iterator().next();
+        assertEquals("Unexcted value in valueToReplace in fullName delta after union", 
+        		PrismTestUtil.createPolyString("baz"), valueToReplace.getValue());
+    }
+	
+	private PropertyDelta<PolyString> getCheckedPropertyDeltaFromUnion(ObjectDelta<UserType> userDeltaUnion) {
+		userDeltaUnion.checkConsistence();
+        assertEquals("Wrong OID", USER_FOO_OID, userDeltaUnion.getOid());
+        PrismAsserts.assertIsModify(userDeltaUnion);
+        PrismAsserts.assertModifications(userDeltaUnion, 1);
+        PropertyDelta<PolyString> fullNameDeltaUnion = userDeltaUnion.findPropertyDelta(UserType.F_FULL_NAME);
+        assertNotNull("No fullName delta after union", fullNameDeltaUnion);
+        return fullNameDeltaUnion;
+	}
+
 	@Test
     public void testObjectDeltaSummarizeModifyAdd() throws Exception {
 		System.out.println("\n\n===[ testObjectDeltaSummarizeModifyAdd ]===\n");

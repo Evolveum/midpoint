@@ -96,19 +96,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	public static final File TEST_DIR = new File("src/test/resources/multiresource");
 	
 	private static String accountOid;
-	
-	public TestMultiResource() throws JAXBException {
-		super();
-	}
 		
 	/**
 	 * The "dummies" role assigns two dummy resources that are in a dependency. The value of "ship" is propagated from one
 	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
 	 */
 	@Test
-    public void test001JackAssignRoleDummies() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test001JackAssignRoleDummies() throws Exception {
         displayTestTile(this, "test001JackAssignRoleDummies");
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test001JackAssignRoleDummies");
@@ -127,10 +121,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
         
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, "jack", "Jack Sparrow", true);
         // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
         // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, "jack", "ship", "The crew of The Lost Souls");
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, "jack", "ship", "The crew of The Lost Souls");
 	}
 	
 }

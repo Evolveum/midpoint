@@ -18,6 +18,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
@@ -47,6 +49,8 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
+    
+    private static final Trace LOGGER = TraceManager.getTrace(PageDebugView.class);
 
     public static final String PARAM_OBJECT_ID = "objectId";
     private IModel<ObjectViewDto> model;
@@ -188,6 +192,10 @@ public class PageDebugView extends PageAdminConfiguration {
         try {
 
             PrismObject<ObjectType> oldObject = dto.getObject();
+            if (oldObject.getPrismContext() == null) {
+            	LOGGER.warn("No prism context in old object {}, adding it", oldObject);
+            	oldObject.setPrismContext(getPrismContext());
+            }
             
             final Holder<PrismObject<ObjectType>> objectHolder = new Holder<PrismObject<ObjectType>>(null);
             EventHandler handler = new EventHandler() {
@@ -218,6 +226,12 @@ public class PageDebugView extends PageAdminConfiguration {
                 PrismObject<ObjectType> newObject = objectHolder.getValue();
                 
                 ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
+                
+                if (delta.getPrismContext() == null) {
+                	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
+                	delta.setPrismContext(getPrismContext());
+                }
+                
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
                 ModelExecuteOptions options = ModelExecuteOptions.createRaw();
                 

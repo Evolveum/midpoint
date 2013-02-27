@@ -19,19 +19,20 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<!-- BLUE dummy resource for testing. It is used in multi-resource tests. It also
-     has mostly WEAK mappings, therefore it is used in weak mapping tests. -->
+<!-- YELLOW dummy resource for testing. It is used in multi-resource tests.
+      If has dependency on default dummy resource. -->
 
-<resource oid="10000000-0000-0000-0000-000000000204"
+<resource oid="10000000-0000-0000-0000-000000000504"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
-	<name>Dummy Resource Blue</name>
+								  
+	<name>Dummy Resource Yellow</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -50,7 +51,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>blue</icfi:instanceId>
+			<icfi:instanceId>yellow</icfi:instanceId>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -127,11 +128,14 @@
 				<outbound>
 				    <strength>weak</strength>
 				    <source>
-				    	<path>name</path>
+				    	<path>$user/name</path>
 				    </source>
 					<expression>
 						<script>
-							<code>name + iterationToken</code>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								concat($c:name/t:orig, $c:iterationToken)
+							</code>
 						</script>
 					</expression>
 				</outbound>
@@ -153,15 +157,15 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<strength>weak</strength>
+					<strength>strong</strength>
 					<source>
-						<path>$user/fullName</path>
+						<path>fullName</path>
 					</source>
 				</outbound>
 				<inbound>
 					<strength>weak</strength>
 					<target>
-						<path>$c:user/c:fullName</path>
+						<path>fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -172,58 +176,36 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<strength>weak</strength>
+					<strength>strong</strength>
 					<source>
 						<path>$c:user/c:organizationalUnit</path>
 					</source>
 				</outbound>
 			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/description</path>
-					</source>
-				</outbound>
-			</attribute>
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
+			<dependency>
+				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+			</dependency>
+			<credentials>
+                <password>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+            <activation>
+            	<enabled>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>            	
+            	</enabled>
+            </activation>
 		</accountType>
 	</schemaHandling>
-	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<valueExpression>
-						<path>$account/attributes/icfs:name</path>
-					</valueExpression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-	        </reaction>
-        </objectSynchronization>
-	</synchronization>
 	
 </resource>

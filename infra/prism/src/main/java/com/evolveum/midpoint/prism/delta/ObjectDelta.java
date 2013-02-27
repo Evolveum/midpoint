@@ -170,6 +170,10 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
 		return prismContext;
 	}
 
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
 	public PrismObject<T> getObjectToAdd() {
         return objectToAdd;
     }
