@@ -655,35 +655,13 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 	
 	/**
-	 * Returns true if the projection has any value for specified attribute, has any delta for it or any
-	 * other indication that there will be delta (e.g. triple)
+	 * Returns true if the projection has any value for specified attribute.
 	 */
 	public boolean hasValueForAttribute(QName attributeName) throws SchemaException {
 		ItemPath attrPath = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName);
 		if (getObjectNew() != null) {
 			PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
 			if (attrNew != null && !attrNew.isEmpty()) {
-				return true;
-			}
-		}
-		ObjectDelta<O> delta = getDelta();
-		if (delta != null) {
-			PropertyDelta<?> attrDelta = delta.findPropertyDelta(attrPath);
-			if (attrDelta != null && !attrDelta.isEmpty()) {
-				return true;
-			}
-		}
-		if (squeezedAttributes != null) {
-			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> attrTriple = squeezedAttributes.get(attributeName);
-			if (attrTriple != null && !attrTriple.isEmpty()) {
-				return true;
-			}
-		}
-		if (accountConstructionDeltaSetTriple != null) {
-			if (hasValueForAttribute(attributeName, accountConstructionDeltaSetTriple.getPlusSet())) {
-				return true;
-			}
-			if (hasValueForAttribute(attributeName, accountConstructionDeltaSetTriple.getZeroSet())) {
 				return true;
 			}
 		}

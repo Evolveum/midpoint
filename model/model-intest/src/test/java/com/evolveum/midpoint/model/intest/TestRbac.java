@@ -67,6 +67,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -198,10 +199,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 	@Test
     public void test120JackAssignRolePirateWhileAlreadyHasAccount() throws Exception {
-        displayTestTile(this, "test120JackAssignRolePirateWhileAlreadyHasAccount");
+		final String TEST_NAME = "test120JackAssignRolePirateWhileAlreadyHasAccount";
+        displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test100JackAssignRolePirateWhileAlreadyHasAccount");
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
@@ -234,9 +236,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
   				EXISTING_GOSSIP);
         
         // WHEN
+  		IntegrationTestTools.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
+        IntegrationTestTools.displayThen(TEST_NAME);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after", userJack);
         assertAssignments(userJack, 1);

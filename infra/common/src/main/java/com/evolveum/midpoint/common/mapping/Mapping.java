@@ -795,7 +795,16 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "M(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + outputTriple + ")";
+		return "M(" + SchemaDebugUtil.prettyPrint(outputDefinition.getName()) + " = " + outputTriple + toStringStrength() + ")";
+	}
+
+	private String toStringStrength() {
+		switch (getStrength()) {
+			case NORMAL: return "";
+			case WEAK: return ", weak";
+			case STRONG: return ", strong";
+		}
+		return null;
 	}
 	
 }

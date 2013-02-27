@@ -132,6 +132,8 @@ public class OutboundProcessor {
 				continue;
 			}
 			
+			// This is just supposed to be an optimization. The consolidation should deal with the weak mapping
+			// even if it is there. But in that case we do not need to evaluate it at all.
 			if (mapping.getStrength() == MappingStrengthType.WEAK && accCtx.hasValueForAttribute(attributeName)) {
 				LOGGER.trace("Skipping outbound mapping for {} because it is weak", attributeName);
 				continue;

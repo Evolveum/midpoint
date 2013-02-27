@@ -179,6 +179,7 @@ public class ConsolidationProcessor {
         // with the data in ItemValueWithOrigin triples.
         for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
             QName attributeName = entry.getKey();
+            ItemPath attributePath = new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName);
             DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> triple = entry.getValue();
 
             LOGGER.trace("Consolidating account {}, attribute {}", rat, attributeName);
@@ -188,8 +189,7 @@ public class ConsolidationProcessor {
             boolean forceAddUnchangedValues = false;
             PropertyDelta<?> existingAttributeDelta = null;
             if (existingDelta != null ) {
-            	existingAttributeDelta = existingDelta.findPropertyDelta(
-            		new ItemPath(AccountShadowType.F_ATTRIBUTES, attributeName));
+            	existingAttributeDelta = existingDelta.findPropertyDelta(attributePath);
             }
             if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
             	// We need to add all values if there is replace delta. Otherwise the zero-set values will be
@@ -199,8 +199,7 @@ public class ConsolidationProcessor {
             
             // Use this common utility method to do the computation. It does most of the work.
 			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
-					new ItemPath(SchemaConstants.I_ATTRIBUTES, attributeName), 
-					(DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
+					attributePath, (DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
             		addUnchangedValues || forceAddUnchangedValues, false, "account " + rat);
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -225,12 +224,15 @@ public class ConsolidationProcessor {
             		// two replace deltas and therefore some information may be lost
             		propDelta.simplify();
             	}
-            	propDelta.validate();
+            	
+            	// Validate the delta. i.e. make sure it conforms to schema (that it does not have more values than allowed, etc.)
             	if (existingAttributeDelta != null) {
             		// Let's make sure that both the previous delta and this delta makes sense
             		PropertyDelta<?> mergedDelta = existingAttributeDelta.clone();
             		mergedDelta.merge((PropertyDelta)propDelta);
             		mergedDelta.validate();
+            	} else {
+            		propDelta.validate();            		
             	}
                 objectDelta.addModification(propDelta);
             }

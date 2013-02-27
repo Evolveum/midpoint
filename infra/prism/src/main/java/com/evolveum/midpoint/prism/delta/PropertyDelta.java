@@ -340,5 +340,4 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	return null;
     }
 
-
 }

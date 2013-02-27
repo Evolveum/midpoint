@@ -35,6 +35,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -273,7 +275,7 @@ public class LensUtil {
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
     		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer,
-    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException, PolicyViolationException {
+    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     	
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 		
@@ -353,6 +355,12 @@ public class LensUtil {
                         }
                     }
                 }
+                if (weakOnly) {
+                    // Postpone processing of weak values until we process all other values
+                    LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
+                    		new Object[]{value, itemPath, contextDescription});
+                    continue;
+                }
                 if (hasStrong && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
                 	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
                 			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
@@ -361,12 +369,6 @@ public class LensUtil {
                     // There is already a delta, skip this
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
                     		"skipping adding in {}", new Object[]{value, itemPath, contextDescription});
-                    continue;
-                }
-                if (weakOnly && (itemExisting != null && !itemExisting.isEmpty())) {
-                    // There is already a value, skip this
-                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping adding in {}",
-                    		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
                 if (filterExistingValues && hasValue(itemExisting, value)) {
@@ -424,8 +426,7 @@ public class LensUtil {
                 itemDelta.addValueToDelete((V)value.clone());
             }
             
-            if (aprioriItemDelta != null && aprioriItemDelta.isReplace()) {
-            	// Any strong mappings in the zero set needs to be re-applied as otherwise the replace will destroy it
+            if (!zeroPvwos.isEmpty()) {
             	boolean weakOnly = true;
             	boolean hasStrong = false;
             	boolean hasAuthoritative = false;
@@ -443,17 +444,73 @@ public class LensUtil {
                         hasAuthoritative = true;
                     }
                 }
-                if (hasStrong) {
-                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set", new Object[]{value, itemPath, contextDescription});
-                    itemDelta.addValueToAdd((V)value.clone());
-                    continue;
-                }
+            
+	            if (aprioriItemDelta != null && aprioriItemDelta.isReplace()) {
+	            	// Any strong mappings in the zero set needs to be re-applied as otherwise the replace will destroy it
+	                if (hasStrong) {
+	                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set", new Object[]{value, itemPath, contextDescription});
+	                    itemDelta.addValueToAdd((V)value.clone());
+	                    continue;
+	                }
+	            }
             }
         }
+        
+        Item<V> itemNew = null;
+        if (itemContainer != null) {
+        	itemNew = itemContainer.findItem(itemPath);
+        }
+		if (!hasValue(itemNew, itemDelta)) {
+			// The application of computed delta results in no value, apply weak mappings
+			Collection<? extends ItemValueWithOrigin<V>> nonNegativePvwos = triple.getNonNegativeValues();
+			Collection<V> valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS);
+			if (valuesToAdd.isEmpty()) {
+				valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.OUTBOUND);
+			}
+			if (valuesToAdd.isEmpty()) {
+				valuesToAdd = addWeakValues(nonNegativePvwos, null);
+			}
+			LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
+					new Object[]{itemPath, contextDescription, valuesToAdd});
+			itemDelta.addValuesToAdd(valuesToAdd);
+		} else {
+			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped",
+					new Object[]{itemPath, contextDescription});
+		}
         
         return itemDelta;
         
     }
+	
+	private static <V extends PrismValue> boolean hasValue(Item<V> item, ItemDelta<V> itemDelta) throws SchemaException {
+		if (item == null || item.isEmpty()) {
+			if (itemDelta != null && itemDelta.addsAnyValue()) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			if (itemDelta == null || itemDelta.isEmpty()) {
+				return true;
+			} else {
+				Item<V> clonedItem = item.clone();
+				itemDelta.applyTo(clonedItem);
+				return !clonedItem.isEmpty();
+			}
+		}
+	}
+	
+	private static <V extends PrismValue> Collection<V> addWeakValues(Collection<? extends ItemValueWithOrigin<V>> pvwos, OriginType origin) {
+		Collection<V> values = new ArrayList<V>();
+		for (ItemValueWithOrigin<V> pvwo: pvwos) {
+			if (pvwo.getMapping().getStrength() == MappingStrengthType.WEAK) {
+				if (origin == null || origin == pvwo.getPropertyValue().getOriginType()) {
+					values.add((V)pvwo.getPropertyValue().clone());
+				}
+			}
+		}
+		return values;
+	}
 	
 	private static <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue) {
 		if (existingUserItem == null) {
