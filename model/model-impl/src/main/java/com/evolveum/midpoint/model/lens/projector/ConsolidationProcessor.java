@@ -207,11 +207,16 @@ public class ConsolidationProcessor {
 				LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
 			}
             
-			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
-            propDelta = consolidateWithSync(accCtx, propDelta);
-
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
+			if (existingAttributeDelta != null && existingAttributeDelta.isReplace()) {
+				// We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
+				// state and all the values needs to be passed on
+				LOGGER.trace("Skipping consolidaiton with sync delta as there was a replace delta on top of that already");
+			} else {
+				// Also consider a synchronization delta (if it is present). This may filter out some deltas.
+	            propDelta = consolidateWithSync(accCtx, propDelta);
+	            if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());
+				}
 			}
 
             if (propDelta != null && !propDelta.isEmpty()) {

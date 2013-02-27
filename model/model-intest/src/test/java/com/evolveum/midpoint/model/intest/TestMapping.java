@@ -185,7 +185,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
 
 		// Check audit
       display("Audit", dummyAuditService);
@@ -219,7 +219,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Jack Sparrow", "Black Pearl", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", dummyResourceCtlBlue, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -262,7 +262,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Jack Sparrow", "Flying Dutchman", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "Flying Dutchman", dummyResourceCtlBlue, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -304,7 +304,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -338,7 +338,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Jack Sparrow", "HMS Dauntless", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "HMS Dauntless", dummyResourceCtlBlue, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -381,7 +381,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -510,7 +510,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Captain Jack Sparrow", null, dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtlRed, task);
 
 		// Check audit
       display("Audit", dummyAuditService);
@@ -545,7 +545,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -595,7 +595,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -641,7 +641,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
  		display("User after change execution", userJack);
  		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
  		
- 		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+ 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
 
          // Check audit
          display("Audit", dummyAuditService);
@@ -690,7 +690,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -703,8 +703,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	
 	
 	@Test
-    public void test129ModifyUserUnassignAccountBlue() throws Exception {
-		final String TEST_NAME = "test109ModifyUserUnassignAccountBlue";
+    public void test129ModifyUserUnassignAccountRed() throws Exception {
+		final String TEST_NAME = "test129ModifyUserUnassignAccountRed";
         displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -741,9 +741,336 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
+
 	
-	private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
-			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {		
+	/**
+	 * Default dummy has combination of NORMAL, WEAK and STRONG mappings.
+	 */
+	@Test
+    public void test140ModifyUserAssignAccountDummyDefault() throws Exception {
+		final String TEST_NAME = "test140ModifyUserAssignAccountDummyDefault";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, 
+        		RESOURCE_DUMMY_OID, null, true);
+        userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
+        userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
+        deltas.add(userDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        String accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyType);
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertShadowModel(accountModel, accountOid, "jack", resourceDummyType);
+        
+        // Check account in dummy resource
+        assertDummyAccount(null, "jack", "Jack Sparrow", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
+	 * fullName mapping is NORMAL, the change should go through
+	 */
+	@Test
+    public void test141ModifyUserFullName() throws Exception {
+		final String TEST_NAME = "test141ModifyUserFullName";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
+        		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+		
+		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtl, task);
+
+		// Check audit
+      display("Audit", dummyAuditService);
+      dummyAuditService.assertSimpleRecordSanity();
+      dummyAuditService.assertRecords(2);
+      dummyAuditService.assertAnyRequestDeltas();
+      dummyAuditService.assertExecutionDeltas(2);
+      dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+      dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+      dummyAuditService.assertExecutionSuccess();
+	}
+
+	/**
+	 * location mapping is STRONG
+	 */
+	@Test
+    public void test142ModifyUserLocality() throws Exception {
+		final String TEST_NAME = "test142ModifyUserLocality";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result,
+        		PrismTestUtil.createPolyString("Fountain of Youth"));
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		
+		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+    public void test143ModifyAccountLocation() throws Exception {
+		final String TEST_NAME = "test143ModifyAccountLocation";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        String accountOid = getSingleUserAccountRef(userJack);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
+        		prismContext, "Davie Jones Locker");
+        deltas.add(accountDelta);
+
+		// WHEN
+        try {
+        	modelService.executeChanges(deltas, null, task, result);
+        	
+        	AssertJUnit.fail("Unexpected success");
+        } catch (SchemaException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertFailure(result);
+        
+		userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		
+		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+	}
+
+	/**
+	 * This test will not fail. It will splice the strong mapping into an empty replace delta.
+	 * That still results in a single value and is a valid operation, although it really changes nothing
+	 * (replace with the same value that was already there).
+	 */
+	@Test
+    public void test144ModifyAccountLocationReplaceEmpty() throws Exception {
+		final String TEST_NAME = "test124ModifyAccountShipReplaceEmpty";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        String accountOid = getSingleUserAccountRef(userJack);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
+        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
+        		prismContext);
+        deltas.add(accountDelta);
+        
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+ 		result.computeStatus();
+         IntegrationTestTools.assertSuccess(result);
+         
+ 		userJack = getUser(USER_JACK_OID);
+ 		display("User after change execution", userJack);
+ 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+ 		
+ 		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+
+         // Check audit
+         display("Audit", dummyAuditService);
+         dummyAuditService.assertSimpleRecordSanity();
+         dummyAuditService.assertRecords(2);
+         dummyAuditService.assertAnyRequestDeltas();
+         dummyAuditService.assertExecutionDeltas(1);
+         dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+         dummyAuditService.assertExecutionSuccess();
+	}
+
+	@Test
+    public void test146ModifyAccountLocationDelete() throws Exception {
+		final String TEST_NAME = "test146ModifyAccountLocationDelete";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        String accountOid = getSingleUserAccountRef(userJack);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(AccountShadowType.class,
+        		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
+        		prismContext, "Fountain of Youth");
+        deltas.add(accountDelta);
+
+     // WHEN
+        try {
+        	modelService.executeChanges(deltas, null, task, result);
+        	
+        	AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertFailure(result);
+        
+		userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		
+		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+	}
+	
+	
+	@Test
+    public void test149ModifyUserUnassignAccountDummy() throws Exception {
+		final String TEST_NAME = "test149ModifyUserUnassignAccountDummy";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
+        deltas.add(accountAssignmentUserDelta);
+                
+		// WHEN
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		// Check accountRef
+        assertUserNoAccountRefs(userJack);
+                
+        // Check if dummy resource account is gone
+        assertNoDummyAccount("jack");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+
+	
+	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
+			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, resourceCtl, task);
+	}
+	
+	private void assertAccountLocation(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
+			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, resourceCtl, task);
+	}
+	
+	
+	private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String attributeName, String expectedShip,
+			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		// ship inbound mapping is used, it is strong 
         String accountOid = getSingleUserAccountRef(userJack);
         
@@ -760,10 +1087,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         		expectedFullName);
         if (expectedShip == null) {
         	PrismAsserts.assertNoItem(accountModel, 
-            		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));        	
+            		resourceCtl.getAttributePath(attributeName));        	
         } else {
         	PrismAsserts.assertPropertyValue(accountModel, 
-        		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		resourceCtl.getAttributePath(attributeName),
         		expectedShip);
         }
         
