@@ -190,7 +190,7 @@ public class Projector {
 		        	activationProcessor.processActivation(context, projectionContext, result);
 			        
 		        	context.recompute();
-		        	LensUtil.traceContext(LOGGER, activityDescription, "values, credentials and activation", false, context, false);
+		        	LensUtil.traceContext(LOGGER, activityDescription, "values, credentials and activation", false, context, true);
 			        if (CONSISTENCY_CHECKS) context.checkConsistence();
 			
 			        reconciliationProcessor.processReconciliation(context, projectionContext, result);

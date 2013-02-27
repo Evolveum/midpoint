@@ -272,7 +272,7 @@ public class LensUtil {
 	 */
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
-    		ItemDelta<V> apropriItemDelta, PrismContainer<?> itemContainer,
+    		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer,
     		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException, PolicyViolationException {
     	
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
@@ -306,7 +306,7 @@ public class LensUtil {
             	}
             }
             
-            if (zeroHasStrong && apropriItemDelta != null && apropriItemDelta.isValueToDelete(value, true)) {
+            if (zeroHasStrong && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
             	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
             			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
             }
@@ -353,11 +353,11 @@ public class LensUtil {
                         }
                     }
                 }
-                if (hasStrong && apropriItemDelta != null && apropriItemDelta.isValueToDelete(value, true)) {
+                if (hasStrong && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
                 	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
                 			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
                 }
-                if (!hasStrong && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
+                if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
                     		"skipping adding in {}", new Object[]{value, itemPath, contextDescription});
@@ -380,7 +380,7 @@ public class LensUtil {
             }
 
             if (!minusPvwos.isEmpty()) {
-            	boolean initialOnly = true;
+            	boolean weakOnly = true;
             	boolean hasStrong = false;
             	boolean hasAuthoritative = false;
             	// There may be several mappings that imply that value. So check them all for
@@ -388,7 +388,7 @@ public class LensUtil {
                 for (ItemValueWithOrigin<?> pvwo : minusPvwos) {
                     Mapping<?> mapping = pvwo.getMapping();
                     if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                        initialOnly = false;
+                        weakOnly = false;
                     }
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     	hasStrong = true;
@@ -402,13 +402,13 @@ public class LensUtil {
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
                 }
-                if (!hasStrong && (apropriItemDelta != null && !apropriItemDelta.isEmpty())) {
+                if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion in {}",
                     		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
-                if (initialOnly && (itemExisting != null && !itemExisting.isEmpty())) {
+                if (weakOnly && (itemExisting != null && !itemExisting.isEmpty())) {
                     // There is already a value, skip this
                     LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion in {}",
                     		new Object[]{value, itemPath, contextDescription});
@@ -422,6 +422,32 @@ public class LensUtil {
                 LOGGER.trace("Value {} deleted to delta for item {} in {}",
                 		new Object[]{ value, itemPath, contextDescription});
                 itemDelta.addValueToDelete((V)value.clone());
+            }
+            
+            if (aprioriItemDelta != null && aprioriItemDelta.isReplace()) {
+            	// Any strong mappings in the zero set needs to be re-applied as otherwise the replace will destroy it
+            	boolean weakOnly = true;
+            	boolean hasStrong = false;
+            	boolean hasAuthoritative = false;
+            	// There may be several mappings that imply that value. So check them all for
+                // exclusions and strength
+                for (ItemValueWithOrigin<?> pvwo : zeroPvwos) {
+                    Mapping<?> mapping = pvwo.getMapping();
+                    if (mapping.getStrength() != MappingStrengthType.WEAK) {
+                        weakOnly = false;
+                    }
+                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
+                    	hasStrong = true;
+                    }
+                    if (mapping.isAuthoritative()) {
+                        hasAuthoritative = true;
+                    }
+                }
+                if (hasStrong) {
+                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set", new Object[]{value, itemPath, contextDescription});
+                    itemDelta.addValueToAdd((V)value.clone());
+                    continue;
+                }
             }
         }
         

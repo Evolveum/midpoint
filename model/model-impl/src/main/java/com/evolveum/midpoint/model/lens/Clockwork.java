@@ -115,7 +115,8 @@ public class Clockwork {
 	
 	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 		
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
+		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
+		// that. Check consistency afterwards (and it is also checked inside projector several times).
 		
 		try {
 			

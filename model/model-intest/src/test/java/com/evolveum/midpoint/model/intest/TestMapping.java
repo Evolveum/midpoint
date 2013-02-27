@@ -183,7 +183,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
@@ -218,7 +217,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Jack Sparrow", "Black Pearl", dummyResourceCtlBlue, task);
@@ -262,7 +260,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Jack Sparrow", "Flying Dutchman", dummyResourceCtlBlue, task);
@@ -305,7 +302,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
@@ -340,7 +336,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Jack Sparrow", "HMS Dauntless", dummyResourceCtlBlue, task);
@@ -384,7 +379,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
@@ -514,7 +508,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Captain Jack Sparrow", null, dummyResourceCtlRed, task);
@@ -550,7 +543,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
@@ -601,7 +593,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
@@ -615,8 +606,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
 
-	// WORK IN PROGRESS
-	@Test(enabled=false)
+	/**
+	 * This test will not fail. It will splice the strong mapping into an empty replace delta.
+	 * That still results in a single value and is a valid operation, although it really changes nothing
+	 * (replace with the same value that was already there).
+	 */
+	@Test
     public void test124ModifyAccountShipReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test124ModifyAccountShipReplaceEmpty";
         displayTestTile(this, TEST_NAME);
@@ -634,36 +629,28 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
         deltas.add(accountDelta);
-
-     // WHEN
-        try {
-        	modelService.executeChanges(deltas, null, task, result);
-        	
-        	AssertJUnit.fail("Unexpected success");
-        } catch (PolicyViolationException e) {
-        	// This is expected
-        	display("Expected exception", e);
-        }
-		
-		// THEN
-		result.computeStatus();
-        IntegrationTestTools.assertFailure(result);
         
-		userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
-		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+        
+        // THEN
+ 		result.computeStatus();
+         IntegrationTestTools.assertSuccess(result);
+         
+ 		userJack = getUser(USER_JACK_OID);
+ 		display("User after change execution", userJack);
+ 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
+ 		
+ 		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
 
-        // Check audit
-        display("Audit", dummyAuditService);
-        dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+         // Check audit
+         display("Audit", dummyAuditService);
+         dummyAuditService.assertSimpleRecordSanity();
+         dummyAuditService.assertRecords(2);
+         dummyAuditService.assertAnyRequestDeltas();
+         dummyAuditService.assertExecutionDeltas(1);
+         dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+         dummyAuditService.assertExecutionSuccess();
 	}
 
 	@Test
@@ -701,7 +688,6 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		// Fullname inbound mapping is not used because it is weak
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
 		assertAccount(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
