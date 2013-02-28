@@ -302,6 +302,7 @@ public class ValuePolicyGenerator {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
 		for (StringLimitType l : lims.keySet()) {
+			int counterKey = 1;
 			ArrayList<String> chars = lims.get(l);
 			int i = 0;
 			if (null != password) {
@@ -323,13 +324,14 @@ public class ValuePolicyGenerator {
 			}
 			for (String s : chars) {
 				if (null == password || !password.contains(s) || uniquenessReached) {
-					if (null == counter.get(s)) {
-						counter.put(s, 1);
-					} else {
-						counter.put(s, counter.get(s) + 1);
-					}
+//					if (null == counter.get(s)) {
+						counter.put(s, counterKey);
+//					} else {
+//						counter.put(s, counter.get(s) + 1);
+//					}
 				}
 			}
+			counterKey++;
 
 		}
 

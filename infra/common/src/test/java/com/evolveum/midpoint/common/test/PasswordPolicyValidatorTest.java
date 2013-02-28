@@ -154,6 +154,57 @@ public class PasswordPolicyValidatorTest {
 	public void testPasswordGeneratorNumeric() throws Exception {
 		passwordGeneratorTest("testPasswordGeneratorNumeric", "password-policy-numeric.xml");
 	}
+	
+	@Test
+	public void testValueGeneratorMustBeFirst() throws Exception {
+		passwordGeneratorTest("testValueGeneratorMustBeFirst", "value-policy-must-be-first.xml");
+	}
+	
+	@Test
+	public void testValueGenerateRandomPin() throws Exception {
+		LOGGER.info("===[ {} ]===", "testValueGenerateRandomPin");
+		String pathname = BASE_PATH + "value-policy-random-pin.xml";
+		File file = new File(pathname);
+		LOGGER.info("Positive testing {}: {}", "testValueGenerateRandomPin", "value-policy-random-pin.xml");
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		OperationResult op = new OperationResult("testValueGenerateRandomPin");
+		
+		String psswd;
+			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, true, op);
+			LOGGER.info("Generated password:" + psswd);
+			System.out.println("Generated password: " + psswd);
+			op.computeStatus();
+			if (!op.isSuccess()) {
+				LOGGER.info("Result:" + op.dump());
+				AssertJUnit.fail("Password generator failed:\n"+op.dump());
+			}
+			assertNotNull(psswd);
+			assertPassword(psswd, pp);
+	
+	}
+	
+	@Test
+	public void testValueGenerate() throws Exception {
+		LOGGER.info("===[ {} ]===", "testValueGenerate");
+		String pathname = BASE_PATH + "value-policy-generate.xml";
+		File file = new File(pathname);
+		LOGGER.info("Positive testing {}: {}", "testValueGenerate", "value-policy-generate.xml");
+		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		OperationResult op = new OperationResult("testValueGenerate");
+		
+		String psswd;
+			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, true, op);
+			LOGGER.info("Generated password:" + psswd);
+			System.out.println("Generated password: " + psswd);
+			op.computeStatus();
+			if (!op.isSuccess()) {
+				LOGGER.info("Result:" + op.dump());
+				AssertJUnit.fail("Password generator failed:\n"+op.dump());
+			}
+			assertNotNull(psswd);
+			assertPassword(psswd, pp);
+	
+	}
 
 	public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, FileNotFoundException {
 		LOGGER.info("===[ {} ]===", TEST_NAME);
