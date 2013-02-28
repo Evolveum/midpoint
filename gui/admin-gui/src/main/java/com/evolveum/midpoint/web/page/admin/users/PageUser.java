@@ -1336,7 +1336,8 @@ public class PageUser extends PageAdminUsers {
 			if (userWrapper.getOldDelta() != null) {
 				delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
 			}
-			if (LOGGER.isTraceEnabled()) {
+            delta.setPrismContext(getPrismContext());
+            if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
 
@@ -1387,7 +1388,8 @@ public class PageUser extends PageAdminUsers {
 				}
 				for (ObjectDelta accDelta : accountDeltas) {
 					if (!accDelta.isEmpty()) {
-						deltas.add(accDelta);
+                        accDelta.setPrismContext(getPrismContext());
+                        deltas.add(accDelta);
 					}
 				}
 
@@ -1504,7 +1506,9 @@ public class PageUser extends PageAdminUsers {
 			// }
 			try {
 				ObjectDelta<UserType> forceDeleteDelta = getChange(userWrapper);
-				if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
+                forceDeleteDelta.setPrismContext(getPrismContext());
+
+                if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
 					getModelService().executeChanges(WebMiscUtil.createDeltaCollection(forceDeleteDelta), options,
 							task, result);
 				}
