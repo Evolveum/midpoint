@@ -446,10 +446,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			tokenProperty = resourceObjectManager.fetchCurrentToken(resourceType, result);
 			if (tokenProperty == null || tokenProperty.getValue() == null
 					|| tokenProperty.getValue().getValue() == null) {
+				LOGGER.warn("Empty current sync token provided by {}", resourceType);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Empty current sync token property:\n{}", tokenProperty.dump());
 				}
-				throw new IllegalStateException("Current sync token null or empty: " + tokenProperty);
+				return null;
 			}
 
 		}
@@ -516,7 +517,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		}
 		// also if no changes was detected, update token
-		if (changes.isEmpty()) {
+		if (changes.isEmpty() && tokenProperty != null) {
 			LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
 			task.setExtensionProperty(tokenProperty);
 		}

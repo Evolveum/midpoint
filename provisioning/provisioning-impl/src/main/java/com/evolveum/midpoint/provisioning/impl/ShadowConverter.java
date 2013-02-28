@@ -498,7 +498,6 @@ public class ShadowConverter {
 			CommunicationException, ConfigurationException {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
-		Validate.notNull(lastToken, "Token property must not be null.");
 
 		LOGGER.trace("Shadow converter, START fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);

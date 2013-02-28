@@ -1314,7 +1314,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
 			icfResult.recordSuccess();
-			icfResult.addReturn("syncToken", syncToken.getValue());
+			icfResult.addReturn("syncToken", syncToken==null?null:syncToken.getValue());
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
@@ -1332,8 +1332,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		if (syncToken == null) {
-			result.recordFatalError("No token found");
-			throw new IllegalArgumentException("No token found.");
+			result.recordWarning("Resource have not provided a current sync token");
+			return null;
 		}
 
 		PrismProperty<?> property = getToken(syncToken);
@@ -1342,7 +1342,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty lastToken,
+	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
@@ -1355,7 +1355,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		SyncToken syncToken = null;
 		try {
 			syncToken = getSyncToken(lastToken);
-			LOGGER.trace("Sync token created from the property last token: {}", syncToken.getValue());
+			LOGGER.trace("Sync token created from the property last token: {}", syncToken==null?null:syncToken.getValue());
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
@@ -2034,25 +2034,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private SyncToken getSyncToken(PrismProperty tokenProperty) throws SchemaException {
 		if (tokenProperty.getValue() == null) {
-			throw new IllegalArgumentException("Attempt to get token from a null property");
+			return null;
 		}
 		Object tokenValue = tokenProperty.getValue().getValue();
 		if (tokenValue == null) {
-			throw new IllegalArgumentException("Attempt to get token from a null-valued property");
+			return null;
 		}
-		// Document doc = DOMUtil.getDocument();
-		// List<Object> elements = null;
-		// try {
-		// elements = lastToken.serializeToJaxb(doc);
-		// } catch (SchemaException ex) {
-		// throw new
-		// SchemaException("Failed to serialize last token property to dom.",
-		// ex);
-		// }
-		// for (Object e : elements) {
-		// tokenValue = XsdTypeConverter.toJavaValue(e,
-		// lastToken.getDefinition().getTypeName());
-		// }
 		SyncToken syncToken = new SyncToken(tokenValue);
 		return syncToken;
 	}

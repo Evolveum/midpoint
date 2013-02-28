@@ -38,25 +38,25 @@ public final class Change {
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
-    private PrismProperty token;
+    private PrismProperty<?> token;
     private PrismObject<? extends ResourceObjectShadowType> oldShadow;
     private PrismObject<? extends ResourceObjectShadowType> currentShadow;
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<? extends ResourceObjectShadowType> currentShadow, PrismProperty token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<? extends ResourceObjectShadowType> currentShadow, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
         this.token = token;
     }
 
-    public Change(ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty token) {
+    public Change(ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty<?> token) {
         this.objectDelta = change;
         this.token = token;
     }
@@ -85,11 +85,11 @@ public final class Change {
 		this.objectClassDefinition = objectClassDefinition;
 	}
 
-	public PrismProperty getToken() {
+	public PrismProperty<?> getToken() {
 		return token;
 	}
 
-	public void setToken(PrismProperty token) {
+	public void setToken(PrismProperty<?> token) {
 		this.token = token;
 	}
 
