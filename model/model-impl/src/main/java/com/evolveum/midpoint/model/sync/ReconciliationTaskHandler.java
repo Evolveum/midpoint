@@ -310,7 +310,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
-		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, opResult);
+		OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
+		provisioningService.searchObjectsIterative(AccountShadowType.class, query, handler, searchResult);
 
 		opResult.computeStatus();
 	}
@@ -431,19 +432,22 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				AccountShadowType.class, query, opResult);
 
 		LOGGER.trace("Found {} accounts that were not successfully proccessed.", shadows.size());
+		
 		for (PrismObject<AccountShadowType> shadow : shadows) {
-
+			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
+				
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
-				provisioningService.finishOperation(shadow, options, task, opResult);
+				provisioningService.finishOperation(shadow, options, task, provisioningResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
 			} catch (Exception ex) {
+				opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
 				Collection<? extends ItemDelta> modifications = PropertyDelta
 						.createModificationReplacePropertyCollection(AccountShadowType.F_ATTEMPT_NUMBER,
 								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
 				try{
 				repositoryService.modifyObject(AccountShadowType.class, shadow.getOid(), modifications,
-						opResult);
+						provisioningResult);
 				}catch(Exception e){
 					
 				}
