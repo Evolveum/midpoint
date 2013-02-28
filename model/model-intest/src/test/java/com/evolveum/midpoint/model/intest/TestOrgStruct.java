@@ -380,7 +380,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Assign jack to functional orgstruct again.
+	 * Assign jack to functional orgstruct again. Make him both minister and member.
 	 */
 	@Test
     public void test301JackAssignMinistryOfOffense() throws Exception {
@@ -391,15 +391,16 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);
         assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_OFFENSE_OID, task, result);
         
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignments(userJack, 1);
+        assertAssignments(userJack, 2);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertHasOrgs(userJack, 1);
+        assertHasOrgs(userJack, 2);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();

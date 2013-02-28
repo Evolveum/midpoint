@@ -207,7 +207,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     
 	public boolean containsModification(ItemDelta itemDelta) {
 		for (ItemDelta modification: modifications) {
-			if (modification.equals(itemDelta)) {
+			if (modification.contains(itemDelta)) {
 				return true;
 			}
 		}

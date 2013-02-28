@@ -1788,17 +1788,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
         assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
         
-     // Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(3);
-//        dummyAuditService.asserHasDelta(ChangeType.ADD, UserType.class);
-//        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.asserHasDelta(ChangeType.ADD, AccountShadowType.class);
-//        dummyAuditService.assertExecutionSuccess();
-        
+        // Check audit        
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
