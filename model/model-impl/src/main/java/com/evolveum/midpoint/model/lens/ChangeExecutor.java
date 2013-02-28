@@ -572,7 +572,9 @@ public class ChangeExecutor {
 
         try {
             // TODO: scripts
-            provisioning.deleteObject(objectTypeClass, oid, options, null, task, result);
+        	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
+        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), result);
+            provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -585,7 +587,9 @@ public class ChangeExecutor {
 
         try {
             // TODO: scripts
-            String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, null, options, task, result);
+        	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
+        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), result);
+            String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
             return changedOid;
         } catch (ObjectNotFoundException ex) {
             throw ex;
