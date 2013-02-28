@@ -34,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Connector instance configured for a specific resource.
@@ -217,7 +216,7 @@ public interface ConnectorInstance {
 	 * @return created object attributes. May be null.
 	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object, Set<Operation> additionalOperations, 
+	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object, Collection<Operation> additionalOperations, 
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, 
 			ObjectAlreadyExistsException;
 	
@@ -238,9 +237,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Collection<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
+	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Collection<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
-	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.

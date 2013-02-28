@@ -550,7 +550,7 @@ public class ChangeExecutor {
         }
 
         try {
-            ProvisioningScriptsType scripts = getScripts(object.asObjectable(), result);
+            ProvisioningScriptsType scripts = getScripts(object.asObjectable(), ProvisioningOperationTypeType.ADD, result);
             String oid = provisioning.addObject(object, scripts, options, task, result);
             return oid;
         } catch (ObjectNotFoundException ex) {
@@ -571,9 +571,8 @@ public class ChangeExecutor {
             SchemaException {
 
         try {
-            // TODO: scripts
         	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
-        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), result);
+        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), ProvisioningOperationTypeType.DELETE, result);
             provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
@@ -586,9 +585,8 @@ public class ChangeExecutor {
             Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectNotFoundException, RewindException {
 
         try {
-            // TODO: scripts
         	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
-        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), result);
+        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), ProvisioningOperationTypeType.MODIFY, result);
             String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
             return changedOid;
         } catch (ObjectNotFoundException ex) {
@@ -598,28 +596,33 @@ public class ChangeExecutor {
         }
     }
 
-    private ProvisioningScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException,
+    private ProvisioningScriptsType getScripts(ObjectType object, ProvisioningOperationTypeType operation, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	ProvisioningScriptsType scripts = null;
+    	ProvisioningScriptsType resourceScripts = null;
         if (object instanceof ResourceType) {
             ResourceType resource = (ResourceType) object;
-            scripts = resource.getScripts();
+            resourceScripts = resource.getScripts();
         } else if (object instanceof ResourceObjectShadowType) {
             ResourceObjectShadowType resourceObject = (ResourceObjectShadowType) object;
             if (resourceObject.getResource() != null) {
-                scripts = resourceObject.getResource().getScripts();
+                resourceScripts = resourceObject.getResource().getScripts();
             } else {
                 String resourceOid = ResourceObjectShadowUtil.getResourceOid(resourceObject);
                 ResourceType resObject = provisioning.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
-                scripts = resObject.getScripts();
+                resourceScripts = resObject.getScripts();
             }
         }
 
-        if (scripts == null) {
-            scripts = new ProvisioningScriptsType();
+        ProvisioningScriptsType outScripts = new ProvisioningScriptsType();
+        if (resourceScripts != null) {
+        	for (ProvisioningScriptType script: resourceScripts.getScript()) {
+        		if (script.getOperation().contains(operation)) {
+        			outScripts.getScript().add(script);
+        		}
+        	}
         }
 
-        return scripts;
+        return outScripts;
     }
 
 }

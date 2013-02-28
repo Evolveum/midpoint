@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -82,11 +83,14 @@ import javax.xml.namespace.QName;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeDefinition;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -882,6 +886,33 @@ public class IntegrationTestTools {
     public static void assertNoRepoCache() {
 		if (RepositoryCache.exists()) {
 			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
+		}
+	}
+    
+    public static void assertScripts(List<ScriptHistoryEntry> scriptsHistory, ProvisioningScriptSpec... expectedScripts) {
+		displayScripts(scriptsHistory);
+		assertEquals("Wrong number of scripts executed", expectedScripts.length, scriptsHistory.size());
+		Iterator<ScriptHistoryEntry> historyIter = scriptsHistory.iterator();
+		for (ProvisioningScriptSpec expecedScript: expectedScripts) {
+			ScriptHistoryEntry actualScript = historyIter.next();
+			assertEquals("Wrong script code", expecedScript.getCode(), actualScript.getCode());
+			if (expecedScript.getLanguage() == null) {
+				assertEquals("We talk only gibberish here", "Gibberish", actualScript.getLanguage());
+			} else {
+				assertEquals("Wrong script language", expecedScript.getLanguage(), actualScript.getLanguage());
+			}
+			assertEquals("Wrong number of arguments", expecedScript.getArgs().size(), actualScript.getParams().size());
+			for (java.util.Map.Entry<String,Object> expectedEntry: expecedScript.getArgs().entrySet()) {
+				Object expectedValue = expectedEntry.getValue();
+				Object actualVal = actualScript.getParams().get(expectedEntry.getKey());
+				assertEquals("Wrong value for argument '"+expectedEntry.getKey()+"'", expectedValue, actualVal);
+			}
+		}
+	}
+
+    public static void displayScripts(List<ScriptHistoryEntry> scriptsHistory) {
+		for (ScriptHistoryEntry script : scriptsHistory) {
+			display("Script", script);
 		}
 	}
 

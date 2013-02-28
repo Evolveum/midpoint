@@ -89,6 +89,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
+import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -1425,7 +1426,12 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
 		
-		assertScripts(dummyResource.getScriptHistory(), "In the beginning ...", "Hello World");
+		ProvisioningScriptSpec beforeScript = new ProvisioningScriptSpec("In the beginning ...");
+		beforeScript.addArgSingle("HOMEDIR", "jbond");
+		ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("Hello World");
+		afterScript.addArgSingle("which", "this");
+		afterScript.addArgSingle("when", "now");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
 	}
 
 	// MID-1113
@@ -1466,12 +1472,59 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
 		
-		assertScripts(dummyResource.getScriptHistory(), "Where am I?", "Still here");
+		ProvisioningScriptSpec beforeScript = new ProvisioningScriptSpec("Where am I?");
+		ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("Still here");
+		afterScript.addArgMulti("status", "dead", "alive");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
+	}
+	
+	/**
+	 * This test modifies account shadow property that does NOT result in account modification
+	 * on resource. The scripts must not be executed.
+	 */
+	@Test
+	public void test133ModifyScriptNoExec() throws Exception {
+		final String TEST_NAME = "test133ModifyScriptNoExec";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		dummyResource.purgeScriptHistory();
+
+		ProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILENAME_SCRIPT_ADD, ProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		
+		ObjectDelta<AccountShadowType> delta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class, 
+				ACCOUNT_NEW_SCRIPT_OID, AccountShadowType.F_DESCRIPTION, prismContext, "Blah blah");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		provisioningService.modifyObject(AccountShadowType.class, ACCOUNT_NEW_SCRIPT_OID, delta.getModifications(), 
+				scriptsType, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		assertSuccess("modifyObject has failed (result)", result);
+		syncServiceMock.assertNotifySuccessOnly();
+
+		// Check if the account was modified in the dummy resource
+
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
+		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+		assertEquals("Wrong password", "3lizab3th123", dummyAccount.getPassword());
+		
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory());
 	}
 	
 	@Test
-	public void test133DeleteScript() throws Exception {
-		final String TEST_NAME = "test133DeleteScript";
+	public void test134DeleteScript() throws Exception {
+		final String TEST_NAME = "test134DeleteScript";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
@@ -1498,24 +1551,10 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
 		assertNull("Dummy account not gone", dummyAccount);
 		
-		assertScripts(dummyResource.getScriptHistory(), "Goodbye World", "R.I.P.");
-	}
-	
-	private void assertScripts(List<ScriptHistoryEntry> scriptsHistory, String... expectedScripts) {
-		displayScripts(scriptsHistory);
-		assertEquals("Wrong number of scripts executed", expectedScripts.length, scriptsHistory.size());
-		Iterator<ScriptHistoryEntry> historyIter = scriptsHistory.iterator();
-		for (String expecedScript: expectedScripts) {
-			ScriptHistoryEntry actualScript = historyIter.next();
-			assertEquals("Wrong script code", expecedScript, actualScript.getCode());
-			assertEquals("We talk only gibberish here", "Gibberish", actualScript.getLanguage());
-		}
-	}
-
-	private void displayScripts(List<ScriptHistoryEntry> scriptsHistory) {
-		for (ScriptHistoryEntry script : scriptsHistory) {
-			display("Script", script);
-		}
+		ProvisioningScriptSpec beforeScript = new ProvisioningScriptSpec("Goodbye World");
+		beforeScript.addArgMulti("what", "cruel");
+		ProvisioningScriptSpec afterScript = new ProvisioningScriptSpec("R.I.P.");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), beforeScript, afterScript);
 	}
 
 //	@Test

@@ -76,6 +76,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingSourceDeclarationType;
@@ -605,12 +606,40 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	public ItemDelta<V> createEmptyDelta(ItemPath path) {
 		return outputDefinition.createEmptyDelta(path);
 	}
+
 	
-	public static <X> Collection<X> getPropertyStaticRealValues(ExpressionType valueConstruction, PrismPropertyDefinition outputDefinition, 
+	public static <X> PrismProperty<X> getPropertyStatic(ExpressionType expressionType, PrismPropertyDefinition outputDefinition, 
 			String contextDescription, PrismContext prismContext) throws SchemaException {
-		Collection<JAXBElement<?>> expressionEvaluatorElement = valueConstruction.getExpressionEvaluator();
-		PrismProperty<X> output = (PrismProperty) LiteralExpressionEvaluatorFactory.parseValueElements(expressionEvaluatorElement, outputDefinition, contextDescription, prismContext);
+		Collection<JAXBElement<?>> expressionEvaluatorElement = expressionType.getExpressionEvaluator();
+		return (PrismProperty) LiteralExpressionEvaluatorFactory.parseValueElements(expressionEvaluatorElement, outputDefinition, contextDescription, prismContext);
+	}
+
+	/**
+	 * Always returns collection, even for single-valued results. 
+	 */
+	public static <X> Collection<X> getPropertyStaticRealValues(ExpressionType expressionType, PrismPropertyDefinition outputDefinition, 
+			String contextDescription, PrismContext prismContext) throws SchemaException {
+		PrismProperty<X> output = getPropertyStatic(expressionType, outputDefinition, contextDescription, prismContext);
 		return output.getRealValues();
+	}
+	
+	/**
+	 * Returns either Object (if result is supposed to be single-value) or Collection<X> (if result is supposed to be multi-value) 
+	 */
+	public static Object getStaticOutput(ExpressionType expressionType, PrismPropertyDefinition outputDefinition, 
+			String contextDescription, ExpressionReturnMultiplicityType preferredMultiplicity, PrismContext prismContext) throws SchemaException {
+		PrismProperty<?> output = getPropertyStatic(expressionType, outputDefinition, contextDescription, prismContext);
+		ExpressionReturnMultiplicityType multiplicity = preferredMultiplicity;
+		if (expressionType.getReturnMultiplicity() != null) {
+			multiplicity = expressionType.getReturnMultiplicity();
+		} else if (output.size() > 1) {
+			multiplicity = ExpressionReturnMultiplicityType.MULTI;
+		}
+		switch (multiplicity) {
+			case MULTI: return output.getRealValues();
+			case SINGLE: return output.getRealValue();
+			default: throw new IllegalStateException("Unknown return type "+multiplicity);
+		}
 	}
 	
 	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {

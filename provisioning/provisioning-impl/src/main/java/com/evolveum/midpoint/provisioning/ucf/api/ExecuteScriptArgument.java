@@ -6,13 +6,16 @@ public class ExecuteScriptArgument {
 
 	
 	private String argumentName;
-	private Collection<Object> argumentValue;
+	/**
+	 * NOTE! This may contain both Object (for single-value arguments) and Collection<Object> (for multi-value arguments).
+	 */
+	private Object argumentValue;
 
 	public ExecuteScriptArgument() {
 		
 	}
 	
-	public ExecuteScriptArgument(String name, Collection<Object> value) {
+	public ExecuteScriptArgument(String name, Object value) {
 		this.argumentName = name;
 		this.argumentValue = value;
 	}
@@ -25,11 +28,11 @@ public class ExecuteScriptArgument {
 		this.argumentName = argumentName;
 	}
 
-	public Collection<Object> getArgumentValue() {
+	public Object getArgumentValue() {
 		return argumentValue;
 	}
 
-	public void setArgumentValue(Collection<Object> argumentValue) {
+	public void setArgumentValue(Object argumentValue) {
 		this.argumentValue = argumentValue;
 	}
 }

@@ -70,6 +70,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
@@ -97,7 +98,6 @@ public abstract class ShadowCache {
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher operationListener;
 
-	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
 	public ShadowCache() {
@@ -211,15 +211,9 @@ public abstract class ShadowCache {
 			handleError(new SchemaException("Attempt to add shadow without any attributes: " + shadowType), shadowType,
 					FailedOperation.ADD, resource, null, true, task, parentResult);
 	}
-
-	Set<Operation> additionalOperations = new HashSet<Operation>();
-
-	addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
-			parentResult);
-
 	
 	try {
-		shadowType = shadowConverter.addShadow(resource, shadowType, additionalOperations, parentResult);
+		shadowType = shadowConverter.addShadow(resource, shadowType, scripts, parentResult);
 		
 	} catch (Exception ex) {
 		shadowType = handleError(ex, shadowType, FailedOperation.ADD, resource, null, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
@@ -274,9 +268,7 @@ public abstract class ShadowCache {
 				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.asPrismObject()
 						.dump());
 			}
-
-			Set<Operation> changes = new HashSet<Operation>();
-			addExecuteScriptOperation(changes, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
+			
 			LOGGER.trace("modifications before merging deltas, {}", DebugUtil.debugDump(modifications));
 			
 			modifications = beforeModifyOnResource(shadow, options, modifications);
@@ -285,10 +277,10 @@ public abstract class ShadowCache {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
 			}
 			
-			Set<PropertyModificationOperation> sideEffectChanges = null;
+			Collection<PropertyModificationOperation> sideEffectChanges = null;
 
 			try {
-				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, changes,
+				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, scripts,
 						modifications, parentResult);
 			} catch (Exception ex) {
 				LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
@@ -352,16 +344,11 @@ public abstract class ShadowCache {
 			LOGGER.trace("Deleting obeject {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),
 					ObjectTypeUtil.toShortString(resource));
 
-			Set<Operation> additionalOperations = new HashSet<Operation>();
-
-			addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, resource,
-					parentResult);
-
 			if (accountShadow.getFailedOperationType() == null
 					|| (accountShadow.getFailedOperationType() != null && FailedOperationTypeType.ADD != accountShadow
 							.getFailedOperationType())) {
 				try {
-					shadowConverter.deleteShadow(resource, accountShadow, additionalOperations, parentResult);
+					shadowConverter.deleteShadow(resource, accountShadow, scripts, parentResult);
 				} catch (Exception ex) {
 					try {
 						handleError(ex, accountShadow, FailedOperation.DELETE, resource, null, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
@@ -495,47 +482,6 @@ public abstract class ShadowCache {
 			shadow.setObjectChange(objectDeltaType);
 		}
 		return shadow;
-	}
-	private void addExecuteScriptOperation(Set<Operation> operations, ProvisioningOperationTypeType type,
-			ProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
-		if (scripts == null) {
-			// No warning needed, this is quite normal
-			LOGGER.trace("Skipping creating script operation to execute. Scripts was not defined.");
-			return;
-		}
-
-		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
-		for (ProvisioningScriptType script : scripts.getScript()) {
-			for (ProvisioningOperationTypeType operationType : script.getOperation()) {
-				if (type.equals(operationType)) {
-					ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
-
-					for (ProvisioningScriptArgumentType argument : script.getArgument()) {
-						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
-								Mapping.getPropertyStaticRealValues(argument, scriptArgumentDefinition,
-										"script value for " + operationType + " in " + resource, prismContext));
-						scriptOperation.getArgument().add(arg);
-					}
-
-					scriptOperation.setLanguage(script.getLanguage());
-					scriptOperation.setTextCode(script.getCode());
-
-					scriptOperation.setScriptOrder(script.getOrder());
-
-					if (script.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
-						scriptOperation.setConnectorHost(true);
-						scriptOperation.setResourceHost(false);
-					}
-					if (script.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
-						scriptOperation.setConnectorHost(false);
-						scriptOperation.setResourceHost(true);
-					}
-					LOGGER.trace("Created script operation: {}", SchemaDebugUtil.prettyPrint(scriptOperation));
-					operations.add(scriptOperation);
-				}
-			}
-		}
 	}
 
 }

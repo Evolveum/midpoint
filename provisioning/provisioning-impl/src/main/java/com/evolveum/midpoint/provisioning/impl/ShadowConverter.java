@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
@@ -72,6 +75,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -84,6 +88,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -93,7 +103,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEn
 @Component
 public class ShadowConverter {
 	
-//	private static final ItemPath ATTRIBUTES_PATH = new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES);
+	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
@@ -183,7 +193,7 @@ public class ShadowConverter {
 
 	@SuppressWarnings("unchecked")
 	public ResourceObjectShadowType addShadow(ResourceType resource, ResourceObjectShadowType shadowType,
-			Set<Operation> additionalOperations, OperationResult parentResult)
+			ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
@@ -200,6 +210,10 @@ public class ShadowConverter {
 		}
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+		
+		Collection<Operation> additionalOperations = new ArrayList<Operation>();
+		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
+				parentResult);
 		
 		try {
 
@@ -246,7 +260,7 @@ public class ShadowConverter {
 
 	@SuppressWarnings("unchecked")
 	public void deleteShadow(ResourceType resource, ResourceObjectShadowType shadow,
-			Set<Operation> additionalOperations, OperationResult parentResult)
+			ProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -272,6 +286,9 @@ public class ShadowConverter {
 					"Unable to delete account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 		}
 
+		Collection<Operation> additionalOperations = new ArrayList<Operation>();
+		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, resource,
+				parentResult);
 
 		try {
 
@@ -305,12 +322,14 @@ public class ShadowConverter {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Set<PropertyModificationOperation> modifyShadow(ResourceType resource,
-			ResourceObjectShadowType shadow, Collection<Operation> operations,
+	public Collection<PropertyModificationOperation> modifyShadow(ResourceType resource,
+			ResourceObjectShadowType shadow, ProvisioningScriptsType scripts,
 			Collection<? extends ItemDelta> objectChanges, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
+		Collection<Operation> operations = new ArrayList<Operation>();
+		
 		ObjectClassComplexTypeDefinition objectClassDefinition = applyAttributesDefinition(shadow.asPrismObject(), resource);
 		
 		ResourceAttributeContainerDefinition resourceAttributeDefinition = ResourceObjectShadowUtil
@@ -339,10 +358,13 @@ public class ShadowConverter {
 		if (operations.isEmpty()){
 			LOGGER.trace("No modifications for connector object specified. Skipping processing of modifyShadow.");
 			parentResult.recordSuccess();
-			return new HashSet<PropertyModificationOperation>();
+			return new ArrayList<PropertyModificationOperation>(0);
 		}
 		
-		//check idetifier if it is not null
+		// This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
+		addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, resource, parentResult);
+		
+		//check identifier if it is not null
 		if (identifiers.isEmpty() && shadow.getFailedOperationType()!= null){
 			throw new GenericConnectorException(
 					"Unable to modify account in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
@@ -380,7 +402,7 @@ public class ShadowConverter {
 			operations = filteredOperations;
 		}
 	
-		Set<PropertyModificationOperation> sideEffectChanges = null;
+		Collection<PropertyModificationOperation> sideEffectChanges = null;
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -1033,5 +1055,49 @@ public class ShadowConverter {
 		
 		return objectClassDefinition;
 	}
+	
+	private void addExecuteScriptOperation(Collection<Operation> operations, ProvisioningOperationTypeType type,
+			ProvisioningScriptsType scripts, ResourceType resource, OperationResult result) throws SchemaException {
+		if (scripts == null) {
+			// No warning needed, this is quite normal
+			LOGGER.trace("Skipping creating script operation to execute. Scripts was not defined.");
+			return;
+		}
+
+		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+		for (ProvisioningScriptType script : scripts.getScript()) {
+			for (ProvisioningOperationTypeType operationType : script.getOperation()) {
+				if (type.equals(operationType)) {
+					ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
+
+					for (ProvisioningScriptArgumentType argument : script.getArgument()) {
+						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
+								Mapping.getStaticOutput(argument, scriptArgumentDefinition,
+										"script value for " + operationType + " in " + resource, 
+										ExpressionReturnMultiplicityType.SINGLE, prismContext));
+						scriptOperation.getArgument().add(arg);
+					}
+
+					scriptOperation.setLanguage(script.getLanguage());
+					scriptOperation.setTextCode(script.getCode());
+
+					scriptOperation.setScriptOrder(script.getOrder());
+
+					if (script.getHost().equals(ProvisioningScriptHostType.CONNECTOR)) {
+						scriptOperation.setConnectorHost(true);
+						scriptOperation.setResourceHost(false);
+					}
+					if (script.getHost().equals(ProvisioningScriptHostType.RESOURCE)) {
+						scriptOperation.setConnectorHost(false);
+						scriptOperation.setResourceHost(true);
+					}
+					LOGGER.trace("Created script operation: {}", SchemaDebugUtil.prettyPrint(scriptOperation));
+					operations.add(scriptOperation);
+				}
+			}
+		}
+	}
+
 	
 }

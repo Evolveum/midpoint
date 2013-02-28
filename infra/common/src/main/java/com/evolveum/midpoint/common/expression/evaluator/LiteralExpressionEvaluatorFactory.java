@@ -87,7 +87,7 @@ public class LiteralExpressionEvaluatorFactory implements ExpressionEvaluatorFac
 		for (Object valueElement: valueElements) {
 			QName valueElementName = JAXBUtil.getElementQName(valueElement);
 			if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
-				throw new SchemaException("Literal expression cannot handle elements "+valueElementName + " in "+ contextDescription);
+				throw new SchemaException("Literal expression cannot handle element <"+valueElementName + "> in "+ contextDescription);
 			}
 			
 			if (valueElement instanceof JAXBElement<?>) {

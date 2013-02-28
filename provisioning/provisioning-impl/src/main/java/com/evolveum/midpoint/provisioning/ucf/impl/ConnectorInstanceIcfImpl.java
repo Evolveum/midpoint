@@ -771,7 +771,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Collection<ResourceAttribute<?>> addObject(PrismObject<? extends ResourceObjectShadowType> object,
-			Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
+			Collection<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException {
 		validateShadow(object, "add", false);
 
@@ -1240,7 +1240,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public void deleteObject(ObjectClassComplexTypeDefinition objectClass,
-			Set<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers,
+			Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException {
 
@@ -2069,7 +2069,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @param additionalOperations
 	 * @param order
 	 */
-	private void checkAndExecuteAdditionalOperation(Set<Operation> additionalOperations, ProvisioningScriptOrderType order) {
+	private void checkAndExecuteAdditionalOperation(Collection<Operation> additionalOperations, ProvisioningScriptOrderType order) {
 
 		if (additionalOperations == null) {
 			// TODO: add warning to the result

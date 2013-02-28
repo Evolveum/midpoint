@@ -3253,6 +3253,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" minOccurs="0"></xsd:element>
             <xsd:choice>
                 <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
                 	<xsd:annotation>
@@ -3293,6 +3294,39 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:simpleType name="ExpressionReturnMultiplicityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Expression result multiplicity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="single">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Single return value
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="multi">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Multiple return values
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MULTI"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="StringFilterType">
         <xsd:annotation>

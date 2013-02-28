@@ -82,6 +82,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -242,6 +243,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
+		purgeScriptHistory();
 		dummyAuditService.clear();
         dummyNotifier.clearRecords();
         
@@ -274,6 +276,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
+        
+        assertDummyScriptsAdd();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -450,6 +454,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
+		purgeScriptHistory();
 		dummyAuditService.clear();
         
 		try {
@@ -467,6 +472,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 			assertMessageContains(message, "default");
 		}
 		
+		assertNoProvisioningScripts();
+		
 		// Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -474,10 +481,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 		
-	}
-
-	private void assertMessageContains(String message, String string) {
-		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
 	}
 
 	@Test
@@ -606,6 +609,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
 
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         account.setOid(accountOid);
@@ -639,6 +643,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
         
+        assertDummyScriptsDelete();
+        
      // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -659,6 +665,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createAddDelta(account);
@@ -689,6 +696,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
+        
+        assertDummyScriptsAdd();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -810,6 +819,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createDeleteDelta(AccountShadowType.class, accountOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
@@ -831,6 +841,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+        assertDummyScriptsDelete();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -891,6 +903,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -919,6 +932,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
+        assertDummyScriptsAdd();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -942,6 +957,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<AccountShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(AccountShadowType.class,
@@ -986,6 +1002,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, 
         		"Queen Anne's Revenge");
         
+        assertDummyScriptsModify();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -1007,6 +1025,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
@@ -1029,6 +1048,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+        assertDummyScriptsDelete();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1054,6 +1075,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -1085,6 +1107,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
+        assertDummyScriptsAdd();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1110,6 +1134,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
@@ -1141,6 +1166,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
+        assertNoProvisioningScripts();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1164,6 +1191,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -1192,6 +1220,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
+        
+        assertDummyScriptsDelete();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1224,6 +1254,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
 		dummyAuditService.clear();
+		purgeScriptHistory();
         
 		try {
 		
@@ -1250,6 +1281,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Check that dummy resource account was not created
         assertNoDummyAccount("jack");
+        
+        assertNoProvisioningScripts();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1280,6 +1313,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
 		dummyAuditService.clear();
+		purgeScriptHistory();
         
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
@@ -1311,6 +1345,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
+        assertDummyScriptsAdd();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1335,6 +1371,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
         // Explicit unlink is not needed here, it should work without it
@@ -1365,6 +1402,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
         
+        assertDummyScriptsDelete();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -1390,6 +1429,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
@@ -1427,6 +1467,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
         
+        assertDummyScriptsAdd();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1452,6 +1494,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
@@ -1522,6 +1565,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "q");
         //assertEquals("Missing or incorrect attribute value", "soda", dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class));
 
+        assertDummyScriptsModify();
+        
 //        // Check audit
 //        display("Audit", dummyAuditService);
 //        dummyAuditService.assertRecords(2);
@@ -1543,6 +1588,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
                         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
@@ -1568,6 +1614,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
+        assertDummyScriptsModify();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1589,6 +1637,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
                         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result);
@@ -1614,6 +1663,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
+        assertDummyScriptsModify();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1635,6 +1686,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
                
         try {
 			// WHEN
@@ -1647,6 +1699,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         IntegrationTestTools.assertFailure(result);
+        
+        assertNoProvisioningScripts();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1663,6 +1717,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
         		PrismTestUtil.createPolyString("Marvelous Captain Jack Sparrow"));
@@ -1691,6 +1746,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource - the original fullName should not be changed
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
+        assertNoProvisioningScripts();
+        
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1710,6 +1767,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, USER_JACK_OID, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
@@ -1734,6 +1792,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
         
+        assertDummyScriptsDelete();
+        
      // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1756,6 +1816,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1788,6 +1849,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
         assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
         
+        assertDummyScriptsAdd();
+        
         // Check audit        
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -1812,6 +1875,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1842,6 +1906,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("morgan", "Sir Henry Morgan", true);
         
+        assertDummyScriptsAdd();
+        
      // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -1867,6 +1933,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
 
         PrismObject<UserType> user = createUser("charles", "Charles L. Charles");
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -1883,7 +1950,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("No charles", userAfter);
         userCharlesOid = userAfter.getOid();
         
-		// Check shadow
+        assertNoProvisioningScripts();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1908,6 +1975,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
+        purgeScriptHistory();
 
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userCharlesOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);                
@@ -1922,7 +1990,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<UserType> userAfter = findUserByUsername("charles");
         assertNull("Charles is not gone", userAfter);
         
-		// Check shadow
+		assertNoProvisioningScripts();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1934,5 +2002,39 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionSuccess();
 	}
 	
+	private void assertMessageContains(String message, String string) {
+		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
+	}
+	
+	private void purgeScriptHistory() {
+		dummyResource.purgeScriptHistory();
+	}
+
+	private void assertNoProvisioningScripts() {
+		if (!dummyResource.getScriptHistory().isEmpty()) {
+			IntegrationTestTools.displayScripts(dummyResource.getScriptHistory());
+			AssertJUnit.fail(dummyResource.getScriptHistory().size()+" provisioning scripts were executed while not expected any");
+		}
+	}
+
+	private void assertDummyScriptsAdd() {
+		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
+				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
+		script.addArgSingle("size", "3");
+		script.setLanguage("Logo");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+	}
+
+	private void assertDummyScriptsModify() {
+		ProvisioningScriptSpec script = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
+		script.addArgSingle("howMuch", "a lot");
+		script.addArgSingle("howLong", "from here to there");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+	}
+
+	private void assertDummyScriptsDelete() {
+		ProvisioningScriptSpec script = new ProvisioningScriptSpec("The Jabberwock, with eyes of flame");
+		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
+	}
 
 }

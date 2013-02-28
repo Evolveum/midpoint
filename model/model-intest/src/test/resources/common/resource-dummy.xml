@@ -312,6 +312,53 @@
 		
 	</schemaHandling>
 	
+	<scripts>
+		<script>
+			<operation>add</operation>
+			<order>after</order>
+			<host>resource</host>
+			<language>Logo</language>
+			<argument>
+<!-- 				<script>
+					<code>
+						user.getName().length()
+					</code>
+				</script>  see MID-1194 -->
+				<value>3</value>
+				<name>size</name>
+			</argument>
+			<code>
+to spiral :size
+   if  :size > 30 [stop]
+   fd :size rt 15
+   spiral :size *1.02
+end
+			</code>
+		</script>
+		<script>
+			<operation>modify</operation>
+			<order>before</order>
+			<host>resource</host>
+			<language>Gibberish</language>
+			<argument>
+				<value>a lot</value>
+				<name>howMuch</name>
+			</argument>
+			<argument>
+				<value>from here to there</value>
+				<name>howLong</name>
+			</argument>
+			<code>Beware the Jabberwock, my son!</code>
+		</script>
+		<script>
+			<operation>delete</operation>
+			<order>after</order>
+			<host>resource</host>
+			<language>Gibberish</language>
+			<code>The Jabberwock, with eyes of flame</code>
+		</script>
+	</scripts>
+	
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
 	</consistency>
