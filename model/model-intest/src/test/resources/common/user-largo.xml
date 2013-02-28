@@ -30,6 +30,9 @@
     <givenName>Largo</givenName>
     <familyName>LaGrande</familyName>
 	<employeeType>PIRATE</employeeType>
+	<activation>
+		<enabled>true</enabled>
+	</activation>
 	 <credentials>
         <password>
         	<value>

@@ -45,6 +45,9 @@
 			<icfs:name>blackbeard</icfs:name>
 			<ri:fullname>Edward Teach</ri:fullname>
 		</attributes>
+		<activation>
+			<enabled>true</enabled>
+		</activation>
     </account>
     
 </user>

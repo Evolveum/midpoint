@@ -300,6 +300,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong number of accounts linked to "+user, numAccounts, accountRef.size());
 	}
 	
+	protected void assertEnabled(PrismObject<UserType> user) {
+		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);
+		assert enabledProperty != null : "No 'enabled' property in "+user;
+		Boolean enabled = enabledProperty.getRealValue();
+		assert enabled != null : "'enabled' property is null in "+user;
+		assert enabled : "'enabled' property is false in "+user;
+	}
+	
 	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, QName propertyName, Object... newRealValue) {
 		return createModifyUserReplaceDelta(userOid, new ItemPath(propertyName), newRealValue);
 	}

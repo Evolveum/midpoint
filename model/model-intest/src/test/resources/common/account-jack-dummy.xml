@@ -33,4 +33,7 @@
 		<ri:fullname>Jack Sparrow</ri:fullname>
 		<ri:weapon>rum</ri:weapon>
 	</attributes>
+	<activation>
+		<enabled>true</enabled>
+	</activation>
 </account>

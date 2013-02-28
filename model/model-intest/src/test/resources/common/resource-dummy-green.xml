@@ -281,6 +281,9 @@
                         	<asIs/>
                         </expression>
             		</outbound>
+            		<inbound>
+            			<strength>weak</strength>
+            		</inbound>
             	</enabled>
             </activation>
             

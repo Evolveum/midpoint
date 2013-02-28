@@ -39,6 +39,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private String instanceId;
     private boolean supportSchema = true;
     private boolean readablePassword = false;
+    private boolean requireExplicitEnable = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
 
@@ -82,8 +83,21 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setReadablePassword(boolean readablePassword) {
 		this.readablePassword = readablePassword;
 	}
-    		
-    /**
+
+	/**
+     * If set to true then explicit value for ENABLE attribute must be provided to create an account.
+     */
+	@ConfigurationProperty(displayMessageKey = "UI_INSTANCE_REQUIRE_EXPLICIT_ENABLE",
+    		helpMessageKey = "UI_INSTANCE_REQUIRE_EXPLICIT_ENABLE")
+    public boolean getRequireExplicitEnable() {
+		return requireExplicitEnable;
+	}
+
+	public void setRequireExplicitEnable(boolean requireExplicitEnable) {
+		this.requireExplicitEnable = requireExplicitEnable;
+	}
+
+	/**
      * Useless string-value configuration variable. It is used for testing the configuration schema
      * and things like that.
      */

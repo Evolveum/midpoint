@@ -486,14 +486,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	private void assertDummyDisabled(String instance, String userId) {
 		assertDummyActivationEnabledState(instance, userId, false);
 	}
-
-	private void assertEnabled(PrismObject<UserType> user) {
-		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);
-		assert enabledProperty != null : "No enabled property in "+user;
-		Boolean enabled = enabledProperty.getRealValue();
-		assert enabled != null : "No enabled property is null in "+user;
-		assert enabled : "Enabled property is false in "+user;
-	}
 	
 	private void assertDisabled(PrismObject<UserType> user) {
 		PrismProperty<Boolean> enabledProperty = user.findProperty(ACTIVATION_ENABLED_PATH);

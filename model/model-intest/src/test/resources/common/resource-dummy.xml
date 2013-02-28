@@ -49,6 +49,7 @@
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance. -->
+			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>
@@ -291,6 +292,9 @@
                         	<asIs/>
                         </expression>
             		</outbound>
+            		<inbound>
+            			<strength>weak</strength>
+            		</inbound>
             	</enabled>
             </activation>
             

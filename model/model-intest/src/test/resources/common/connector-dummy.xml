@@ -70,6 +70,14 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
+                  <xsd:element minOccurs="0" name="requireExplicitEnable" type="xsd:boolean">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>UI_REQUIRE_EXPLICIT_ENABLE</a:displayName>
+                           <a:help>UI_REQUIRE_EXPLICIT_ENABLE</a:help>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
                   <xsd:element minOccurs="0" name="uselessGuardedString" type="c:ProtectedStringType">
                      <xsd:annotation>
                         <xsd:appinfo>

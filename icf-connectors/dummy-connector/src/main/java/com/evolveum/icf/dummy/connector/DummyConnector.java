@@ -547,6 +547,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		final DummyAccount newAccount = new DummyAccount(userName);
 
+		Boolean enabled = null;
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Name.NAME)) {
 				// Skip, already processed
@@ -555,7 +556,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 				changePassword(newAccount,attr);
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-				boolean enabled = getEnable(attr);
+				enabled = getEnable(attr);
 				newAccount.setEnabled(enabled);
 				
 			} else {
@@ -571,13 +572,13 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			}
 		}
 		
+		if (configuration.getRequireExplicitEnable() && enabled == null) {
+			throw new IllegalArgumentException("Explicit value for ENABLE attribute was not provided and the connector is set to require it");
+		}
+		
 		return newAccount;
 	}
 
-	/**
-	 * @param attr
-	 * @return
-	 */
 	private boolean getEnable(Attribute attr) {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {
 			throw new IllegalArgumentException("Empty enable attribute was provided");

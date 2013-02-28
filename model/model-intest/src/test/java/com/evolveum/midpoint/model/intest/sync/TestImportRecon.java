@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.sync;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
@@ -38,6 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.test.DummyResourceContoller;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -112,32 +113,38 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
         assertNotNull("No admin", admin);
         assertAccounts(admin, 0);
+        assertEnabled(admin);
         
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         assertNotNull("No jack", jack);
         assertAccounts(jack, 0);
+        assertEnabled(jack);
         
         PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
         assertNotNull("No barbossa", barbossa);
         assertAccounts(barbossa, 1);
         // Barbossa had opendj account before
         assertAccount(barbossa, RESOURCE_OPENDJ_OID);
+        assertEnabled(barbossa);
         
         PrismObject<UserType> guybrush = getUser(USER_GUYBRUSH_OID);
         assertNotNull("No guybrush", guybrush);
         assertAccounts(guybrush, 1);
         assertAccount(guybrush, RESOURCE_DUMMY_OID);
+        assertEnabled(guybrush);
         
         rapp = getUser(USER_RAPP_OID);
         assertNotNull("No rapp", rapp);
         // Rapp account should be linked
         assertAccounts(rapp, 1);
         assertAccount(rapp, RESOURCE_DUMMY_OID);
+        assertEnabled(rapp);
         
         PrismObject<UserType> herman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
         assertNotNull("No herman", herman);
         assertAccounts(herman, 1);
         assertAccount(herman, RESOURCE_DUMMY_OID);
+        assertEnabled(herman);
         
         // These are protected accounts, they should not be imported
         PrismObject<UserType> daviejones = findUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
@@ -195,20 +202,24 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> admin = getUser(USER_ADMINISTRATOR_OID);
         assertNotNull("No admin", admin);
         assertAccounts(admin, 0);
+        assertEnabled(admin);
         
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         assertNotNull("No jack", jack);
         assertAccounts(jack, 0);
+        assertEnabled(jack);
         
         PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
         assertNotNull("No barbossa", barbossa);
         assertAccounts(barbossa, 1);
         assertAccount(barbossa, RESOURCE_OPENDJ_OID);
+        assertEnabled(barbossa);
         
         PrismObject<UserType> guybrush = getUser(USER_GUYBRUSH_OID);
         assertNotNull("No guybrush", guybrush);
         assertAccounts(guybrush, 1);
         assertAccount(guybrush, RESOURCE_DUMMY_OID);
+        assertEnabled(guybrush);
         // Guybrushes fullname should be corrected back to real fullname
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Guybrush Threepwood");
@@ -227,11 +238,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Rapp account should be linked
         assertAccounts(rapp, 1);
         assertAccount(rapp, RESOURCE_DUMMY_OID);
+        assertEnabled(rapp);
         
         PrismObject<UserType> herman = findUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME);
         assertNotNull("No herman", herman);
         assertAccounts(herman, 1);
         assertAccount(herman, RESOURCE_DUMMY_OID);
+        assertEnabled(herman);
         
         // These are protected accounts, they should not be imported
         PrismObject<UserType> daviejones = findUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);

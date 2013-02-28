@@ -25,6 +25,9 @@
 	<givenName>midPoint</givenName>
 	<familyName>Administrator</familyName>
 	<emailAddress>administrator@evolveum.com</emailAddress>
+	<activation>
+		<enabled>true</enabled>
+	</activation>
 	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 		<password>
 			<value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">

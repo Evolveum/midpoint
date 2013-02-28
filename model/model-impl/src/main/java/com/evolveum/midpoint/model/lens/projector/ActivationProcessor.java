@@ -83,12 +83,10 @@ public class ActivationProcessor {
 
     public void processActivationUser(LensContext<UserType,AccountShadowType> context, LensProjectionContext<AccountShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         ObjectDelta<UserType> userDelta = context.getFocusContext().getDelta();
-        if (userDelta == null) {
-            // This must be a user delete or something similar. No point in proceeding
-            LOGGER.trace("userDelta is null, skipping activation processing");
-            return;
+        PropertyDelta<Boolean> userEnabledValueDelta = null;
+        if (userDelta != null) {
+        	userEnabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
         }
-        PropertyDelta userEnabledValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
 
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         if (userNew == null) {
@@ -115,7 +113,7 @@ public class ActivationProcessor {
         if (accountDelta != null) {
         	accountEnabledValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ENABLE);
         }
-        if (accountDelta != null && accountDelta.getChangeType() == ChangeType.ADD) {
+        if (accCtx.isAdd()) {
             // adding new account, synchronize activation regardless whether the user activation was changed or not.
         } else if (userEnabledValueDelta != null) {
             // user activation was changed. synchronize it regardless of the account change.

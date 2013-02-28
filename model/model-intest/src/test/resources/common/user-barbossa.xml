@@ -33,6 +33,10 @@
     <familyName>Barbossa</familyName>
     <locality>Caribbean</locality>
     
+    <activation>
+    	<enabled>true</enabled>
+    </activation>
+    
     <credentials>
         <password>
         	<value>

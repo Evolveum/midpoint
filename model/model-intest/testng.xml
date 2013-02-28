@@ -37,7 +37,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestPassword"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
-            <class name="com.evolveum.midpoint.model.intest.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiConnector"/>
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
@@ -50,6 +49,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestReconTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
         </classes>
     </test>
     <test name="Importer" preserve-order="true" parallel="false" verbose="10">

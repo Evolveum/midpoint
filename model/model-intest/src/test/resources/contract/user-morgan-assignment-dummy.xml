@@ -31,6 +31,10 @@
     <honorificPrefix>Sir</honorificPrefix>
     <locality>Jamaica</locality>
 
+	<activation>
+		<enabled>true</enabled>
+	</activation>
+
     <credentials>
         <password>
         	<value>
