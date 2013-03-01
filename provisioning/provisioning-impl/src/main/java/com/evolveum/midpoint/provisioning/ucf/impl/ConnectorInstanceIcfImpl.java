@@ -2033,6 +2033,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private SyncToken getSyncToken(PrismProperty tokenProperty) throws SchemaException {
+		if (tokenProperty == null){
+			return null;
+		}
 		if (tokenProperty.getValue() == null) {
 			return null;
 		}

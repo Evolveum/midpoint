@@ -448,7 +448,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					|| tokenProperty.getValue().getValue() == null) {
 				LOGGER.warn("Empty current sync token provided by {}", resourceType);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Empty current sync token property:\n{}", tokenProperty.dump());
+					LOGGER.trace("Empty current sync token property.");
 				}
 				return null;
 			}
