@@ -138,9 +138,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         mount(new MountedMapper("/admin", PageHome.class, encoder));
         mount(new MountedMapper("/admin/home", PageHome.class, encoder));    //todo remove
-        //todo dashboard is not finished yet
+        //todo dashboard and myPasswords is not finished yet
 //        mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
-        mount(new MountedMapper("/admin/myPasswords", PageMyPasswords.class, encoder));
+//        mount(new MountedMapper("/admin/myPasswords", PageMyPasswords.class, encoder));
 
         // todo mount used for performance tests, will be implemented properly in next release
         // mount(new MountedMapperWithoutPageComponentInfo("/admin/users", PageUsers.class, new PageUsersEncoder()));
