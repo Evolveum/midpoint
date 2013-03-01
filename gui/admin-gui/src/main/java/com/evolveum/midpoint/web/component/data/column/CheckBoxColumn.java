@@ -65,6 +65,11 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
         });
     }
 
+    @Override
+    public String getCssClass() {
+        return "tableCheckbox";
+    }
+    
     protected IModel<Boolean> getEnabled() {
         return enabled;
     }

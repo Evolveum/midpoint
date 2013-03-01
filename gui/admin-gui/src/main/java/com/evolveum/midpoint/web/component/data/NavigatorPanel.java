@@ -103,7 +103,7 @@ public class NavigatorPanel extends AjaxPagingNavigator {
 	@Override
 	protected void onAjaxEvent(AjaxRequestTarget target) {
 		super.onAjaxEvent(target);
-		target.appendJavaScript("init();");
+		target.appendJavaScript("initTable();");
 	}
 
 	private IModel<String> createModel(final IPageable pageable) {
