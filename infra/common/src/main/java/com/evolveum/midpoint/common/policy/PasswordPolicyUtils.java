@@ -48,6 +48,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 public class PasswordPolicyUtils {
 	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyUtils.class);
 
+    private static final String DOT_CLASS = PasswordPolicyUtils.class.getName() + ".";
+    private static final String OPERATION_PASSWORD_VALIDATION = DOT_CLASS + "passwordValidation";
+
 	/**
 	 * add defined default values
 	 * 
@@ -175,8 +178,8 @@ public class PasswordPolicyUtils {
 		Validate.notNull(pp, "Password policy must not be null.");
 		Validate.notNull(password, "Password to validate must not be null.");
 
-		OperationResult ret = new OperationResult("Password validation against password policy:"
-				+ pp.getName());
+        OperationResult ret = new OperationResult(OPERATION_PASSWORD_VALIDATION);
+        ret.addParam("policyName", pp.getName());
 		normalize(pp);
 		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
