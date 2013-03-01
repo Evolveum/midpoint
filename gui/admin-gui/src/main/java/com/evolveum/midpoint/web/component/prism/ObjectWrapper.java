@@ -43,6 +43,8 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -240,11 +242,12 @@ public class ObjectWrapper implements Serializable {
 				container.setMain(true);
 				containers.add(container);
 				
-				if (hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource())){
+				if (hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 					containers.addAll(createCustomContainerWrapper(object, ResourceObjectShadowType.F_ACTIVATION));
-					if (AccountShadowType.class.isAssignableFrom(clazz)) {
-						containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
-					}
+				}
+				if (AccountShadowType.class.isAssignableFrom(clazz) && 
+						hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource(), CredentialsCapabilityType.class)) {
+					containers.addAll(createCustomContainerWrapper(object, AccountShadowType.F_CREDENTIALS));
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers =  createResourceContainers();
@@ -401,7 +404,7 @@ public class ObjectWrapper implements Serializable {
                                 && (((ResourceObjectShadowType) object.asObjectable()).getActivation() == null
                                 || ((ResourceObjectShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
 							
-							if (!hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource())){
+							if (!hasResourceCapability(((AccountShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 								continue;
 							}
 						}
@@ -468,15 +471,11 @@ public class ObjectWrapper implements Serializable {
         return cloned;
     }
 	
-	private boolean hasResourceCapability(ResourceType resource){
+	private boolean hasResourceCapability(ResourceType resource, Class<? extends CapabilityType> capabilityClass){
 		if (resource == null){
 			return false;
 		}
-		if (!ResourceTypeUtil.hasResourceNativeActivationCapability(resource)){
-			return (ResourceTypeUtil.getEffectiveCapability(resource,  ActivationCapabilityType.class) == null) ? false : true; 
-		} 
-		
-		return true;
+		return ResourceTypeUtil.hasEffectiveCapability(resource, capabilityClass);
 	}
 
 	private ObjectDelta createAddingObjectDelta() throws SchemaException {

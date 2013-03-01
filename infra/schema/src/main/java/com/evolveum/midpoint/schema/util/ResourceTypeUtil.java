@@ -175,6 +175,10 @@ public class ResourceTypeUtil {
 		return null;
 	}
 	
+	public static <T extends CapabilityType> boolean hasEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
+		return getEffectiveCapability(resource, capabilityClass) != null;
+	}
+	
 	public static boolean isCapabilityEnabled(Object capability) throws SchemaException {
 		if (capability == null) {
 			return false;

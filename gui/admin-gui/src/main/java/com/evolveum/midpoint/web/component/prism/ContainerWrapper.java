@@ -123,9 +123,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
                     
                     definition = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
-//                    if (LOGGER.isTraceEnabled()) {
-//                    	LOGGER.trace("Refined account def:\n{}", definition.dump());
-//                    }
+                    if (LOGGER.isTraceEnabled()) {
+                    	LOGGER.trace("Refined account def:\n{}", definition.dump());
+                    }
                 } catch (Exception ex) {
                     throw new SystemException(ex.getMessage(), ex);
                 }
