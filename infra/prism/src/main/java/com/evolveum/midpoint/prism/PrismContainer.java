@@ -585,7 +585,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	public void checkConsistenceInternal(Itemable rootItem, ItemPath path, boolean requireDefinitions,
 			boolean prohibitRaw) {
 		// Containers that are from run-time schema cannot have compile-time class.
-		if (getDefinition() != null && !getDefinition().isRuntimeSchema) {
+		if (getDefinition() != null && !getDefinition().isRuntimeSchema()) {
 			if (getCompileTimeClass() == null) {
 				throw new IllegalStateException("No compile-time class in "+this+" ("+path+" in "+rootItem+")");
 			}

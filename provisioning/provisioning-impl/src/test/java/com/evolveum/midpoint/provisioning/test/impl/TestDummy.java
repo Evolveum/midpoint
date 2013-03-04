@@ -692,12 +692,13 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test021ApplyDefinitionAddDelta() throws Exception {
-		displayTestTile("test021ApplyDefinitionAddDelta");
+	public void test021ApplyDefinitionAddShadowDelta() throws Exception {
+		final String TEST_NAME = "test021ApplyDefinitionAddShadowDelta";
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
-				+ ".test021ApplyDefinitionAddDelta");
+				+ "." + TEST_NAME);
 
 		PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_WILL_FILENAME));
 
@@ -712,7 +713,64 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 
 		delta.checkConsistence(true, true, true);
-		assertSuccess("applyDefinition(add d, elta) result", result);
+		assertSuccess("applyDefinition(add delta) result", result);
+	}
+	
+	@Test
+	public void test022ApplyDefinitionResource() throws Exception {
+		final String TEST_NAME = "test022ApplyDefinitionResource";
+		displayTestTile(TEST_NAME);
+
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
+		resource.asObjectable().getConnectorRef().setOid(this.resourceType.getConnectorRef().getOid());
+		// Make sure this object has a different OID than the one already loaded. This avoids caching
+		// and other side-effects
+		resource.setOid(RESOURCE_DUMMY_NONEXISTENT_OID);
+
+		// WHEN
+		provisioningService.applyDefinition(resource, result);
+
+		// THEN
+		result.computeStatus();
+		display("applyDefinition result", result);
+		assertSuccess(result);
+
+		resource.checkConsistence(true, true);
+		assertSuccess("applyDefinition(resource) result", result);
+	}
+	
+	@Test
+	public void test023ApplyDefinitionAddResourceDelta() throws Exception {
+		final String TEST_NAME = "test023ApplyDefinitionAddResourceDelta";
+		displayTestTile(TEST_NAME);
+
+		// GIVEN
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
+		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
+		resource.asObjectable().getConnectorRef().setOid(this.resourceType.getConnectorRef().getOid());
+		ObjectDelta<ResourceType> delta = resource.createAddDelta();
+		// Make sure this object has a different OID than the one already loaded. This avoids caching
+		// and other side-effects
+		resource.setOid(RESOURCE_DUMMY_NONEXISTENT_OID);
+
+		// WHEN
+		provisioningService.applyDefinition(delta, result);
+
+		// THEN
+		result.computeStatus();
+		display("applyDefinition result", result);
+		assertSuccess(result);
+
+		delta.checkConsistence(true, true, true);
+		assertSuccess("applyDefinition(add delta) result", result);
 	}
 
 	// The account must exist to test this with modify delta. So we postpone the

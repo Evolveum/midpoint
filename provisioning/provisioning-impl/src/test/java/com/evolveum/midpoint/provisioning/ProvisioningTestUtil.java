@@ -70,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 public class ProvisioningTestUtil {
 	
 	public static final String COMMON_TEST_DIR_FILENAME = "src/test/resources/object/";
-	public static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();

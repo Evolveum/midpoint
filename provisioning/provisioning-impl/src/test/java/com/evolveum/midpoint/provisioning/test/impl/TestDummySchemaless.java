@@ -144,14 +144,14 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
 
-		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
+		resourceSchemaless = addResourceFromFile(RESOURCE_DUMMY_NO_SCHEMA_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeSchemaless = resourceSchemaless.asObjectable();
 
 		dummyResourceSchemaless = DummyResource.getInstance(RESOURCE_DUMMY_NO_SCHEMA_INSTANCE_ID);
 		dummyResourceSchemaless.reset();
 		dummyResourceSchemaless.populateWithDefaultSchema();
 		
-		resourceStaticSchema = addResourceFromFile(RESOURCE_DUMMY_STATIC_SCHEMA_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
+		resourceStaticSchema = addResourceFromFile(RESOURCE_DUMMY_STATIC_SCHEMA_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceTypeStaticSchema = resourceStaticSchema.asObjectable();
 
 		dummyResourceStaticSchema = DummyResource.getInstance(RESOURCE_DUMMY_STATIC_SCHEMA_INSTANCE_ID);

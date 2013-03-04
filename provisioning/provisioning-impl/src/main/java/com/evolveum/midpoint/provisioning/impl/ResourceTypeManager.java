@@ -669,29 +669,23 @@ public class ResourceTypeManager {
 		return connectorTypeManager.getConfiguredConnectorInstance(resource, forceFresh, parentResult);
 	}
 
-//	private PrismObjectDefinition<ResourceType> getResourceTypeDefinition() {
-//		if (resourceTypeDefinition == null) {
-//			resourceTypeDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(
-//					ResourceType.class);
-//		}
-//		return resourceTypeDefinition;
-//	}
-
 	public void applyDefinition(ObjectDelta<ResourceType> delta, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		PrismObject<ResourceType> resource = null;
 		
-		String resourceOid = null;
 		if (delta.isAdd()) {
-			resource = delta.getObjectToAdd();
+			PrismObject<ResourceType> resource = delta.getObjectToAdd();
+			applyConnectorSchemaToResource(resource.asObjectable(), objectResult);
+			return;
+			
 		} else if (delta.isModify()) {
-			resourceOid = delta.getOid();
+			// Go on
+			
 		} else {
 			return;
 		}
-		if (resource == null) {
-			Validate.notNull(resourceOid, "Resource oid not specified in the object delta. Could not apply definition.");
-			resource = getResource(resourceOid, objectResult);
-		}
+		
+		String resourceOid = delta.getOid();
+		Validate.notNull(resourceOid, "Resource oid not specified in the object delta. Could not apply definition.");
+		PrismObject<ResourceType>resource = getResource(resourceOid, objectResult);
 		ResourceType resourceType = resource.asObjectable();
 //		ResourceType resourceType = completeResource(resource.asObjectable(), null, objectResult);
 		//TODO TODO TODO FIXME FIXME FIXME copied from ObjectImprted..union this two cases
@@ -782,6 +776,6 @@ public class ResourceTypeManager {
 	}
 
 	public void applyDefinition(PrismObject<ResourceType> resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		completeResource(resource.asObjectable(), null, parentResult);
+		applyConnectorSchemaToResource(resource.asObjectable(), parentResult);
 	}
 }

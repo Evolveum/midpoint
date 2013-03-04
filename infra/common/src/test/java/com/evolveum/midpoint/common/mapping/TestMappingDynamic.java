@@ -28,6 +28,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.*;
 import static com.evolveum.midpoint.common.mapping.MappingTestEvaluator.*;
 
+import com.evolveum.midpoint.common.CommonTestConstants;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
@@ -422,7 +423,7 @@ public class TestMappingDynamic {
     	
     	Map<QName, Object> vars = new HashMap<QName, Object>();
     	JAXBElement<UserType> userTypeElement = PrismTestUtil.unmarshalElement(
-                new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml"), UserType.class);
+                new File(CommonTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml"), UserType.class);
         UserType userType = userTypeElement.getValue();
         vars.put(new QName(SchemaConstants.NS_C, "sailor"), userType);
         mapping.addVariableDefinitions(vars);
@@ -503,7 +504,7 @@ public class TestMappingDynamic {
     	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-script-root-node.xml", 
     			TEST_NAME, "locality", null);
     	
-    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(CommonTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
         mapping.setRootNode(user.asObjectable());
         
     	OperationResult opResult = new OperationResult(TEST_NAME);
@@ -1040,7 +1041,7 @@ public class TestMappingDynamic {
     	
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
-    			new File(MappingTestEvaluator.OBJECTS_DIR, policyFileName));
+    			new File(CommonTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
     	    	
 		OperationResult opResult = new OperationResult(TEST_NAME);
@@ -1121,7 +1122,7 @@ public class TestMappingDynamic {
     	
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
-    			new File(MappingTestEvaluator.OBJECTS_DIR, policyFileName));
+    			new File(CommonTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
     	    	
 		OperationResult opResult = new OperationResult(TEST_NAME);

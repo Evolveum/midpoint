@@ -108,7 +108,7 @@ public final class Utils {
         result.recordSuccessIfUnknown();
     }
     
-    public static <T extends ObjectType> void encryptValues(final Protector protector, final ObjectDelta<T> object, OperationResult objectResult){
+    public static <T extends ObjectType> void encryptValues(final Protector protector, final ObjectDelta<T> delta, OperationResult objectResult){
         final OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".encryptValues");
         Visitor visitor = new Visitor() {
 			@Override
@@ -120,7 +120,7 @@ public final class Utils {
 				encryptValue(protector, pval, result);
 			}
 		};
-		object.accept(visitor);
+		delta.accept(visitor);
         result.recordSuccessIfUnknown();
     }
     

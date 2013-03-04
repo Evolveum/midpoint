@@ -99,6 +99,9 @@ import static org.testng.AssertJUnit.*;
  */
 public class IntegrationTestTools {
 	
+	public static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
+	public static final String DBTABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
+	
 	public static boolean checkResults = true;
 	// public and not final - to allow changing it in tests
 	public static Trace LOGGER = TraceManager.getTrace(IntegrationTestTools.class);

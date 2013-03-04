@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,6 +73,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME = "title";
 	protected static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME);
 	protected static final ItemPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
+	
+	protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
 
 	protected static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
@@ -119,7 +122,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, ProvisioningTestUtil.DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(RESOURCE_DUMMY_FILENAME, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 
 		dummyResource = DummyResource.getInstance();

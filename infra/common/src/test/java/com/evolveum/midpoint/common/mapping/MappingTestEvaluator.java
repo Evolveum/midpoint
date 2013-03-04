@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.common.mapping;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static com.evolveum.midpoint.common.mapping.MappingTestEvaluator.OBJECTS_DIR;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.CommonTestConstants;
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -97,8 +97,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 public class MappingTestEvaluator {
 	
 	public static File TEST_DIR = new File("src/test/resources/mapping");
-    public static File OBJECTS_DIR = new File("src/test/resources/objects");
-    public static final String KEYSTORE_PATH = "src/test/resources/crypto/test-keystore.jceks";
     public static final File USER_OLD_FILE = new File(TEST_DIR, "user-jack.xml");
     public static final File ACCOUNT_FILE = new File(TEST_DIR, "account-jack.xml");
 	public static final String USER_OLD_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";
@@ -117,10 +115,10 @@ public class MappingTestEvaluator {
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 		
     	prismContext = PrismTestUtil.createInitializedPrismContext();
-    	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
+    	ObjectResolver resolver = new DirectoryFileObjectResolver(CommonTestConstants.OBJECTS_DIR);
     	protector = new AESProtector();
-        protector.setKeyStorePath(KEYSTORE_PATH);
-        protector.setKeyStorePassword("changeit");
+        protector.setKeyStorePath(CommonTestConstants.KEYSTORE_PATH);
+        protector.setKeyStorePassword(CommonTestConstants.KEYSTORE_PASSWORD);
         protector.setPrismContext(prismContext);
         protector.init();
     	

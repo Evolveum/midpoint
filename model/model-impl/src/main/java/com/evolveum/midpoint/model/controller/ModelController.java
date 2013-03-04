@@ -60,6 +60,7 @@ import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandle
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
@@ -218,6 +219,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 	@Autowired(required = true)
 	ModelDiagController modelDiagController;
 	
+	@Autowired(required = true)
+	ContextFactory contextFactory;
+	
 	
 	public ModelObjectResolver getObjectResolver() {
 		return objectResolver;
@@ -373,7 +377,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 				int rewindAttempts = 0;
 				while (true) {
 					RewindException rewindException = null;
-					LensContext<?, ?> context = LensUtil.objectDeltasToContext(deltas, provisioning, prismContext, task, result);
+					LensContext<?, ?> context = contextFactory.createContext(deltas, task, result);
 					context.setOptions(options);
 					try {
 						
@@ -536,7 +540,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		try {
 			
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = (LensContext<F, P>) LensUtil.objectDeltasToContext(clonedDeltas, provisioning, prismContext, task, result);
+			context = (LensContext<F, P>) contextFactory.createContext(clonedDeltas, task, result);
 			context.setOptions(options);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());

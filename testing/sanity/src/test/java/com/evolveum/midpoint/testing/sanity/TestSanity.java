@@ -304,7 +304,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // will be resolved
         // correctly
         importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
-        importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
         importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
 
         addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
@@ -376,25 +375,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, result);
         display("LDAP Connector: ", ldapConnector);
 
-        // Check if Derby resource was imported correctly
-
-        PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
-        AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
-
-        assertNoRepoCache();
-
-        String dbConnectorOid = derbyResource.asObjectable().getConnectorRef().getOid();
-        PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, result);
-        display("DB Connector: ", dbConnector);
-
-        // Check if password was encrypted during import
-        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConnectorConfiguration().getAny(),
-                new QName(dbConnector.asObjectable().getNamespace(), "configurationProperties"));
-        Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
-                new QName(dbConnector.asObjectable().getNamespace(), "password"));
-        System.out.println("Password element: " + passwordElement);
-
-
         // TODO: test if OpenDJ and Derby are running
         
         repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, result);
@@ -461,17 +441,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	checkOpenDjResource(resource.asObjectable(), "repository");
     }
 
-    private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
-    	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoDerbyResource");
-    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
-    	checkDerbyResource(resource, "repository");
-    }
-
-    
-	private void checkDerbyResource(PrismObject<ResourceType> resource, String source) {
-		checkDerbyConfiguration(resource, source);
-	}
-
 	/**
      * Checks if the resource is internally consistent, if it has everything it should have.
      *
@@ -533,10 +502,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 	private void checkOpenDjConfiguration(PrismObject<ResourceType> resource, String source) {
 		checkOpenResourceConfiguration(resource, CONNECTOR_LDAP_NAMESPACE, "credentials", 7, source);
 	}
-	
-	private void checkDerbyConfiguration(PrismObject<ResourceType> resource, String source) {
-		checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE, "password", 10, source);
-	}
 		
 	private void checkOpenResourceConfiguration(PrismObject<ResourceType> resource, String connectorNamespace, String credentialsPropertyName,
 			int numConfigProps, String source) {
@@ -575,14 +540,74 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		}
 
 	}
+	
+	@Test
+    public void test002AddDerbyResource() throws Exception {
+		final String TEST_NAME = "test002AddDerbyResource";
+        displayTestTile(TEST_NAME);
+        
+        // GIVEN
+        OperationResult result = new OperationResult(TestSanity.class.getName() + "." + TEST_NAME);
+        
+        checkRepoOpenDjResource();
+        assertNoRepoCache();
+
+        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DERBY_FILENAME));
+        PrismAsserts.assertParentConsistency(resource);
+        fillInConnectorRef(resource, IntegrationTestTools.DBTABLE_CONNECTOR_TYPE, result);
+
+        OperationResultType resultType = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+        Holder<String> oidHolder = new Holder<String>();
+
+        display("Adding Derby Resource", resource);
+
+        // WHEN
+        modelWeb.addObject(resource.asObjectable(), oidHolder, resultHolder);
+        
+        // THEN
+        // Check if Derby resource was imported correctly
+        PrismObject<ResourceType> derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
+        AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
+
+        assertNoRepoCache();
+
+        String dbConnectorOid = derbyResource.asObjectable().getConnectorRef().getOid();
+        PrismObject<ConnectorType> dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, result);
+        display("DB Connector: ", dbConnector);
+
+        // Check if password was encrypted during import
+        Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.asObjectable().getConnectorConfiguration().getAny(),
+                new QName(dbConnector.asObjectable().getNamespace(), "configurationProperties"));
+        Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),
+                new QName(dbConnector.asObjectable().getNamespace(), "password"));
+        System.out.println("Password element: " + passwordElement);
+
+
+        
+	}
+	
+	private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
+    	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoDerbyResource");
+    	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result);
+    	checkDerbyResource(resource, "repository");
+    }
+    
+	private void checkDerbyResource(PrismObject<ResourceType> resource, String source) {
+		checkDerbyConfiguration(resource, source);
+	}
+	
+	private void checkDerbyConfiguration(PrismObject<ResourceType> resource, String source) {
+		checkOpenResourceConfiguration(resource, CONNECTOR_DBTABLE_NAMESPACE, "password", 10, source);
+	}
+	
     
     /**
      * Test the testResource method. Expect a complete success for now.
      */
     @Test
-    public void test002TestConnectionDerby() throws FaultMessage, JAXBException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        displayTestTile("test002TestConnectionDerby");
+    public void test003TestConnectionDerby() throws Exception {
+        displayTestTile("test003TestConnectionDerby");
 
         // GIVEN
 

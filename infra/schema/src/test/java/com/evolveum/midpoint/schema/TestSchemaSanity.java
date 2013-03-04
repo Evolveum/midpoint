@@ -220,6 +220,27 @@ public class TestSchemaSanity {
 	}
 	
 	@Test
+	public void testResourceConfigurationDefinition() {
+		System.out.println("===[ testResourceConfigurationDefinition ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+				
+		// WHEN
+		PrismContainerDefinition<?> configurationPropertiesDefinition = schemaRegistry.findContainerDefinitionByElementName(
+				SchemaConstantsGenerated.ICF_C_CONFIGURATION_PROPERTIES);
+		assertNotNull("No configurationProperties definition", configurationPropertiesDefinition);
+		System.out.println("configurationProperties definition:");
+		System.out.println(configurationPropertiesDefinition.dump());
+		
+//		assertTrue("configurationProperties definition is NOT marked as runtime", configurationPropertiesDefinition.isRuntimeSchema());
+//		assertNull("Unexpected compile-time class in configurationProperties definition", configurationPropertiesDefinition.getCompileTimeClass());
+
+		// TODO
+	}
+	
+	@Test
 	public void testRoleDefinition() {
 		System.out.println("===[ testRoleDefinition ]===");
 

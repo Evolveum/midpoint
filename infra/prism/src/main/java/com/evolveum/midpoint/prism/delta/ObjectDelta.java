@@ -112,9 +112,14 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     @Override
     public void accept(Visitor visitor){
     	visitor.visit(this);
-    	for (ItemDelta<?> delta : getModifications()){
-    		delta.accept(visitor);
+    	if (isAdd()) {
+    		objectToAdd.accept(visitor);
+    	} else if (isModify()) {
+	    	for (ItemDelta<?> delta : getModifications()){
+	    		delta.accept(visitor);
+	    	}
     	}
+    	// Nothing to visit for delete
     }
 
     public ChangeType getChangeType() {

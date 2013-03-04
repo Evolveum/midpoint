@@ -33,6 +33,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -165,108 +166,6 @@ public class LensUtil {
 		return accountSyncContext;
 	}
 	
-	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> objectDeltasToContext(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, ProvisioningService provisioningService, 
-			PrismContext prismContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ObjectDelta<F> focusDelta = null;
-		Collection<ObjectDelta<P>> projectionDeltas = new ArrayList<ObjectDelta<P>>(deltas.size());
-		Class<F> focusClass = null;
-		Class<P> projectionClass = null;
-		// Sort deltas to focus and projection deltas, check if the classes are correct;
-		for (ObjectDelta<? extends ObjectType> delta: deltas) {
-			Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
-			Validate.notNull(typeClass, "Object type class is null in "+delta);
-			if (isFocalClass(typeClass)) {
-				if (CompiletimeConfig.CONSISTENCY_CHECKS) {
-					// Focus delta has to be complete with all the definition already in place
-					delta.checkConsistence(false, true, true);
-				}
-				focusClass = (Class<F>) typeClass;
-				projectionClass = checkProjectionClass(projectionClass, (Class<P>) getProjectionClass(focusClass));
-				Validate.notNull(projectionClass, "No projection class for focus "+focusClass);
-				if (!delta.isAdd() && delta.getOid() == null) {
-					throw new IllegalArgumentException("Delta "+delta+" does not have an OID");
-				}
-				focusDelta = (ObjectDelta<F>) delta;
-			} else {
-				// This must be projection delta
-				projectionClass = checkProjectionClass(projectionClass, (Class<P>) typeClass);
-				projectionDeltas.add((ObjectDelta<P>) delta);
-			}
-		}
-		
-		if (focusClass == null) {
-			focusClass = determineFocusClass(projectionClass);
-		}
-		LensContext<F, P> context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
-		context.setChannel(task.getChannel());
-		if (focusDelta != null) {
-			LensFocusContext<F> focusContext = context.createFocusContext();
-			focusContext.setPrimaryDelta(focusDelta);
-		}
-		for (ObjectDelta<P> projectionDelta: projectionDeltas) {
-			LensProjectionContext<P> projectionContext = context.createProjectionContext();
-			projectionContext.setPrimaryDelta(projectionDelta);
-			// We are little bit more liberal regarding projection deltas. 
-			if (ResourceObjectShadowType.class.isAssignableFrom(projectionClass)) {
-				// If the deltas represent shadows we tolerate missing attribute definitions.
-				// We try to add the definitions by calling provisioning
-				provisioningService.applyDefinition((ObjectDelta<? extends ResourceObjectShadowType>)projectionDelta, result);
-			} else {
-				// This check will fail giving a better information what's wrong then just throwing an exception here.
-				projectionDelta.checkConsistence(false, true, true);
-			}		
-			if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
-				ShadowDiscriminatorObjectDelta<P> shadowDelta = (ShadowDiscriminatorObjectDelta<P>)projectionDelta;
-				projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
-			} else {
-				if (!projectionDelta.isAdd() && projectionDelta.getOid() == null) {
-					throw new IllegalArgumentException("Delta "+projectionDelta+" does not have an OID");
-				}
-			}
-		}
-
-		// This forces context reload before the next projection
-		context.rot();
-		
-		if (CompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
-		
-		return context;
-	}
-	
-	public static <F extends ObjectType, P extends ObjectType> Class<F> determineFocusClass(Class<P> projectionClass) {
-		if (projectionClass == AccountShadowType.class) {
-			return (Class<F>) UserType.class;
-		}
-		return null;
-	}
-
-	private static <T extends ObjectType> Class<T> checkProjectionClass(Class<T> oldProjectionClass, Class<T> newProjectionClass) {
-		if (oldProjectionClass == null) {
-			return newProjectionClass;
-		} else {
-			if (oldProjectionClass != oldProjectionClass) {
-				throw new IllegalArgumentException("Mixed projection classes in the deltas, got both "+oldProjectionClass+" and "+oldProjectionClass);
-			}
-			return oldProjectionClass;
-		}
-	}
-
-	public static <T extends ObjectType> boolean isFocalClass(Class<T> clazz) {
-		// TODO!!!!!!!!!!!!
-		if (UserType.class.isAssignableFrom(clazz)) {
-			return true;
-		}
-		return false;
-	}
-	
-	public static <F extends ObjectType, P extends ObjectType> Class<P> getProjectionClass(Class<F> focusClass) {
-		// TODO!!!!!!!!!!!!
-		if (UserType.class.isAssignableFrom(focusClass)) {
-			return (Class<P>) AccountShadowType.class;
-		}
-		return null;
-	}
 	
 	/**
 	 * Consolidate the mappings of a single property to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
