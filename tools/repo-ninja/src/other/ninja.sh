@@ -1,6 +1,6 @@
 #!/bin/bash
 MIDPOINT_HOME=/var/opt/midpoint
-NINJA_JAR=repo-ninja-2.1.1-SNAPSHOT.jar
+NINJA_JAR=repo-ninja-2.2-SNAPSHOT.jar
 
 NINJA_HOME="`dirname \"$0\"`"
 
