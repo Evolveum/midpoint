@@ -216,6 +216,10 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
     	return values;
 	}
 	
+	public abstract Object find(ItemPath path);
+	
+	public abstract <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path);
+	
 	@Override
 	public int hashCode() {
 		int result = 1;

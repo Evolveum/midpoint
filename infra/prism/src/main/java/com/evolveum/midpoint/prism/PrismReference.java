@@ -159,6 +159,32 @@ public class PrismReference extends Item<PrismReferenceValue> {
     }
     
     @Override
+	public Object find(ItemPath path) {
+    	if (path == null || path.isEmpty()) {
+			return this;
+		}
+		if (!isSingleValue()) {
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getName());
+    	}
+		PrismReferenceValue value = getValue();
+		return value.find(path);
+	}
+
+    
+    
+	@Override
+	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+			return new PartiallyResolvedValue<X>((Item<X>)this, null);
+		}
+		if (!isSingleValue()) {
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getName());
+    	}
+		PrismReferenceValue value = getValue();
+		return value.findPartial(path);
+	}
+
+	@Override
 	public ReferenceDelta createDelta(ItemPath path) {
     	return new ReferenceDelta(path, getDefinition());
 	}

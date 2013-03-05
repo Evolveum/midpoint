@@ -165,14 +165,13 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 					}
 				}
 				
-				Collection<? extends PrismValue> values = null;
+				Object value = null;
 				if (useNew) {
-					Item<? extends PrismValue> itemNew = source.getItemNew();
-					scriptVariables.addVariableDefinition(name, itemNew);
+					value = getRealContent(source.getItemNew(), source.getResidualPath());
 				} else {
-					Item<? extends PrismValue> itemOld = source.getItemOld();
-					scriptVariables.addVariableDefinition(name, itemOld);
+					value = getRealContent(source.getItemOld(), source.getResidualPath());
 				}
+				scriptVariables.addVariableDefinition(name, value);
 			}
 		}
 		
@@ -205,6 +204,20 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 		return outputSet;
 	}
 	
+	private Object getRealContent(Item<? extends PrismValue> item, ItemPath residualPath) {
+		if (residualPath == null || residualPath.isEmpty()) {
+			return item;
+		}
+		return item.find(residualPath);
+	}
+	
+	private Object getRealContent(PrismValue pval, ItemPath residualPath) {
+		if (residualPath == null || residualPath.isEmpty()) {
+			return pval;
+		}
+		return pval.find(residualPath);
+	}
+
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,
 			final Map<QName, Object> variables, boolean regress, final String contextDescription, final OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
@@ -236,7 +249,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 				for (PrismValue pval: pvalues) {
 					SourceTriple<PrismValue> sourceTriple = (SourceTriple<PrismValue>) sourceTriplesIterator.next();
 					QName name = sourceTriple.getName();
-					sourceVariables.put(name, pval);
+					sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
 					if (sourceTriple.presentInMinusSet(pval)) {
 						hasMinus = true;
 					}
@@ -299,7 +312,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue> implements Expressi
 					// All zeros: Result goes to zero set
 					outputTriple.addAllToZeroSet(scriptResults);
 				}
-			}
+			}			
 		};
 		try {
 			MiscUtil.carthesian((Collection)valueCollections, (Processor)processor);

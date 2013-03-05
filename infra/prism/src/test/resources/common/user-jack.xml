@@ -18,20 +18,16 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-
-<!-- This is the same user "Jack" but it has alternative representation
-     with <object> element instead <user>. The type is defined by xsi:type.
-     It also has alternativ "shortcut" representation of PolyString. It should
-     result in the same prism structure as the other "jack" file. -->
-
-<object xsi:type="UserType" oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
 		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
 		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
+    <description>This must be the best pirate the world has ever seen</description>
     <extension>
     
     	<!-- String type from extra schema -->
@@ -61,7 +57,10 @@
     <familyName>Sparrow</familyName>
     <additionalNames>Captain</additionalNames>
     <additionalNames>Jackie</additionalNames>
-    <polyName>Džek Sperou</polyName>
+    <polyName>
+    	<t:orig>Džek Sperou</t:orig>
+    	<t:norm>dzek sperou</t:norm>
+    </polyName>
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>
@@ -87,9 +86,14 @@
             </value>
         </password>
     </credentials>
-     -->
-     
-     <!-- Plain reference -->
+    -->
+
+    <!-- Composite object -->
+    <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
+    	<name>jsparrow</name>
+    </account>
+        
+    <!-- Plain reference -->
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountShadowType"/>
     
     <!-- Reference with description and filter -->
@@ -102,10 +106,6 @@
     			</value>
     		</equal>
     	</filter>
-    </accountRef>
-    
-    <!-- Composite object -->
-    <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
-    	<name>jsparrow</name>
-    </account>
-</object>
+    </accountRef>    
+
+</user>

@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.common.expression;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PartiallyResolvedValue;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -78,19 +79,32 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 
 	@Override
 	public <V extends PrismValue> ItemDeltaItem<V> findIdi(ItemPath path) {
-		Item<V> itemOld = null;
+		Item<V> subItemOld = null;
+		ItemPath subResidualPath = null;
 		if (oldObject != null) {
-			itemOld = (Item<V>) oldObject.findItem(path);
+			PartiallyResolvedValue<V> partialOld = oldObject.findPartial(path);
+			if (partialOld != null) {
+				subItemOld = partialOld.getItem();
+				subResidualPath = partialOld.getResidualPath();
+			}
 		}
-		Item<V> itemNew = null;
+		Item<V> subItemNew = null;
 		if (newObject != null) {
-			itemNew = (Item<V>) newObject.findItem(path);
+			PartiallyResolvedValue<V> partialNew = newObject.findPartial(path);
+			if (partialNew != null) {
+				subItemNew = partialNew.getItem();
+				if (subResidualPath == null) {
+					subResidualPath = partialNew.getResidualPath();
+				}
+			}
 		}
 		ItemDelta<V> itemDelta= null;
 		if (delta != null) {
 			itemDelta = (ItemDelta<V>) delta.findItemDelta(path);
 		}
-		return new ItemDeltaItem<V>(itemOld, itemDelta, itemNew);
+		ItemDeltaItem<V> subIdi = new ItemDeltaItem<V>(subItemOld, itemDelta, subItemNew);
+		subIdi.setResidualPath(subResidualPath);
+		return subIdi;
 	}
 
 	public void recompute() throws SchemaException {

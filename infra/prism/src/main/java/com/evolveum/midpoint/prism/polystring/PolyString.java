@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -47,6 +48,9 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  */
 public class PolyString implements Recomputable, Structured, Dumpable, DebugDumpable, Serializable {
+	
+	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
+	public static final QName F_NORM = new QName(PrismConstants.NS_TYPES, "norm");
 
 	private final String orig;
 	private String norm = null;
@@ -103,9 +107,9 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
 			throw new IllegalArgumentException("Cannot resolve non-name path "+subpath+" on polystring "+this);
 		}
 		QName itemName = ((NameItemPathSegment)subpath.first()).getName();
-		if ("orig".equals(itemName.getLocalPart())) {
+		if (F_ORIG.equals(itemName)) {
 			return orig;
-		} else if ("norm".equals(itemName.getLocalPart())) {
+		} else if (F_NORM.equals(itemName)) {
 			return norm;
 		} else {
 			throw new IllegalArgumentException("Unknown path segment "+itemName);
@@ -120,6 +124,11 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
 	// Groovy operator overload
 	public PolyString plus(String other) {
 		return new PolyString(this.orig + other);
+	}
+	
+	// Groovy operator overload
+	public PolyString getAt(int index) {
+		return new PolyString(this.orig.substring(index, index+1));
 	}
 
 	@Override

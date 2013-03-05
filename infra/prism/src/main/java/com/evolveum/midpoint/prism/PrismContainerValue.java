@@ -346,8 +346,45 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     public void clear() {
     	items.clear();
     }
+    
+    @Override
+    public Object find(ItemPath path) {
+    	if (path == null || path.isEmpty()) {
+    		return this;
+    	}
+    	ItemPathSegment first = path.first();
+    	if (!(first instanceof NameItemPathSegment)) {
+    		throw new IllegalArgumentException("Attempt to lookup item using a non-name path "+path+" in "+this);
+    	}
+    	QName subName = ((NameItemPathSegment)first).getName();
+    	ItemPath rest = path.rest();
+    	Item<?> subItem = findItem(subName);
+    	if (subItem == null) {
+    		return null;
+    	}
+    	return subItem.find(rest);
+    }
+    
+    @Override
+	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+    	if (path == null || path.isEmpty()) {
+    		// Incomplete path
+    		return null;
+    	}
+    	ItemPathSegment first = path.first();
+    	if (!(first instanceof NameItemPathSegment)) {
+    		throw new IllegalArgumentException("Attempt to lookup item using a non-name path "+path+" in "+this);
+    	}
+    	QName subName = ((NameItemPathSegment)first).getName();
+    	ItemPath rest = path.rest();
+    	Item<?> subItem = findItem(subName);
+    	if (subItem == null) {
+    		return null;
+    	}
+    	return subItem.findPartial(rest);
+	}
 
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public <X> PrismProperty<X> findProperty(QName propertyQName) {
         return findItem(propertyQName, PrismProperty.class);
     }

@@ -64,6 +64,7 @@ public class UserType
 	public final static QName F_GIVEN_NAME = new QName(NS_FOO, "givenName");
 	public final static QName F_FAMILY_NAME = new QName(NS_FOO, "familyName");
 	public final static QName F_ADDITIONAL_NAMES = new QName(NS_FOO, "additionalNames");
+	public final static QName F_POLY_NAME = new QName(NS_FOO, "polyName");
 	public final static QName F_ACTIVATION = new QName(NS_FOO, "activation");
 	public final static QName F_ASSIGNMENT = new QName(NS_FOO, "assignment");
 	public final static QName F_LOCALITY = new QName(NS_FOO, "locality");

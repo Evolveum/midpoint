@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PartiallyResolvedValue;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -50,6 +51,7 @@ public class ItemDeltaItem<V extends PrismValue> {
 	Item<V> itemOld;
 	ItemDelta<V> delta;
 	Item<V> itemNew;
+	ItemPath residualPath = null;
 	
 	public ItemDeltaItem() {
 		
@@ -100,6 +102,14 @@ public class ItemDeltaItem<V extends PrismValue> {
 		return itemNew;
 	}
 	
+	public ItemPath getResidualPath() {
+		return residualPath;
+	}
+
+	public void setResidualPath(ItemPath residualPath) {
+		this.residualPath = residualPath;
+	}
+
 	public boolean isNull() {
 		return itemOld == null && itemNew == null && delta == null;
 	}
@@ -139,19 +149,22 @@ public class ItemDeltaItem<V extends PrismValue> {
 			return (ItemDeltaItem<X>) this;
 		}
 		Item<X> subItemOld = null;
+		ItemPath subResidualPath = null;
 		if (itemOld != null) {
-			if (itemOld instanceof PrismContainer<?>) {
-				subItemOld = (Item<X>) ((PrismContainer)itemOld).findItem(path);
-			} else {
-				throw new IllegalArgumentException("Attempt to resolve path "+path+" on "+itemOld);
+			PartiallyResolvedValue<X> partialItemOld = itemOld.findPartial(path);
+			if (partialItemOld != null) {
+				subItemOld = partialItemOld.getItem();
+				subResidualPath = partialItemOld.getResidualPath();
 			}
 		}
 		Item<X> subItemNew = null;
 		if (itemNew != null) {
-			if (itemNew instanceof PrismContainer<?>) {
-				subItemNew = (Item<X>) ((PrismContainer)itemNew).findItem(path);
-			} else {
-				throw new IllegalArgumentException("Attempt to resolve path "+path+" on "+itemNew);
+			PartiallyResolvedValue<X> partialItemNew = itemNew.findPartial(path);
+			if (partialItemNew != null) {
+				subItemNew = partialItemNew.getItem();
+				if (subResidualPath == null) {
+					subResidualPath = partialItemNew.getResidualPath();
+				}
 			}
 		}
 		ItemDelta<X> subItemDelta= null;
@@ -160,7 +173,9 @@ public class ItemDeltaItem<V extends PrismValue> {
 				subItemDelta = (ItemDelta<X>) ((ContainerDelta<?>)delta).findItemDelta(path);
 			}
 		}
-		return new ItemDeltaItem<X>(subItemOld, subItemDelta, subItemNew);
+		ItemDeltaItem<X> subIdi = new ItemDeltaItem<X>(subItemOld, subItemDelta, subItemNew);
+		subIdi.setResidualPath(subResidualPath);
+		return subIdi;
 	}
 	
 	public PrismValueDeltaSetTriple<V> toDeltaSetTriple() {

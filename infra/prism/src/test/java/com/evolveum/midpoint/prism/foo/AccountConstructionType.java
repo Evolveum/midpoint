@@ -15,6 +15,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 
 /**
@@ -51,7 +52,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class AccountConstructionType
     implements Serializable
 {
-
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
     protected String howto;

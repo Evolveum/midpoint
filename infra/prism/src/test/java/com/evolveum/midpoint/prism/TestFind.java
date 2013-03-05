@@ -1,0 +1,278 @@
+/**
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * Portions Copyrighted 2011 [name of copyright owner]
+ */
+package com.evolveum.midpoint.prism;
+
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
+
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import com.evolveum.midpoint.prism.foo.AccountConstructionType;
+import com.evolveum.midpoint.prism.foo.ActivationType;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
+import com.evolveum.midpoint.prism.foo.ObjectFactory;
+import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+/**
+ * @author semancik
+ *
+ */
+public class TestFind {
+		
+	@BeforeSuite
+	public void setupDebug() throws SchemaException, SAXException, IOException {
+		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
+	}
+		
+	@Test
+	public void testFindString() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindString";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		PrismObject<UserType> user = createUser();
+		ItemPath path = new ItemPath(UserType.F_DESCRIPTION);
+		
+		// WHEN
+		PrismProperty<String> nameProperty = findProperty(user, path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", USER_JACK_DESCRIPTION, nameProperty.getRealValue());
+		assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_DESCRIPTION));
+	}
+
+	@Test
+	public void testFindPolyString() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindPolyString";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		PrismObject<UserType> user = createUser();
+		ItemPath path = new ItemPath(UserType.F_POLY_NAME);
+		
+		// WHEN
+		PrismProperty<PolyString> nameProperty = findProperty(user, path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", PrismTestUtil.createPolyString(USER_JACK_POLYNAME_ORIG), nameProperty.getRealValue());
+		assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_POLY_NAME));
+	}
+	
+	@Test
+	public void testFindPolyStringOrig() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindPolyStringOrig";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		ItemPath path = new ItemPath(UserType.F_POLY_NAME, PolyString.F_ORIG);
+		
+		// WHEN
+		Object found = findUser(path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", USER_JACK_POLYNAME_ORIG, found);
+	}
+	
+	@Test
+	public void testFindPolyStringNorm() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindPolyStringNorm";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		ItemPath path = new ItemPath(UserType.F_POLY_NAME, PolyString.F_NORM);
+		
+		// WHEN
+		Object found = findUser(path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", USER_JACK_POLYNAME_NORM, found);
+	}
+	
+	@Test
+	public void testFindExtensionBar() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindExtensionBar";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		ItemPath path = new ItemPath(UserType.F_EXTENSION, EXTENSION_BAR_ELEMENT);
+		
+		// WHEN
+		PrismProperty<String> property = findUserProperty(path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", "BAR", property.getRealValue());
+	}
+	
+	@Test
+	public void testFindAssignment1Description() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindAssignment1Description";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		ItemPath path = new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
+				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+		
+		// WHEN
+		PrismProperty<String> property = findUserProperty(path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", "Assignment 1", property.getRealValue());
+	}
+	
+	@Test
+	public void testFindAssignment2Construction() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindAssignment2ConstructionHowto";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		ItemPath path = new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
+				new NameItemPathSegment(AssignmentType.F_ACCOUNT_CONSTRUCTION));
+		
+		// WHEN
+		PrismProperty<AccountConstructionType> property = findUserProperty(path);
+		
+		// THEN
+		assertEquals("Wrong property value (path="+path+")", "Just do it", property.getRealValue().getHowto());
+	}
+	
+	@Test
+	public void testFindAssignment() throws SchemaException, SAXException, IOException {
+		final String TEST_NAME = "testFindAssignment";
+		System.out.println("===[ "+TEST_NAME+" ]===");
+		
+		// GIVEN
+		ItemPath path = new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT));
+		
+		// WHEN
+		PrismContainer<AssignmentType> container = findUserContainer(path);
+		
+		// THEN
+		PrismContainerValue<AssignmentType> value2 = container.getValue(USER_ASSIGNMENT_2_ID);
+		assertEquals("Wrong value2 description (path="+path+")", "Assignment 2", value2.findProperty(AssignmentType.F_DESCRIPTION).getRealValue());
+	}
+	
+	private <T> T findUser(ItemPath path) throws SchemaException, SAXException, IOException {
+		PrismObject<UserType> user = createUser();
+		return find(user, path);
+	}
+	
+	private <T> T find(PrismObject<UserType> user, ItemPath path) {
+		System.out.println("Path:");
+		System.out.println(path);
+		
+		// WHEN
+		Object found = user.find(path);
+		
+		// THEN
+		System.out.println("Found:");
+		System.out.println(found);
+		return (T) found;
+	}
+	
+	private <T> PrismProperty<T> findUserProperty(ItemPath path) throws SchemaException, SAXException, IOException {
+		PrismObject<UserType> user = createUser();
+		return findProperty(user, path);
+	}
+	
+	private <T> PrismProperty<T> findProperty(PrismObject<UserType> user, ItemPath path) {
+		System.out.println("Path:");
+		System.out.println(path);
+		
+		// WHEN
+		PrismProperty<T> property = user.findProperty(path);
+		
+		// THEN
+		System.out.println("Found:");
+		System.out.println(property);
+		return property;
+	}
+
+	private <T extends Containerable> PrismContainer<T> findUserContainer(ItemPath path) throws SchemaException, SAXException, IOException {
+		PrismObject<UserType> user = createUser();
+		return findContainer(user, path);
+	}
+	
+	private <T extends Containerable> PrismContainer<T> findContainer(PrismObject<UserType> user, ItemPath path) {
+		System.out.println("Path:");
+		System.out.println(path);
+		
+		// WHEN
+		PrismContainer<T> container = user.findContainer(path);
+		
+		// THEN
+		System.out.println("Found:");
+		System.out.println(container);
+		return container;
+	}
+
+	
+	public PrismObject<UserType> createUser() throws SchemaException, SAXException, IOException {
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+		return user;
+	}
+
+	
+}

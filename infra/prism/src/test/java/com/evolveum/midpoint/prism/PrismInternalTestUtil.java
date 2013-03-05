@@ -53,17 +53,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class PrismInternalTestUtil implements PrismContextFactory {
 
 	// Files
-	public static final String OBJECT_DIR_PATH = "src/test/resources/parsing";
+	public static final String COMMON_DIR_PATH = "src/test/resources/common";
 	public static File SCHEMA_DIR = new File("src/test/resources/schema");
 	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema-extra");
 	
 	// User: jack
-	public static final File USER_JACK_FILE = new File(OBJECT_DIR_PATH, "user-jack.xml");
-	public static final File USER_JACK_OBJECT_FILE = new File(OBJECT_DIR_PATH, "user-jack-object.xml");
-	public static final File USER_JACK_MODIFIED_FILE = new File(OBJECT_DIR_PATH, "user-jack-modified.xml");
-	public static final File USER_JACK_ADHOC_FILE = new File(OBJECT_DIR_PATH, "user-jack-adhoc.xml");
+	public static final File USER_JACK_FILE = new File(COMMON_DIR_PATH, "user-jack.xml");
+	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_PATH, "user-jack-object.xml");
+	public static final File USER_JACK_MODIFIED_FILE = new File(COMMON_DIR_PATH, "user-jack-modified.xml");
+	public static final File USER_JACK_ADHOC_FILE = new File(COMMON_DIR_PATH, "user-jack-adhoc.xml");
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final XMLGregorianCalendar USER_JACK_VALID_FROM = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
+	public static final String USER_JACK_DESCRIPTION = "This must be the best pirate the world has ever seen";
+	public static final String USER_JACK_POLYNAME_ORIG = "Džek Sperou";
+	public static final String USER_JACK_POLYNAME_NORM = "dzek sperou";
 
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";

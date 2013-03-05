@@ -375,7 +375,7 @@ public class TestMappingDynamic {
     @Test
     public void testScriptVariablesPolyStringGroovy() throws Exception {
     	// WHEN
-    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-script-system-variables-polystring-groovy.xml",
     			"testScriptVariablesPolyStringGroovy",
     			"fullName",					// target
@@ -384,6 +384,54 @@ public class TestMappingDynamic {
     	
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow", "captain jack sparrow"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
+    public void testScriptVariablesPolyStringGroovyOp() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-script-system-variables-polystring-groovy-op.xml",
+    			"testScriptVariablesPolyStringGroovy",
+    			"fullName",					// target
+    			"employeeType",				// changed property
+    			"CAPTAIN", "SWASHBUCKLER");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain J. Sparrow", "captain j sparrow"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
+    public void testScriptVariablesPolyStringGroovyOrig() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-script-system-variables-polystring-groovy-orig.xml",
+    			"testScriptVariablesPolyStringGroovy",
+    			"description",					// target
+    			"employeeType",				// changed property
+    			"CAPTAIN", "SWASHBUCKLER");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "Captain J");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
+    public void testScriptVariablesPolyStringGroovyNorm() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-script-system-variables-polystring-groovy-norm.xml",
+    			"testScriptVariablesPolyStringGroovy",
+    			"description",					// target
+    			"employeeType",				// changed property
+    			"CAPTAIN", "SWASHBUCKLER");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "Captain j");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }

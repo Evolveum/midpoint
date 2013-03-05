@@ -444,11 +444,13 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		Item<X> itemOld = null;
 		ItemDelta<X> delta = null;
 		Item<X> itemNew = null;
+		ItemPath residualPath = null;
 		if (sourceObject != null) {
 			if (sourceObject instanceof ItemDeltaItem<?>) {
 				itemOld = ((ItemDeltaItem<X>)sourceObject).getItemOld();
 				delta = ((ItemDeltaItem<X>)sourceObject).getDelta();
 				itemNew = ((ItemDeltaItem<X>)sourceObject).getItemNew();
+				residualPath = ((ItemDeltaItem<X>)sourceObject).getResidualPath();
 			} else if (sourceObject instanceof Item<?>) {
 				itemOld = (Item<X>) sourceObject;
 				itemNew = (Item<X>) sourceObject;
@@ -457,6 +459,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			}
 		}
 		Source<X> source = new Source<X>(itemOld, delta, itemNew, name);
+		source.setResidualPath(residualPath);
 		return source;
 	}
 	

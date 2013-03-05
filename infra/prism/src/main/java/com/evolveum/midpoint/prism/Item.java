@@ -244,6 +244,19 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	return hasValue(value, true);
     }
     
+    public boolean isSingleValue() {
+		// We are not sure about multiplicity if there is no definition or the definition is dynamic
+		if (getDefinition() != null && !getDefinition().isDynamic()) {
+    		if (getDefinition().isMultiValue()) {
+    			return false;
+    		}
+    	}
+		if (values == null || values.size() < 2) {
+        	return true;
+        }
+		return false;
+	}
+    
     /**
      * Returns value that is equal or equivalent to the provided value.
      * The returned value is an instance stored in this item, while the
@@ -412,6 +425,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	}
     	return elements;
     }
+    
+    public abstract Object find(ItemPath path);
+    
+    public abstract <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path);
     
     public Collection<? extends ItemDelta> diff(Item<V> other) {
     	return diff(other, true, false);

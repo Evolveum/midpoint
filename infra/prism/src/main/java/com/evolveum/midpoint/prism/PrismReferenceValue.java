@@ -24,6 +24,8 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -41,7 +43,10 @@ import org.w3c.dom.Element;
  */
 public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDumpable, Serializable {
 
-    private String oid = null;
+    private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
+    private static final QName F_TYPE = new QName(PrismConstants.NS_TYPES, "type");
+    private static final QName F_RELATION = new QName(PrismConstants.NS_TYPES, "relation");
+	private String oid = null;
     private PrismObject<?> object = null;
     private QName targetType = null;
     private QName relation = null;
@@ -147,6 +152,45 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	public boolean isRaw() {
 		// Reference value cannot be raw
 		return false;
+	}
+
+	@Override
+	public Object find(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+			return this;
+		}
+		ItemPathSegment first = path.first();
+    	if (!(first instanceof NameItemPathSegment)) {
+    		throw new IllegalArgumentException("Attempt to resolve inside the reference value using a non-name path "+path+" in "+this);
+    	}
+    	QName subName = ((NameItemPathSegment)first).getName();
+    	if (compareLocalPart(F_OID,subName)) {
+    		return this.getOid();
+    	} else if (compareLocalPart(F_TYPE,subName)) {
+    		return this.getTargetType();
+    	} else if (compareLocalPart(F_RELATION,subName)) {
+    		return this.getRelation();
+    	} else {
+    		throw new IllegalArgumentException("Attempt to resolve inside the reference value using a unrecognized path "+path+" in "+this);
+    	}
+	}
+
+	@Override
+	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+			return new PartiallyResolvedValue<X>((Item<X>)getParent(), null);
+		}
+		return new PartiallyResolvedValue<X>((Item<X>)getParent(), path);
+	}
+
+	private boolean compareLocalPart(QName a, QName b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return a.getLocalPart().equals(b.getLocalPart());
 	}
 
 	@Override

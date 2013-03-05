@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author semancik
@@ -55,6 +56,10 @@ public class SourceTriple<V extends PrismValue> extends PrismValueDeltaSetTriple
 
 	public QName getName() {
 		return source.getName();
+	}
+
+	public ItemPath getResidualPath() {
+		return source.getResidualPath();
 	}
 	
 }

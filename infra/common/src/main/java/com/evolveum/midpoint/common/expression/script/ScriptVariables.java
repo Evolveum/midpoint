@@ -46,39 +46,6 @@ public class ScriptVariables {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptVariables.class);
 
-//	public void addVariableDefinition(VariableDefinitionType varDef) {
-//        if (varDef.getName() == null) {
-//            throw new IllegalArgumentException("Null variable name in " + shortDesc);
-//        }
-//        if (varDef.getObjectRef() != null) {
-//            addVariableDefinition(varDef.getName(), varDef.getObjectRef());
-//        } else if (varDef.getValue() != null) {
-//            addVariableDefinition(varDef.getName(), varDef.getValue());
-//        } else {
-//            LOGGER.warn("Empty definition of variable {} in expression {}, ignoring it", varDef.getName(), shortDesc);
-//        }
-//    }
-
-    public void addVariableDefinition(QName name, ObjectReferenceType objectRef) {
-        addVariableDefinition(name, (Object) objectRef);
-    }
-
-    public void addVariableDefinition(QName name, String value) {
-        addVariableDefinition(name, (Object) value);
-    }
-    
-    public void addVariableDefinition(QName name, PrismValue value) {
-        addVariableDefinition(name, (Object) value);
-    }
-    
-    public void addVariableDefinition(QName name, Item item) {
-        addVariableDefinition(name, (Object) item);
-    }
-    
-    public void addVariableDefinition(QName name, Collection<? extends PrismValue> values) {
-        addVariableDefinition(name, (Object) values);
-    }
-
     /**
      * Adds map of extra variables to the expression.
      * If there are variables with deltas (ObjectDeltaObject) the operation fail because
@@ -134,7 +101,7 @@ public class ScriptVariables {
         addVariableDefinition(null, (Object) objectRef);
     }
 
-    private void addVariableDefinition(QName name, Object value) {
+    public void addVariableDefinition(QName name, Object value) {
         if (variables.containsKey(name)) {
             LOGGER.warn("Duplicate definition of variable {}", name);
             return;

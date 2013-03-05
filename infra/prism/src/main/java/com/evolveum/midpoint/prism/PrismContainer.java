@@ -329,8 +329,39 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 		}
 		return true;
 	}
-
 	
+	@Override
+	public Object find(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+    		return this;
+    	}
+    	
+    	IdItemPathSegment idSegment = getIdSegment(path);
+    	PrismContainerValue<V> cval = findValue(idSegment);
+    	if (cval == null) {
+    		return null;
+    	}
+    	// descent to the correct value
+    	ItemPath rest = pathRest(path);
+    	return cval.find(rest);
+	}
+
+	@Override
+	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+    		return new PartiallyResolvedValue<X>((Item<X>)this, null);
+    	}
+    	
+    	IdItemPathSegment idSegment = getIdSegment(path);
+    	PrismContainerValue<V> cval = findValue(idSegment);
+    	if (cval == null) {
+    		return null;
+    	}
+    	// descent to the correct value
+    	ItemPath rest = pathRest(path);
+    	return cval.findPartial(rest);
+	}
+
 	public Item<?> findItem(QName itemQName) {
     	try {
 			return findCreateItem(itemQName, Item.class, false);

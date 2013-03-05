@@ -137,11 +137,11 @@ public class ExpressionUtil {
 		}
 			
 		if (root instanceof PrismObject<?>) {
-			return ((PrismObject<?>)root).findItem(relativePath);
+			return ((PrismObject<?>)root).find(relativePath);
 		} else if (root instanceof PrismContainer<?>) {
-			return ((PrismContainer<?>)root).findItem(relativePath);
+			return ((PrismContainer<?>)root).find(relativePath);
 		} else if (root instanceof PrismContainerValue<?>) {
-			return ((PrismContainerValue<?>)root).findItem(relativePath);
+			return ((PrismContainerValue<?>)root).find(relativePath);
 		} else if (root instanceof Item<?>) {
 			// Except for container (which is handled above)
 			throw new SchemaException("Cannot apply path "+relativePath+" to "+root+" in "+shortDesc);

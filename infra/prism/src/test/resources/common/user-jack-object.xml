@@ -18,55 +18,67 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
+
+<!-- This is the same user "Jack" but it has alternative representation
+     with <object> element instead <user>. The type is defined by xsi:type.
+     It also has alternativ "shortcut" representation of PolyString. It should
+     result in the same prism structure as the other "jack" file. -->
+
+<object xsi:type="UserType" oid="c0c010c0-d34d-b33f-f00d-111111111111" version="42"
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
+    <description>This must be the best pirate the world has ever seen</description>
     <extension>
+    
+    	<!-- String type from extra schema -->
 		<ext:singleStringType>foobar</ext:singleStringType>
+		
+		<!-- Indexed (and multivalued) string from  extra schema -->
 		<ext:indexedString>alpha</ext:indexedString>
 		<ext:indexedString>bravo</ext:indexedString>
-		<ext:bar xsi:type="xsd:string">bar</ext:bar>
+    
+    	<!-- Dynamic string type -->
+		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
+		
+		<!-- Dynamic int type -->
 		<ext:num xsi:type="xsd:int">42</ext:num>
+		
+		<!-- Dynamic multivalued string type -->
 		<ext:multi xsi:type="xsd:string">raz</ext:multi>
+		<ext:multi xsi:type="xsd:string">dva</ext:multi>
 		<ext:multi xsi:type="xsd:string">tri</ext:multi>
-		<ext:multi xsi:type="xsd:string">osem</ext:multi>
+		
 	<!--	<foo:password xsi:type="ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>  -->
 	</extension>
-    <fullName>Jack Sparrow</fullName>
+    <fullName>cpt. Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
+    <additionalNames>Captain</additionalNames>
     <additionalNames>Jackie</additionalNames>
-    <polyName>
-    	<t:orig>Džek Sperou</t:orig>
-    	<t:norm>dzek sperou</t:norm>
-    </polyName>
-    <locality>World's End</locality>
+    <polyName>Džek Sperou</polyName>
 
 	<assignment id="i1111">
 		<description>Assignment 1</description>
-		<!-- Presence of comments should not matter in diff -->
 	</assignment>
 
 	<assignment id="i1112">
-		<description>Assignment II</description>
+		<description>Assignment 2</description>
 		<accountConstruction>
-			<howto>Whatever</howto>
+			<howto>Just do it</howto>
 			<when>2012-02-24T10:48:52.000Z</when>
 		</accountConstruction>
 	</assignment>
-	
-	<assignment id="i1113">
-		<description>Assignment 3</description>
-	</assignment>
 
 	<activation>
-		<enabled>false</enabled>
+		<enabled>true</enabled>
+		<validFrom>1975-05-30T21:30:00.000Z</validFrom>
 	</activation>
 <!--     
     <credentials>
@@ -78,8 +90,10 @@
     </credentials>
      -->
      
+     <!-- Plain reference -->
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountShadowType"/>
     
+    <!-- Reference with description and filter -->
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountShadowType">
     	<description>This is a reference with a filter</description>
     	<filter>
@@ -91,7 +105,8 @@
     	</filter>
     </accountRef>
     
+    <!-- Composite object -->
     <account oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1113">
     	<name>jsparrow</name>
     </account>
-</user>
+</object>

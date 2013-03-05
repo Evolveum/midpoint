@@ -115,24 +115,18 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
     
     public PrismPropertyValue<T> getValue() {
-    	// We are not sure about multiplicity if there is no definition or the definition is dynamic
-    	if (getDefinition() != null && !getDefinition().isDynamic()) {
-    		if (getDefinition().isMultiValue()) {
-    			throw new IllegalStateException("Attempt to get single value from property " + getName()
-                        + " with multiple values");
-    		}
+    	if (!isSingleValue()) {
+    		throw new IllegalStateException("Attempt to get single value from property " + getName()
+                    + " with multiple values");
     	}
         List<PrismPropertyValue<T>> values = getValues();
         if (values == null || values.isEmpty()) {
         	return null;
         }
-        if (values.size() == 1) {
-        	return values.get(0);
-        }
-        throw new IllegalStateException("Attempt to get a single value from a multi-valued property "+getName());
+        return values.get(0);
     }
 
-    /**
+	/**
      * Type override, also for compatibility.
      */
     public <X> List<PrismPropertyValue<X>> getValues(Class<X> type) {
@@ -349,7 +343,31 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 		return new PropertyDelta<T>(path, getDefinition());
 	}
     
-    public PropertyDelta<T> diff(PrismProperty<T> other, ItemPath pathPrefix) {
+    @Override
+	public Object find(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+			return this;
+		}
+		if (!isSingleValue()) {
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getName());
+    	}
+		PrismPropertyValue<T> value = getValue();
+		return value.find(path);
+	}
+
+	@Override
+	public <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path) {
+		if (path == null || path.isEmpty()) {
+			return new PartiallyResolvedValue<X>((Item<X>)this, null);
+		}
+		if (!isSingleValue()) {
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getName());
+    	}
+		PrismPropertyValue<T> value = getValue();
+		return value.findPartial(path);
+	}
+
+	public PropertyDelta<T> diff(PrismProperty<T> other, ItemPath pathPrefix) {
     	return diff(other, pathPrefix, true, false);
     }
     

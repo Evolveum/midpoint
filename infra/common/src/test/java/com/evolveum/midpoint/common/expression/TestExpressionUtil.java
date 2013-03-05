@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.common.expression;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
@@ -39,6 +40,8 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.CommonTestConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -95,10 +98,107 @@ public class TestExpressionUtil {
     			resolvedProperty.getRealValue());
     }
     
-    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
-    	OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
-		Map<QName, Object> variables = createVariables();
+    @Test
+    public void testResolvePathPolyStringOrig() throws Exception {
+    	final String TEST_NAME = "testResolvePathPolyStringOrig";
+    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
     	
+    	// GIVEN
+
+    	// WHEN
+		String resolved = resolvePath("$user/fullName/t:orig", TEST_NAME);
+    	
+    	// THEN
+    	assertEquals("Wrong resolved property value", "Jack Sparrow", resolved);
+    }
+    
+    @Test
+    public void testResolvePathPolyStringNorm() throws Exception {
+    	final String TEST_NAME = "testResolvePathPolyStringNorm";
+    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	
+    	// GIVEN
+
+    	// WHEN
+		String resolved = resolvePath("$user/fullName/t:norm", TEST_NAME);
+    	
+    	// THEN
+    	assertEquals("Wrong resolved property value", "jack sparrow", resolved);
+    }
+    
+    @Test
+    public void testResolvePathPolyStringOdo() throws Exception {
+    	final String TEST_NAME = "testResolvePathPolyStringOdo";
+    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	
+    	// GIVEN
+
+    	// WHEN
+    	ItemDeltaItem<PrismPropertyValue<PolyString>> idi = resolvePathOdo("$user/fullName", TEST_NAME);
+    	
+    	// THEN
+    	assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"), 
+    			((PrismProperty<PolyString>)idi.getItemOld()).getRealValue());
+    	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"), 
+    			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
+    	
+    	assertTrue("Wrong residual path: "+idi.getResidualPath(), 
+    			idi.getResidualPath() == null || idi.getResidualPath().isEmpty());
+    	
+    }
+
+    @Test
+    public void testResolvePathPolyStringOdoOrig() throws Exception {
+    	final String TEST_NAME = "testResolvePathPolyStringOdoOrig";
+    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	
+    	// GIVEN
+
+    	// WHEN
+    	ItemDeltaItem<PrismPropertyValue<PolyString>> idi = resolvePathOdo("$user/fullName/t:orig", TEST_NAME);
+    	
+    	// THEN
+    	assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"), 
+    			((PrismProperty<PolyString>)idi.getItemOld()).getRealValue());
+    	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"), 
+    			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
+    	
+    	assertEquals("Wrong residual path", new ItemPath(PolyString.F_ORIG), idi.getResidualPath());
+    	
+    }
+    
+    @Test
+    public void testResolvePathPolyStringOdoNorm() throws Exception {
+    	final String TEST_NAME = "testResolvePathPolyStringOdoNorm";
+    	System.out.println("\n===[ "+TEST_NAME+" ]===\n");
+    	
+    	// GIVEN
+
+    	// WHEN
+    	ItemDeltaItem<PrismPropertyValue<PolyString>> idi = resolvePathOdo("$user/fullName/t:norm", TEST_NAME);
+    	
+    	// THEN
+    	assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"), 
+    			((PrismProperty<PolyString>)idi.getItemOld()).getRealValue());
+    	assertEquals("Wrong resolved idi new value", PrismTestUtil.createPolyString("Captain Jack Sparrow"), 
+    			((PrismProperty<PolyString>)idi.getItemNew()).getRealValue());
+    	
+    	assertEquals("Wrong residual path", new ItemPath(PolyString.F_NORM), idi.getResidualPath());
+    	
+    }
+
+    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    	Map<QName, Object> variables = createVariables();
+    	return resolvePath(path, variables, TEST_NAME);
+    }
+    
+    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    	Map<QName, Object> variables = createVariablesOdo();
+    	return resolvePath(path, variables, TEST_NAME);
+    }
+    
+    private <T> T resolvePath(String path, Map<QName, Object> variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    	OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
 		ItemPath itemPath = toItemPath(path);
 		
 		// WHEN
@@ -116,13 +216,28 @@ public class TestExpressionUtil {
 		variables.put(ExpressionConstants.VAR_USER, createUser());
 		return variables;
 	}
+	
+	private Map<QName, Object> createVariablesOdo() throws SchemaException {
+		Map<QName, Object> variables = new HashMap<QName, Object>();
+		PrismObject<UserType> userOld = createUser();
+		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class,
+				userOld.getOid(), UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(),
+				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<UserType>(userOld, delta, null);
+		odo.recompute();
+		variables.put(ExpressionConstants.VAR_USER, odo);
+		return variables;
+	}
 
 	private PrismObject<UserType> createUser() throws SchemaException {
 		return PrismTestUtil.parseObject(CommonTestConstants.USER_JACK_FILE);
 	}
 
 	private ItemPath toItemPath(String stringPath) {
-		String xml = "<path xmlns='"+SchemaConstants.NS_C+"'>"+stringPath+"</path>";
+		String xml = "<path " +
+				"xmlns='"+SchemaConstants.NS_C+"' " +
+				"xmlns:t='"+SchemaConstants.NS_TYPES+"'>" + 
+				stringPath + "</path>";
 		Document doc = DOMUtil.parseDocument(xml);
 		Element element = DOMUtil.getFirstChildElement(doc);
 		return new XPathHolder(element).toPropertyPath();

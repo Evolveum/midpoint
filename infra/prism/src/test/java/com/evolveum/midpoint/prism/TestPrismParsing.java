@@ -272,7 +272,7 @@ public class TestPrismParsing {
 		user.assertDefinitions("test");
 		assertUserContent(user);
 		assertUserExtension(user);
-		assertVisitor(user,49);
+		assertVisitor(user,51);
 	}
 	
 	private void assertUserAdhoc(PrismObject<UserType> user) {
