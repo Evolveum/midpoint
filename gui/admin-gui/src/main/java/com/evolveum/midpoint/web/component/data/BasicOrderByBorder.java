@@ -30,13 +30,13 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.OrderByLink;
  */
 public abstract class BasicOrderByBorder extends OrderByBorder {
 
-    protected BasicOrderByBorder(String id, String property, ISortStateLocator stateLocator) {
+    protected BasicOrderByBorder(String id, Object property, ISortStateLocator stateLocator) {
         super(id, property, stateLocator, BasicCssProvider.getInstance());
     }
 
     @Override
-    protected OrderByLink newOrderByLink(String id, String property, ISortStateLocator stateLocator) {
-        return new OrderByLink(id, property, stateLocator, OrderByLink.VoidCssProvider.getInstance()) {
+    protected OrderByLink newOrderByLink(String id, Object property, ISortStateLocator stateLocator) {
+        return new OrderByLink(id, property, stateLocator, new OrderByLink.VoidCssProvider()) {
 
             @Override
             protected void onSortChanged() {

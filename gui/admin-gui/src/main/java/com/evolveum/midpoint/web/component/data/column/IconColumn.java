@@ -32,7 +32,7 @@ import org.apache.wicket.request.resource.ResourceReference;
 /**
  * @author lazyman
  */
-public class IconColumn<T> extends AbstractColumn<T> {
+public class IconColumn<T> extends AbstractColumn<T, String> {
 
     public IconColumn(IModel<String> displayModel) {
         super(displayModel);

@@ -63,8 +63,8 @@ public class ResourcesPopup extends Panel {
         add(addButton);
     }
 
-    private List<IColumn<ResourceDto>> initResourceColumns() {
-        List<IColumn<ResourceDto>> columns = new ArrayList<IColumn<ResourceDto>>();
+    private List<IColumn<ResourceDto, String>> initResourceColumns() {
+        List<IColumn<ResourceDto, String>> columns = new ArrayList<IColumn<ResourceDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);

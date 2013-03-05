@@ -32,7 +32,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssReferenceHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -172,7 +173,8 @@ public class LocalePanel extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(LocalePanel.class, "LocalePanel.css"));
+        response.render(CssReferenceHeaderItem.forReference(
+                new PackageResourceReference(LocalePanel.class, "LocalePanel.css")));
     }
 
     private void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {

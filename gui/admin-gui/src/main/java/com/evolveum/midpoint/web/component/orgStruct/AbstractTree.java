@@ -157,7 +157,7 @@ public abstract class AbstractTree<T> extends Panel {
 	public void expand(T t) {
 		getModelObject().add(t);
 
-		updateBranch(t, AjaxRequestTarget.get());
+		updateBranch(t, getRequestCycle().find(AjaxRequestTarget.class));
 	}
 
 	/**
@@ -171,7 +171,7 @@ public abstract class AbstractTree<T> extends Panel {
 	public void collapse(T t) {
 		getModelObject().remove(t);
 
-		updateBranch(t, AjaxRequestTarget.get());
+		updateBranch(t, getRequestCycle().find(AjaxRequestTarget.class));
 	}
 
 	/**

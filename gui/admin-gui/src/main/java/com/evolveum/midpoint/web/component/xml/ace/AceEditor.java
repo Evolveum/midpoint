@@ -22,7 +22,10 @@
 package com.evolveum.midpoint.web.component.xml.ace;
 
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -50,12 +53,16 @@ public class AceEditor<T> extends TextArea<T> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "ace-script.js"));
-        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "mode-xml.js"));
-        response.renderJavaScriptReference(new PackageResourceReference(AceEditor.class, "textmate.js"));
-        response.renderCSSReference(new PackageResourceReference(AceEditor.class, "style-ace.css"));
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(AceEditor.class, "ace-script.js")));
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(AceEditor.class, "mode-xml.js")));
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(AceEditor.class, "textmate.js")));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(AceEditor.class, "style-ace.css")));
 
-        response.renderOnLoadJavaScript(createOnLoadJavascript());
+        response.render(OnDomReadyHeaderItem.forScript(createOnLoadJavascript()));
     }
 
     private String createOnLoadJavascript() {

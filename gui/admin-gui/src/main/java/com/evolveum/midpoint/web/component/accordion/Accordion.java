@@ -22,7 +22,10 @@
 package com.evolveum.midpoint.web.component.accordion;
 
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.Model;
@@ -48,13 +51,15 @@ public class Accordion extends Border {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.renderJavaScriptReference(new PackageResourceReference(Accordion.class, "Accordion.js"));
-        response.renderCSSReference(new PackageResourceReference(Accordion.class, "Accordion.css"));
+
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(Accordion.class, "Accordion.js")));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(Accordion.class, "Accordion.css")));
 
         WebMarkupContainer parent = (WebMarkupContainer) get("parent");
-
-        response.renderOnLoadJavaScript("createAccordion('" + parent.getMarkupId() + "'," + getExpanded()
-                + "," + getMultipleSelect() + "," + getOpenedPanel() + ")");
+        response.render(OnDomReadyHeaderItem.forScript("createAccordion('" + parent.getMarkupId()
+                + "'," + getExpanded() + "," + getMultipleSelect() + "," + getOpenedPanel() + ")"));
     }
 
     public void setExpanded(boolean expanded) {

@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lazyman
  */
-public class EnumPropertyColumn<T> extends PropertyColumn<T> {
+public class EnumPropertyColumn<T> extends PropertyColumn<T, String> {
 
     public EnumPropertyColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);
@@ -39,12 +39,12 @@ public class EnumPropertyColumn<T> extends PropertyColumn<T> {
     }
 
     @Override
-    protected IModel<?> createLabelModel(final IModel<T> rowModel) {
+    public IModel<Object> getDataModel(final IModel<T> rowModel) {
         return new LoadableModel<Object>(false) {
 
             @Override
-            protected Object load() {
-                Enum en = (Enum) EnumPropertyColumn.super.createLabelModel(rowModel).getObject();
+            protected String load() {
+                Enum en = (Enum) EnumPropertyColumn.super.getDataModel(rowModel).getObject();
                 if (en == null) {
                     return null;
                 }

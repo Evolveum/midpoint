@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -90,6 +92,10 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismContext context = application.getPrismContext();
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
             dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
+
+            //save object type category to session storage, used by back button
+            ConfigurationStorage storage = getSessionStorage().getConfiguration();
+            storage.setDebugListCategory(ObjectTypes.getObjectType(object.getCompileTimeClass()));
 
             result.recomputeStatus();
         } catch (Exception ex) {
@@ -165,8 +171,6 @@ public class PageDebugView extends PageAdminConfiguration {
                 	setResponsePage(requestPage);
                 	getSession().setAttribute("requestPage", null);
                 } else {
-                	ObjectViewDto dto = model.getObject();
-                	getSession().setAttribute("category", dto.getObject().getDefinition());
                 	setResponsePage(PageDebugList.class);
                 } 
             }
@@ -248,13 +252,11 @@ public class PageDebugView extends PageAdminConfiguration {
             result.recordFatalError("Couldn't save object.", ex);
         }
 
-        if (!result.isSuccess()) {
+        if (!result.isSuccess() && !result.isHandledError()) {
             showResult(result);
             target.add(getFeedbackPanel());
         } else {
             showResultInSession(result);
-            //todo .....wtf?
-            getSession().setAttribute("category", dto.getObject().getDefinition());
             setResponsePage(PageDebugList.class);
         }
     }

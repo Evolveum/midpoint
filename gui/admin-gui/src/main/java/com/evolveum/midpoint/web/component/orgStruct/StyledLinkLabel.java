@@ -20,10 +20,8 @@
  */
 package com.evolveum.midpoint.web.component.orgStruct;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.web.component.LabeledLinkPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import org.apache.wicket.Component;
@@ -32,99 +30,95 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 /**
  * @author mserbak
  */
 public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
-	private static final StyleBehavior STYLE_CLASS = new StyleBehavior();
-	private static final ButtonStyleBehavior BUTTON_STYLE_CLASS = new ButtonStyleBehavior();
+    private static final StyleBehavior STYLE_CLASS = new StyleBehavior();
+    private static final ButtonStyleBehavior BUTTON_STYLE_CLASS = new ButtonStyleBehavior();
 
-	public StyledLinkLabel(String id, final IModel<T> model) {
-		super(id, model);
-		MarkupContainer link = newLinkComponent("link", model);
-		link.add(STYLE_CLASS);
-		add(link);
-		
-		Component label = newLabelComponent("label", model);
-		link.add(label);
+    public StyledLinkLabel(String id, final IModel<T> model) {
+        super(id, model);
+        MarkupContainer link = newLinkComponent("link", model);
+        link.add(STYLE_CLASS);
+        add(link);
 
-		WebMarkupContainer treeButton = new WebMarkupContainer("treeButton");
-		treeButton.setOutputMarkupId(true);
-		add(treeButton);
-		treeButton.add(BUTTON_STYLE_CLASS);
+        Component label = newLabelComponent("label", model);
+        link.add(label);
+
+        WebMarkupContainer treeButton = new WebMarkupContainer("treeButton");
+        treeButton.setOutputMarkupId(true);
+        add(treeButton);
+        treeButton.add(BUTTON_STYLE_CLASS);
         //todo XXX this will disable org. structure menu button
-		treeButton.setVisible(false);
-		createMenu(treeButton.getMarkupId(), model);
-	}
+        treeButton.setVisible(false);
+        createMenu(treeButton.getMarkupId(), model);
+    }
 
-	@SuppressWarnings("unchecked")
-	public IModel<NodeDto> getModel() {
-		return (IModel<NodeDto>) getDefaultModel();
-	}
+    @SuppressWarnings("unchecked")
+    public IModel<NodeDto> getModel() {
+        return (IModel<NodeDto>) getDefaultModel();
+    }
 
-	public T getModelObject() {
-		return (T) getModel().getObject();
-	}
+    public T getModelObject() {
+        return (T) getModel().getObject();
+    }
 
-	protected MarkupContainer newLinkComponent(String id, IModel<T> model) {
-		return new AjaxFallbackLink<Void>(id) {
-			private static final long serialVersionUID = 1L;
+    protected MarkupContainer newLinkComponent(String id, IModel<T> model) {
+        return new AjaxFallbackLink<Void>(id) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isEnabled() {
+            @Override
+            public boolean isEnabled() {
 //				return StyledLinkLabel.this.isClickable();
                 return true;
-			}
+            }
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
                 onClickPerformed(target);
-			}
-		};
-	}
+            }
+        };
+    }
 
-	protected Component newLabelComponent(String id, IModel<T> model) {
-		return new Label(id, newLabelModel(model));
-	}
+    protected Component newLabelComponent(String id, IModel<T> model) {
+        return new Label(id, newLabelModel(model));
+    }
 
-	protected IModel<String> newLabelModel(final IModel<T> model) {
-		return new LoadableModel<String>() {
+    protected IModel<String> newLabelModel(final IModel<T> model) {
+        return new LoadableModel<String>() {
 
-			@Override
-			protected String load() {
-				NodeDto dto = model.getObject();
-				return dto.getDisplayName();
-			}
-			
-		};
-	}
+            @Override
+            protected String load() {
+                NodeDto dto = model.getObject();
+                return dto.getDisplayName();
+            }
 
-	protected abstract String getStyleClass();
+        };
+    }
 
-	protected abstract String getButtonStyleClass();
+    protected abstract String getStyleClass();
 
-	protected boolean isClickable() {
-		NodeDto t = getModelObject();
-		return t.getType().equals(NodeType.FOLDER);
-	}
+    protected abstract String getButtonStyleClass();
 
-	protected void onClick(AjaxRequestTarget target) {
-	}
+    protected boolean isClickable() {
+        NodeDto t = getModelObject();
+        return t.getType().equals(NodeType.FOLDER);
+    }
+
+    protected void onClick(AjaxRequestTarget target) {
+    }
 
     private void onClickPerformed(AjaxRequestTarget target) {
         NodeDto t = getModelObject();
@@ -140,72 +134,73 @@ public abstract class StyledLinkLabel<T extends NodeDto> extends Panel {
         setResponsePage(PageUser.class, parameters);
     }
 
-	private static class StyleBehavior extends Behavior {
+    private static class StyleBehavior extends Behavior {
 
-		@Override
-		public void onComponentTag(Component component, ComponentTag tag) {
-			StyledLinkLabel<?> parent = (StyledLinkLabel<?>) component.getParent();
+        @Override
+        public void onComponentTag(Component component, ComponentTag tag) {
+            StyledLinkLabel<?> parent = (StyledLinkLabel<?>) component.getParent();
 
-			String styleClass = parent.getStyleClass();
-			if (styleClass != null) {
-				tag.put("class", styleClass);
-			}
-		}
-	}
+            String styleClass = parent.getStyleClass();
+            if (styleClass != null) {
+                tag.put("class", styleClass);
+            }
+        }
+    }
 
-	private static class ButtonStyleBehavior extends Behavior {
+    private static class ButtonStyleBehavior extends Behavior {
 
-		@Override
-		public void onComponentTag(Component component, ComponentTag tag) {
-			StyledLinkLabel<?> parent = (StyledLinkLabel<?>) component.getParent();
+        @Override
+        public void onComponentTag(Component component, ComponentTag tag) {
+            StyledLinkLabel<?> parent = (StyledLinkLabel<?>) component.getParent();
 
-			String styleClass = parent.getButtonStyleClass();
-			if (styleClass != null) {
-				tag.put("class", styleClass);
-			}
-		}
-	}
+            String styleClass = parent.getButtonStyleClass();
+            if (styleClass != null) {
+                tag.put("class", styleClass);
+            }
+        }
+    }
 
-	@Override
-	public void renderHead(IHeaderResponse response) {
-		super.renderHead(response);
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
 
-		response.renderCSSReference(new PackageResourceReference(OrgStructPanel.class, "StyledLinkLabel.css"));
-		response.renderJavaScriptReference(new PackageResourceReference(OrgStructPanel.class,
-				"StyledLinkLabel.js"));
-		response.renderOnLoadJavaScript("initMenuButtons()");
-	}
-	
-	private void createMenu(String id, final IModel<T> model) {
-		WebMarkupContainer orgPanel = new WebMarkupContainer("orgUnitMenuPanel");
-		orgPanel.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isVisible() {
-				NodeDto dto = model.getObject();
-				return NodeType.FOLDER.equals(dto.getType());
-			}
-		});
-		orgPanel.setMarkupId(id + "_panel");
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(OrgStructPanel.class, "StyledLinkLabel.css")));
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(OrgStructPanel.class, "StyledLinkLabel.js")));
+        response.render(OnDomReadyHeaderItem.forScript("initMenuButtons()"));
+    }
+
+    private void createMenu(String id, final IModel<T> model) {
+        WebMarkupContainer orgPanel = new WebMarkupContainer("orgUnitMenuPanel");
+        orgPanel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                NodeDto dto = model.getObject();
+                return NodeType.FOLDER.equals(dto.getType());
+            }
+        });
+        orgPanel.setMarkupId(id + "_panel");
         add(orgPanel);
         initOrgMenu(orgPanel);
-        
-        
+
+
         WebMarkupContainer userPanel = new WebMarkupContainer("userMenuPanel");
-        userPanel.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isVisible() {
-				NodeDto dto = model.getObject();
-				return !NodeType.FOLDER.equals(dto.getType());
-			}
-		});
+        userPanel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                NodeDto dto = model.getObject();
+                return !NodeType.FOLDER.equals(dto.getType());
+            }
+        });
         userPanel.setMarkupId(id + "_panel");
         add(userPanel);
         initUserMenu(userPanel);
     }
-	
-	protected void initOrgMenu(WebMarkupContainer orgPanel) {
-	}
-	
-	protected void initUserMenu(WebMarkupContainer userPanel) {
-	}
+
+    protected void initOrgMenu(WebMarkupContainer orgPanel) {
+    }
+
+    protected void initUserMenu(WebMarkupContainer userPanel) {
+    }
 }

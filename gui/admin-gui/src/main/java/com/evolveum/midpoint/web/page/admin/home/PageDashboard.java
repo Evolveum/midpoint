@@ -27,7 +27,8 @@ import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyAccountsDashboard;
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -50,7 +51,8 @@ public class PageDashboard extends PageAdminHome {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.renderCSSReference(new PackageResourceReference(PageDashboard.class, "PageDashboard.css"));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(PageDashboard.class, "PageDashboard.css")));
     }
 
     private void initLayout() {

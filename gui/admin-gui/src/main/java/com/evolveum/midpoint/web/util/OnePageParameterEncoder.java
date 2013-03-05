@@ -46,10 +46,10 @@ public class OnePageParameterEncoder implements IPageParametersEncoder {
      * Parameter value is in URL with name defined in contructor
      */
     @Override
-    public PageParameters decodePageParameters(Request request) {
+    public PageParameters decodePageParameters(Url url) {
         PageParameters parameters = new PageParameters();
 
-        List<String> segments = request.getUrl().getSegments();
+        List<String> segments = url.getSegments();
         if (!segments.isEmpty()) {
             String value = segments.get(0);
             parameters.add(parameterName, value);

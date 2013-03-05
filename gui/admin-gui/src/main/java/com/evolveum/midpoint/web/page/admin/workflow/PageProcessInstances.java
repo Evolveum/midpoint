@@ -76,13 +76,13 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        List<IColumn<ProcessInstanceDto>> columns = initColumns();
+        List<IColumn<ProcessInstanceDto, String>> columns = initColumns();
         TablePanel<ProcessInstanceDto> table = new TablePanel<ProcessInstanceDto>("processInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, false),
                 columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        List<IColumn<ProcessInstanceDto>> finishedColumns = initFinishedColumns();
+        List<IColumn<ProcessInstanceDto, String>> finishedColumns = initFinishedColumns();
         TablePanel<ProcessInstanceDto> finishedTable = new TablePanel<ProcessInstanceDto>("finishedProcessInstancesTable", new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor, true),
                 finishedColumns);
         finishedTable.setOutputMarkupId(true);
@@ -91,8 +91,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         initItemButtons(mainForm);
     }
 
-    private List<IColumn<ProcessInstanceDto>> initColumns() {
-        List<IColumn<ProcessInstanceDto>> columns = new ArrayList<IColumn<ProcessInstanceDto>>();
+    private List<IColumn<ProcessInstanceDto, String>> initColumns() {
+        List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<IColumn<ProcessInstanceDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<ProcessInstanceDto>();
         columns.add(column);
@@ -107,7 +107,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.started")) {
+        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
@@ -132,8 +132,8 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         return columns;
     }
 
-    private List<IColumn<ProcessInstanceDto>> initFinishedColumns() {
-        List<IColumn<ProcessInstanceDto>> columns = new ArrayList<IColumn<ProcessInstanceDto>>();
+    private List<IColumn<ProcessInstanceDto, String>> initFinishedColumns() {
+        List<IColumn<ProcessInstanceDto, String>> columns = new ArrayList<IColumn<ProcessInstanceDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<ProcessInstanceDto>();
         columns.add(column);
@@ -148,7 +148,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.started")) {
+        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.started")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,
@@ -169,7 +169,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
             }
         });
 
-        columns.add(new AbstractColumn<ProcessInstanceDto>(createStringResource("pageProcessInstances.item.finished")) {
+        columns.add(new AbstractColumn<ProcessInstanceDto, String>(createStringResource("pageProcessInstances.item.finished")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<ProcessInstanceDto>> item, String componentId,

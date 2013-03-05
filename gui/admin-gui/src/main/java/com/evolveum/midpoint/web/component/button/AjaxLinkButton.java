@@ -27,7 +27,8 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -92,7 +93,8 @@ public abstract class AjaxLinkButton extends AjaxLink<String> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(AjaxLinkButton.class, "AjaxLinkButton.css"));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(AjaxLinkButton.class, "AjaxLinkButton.css")));
     }
 
     @Override

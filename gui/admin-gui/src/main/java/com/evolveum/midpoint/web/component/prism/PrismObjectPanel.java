@@ -21,15 +21,12 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -64,7 +61,8 @@ public class PrismObjectPanel extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css"));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css")));
     }
 
     private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<ObjectWrapper> model) {
@@ -86,19 +84,19 @@ public class PrismObjectPanel extends Panel {
             }
         };
     }
-    
+
     private IModel<String> createHeaderNameClassModel(final IModel<ObjectWrapper> model) {
         return new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
                 ObjectWrapper wrapper = model.getObject();
-                if(wrapper.getEnableStatus() != null && !wrapper.getEnableStatus()) {
-                	return "disable";
+                if (wrapper.getEnableStatus() != null && !wrapper.getEnableStatus()) {
+                    return "disable";
                 }
                 return "";
             }
         };
-    } 
+    }
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");

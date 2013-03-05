@@ -22,7 +22,10 @@
 package com.evolveum.midpoint.web.component.threeStateCheckBox;
 
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -36,50 +39,51 @@ import org.apache.wicket.request.resource.PackageResourceReference;
  */
 public class ThreeStateCheckBox extends HiddenField<String> {
 
-	public ThreeStateCheckBox(String id) {
-		this(id, new Model<Boolean>(null));
-	}
+    public ThreeStateCheckBox(String id) {
+        this(id, new Model<Boolean>(null));
+    }
 
-	public ThreeStateCheckBox(String id, IModel<Boolean> model) {
-		super(id, createStringModel(model));
-	}
-	
-	private static IModel<String> createStringModel(final IModel<Boolean> model) {
-		return new AbstractReadOnlyModel<String>() {
+    public ThreeStateCheckBox(String id, IModel<Boolean> model) {
+        super(id, createStringModel(model));
+    }
 
-			@Override
-			public String getObject() {
-				String object = "";
-				if (model.getObject() == null) {
-					object = ThreeCheckState.UNDEFINED.toString();
-				} else if (model.getObject()) {
-					object = ThreeCheckState.CHECKED.toString();
-				} else {
-					object = ThreeCheckState.UNCHECKED.toString();
-				}
-				return object;
-			}
-		};
-	}
-	
-	@Override
-	protected void onComponentTag(ComponentTag tag) {
-		super.onComponentTag(tag);
-		if (tag.isOpenClose()) {
-			tag.setType(XmlTag.TagType.OPEN);
-		}
-	}
-	
-	
+    private static IModel<String> createStringModel(final IModel<Boolean> model) {
+        return new AbstractReadOnlyModel<String>() {
 
-	@Override
-	public void renderHead(IHeaderResponse response) {
-		super.renderHead(response);
-		response.renderJavaScriptReference(new PackageResourceReference(ThreeStateCheckBox.class,
-				"ThreeStateCheckBox.js"));
-		response.renderCSSReference(new PackageResourceReference(ThreeStateCheckBox.class,
-				"ThreeStateCheckBox.css"));
-		boolean enabled = isEnabled();
-		response.renderOnLoadJavaScript("initThreeStateCheckBox('" + getMarkupId() + "', '"+enabled+"')");
-	}
+            @Override
+            public String getObject() {
+                String object = "";
+                if (model.getObject() == null) {
+                    object = ThreeCheckState.UNDEFINED.toString();
+                } else if (model.getObject()) {
+                    object = ThreeCheckState.CHECKED.toString();
+                } else {
+                    object = ThreeCheckState.UNCHECKED.toString();
+                }
+                return object;
+            }
+        };
+    }
+
+    @Override
+    protected void onComponentTag(ComponentTag tag) {
+        super.onComponentTag(tag);
+        if (tag.isOpenClose()) {
+            tag.setType(XmlTag.TagType.OPEN);
+        }
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(ThreeStateCheckBox.class, "ThreeStateCheckBox.js")));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(ThreeStateCheckBox.class, "ThreeStateCheckBox.css")));
+
+        boolean enabled = isEnabled();
+        response.render(OnDomReadyHeaderItem.forScript(
+                "initThreeStateCheckBox('" + getMarkupId() + "', '" + enabled + "')"));
+    }
 }

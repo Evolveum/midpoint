@@ -46,7 +46,7 @@ public class MyAccountsPanel extends SimplePanel {
 
     @Override
     protected void initLayout() {
-        List<IColumn<SimpleAccountDto>> columns = new ArrayList<IColumn<SimpleAccountDto>>();
+        List<IColumn<SimpleAccountDto, String>> columns = new ArrayList<IColumn<SimpleAccountDto, String>>();
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.name"), "accountName"));
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.resource"), "resourceName"));
 

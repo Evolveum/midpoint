@@ -29,7 +29,9 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
@@ -47,11 +49,11 @@ public class TablePanel<T> extends Panel {
     private NavigatorPanel topNavigator;
     private NavigatorPanel bottomNavigator;
 
-    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T>> columns) {
+    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, 10);
     }
 
-    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T>> columns, int itemsPerPage) {
+    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns, int itemsPerPage) {
         super(id);
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
@@ -59,30 +61,30 @@ public class TablePanel<T> extends Panel {
         initLayout(columns, itemsPerPage, provider);
     }
 
-    private void initLayout(List<IColumn<T>> columns, int itemsPerPage, ISortableDataProvider provider) {
-        DataTable<T> table = new SelectableDataTable<T>(TABLE, columns, provider, itemsPerPage);
+    private void initLayout(List<IColumn<T, String>> columns, int itemsPerPage, ISortableDataProvider provider) {
+        DataTable<T, String> table = new SelectableDataTable<T>(TABLE, columns, provider, itemsPerPage);
         table.addTopToolbar(new TableHeadersToolbar(table, provider));
         table.setOutputMarkupId(true);
         add(table);
         topNavigator = new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)) {
-			@Override
-			protected void onAjaxEvent(AjaxRequestTarget target) {
-				super.onAjaxEvent(target);
-				target.add(bottomNavigator);
-			}
+            @Override
+            protected void onAjaxEvent(AjaxRequestTarget target) {
+                super.onAjaxEvent(target);
+                target.add(bottomNavigator);
+            }
         };
-        
+
         bottomNavigator = new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)) {
-        	@Override
-			protected void onAjaxEvent(AjaxRequestTarget target) {
-				super.onAjaxEvent(target);
-				target.add(topNavigator);
-			}
+            @Override
+            protected void onAjaxEvent(AjaxRequestTarget target) {
+                super.onAjaxEvent(target);
+                target.add(topNavigator);
+            }
         };
-        
+
         add(topNavigator);
         add(bottomNavigator);
-        
+
     }
 
     private boolean showPagedPaging(ISortableDataProvider provider) {
@@ -133,7 +135,9 @@ public class TablePanel<T> extends Panel {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.renderJavaScriptReference(new PackageResourceReference(TablePanel.class, "TablePanel.js"));
-        response.renderOnLoadJavaScript("initTable()");
+
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(TablePanel.class, "TablePanel.js")));
+        response.render(OnDomReadyHeaderItem.forScript("initTable()"));
     }
 }

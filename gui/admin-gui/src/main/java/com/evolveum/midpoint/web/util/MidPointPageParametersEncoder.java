@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.util;
 
-import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -60,10 +59,10 @@ public class MidPointPageParametersEncoder implements IPageParametersEncoder {
      * (i.e. a URL using the pre wicket 1.5 Hybrid URL strategy)
      */
     @Override
-    public PageParameters decodePageParameters(Request request) {
+    public PageParameters decodePageParameters(Url url) {
         PageParameters parameters = new PageParameters();
 
-        for (Iterator<String> segment = request.getUrl().getSegments().iterator(); segment.hasNext(); ) {
+        for (Iterator<String> segment = url.getSegments().iterator(); segment.hasNext(); ) {
             String key = segment.next();
             if (segment.hasNext()) {
                 String value = segment.next();

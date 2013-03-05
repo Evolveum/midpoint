@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -47,7 +48,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -113,8 +115,16 @@ public class PageReports extends PageAdminReports {
 	private static final String DOT_CLASS = PageReports.class.getName() + ".";
 	private static final String OPERATION_CREATE_RESOURCE_LIST = DOT_CLASS + "createResourceList";
 	private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "getObjects";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_OPTION = "option";
+    private static final String ID_OBJECTS_TYPE = "objectsType";
+    private static final String ID_OBJECTS_TYPE_CHOICE = "objectTypeChoice";
+    private static final String ID_USERS_FILTER = "usersFilter";
+    private static final String ID_OPTION_CONTENT = "optionContent";
+
 	private LoadableModel<UserFilterDto> userFilterDto;
-	private List listObject;
+	private List<DebugObjectItem> listObject;
 	private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior;
 	@SpringBean(name = "sessionFactory")
     private SessionFactory sessionFactory;
@@ -136,7 +146,7 @@ public class PageReports extends PageAdminReports {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form("mainForm");
+		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream(true) {
@@ -148,17 +158,15 @@ public class PageReports extends PageAdminReports {
 		ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
 		mainForm.add(ajaxDownloadBehavior);
 
-		OptionPanel option = new OptionPanel("option", createStringResource("pageReports.optionsTitle"),
-				getPage(), false);
+		OptionPanel option = new OptionPanel(ID_OPTION, createStringResource("pageReports.optionsTitle"), false);
 		option.setOutputMarkupId(true);
 		mainForm.add(option);
 
-		OptionItem objectsType = new OptionItem("objectsType",
-				createStringResource("pageReports.objectsType"));
+		OptionItem objectsType = new OptionItem(ID_OBJECTS_TYPE, createStringResource("pageReports.objectsType"));
 		option.getBodyContainer().add(objectsType);
 		objectsType.setVisible(false);
 
-		DropDownChoice objectTypeChoice = new DropDownChoice("objectTypeChoice",
+		DropDownChoice objectTypeChoice = new DropDownChoice(ID_OBJECTS_TYPE_CHOICE,
 				new AbstractReadOnlyModel<Class>() {
 
 					@Override
@@ -185,12 +193,11 @@ public class PageReports extends PageAdminReports {
 		};
 		objectsType.add(objectTypeChoice);
 
-		OptionItem usersFilter = new OptionItem("usersFilter",
-				createStringResource("pageReports.usersFilter"), true);
+		OptionItem usersFilter = new OptionItem(ID_USERS_FILTER, createStringResource("pageReports.usersFilter"), true);
 		option.getBodyContainer().add(usersFilter);
 		initSearch(usersFilter);
 
-		OptionContent content = new OptionContent("optionContent");
+		OptionContent content = new OptionContent(ID_OPTION_CONTENT);
 		mainForm.add(content);
 		initTable(content, mainForm);
 
@@ -203,11 +210,10 @@ public class PageReports extends PageAdminReports {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				List list = new ArrayList();
-				List<SelectableBean<ObjectType>> beans = WebMiscUtil.getSelectedData(getTable());
-				for (SelectableBean<ObjectType> bean : beans) {
-					list.add(bean.getValue());
-				}
+				List<DebugObjectItem> list = new ArrayList<DebugObjectItem>();
+				List<DebugObjectItem> beans = WebMiscUtil.getSelectedData(getTable());
+                list.addAll(beans);
+
 				if(!list.isEmpty()) {
 					listObject = list;
 					ajaxDownloadBehavior.initiate(target);
@@ -216,7 +222,7 @@ public class PageReports extends PageAdminReports {
 			        target.add(getFeedbackPanel());
 			        target.add(getTable());
 				}
-				
+
 			}
 		};
 		mainForm.add(selectedReport);
@@ -278,7 +284,7 @@ public class PageReports extends PageAdminReports {
 		activationCheck.setStyle("margin: 1px 1px 1px 6px;");
 		item.add(activationCheck);
 		activationCheck.setVisible(false);
-		
+
 		final Image resourceHelp = new Image("resourceHelp", new PackageResourceReference(ImgResources.class,
 				ImgResources.TOOLTIP_INFO));
 		resourceHelp.setOutputMarkupId(true);
@@ -287,7 +293,7 @@ public class PageReports extends PageAdminReports {
 			@Override
 			public void renderHead(Component component, IHeaderResponse response) {
 				String js = "$('#"+ resourceHelp.getMarkupId() +"').tipsy()";
-				response.renderOnDomReadyJavaScript(js);
+				response.render(OnDomReadyHeaderItem.forScript(js));
 				super.renderHead(component, response);
 			}
 
@@ -296,7 +302,7 @@ public class PageReports extends PageAdminReports {
 			}
 		});
 		item.add(resourceHelp);
-		
+
 		DropDownChoice resourceChoice = new DropDownChoice("resourceChoice",
 				new PropertyModel<PrismObject<ResourceType>>(userFilterDto, "resource"),
                 createResourceListModel(), new IChoiceRenderer<PrismObject<ResourceType>>() {
@@ -358,15 +364,15 @@ public class PageReports extends PageAdminReports {
 	}
 
 	private void initTable(OptionContent content, Form mainForm) {
-		List<IColumn<SelectableBean>> columns = initColumns(mainForm);
-		TablePanel table = new TablePanel<SelectableBean>("reportsTable", new RepositoryObjectDataProvider(
+		List<IColumn<DebugObjectItem, String>> columns = initColumns(mainForm);
+		TablePanel table = new TablePanel<DebugObjectItem>("reportsTable", new RepositoryObjectDataProvider(
 				PageReports.this, UserType.class), columns);
 		table.setOutputMarkupId(true);
 		content.getBodyContainer().add(table);
 	}
 
-	private List<IColumn<SelectableBean>> initColumns(Form mainForm) {
-		List<IColumn<SelectableBean>> columns = new ArrayList<IColumn<SelectableBean>>();
+	private List<IColumn<DebugObjectItem, String>> initColumns(Form mainForm) {
+		List<IColumn<DebugObjectItem, String>> columns = new ArrayList<IColumn<DebugObjectItem, String>>();
 
 		IColumn column = new CheckBoxHeaderColumn();
 		columns.add(column);
@@ -381,18 +387,15 @@ public class PageReports extends PageAdminReports {
 		ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
 		mainForm.add(ajaxDownloadBehavior);
 
-		column = new LinkColumn<SelectableBean>(createStringResource("pageReports.reportLink"), "value.fullName.orig") {
+		column = new LinkColumn<DebugObjectItem>(createStringResource("pageReports.reportLink"), "fullName") {
 
 			@Override
-			public void onClick(AjaxRequestTarget target, IModel<SelectableBean> rowModel) {
-				Serializable value = rowModel.getObject().getValue();
-				if (value instanceof UserType) {
-					List list = new ArrayList();
-					UserType user = (UserType) value;
-					list.add(user);
-					listObject = list;
-					ajaxDownloadBehavior.initiate(target);
-				}
+			public void onClick(AjaxRequestTarget target, IModel<DebugObjectItem> rowModel) {
+				DebugObjectItem value = rowModel.getObject();
+                listObject = new ArrayList<DebugObjectItem>();
+                listObject.add(value);
+
+                ajaxDownloadBehavior.initiate(target);
 			}
 		};
 		columns.add(column);
@@ -446,17 +449,17 @@ public class PageReports extends PageAdminReports {
 		OptionContent content = (OptionContent) get("mainForm:optionContent");
 		return (TablePanel) content.getBodyContainer().get("reportsTable");
 	}
-	
+
 	private DropDownChoice getResourceChoiceComponent() {
 		OptionPanel panel = (OptionPanel) get("mainForm:option");
 		OptionItem item = (OptionItem) panel.getBodyContainer().get("usersFilter");
 		return (DropDownChoice) item.getBodyContainer().get("resourceChoice");
 	}
-	
-	 private RepositoryObjectDataProvider<ObjectType> getTableDataProvider() {
+
+	 private RepositoryObjectDataProvider getTableDataProvider() {
 	        TablePanel tablePanel = getTable();
 	        DataTable table = tablePanel.getDataTable();
-	        return (RepositoryObjectDataProvider<ObjectType>) table.getDataProvider();
+	        return (RepositoryObjectDataProvider) table.getDataProvider();
 	    }
 
 	private void searchPerformed(AjaxRequestTarget target) {
@@ -483,38 +486,28 @@ public class PageReports extends PageAdminReports {
 			getSession().error(getString("pageReports.message.noResourceSelected"));
 			throw new RestartResponseException(PageReports.class);
 		}
-		
+
 
 		JasperDesign design;
 		JasperReport report = null;
 		JasperPrint jasperPrint = null;
-		
+
 		byte[] generatedReport = null;
 		Session session = null;
 
 		try {
             ServletContext servletContext = ((WebApplication) getApplication()).getServletContext();
 			// Loading template
-                        
+
 			design = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
 			report = JasperCompileManager.compileReport(design);
 			Map params = new HashMap();
-			
-			UserType user = null;
+
 			List userNames = new ArrayList();
-			for (Object obj : listObject){
-				if (obj instanceof UserType){
-					user = (UserType) obj;
-					userNames.add(user.getName().getOrig());
-				} else if(obj instanceof PrismObject) {
-					PrismObject prism = (PrismObject) obj;
-					if(prism.getCompileTimeClass().equals(UserType.class)) {
-						user = (UserType) prism.asObjectable();
-						userNames.add(user.getName().getOrig());
-					}
-				}
+			for (DebugObjectItem obj : listObject){
+                userNames.add(obj.getName());
 			}
-			
+
 			params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
 			params.put("USER_NAME", userNames);
 			params.put("RESOURCE_OID", dto.getResource().getOid());
@@ -531,12 +524,12 @@ public class PageReports extends PageAdminReports {
 		} finally{
 			session.close();
 		}
-		
+
 		return generatedReport;
-		
+
 	}
-	
-	private List<PrismObject<ObjectType>> getObjects() {
+
+	private List<DebugObjectItem> getObjects() {
         ObjectQuery query = getTableDataProvider().getQuery();
 
         ObjectQuery clonedQuery = null;
@@ -544,17 +537,22 @@ public class PageReports extends PageAdminReports {
             clonedQuery = new ObjectQuery();
             clonedQuery.setFilter(query.getFilter());
         }
-        Class<ObjectType> type = getTableDataProvider().getType();
+        Class type = getTableDataProvider().getType();
         if (type == null) {
             type = ObjectType.class;
         }
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECT);
-        List<PrismObject<ObjectType>> objects = null;
+        List<DebugObjectItem> objects = new ArrayList<DebugObjectItem>();
         try {
-			objects = getModelService().searchObjects(type, clonedQuery,
+			List<PrismObject> resList = getModelService().searchObjects(type, clonedQuery,
 					SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
 					createSimpleTask(OPERATION_SEARCH_OBJECT), result);
+            if (resList != null) {
+                for (PrismObject prism : resList) {
+                    objects.add(DebugObjectItem.createDebugObjectItem(prism));
+                }
+            }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load objects", ex);
         } finally {
@@ -565,15 +563,15 @@ public class PageReports extends PageAdminReports {
             showResult(result);
         }
 
-        return objects != null ? objects : new ArrayList<PrismObject<ObjectType>>();
+        return objects;
     }
-	
+
 	public SessionFactory getSessionFactory() {
 		return sessionFactory;
 	}
-	
+
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-	
+
 }

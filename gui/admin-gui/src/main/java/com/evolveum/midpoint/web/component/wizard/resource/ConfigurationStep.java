@@ -83,4 +83,12 @@ public class ConfigurationStep extends WizardStep {
     private void testConnectionPerformed(AjaxRequestTarget target) {
         //todo implement
     }
+
+    @Override
+    public void applyState() {
+        super.applyState();
+
+        PrismObjectPanel configuration = (PrismObjectPanel) get(ID_CONFIGURATION);
+
+    }
 }

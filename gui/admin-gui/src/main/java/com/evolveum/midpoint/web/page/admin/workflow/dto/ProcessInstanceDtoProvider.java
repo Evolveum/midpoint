@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import org.apache.wicket.Component;
@@ -75,7 +76,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
     }
 
     @Override
-    public Iterator<? extends ProcessInstanceDto> iterator(int first, int count) {
+    public Iterator<? extends ProcessInstanceDto> iterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
@@ -90,7 +91,9 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //            }
 
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy, requestedFor, finished, first, count, result);
+            List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy,
+                    requestedFor, finished, WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
+                    result);
 
             for (ProcessInstance item : items) {
                 try {

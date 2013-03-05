@@ -21,50 +21,18 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.ListChoice;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.file.File;
-import org.apache.wicket.util.file.Files;
-
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -85,11 +53,43 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.ListChoice;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.file.File;
+import org.apache.wicket.util.file.Files;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author lazyman
@@ -103,100 +103,90 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_SEARCH_OBJECT = DOT_CLASS + "loadObjects";
-	private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
+    private static final String OPERATION_CREATE_DOWNLOAD_FILE = DOT_CLASS + "createDownloadFile";
 
+    private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ZIP_CHECK = "zipCheck";
+    private static final String ID_OPTION_CONTENT = "optionContent";
+    private static final String ID_OPTION = "option";
+    private static final String ID_SEARCH = "search";
+    private static final String ID_CATEGORY = "category";
+    private static final String ID_TABLE = "table";
+    private static final String ID_CHOICE = "choice";
+    private static final String ID_DELETE_SELECTED = "deleteSelected";
+    private static final String ID_EXPORT_ALL = "exportAll";
+    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_CLEAR_BUTTON = "clearButton";
+    private static final String ID_SEARCH_BUTTON = "searchButton";
 
     private boolean deleteSelected; //todo what is this used for?
     private IModel<ObjectTypes> choice = null;
-    private ObjectType object = null; //todo what is this used for?
+    private DebugObjectItem object = null; //todo what is this used for?
 
     public PageDebugList() {
         initLayout();
     }
 
     private void initLayout() {
-    	//confirm delete
-    	add(new ConfirmationDialog("confirmDeletePopup", createStringResource("pageDebugList.dialog.title.confirmDelete"),
-                createDeleteConfirmString()) {
+        //confirm delete
+        add(new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
+                createStringResource("pageDebugList.dialog.title.confirmDelete"), createDeleteConfirmString()) {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
                 //todo wtf
-                if(deleteSelected){
-                	deleteSelected = false;
-                	deleteSelectedConfirmedPerformed(target);
+                if (deleteSelected) {
+                    deleteSelected = false;
+                    deleteSelectedConfirmedPerformed(target);
                 } else {
-                	deleteObjectConfirmedPerformed(target);
+                    deleteObjectConfirmedPerformed(target);
                 }
-                
             }
         });
-    	
-        //listed type
-        //todo wtf is this? why is prism object definition in session, where is this saved?
-    	IModel<ObjectTypes> sessionChoice = null;
-    	PrismObjectDefinition selectedCategory = (PrismObjectDefinition)getSession().getAttribute("category");
-    	if(selectedCategory != null) {
-    		sessionChoice = new Model<ObjectTypes>(ObjectTypes.getObjectTypeFromTypeQName(selectedCategory.getTypeName()));
-    	} else {
-    		sessionChoice = new Model<ObjectTypes>(ObjectTypes.SYSTEM_CONFIGURATION);
-    	}
-    	final IModel<ObjectTypes> choice = sessionChoice;
-
-        List<IColumn<? extends ObjectType>> columns = new ArrayList<IColumn<? extends ObjectType>>();
-
-        IColumn column = new CheckBoxHeaderColumn<ObjectType>();
-        columns.add(column);
-
-        column = new LinkColumn<SelectableBean<? extends ObjectType>>(createStringResource("pageDebugList.name"), "name", "value.name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
-                ObjectType object = rowModel.getObject().getValue();
-                objectEditPerformed(target, object.getOid());
-            }
-        };
-        columns.add(column);
-
-        column = new ButtonColumn<SelectableBean<? extends ObjectType>>(createStringResource("pageDebugList.operation"),
-                createStringResource("pageDebugList.button.delete")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<? extends ObjectType>> rowModel) {
-                ObjectType object = rowModel.getObject().getValue();
-                deleteObjectPerformed(target, choice, object);
-            }
-        };
-        columns.add(column);
 
         final Form main = new Form(ID_MAIN_FORM);
         add(main);
-        
-        OptionPanel option = new OptionPanel("option", createStringResource("pageDebugList.optionsTitle"), getPage(), false);
+
+        choice = new Model<ObjectTypes>() {
+
+            @Override
+            public ObjectTypes getObject() {
+                ObjectTypes types = super.getObject();
+                if (types == null) {
+                    ConfigurationStorage storage = getSessionStorage().getConfiguration();
+                    types = storage.getDebugListCategory();
+                }
+
+                return types;
+            }
+        };
+
+        OptionPanel option = new OptionPanel(ID_OPTION, createStringResource("pageDebugList.optionsTitle"), false);
         option.setOutputMarkupId(true);
         main.add(option);
 
-        OptionItem item = new OptionItem("search", createStringResource("pageDebugList.search"));
+        OptionItem item = new OptionItem(ID_SEARCH, createStringResource("pageDebugList.search"));
         option.getBodyContainer().add(item);
-        IModel<String> searchNameModel = initSearch(item, choice);
+        IModel<String> searchNameModel = initSearch(item);
 
-        item = new OptionItem("category", createStringResource("pageDebugList.selectType"));
+        item = new OptionItem(ID_CATEGORY, createStringResource("pageDebugList.selectType"));
         option.getBodyContainer().add(item);
-        initCategory(item, choice, searchNameModel);
+        initCategory(item, searchNameModel);
 
-        OptionContent content = new OptionContent("optionContent");
+        OptionContent content = new OptionContent(ID_OPTION_CONTENT);
         main.add(content);
-        
-        Class provider = selectedCategory == null ? SystemConfigurationType.class : selectedCategory.getCompileTimeClass();
-        TablePanel table = new TablePanel("table", new RepositoryObjectDataProvider(PageDebugList.this,
-        		provider), columns);
-        table.setOutputMarkupId(true);
-        content.getBodyContainer().add(table);
 
-        AjaxLinkButton delete = new AjaxLinkButton("deleteSelected", ButtonType.NEGATIVE,
+        ConfigurationStorage storage = getSessionStorage().getConfiguration();
+        Class type = storage.getDebugListCategory().getClassDefinition();
+        addOrReplaceTable(type);
+
+        initButtonBar(main);
+    }
+
+    private void initButtonBar(Form main) {
+        AjaxLinkButton delete = new AjaxLinkButton(ID_DELETE_SELECTED, ButtonType.NEGATIVE,
                 createStringResource("pageDebugList.button.deleteSelected")) {
 
             @Override
@@ -205,35 +195,80 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
         main.add(delete);
-        
+
         final AjaxDownloadBehaviorFromFile ajaxDownloadBehavior = new AjaxDownloadBehaviorFromFile(true) {
 
             @Override
             protected File initFile() {
-            	return initDownloadFile(choice);
+                return initDownloadFile(choice);
             }
         };
         main.add(ajaxDownloadBehavior);
-        
-        
-		AjaxLinkButton export = new AjaxLinkButton("exportAll",
-				createStringResource("pageDebugList.button.exportAll")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+
+        AjaxLinkButton export = new AjaxLinkButton(ID_EXPORT_ALL,
+                createStringResource("pageDebugList.button.exportAll")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
                 ajaxDownloadBehavior.initiate(target);
-			}
-		};
+            }
+        };
         main.add(export);
 
-        //todo this method has 150 lines, which is way to much. break it into smaller chunks
-        AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<Boolean>(false)){
+        AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<Boolean>(false)) {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-			}
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
         };
         main.add(zipCheck);
+    }
+
+    private void addOrReplaceTable(Class<? extends ObjectType> type) {
+        OptionContent content = (OptionContent) get(createComponentPath(ID_MAIN_FORM, ID_OPTION_CONTENT));
+
+        TablePanel table = new TablePanel(ID_TABLE, new RepositoryObjectDataProvider(this, type), initColumns(type));
+        table.setOutputMarkupId(true);
+        content.getBodyContainer().addOrReplace(table);
+    }
+
+    private List<IColumn> initColumns(Class<? extends ObjectType> type) {
+        List<IColumn> columns = new ArrayList<IColumn>();
+
+        IColumn column = new CheckBoxHeaderColumn<ObjectType>();
+        columns.add(column);
+
+        column = new LinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
+                DebugObjectItem.F_NAME, DebugObjectItem.F_NAME) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<DebugObjectItem> rowModel) {
+                DebugObjectItem object = rowModel.getObject();
+                objectEditPerformed(target, object.getOid());
+            }
+        };
+        columns.add(column);
+
+        if (ResourceObjectShadowType.class.isAssignableFrom(type)) {
+            columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceName"),
+                    DebugObjectItem.F_RESOURCE_NAME));
+            columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceType"),
+                    DebugObjectItem.F_RESOURCE_TYPE));
+        }
+
+        column = new ButtonColumn<DebugObjectItem>(createStringResource("pageDebugList.operation"),
+                createStringResource("pageDebugList.button.delete")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<DebugObjectItem> rowModel) {
+                DebugObjectItem object = rowModel.getObject();
+                deleteObjectPerformed(target, choice, object);
+            }
+        };
+        columns.add(column);
+
+        return columns;
     }
 
     //todo remove argument, choice model all over the place (at least two of them, again two variables...)
@@ -252,7 +287,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         try {
             result.recordSuccess();
-            if(hasToZip()) {
+            if (hasToZip()) {
                 file = createZipForDownload(file, folder, suffix, result);
             } else {
                 file.createNewFile();
@@ -264,7 +299,7 @@ public class PageDebugList extends PageAdminConfiguration {
             result.recordFatalError("Couldn't init download link", ex);
         }
 
-        if(!result.isSuccess()) {
+        if (!result.isSuccess()) {
             showResultInSession(result);
             getSession().error(getString("pageDebugList.message.createFileException"));
             Files.remove(file);
@@ -276,16 +311,16 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private boolean hasToZip() {
-        AjaxCheckBox zipCheck = (AjaxCheckBox) get(ID_MAIN_FORM + ":" + ID_ZIP_CHECK);
+        AjaxCheckBox zipCheck = (AjaxCheckBox) get(createComponentPath(ID_MAIN_FORM, ID_ZIP_CHECK));
         return zipCheck.getModelObject();
     }
 
-    private IModel<String> initSearch(OptionItem item, final IModel<ObjectTypes> choice) {
+    private IModel<String> initSearch(OptionItem item) {
         final IModel<String> model = new Model<String>();
-        TextField<String> search = new TextField<String>("searchText", model);
+        TextField<String> search = new TextField<String>(ID_SEARCH_TEXT, model);
         item.add(search);
 
-        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
+        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton(ID_CLEAR_BUTTON,
                 new StringResourceModel("pageDebugList.button.clear", this, null)) {
 
             @Override
@@ -298,13 +333,13 @@ public class PageDebugList extends PageAdminConfiguration {
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 model.setObject(null);
                 target.appendJavaScript("init()");
-                target.add(PageDebugList.this.get(ID_MAIN_FORM + ":option"));
+                target.add(PageDebugList.this.get(createComponentPath(ID_MAIN_FORM, ID_OPTION)));
                 listObjectsPerformed(target, model.getObject(), choice.getObject());
             }
         };
         item.add(clearButton);
 
-        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton(ID_SEARCH_BUTTON,
                 new StringResourceModel("pageDebugList.button.search", this, null)) {
 
             @Override
@@ -323,7 +358,7 @@ public class PageDebugList extends PageAdminConfiguration {
         return model;
     }
 
-    private void initCategory(OptionItem item, final IModel<ObjectTypes> choice, final IModel<String> searchNameModel) {
+    private void initCategory(OptionItem item, final IModel<String> searchNameModel) {
         IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
 
             @Override
@@ -338,7 +373,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
 
         IModel<List<ObjectTypes>> choiceModel = createChoiceModel(renderer);
-        final ListChoice listChoice = new ListChoice("choice", choice, choiceModel, renderer, choiceModel.getObject().size()) {
+        final ListChoice listChoice = new ListChoice(ID_CHOICE, choice, choiceModel, renderer, choiceModel.getObject().size()) {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
@@ -379,17 +414,17 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private TablePanel getListTable() {
-        OptionContent content = (OptionContent) get(ID_MAIN_FORM + ":optionContent");
-        return (TablePanel) content.getBodyContainer().get("table");
+        OptionContent content = (OptionContent) get(createComponentPath(ID_MAIN_FORM, ID_OPTION_CONTENT));
+        return (TablePanel) content.getBodyContainer().get(ID_TABLE);
     }
 
     private void listObjectsPerformed(AjaxRequestTarget target, String nameText, ObjectTypes selected) {
         RepositoryObjectDataProvider provider = getTableDataProvider();
         if (StringUtils.isNotEmpty(nameText)) {
             try {
-				ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(),
-						ObjectType.F_NAME, nameText);
-				ObjectQuery query = new ObjectQuery();
+                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(),
+                        ObjectType.F_NAME, nameText);
+                ObjectQuery query = new ObjectQuery();
                 query.setFilter(substring);
                 provider.setQuery(query);
             } catch (Exception ex) {
@@ -403,8 +438,9 @@ public class PageDebugList extends PageAdminConfiguration {
 
         if (selected != null) {
             provider.setType(selected.getClassDefinition());
+            addOrReplaceTable(selected.getClassDefinition());
         }
-        
+
         TablePanel table = getListTable();
         target.add(table);
     }
@@ -415,38 +451,38 @@ public class PageDebugList extends PageAdminConfiguration {
         setResponsePage(PageDebugView.class, parameters);
     }
 
-    private RepositoryObjectDataProvider<ObjectType> getTableDataProvider() {
+    private RepositoryObjectDataProvider getTableDataProvider() {
         TablePanel tablePanel = getListTable();
         DataTable table = tablePanel.getDataTable();
-        return (RepositoryObjectDataProvider<ObjectType>) table.getDataProvider();
+        return (RepositoryObjectDataProvider) table.getDataProvider();
     }
-    
+
     private IModel<String> createDeleteConfirmString() {
         return new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-				if (deleteSelected) {
-					List<SelectableBean<ObjectType>> selectedList = WebMiscUtil
-							.getSelectedData(getListTable());
-					
-					if (selectedList.size() > 1) {
-						return createStringResource("pageDebugList.message.deleteSelectedConfirm",
-								selectedList.size()).getString();
-					}
+                if (deleteSelected) {
+                    List<SelectableBean<ObjectType>> selectedList = WebMiscUtil
+                            .getSelectedData(getListTable());
 
-					SelectableBean<ObjectType> selectedItem = selectedList.get(0);
-					return createStringResource("pageDebugList.message.deleteObjectConfirm",
-							selectedItem.getValue().getName().getOrig()).getString();
-				}
-				
-				return createStringResource("pageDebugList.message.deleteObjectConfirm" ,object.getName().getOrig())
-						.getString();
+                    if (selectedList.size() > 1) {
+                        return createStringResource("pageDebugList.message.deleteSelectedConfirm",
+                                selectedList.size()).getString();
+                    }
+
+                    SelectableBean<ObjectType> selectedItem = selectedList.get(0);
+                    return createStringResource("pageDebugList.message.deleteObjectConfirm",
+                            selectedItem.getValue().getName().getOrig()).getString();
+                }
+
+                return createStringResource("pageDebugList.message.deleteObjectConfirm", object.getName())
+                        .getString();
             }
         };
     }
-    
-    private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target){
+
+    private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target) {
         ObjectTypes type = choice.getObject();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
@@ -475,15 +511,15 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(getListTable());
         target.add(getFeedbackPanel());
     }
-    
-    private void deleteObjectConfirmedPerformed(AjaxRequestTarget target){
+
+    private void deleteObjectConfirmedPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
         try {
             ObjectTypes type = choice.getObject();
             ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
 
             getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
-            		ModelExecuteOptions.createRaw(),
+                    ModelExecuteOptions.createRaw(),
                     createSimpleTask(OPERATION_DELETE_OBJECT), result);
 
             result.recordSuccess();
@@ -498,33 +534,33 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add(getListTable());
         target.add(getFeedbackPanel());
     }
-    
+
     private void deleteSelectedPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
-    	List<SelectableBean<ObjectType>> selected = WebMiscUtil.getSelectedData(getListTable());
+        List<SelectableBean<ObjectType>> selected = WebMiscUtil.getSelectedData(getListTable());
         if (selected.isEmpty()) {
             warn(getString("pageDebugList.message.nothingSelected"));
             target.add(getFeedbackPanel());
             return;
         }
-        
-    	ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
-    	deleteSelected = true;
-    	this.choice = choice;
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        deleteSelected = true;
+        this.choice = choice;
         dialog.show(target);
     }
 
-    private void deleteObjectPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice, ObjectType object) {
-    	ModalWindow dialog = (ModalWindow) get("confirmDeletePopup");
-    	this.choice = choice;
-    	this.object = object;
+    private void deleteObjectPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice, DebugObjectItem object) {
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        this.choice = choice;
+        this.object = object;
         dialog.show(target);
     }
-    
+
     private void createXmlForDownload(File file, OperationResult result) {
-    	OutputStreamWriter stream = null;
-		try {
-			LOGGER.trace("creating xml file {}", file.getName());
-			stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
+        OutputStreamWriter stream = null;
+        try {
+            LOGGER.trace("creating xml file {}", file.getName());
+            stream = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
             List<PrismObject> objects = getExportedObjects();
             String stringObject;
             stream.write(createHeaderForXml());
@@ -539,15 +575,15 @@ public class PageDebugList extends PageAdminConfiguration {
                 }
             }
             stream.write("</objects>");
-			LOGGER.debug("created xml file {}", file.getName());
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't create xml file", ex);
-			result.recordFatalError("Couldn't create xml file", ex);
-		}
-		
-		if (stream != null) {
-			IOUtils.closeQuietly(stream);
-		}
+            LOGGER.debug("created xml file {}", file.getName());
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't create xml file", ex);
+            result.recordFatalError("Couldn't create xml file", ex);
+        }
+
+        if (stream != null) {
+            IOUtils.closeQuietly(stream);
+        }
     }
 
     private List<PrismObject> getExportedObjects() {
@@ -581,16 +617,16 @@ public class PageDebugList extends PageAdminConfiguration {
 
         return objects != null ? objects : new ArrayList<PrismObject>();
     }
-    
+
     private File createZipForDownload(File file, File folder, String suffix, OperationResult result) {
-		File zipFile = new File(folder, "ExportedData_" + suffix + ".zip");
-		OutputStreamWriter stream = null;
-		ZipOutputStream out = null;
-		try {
-			LOGGER.trace("adding file {} to zip archive", file.getName());
-			out = new ZipOutputStream(new FileOutputStream(zipFile));
-			final ZipEntry entry = new ZipEntry(file.getName());
-			List<PrismObject> objects = getExportedObjects();
+        File zipFile = new File(folder, "ExportedData_" + suffix + ".zip");
+        OutputStreamWriter stream = null;
+        ZipOutputStream out = null;
+        try {
+            LOGGER.trace("adding file {} to zip archive", file.getName());
+            out = new ZipOutputStream(new FileOutputStream(zipFile));
+            final ZipEntry entry = new ZipEntry(file.getName());
+            List<PrismObject> objects = getExportedObjects();
 
             String stringObject;
             //FIXME: could cause problem with unzip in java when size is not set, however it is not our case
@@ -611,27 +647,27 @@ public class PageDebugList extends PageAdminConfiguration {
             }
             out.write("</objects>".getBytes());
             stream = new OutputStreamWriter(out, "utf-8");        //todo wtf?
-			LOGGER.debug("added file {} to zip archive", file.getName());
-		} catch (IOException ex) {
-			LoggingUtils.logException(LOGGER, "Failed to write to stream.", ex);
-			result.recordFatalError("Failed to write to stream.", ex);
-		} finally {
+            LOGGER.debug("added file {} to zip archive", file.getName());
+        } catch (IOException ex) {
+            LoggingUtils.logException(LOGGER, "Failed to write to stream.", ex);
+            result.recordFatalError("Failed to write to stream.", ex);
+        } finally {
             //todo wtf? check on stream != null, than using out
-			if (null != stream) {
-				try {
-					out.finish();
-					out.closeEntry();
-					out.close();
-					stream.close();
-				} catch (final IOException ex) {
-					LoggingUtils.logException(LOGGER, "Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
-					result.recordFatalError("Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
-				}
-			}
-		}
-		return zipFile;
-	}
-    
+            if (null != stream) {
+                try {
+                    out.finish();
+                    out.closeEntry();
+                    out.close();
+                    stream.close();
+                } catch (final IOException ex) {
+                    LoggingUtils.logException(LOGGER, "Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
+                    result.recordFatalError("Failed to pack file '" + file + "' to zip archive '" + out + "'", ex);
+                }
+            }
+        }
+        return zipFile;
+    }
+
     private String createHeaderForXml() {
         StringBuilder builder = new StringBuilder();
         builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -640,5 +676,5 @@ public class PageDebugList extends PageAdminConfiguration {
         builder.append("\txmlns:org='").append(SchemaConstants.NS_ORG).append("'>\n");
 
         return builder.toString();
-	}
+    }
 }

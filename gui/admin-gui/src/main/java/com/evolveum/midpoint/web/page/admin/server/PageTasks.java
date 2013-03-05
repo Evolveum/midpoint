@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -52,8 +50,6 @@ import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,7 +71,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -110,8 +105,7 @@ public class PageTasks extends PageAdminTasks {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageTasks.optionsTitle"),
-        		getPage(), true);
+        OptionPanel option = new OptionPanel("option", createStringResource("pageTasks.optionsTitle"), true);
         mainForm.add(option);
 
         OptionItem diagnostics = new OptionItem("diagnostics", createStringResource("pageTasks.diagnostics"));
@@ -170,13 +164,13 @@ public class PageTasks extends PageAdminTasks {
         listSelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
         categorySelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel()));
 
-        List<IColumn<TaskDto>> taskColumns = initTaskColumns();
+        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
         TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>("taskTable", new TaskDtoProvider(PageTasks.this),
                 taskColumns);
         taskTable.setOutputMarkupId(true);
         content.getBodyContainer().add(taskTable);
 
-        List<IColumn<NodeDto>> nodeColumns = initNodeColumns();
+        List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
         TablePanel nodeTable = new TablePanel<NodeDto>("nodeTable", new NodeDtoProvider(PageTasks.this), nodeColumns);
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
@@ -198,8 +192,8 @@ public class PageTasks extends PageAdminTasks {
         };
     }
 
-    private List<IColumn<NodeDto>> initNodeColumns() {
-        List<IColumn<NodeDto>> columns = new ArrayList<IColumn<NodeDto>>();
+    private List<IColumn<NodeDto, String>> initNodeColumns() {
+        List<IColumn<NodeDto, String>> columns = new ArrayList<IColumn<NodeDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<NodeDto>();
         columns.add(column);
@@ -231,7 +225,7 @@ public class PageTasks extends PageAdminTasks {
 //        columns.add(new PropertyColumn(createStringResource("pageTasks.node.nodeIdentifier"), "nodeIdentifier"));
 
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.managementPort"), "managementPort"));
-        columns.add(new AbstractColumn<NodeDto>(createStringResource("pageTasks.node.lastCheckInTime")) {
+        columns.add(new AbstractColumn<NodeDto, String>(createStringResource("pageTasks.node.lastCheckInTime")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<NodeDto>> item, String componentId,
@@ -253,8 +247,8 @@ public class PageTasks extends PageAdminTasks {
         return columns;
     }
 
-    private List<IColumn<TaskDto>> initTaskColumns() {
-        List<IColumn<TaskDto>> columns = new ArrayList<IColumn<TaskDto>>();
+    private List<IColumn<TaskDto, String>> initTaskColumns() {
+        List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
@@ -270,7 +264,7 @@ public class PageTasks extends PageAdminTasks {
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.category")) {
+        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.category")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
@@ -285,7 +279,7 @@ public class PageTasks extends PageAdminTasks {
             }
         });
 
-        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.objectRef")) {
+        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.objectRef")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
@@ -306,8 +300,8 @@ public class PageTasks extends PageAdminTasks {
                 return createStringResource(en).getString();
             }
         });
-        columns.add(new PropertyColumn<TaskDto>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
-        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.currentRunTime")) {
+        columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
+        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
@@ -321,7 +315,7 @@ public class PageTasks extends PageAdminTasks {
                 }));
             }
         });
-        columns.add(new AbstractColumn<TaskDto>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,

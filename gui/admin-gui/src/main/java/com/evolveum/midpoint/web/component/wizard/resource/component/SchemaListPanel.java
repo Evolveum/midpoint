@@ -84,7 +84,7 @@ public class SchemaListPanel extends SimplePanel<ResourceType> {
         }
 
         try {
-            ResourceSchema schema = ResourceSchema.parse(xsdSchema, resource.toString(), getBasePage().getPrismContext());
+            ResourceSchema schema = ResourceSchema.parse(xsdSchema, resource.toString(), getPageBase().getPrismContext());
             for (ObjectClassComplexTypeDefinition def : schema.getObjectClassDefinitions()) {
                 classes.add(new ObjectClassDto(def));
             }

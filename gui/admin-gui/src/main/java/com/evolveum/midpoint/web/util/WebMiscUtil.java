@@ -72,6 +72,18 @@ public final class WebMiscUtil {
     private WebMiscUtil() {
     }
 
+    public static Integer safeLongToInteger(Long l) {
+        if (l == null) {
+            return null;
+        }
+
+        if (l > Integer.MAX_VALUE || l < Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Couldn't transform long '" + l + "' to int, too big or too small.");
+        }
+
+        return (int) l.longValue();
+    }
+
     public static <T extends Enum> IModel<String> createLocalizedModelForEnum(T value, Component comp) {
         String key = value != null ? value.getClass().getSimpleName() + "." + value.name() : "";
         return new StringResourceModel(key, comp, null);

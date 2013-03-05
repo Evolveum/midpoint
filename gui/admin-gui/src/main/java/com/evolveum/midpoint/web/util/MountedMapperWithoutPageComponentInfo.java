@@ -21,11 +21,11 @@
 
 package com.evolveum.midpoint.web.util;
 
+import org.apache.wicket.core.request.handler.ListenerInterfaceRequestHandler;
+import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.component.IRequestablePage;
-import org.apache.wicket.request.handler.ListenerInterfaceRequestHandler;
-import org.apache.wicket.request.mapper.MountedMapper;
 import org.apache.wicket.request.mapper.info.PageComponentInfo;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 
@@ -35,7 +35,8 @@ import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 public class MountedMapperWithoutPageComponentInfo extends MountedMapper {
 
     public MountedMapperWithoutPageComponentInfo(String mountPath,
-            Class<? extends IRequestablePage> pageClass, IPageParametersEncoder encoder) {
+                                                 Class<? extends IRequestablePage> pageClass,
+                                                 IPageParametersEncoder encoder) {
 
         super(mountPath, pageClass, encoder);
     }

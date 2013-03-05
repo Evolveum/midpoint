@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.Validate;
@@ -56,7 +57,7 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
     }
 
     @Override
-    public Iterator<SelectableBean<ResourceType>> iterator(int first, int count) {
+    public Iterator<SelectableBean<ResourceType>> iterator(long first, long count) {
         getAvailableData().clear();
 
         Set<String> alreadyUsedResources = createUsedResourceOidSet();
@@ -71,8 +72,8 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
             allData.add(bean);
         }
 
-        for (int i = first; (i < first + count) && (allData.size() > i); i++) {
-            getAvailableData().add(allData.get(i));
+        for (long i = first; (i < first + count) && (allData.size() > i); i++) {
+            getAvailableData().add(allData.get(WebMiscUtil.safeLongToInteger(i)));
         }
 
         return getAvailableData().iterator();
@@ -102,10 +103,10 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
 
     @Override
     protected int internalSize() {
-        int count = resourceProvider.size();
+        long count = resourceProvider.size();
         Set<String> alreadyUsedResources = createUsedResourceOidSet();
         count -= alreadyUsedResources.size();
 
-        return count;
+        return WebMiscUtil.safeLongToInteger(count);
     }
 }

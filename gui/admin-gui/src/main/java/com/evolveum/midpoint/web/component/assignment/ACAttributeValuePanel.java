@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -53,7 +54,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
+public class ACAttributeValuePanel extends SimplePanel<ACValueConstructionDto> {
 
     private static final String ID_INPUT = "input";
     private static final String ID_ADD = "add";

@@ -28,20 +28,24 @@ import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.*;
 
+import java.util.List;
+
 /**
  * @author lazyman
  */
 public class PageUsersEncoder implements IPageParametersEncoder {
 
     @Override
-    public PageParameters decodePageParameters(Request request) {
+    public PageParameters decodePageParameters(Url url) {
         PageParameters parameters = new PageParameters();
 
-        IRequestParameters queryParams = request.getQueryParameters();
-        for (String name : queryParams.getParameterNames()) {
-            StringValue value = queryParams.getParameterValue(name);
+        List<Url.QueryParameter> queryParams = url.getQueryParameters();
+        for (Url.QueryParameter param : queryParams) {
+            if (param.getValue() == null) {
+                continue;
+            }
 
-            parameters.add(name, value.toString());
+            parameters.add(param.getName(), param.getValue());
         }
 
         return parameters.isEmpty() ? null : parameters;

@@ -36,7 +36,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable> {
+public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable, String> {
 
     private String propertyExpression;
     private IModel<Boolean> enabled = new Model<Boolean>(true);

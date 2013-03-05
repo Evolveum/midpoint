@@ -21,25 +21,6 @@
 
 package com.evolveum.midpoint.web.security;
 
-import java.io.File;
-import java.io.FilenameFilter;
-
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
-import com.evolveum.midpoint.web.page.admin.users.PageUserPreview;
-import org.apache.commons.configuration.Configuration;
-import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.request.mapper.MountedMapper;
-import org.apache.wicket.request.resource.SharedResourceReference;
-import org.apache.wicket.settings.IResourceSettings;
-import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -48,16 +29,15 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-import com.evolveum.midpoint.web.page.admin.configuration.PageLogging;
-import com.evolveum.midpoint.web.page.admin.configuration.PageTestRepository;
+import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 import com.evolveum.midpoint.web.page.admin.help.PageSystem;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
@@ -69,13 +49,9 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUserPreview;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -83,6 +59,21 @@ import com.evolveum.midpoint.web.resource.js.JsResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.WorkflowManager;
+import org.apache.commons.configuration.Configuration;
+import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.markup.head.PriorityFirstComparator;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.settings.IResourceSettings;
+import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * @author lazyman
@@ -106,7 +97,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient Protector protector;
     private WebApplicationConfiguration webApplicationConfiguration;
 
-
     @Override
     public Class<PageHome> getHomePage() {
         return PageHome.class;
@@ -119,6 +109,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
         IResourceSettings resourceSettings = getResourceSettings();
+        resourceSettings.setHeaderItemComparator(new PriorityFirstComparator(true));
+
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
 
@@ -138,7 +130,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         mount(new MountedMapper("/admin", PageHome.class, encoder));
         mount(new MountedMapper("/admin/home", PageHome.class, encoder));    //todo remove
-        //todo dashboard and myPasswords is not finished yet
         mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
         mount(new MountedMapper("/admin/myPasswords", PageMyPasswords.class, encoder));
 
@@ -158,8 +149,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/roles", PageRoles.class, encoder));
 
         mount(new MountedMapper("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID)));
-        //todo resource wizard is not finished
-        mount(new MountedMapper("/admin/resourceEdit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
+        mount(new MountedMapper("/admin/resourceWizard", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID)));
         mount(new MountedMapper("/admin/resources", PageResources.class, encoder));
         mount(new MountedMapper("/admin/resources/account", PageAccount.class, new OnePageParameterEncoder(PageAccount.PARAM_ACCOUNT_ID)));
         mount(new MountedMapper("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID)));
@@ -178,6 +168,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/config/import", PageImportObject.class, encoder));
         mount(new MountedMapper("/admin/config/logging", PageLogging.class, encoder));
         mount(new MountedMapper("/admin/config/repoTest", PageTestRepository.class, encoder));
+        mount(new MountedMapper("/admin/config/system", PageSystemConfiguration.class, encoder));
+        mount(new MountedMapper("/admin/config/test", PageTest.class, encoder));
 
         mount(new MountedMapper("/admin/reports", PageReports.class, encoder));
 

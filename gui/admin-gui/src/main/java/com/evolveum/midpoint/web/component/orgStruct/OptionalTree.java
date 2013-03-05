@@ -24,7 +24,8 @@ import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IDetachable;
@@ -32,7 +33,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 
-import wickettree.theme.HumanTheme;
 import wickettree.theme.WindowsTheme;
 import wickettree.util.ProviderSubset;
 
@@ -52,9 +52,10 @@ abstract class OptionalTree extends Panel{
 		this.state = new ProviderSubset<NodeDto>(provider);
 		tree = createTree(provider, newStateModel());
 		tree.add(new Behavior() {
+
 			@Override
 			public void renderHead(Component component, IHeaderResponse response) {
-				response.renderCSSReference(new WindowsTheme());
+				response.render(CssHeaderItem.forReference(new WindowsTheme()));
 			}
 		});
 		content = new BookmarkableFolderContent();

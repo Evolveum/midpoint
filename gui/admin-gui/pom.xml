@@ -86,7 +86,7 @@
                     <include>**/*.properties</include>
                 </includes>
             </testResource>
-        </testResources>        
+        </testResources>
     </build>
     <repositories>
         <repository> 
@@ -101,6 +101,39 @@
         </repository>
     </repositories>
     <dependencies>
+        <!-- WRO4J-->
+        <dependency>
+            <groupId>ro.isdc.wro4j</groupId>
+            <artifactId>wro4j-core</artifactId>
+            <version>1.6.2</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ro.isdc.wro4j</groupId>
+            <artifactId>wro4j-extensions</artifactId>
+            <version>1.6.2</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>1.7R4</version>
+        </dependency>
+
         <!-- MIDPOINT LOCALIZATION -->
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>

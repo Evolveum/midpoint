@@ -29,7 +29,8 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -71,7 +72,9 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.renderCSSReference(new PackageResourceReference(DashboardPanel.class, "DashboardPanel.css"));
+
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(DashboardPanel.class, "DashboardPanel.css")));
     }
 
     private void initLayout(IModel<String> titleModel) {
@@ -226,11 +229,11 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
         WebMarkupContainer dashboardContent = (WebMarkupContainer) get(ID_DASHBOARD_CONTENT);
         if (dashboard.isReloadTimeout()) {
             dashboardContent.replace(new Label(ID_CONTENT, createStringResource("DashboardPanel.timeout")));
-            behavior.stop();
+            behavior.stop(target);
             target.add(DashboardPanel.this);
         } else if (dashboard.isLoaded()) {
             dashboardContent.replace(getLazyLoadComponent(ID_CONTENT));
-            behavior.stop();
+            behavior.stop(target);
             target.add(DashboardPanel.this);
         }
     }

@@ -74,7 +74,7 @@ public class PageRoles extends PageAdminRoles {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<IColumn<RoleType>> columns = new ArrayList<IColumn<RoleType>>();
+        List<IColumn<RoleType, String>> columns = new ArrayList<IColumn<RoleType, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<RoleType>();
         columns.add(column);

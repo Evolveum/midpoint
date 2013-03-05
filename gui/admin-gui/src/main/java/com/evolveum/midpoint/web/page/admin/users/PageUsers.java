@@ -34,7 +34,6 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -75,11 +75,9 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
-import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -89,15 +87,6 @@ import java.util.List;
  * @author lazyman
  */
 public class PageUsers extends PageAdminUsers {
-
-    public static final IPageParametersEncoder ENCODER = new PageUsersEncoder();
-    public static final String PARAM_SEARCH_TEXT = "searchText";
-    public static final String PARAM_NAME = "name";
-    public static final String PARAM_FULL_NAME = "fullName";
-    public static final String PARAM_GIVEN_NAME = "givenName";
-    public static final String PARAM_FAMILY_NAME = "familyName";
-    public static final String PARAM_FROM = "from";
-    public static final String PARAM_USERS_RETURN = "users";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";
@@ -116,27 +105,15 @@ public class PageUsers extends PageAdminUsers {
     private boolean forceAction = false;
 
     public PageUsers() {
-        this(null);
-    }
-
-    public PageUsers(final PageParameters parameters) {
         model = new LoadableModel<UsersDto>(false) {
 
             @Override
-            protected UsersDto load() {
-                //todo improve page parameters loading, generalise this so it can be used on other pages
-                PageParameters params = parameters != null ? parameters : PageUsers.this.getPageParameters();
-                if (params == null) {
-                    return new UsersDto();
+            public UsersDto load() {
+                UsersStorage storage = getSessionStorage().getUsers();
+                UsersDto dto = storage.getUsersSearch();
+                if (dto == null) {
+                    dto = new UsersDto();
                 }
-
-                UsersDto dto = new UsersDto();
-                dto.setSearchText(getPageParamString(params, PARAM_SEARCH_TEXT));
-                dto.setName(getPageParamBoolean(params, PARAM_NAME, true));
-                dto.setFamilyName(getPageParamBoolean(params, PARAM_FAMILY_NAME));
-                dto.setGivenName(getPageParamBoolean(params, PARAM_GIVEN_NAME));
-                dto.setFullName(getPageParamBoolean(params, PARAM_FULL_NAME));
-                dto.setPageFrom(getPageParamInt(params, PARAM_FROM));
 
                 return dto;
             }
@@ -144,31 +121,11 @@ public class PageUsers extends PageAdminUsers {
         initLayout();
     }
 
-    private int getPageParamInt(PageParameters params, String name) {
-        StringValue value = params.get(name);
-        return value != null ? value.toInt(0) : 0;
-    }
-
-    private boolean getPageParamBoolean(PageParameters params, String name) {
-        return getPageParamBoolean(params, name, false);
-    }
-
-    private boolean getPageParamBoolean(PageParameters params, String name, boolean def) {
-        StringValue value = params.get(name);
-        return value != null ? value.toBoolean(def) : def;
-    }
-
-    private String getPageParamString(PageParameters params, String name) {
-        StringValue value = params.get(name);
-        return value != null ? value.toString(null) : null;
-    }
-
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"),
-                getPage(), false);
+        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"), false);
         option.setOutputMarkupId(true);
         mainForm.add(option);
 
@@ -270,8 +227,9 @@ public class PageUsers extends PageAdminUsers {
         };
     }
 
-    private List<IColumn<SelectableBean<UserType>>> initColumns() {
-        List<IColumn<SelectableBean<UserType>>> columns = new ArrayList<IColumn<SelectableBean<UserType>>>();
+    private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
+        List<IColumn<SelectableBean<UserType>, String>> columns =
+                new ArrayList<IColumn<SelectableBean<UserType>, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<UserType>();
         columns.add(column);
@@ -324,7 +282,7 @@ public class PageUsers extends PageAdminUsers {
                 "value.fullName.orig");
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<UserType>>(createStringResource("pageUsers.email")) {
+        column = new AbstractColumn<SelectableBean<UserType>, String>(createStringResource("pageUsers.email")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
@@ -340,7 +298,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initTable(OptionContent content) {
-        List<IColumn<SelectableBean<UserType>>> columns = initColumns();
+        List<IColumn<SelectableBean<UserType>, String>> columns = initColumns();
 
         ObjectDataProvider<UserType> provider = new ObjectDataProvider(PageUsers.this, UserType.class);
         provider.setQuery(createQuery());
@@ -420,6 +378,9 @@ public class PageUsers extends PageAdminUsers {
 
         table.setCurrentPage(model.getObject().getPageFrom());
 
+        UsersStorage storage = getSessionStorage().getUsers();
+        storage.setUsersSearch(model.getObject());
+
         target.add(panel);
     }
 
@@ -472,7 +433,11 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
+        UsersStorage storage = getSessionStorage().getUsers();
+        storage.setUsersSearch(null);
+
         model.reset();
+
         target.appendJavaScript("init()");
         target.add(get("mainForm:option"));
         searchPerformed(target);
@@ -495,7 +460,7 @@ public class PageUsers extends PageAdminUsers {
         }
         // When delete one user -> submit page
         if (users.size() == 1) {
-        	Task task = createSimpleTask(PageUsers.class.getName() + "sendToSubmit");
+            Task task = createSimpleTask(PageUsers.class.getName() + "sendToSubmit");
             OperationResult result = task.getResult();
             SelectableBean<UserType> bean = users.get(0);
 
@@ -508,11 +473,11 @@ public class PageUsers extends PageAdminUsers {
                 delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
                 deltas.add(delta);
                 ModelExecuteOptions options = null;
-                if (forceAction){
-            		options = ModelExecuteOptions.createForce();
+                if (forceAction) {
+                    options = ModelExecuteOptions.createForce();
                 }
                 changes = getModelInteractionService().previewChanges(deltas, options, task, result);
-            }	catch (Exception ex) {
+            } catch (Exception ex) {
                 result.recordFatalError("Couldn't send user to submit.", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't submit user", ex);
             }
@@ -602,7 +567,6 @@ public class PageUsers extends PageAdminUsers {
                 ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(), path, getPrismContext(), enabling);
 //				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 //				objectDelta.addModification(delta);
-
 
                 ModelExecuteOptions options = new ModelExecuteOptions();
                 options.setForce(forceAction);

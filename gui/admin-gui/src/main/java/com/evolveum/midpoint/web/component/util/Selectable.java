@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class Selectable<T extends Serializable> implements Serializable {
+public class Selectable implements Serializable {
 
     public static final String F_SELECTED = "selected";
 

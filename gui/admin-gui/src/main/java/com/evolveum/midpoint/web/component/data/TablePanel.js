@@ -40,7 +40,8 @@ function initTable(){
 		      'border-color' : '#FFFFFF'
 		    };
 	
-	
+//TODO colors and other css properties must be in LESS file (for later configuration)
+
 	$(".sortedTable table tbody tr").click(function(){
 		if($(this).find(".tableCheckbox").find("input[type='checkbox']").is(":checked")){
 			$(this).find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
@@ -77,7 +78,7 @@ function initTable(){
 //		}
 //	});
 	
-	
+
 	$(document).find(".sortedTable .secondaryValue").each(function(){
 		$(this).parents("tr:first").find("td").css(cssSecondaryValue);
 	});

@@ -42,22 +42,28 @@ import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -78,12 +84,32 @@ public abstract class PageBase extends WebPage {
     @SpringBean(name = "workflowManager")
     private WorkflowManager workflowManager;
 
+    //atmosphere sample
+    private static ArrayList<String> atmList = new ArrayList<String>() {
+
+        @Override
+        public boolean add(String s) {
+            super.add(s);
+            while (size() > 10) {
+                super.remove(0);
+            }
+            return true;
+        }
+    };
+
     public PageBase() {
         Injector.get().inject(this);
         validateInjection(modelService, "Model service was not injected.");
         validateInjection(taskManager, "Task manager was not injected.");
         initLayout();
+    }
 
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        //this attaches jquery.js as first header item, which is used in our scripts.
+        CoreLibrariesContributor.contribute(getApplication(), response);
     }
 
     @Override
@@ -151,6 +177,11 @@ public abstract class PageBase extends WebPage {
         }
     }
 
+    public SessionStorage getSessionStorage() {
+        MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
+        return session.getSessionStorage();
+    }
+
     public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
@@ -188,10 +219,10 @@ public abstract class PageBase extends WebPage {
     protected ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
-    
+
     protected ModelDiagnosticService getModelDiagnosticService() {
-		return modelDiagnosticService;
-	}
+        return modelDiagnosticService;
+    }
 
     public String getString(String resourceKey, Object... objects) {
         return createStringResource(resourceKey, objects).getString();
@@ -273,6 +304,10 @@ public abstract class PageBase extends WebPage {
                     warn(opResult);
                 }
         }
+    }
+
+    protected String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
     }
 
     /**

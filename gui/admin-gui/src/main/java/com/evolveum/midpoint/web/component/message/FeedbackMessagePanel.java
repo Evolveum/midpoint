@@ -21,21 +21,12 @@
 
 package com.evolveum.midpoint.web.component.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
-import org.apache.wicket.feedback.FeedbackMessagesModel;
-import org.apache.wicket.feedback.IFeedbackMessageFilter;
-import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
@@ -43,149 +34,144 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.resource.CssResourceReference;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.file.Files;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public class FeedbackMessagePanel extends Panel {
-	
-	private String xml = null;
 
-	public FeedbackMessagePanel(String id, IModel<FeedbackMessage> message) {
-		super(id);
+    private String xml = null;
 
-		initLayout(message);
-	}
+    public FeedbackMessagePanel(String id, IModel<FeedbackMessage> message) {
+        super(id);
 
-	private void initLayout(final IModel<FeedbackMessage> message) {
-		WebMarkupContainer messageContainer = new WebMarkupContainer("messageContainer");
-		messageContainer.setOutputMarkupId(true);
-		messageContainer.add(new AttributeAppender("class", new LoadableModel<String>() {
-			@Override
-			protected String load() {
-				return getLabelCss(message);
-			}
-		}, " "));
-		messageContainer.add(new AttributeModifier("title", new LoadableModel<String>() {
+        initLayout(message);
+    }
 
-			@Override
-			protected String load() {
-				return getString("feedbackMessagePanel.message." + createMessageTooltip(message));
-			}
-		}));
-		add(messageContainer);
-		Label label = new Label("message", new LoadableModel<String>(false) {
+    private void initLayout(final IModel<FeedbackMessage> message) {
+        WebMarkupContainer messageContainer = new WebMarkupContainer("messageContainer");
+        messageContainer.setOutputMarkupId(true);
+        messageContainer.add(new AttributeAppender("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return getLabelCss(message);
+            }
+        }, " "));
+        messageContainer.add(new AttributeModifier("title", new LoadableModel<String>() {
 
-			@Override
-			protected String load() {
-				return getTopMessage(message);
-			}
-		});
-		messageContainer.add(label);
-		WebMarkupContainer topExceptionContainer = new WebMarkupContainer("topExceptionContainer");
-		messageContainer.add(topExceptionContainer);
-		WebMarkupContainer content = new WebMarkupContainer("content");
-		if (message.getObject().getMessage() instanceof OpResult) {
+            @Override
+            protected String load() {
+                return getString("feedbackMessagePanel.message." + createMessageTooltip(message));
+            }
+        }));
+        add(messageContainer);
+        Label label = new Label("message", new LoadableModel<String>(false) {
 
-			OpResult result = (OpResult) message.getObject().getMessage();
-			xml = result.getXml();
-			export(content, new Model<String>(xml));
+            @Override
+            protected String load() {
+                return getTopMessage(message);
+            }
+        });
+        messageContainer.add(label);
+        WebMarkupContainer topExceptionContainer = new WebMarkupContainer("topExceptionContainer");
+        messageContainer.add(topExceptionContainer);
+        WebMarkupContainer content = new WebMarkupContainer("content");
+        if (message.getObject().getMessage() instanceof OpResult) {
 
-			ListView<OpResult> subresults = new ListView<OpResult>("subresults",
-					createSubresultsModel(message)) {
+            OpResult result = (OpResult) message.getObject().getMessage();
+            xml = result.getXml();
+            export(content, new Model<String>(xml));
 
-				@Override
-				protected void populateItem(final ListItem<OpResult> item) {
-					item.add(new AttributeAppender("class", OperationResultPanel.createMessageLiClass(item
-							.getModel()), " "));
-					item.add(new AttributeModifier("title", new LoadableModel<String>() {
+            ListView<OpResult> subresults = new ListView<OpResult>("subresults",
+                    createSubresultsModel(message)) {
 
-						@Override
-						protected String load() {
-							return getString("feedbackMessagePanel.message."
-									+ OperationResultPanel.createMessageTooltip(item.getModel()).getObject());
-						}
-					}));
-					item.add(new OperationResultPanel("subresult", item.getModel()));
-				}
-			};
-			content.add(subresults);
-			content.add(new AttributeAppender("class", new LoadableModel<String>(false) {
+                @Override
+                protected void populateItem(final ListItem<OpResult> item) {
+                    item.add(new AttributeAppender("class", OperationResultPanel.createMessageLiClass(item
+                            .getModel()), " "));
+                    item.add(new AttributeModifier("title", new LoadableModel<String>() {
 
-				@Override
-				protected String load() {
-					return getDetailsCss(new PropertyModel<OpResult>(message, "message"));
-				}
-			}, " "));
-		} else {
-			content.setVisible(false);
-			topExceptionContainer.setVisibilityAllowed(false);
-		}
-		content.setMarkupId(messageContainer.getMarkupId() + "_content");
-		add(content);
+                        @Override
+                        protected String load() {
+                            return getString("feedbackMessagePanel.message."
+                                    + OperationResultPanel.createMessageTooltip(item.getModel()).getObject());
+                        }
+                    }));
+                    item.add(new OperationResultPanel("subresult", item.getModel()));
+                }
+            };
+            content.add(subresults);
+            content.add(new AttributeAppender("class", new LoadableModel<String>(false) {
 
-		WebMarkupContainer operationPanel = new WebMarkupContainer("operationPanel");
-		topExceptionContainer.add(operationPanel);
+                @Override
+                protected String load() {
+                    return getDetailsCss(new PropertyModel<OpResult>(message, "message"));
+                }
+            }, " "));
+        } else {
+            content.setVisible(false);
+            topExceptionContainer.setVisibilityAllowed(false);
+        }
+        content.setMarkupId(messageContainer.getMarkupId() + "_content");
+        add(content);
 
-		operationPanel.add(new Label("operation", new LoadableModel<String>() {
+        WebMarkupContainer operationPanel = new WebMarkupContainer("operationPanel");
+        topExceptionContainer.add(operationPanel);
 
-			@Override
-			protected String load() {
-				OpResult result = (OpResult) message.getObject().getMessage();
+        operationPanel.add(new Label("operation", new LoadableModel<String>() {
 
-				String resourceKey = OperationResultPanel.OPERATION_RESOURCE_KEY_PREFIX
-						+ result.getOperation();
-				return getPage().getString(resourceKey, null, resourceKey);
-			}
-		}));
+            @Override
+            protected String load() {
+                OpResult result = (OpResult) message.getObject().getMessage();
 
-		WebMarkupContainer countPanel = new WebMarkupContainer("countPanel");
-		countPanel.add(new VisibleEnableBehaviour() {
+                String resourceKey = OperationResultPanel.OPERATION_RESOURCE_KEY_PREFIX
+                        + result.getOperation();
+                return getPage().getString(resourceKey, null, resourceKey);
+            }
+        }));
 
-			@Override
-			public boolean isVisible() {
-				OpResult result = (OpResult) message.getObject().getMessage();
-				return result.getCount() > 1;
-			}
-		});
-		countPanel.add(new Label("count", new PropertyModel<String>(message, "message.count")));
-		operationPanel.add(countPanel);
+        WebMarkupContainer countPanel = new WebMarkupContainer("countPanel");
+        countPanel.add(new VisibleEnableBehaviour() {
 
-		ListView<Param> params = new ListView<Param>("params",
-				OperationResultPanel.createParamsModel(new PropertyModel<OpResult>(message, "message"))) {
+            @Override
+            public boolean isVisible() {
+                OpResult result = (OpResult) message.getObject().getMessage();
+                return result.getCount() > 1;
+            }
+        });
+        countPanel.add(new Label("count", new PropertyModel<String>(message, "message.count")));
+        operationPanel.add(countPanel);
 
-			@Override
-			protected void populateItem(ListItem<Param> item) {
-				item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
-				item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
-			}
-		};
-		topExceptionContainer.add(params);
+        ListView<Param> params = new ListView<Param>("params",
+                OperationResultPanel.createParamsModel(new PropertyModel<OpResult>(message, "message"))) {
 
-		ListView<Context> contexts = new ListView<Context>("contexts",
-				OperationResultPanel.createContextsModel(new PropertyModel<OpResult>(message, "message"))) {
-			@Override
-			protected void populateItem(ListItem<Context> item) {
-				item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));
-				item.add(new Label("contextValue", new PropertyModel<Object>(item.getModel(), "value")));
-			}
-		};
-		topExceptionContainer.add(contexts);
+            @Override
+            protected void populateItem(ListItem<Param> item) {
+                item.add(new Label("paramName", new PropertyModel<Object>(item.getModel(), "name")));
+                item.add(new Label("paramValue", new PropertyModel<Object>(item.getModel(), "value")));
+            }
+        };
+        topExceptionContainer.add(params);
+
+        ListView<Context> contexts = new ListView<Context>("contexts",
+                OperationResultPanel.createContextsModel(new PropertyModel<OpResult>(message, "message"))) {
+            @Override
+            protected void populateItem(ListItem<Context> item) {
+                item.add(new Label("contextName", new PropertyModel<Object>(item.getModel(), "name")));
+                item.add(new Label("contextValue", new PropertyModel<Object>(item.getModel(), "value")));
+            }
+        };
+        topExceptionContainer.add(contexts);
 
 		/*
-		 * WebMarkupContainer countLi = new WebMarkupContainer("countLi");
+         * WebMarkupContainer countLi = new WebMarkupContainer("countLi");
 		 * countLi.add(new VisibleEnableBehaviour() {
 		 * 
 		 * @Override public boolean isVisible() { OpResult result = (OpResult)
@@ -194,217 +180,217 @@ public class FeedbackMessagePanel extends Panel {
 		 * PropertyModel<String>(message, "message.count")));
 		 */
 
-		initExceptionLayout(content, topExceptionContainer, message);
+        initExceptionLayout(content, topExceptionContainer, message);
 
-		content.add(new Label("collapseAll", new LoadableModel<String>() {
+        content.add(new Label("collapseAll", new LoadableModel<String>() {
 
-			@Override
-			protected String load() {
-				return getString("feedbackMessagePanel.collapseAll");
-			}
-		}));
-		content.add(new Label("expandAll", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return getString("feedbackMessagePanel.collapseAll");
+            }
+        }));
+        content.add(new Label("expandAll", new LoadableModel<String>() {
 
-			@Override
-			protected String load() {
-				return getString("feedbackMessagePanel.expandAll");
-			}
-		}));
-	}
-	
-	private IModel<String> getXml() {
-		return new LoadableModel<String>(){
-			@Override
-			protected String load() {
-				return xml;
-			}
-		};
-	}
+            @Override
+            protected String load() {
+                return getString("feedbackMessagePanel.expandAll");
+            }
+        }));
+    }
 
-	private void initExceptionLayout(WebMarkupContainer content, WebMarkupContainer topExceptionContainer,
-			final IModel<FeedbackMessage> message) {
-		WebMarkupContainer exception = new WebMarkupContainer("exception") {
+    private IModel<String> getXml() {
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return xml;
+            }
+        };
+    }
 
-			@Override
-			public boolean isVisible() {
-				return isExceptionVisible(message);
-			}
-		};
-		topExceptionContainer.add(exception);
-		exception.add(new MultiLineLabel("exceptionMessage", new PropertyModel<String>(message,
-				"message.exceptionMessage")));
+    private void initExceptionLayout(WebMarkupContainer content, WebMarkupContainer topExceptionContainer,
+                                     final IModel<FeedbackMessage> message) {
+        WebMarkupContainer exception = new WebMarkupContainer("exception") {
 
-		WebMarkupContainer errorStackContainer = new WebMarkupContainer("errorStackContainer") {
-			@Override
-			public boolean isVisible() {
-				return isExceptionVisible(message);
-			}
-		};
-		content.add(errorStackContainer);
+            @Override
+            public boolean isVisible() {
+                return isExceptionVisible(message);
+            }
+        };
+        topExceptionContainer.add(exception);
+        exception.add(new MultiLineLabel("exceptionMessage", new PropertyModel<String>(message,
+                "message.exceptionMessage")));
 
-		WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
-		errorStack.setOutputMarkupId(true);
-		errorStackContainer.add(errorStack);
+        WebMarkupContainer errorStackContainer = new WebMarkupContainer("errorStackContainer") {
+            @Override
+            public boolean isVisible() {
+                return isExceptionVisible(message);
+            }
+        };
+        content.add(errorStackContainer);
 
-		// export(errorStackContainer, new PropertyModel<String>(message,
-		// "message.exceptionsStackTrace"));
+        WebMarkupContainer errorStack = new WebMarkupContainer("errorStack");
+        errorStack.setOutputMarkupId(true);
+        errorStackContainer.add(errorStack);
 
-		WebMarkupContainer errorStackContent = new WebMarkupContainer("errorStackContent");
-		errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
-		errorStackContainer.add(errorStackContent);
+        // export(errorStackContainer, new PropertyModel<String>(message,
+        // "message.exceptionsStackTrace"));
 
-		errorStackContent.add(new MultiLineLabel("exceptionStack", new PropertyModel<String>(message,
-				"message.exceptionsStackTrace")));
-	}
+        WebMarkupContainer errorStackContent = new WebMarkupContainer("errorStackContent");
+        errorStackContent.setMarkupId(errorStack.getMarkupId() + "_content");
+        errorStackContainer.add(errorStackContent);
 
-	private boolean isExceptionVisible(final IModel<FeedbackMessage> message) {
-		FeedbackMessage fMessage = message.getObject();
-		if (!(fMessage.getMessage() instanceof OpResult)) {
-			return false;
-		}
-		OpResult result = (OpResult) fMessage.getMessage();
-		return StringUtils.isNotEmpty(result.getExceptionMessage())
-				|| StringUtils.isNotEmpty(result.getExceptionsStackTrace());
+        errorStackContent.add(new MultiLineLabel("exceptionStack", new PropertyModel<String>(message,
+                "message.exceptionsStackTrace")));
+    }
 
-	}
+    private boolean isExceptionVisible(final IModel<FeedbackMessage> message) {
+        FeedbackMessage fMessage = message.getObject();
+        if (!(fMessage.getMessage() instanceof OpResult)) {
+            return false;
+        }
+        OpResult result = (OpResult) fMessage.getMessage();
+        return StringUtils.isNotEmpty(result.getExceptionMessage())
+                || StringUtils.isNotEmpty(result.getExceptionsStackTrace());
 
-	private String getDetailsCss(final IModel<OpResult> model) {
-		OpResult result = model.getObject();
-		if (result == null || result.getStatus() == null) {
-			return "messages-warn-content";
-		}
+    }
 
-		switch (result.getStatus()) {
-			case FATAL_ERROR:
-			case PARTIAL_ERROR:
-				return "messages-error-content";
-			case IN_PROGRESS:
-			case NOT_APPLICABLE:
-				return "messages-info-content";
-			case SUCCESS:
-				return "messages-succ-content";
-			case HANDLED_ERROR:
-				return "messages-exp-content";
-			case UNKNOWN:
-			case WARNING:
-			default:
-				return "messages-warn-content";
-		}
-	}
+    private String getDetailsCss(final IModel<OpResult> model) {
+        OpResult result = model.getObject();
+        if (result == null || result.getStatus() == null) {
+            return "messages-warn-content";
+        }
 
-	private IModel<List<OpResult>> createSubresultsModel(final IModel<FeedbackMessage> model) {
-		return new LoadableModel<List<OpResult>>(false) {
+        switch (result.getStatus()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                return "messages-error-content";
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                return "messages-info-content";
+            case SUCCESS:
+                return "messages-succ-content";
+            case HANDLED_ERROR:
+                return "messages-exp-content";
+            case UNKNOWN:
+            case WARNING:
+            default:
+                return "messages-warn-content";
+        }
+    }
 
-			@Override
-			protected List<OpResult> load() {
-				FeedbackMessage message = model.getObject();
-				Serializable serializable = message.getMessage();
-				if (!(serializable instanceof OpResult)) {
-					return new ArrayList<OpResult>();
-				}
+    private IModel<List<OpResult>> createSubresultsModel(final IModel<FeedbackMessage> model) {
+        return new LoadableModel<List<OpResult>>(false) {
 
-				OpResult result = (OpResult) serializable;
-				return result.getSubresults();
-			}
-		};
-	}
+            @Override
+            protected List<OpResult> load() {
+                FeedbackMessage message = model.getObject();
+                Serializable serializable = message.getMessage();
+                if (!(serializable instanceof OpResult)) {
+                    return new ArrayList<OpResult>();
+                }
 
-	private String getTopMessage(final IModel<FeedbackMessage> model) {
-		FeedbackMessage message = model.getObject();
-		if (!(message.getMessage() instanceof OpResult)) {
-			return message.getMessage().toString();
-		}
+                OpResult result = (OpResult) serializable;
+                return result.getSubresults();
+            }
+        };
+    }
 
-		OpResult result = (OpResult) message.getMessage();
+    private String getTopMessage(final IModel<FeedbackMessage> model) {
+        FeedbackMessage message = model.getObject();
+        if (!(message.getMessage() instanceof OpResult)) {
+            return message.getMessage().toString();
+        }
 
-		if (!StringUtils.isEmpty(result.getMessage())) {
-			return result.getMessage();
-		}
+        OpResult result = (OpResult) message.getMessage();
 
-		String resourceKey;
-		switch (result.getStatus()) {
-			case FATAL_ERROR:
-				resourceKey = "feedbackMessagePanel.message.fatalError";
-				break;
-			case IN_PROGRESS:
-				resourceKey = "feedbackMessagePanel.message.inProgress";
-				break;
-			case NOT_APPLICABLE:
-				resourceKey = "feedbackMessagePanel.message.notApplicable";
-				break;
-			case WARNING:
-				resourceKey = "feedbackMessagePanel.message.warn";
-				break;
-			case PARTIAL_ERROR:
-				resourceKey = "feedbackMessagePanel.message.partialError";
-				break;
-			case SUCCESS:
-				resourceKey = "feedbackMessagePanel.message.success";
-				break;
-			case HANDLED_ERROR:
-				resourceKey = "feedbackMessagePanel.message.expectedError";
-				break;
-			case UNKNOWN:
-			default:
-				resourceKey = "feedbackMessagePanel.message.unknown";
-		}
+        if (!StringUtils.isEmpty(result.getMessage())) {
+            return result.getMessage();
+        }
 
-		return new StringResourceModel(resourceKey, this, null).getString();
-	}
+        String resourceKey;
+        switch (result.getStatus()) {
+            case FATAL_ERROR:
+                resourceKey = "feedbackMessagePanel.message.fatalError";
+                break;
+            case IN_PROGRESS:
+                resourceKey = "feedbackMessagePanel.message.inProgress";
+                break;
+            case NOT_APPLICABLE:
+                resourceKey = "feedbackMessagePanel.message.notApplicable";
+                break;
+            case WARNING:
+                resourceKey = "feedbackMessagePanel.message.warn";
+                break;
+            case PARTIAL_ERROR:
+                resourceKey = "feedbackMessagePanel.message.partialError";
+                break;
+            case SUCCESS:
+                resourceKey = "feedbackMessagePanel.message.success";
+                break;
+            case HANDLED_ERROR:
+                resourceKey = "feedbackMessagePanel.message.expectedError";
+                break;
+            case UNKNOWN:
+            default:
+                resourceKey = "feedbackMessagePanel.message.unknown";
+        }
 
-	private String getLabelCss(final IModel<FeedbackMessage> model) {
-		FeedbackMessage message = model.getObject();
-		switch (message.getLevel()) {
-			case FeedbackMessage.INFO:
-				return "messages-topInfo";
-			case FeedbackMessage.SUCCESS:
-				return "messages-topSucc";
-			case FeedbackMessage.ERROR:
-			case FeedbackMessage.FATAL:
-				return "messages-topError";
-			case FeedbackMessage.UNDEFINED:
-			case FeedbackMessage.DEBUG:
-			case FeedbackMessage.WARNING:
-			default:
-				return "messages-topWarn";
-		}
-	}
+        return new StringResourceModel(resourceKey, this, null).getString();
+    }
 
-	static String createMessageTooltip(final IModel<FeedbackMessage> model) {
-		FeedbackMessage message = model.getObject();
-		switch (message.getLevel()) {
-			case FeedbackMessage.INFO:
-				return "info";
-			case FeedbackMessage.SUCCESS:
-				return "success";
-			case FeedbackMessage.ERROR:
-				return "partialError";
-			case FeedbackMessage.FATAL:
-				return "fatalError";
-			case FeedbackMessage.UNDEFINED:
-				return "undefined";
-			case FeedbackMessage.DEBUG:
-				return "debug";
-			case FeedbackMessage.WARNING:
-			default:
-				return "warn";
-		}
-	}
+    private String getLabelCss(final IModel<FeedbackMessage> model) {
+        FeedbackMessage message = model.getObject();
+        switch (message.getLevel()) {
+            case FeedbackMessage.INFO:
+                return "messages-topInfo";
+            case FeedbackMessage.SUCCESS:
+                return "messages-topSucc";
+            case FeedbackMessage.ERROR:
+            case FeedbackMessage.FATAL:
+                return "messages-topError";
+            case FeedbackMessage.UNDEFINED:
+            case FeedbackMessage.DEBUG:
+            case FeedbackMessage.WARNING:
+            default:
+                return "messages-topWarn";
+        }
+    }
 
-	public void export(final WebMarkupContainer content, final IModel<String> xml) {	
-		Label export = new Label("export", new LoadableModel<String>() {
+    static String createMessageTooltip(final IModel<FeedbackMessage> model) {
+        FeedbackMessage message = model.getObject();
+        switch (message.getLevel()) {
+            case FeedbackMessage.INFO:
+                return "info";
+            case FeedbackMessage.SUCCESS:
+                return "success";
+            case FeedbackMessage.ERROR:
+                return "partialError";
+            case FeedbackMessage.FATAL:
+                return "fatalError";
+            case FeedbackMessage.UNDEFINED:
+                return "undefined";
+            case FeedbackMessage.DEBUG:
+                return "debug";
+            case FeedbackMessage.WARNING:
+            default:
+                return "warn";
+        }
+    }
 
-			@Override
-			protected String load() {
-				return getString("feedbackMessagePanel.export");
-			}
-		});
-		content.add(export);
-		xml.setObject(xml.getObject().replace("\"", "'").replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;"));
-		xml.setObject(xml.getObject().replace("\n", "<br>"));
-		export.add(new AttributeAppender("onClick", "initXml(\""+xml.getObject()+"\")"));
-		
-	}
+    public void export(final WebMarkupContainer content, final IModel<String> xml) {
+        Label export = new Label("export", new LoadableModel<String>() {
+
+            @Override
+            protected String load() {
+                return getString("feedbackMessagePanel.export");
+            }
+        });
+        content.add(export);
+        xml.setObject(xml.getObject().replace("\"", "'").replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;"));
+        xml.setObject(xml.getObject().replace("\n", "<br>"));
+        export.add(new AttributeAppender("onClick", "initXml(\"" + xml.getObject() + "\")"));
+
+    }
 
 //	private LoadableDetachableModel<File> createFileModel(final IModel<String> model) {
 //		return new LoadableDetachableModel<File>() {

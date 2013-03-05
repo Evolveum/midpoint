@@ -461,9 +461,9 @@ public class PageHome extends PageAdminHome {
     }
 
     private void initAssignmentAccordionItem(AccordionItem assignmentItem, String tableId, IModel<List> model) {
-        List<IColumn<SimpleAssignmentDto>> columns = new ArrayList<IColumn<SimpleAssignmentDto>>();
+        List<IColumn<SimpleAssignmentDto, String>> columns = new ArrayList<IColumn<SimpleAssignmentDto, String>>();
         columns.add(new PropertyColumn(createStringResource("pageHome.assignment.name"), "assignmentName"));
-        columns.add(new AbstractColumn<SimpleAssignmentDto>(
+        columns.add(new AbstractColumn<SimpleAssignmentDto, String>(
                 createStringResource("pageHome.assignment.active")) {
 
             @Override
@@ -489,7 +489,7 @@ public class PageHome extends PageAdminHome {
     }
 
 	private void initAccounts(AccordionItem accounts) {
-		List<IColumn<SimpleAccountDto>> columns = new ArrayList<IColumn<SimpleAccountDto>>();
+		List<IColumn<SimpleAccountDto, String>> columns = new ArrayList<IColumn<SimpleAccountDto, String>>();
 		columns.add(new PropertyColumn(createStringResource("pageHome.account.name"), "accountName"));
 		columns.add(new PropertyColumn(createStringResource("pageHome.account.resource"), "resourceName"));
 
@@ -500,7 +500,7 @@ public class PageHome extends PageAdminHome {
 	}
 
     private void initWorkItems(AccordionItem workItems) {
-        List<IColumn<WorkItemDto>> columns = new ArrayList<IColumn<WorkItemDto>>();
+        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
         columns.add(new PropertyColumn(createStringResource("pageHome.workItem.name"), "name"));
         columns.add(new PropertyColumn(createStringResource("pageHome.workItem.date"), "workItem.createTime"));
 
@@ -516,7 +516,7 @@ public class PageHome extends PageAdminHome {
 	}
 
 	private void initResources(AccordionItem resources) {
-		List<IColumn<String>> columns = new ArrayList<IColumn<String>>();
+		List<IColumn<String, String>> columns = new ArrayList<IColumn<String, String>>();
 		columns.add(new PropertyColumn(createStringResource("pageHome.resource.name"), ""));
 
 		ISortableDataProvider provider = new ListDataProvider(this, new PropertyModel(model, "resources"));

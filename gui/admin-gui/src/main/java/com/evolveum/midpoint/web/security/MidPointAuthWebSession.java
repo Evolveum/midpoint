@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebSession;
@@ -47,6 +48,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
     private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthWebSession.class);
     @SpringBean(name = "midPointAuthenticationProvider")
     private AuthenticationProvider authenticationProvider;
+    private SessionStorage sessionStorage;
 
     public MidPointAuthWebSession(Request request) {
         super(request);
@@ -89,5 +91,13 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession {
         }
 
         return authenticated;
+    }
+
+    public SessionStorage getSessionStorage() {
+        if (sessionStorage == null) {
+            sessionStorage = new SessionStorage();
+        }
+
+        return sessionStorage;
     }
 }

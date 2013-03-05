@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.Validate;
@@ -50,7 +51,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public abstract class BaseSortableDataProvider<T extends Serializable> extends SortableDataProvider<T> {
+public abstract class BaseSortableDataProvider<T extends Serializable> extends SortableDataProvider<T, String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
     private Component component;
@@ -112,11 +113,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
             return (PageBase) component;
         }
 
-        if (component.getPage() instanceof  PageBase) {
+        if (component.getPage() instanceof PageBase) {
             return (PageBase) component.getPage();
         }
 
-        throw new IllegalStateException("Component is not instance of '"+PageBase.class.getName()
+        throw new IllegalStateException("Component is not instance of '" + PageBase.class.getName()
                 + "' or is not placed on page of that instance.");
     }
 
@@ -138,7 +139,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return true;
     }
 
-    protected ObjectPaging createPaging(int first, int count) {
+    protected ObjectPaging createPaging(long first, long count) {
         SortParam sortParam = getSort();
         OrderDirection order;
         if (sortParam.isAscending()) {
@@ -147,8 +148,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
             order = OrderDirection.DESCENDING;
         }
 
-        return ObjectPaging.createPaging(first, count, sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
-//        return PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
+        return ObjectPaging.createPaging(WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
+                (String) sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
     }
 
     public void clearCache() {
@@ -166,13 +167,13 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     @Override
-    public int size() {
+    public long size() {
         LOGGER.trace("begin::size()");
         if (!useCache) {
             return internalSize();
         }
 
-        int size = 0;
+        long size = 0L;
         CachedSize cachedSize = getCachedSize(cache);
         if (cachedSize != null) {
             long timestamp = cachedSize.getTimestamp();
@@ -207,14 +208,14 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     public static class CachedSize implements Serializable {
 
         private long timestamp;
-        private int size;
+        private long size;
 
-        private CachedSize(int size, long timestamp) {
+        private CachedSize(long size, long timestamp) {
             this.size = size;
             this.timestamp = timestamp;
         }
 
-        public int getSize() {
+        public long getSize() {
             return size;
         }
 
@@ -238,7 +239,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         @Override
         public int hashCode() {
             int result = (int) (timestamp ^ (timestamp >>> 32));
-            result = 31 * result + size;
+            result = 31 * result + (int) (size ^ (size >>> 32));
             return result;
         }
 

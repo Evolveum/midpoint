@@ -65,17 +65,18 @@ public class FlagImageResource extends DynamicImageResource implements IStaticCa
 
     @Override
     public Serializable getCacheKey() {
-        //todo caching...
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        //todo implement
+        return null;
     }
 
     @Override
     public IResourceStream getCacheableResourceStream() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        //todo implement
+        return null;
     }
 
-    public static class CacheKey {
-
-//        private static final URL url;
+    @Override
+    public boolean isCachingEnabled() {
+        return false;
     }
 }

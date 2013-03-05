@@ -21,28 +21,28 @@
 
 package com.evolveum.midpoint.web.component.option;
 
-import java.io.Serializable;
-
 import org.apache.wicket.Page;
+
+import java.io.Serializable;
 
 /**
  * @author mserbak
  */
 public class OptionPanelHidde implements Serializable {
-	Page page;
-	boolean hidden;
 
-	public OptionPanelHidde(Page page, boolean hidden) {
-		this.page = page;
-		this.hidden = hidden;
-	}
+    Page page;
+    boolean hidden;
 
-	public Page getPage() {
-		return page;
-	}
+    public OptionPanelHidde(Page page, boolean hidden) {
+        this.page = page;
+        this.hidden = hidden;
+    }
 
-	public boolean isHidden() {
-		return hidden;
-	}
+    public Page getPage() {
+        return page;
+    }
 
+    public boolean isHidden() {
+        return hidden;
+    }
 }

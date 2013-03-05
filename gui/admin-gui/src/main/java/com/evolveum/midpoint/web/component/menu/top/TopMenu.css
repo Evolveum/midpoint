@@ -19,6 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
+/*
 div.top-menu {
     font: Helvetica, Arial, sans-serif;
     margin: 0;
@@ -34,7 +35,6 @@ div.top-menu {
 div.top-container {
     height: 44px;
     background: #267994;
-    /* background: url("./back.png") repeat-x scroll left top transparent; */
     width: 100%;
     z-index: 100000;
     min-width: 1200px;
@@ -62,7 +62,6 @@ div.top-container ul li {
 div.top-container li a {
     display: inline-block;
     height: 44px;
-    /* padding: 10px 20px 0 20px; */
     padding: 0px 20px;
     text-decoration: none;
     width: auto;
@@ -154,3 +153,4 @@ div.bottom-container li a:hover {
 div.bottom-container li a:hover, div.bottom-container li a.selected-bottom, div.bottom-container li .selected-bottom em {
     color: #81bacc;
 }
+*/

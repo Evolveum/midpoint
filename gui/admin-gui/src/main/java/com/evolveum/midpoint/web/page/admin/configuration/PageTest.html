@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2012 [name of copyright owner]
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <link href="wicket/resource/com.evolveum.midpoint.web.component.button.AjaxLinkButton/AjaxLinkButton.css" rel="stylesheet" type="text/css"/>
+    <form>
+        <table width="100%" >
+            <tr>
+                <td style="width: 50%; vertical-align: top;">
+                    <h2>Repository details</h2>
+
+                    <div class="form">
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Description</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Full name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Given name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Family name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Additional name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Nick name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Honorific prefix</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Honorific suffix</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formSection">
+                            <label>Extension</label>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Ship name</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Funeral</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formSection">
+                            <label>Activation</label>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Enabled</label>
+                            </div>
+                            <input type="checkbox"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Valid from</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Valid to</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formSection">
+                            <label>Credentials</label>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Admin gui access</label>
+                            </div>
+                            <input type="checkbox"/>
+                        </div>
+                        <div class="formSection">
+                            <label>Password</label>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label>Password</label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                        <div class="formLine">
+                            <div class="formLabel">
+                                <label></label>
+                            </div>
+                            <input type="text"/>
+                        </div>
+                    </div>
+                </td>
+                <td style="vertical-align: top;">
+                    <h2>Accounts</h2>
+                    <div class="accounts">
+                        <div class="header">
+                            <input type="checkbox" />
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="account">
+                            <input type="checkbox" />
+                            <img src="img/user-blue.png"/>
+                            <span class="resource">Localhost CSV file</span>
+                            <span class="displayName">johny walker identificator</span>
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="account">
+                            <input type="checkbox" />
+                            <img src="img/user-blue.png"/>
+                            <span class="resource">Localhost OpenDJ advanced</span>
+                            <span class="displayName">uid=johny,ou=People,dc=example,dc=com</span>
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="account">
+                            <input type="checkbox" />
+                            <img src="img/user-blue.png"/>
+                            <span class="resource">DB table on mysql.example.com</span>
+                            <span class="displayName">mysqlusername</span>
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="account">
+                            <input type="checkbox" />
+                            <img src="img/user-red.png"/>
+                            <span class="resource">Ubuntu host.example.com</span>
+                            <span class="displayName">foologin</span>
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                    </div>
+
+                    <h2 class="form">Assignments</h2>
+                    <div class="assignments">
+                        <div class="header">
+                            <input type="checkbox" />
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="assignment">
+                            <input type="checkbox" />
+                            <img src="img/building.png"/>
+                            <span class="targetName">F0001</span>
+                            <span class="targetDisplayName">Governor office</span>
+                            <span class="targetRelation">(emperor)</span>
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="assignment">
+                            <input type="checkbox" />
+                            <img src="img/medal_gold_3.png"/>
+                            <span class="targetName">Basic role</span>
+                            <span class="targetDisplayName">Simple display name, basic role</span>
+                            <!--<span class="targetRelation">(emperor)</span>-->
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                        <div class="assignment">
+                            <input type="checkbox" />
+                            <img src="img/medal_gold_1.png"/>
+                            <span class="targetName">Advanced role</span>
+                            <span class="targetDisplayName">Advanced multi role</span>
+                            <a class="tools"><img src="img/cog.png"/></a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="operatingFormButtons">
+
+            <div class="operatingFormBlock">
+                <a href="#" class="button">Back</a>
+                <a href="#" class="button positive">Save</a>
+                <a href="#" class="button positive">Preview</a>
+            </div>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>

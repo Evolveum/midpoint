@@ -249,9 +249,16 @@ function disablePaste(disable) {
 function setupFunc() {
 	document.getElementsByTagName('body')[0].onclick = clickFunc;
 	hideBusysign();
-	Wicket.Ajax.registerPreCallHandler(showBusysign);
-	Wicket.Ajax.registerPostCallHandler(hideBusysign);
-	Wicket.Ajax.registerFailureHandler(showError);
+
+    Wicket.Event.subscribe('/ajax/call/before', function(jqEvent, attributes, jqXHR, errorThrown, textStatus) {
+        showBusysign();
+    });
+    Wicket.Event.subscribe('/ajax/call/after', function(jqEvent, attributes, jqXHR, errorThrown, textStatus) {
+        hideBusysign();
+    });
+    Wicket.Event.subscribe('/ajax/call/failure', function(jqEvent, attributes, jqXHR, errorThrown, textStatus) {
+        showError();
+    });
 }
 
 function hideBusysign() {

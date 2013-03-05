@@ -33,7 +33,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author lazyman
  */
-public class ButtonColumn<T> extends AbstractColumn<T> {
+public class ButtonColumn<T> extends AbstractColumn<T, String> {
 
     private IModel<String> buttonLabel;
     private String propertyExpression;

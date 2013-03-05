@@ -1,0 +1,90 @@
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <h2><wicket:message key="LoggingConfigPanel.loggers"/></h2>
+    <table cellspacing="0" cellpadding="0">
+        <tr>
+            <td class="label">
+                <wicket:message key="LoggingConfigPanel.rootLevel"/>
+            </td>
+            <td class="values">
+                <select wicket:id="rootLevel"/>
+            </td>
+            <td class="label" style="padding-left: 40px;">
+                <wicket:message key="LoggingConfigPanel.rootAppender"/>
+            </td>
+            <td class="values">
+                <select wicket:id="rootAppender"/>
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td style="vertical-align: top;">
+                <h4>
+                    <wicket:message key="LoggingConfigPanel.loggersTable"/>
+                </h4>
+                <div wicket:id="loggersTable"/>
+
+                <a wicket:id="addComponentLogger"/>
+                <a wicket:id="addClassLogger"/>
+                <a wicket:id="deleteLogger"/>
+            </td>
+            <td style="vertical-align: top; padding-left: 70px;">
+                <h4>
+                    <wicket:message key="LoggingConfigPanel.filtersTable"/>
+                </h4>
+                <div wicket:id="filtersTable"/>
+
+                <a wicket:id="addFilter"/>
+                <a wicket:id="deleteFilter"/>
+            </td>
+        </tr>
+    </table>
+    <h4>
+        <wicket:message key="LoggingConfigPanel.logSubsystemEntryExit"/>
+    </h4>
+    <table cellspacing="0" cellpadding="0">
+        <tr>
+            <td class="label">
+                <wicket:message key="LoggingConfigPanel.subsystem.level"/>
+            </td>
+            <td class="values">
+                <select wicket:id="profilingLevel"/>
+            </td>
+            <td class="label" style="padding-left: 40px;">
+                <wicket:message key="LoggingConfigPanel.subsystem.appender"/>
+            </td>
+            <td class="values">
+                <select wicket:id="profilingAppender"/>
+            </td>
+        </tr>
+    </table>
+
+    <h2><wicket:message key="LoggingConfigPanel.appenders"/></h2>
+
+    <h2><wicket:message key="LoggingConfigPanel.audit"/></h2>
+
+</wicket:panel>
+</html>

@@ -34,7 +34,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T> {
+public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
     public LinkIconColumn(IModel<String> displayModel) {
         super(displayModel);

@@ -80,7 +80,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 //        unassignedItemTable.setOutputMarkupId(true);
 //        mainForm.add(unassignedItemTable);
 
-        List<IColumn<WorkItemDto>> assignedItemColumns = initAssignedItemColumns();
+        List<IColumn<WorkItemDto, String>> assignedItemColumns = initAssignedItemColumns();
         TablePanel<WorkItemDto> assignedItemTable = new TablePanel<WorkItemDto>("assignedItemTable", new WorkItemDtoProvider(PageWorkItems.this, true),
                 assignedItemColumns);
         assignedItemTable.setOutputMarkupId(true);
@@ -89,8 +89,8 @@ public class PageWorkItems extends PageAdminWorkItems {
         initItemButtons(mainForm);
     }
 
-    private List<IColumn<WorkItemDto>> initUnassignedItemColumns() {
-        List<IColumn<WorkItemDto>> columns = new ArrayList<IColumn<WorkItemDto>>();
+    private List<IColumn<WorkItemDto, String>> initUnassignedItemColumns() {
+        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
@@ -109,8 +109,8 @@ public class PageWorkItems extends PageAdminWorkItems {
         return columns;
     }
 
-    private List<IColumn<WorkItemDto>> initAssignedItemColumns() {
-        List<IColumn<WorkItemDto>> columns = new ArrayList<IColumn<WorkItemDto>>();
+    private List<IColumn<WorkItemDto, String>> initAssignedItemColumns() {
+        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
@@ -125,7 +125,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         };
         columns.add(column);
 
-        columns.add(new AbstractColumn<WorkItemDto>(createStringResource("pageWorkItems.item.created")) {
+        columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("pageWorkItems.item.created")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<WorkItemDto>> item, String componentId,

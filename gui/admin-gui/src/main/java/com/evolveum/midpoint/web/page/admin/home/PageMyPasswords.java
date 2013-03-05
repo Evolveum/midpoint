@@ -165,7 +165,7 @@ public class PageMyPasswords extends PageAdminHome {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<IColumn<PasswordAccountDto>> columns = initColumns();
+        List<IColumn<PasswordAccountDto, String>> columns = initColumns();
         ListDataProvider<PasswordAccountDto> provider = new ListDataProvider<PasswordAccountDto>(this,
                 new PropertyModel<List<PasswordAccountDto>>(model, MyPasswordsDto.F_ACCOUNTS));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, columns);
@@ -185,8 +185,8 @@ public class PageMyPasswords extends PageAdminHome {
         initButtons(mainForm);
     }
 
-    private List<IColumn<PasswordAccountDto>> initColumns() {
-        List<IColumn<PasswordAccountDto>> columns = new ArrayList<IColumn<PasswordAccountDto>>();
+    private List<IColumn<PasswordAccountDto, String>> initColumns() {
+        List<IColumn<PasswordAccountDto, String>> columns = new ArrayList<IColumn<PasswordAccountDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<UserType>();
         columns.add(column);

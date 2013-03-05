@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class SelectableBean<T extends Serializable> extends Selectable<T> {
+public class SelectableBean<T extends Serializable> extends Selectable {
 
     private T value;
 

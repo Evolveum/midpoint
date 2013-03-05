@@ -137,8 +137,8 @@ public class PageResources extends PageAdminResources {
         mainForm.add(discoveryRemote);
     }
 
-    private List<IColumn<ResourceDto>> initResourceColumns() {
-        List<IColumn<ResourceDto>> columns = new ArrayList<IColumn<ResourceDto>>();
+    private List<IColumn<ResourceDto, String>> initResourceColumns() {
+        List<IColumn<ResourceDto, String>> columns = new ArrayList<IColumn<ResourceDto, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);
@@ -157,7 +157,7 @@ public class PageResources extends PageAdminResources {
         columns.add(new PropertyColumn(createStringResource("pageResources.bundle"), "bundle"));
         columns.add(new PropertyColumn(createStringResource("pageResources.version"), "version"));
 
-        columns.add(new AbstractColumn<ResourceDto>(createStringResource("pageResources.content")) {
+        columns.add(new AbstractColumn<ResourceDto, String>(createStringResource("pageResources.content")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<ResourceDto>> cellItem,
@@ -290,8 +290,8 @@ public class PageResources extends PageAdminResources {
         return columns;
     }
 
-    private List<IColumn<ConnectorHostType>> initConnectorHostsColumns() {
-        List<IColumn<ConnectorHostType>> columns = new ArrayList<IColumn<ConnectorHostType>>();
+    private List<IColumn<ConnectorHostType, String>> initConnectorHostsColumns() {
+        List<IColumn<ConnectorHostType, String>> columns = new ArrayList<IColumn<ConnectorHostType, String>>();
 
         IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
         columns.add(column);

@@ -1,0 +1,208 @@
+@import 'lesshat.less';
+@import 'config.less';
+
+#header {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  background: url("@{headerBackground}");
+  background-repeat: repeat-x;
+  height: 60px;
+  min-width: 1200px;
+
+  #logo {
+    position: absolute;
+    background: url("@{headerLogo}");
+    height: 60px;
+    left: 15px;
+    width: 291px;
+  }
+
+  #version {
+    color: #FFFFFF;
+    font-size: 11px;
+    margin: 35px 15px 0 0;
+    float: right;
+  }
+
+  #login-box {
+    position: absolute;
+    right: 15px;
+    top: 5px;
+    width: auto;
+    text-align: right;
+    vertical-align: middle;
+
+    span {
+      color: #81BACC;
+
+      em {
+        color: #FFFFFF;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 0 5px;
+        font-style: normal;
+        text-shadow: 0 0 5px #000000;
+      }
+    }
+
+    .locale {
+      span {
+        font-size: 14px;
+        width: 16px;
+        height: 11px;
+        display: inline-block;
+      }
+    }
+
+    a {
+      text-decoration: none;
+      color: @headerLinksColor;
+
+      &:hover {
+        color: @headerLinksColor_hover;
+      }
+    }
+
+    .delimiter {
+      color: #FFFFFF;
+    }
+  }
+}
+
+div.top-menu {
+  font: Helvetica, Arial, sans-serif;
+  margin: 0;
+  box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.6);
+  z-index: 20000;
+  min-width: 1200px;
+  top: 60px;
+  left: 0px;
+  position: absolute;
+  height: 72px;
+}
+
+div.top-container {
+  height: 44px;
+  background: @topMenuBackground;
+  width: 100%;
+  z-index: 100000;
+  min-width: 1200px;
+
+  ul {
+    width: auto;
+    position: absolute;
+    left: 10px;
+    margin: 0px;
+    padding: 0px;
+    z-index: 100000;
+    height: 44px;
+  }
+
+  li {
+    float: left;
+    width: auto;
+    list-style: none;
+    padding: 0px;
+    z-index: 100000;
+    height: 44px;
+
+    a {
+      display: inline-block;
+      height: 44px;
+      padding: 0px 20px;
+      text-decoration: none;
+      width: auto;
+      border-right: 1px solid #64a3b7;
+      border-left: 1px solid #004156;
+      z-index: 100000;
+
+      &:hover {
+        text-decoration: none;
+      }
+
+      &.first {
+        border-left: none;
+      }
+
+      &.last {
+        border-right: none;
+      }
+
+      span.label {
+        color: #fff;
+        font-size: 18px;
+      }
+    }
+  }
+
+  a {
+    span {
+      display: block;
+      font: 12px;
+      color: #333;
+
+      &.label {
+        display: block;
+        font: 12px;
+        color: #333;
+        padding: 3px 0px 0px 0px;
+      }
+    }
+
+    .aTopColor {
+      background-color: #333 !important;
+      color: #81bacc;
+    }
+
+    &.selected-top, &:hover {
+      height: 44px;
+      .aTopColor;
+
+      span.description {
+        .aTopColor;
+      }
+    }
+  }
+}
+
+div.bottom-container {
+  background-color: @bottomMenuBackground;
+  height: 28px;
+  display: inline-block;
+  width: 100%;
+  z-index: 100000;
+  min-width: 1200px;
+
+  ul {
+    width: 1170px;
+    padding: 0px;
+    margin: 1px 0px;
+    z-index: 100000;
+
+    li {
+      height: 28px;
+      float: left;
+      width: auto;
+      list-style: none;
+      padding: 0 10px;
+      z-index: 100000;
+
+      a, em {
+        display: inline-block;
+        height: 22px;
+        padding: 5px 5px 0 5px;
+        text-decoration: none;
+        width: auto;
+        color: #F0F0F6;
+        z-index: 100000;
+        font-style: normal;
+      }
+
+      a:hover, a.selected-bottom, .selected-bottom em {
+        color: #81BACC;
+      }
+    }
+  }
+}

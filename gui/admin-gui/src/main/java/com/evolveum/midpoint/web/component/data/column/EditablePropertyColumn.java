@@ -33,7 +33,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author lazyman
  */
-public class EditablePropertyColumn<T extends Editable> extends PropertyColumn<T> {
+public class EditablePropertyColumn<T extends Editable> extends PropertyColumn<T, String> {
 
     public EditablePropertyColumn(IModel<String> displayModel, String propertyExpression) {
         super(displayModel, propertyExpression);

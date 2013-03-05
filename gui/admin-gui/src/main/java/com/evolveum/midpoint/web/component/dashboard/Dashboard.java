@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.web.component.dashboard;
 
 import com.evolveum.midpoint.web.page.PageBase;
-import org.apache.wicket.Component;
 
 import java.io.Serializable;
 
@@ -98,7 +97,7 @@ public class Dashboard<T extends Serializable> implements Serializable {
     }
 
     protected PageBase getPageBase() {
-        return dashboardPanel.getBasePage();
+        return dashboardPanel.getPageBase();
     }
 
     public void recordAttempt() {

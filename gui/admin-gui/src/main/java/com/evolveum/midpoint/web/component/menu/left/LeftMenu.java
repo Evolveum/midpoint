@@ -26,7 +26,8 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.Page;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -89,13 +90,14 @@ public class LeftMenu extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(LeftMenu.class, "LeftMenu.css"));
+        response.render(CssHeaderItem.forReference(new PackageResourceReference(LeftMenu.class, "LeftMenu.css")));
     }
-    
-    public class StaticImage extends WebComponent {
-		private static final long serialVersionUID = 1L;
 
-		public StaticImage(String id, IModel<String> model) {
+    public class StaticImage extends WebComponent {
+
+        private static final long serialVersionUID = 1L;
+
+        public StaticImage(String id, IModel<String> model) {
             super(id, model);
         }
 
@@ -105,6 +107,5 @@ public class LeftMenu extends Panel {
             tag.put("src", getDefaultModelObjectAsString());
             tag.put("alt", "");
         }
-
     }
 }

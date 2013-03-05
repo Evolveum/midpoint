@@ -105,7 +105,7 @@ public class PageResource extends PageAdminResources {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        SortableDataProvider<ResourceObjectTypeDto> provider = new ListDataProvider<ResourceObjectTypeDto>(this,
+        SortableDataProvider<ResourceObjectTypeDto, String> provider = new ListDataProvider<ResourceObjectTypeDto>(this,
                 new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
         provider.setSort("displayName", SortOrder.ASCENDING);
         TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
@@ -242,8 +242,8 @@ public class PageResource extends PageAdminResources {
         return capabilitiesName;
     }
 
-    private List<IColumn<ResourceObjectTypeDto>> initObjectTypesColumns() {
-        List<IColumn<ResourceObjectTypeDto>> columns = new ArrayList<IColumn<ResourceObjectTypeDto>>();
+    private List<IColumn<ResourceObjectTypeDto, String>> initObjectTypesColumns() {
+        List<IColumn<ResourceObjectTypeDto, String>> columns = new ArrayList<IColumn<ResourceObjectTypeDto, String>>();
 
         columns.add(new PropertyColumn(createStringResource("pageResource.objectTypes.displayName"),
                 "displayName", "displayName"));

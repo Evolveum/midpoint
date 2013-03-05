@@ -31,12 +31,12 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
  */
 public class TableHeadersToolbar<T> extends HeadersToolbar {
 
-    public TableHeadersToolbar(DataTable<T> table, ISortStateLocator stateLocator) {
+    public TableHeadersToolbar(DataTable<T, String> table, ISortStateLocator stateLocator) {
         super(table, stateLocator);
     }
 
     @Override
-    protected WebMarkupContainer newSortableHeader(String headerId, String property, ISortStateLocator locator) {
+    protected WebMarkupContainer newSortableHeader(String headerId, Object property, ISortStateLocator locator) {
         return new BasicOrderByBorder(headerId, property, locator) {
 
             @Override

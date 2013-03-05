@@ -39,7 +39,8 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -259,7 +260,7 @@ public class PageTaskAdd extends PageAdminTasks {
 			@Override
 			public void renderHead(Component component, IHeaderResponse response) {
 				String js = "$('#"+ boundHelp.getMarkupId() +"').tipsy()";
-				response.renderOnDomReadyJavaScript(js);
+				response.render(OnDomReadyHeaderItem.forScript(js));
 				super.renderHead(component, response);
 			}
 
@@ -290,7 +291,7 @@ public class PageTaskAdd extends PageAdminTasks {
 			@Override
 			public void renderHead(Component component, IHeaderResponse response) {
 				String js = "$('#"+ cronHelp.getMarkupId() +"').tipsy()";
-				response.renderOnDomReadyJavaScript(js);
+				response.render(OnDomReadyHeaderItem.forScript(js));
 				super.renderHead(component, response);
 			}
 

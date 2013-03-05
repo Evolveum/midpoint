@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.ThreeStateCheckPanel;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -46,7 +47,8 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
@@ -67,7 +69,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
+public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorPanel.class);
 
@@ -109,7 +111,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css"));
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(AssignmentEditorPanel.class, "AssignmentEditorPanel.css")));
     }
 
     private void initPanelLayout() {

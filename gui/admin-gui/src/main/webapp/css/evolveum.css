@@ -139,68 +139,6 @@ input:focus, .button:focus, select:focus, option:focus {
   margin: -1px 13px 0 0;
 }
 
-
-#header {
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	width: 100%;
-	background: url(../img/headerBg.jpg);
-	background-repeat: repeat-x;
-	height: 60px;
-	min-width: 1200px;
-}
-
-#header #login-box {
-	position: absolute;
-	right: 15px;
-	top: 5px;
-	width: auto;
-	text-align: right;
-	vertical-align: middle;
-}
-
-#header #login-box span {
-	color: #81BACC;
-}
-
-#header #login-box span em {
-	color: white;
-	font-size: 18px;
-    font-weight: bold;
-    padding: 0 5px;
-    font-style: normal;
-    text-shadow: 0 0 5px #000000;
-}
-
-#header #login-box .locale span {
-    font-size: 14px;
-    width: 16px;
-    height: 11px;
-    display: inline-block;
-}
-
-#header #login-box a {
-	text-decoration: none;
-	color: #81BACC;
-}
-
-#header #login-box a:hover {
-	color: #ffffff;
-}
-
-#header #login-box .delimiter {
-	color: white;
-}
-
-#header #logo {
-	position: absolute;
-	background: url(../img/logo.jpg);
-	height: 60px;
-	left: 15px;
-	width: 291px;
-}
-
 #footer {
   	position: fixed;
   	bottom: 0px;
@@ -218,13 +156,6 @@ input:focus, .button:focus, select:focus, option:focus {
 	font-size: 12px;
     font-weight: bold;
     margin: 10px 60px 0 0;
-    float: right;
-}
-
-#version {
-    color: #FFFFFF;
-    font-size: 11px;
-    margin: 35px 15px 0 0;
     float: right;
 }
 

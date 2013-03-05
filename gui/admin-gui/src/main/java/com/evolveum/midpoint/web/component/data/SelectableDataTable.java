@@ -11,9 +11,9 @@ import org.apache.wicket.model.IModel;
 
 import java.util.List;
 
-public class SelectableDataTable<T> extends DataTable<T> {
+public class SelectableDataTable<T> extends DataTable<T, String> {
 
-    public SelectableDataTable(String id, List<IColumn<T>> columns, IDataProvider<T> dataProvider, int rowsPerPage) {
+    public SelectableDataTable(String id, List<IColumn<T, String>> columns, IDataProvider<T> dataProvider, int rowsPerPage) {
         super(id, columns, dataProvider, rowsPerPage);
     }
 

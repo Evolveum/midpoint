@@ -42,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ public class PageAdminResources extends PageAdmin {
 
     private static final String DOT_CLASS = PageAdminResources.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
-    
+
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
 
     @Override
@@ -69,29 +71,8 @@ public class PageAdminResources extends PageAdmin {
         items.add(new BottomMenuItem(createStringResource("pageAdminResources.listResources"), PageResources.class));
         items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
                 new PageVisibleDisabledBehaviour(this, PageResource.class)));
-
-//        items.add(new BottomMenuItem("pageAdminResources.newResource", PageResourceEdit.class,
-//                new PageDisabledVisibleBehaviour(this, PageResourceEdit.class) {
-//
-//                    @Override
-//                    public boolean isVisible() {
-//                        return !isEditingResource();
-//                    }
-//                }));
-//        items.add(new BottomMenuItem("pageAdminResources.editResource", PageResourceEdit.class,
-//                new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isEditingResource();
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return false;
-//            }
-//        }));
-
+        items.add(new BottomMenuItem(createResourceWizardLabel(), PageResourceEdit.class,
+                createWizardVisibleBehaviour()));
         items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
                 PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
         items.add(new BottomMenuItem(createStringResource("pageAdminResources.contentAccounts"),
@@ -100,6 +81,27 @@ public class PageAdminResources extends PageAdmin {
                 new PageVisibleDisabledBehaviour(this, PageAccount.class)));
 
         return items;
+    }
+
+    private VisibleEnableBehaviour createWizardVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return !isEditingResource() && !(getPage() instanceof PageResourceEdit);
+            }
+        };
+    }
+
+    private IModel<String> createResourceWizardLabel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                String key = isEditingResource() ? "pageAdminResources.editResource" : "pageAdminResources.newResource";
+                return PageAdminResources.this.getString(key);
+            }
+        };
     }
 
     protected boolean isEditingResource() {
@@ -117,11 +119,11 @@ public class PageAdminResources extends PageAdmin {
             LOGGER.trace("getObject(resorce) oid={}, options={}", resourceOid.toString(), options);
             resource = getModelService().getObject(ResourceType.class, resourceOid.toString(), options, task, result);
             result.recomputeStatus();
-            
+
             if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("getObject(resorce) result\n:{}", result.dump());
+                LOGGER.trace("getObject(resorce) result\n:{}", result.dump());
             }
-            
+
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get resource.", ex);
         }

@@ -189,7 +189,7 @@ public class PageUserPreview extends PageAdmin {
 		accountsList.setOutputMarkupId(true);
 		accordion.getBodyContainer().add(accountsList);
 
-		List<IColumn<SubmitResourceDto>> columns = new ArrayList<IColumn<SubmitResourceDto>>();
+		List<IColumn<SubmitResourceDto, String>> columns = new ArrayList<IColumn<SubmitResourceDto, String>>();
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.resourceList.name"), "name"));
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.resourceList.resourceName"),
 				"resourceName"));
@@ -198,7 +198,7 @@ public class PageUserPreview extends PageAdmin {
 			@Override
 			public void populateItem(final Item item, String componentId, final IModel rowModel) {
 				
-				Label label = new Label(componentId, createLabelModel(rowModel));
+				Label label = new Label(componentId, getDataModel(rowModel));
 				item.add(label);	
 				
 				SubmitResourceDto resourceDto = (SubmitResourceDto) rowModel.getObject();
@@ -248,7 +248,7 @@ public class PageUserPreview extends PageAdmin {
 		userInfoAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(userInfoAccordion);
 
-		List<IColumn<SubmitUserDto>> columns = new ArrayList<IColumn<SubmitUserDto>>();
+		List<IColumn<SubmitUserDto, String>> columns = new ArrayList<IColumn<SubmitUserDto, String>>();
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.oldValue"), "oldValue"));
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.newValue"), "newValue"));
@@ -282,7 +282,7 @@ public class PageUserPreview extends PageAdmin {
 		accountsAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(accountsAccordion);
 
-		List<IColumn<SubmitAccountDto>> columns = new ArrayList<IColumn<SubmitAccountDto>>();
+		List<IColumn<SubmitAccountDto, String>> columns = new ArrayList<IColumn<SubmitAccountDto, String>>();
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.resource"), "resourceName"));
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.attribute"), "attribute"));
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.oldValue"), "oldValue"));
@@ -317,7 +317,7 @@ public class PageUserPreview extends PageAdmin {
 		assignmentsAccordion.setOutputMarkupId(true);
 		changeType.getBodyContainer().add(assignmentsAccordion);
 
-		List<IColumn<SubmitAssignmentDto>> columns = new ArrayList<IColumn<SubmitAssignmentDto>>();
+		List<IColumn<SubmitAssignmentDto, String>> columns = new ArrayList<IColumn<SubmitAssignmentDto, String>>();
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.assignmentsList.assignment"),
 				"assignment"));
 		columns.add(new PropertyColumn(createStringResource("pageUserPreview.assignmentsList.operation"), "status"));

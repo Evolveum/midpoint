@@ -172,8 +172,8 @@ public class PageLogging extends PageAdminConfiguration {
 		initButtons(mainForm);
 	}
 
-	private List<IColumn<LoggerConfiguration>> initLoggerColumns() {
-        List<IColumn<LoggerConfiguration>> columns = new ArrayList<IColumn<LoggerConfiguration>>();
+	private List<IColumn<LoggerConfiguration, String>> initLoggerColumns() {
+        List<IColumn<LoggerConfiguration, String>> columns = new ArrayList<IColumn<LoggerConfiguration, String>>();
         IColumn column = new CheckBoxHeaderColumn<LoggerConfiguration>();
         columns.add(column);
 
@@ -252,11 +252,11 @@ public class PageLogging extends PageAdminConfiguration {
                 "appenders") {
 
             @Override
-            protected IModel<String> createLabelModel(final IModel rowModel) {
-                return new LoadableModel<String>() {
+            public IModel<Object> getDataModel(final IModel rowModel) {
+                return new LoadableModel<Object>() {
 
                     @Override
-                    protected String load() {
+                    protected Object load() {
                         LoggerConfiguration config = (LoggerConfiguration) rowModel.getObject();
                         StringBuilder builder = new StringBuilder();
                         for (String appender : config.getAppenders()) {
@@ -288,8 +288,8 @@ public class PageLogging extends PageAdminConfiguration {
         return columns;
     }
 
-	private List<IColumn<FilterConfiguration>> initFilterColumns() {
-        List<IColumn<FilterConfiguration>> columns = new ArrayList<IColumn<FilterConfiguration>>();
+	private List<IColumn<FilterConfiguration, String>> initFilterColumns() {
+        List<IColumn<FilterConfiguration, String>> columns = new ArrayList<IColumn<FilterConfiguration, String>>();
         IColumn column = new CheckBoxHeaderColumn<FilterConfiguration>();
         columns.add(column);
 
@@ -372,11 +372,11 @@ public class PageLogging extends PageAdminConfiguration {
                 "appenders") {
 
             @Override
-            protected IModel<String> createLabelModel(final IModel rowModel) {
-                return new LoadableModel<String>() {
+            public IModel<Object> getDataModel(final IModel rowModel) {
+                return new LoadableModel<Object>() {
 
                     @Override
-                    protected String load() {
+                    protected Object load() {
                     	FilterConfiguration config = (FilterConfiguration) rowModel.getObject();
                         StringBuilder builder = new StringBuilder();
                         for (String appender : config.getAppenders()) {
@@ -430,7 +430,7 @@ public class PageLogging extends PageAdminConfiguration {
 	private void initLoggers(AccordionItem loggers) {
 		initRoot(loggers);
 
-		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
+		ISortableDataProvider<LoggerConfiguration, String> provider = new ListDataProvider<LoggerConfiguration>(this,
 				new PropertyModel<List<LoggerConfiguration>>(model, "loggers"));
 		TablePanel table = new TablePanel<LoggerConfiguration>("loggersTable", provider, initLoggerColumns());
 		table.setStyle("margin-top: 0px;");
@@ -473,7 +473,7 @@ public class PageLogging extends PageAdminConfiguration {
 
 	private void initFilters(AccordionItem loggers) {
 
-		ISortableDataProvider<LoggerConfiguration> provider = new ListDataProvider<LoggerConfiguration>(this,
+		ISortableDataProvider<LoggerConfiguration, String> provider = new ListDataProvider<LoggerConfiguration>(this,
 				new PropertyModel<List<LoggerConfiguration>>(model, "filters"));
 		TablePanel table = new TablePanel<FilterConfiguration>("filtersTable", provider, initFilterColumns());
 		table.setStyle("margin-top: 0px;");
@@ -517,8 +517,8 @@ public class PageLogging extends PageAdminConfiguration {
 		loggers.getBodyContainer().add(profilingAppender);
 	}
 
-	private List<IColumn<AppenderConfiguration>> initAppendersColumns() {
-		List<IColumn<AppenderConfiguration>> columns = new ArrayList<IColumn<AppenderConfiguration>>();
+	private List<IColumn<AppenderConfiguration, String>> initAppendersColumns() {
+		List<IColumn<AppenderConfiguration, String>> columns = new ArrayList<IColumn<AppenderConfiguration, String>>();
 
 		IColumn column = new CheckBoxHeaderColumn<AppenderConfiguration>();
 		columns.add(column);
@@ -606,7 +606,7 @@ public class PageLogging extends PageAdminConfiguration {
 	}
 
 	private void initAppenders(AccordionItem appenders) {
-		ISortableDataProvider<AppenderConfiguration> provider = new ListDataProvider<AppenderConfiguration>(
+		ISortableDataProvider<AppenderConfiguration, String> provider = new ListDataProvider<AppenderConfiguration>(
 				this, new PropertyModel<List<AppenderConfiguration>>(model, "appenders"));
 		TablePanel table = new TablePanel<AppenderConfiguration>("appendersTable", provider,
 				initAppendersColumns());

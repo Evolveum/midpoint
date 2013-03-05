@@ -161,8 +161,7 @@ public class PageContentAccounts extends PageAdminResources {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageContentAccounts.optionsTitle"),
-                getPage(), false);
+        OptionPanel option = new OptionPanel("option", createStringResource("pageContentAccounts.optionsTitle"), false);
         option.setOutputMarkupId(true);
         mainForm.add(option);
 
@@ -255,7 +254,7 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<AccountContentDto>>(
+        column = new AbstractColumn<SelectableBean<AccountContentDto>, String>(
                 createStringResource("pageContentAccounts.identifiers")) {
 
             @Override

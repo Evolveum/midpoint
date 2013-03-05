@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -46,17 +46,17 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
     }
 
     @Override
-    public Iterator<? extends T> iterator(int first, int count) {
+    public Iterator<? extends T> iterator(long first, long count) {
         getAvailableData().clear();
 
         List<T> list = model.getObject();
         if (list != null) {
-            for (int i = first; i < first + count; i++) {
+            for (long i = first; i < first + count; i++) {
                 if (i < 0 || i >= list.size()) {
                     throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
                             + " but list size is " + list.size());
                 }
-                getAvailableData().add(list.get(i));
+                getAvailableData().add(list.get(WebMiscUtil.safeLongToInteger(i)));
             }
         }
 

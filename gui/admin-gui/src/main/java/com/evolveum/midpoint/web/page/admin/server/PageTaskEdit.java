@@ -43,7 +43,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
@@ -151,7 +152,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		initMainInfo(mainForm);
 		initSchedule(mainForm);
 
-		SortableDataProvider<OperationResult> provider = new ListDataProvider<OperationResult>(this,
+		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<OperationResult>(this,
 				new PropertyModel<List<OperationResult>>(model, "opResult"));
 		TablePanel result = new TablePanel<OperationResult>("operationResult", provider, initResultColumns());
 		result.setStyle("padding-top: 0px;");
@@ -343,10 +344,11 @@ public class PageTaskEdit extends PageAdminTasks {
 		boundHelp.setOutputMarkupId(true);
 		boundHelp.add(new AttributeAppender("original-title", getString("pageTaskEdit.boundHelp")));
 		boundHelp.add(new AbstractDefaultAjaxBehavior() {
+
 			@Override
 			public void renderHead(Component component, IHeaderResponse response) {
 				String js = "$('#"+ boundHelp.getMarkupId() +"').tipsy()";
-				response.renderOnDomReadyJavaScript(js);
+				response.render(OnDomReadyHeaderItem.forScript(js));
 				super.renderHead(component, response);
 			}
 
@@ -388,7 +390,7 @@ public class PageTaskEdit extends PageAdminTasks {
 			@Override
 			public void renderHead(Component component, IHeaderResponse response) {
 				String js = "$('#"+ cronHelp.getMarkupId() +"').tipsy()";
-				response.renderOnDomReadyJavaScript(js);
+				response.render(OnDomReadyHeaderItem.forScript(js));
 				super.renderHead(component, response);
 			}
 
@@ -547,8 +549,8 @@ public class PageTaskEdit extends PageAdminTasks {
 		mainForm.add(editButton);
 	}
 
-	private List<IColumn<OperationResult>> initResultColumns() {
-		List<IColumn<OperationResult>> columns = new ArrayList<IColumn<OperationResult>>();
+	private List<IColumn<OperationResult, String>> initResultColumns() {
+		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
 
 		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.token"), "token"));
 		columns.add(new PropertyColumn(createStringResource("pageTaskEdit.opResult.operation"), "operation"));

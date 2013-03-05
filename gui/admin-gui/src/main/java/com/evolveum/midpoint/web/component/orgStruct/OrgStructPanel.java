@@ -24,7 +24,10 @@ package com.evolveum.midpoint.web.component.orgStruct;
 import java.util.Set;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -44,11 +47,12 @@ public class OrgStructPanel extends OptionalTree {
 	public void renderHead(IHeaderResponse response) {
 		super.renderHead(response);
 
-		response.renderCSSReference(new PackageResourceReference(OrgStructPanel.class, "OrgStructPanel.css"));
-		response.renderJavaScriptReference(new PackageResourceReference(OrgStructPanel.class,
-				"OrgStructPanel.js"));
-		response.renderOnLoadJavaScript("initOrgStruct()");
-	}
+        response.render(CssHeaderItem.forReference(
+                new PackageResourceReference(OrgStructPanel.class, "OrgStructPanel.css")));
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(OrgStructPanel.class, "OrgStructPanel.js")));
+        response.render(OnDomReadyHeaderItem.forScript("initOrgStruct()"));
+    }
 
 	protected AbstractTree<NodeDto> createTree(OrgStructProvider provider, IModel<Set<NodeDto>> state) {
 		tree = new NestedTree<NodeDto>("tabletree", provider, state) {

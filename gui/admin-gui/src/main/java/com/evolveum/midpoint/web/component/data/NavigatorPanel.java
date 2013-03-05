@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.IPagingLabelProvider;
@@ -67,14 +68,14 @@ public class NavigatorPanel extends AjaxPagingNavigator {
     }
 
     @Override
-	protected PagingNavigation newNavigation(String id, IPageable pageable, IPagingLabelProvider labelProvider) {
-    	PagingNavigation navigation = super.newNavigation(id, pageable, labelProvider);
-    	navigation.setOutputMarkupId(true);
-    	navigation.add(createVisibilityForSimplePaging());
-    	return navigation;
-	}
+    protected PagingNavigation newNavigation(String id, IPageable pageable, IPagingLabelProvider labelProvider) {
+        PagingNavigation navigation = super.newNavigation(id, pageable, labelProvider);
+        navigation.setOutputMarkupId(true);
+        navigation.add(createVisibilityForSimplePaging());
+        return navigation;
+    }
 
-	private VisibleEnableBehaviour createVisibilityForSimplePaging() {
+    private VisibleEnableBehaviour createVisibilityForSimplePaging() {
         return new VisibleEnableBehaviour() {
 
             @Override
@@ -85,16 +86,16 @@ public class NavigatorPanel extends AjaxPagingNavigator {
     }
 
     @Override
-	protected Link<?> newPagingNavigationIncrementLink(String id, IPageable pageable, int increment) {
-    	Link<?>  link = super.newPagingNavigationIncrementLink(id, pageable, increment);
-    	link.setOutputMarkupId(true);
-    	link.add(createVisibleBehaviour(pageable));
-    	return link;
-	}
+    protected AbstractLink newPagingNavigationIncrementLink(String id, IPageable pageable, int increment) {
+        AbstractLink link = super.newPagingNavigationIncrementLink(id, pageable, increment);
+        link.setOutputMarkupId(true);
+        link.add(createVisibleBehaviour(pageable));
+        return link;
+    }
 
 	@Override
-	protected Link<?> newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
-		Link<?>  link = super.newPagingNavigationLink(id, pageable, pageNumber);
+	protected AbstractLink newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
+        AbstractLink  link = super.newPagingNavigationLink(id, pageable, pageNumber);
 		link.setOutputMarkupId(true);
 		link.add(createVisibleBehaviour(pageable));
     	return link;
@@ -106,21 +107,21 @@ public class NavigatorPanel extends AjaxPagingNavigator {
 		target.appendJavaScript("initTable();");
 	}
 
-	private IModel<String> createModel(final IPageable pageable) {
+    private IModel<String> createModel(final IPageable pageable) {
         return new LoadableModel<String>() {
 
             @Override
             protected String load() {
-                int from = 0;
-                int to = 0;
-                int count = 0;
+                long from = 0;
+                long to = 0;
+                long count = 0;
 
                 if (pageable instanceof DataViewBase) {
                     DataViewBase view = (DataViewBase) pageable;
 
                     from = view.getFirstItemOffset() + 1;
                     to = from + view.getItemsPerPage() - 1;
-                    int itemCount = view.getItemCount();
+                    long itemCount = view.getItemCount();
                     if (to > itemCount) {
                         to = itemCount;
                     }
@@ -130,7 +131,7 @@ public class NavigatorPanel extends AjaxPagingNavigator {
 
                     from = table.getCurrentPage() * table.getItemsPerPage() + 1;
                     to = from + table.getItemsPerPage() - 1;
-                    int itemCount = table.getItemCount();
+                    long itemCount = table.getItemCount();
                     if (to > itemCount) {
                         to = itemCount;
                     }

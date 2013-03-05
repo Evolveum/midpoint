@@ -124,7 +124,7 @@ public class UserBrowserDialog extends ModalWindow {
         mainForm.add(familyNameCheck);
 
 
-        List<IColumn<SelectableBean<UserType>>> columns = initColumns();
+        List<IColumn<SelectableBean<UserType>, String>> columns = initColumns();
         TablePanel table = new TablePanel<SelectableBean<UserType>>("table",
                 new ObjectDataProvider(getPageBase(), UserType.class), columns);
         table.setOutputMarkupId(true);
@@ -164,8 +164,8 @@ public class UserBrowserDialog extends ModalWindow {
         return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
-    private List<IColumn<SelectableBean<UserType>>> initColumns() {
-        List<IColumn<SelectableBean<UserType>>> columns = new ArrayList<IColumn<SelectableBean<UserType>>>();
+    private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
+        List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<IColumn<SelectableBean<UserType>, String>>();
 
         columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.type")) {
 
@@ -210,7 +210,7 @@ public class UserBrowserDialog extends ModalWindow {
         column = new PropertyColumn(createStringResource("userBrowserDialog.fullName"), "fullName", "value.fullName.orig");
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.email")) {
+        column = new AbstractColumn<SelectableBean<UserType>, String>(createStringResource("userBrowserDialog.email")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId,

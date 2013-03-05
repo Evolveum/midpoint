@@ -25,7 +25,10 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.feedback.IFeedbackMessageFilter;
-import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.resource.CssResourceReference;
@@ -81,9 +84,11 @@ public class MainFeedback extends Panel implements IFeedback {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.renderCSSReference(new CssResourceReference(MainFeedback.class, "MainFeedback.css"));
-        response.renderJavaScriptReference(new PackageResourceReference(MainFeedback.class, "MainFeedback.js"));
-        response.renderOnLoadJavaScript("initMessages()");
+        response.render(CssHeaderItem.forReference(
+                new CssResourceReference(MainFeedback.class, "MainFeedback.css")));
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(MainFeedback.class, "MainFeedback.js")));
+        response.render(OnDomReadyHeaderItem.forScript("initMessages()"));
     }
 
     public final void setFilter(IFeedbackMessageFilter filter) {

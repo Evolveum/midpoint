@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
 import com.evolveum.midpoint.wf.WorkflowException;
@@ -64,7 +65,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     }
 
     @Override
-    public Iterator<? extends WorkItemDto> iterator(int first, int count) {
+    public Iterator<? extends WorkItemDto> iterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_ITEMS);
@@ -79,7 +80,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 //            }
 
             WfDataAccessor wfm = getWorkflowDataAccessor();
-            List<WorkItem> items = wfm.listWorkItemsRelatedToUser(currentUser(), assigned, first, count, result);
+            List<WorkItem> items = wfm.listWorkItemsRelatedToUser(currentUser(), assigned,
+                    WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count), result);
 
             for (WorkItem item : items) {
                 try {

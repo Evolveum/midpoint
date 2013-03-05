@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.web.util;
 
-import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -52,10 +51,10 @@ public class DefaultPageParametersEncoder implements IPageParametersEncoder {
      * Decodes URL like this: /mountpoint/paramName1/paramValue1/paramName2/paramValue2
      */
     @Override
-    public PageParameters decodePageParameters(Request request) {
+    public PageParameters decodePageParameters(Url url) {
         PageParameters parameters = new PageParameters();
 
-        for (Iterator<String> segment = request.getUrl().getSegments().iterator(); segment.hasNext(); ) {
+        for (Iterator<String> segment = url.getSegments().iterator(); segment.hasNext(); ) {
             String key = segment.next();
             String value = segment.next();
 

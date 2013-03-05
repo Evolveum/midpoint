@@ -53,7 +53,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
     }
 
     @Override
-    public Iterator<? extends TaskDto> iterator(int first, int count) {
+    public Iterator<? extends TaskDto> iterator(long first, long count) {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_TASKS);

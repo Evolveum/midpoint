@@ -31,7 +31,7 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author lazyman
  */
-public class LinkColumn<T> extends AbstractColumn<T> {
+public class LinkColumn<T> extends AbstractColumn<T, String> {
 
     private String propertyExpression;
 
