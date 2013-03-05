@@ -131,8 +131,53 @@ using an Identity Connector Framework connector.
 					<outbound>
 						<strength>weak</strength>
 						<source>
-							<path>$user/name</path>
+							<name>tmpGivenName</name>
+							<path>$user/givenName/t:norm</path>
 						</source>
+						<source>
+							<name>tmpFamilyName</name>
+							<path>$user/familyName/t:norm</path>
+						</source>
+						<expression>
+						<script>
+						<code>
+<!-- Generate user name:
+
+- FamilyName + GivenName initial (1 character)
+- no diacritics, all lower case (normalized)
+- max. length 12 including iterator, so the family name part may be shortened:
+John Smith: smithj
+Jay Smith: smithj1
+Max Verylonglastname: verylonglasm (notice the family name being shortened)
+Marty Verylonglastname: verylonglam1 (notice the family name being shortened)
+
+-->
+
+<!--
+tmpFamilyName = tmpFamilyName ? tmpFamilyName.getNorm() : ''
+tmpGivenName  = tmpGivenName  ? tmpGivenName.getNorm() : ''-->
+tmpGivenNameInitial = (tmpGivenName != null &amp;&amp; tmpGivenName != '') ? tmpGivenName[0] : ''
+
+if (iteration == 0) {
+	if (tmpFamilyName.size() &lt; 11) {
+		tmpFamilyName + tmpGivenNameInitial
+	}
+	else {
+		tmpFamilyName?.substring(0, 11) + tmpGivenNameInitial
+	}
+}
+else {
+	if (tmpFamilyName.size() &lt; 10) {
+		tmpFamilyName + tmpGivenNameInitial + iterationToken
+	}
+	else {
+		tmpFamilyName?.substring(0, 10) + tmpGivenNameInitial + iterationToken
+
+	}
+}
+						</code>
+						</script>
+						</expression>
 					</outbound>
 				</attribute>
 
@@ -199,6 +244,9 @@ using an Identity Connector Framework connector.
 						<outbound/>
 					</enabled>
 				</activation>
+    				<iteration>
+                                	<maxIterations>5</maxIterations>
+                        	</iteration>
 
 			</accountType>
 		</schemaHandling>
