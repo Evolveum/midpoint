@@ -84,13 +84,13 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
         user.setOid(null);
         user.setPropertyRealValue(ObjectType.F_NAME, "existingName");
-        repositoryService.addObject(user, result);
+        repositoryService.addObject(user, null, result);
 
         //add second user
         user = prismContext.getPrismDomProcessor().parseObject(userFile);
         user.setOid(null);
         user.setPropertyRealValue(ObjectType.F_NAME, "otherName");
-        String oid = repositoryService.addObject(user, result);
+        String oid = repositoryService.addObject(user, null, result);
 
         //modify second user name to "existingName"
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
@@ -126,7 +126,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         user.setOid(null);
         user.asObjectable().setName(new PolyStringType("non-existing-account-user"));
 
-        String oid = repositoryService.addObject(user, result);
+        String oid = repositoryService.addObject(user, null, result);
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, result);
 
@@ -156,14 +156,14 @@ public class ModifyTest extends BaseSQLRepoTest {
         //add account
         File accountFile = new File(TEST_DIR, "account.xml");
         PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
-        repositoryService.addObject(account, result);
+        repositoryService.addObject(account, null, result);
 
         //add user
         File userFile = new File(TEST_DIR, "modify-user.xml");
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
 
         String userOid = user.getOid();
-        String oid = repositoryService.addObject(user, result);
+        String oid = repositoryService.addObject(user, null, result);
         AssertJUnit.assertEquals(userOid, oid);
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, result);
@@ -193,7 +193,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         File taskFile = new File(TEST_DIR, "task.xml");
         System.out.println("ADD");
         PrismObject<TaskType> task = prismContext.getPrismDomProcessor().parseObject(taskFile);
-        repositoryService.addObject(task, result);
+        repositoryService.addObject(task, null, result);
         final String taskOid = "00000000-0000-0000-0000-123450000001";
         AssertJUnit.assertNotNull(taskOid);
         System.out.println("GET");
@@ -283,20 +283,20 @@ public class ModifyTest extends BaseSQLRepoTest {
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
 
         PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/resource-csv.xml"));
-        repositoryService.addObject(csvResource, parentResult);
+        repositoryService.addObject(csvResource, null, parentResult);
 
         PrismObject<ResourceType> openDjResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/resource-opendj.xml"));
-        repositoryService.addObject(openDjResource, parentResult);
+        repositoryService.addObject(openDjResource, null, parentResult);
 
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/user.xml"));
-        repositoryService.addObject(user, parentResult);
+        repositoryService.addObject(user, null, parentResult);
 
         PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-csv.xml"));
-        repositoryService.addObject(roleCsv, parentResult);
+        repositoryService.addObject(roleCsv, null, parentResult);
 
         String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
         PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-ldap.xml"));
-        repositoryService.addObject(roleLdap, parentResult);
+        repositoryService.addObject(roleLdap, null, parentResult);
 
         RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, parentResult).asObjectable();
         AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
@@ -320,7 +320,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void testModifyDeleteObjectChangeFromAccount() throws Exception {
         OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
         PrismObject<AccountShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
-        String oid = repositoryService.addObject(accShadow, parentResult);
+        String oid = repositoryService.addObject(accShadow, null, parentResult);
         System.out.println("\nAcc shadow");
         System.out.println(accShadow.dump());
 
@@ -349,7 +349,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
 
         OperationResult result = new OperationResult("test extension modify");
-        final String oid = repositoryService.addObject(user, result);
+        final String oid = repositoryService.addObject(user, null, result);
 
         user = prismContext.getPrismDomProcessor().parseObject(userFile);
         PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, result);
@@ -520,7 +520,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         //add account
         File accountFile = new File(TEST_DIR, "account-synchronization-situation.xml");
         PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
-        repositoryService.addObject(account, result);
+        repositoryService.addObject(account, null, result);
 
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
                 createSynchronizationSituationDescriptionDelta(account, SynchronizationSituationType.LINKED, null);

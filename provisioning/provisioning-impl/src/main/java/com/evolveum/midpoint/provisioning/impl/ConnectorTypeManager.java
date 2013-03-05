@@ -316,7 +316,7 @@ public class ConnectorTypeManager {
 				String oid;
 				try {
 					prismContext.adopt(foundConnector);
-					oid = repositoryService.addObject(foundConnector.asPrismObject(), result);
+					oid = repositoryService.addObject(foundConnector.asPrismObject(), null, result);
 				} catch (ObjectAlreadyExistsException e) {
 					// We don't specify the OID, therefore this should never
 					// happen

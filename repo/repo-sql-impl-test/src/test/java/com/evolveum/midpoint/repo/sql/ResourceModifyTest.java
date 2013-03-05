@@ -84,7 +84,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
         PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
         
         // WHEN
-        String addOid = repositoryService.addObject(resource, result);
+        String addOid = repositoryService.addObject(resource, null, result);
         
         // THEN
         assertEquals("Wrong OID after add", RESOURCE_OPENDJ_OID, addOid);

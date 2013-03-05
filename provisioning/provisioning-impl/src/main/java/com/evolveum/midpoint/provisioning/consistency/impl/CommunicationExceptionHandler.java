@@ -121,7 +121,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				}
 				shadow.setAttemptNumber(getAttemptNumber(shadow));
 				shadow.setFailedOperationType(FailedOperationTypeType.ADD);
-				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), operationResult);
+				String oid = cacheRepositoryService.addObject(shadow.asPrismObject(), null, operationResult);
 				shadow.setOid(oid);
 			
 				// if it is seccond time ,just increade the attempt number

@@ -199,7 +199,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         user.asObjectable().setName(new PolyStringType(name));
 
         OperationResult result = new OperationResult("Concurrency Test");
-        String oid = repositoryService.addObject(user, result);
+        String oid = repositoryService.addObject(user, null, result);
 
         LOGGER.info("*** Object added: " + oid + " ***");
 

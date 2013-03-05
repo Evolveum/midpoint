@@ -74,7 +74,7 @@ public class ImportObjects extends BaseNinjaAction {
 
                 OperationResult result = new OperationResult("Import " + displayName);
                 try {
-                    repository.addObject(object, result);
+                    repository.addObject(object, null, result);
                 } catch (Exception ex) {
                     System.out.println("Exception occurred during import, reason: " + ex.getMessage());
                     ex.printStackTrace();

@@ -109,7 +109,7 @@ public class NodeRegistrar {
         }
 
         try {
-            String oid = getRepositoryService().addObject(nodePrism, result);
+            String oid = getRepositoryService().addObject(nodePrism, null, result);
             nodePrism.setOid(oid);
         } catch (ObjectAlreadyExistsException e) {
             taskManager.setNodeErrorStatus(NodeErrorStatus.NODE_REGISTRATION_FAILED);

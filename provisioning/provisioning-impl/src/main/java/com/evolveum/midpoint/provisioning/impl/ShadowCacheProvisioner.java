@@ -44,7 +44,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	LOGGER.trace("Adding object with identifiers to the repository.");
 	String oid = null;
 	try {
-		oid = getRepositoryService().addObject(shadowType.asPrismObject(), parentResult);
+		oid = getRepositoryService().addObject(shadowType.asPrismObject(), null, parentResult);
 
 	} catch (ObjectAlreadyExistsException ex) {
 		// This should not happen. The OID is not supplied and it is

@@ -537,7 +537,7 @@ public class EncodingTest extends BaseSQLRepoTest {
 
         String oid;
         try {
-            oid = repositoryService.addObject(user, result);
+            oid = repositoryService.addObject(user, null, result);
         } catch (Exception e) {
             result.recordFatalError(e);
             return;

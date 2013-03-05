@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -215,7 +216,11 @@ public class ObjectImporter {
 
         try {
 
-            String oid = repository.addObject(object, result);
+            RepoAddOptions repoOptions = new RepoAddOptions();
+            repoOptions.setOverwrite(BooleanUtils.isTrue(options.isOverwrite()));
+            
+			String oid = repository.addObject(object, repoOptions, result);
+			
             if (object.canRepresent(TaskType.class)) {
             	taskManager.onTaskCreate(oid, result);
             }
@@ -232,7 +237,7 @@ public class ObjectImporter {
                     if (BooleanUtils.isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);
                     }
-                    repository.addObject(object, result);
+                    repository.addObject(object, null, result);
                     if (object.canRepresent(TaskType.class))
                     	taskManager.onTaskCreate(object.getOid(), result);
                     result.recordSuccess();

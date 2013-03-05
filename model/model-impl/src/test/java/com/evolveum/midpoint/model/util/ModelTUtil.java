@@ -95,7 +95,7 @@ public class ModelTUtil {
 
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, ObjectType object)
 			throws Exception {
-		repositoryService.addObject(object.asPrismObject(), new OperationResult("Add Object"));
+		repositoryService.addObject(object.asPrismObject(), null, new OperationResult("Add Object"));
 		return object;
 	}
 
@@ -113,7 +113,7 @@ public class ModelTUtil {
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, String fileString)
 			throws Exception {
 		ObjectType object = PrismTestUtil.unmarshalObject(new File(fileString), ObjectType.class);
-		repositoryService.addObject(object.asPrismObject(), new OperationResult("Add Object"));
+		repositoryService.addObject(object.asPrismObject(), null, new OperationResult("Add Object"));
 		return object;
 	}
 

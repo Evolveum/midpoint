@@ -137,7 +137,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		
 		String oid;
 		try {
-			oid = repositoryService.addObject(user, result);
+			oid = repositoryService.addObject(user, null, result);
 		} catch (ObjectAlreadyExistsException e) {
 			result.recordFatalError(e);
 			return;

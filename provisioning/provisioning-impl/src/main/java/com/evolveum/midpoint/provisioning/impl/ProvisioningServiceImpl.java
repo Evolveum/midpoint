@@ -344,7 +344,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw ex;
 			}
 		} else {
-			oid = cacheRepositoryService.addObject(object, result);
+			oid = cacheRepositoryService.addObject(object, null, result);
 		}
 
 		LOGGER.trace("**PROVISIONING: Adding object finished.");

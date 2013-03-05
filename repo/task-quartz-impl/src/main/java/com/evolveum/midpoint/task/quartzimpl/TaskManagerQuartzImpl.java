@@ -578,7 +578,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		PrismObject<TaskType> taskPrism = task.getTaskPrismObject();
         String oid;
         try {
-		     oid = repositoryService.addObject(taskPrism, result);
+		     oid = repositoryService.addObject(taskPrism, null, result);
         } catch (ObjectAlreadyExistsException e) {
             result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
             throw e;

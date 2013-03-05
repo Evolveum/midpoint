@@ -262,7 +262,7 @@ public class ResourceObjectManager {
 
 								ResourceObjectShadowType repoShadow = ShadowCacheUtil.createRepositoryShadow(
 										resourceShadowType, resourceType);
-								String oid = getRepositoryService().addObject(repoShadow.asPrismObject(),
+								String oid = getRepositoryService().addObject(repoShadow.asPrismObject(), null,
 										parentResult);
 
 								resultShadowType = ShadowCacheUtil.completeShadow(resourceShadowType, null,
@@ -499,7 +499,7 @@ public class ResourceObjectManager {
 				}
 
 				try {
-					String oid = getRepositoryService().addObject(newShadow.asPrismObject(), parentResult);
+					String oid = getRepositoryService().addObject(newShadow.asPrismObject(), null, parentResult);
 					newShadow.setOid(oid);
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)

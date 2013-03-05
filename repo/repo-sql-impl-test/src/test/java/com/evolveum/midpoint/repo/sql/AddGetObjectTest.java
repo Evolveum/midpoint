@@ -73,7 +73,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             }
 
             PrismObject<T> object = (PrismObject<T>) elements.get(i);
-            repositoryService.addObject(object, new OperationResult("add performance test"));
+            repositoryService.addObject(object, null, new OperationResult("add performance test"));
         }
         LOGGER.info("Time to add objects ({}): {}",
                 new Object[]{elements.size(), (System.currentTimeMillis() - time)});
@@ -131,7 +131,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             PrismObject object = elements.get(i);
             LOGGER.info("Adding object {}, type {}", new Object[]{(i + 1),
                     object.getCompileTimeClass().getSimpleName()});
-            oids.add(repositoryService.addObject(object, result));
+            oids.add(repositoryService.addObject(object, null, result));
         }
         LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(),
                 (System.currentTimeMillis() - time),});
@@ -236,7 +236,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
 
         OperationResult result = new OperationResult("ADD");
-        String oid = repositoryService.addObject((PrismObject) elements.get(0), result);
+        String oid = repositoryService.addObject((PrismObject) elements.get(0), null, result);
 
         PrismObject<UserType> fileUser = (PrismObject<UserType>) prismContext.getPrismDomProcessor().parseObjects(file)
                 .get(0);
@@ -271,7 +271,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ResourceObjectShadowUtil.applyResourceSchema(fileAccount, resourceSchema);
 
         OperationResult result = new OperationResult("ADD");
-        String oid = repositoryService.addObject(fileAccount, result);
+        String oid = repositoryService.addObject(fileAccount, null, result);
 
         PrismObject<AccountShadowType> repoAccount = repositoryService.getObject(AccountShadowType.class, oid, result);
 
@@ -296,7 +296,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         OperationResult result = new OperationResult("ADD");
         String pwdPolicyOid = "00000000-0000-0000-0000-000000000003";
-        String oid = repositoryService.addObject(filePasswordPolicy, result);
+        String oid = repositoryService.addObject(filePasswordPolicy, null, result);
         AssertJUnit.assertNotNull(oid);
         AssertJUnit.assertEquals(pwdPolicyOid, oid);
         PrismObject<ValuePolicyType> repoPasswordPolicy = repositoryService.getObject(ValuePolicyType.class, oid, result);
@@ -305,7 +305,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         String systemCongigOid = "00000000-0000-0000-0000-000000000001";
         PrismObject<SystemConfigurationType> fileSystemConfig = prismContext.parseObject(new File(FOLDER_BASIC, "systemConfiguration.xml"));
         LOGGER.info("System config from file: {}", fileSystemConfig.dump());
-        oid = repositoryService.addObject(fileSystemConfig, result);
+        oid = repositoryService.addObject(fileSystemConfig, null, result);
         AssertJUnit.assertNotNull(oid);
         AssertJUnit.assertEquals(systemCongigOid, oid);
 

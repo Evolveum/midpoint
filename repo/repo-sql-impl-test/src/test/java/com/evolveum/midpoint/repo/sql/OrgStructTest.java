@@ -112,7 +112,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
-            repositoryService.addObject((PrismObject<ObjectType>) o, opResult);
+            repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }
 
         List<PrismObject<OrgType>> orgTypes = repositoryService.searchObjects(OrgType.class, new ObjectQuery(), opResult);

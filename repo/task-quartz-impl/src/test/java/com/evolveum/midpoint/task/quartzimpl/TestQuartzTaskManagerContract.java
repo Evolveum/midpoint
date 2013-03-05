@@ -1306,7 +1306,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 		if (object.canRepresent(TaskType.class)) {
             taskManager.addTask((PrismObject)object, result);
         } else {
-            repositoryService.addObject(object, result);
+            repositoryService.addObject(object, null, result);
         }
 	}
 

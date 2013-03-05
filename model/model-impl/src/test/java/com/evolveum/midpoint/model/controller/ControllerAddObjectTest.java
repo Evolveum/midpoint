@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -158,7 +159,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repository.addObject(argThat(new ObjectTypeNameMatcher(expectedUserType.getName())),
-						any(OperationResult.class))).thenAnswer(new Answer<String>() {
+						any(RepoAddOptions.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
@@ -178,7 +179,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		display("addObject result",result.dump());
 
 		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(expectedUserType.getName())),
-				any(OperationResult.class));
+				any(RepoAddOptions.class), any(OperationResult.class));
 		assertEquals(oid, userOid);
 	}
 

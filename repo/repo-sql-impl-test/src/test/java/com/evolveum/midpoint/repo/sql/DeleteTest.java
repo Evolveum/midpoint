@@ -61,7 +61,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
             LOGGER.info("Adding object {}, type {}", new Object[]{i, object.getCompileTimeClass().getSimpleName()});
-            oids.add(repositoryService.addObject(object, result));
+            oids.add(repositoryService.addObject(object, null, result));
         }
 
         for (int i = 0; i < elements.size(); i++) {
@@ -77,7 +77,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         PrismObject<SystemConfigurationType> configuration = prismContext.parseObject(new File(FOLDER_BASIC, "systemConfiguration.xml"));
 
         OperationResult result = new OperationResult("add system configuration");
-        final String oid = repositoryService.addObject(configuration, result);
+        final String oid = repositoryService.addObject(configuration, null, result);
         repositoryService.deleteObject(SystemConfigurationType.class, oid, result);
         result.recomputeStatus();
 

@@ -251,7 +251,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		AssignmentType assignmentType = userOtis.asObjectable().getAssignment().iterator().next();
 		
 		// Add to repo to avoid processing of the assignment
-		String userOtisOid = repositoryService.addObject(userOtis, result);
+		String userOtisOid = repositoryService.addObject(userOtis, null, result);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, 
         		userOtisOid, UserType.F_ASSIGNMENT, prismContext, assignmentType.asPrismContainerValue().clone());
@@ -300,7 +300,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		display("Half-assigned user", userNavigator);
 		
 		// Add to repo to avoid processing of the assignment
-		String userNavigatorOid = repositoryService.addObject(userNavigator, result);
+		String userNavigatorOid = repositoryService.addObject(userNavigator, null, result);
         
         ObjectDelta<UserType> userDelta = ObjectDelta.createDeleteDelta(UserType.class, userNavigatorOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);

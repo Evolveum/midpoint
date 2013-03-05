@@ -337,7 +337,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
-			String oid = repositoryService.addObject(account, result);
+			String oid = repositoryService.addObject(account, null, result);
 			ProvisioningOperationOptions options = ProvisioningOperationOptions.createForce(true);
 			provisioningService.deleteObject(AccountShadowType.class, oid, options, null, task, result);
 //			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");

@@ -352,7 +352,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 						encryptValues(delta, result);
 					}
 					if (delta.isAdd()) {
-						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), result);
+						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), null, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
 						cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result);

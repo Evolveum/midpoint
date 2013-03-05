@@ -78,7 +78,7 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(OBJECTS_FILE);
         for (int i = 0; i < elements.size(); i++) {
             PrismObject object = elements.get(i);
-            repositoryService.addObject(object, result);
+            repositoryService.addObject(object, null, result);
         }
 
         //look for account owner
@@ -104,11 +104,11 @@ public class ListAccountShadowOwnerTest extends BaseSQLRepoTest {
         // GIVEN
         OperationResult result = new OperationResult("testLinkUnlink");
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
-        String userOid = repositoryService.addObject(user, result);
+        String userOid = repositoryService.addObject(user, null, result);
         assertNotNull("User oid is null", userOid);
         AssertJUnit.assertEquals("user oid is not equal to returned value", userOid, user.getOid());
         PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "account-shadow.xml"));
-        String accountOid = repositoryService.addObject(account, result);
+        String accountOid = repositoryService.addObject(account, null, result);
         assertNotNull("Account oid is null, couldn't add account or what?", account);
         AssertJUnit.assertEquals("account oid is not equal to returned value", accountOid, account.getOid());
         // precondition

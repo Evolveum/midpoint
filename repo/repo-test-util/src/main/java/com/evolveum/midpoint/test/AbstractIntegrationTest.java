@@ -179,7 +179,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		} else {
 			Assert.assertNotNull(repositoryService, "Repository service is not initialized");
 			try{
-				String oid = repositoryService.addObject(object, result);
+				String oid = repositoryService.addObject(object, null, result);
 				object.setOid(oid);
 			} catch(ObjectAlreadyExistsException ex){
 				result.recordFatalError(ex.getMessage()+" while adding "+object+(contextDesc==null?"":" "+contextDesc), ex);
@@ -241,7 +241,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(new File(filePath), ResourceType.class);
 		fillInConnectorRef(resource, connectorType, result);
 		display("Adding resource ", resource);
-		String oid = repositoryService.addObject(resource, result);
+		String oid = repositoryService.addObject(resource, null, result);
 		resource.setOid(oid);
 		return resource;
 	}

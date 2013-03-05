@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -280,7 +281,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 
 	@Override
-	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationResult result)
+	public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult result)
 			throws ObjectAlreadyExistsException, SchemaException {
 		Validate.notNull(object, "Object must not be null.");
 		validateName(object);
