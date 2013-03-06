@@ -29,9 +29,13 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
@@ -80,7 +84,7 @@ public class TestPrismObjectConstruction {
 		System.out.println("User:");
 		System.out.println(user.dump());
 		// Check if the values are correct, also checking definitions
-		assertUserDrake(user, true);
+		assertUserDrake(user, true, ctx);
 	}
 	
 	/**
@@ -103,7 +107,8 @@ public class TestPrismObjectConstruction {
 		System.out.println("User:");
 		System.out.println(user.dump());
 		// Check if the values are correct, no schema checking
-		assertUserDrake(user, false);
+		PrismContext ctx = constructInitializedPrismContext();
+		assertUserDrake(user, false, ctx);
 	}
 	
 	/**
@@ -116,14 +121,14 @@ public class TestPrismObjectConstruction {
 
 		// GIVEN
 		// No context needed (yet)
-		
 		PrismObject<UserType> user = new PrismObject<UserType>(USER_QNAME, UserType.class);
 		// Fill-in object values, no schema checking
 		fillInUserDrake(user, false);
 		// Make sure the object is OK
-		assertUserDrake(user, false);
-		
 		PrismContext ctx = constructInitializedPrismContext();
+		assertUserDrake(user, false, ctx);
+		
+		
 		PrismObjectDefinition<UserType> userDefinition =
 			ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		
@@ -135,7 +140,7 @@ public class TestPrismObjectConstruction {
 		System.out.println(user.dump());
 		
 		// Check schema now 
-		assertUserDrake(user, true);
+		assertUserDrake(user, true, ctx);
 
 	}
 	
@@ -156,7 +161,7 @@ public class TestPrismObjectConstruction {
 		System.out.println("Cloned user:");
 		System.out.println(clone.dump());
 		// Check if the values are correct, also checking definitions
-		assertUserDrake(clone, true);
+		assertUserDrake(clone, true, ctx);
 	}
 
 	@Test
@@ -275,12 +280,18 @@ public class TestPrismObjectConstruction {
 		
 	}
 
-	private void assertUserDrake(PrismObject<UserType> user, boolean assertDefinitions) {
+	private void assertUserDrake(PrismObject<UserType> user, boolean assertDefinitions, PrismContext prismContext) throws SchemaException, SAXException, IOException {
 		assertEquals("Wrong OID", USER_OID, user.getOid());
 		assertEquals("Wrong compileTimeClass", UserType.class, user.getCompileTimeClass());
 		
 		user.checkConsistence();
+		assertUserDrakeContent(user, assertDefinitions);
+		if (assertDefinitions) {
+			serializeAndValidate(user, prismContext);
+		}
+	}
 		
+	private void assertUserDrakeContent(PrismObject<UserType> user, boolean assertDefinitions) {
 		// fullName
 		PrismProperty fullNameProperty = user.findProperty(USER_FULLNAME_QNAME);
 		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
@@ -324,5 +335,16 @@ public class TestPrismObjectConstruction {
 		assertEquals("accountRef size", 2, accountRef.getValues().size());
 		PrismAsserts.assertParentConsistency(user);
 	}
-	
+		
+	private void serializeAndValidate(PrismObject<UserType> user, PrismContext prismContext) throws SchemaException, SAXException, IOException {
+		String xmlString = prismContext.getPrismDomProcessor().serializeObjectToString(user, true);
+		System.out.println("Serialized XML");
+		System.out.println(xmlString);
+		Document xmlDocument = DOMUtil.parseDocument(xmlString);
+		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
+		Validator validator = javaxSchema.newValidator();
+		validator.setResourceResolver(prismContext.getSchemaRegistry());
+		validator.validate(new DOMSource(xmlDocument));
+	}
+
 }

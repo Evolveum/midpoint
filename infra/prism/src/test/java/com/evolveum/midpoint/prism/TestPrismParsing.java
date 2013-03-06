@@ -292,9 +292,9 @@ public class TestPrismParsing {
 		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
 		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
 		assertPropertyValue(user, "givenName", "Jack");
-		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 0, 1);
 		assertPropertyValue(user, "familyName", "Sparrow");
-		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 0, 1);
 		assertPropertyValue(user, "name", new PolyString("jack", "jack"));
 		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 		
