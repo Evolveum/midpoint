@@ -162,7 +162,7 @@ public class TestRefinedSchema {
         assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
         
         // This is compatibility with PrismContainerDefinition, it should work well
-        Set<PrismPropertyDefinition> propertyDefinitions = rAccount.getPropertyDefinitions();
+        Collection<PrismPropertyDefinition> propertyDefinitions = rAccount.getPropertyDefinitions();
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
         assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
         assertEquals("Unexpected number of propertyDefinitions", 55, propertyDefinitions.size());

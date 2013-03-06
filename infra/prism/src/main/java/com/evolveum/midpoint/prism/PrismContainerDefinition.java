@@ -282,8 +282,8 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      *
      * @return set of definitions
      */
-    public Set<PrismPropertyDefinition> getPropertyDefinitions() {
-        Set<PrismPropertyDefinition> props = new HashSet<PrismPropertyDefinition>();
+    public List<PrismPropertyDefinition> getPropertyDefinitions() {
+    	List<PrismPropertyDefinition> props = new ArrayList<PrismPropertyDefinition>();
         for (ItemDefinition def : complexTypeDefinition.getDefinitions()) {
             if (def instanceof PrismPropertyDefinition) {
                 props.add((PrismPropertyDefinition) def);

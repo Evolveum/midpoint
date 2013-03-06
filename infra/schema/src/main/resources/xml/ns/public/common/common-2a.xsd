@@ -46,7 +46,7 @@
 
             See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
             
-            Version: 2a.1-SNAPSHOT
+            Version: 2a.2-SNAPSHOT
             Recommended namespace prefix: (default), c
         </xsd:documentation>
         <xsd:appinfo>
@@ -2508,14 +2508,14 @@
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:ignore" minOccurs="0"/>
-            <xsd:element name="minOccurs" type="xsd:int" minOccurs="0">
+            <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			Override of schema minOccurs specification.
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="maxOccurs" type="xsd:int" minOccurs="0">
+            <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			Override of schema maxOccurs specification.

@@ -66,18 +66,18 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
      */
     PrismObjectDefinition<AccountShadowType> objectDefinition = null;
 
-    private Collection<RefinedAttributeDefinition> attributeDefinitions;
+    private List<RefinedAttributeDefinition> attributeDefinitions;
 
     private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType) {
         super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
-        attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
+        attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
     }
 
     private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType,
     		ObjectClassComplexTypeDefinition objectClassDefinition) {
         super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
-        attributeDefinitions = new HashSet<RefinedAttributeDefinition>();
+        attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
         this.objectClassDefinition = objectClassDefinition;
     }
@@ -295,8 +295,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
     
     @Override
-	public Set<PrismPropertyDefinition> getPropertyDefinitions() {
-    	return (Set)attributeDefinitions;
+	public List<PrismPropertyDefinition> getPropertyDefinitions() {
+    	return (List)attributeDefinitions;
 	}
 
 	@Override

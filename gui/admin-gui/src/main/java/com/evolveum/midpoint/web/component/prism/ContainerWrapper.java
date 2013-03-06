@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -190,7 +191,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                 // there's no point in showing properties for non-single-valued parent containers,
                 // so we continue only if the parent is single-valued
 
-                Set<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
+                Collection<PrismPropertyDefinition> propertyDefinitions = definition.getPropertyDefinitions();
                 for (PrismPropertyDefinition def : propertyDefinitions) {
                     if (def.isIgnored() || skipProperty(def)) {
                         continue;

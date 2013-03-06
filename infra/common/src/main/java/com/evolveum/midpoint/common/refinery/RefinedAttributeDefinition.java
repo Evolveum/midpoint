@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -256,8 +257,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
                 rAttrDef.setInboundMappingTypes(schemaHandlingAttrDefType.getInbound());
             }
         
-            rAttrDef.minOccurs = schemaHandlingAttrDefType.getMinOccurs();
-            rAttrDef.maxOccurs = schemaHandlingAttrDefType.getMaxOccurs();
+            rAttrDef.minOccurs = SchemaProcessorUtil.parseMultiplicity(schemaHandlingAttrDefType.getMinOccurs());
+            rAttrDef.maxOccurs = SchemaProcessorUtil.parseMultiplicity(schemaHandlingAttrDefType.getMaxOccurs());
             
             if (schemaHandlingAttrDefType.isIgnore() == null) {
             	rAttrDef.ignored = schemaAttrDef.isIgnored();

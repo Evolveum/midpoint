@@ -38,6 +38,8 @@ import com.sun.xml.xsom.XSType;
  *
  */
 public class SchemaProcessorUtil {
+	
+	public static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
 	public static boolean hasAnnotation(XSType xsType, QName annotationElementName) {
 		if (xsType.getName() == null) {
@@ -87,6 +89,16 @@ public class SchemaProcessorUtil {
 			return null;
 		}
 		return DOMUtil.getQNameValue(element);
+	}
+	
+	public static Integer parseMultiplicity(String stringMultiplicity) {
+		if (stringMultiplicity == null) {
+			return null;
+		}
+		if (stringMultiplicity.equals(MULTIPLICITY_UNBOUNDED)) {
+			return -1;
+		}
+		return Integer.parseInt(stringMultiplicity);
 	}
 	
 }
