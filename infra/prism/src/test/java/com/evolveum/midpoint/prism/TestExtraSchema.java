@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMResult;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TestExtraSchema {
@@ -88,8 +91,8 @@ public class TestExtraSchema {
 	}
 	
 	@Test
-	public void testUserExtensionSchemaPaseUser() throws SAXException, IOException, SchemaException {
-		System.out.println("===[ testUserExtensionSchemaPaseUser ]===");
+	public void testUserExtensionSchemaParseUser() throws SAXException, IOException, SchemaException {
+		System.out.println("===[ testUserExtensionSchemaParseUser ]===");
 		Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE);
 		
 		PrismContext context = constructPrismContext();
@@ -189,6 +192,19 @@ public class TestExtraSchema {
 		assertNotNull("No 'multi' definition in user extension", multiPropDef);
 		PrismAsserts.assertDefinition(multiPropDef, USER_EXT_MULTI_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
 		assertFalse("'multi' not indexed", multiPropDef.isIndexed());
+		
+		// Make sure that the ordering is OK. If it is not then a serialization will produce XML that
+		// does not comply to schema
+		List<ItemDefinition> definitions = userDef.getDefinitions();
+		assertDefinitionOrder(definitions, USER_NAME_QNAME, 0);
+		assertDefinitionOrder(definitions, USER_DESCRIPTION_QNAME, 1);
+		assertDefinitionOrder(definitions, USER_EXTENSION_QNAME, 2);
+		assertDefinitionOrder(definitions, USER_FULLNAME_QNAME, 3);
+	}
+
+	private void assertDefinitionOrder(List<ItemDefinition> definitions, QName elementName, int i) {
+		assertEquals("Wrong definition, expected that "+PrettyPrinter.prettyPrint(elementName)+" definition will be at index " +
+				i + " but there was a "+definitions.get(i).getName()+" instead", elementName, definitions.get(i).getName());
 	}
 
 	/**

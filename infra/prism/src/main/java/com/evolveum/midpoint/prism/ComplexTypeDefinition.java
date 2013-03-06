@@ -236,17 +236,18 @@ public class ComplexTypeDefinition extends Definition {
 	}
 
 	public void replaceDefinition(QName propertyName, ItemDefinition newDefinition) {
-		for (ItemDefinition itemDef: itemDefinitions) {
+		for (int i=0; i<itemDefinitions.size(); i++) {
+			ItemDefinition itemDef = itemDefinitions.get(i);
 			if (itemDef.getName().equals(propertyName)) {
 				if (!itemDef.getClass().isAssignableFrom(newDefinition.getClass())) {
 					throw new IllegalArgumentException("The provided definition of class "+newDefinition.getClass().getName()+" does not match existing definition of class "+itemDef.getClass().getName());
 				}
-				itemDefinitions.remove(itemDef);
 				if (!itemDef.getName().equals(newDefinition.getName())) {
 					newDefinition = newDefinition.clone();
 					newDefinition.setName(propertyName);
 				}
-				itemDefinitions.add(newDefinition);
+				// Make sure this is set, not add. set will keep correct ordering
+				itemDefinitions.set(i, newDefinition);
 				return;
 			}
 		}

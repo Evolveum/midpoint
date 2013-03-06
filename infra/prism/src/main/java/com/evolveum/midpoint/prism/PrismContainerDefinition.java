@@ -263,11 +263,11 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      *
      * @return set of definitions
      */
-    public Collection<ItemDefinition> getDefinitions() {
+    public List<ItemDefinition> getDefinitions() {
         if (complexTypeDefinition == null) {
             // e.g. for xsd:any containers
             // FIXME
-            return new HashSet<ItemDefinition>();
+            return new ArrayList<ItemDefinition>();
         }
         return complexTypeDefinition.getDefinitions();
     }

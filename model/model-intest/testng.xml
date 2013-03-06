@@ -40,7 +40,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestMultiConnector"/>
             <class name="com.evolveum.midpoint.model.intest.TestStrangeCases"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
-            <class name="com.evolveum.midpoint.model.intest.TestDiag"/>
+            <class name="com.evolveum.midpoint.model.intest.TestMisc"/>
             <class name="com.evolveum.midpoint.model.intest.TestResourceModifications"/>
             <class name="com.evolveum.midpoint.model.intest.TestMapping"/>
         </classes>

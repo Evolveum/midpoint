@@ -300,8 +300,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	}
 
 	@Override
-    public Collection<ItemDefinition> getDefinitions() {
-        return (Collection) attributeDefinitions;
+    public List<ItemDefinition> getDefinitions() {
+        return (List) attributeDefinitions;
     }
 
     public ResourceType getResourceType() {

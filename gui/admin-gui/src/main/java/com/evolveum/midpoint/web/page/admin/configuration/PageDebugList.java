@@ -563,6 +563,9 @@ public class PageDebugList extends PageAdminConfiguration {
             String stringObject;
             stream.write(createHeaderForXml());
             for (PrismObject object : objects) {
+            	if (LOGGER.isTraceEnabled()) {
+            		LOGGER.trace("Exporting object:\n{}", object.dump());
+            	}
                 //todo this will create file that doesn't contain all objects, operation result wont show it if it happened in the middle of file
                 try {
                     stringObject = getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
