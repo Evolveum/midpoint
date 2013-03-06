@@ -51,7 +51,6 @@ import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -463,7 +462,7 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public String getObject() {
                 if (deleteSelected) {
-                    List<SelectableBean<ObjectType>> selectedList = WebMiscUtil
+                    List<DebugObjectItem> selectedList = WebMiscUtil
                             .getSelectedData(getListTable());
 
                     if (selectedList.size() > 1) {
@@ -471,9 +470,9 @@ public class PageDebugList extends PageAdminConfiguration {
                                 selectedList.size()).getString();
                     }
 
-                    SelectableBean<ObjectType> selectedItem = selectedList.get(0);
+                    DebugObjectItem selectedItem = selectedList.get(0);
                     return createStringResource("pageDebugList.message.deleteObjectConfirm",
-                            selectedItem.getValue().getName().getOrig()).getString();
+                            selectedItem.getName()).getString();
                 }
 
                 return createStringResource("pageDebugList.message.deleteObjectConfirm", object.getName())
@@ -486,12 +485,11 @@ public class PageDebugList extends PageAdminConfiguration {
         ObjectTypes type = choice.getObject();
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
-        List<SelectableBean<ObjectType>> beans = WebMiscUtil.getSelectedData(getListTable());
-        for (SelectableBean<ObjectType> bean : beans) {
-            ObjectType object = bean.getValue();
+        List<DebugObjectItem> beans = WebMiscUtil.getSelectedData(getListTable());
+        for (DebugObjectItem bean : beans) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
-                ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
+                ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), bean.getOid(), getPrismContext());
 
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
                         ModelExecuteOptions.createRaw(),
@@ -536,7 +534,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void deleteSelectedPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
-        List<SelectableBean<ObjectType>> selected = WebMiscUtil.getSelectedData(getListTable());
+        List<DebugObjectItem> selected = WebMiscUtil.getSelectedData(getListTable());
         if (selected.isEmpty()) {
             warn(getString("pageDebugList.message.nothingSelected"));
             target.add(getFeedbackPanel());

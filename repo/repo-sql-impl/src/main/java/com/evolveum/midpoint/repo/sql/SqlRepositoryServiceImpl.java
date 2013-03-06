@@ -296,15 +296,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		String oid = object.getOid();
 		while (true) {
 			try {
-				return addObjectAttempt(object, subResult);
+				return addObjectAttempt(object, options, subResult);
 			} catch (RuntimeException ex) {
 				attempt = logOperationAttempt(oid, operation, attempt, ex, subResult);
 			}
 		}
 	}
 
-	private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, OperationResult result)
-			throws ObjectAlreadyExistsException, SchemaException {
+	private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
+                                                           OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException {
 		LOGGER.trace("Adding object type '{}'", new Object[] { object.getCompileTimeClass().getSimpleName() });
 
 		String oid = null;

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -103,9 +104,7 @@ public class RepositoryObjectDataProvider
         return getAvailableData().iterator();
     }
 
-    private DebugObjectItem createItem(PrismObject object, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-
+    private DebugObjectItem createItem(PrismObject object, OperationResult result) {
         DebugObjectItem item = DebugObjectItem.createDebugObjectItem(object);
         if (ResourceObjectShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
             PrismReference ref = object.findReference(new ItemPath(ResourceObjectShadowType.F_RESOURCE_REF));
@@ -128,36 +127,40 @@ public class RepositoryObjectDataProvider
         return item;
     }
 
-    private ResourceDescription loadDescription(String oid, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-
+    private ResourceDescription loadDescription(String oid, OperationResult result) {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
 
         OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
-        PrismObject<ResourceType> resource;
+        subResult.addParam("oid", oid);
+
+        PrismObject<ResourceType> resource = null;
+        String type = null;
         try {
             resource = getModel().getObject(ResourceType.class, oid, options,
                     getPage().createSimpleTask(OPERATION_LOAD_RESOURCE), subResult);
+
+            PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
+            if (ref != null && ref.getValue() != null) {
+                PrismReferenceValue refValue = ref.getValue();
+                if (refValue.getObject() != null) {
+                    PrismObject connector = refValue.getObject();
+                    PrismProperty<String> pType = connector.findProperty(ConnectorType.F_CONNECTOR_TYPE);
+                    if (pType != null && pType.getRealValue() != null) {
+                        type = pType.getRealValue(String.class);
+                    }
+                }
+            }
+
+            subResult.recordSuccess();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load resource for account", ex);
+            subResult.recordFatalError("Couldn't load resource for account.");
         } finally {
             subResult.recomputeStatus();
         }
 
-
-        PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
-        String type = null;
-        if (ref != null && ref.getValue() != null) {
-            PrismReferenceValue refValue = ref.getValue();
-            if (refValue.getObject() != null) {
-                PrismObject connector = refValue.getObject();
-                PrismProperty<String> pType = connector.findProperty(ConnectorType.F_CONNECTOR_TYPE);
-                if (pType != null && pType.getRealValue() != null) {
-                    type = pType.getRealValue(String.class);
-                }
-            }
-        }
-
-        return new ResourceDescription(resource.getOid(), WebMiscUtil.getName(resource), type);
+        return new ResourceDescription(oid, WebMiscUtil.getName(resource), type);
     }
 
     @Override
