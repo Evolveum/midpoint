@@ -64,6 +64,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
@@ -349,7 +350,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     	if (resource == null) {
     		return null;
     	}
-    	return RefinedResourceSchema.getRefinedSchema(resource, getNotNullPrismContext());
+    	return RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
     }
     
     public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {

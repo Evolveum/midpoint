@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -220,7 +221,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 
         RefinedResourceSchema refinedSchema;
         try {
-            refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+            refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
         } catch (SchemaException e) {
             LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
             opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);

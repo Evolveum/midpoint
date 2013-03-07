@@ -67,7 +67,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	
 	public ResourceAttributeContainerDefinition(QName name, ObjectClassComplexTypeDefinition complexTypeDefinition,  PrismContext prismContext) {
 		super(name, complexTypeDefinition, prismContext);
-		setCompileTimeClass(ResourceObjectShadowAttributesType.class);
+		super.setCompileTimeClass(ResourceObjectShadowAttributesType.class);
 	}
 	
 	@Override
@@ -89,7 +89,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Collection<ResourceAttributeDefinition> getIdentifiers() {
+	public Collection<? extends ResourceAttributeDefinition> getIdentifiers() {
 		return getComplexTypeDefinition().getIdentifiers();
 	}
 
@@ -108,7 +108,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Collection<ResourceAttributeDefinition> getSecondaryIdentifiers() {
+	public Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers() {
 		return getComplexTypeDefinition().getSecondaryIdentifiers();
 	}
 

@@ -141,7 +141,7 @@
         </xsd:annotation>
     </xsd:element>
     
-    <xsd:simpleType name="AccessType">
+    <xsd:simpleType name="DepreactedAccessType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -174,8 +174,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
-    <xsd:element name="access" type="tns:AccessType"/>
 
     <xsd:element name="ignore" type="xsd:boolean" default="true">
         <xsd:annotation>
@@ -2507,10 +2505,27 @@
             </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:ignore" minOccurs="0"/>
+            <xsd:element name="limitations" type="tns:PropertyLimitationsType" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Limits the usage of the attribute, e.g. whether it may is read-only, read write or entirelly ignored.
+            			The limitations may apply to several system layers, therefore this element may be repeated several times.
+            			But it there may be only one instance for each layer.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:ignore" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			DEPRECACTED, use limitations instead
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
+            			DEPRECACTED, use limitations instead
+            			
             			Override of schema minOccurs specification.
             		</xsd:documentation>
             	</xsd:annotation>
@@ -2518,6 +2533,8 @@
             <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
+            			DEPRECACTED, use limitations instead
+            			
             			Override of schema maxOccurs specification.
             		</xsd:documentation>
             	</xsd:annotation>
@@ -2533,9 +2550,11 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element ref="c:access" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="access" type="tns:DepreactedAccessType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
+                    	DEPRECACTED, use limitations instead
+                    	
                         Access to the attribute as defined by the system administrator or deployer.
                         This can constrain the access defined by resource schema annotations.
                         Specifying broader access that the resource connector can handle is an
@@ -2586,6 +2605,83 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="resourceAttributeDefinition" type="tns:ResourceAttributeDefinitionType"/>
+    
+    <xsd:complexType name="PropertyLimitationsType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			TODO
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="layer" type="tns:LayerType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Specification of a layers that this limitation applies to. If not specified then it applies
+    					to all layers.
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Override of schema minOccurs specification.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Override of schema maxOccurs specification.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+    		<xsd:element ref="tns:ignore" minOccurs="0"/>
+    		<xsd:element name="access" type="tns:PropertyAccessType" minOccurs="0"/>
+    	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="LayerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a system layer.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="schema">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SCHEMA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="model">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODEL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="presentation">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRESENTATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="PropertyAccessType">
+    	<xsd:sequence>
+    		<xsd:element name="create" type="xsd:boolean" minOccurs="0"/>
+    		<xsd:element name="read" type="xsd:boolean" minOccurs="0"/>
+    		<xsd:element name="update" type="xsd:boolean" minOccurs="0"/>
+    		<!-- delete does not make sense here -->
+    	</xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ResourceCredentialsDefinitionType">
         <xsd:sequence>

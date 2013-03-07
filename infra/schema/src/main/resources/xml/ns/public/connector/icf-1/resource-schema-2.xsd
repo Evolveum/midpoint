@@ -48,7 +48,7 @@
                 UID unique identifier
             </xsd:documentation>
             <xsd:appinfo>
-                <c:access>read</c:access>
+                <a:access>read</a:access>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>

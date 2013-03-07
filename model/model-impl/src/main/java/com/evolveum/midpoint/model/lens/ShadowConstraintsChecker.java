@@ -131,7 +131,7 @@ public class ShadowConstraintsChecker {
 			return;
 		}
 		
-		Collection<ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.union(accountDefinition.getIdentifiers(),
+		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(accountDefinition.getIdentifiers(),
 				accountDefinition.getSecondaryIdentifiers());
 		LOGGER.trace("Secondary IDs {}", accountDefinition.getSecondaryIdentifiers());
 		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {

@@ -71,6 +71,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
 	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+	public static final String NS_FOO_TYPES = "http://midpoint.evolveum.com/xml/ns/test/foo-types-1";
 	public static final String NS_USER_EXT = "http://example.com/xml/ns/user-extension";
 	public static final String NS_ROOT = "http://example.com/xml/ns/test/root.xsd";
 	public static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
@@ -164,6 +165,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		// Set default namespace?
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-types-1.xsd", "foot", null);
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);

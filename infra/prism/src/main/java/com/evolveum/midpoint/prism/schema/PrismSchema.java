@@ -131,7 +131,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		definitions.add(def);
 	}
 	
-	protected PrismContext getPrismContext() {
+	public PrismContext getPrismContext() {
 		return prismContext;
 	}
 	

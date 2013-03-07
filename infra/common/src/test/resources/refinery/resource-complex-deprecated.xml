@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2013 Evolveum                             -->
+<!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
 <!-- of the Common Development and Distribution License      -->
@@ -16,7 +16,8 @@
 <!-- with the fields enclosed by brackets [] replaced by     -->
 <!-- your own identifying information:                       -->
 <!--                                                         -->
-<!-- Portions Copyrighted 2013 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 lazyman                       -->
 <!--                                                         -->
 <object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -210,13 +211,8 @@
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<limitations>
-					<access>
-						<create>true</create>
-						<read>true</read>
-						<update>false</update>
-					</access>
-				</limitations>
+				<access>create</access>
+				<access>read</access>
 				<outbound>
 				    <strength>weak</strength>
 					<expression>
@@ -229,29 +225,15 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
-				<limitations>
-					<access>
-						<create>false</create>
-						<read>true</read>
-						<update>false</update>
-					</access>
-				</limitations>
+				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<limitations>
-					<maxOccurs>1</maxOccurs>
-					<access>
-						<create>true</create>
-						<read>true</read>
-						<update>true</update>
-					</access>
-				</limitations>
-				<limitations>
-					<layer>presentation</layer>
-					<ignore>true</ignore>
-				</limitations>
+				<maxOccurs>1</maxOccurs>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
 				<outbound>
 					<expression>
 						<code>
@@ -268,13 +250,9 @@
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<limitations>
-					<access>
-						<create>true</create>
-						<read>true</read>
-						<update>true</update>
-					</access>
-				</limitations>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
 				<outbound>
 					<expression>
 						<code>
@@ -291,13 +269,9 @@
 			<attribute>
 				<ref>ri:givenName</ref>
 				<displayName>Given Name</displayName>
-				<limitations>
-					<access>
-						<create>true</create>
-						<read>true</read>
-						<update>true</update>
-					</access>
-				</limitations>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
 				<outbound>
 					<expression>
 						<code>
@@ -314,18 +288,8 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<limitations>
-					<minOccurs>1</minOccurs>
-					<maxOccurs>1</maxOccurs>
-				</limitations>
-				<limitations>
-					<layer>presentation</layer>
-					<access>
-						<create>true</create>
-						<!-- no <read> here, it should be "inherited" -->
-						<update>false</update>
-					</access>
-				</limitations>
+				<minOccurs>1</minOccurs>
+				<maxOccurs>1</maxOccurs>
 				<outbound>
 					<expression>
 						<code>
@@ -346,6 +310,13 @@
 					<value>Created by IDM</value>
 				</outbound>
 				<inbound>
+					<!-- c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
+						xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
+						<f:replace>
+							<f:pattern>\p{C}</f:pattern>
+							<f:replacement />
+						</f:replace>
+					</c:valueFilter>  -->
 					<target>
 						declare namespace my="http://whatever.com/my";
 						$c:user/c:extension/my:description
@@ -368,9 +339,7 @@
 			</attribute>
 			<attribute>
 				<ref>ri:userPassword</ref>
-				<limitations>
-					<ignore>true</ignore>
-				</limitations>
+				<ignore>true</ignore>
 			</attribute>
 			<protected>
 				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>

@@ -118,7 +118,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                     PrismReference resourceRef = parent.findReference(AccountShadowType.F_RESOURCE_REF);
                     PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
                     RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                            parent.getPrismContext());
+                            LayerType.PRESENTATION, parent.getPrismContext());
 
                     PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;

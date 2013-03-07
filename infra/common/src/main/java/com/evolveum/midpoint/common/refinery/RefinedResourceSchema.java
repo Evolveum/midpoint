@@ -49,6 +49,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
@@ -66,12 +67,16 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	
 	private ResourceSchema originalResourceSchema;
 	
+	protected RefinedResourceSchema(PrismContext prismContext) {
+		super(prismContext);
+	}
+
 	private RefinedResourceSchema(ResourceType resourceType, ResourceSchema originalResourceSchema, PrismContext prismContext) {
 		super(ResourceTypeUtil.getResourceNamespace(resourceType), prismContext);
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
-	public Collection<RefinedAccountDefinition> getAccountDefinitions() {
+	public Collection<? extends RefinedAccountDefinition> getAccountDefinitions() {
 		Set<RefinedAccountDefinition> accounts = new HashSet<RefinedAccountDefinition>();
 		for (Definition def: definitions) {
 			if (def instanceof RefinedAccountDefinition) {
@@ -142,10 +147,19 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException {
 		return getRefinedSchema(resourceType, resourceType.asPrismObject().getPrismContext());
 	}
+	
+	public static LayerRefinedResourceSchema getRefinedSchema(ResourceType resourceType, LayerType layer) throws SchemaException {
+		return getRefinedSchema(resourceType, layer, resourceType.asPrismObject().getPrismContext());
+	}
 
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
 		return getRefinedSchema(resource, prismContext);
+	}
+	
+	public static LayerRefinedResourceSchema getRefinedSchema(ResourceType resourceType, LayerType layer, PrismContext prismContext) throws SchemaException {
+		PrismObject<ResourceType> resource = resourceType.asPrismObject();
+		return getRefinedSchema(resource, layer, prismContext);
 	}
 	
 	public static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
@@ -166,6 +180,11 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
 			return refinedSchema;
 		}
+	}
+	
+	public static LayerRefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, LayerType layer, PrismContext prismContext) throws SchemaException {
+		RefinedResourceSchema refinedSchema = getRefinedSchema(resource, prismContext);
+		return refinedSchema.forLayer(layer);
 	}
 	
 	public static boolean hasRefinedSchema(ResourceType resourceType) {
@@ -325,6 +344,10 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		}
 		attributesContainer.applyDefinition(definition);
 		return shadow;
+	}
+	
+	public LayerRefinedResourceSchema forLayer(LayerType layer) {
+		return LayerRefinedResourceSchema.wrap(this, layer);
 	}
 	
 	@Override

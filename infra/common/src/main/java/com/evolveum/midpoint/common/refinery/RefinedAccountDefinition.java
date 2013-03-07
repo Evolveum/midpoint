@@ -57,8 +57,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private boolean isDefault;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ResourceType resourceType;
-    private Collection<ResourceAttributeDefinition> identifiers;
-	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
+    private Collection<? extends RefinedAttributeDefinition> identifiers;
+	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
 	private Collection<ResourceObjectPattern> protectedAccounts;
 	
     /**
@@ -67,6 +67,10 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     PrismObjectDefinition<AccountShadowType> objectDefinition = null;
 
     private List<RefinedAttributeDefinition> attributeDefinitions;
+    
+    protected RefinedAccountDefinition(PrismContext prismContext) {
+    	super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
+    }
 
     private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType) {
         super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
@@ -93,11 +97,11 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public ResourceAttributeDefinition getNamingAttribute() {
-        return objectClassDefinition.getNamingAttribute();
+    public RefinedAttributeDefinition getNamingAttribute() {
+        return substituteRefinedAttributeDefinition(objectClassDefinition.getNamingAttribute());
     }
 
-    @Override
+	@Override
     public String getNativeObjectClass() {
         return objectClassDefinition.getNativeObjectClass();
     }
@@ -128,8 +132,8 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public ResourceAttributeDefinition getDisplayNameAttribute() {
-        return objectClassDefinition.getDisplayNameAttribute();
+    public RefinedAttributeDefinition getDisplayNameAttribute() {
+        return substituteRefinedAttributeDefinition(objectClassDefinition.getDisplayNameAttribute());
     }
 
     @Override
@@ -138,7 +142,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
     
     @Override
-	public Collection<ResourceAttributeDefinition> getIdentifiers() {
+	public Collection<? extends RefinedAttributeDefinition> getIdentifiers() {
 		if (identifiers == null) {
 			identifiers = createIdentifiersCollection();
 		}
@@ -146,15 +150,15 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	}
 
 	@Override
-	public Collection<ResourceAttributeDefinition> getSecondaryIdentifiers() {
+	public Collection<? extends RefinedAttributeDefinition> getSecondaryIdentifiers() {
 		if (secondaryIdentifiers == null) {
 			secondaryIdentifiers = createIdentifiersCollection();
 		}
 		return secondaryIdentifiers;
 	}
 	
-	private Collection<ResourceAttributeDefinition> createIdentifiersCollection() {
-		return new ArrayList<ResourceAttributeDefinition>();
+	private Collection<? extends RefinedAttributeDefinition> createIdentifiersCollection() {
+		return new ArrayList<RefinedAttributeDefinition>();
 	}
 	
 	public Collection<ResourceObjectPattern> getProtectedAccounts() {
@@ -290,7 +294,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public Collection<RefinedAttributeDefinition> getAttributeDefinitions() {
+    public Collection<? extends RefinedAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
     
@@ -493,11 +497,16 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
 		QName attrName = rAttrDef.getName();
 		if (objectClassDef.isIdentifier(attrName)) {
-			getIdentifiers().add(rAttrDef);
+			((Collection)getIdentifiers()).add(rAttrDef);
 		}
 		if (objectClassDef.isSecondaryIdentifier(attrName)) {
-			getSecondaryIdentifiers().add(rAttrDef);
+			((Collection)getSecondaryIdentifiers()).add(rAttrDef);
 		}		
+	}
+	
+	private RefinedAttributeDefinition substituteRefinedAttributeDefinition(ResourceAttributeDefinition attributeDef) {
+		RefinedAttributeDefinition rAttrDef = findAttributeDefinition(attributeDef.getName());
+		return rAttrDef;
 	}
 
 	private static ResourceAttributeDefinitionType findAttributeDefinitionType(QName attrName,
@@ -531,7 +540,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append("RAccountDef(");
+        sb.append(getDebugDumpClassName()).append("(");
         sb.append(SchemaDebugUtil.prettyPrint(getName()));
         if (isDefault()) {
             sb.append(",default");
@@ -548,6 +557,14 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             }
         }
         return sb.toString();
+    }
+    
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "RAccDef";
     }
 
     @Override

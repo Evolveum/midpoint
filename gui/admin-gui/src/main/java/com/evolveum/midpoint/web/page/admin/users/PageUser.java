@@ -106,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountConstruction
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
@@ -1695,7 +1696,7 @@ public class PageUser extends PageAdminUsers {
 				shadow.setResource(resource);
 
 				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject(),
-						getPrismContext());
+						LayerType.PRESENTATION, getPrismContext());
 				if (refinedSchema == null) {
 					error(getString("pageUser.message.couldntCreateAccountNoSchema", resource.getName()));
 					continue;

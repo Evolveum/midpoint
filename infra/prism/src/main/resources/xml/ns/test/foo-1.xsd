@@ -26,6 +26,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:ft="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -71,6 +72,8 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
+    
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-types-1" schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"/>
     
     <xsd:element name="name" type="t:PolyStringType"/>
     <xsd:element name="displayName" type="xsd:string"/>
@@ -311,6 +314,19 @@
     	</xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="value" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="FooObjectClass">
+    	<xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="ft:uid" minOccurs="0"/>
+        	<xsd:element ref="ft:name" minOccurs="1" maxOccurs="1"/>
+        	<xsd:element name="foo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 

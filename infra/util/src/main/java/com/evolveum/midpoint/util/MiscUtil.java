@@ -69,6 +69,16 @@ public class MiscUtil {
 		return resultSet;
 	}
 	
+	public static <T> Collection<? extends T> unionExtends(Collection<? extends T>... sets) {
+		Set<T> resultSet = new HashSet<T>();
+		for (Collection<? extends T> set: sets) {
+			if (set != null) {
+				resultSet.addAll(set);
+			}
+		}
+		return resultSet;
+	}
+	
 	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
 		Comparator<?> comparator = new Comparator<Object>() {
 			@Override
