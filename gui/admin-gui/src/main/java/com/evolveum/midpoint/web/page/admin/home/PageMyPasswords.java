@@ -108,8 +108,9 @@ public class PageMyPasswords extends PageAdminHome {
         try {
             String userOid = SecurityUtils.getPrincipalUser().getOid();
             Task task = createSimpleTask(OPERATION_LOAD_USER);
-            PrismObject<UserType> user = getModelService().getObject(UserType.class, userOid, null, task,
-                    result.createSubresult(OPERATION_LOAD_USER));
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
+            PrismObject<UserType> user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
+            subResult.recordSuccessIfUnknown();
 
             dto.getAccounts().add(createDefaultPasswordAccountDto(user));
 
@@ -124,7 +125,7 @@ public class PageMyPasswords extends PageAdminHome {
 
             List<PrismReferenceValue> values = reference.getValues();
             for (PrismReferenceValue value : values) {
-                OperationResult subResult=result.createSubresult(OPERATION_LOAD_ACCOUNT);
+                subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
                 try {
                     String accountOid = value.getOid();
                     task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
@@ -133,13 +134,13 @@ public class PageMyPasswords extends PageAdminHome {
                             accountOid, options, task, subResult);
 
                     dto.getAccounts().add(createPasswordAccountDto(account));
-                    result.recordSuccess();
+                    subResult.recordSuccessIfUnknown();
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
                     subResult.recordFatalError("Couldn't load account.", ex);
                 }
             }
-            result.recordSuccess();
+            result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load accounts", ex);
             result.recordFatalError("Couldn't load accounts", ex);
@@ -150,7 +151,7 @@ public class PageMyPasswords extends PageAdminHome {
         Collections.sort(dto.getAccounts());
 
         if (!result.isSuccess() && !result.isHandledError()) {
-            throw new RestartResponseException(this);
+            showResult(result);
         }
 
         return dto;
