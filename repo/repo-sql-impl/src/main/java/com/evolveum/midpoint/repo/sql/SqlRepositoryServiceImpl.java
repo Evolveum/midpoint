@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -287,6 +288,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		validateName(object);
 		Validate.notNull(result, "Operation result must not be null.");
 
+        if (options == null) {
+            options = new RepoAddOptions();
+        }
+
 		OperationResult subResult = result.createSubresult(ADD_OBJECT);
 		subResult.addParam("object", object);
 
@@ -310,12 +315,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 		String oid = null;
 		Session session = null;
-		// it is needed to keep the original oid for example for import
-		// options..
-		// if we do not keep it and it was null it can bring some error becasue
-		// the oid is set when the object contains orgRef or it is org..and by
-		// the import we do not know it so it will be trying to delete
-		// non-existing object
+		// it is needed to keep the original oid for example for import options. if we do not keep it
+		// and it was null it can bring some error because the oid is set when the object contains orgRef
+		// or it is org. and by the import we do not know it so it will be trying to delete non-existing object
 		String originalOid = object.getOid();
 		try {
 			ObjectType objectType = object.asObjectable();
@@ -323,41 +325,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				LOGGER.trace("Object\n{}", new Object[] { getPrismContext().silentMarshalObject(objectType, LOGGER) });
 			}
 
-			// check name uniqueness (by type)
+            LOGGER.trace("Translating JAXB to data type.");
+            RObject rObject = createDataObjectFromJAXB(objectType);
+
 			session = beginTransaction();
-			if (StringUtils.isNotEmpty(originalOid)) {
-				LOGGER.trace("Checking oid uniqueness.");
-				Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
-				criteria.add(Restrictions.eq("oid", object.getOid()));
-				criteria.setProjection(Projections.rowCount());
-
-				Long count = (Long) criteria.uniqueResult();
-				if (count != null && count > 0) {
-					throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()
-							+ "' with oid '" + object.getOid() + "' already exists.");
-				}
-			}
-
-			LOGGER.trace("Translating JAXB to data type.");
-			RObject rObject = createDataObjectFromJAXB(objectType);
-			// only for finest tracing
-			// if (LOGGER.isTraceEnabled()) {
-			// LOGGER.trace("Translated JAXB object to data type:\n{}", new
-			// Object[]{rObject.toString()});
-			// }
-
-			LOGGER.trace("Saving object.");
-			RContainerId containerId = (RContainerId) session.save(rObject);
-			oid = containerId.getOid();
-
-            if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
-                long time = System.currentTimeMillis();
-                LOGGER.trace("Org. structure closure table update started.");
-                objectType.setOid(oid);
-                fillHierarchy(objectType, session);
-                LOGGER.trace("Org. structure closure table update finished ({} ms).", new Object[]{(System.currentTimeMillis() - time)});
+            if (options.isOverwrite()) {
+                oid = overwriteAddObjectAttempt(object, objectType, rObject, originalOid, session);
+            } else {
+                oid = nonOverwriteAddObjectAttempt(object, objectType, rObject, originalOid, session);
             }
-
 			session.getTransaction().commit();
 
 			LOGGER.trace("Saved object '{}' with oid '{}'", new Object[] {
@@ -382,11 +358,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (constraintName != null && constraintName.length() > MAX_CONSTRAINT_NAME_LENGTH) {
 				constraintName = null;
 			}
-			throw new ObjectAlreadyExistsException("Conflicting object already exists" 
+			throw new ObjectAlreadyExistsException("Conflicting object already exists"
 					+ (constraintName == null ? "" : " (violated constraint '"+constraintName+"')"), ex);
 		} catch (SchemaException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
+        } catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
         } catch (RuntimeException ex) {
             handleGeneralRuntimeException(ex, session, result);
         } finally {
@@ -396,14 +374,86 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return oid;
 	}
 
+    private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, ObjectType objectType,
+                                                                    RObject rObject, String originalOid,
+                                                                    Session session)
+            throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
+
+        //check if object already exists, find differences and increment version if necessary
+        Collection<? extends ItemDelta> modifications = null;
+        if (originalOid != null) {
+            try {
+                PrismObject<T> oldObject = getObject(session, object.getCompileTimeClass(), originalOid, true);
+                ObjectDelta<T> delta = object.diff(oldObject);
+                modifications = delta.getModifications();
+
+                //we found existing object which will be overwritten, therefore we increment version
+                rObject.setVersion(rObject.getVersion() + 1);
+            } catch (ObjectNotFoundException ex) {
+                //it's ok that object was not found, therefore we won't be overwriting it
+            }
+        }
+
+        RObject merged = (RObject) session.merge(rObject);
+
+        //update org. unit hierarchy based on modifications
+        if (modifications == null || modifications.isEmpty()) {
+            //we're not overwriting object - we fill new hierarchy
+            if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
+                long time = System.currentTimeMillis();
+                LOGGER.trace("Org. structure closure table update started.");
+                objectType.setOid(merged.getOid());
+                fillHierarchy(objectType, session);
+                LOGGER.trace("Org. structure closure table update finished ({} ms).",
+                        new Object[]{(System.currentTimeMillis() - time)});
+            }
+        } else {
+            //we have to recompute actual hierarchy because we've changed object
+            recomputeHierarchy(objectType, session, modifications);
+        }
+
+        return merged.getOid();
+    }
+
+    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, ObjectType objectType,
+                                                                       RObject rObject, String originalOid,
+                                                                       Session session)
+            throws ObjectAlreadyExistsException, SchemaException {
+
+        // check name uniqueness (by type)
+        if (StringUtils.isNotEmpty(originalOid)) {
+            LOGGER.trace("Checking oid uniqueness.");
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
+            criteria.add(Restrictions.eq("oid", object.getOid()));
+            criteria.setProjection(Projections.rowCount());
+
+            Long count = (Long) criteria.uniqueResult();
+            if (count != null && count > 0) {
+                throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()
+                        + "' with oid '" + object.getOid() + "' already exists.");
+            }
+        }
+
+        LOGGER.trace("Saving object.");
+        RContainerId containerId = (RContainerId) session.save(rObject);
+        String oid = containerId.getOid();
+
+        if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
+            long time = System.currentTimeMillis();
+            LOGGER.trace("Org. structure closure table update started.");
+            objectType.setOid(oid);
+            fillHierarchy(objectType, session);
+            LOGGER.trace("Org. structure closure table update finished ({} ms).",
+                    new Object[]{(System.currentTimeMillis() - time)});
+        }
+
+        return oid;
+    }
+
 	private <T extends ObjectType> void fillHierarchy(T orgType, Session session) throws SchemaException {
-
 		int depth = 0;
-
 		RObject rOrg = createDataObjectFromJAXB(orgType);
-
 		ROrgClosure closure = new ROrgClosure(rOrg, rOrg, depth);
-
 		// if (checkClosureUniqueness(closure, session)) {
 		session.save(closure);
 		// }
@@ -411,7 +461,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		for (ObjectReferenceType orgRef : orgType.getParentOrgRef()) {
 			fillTransitiveHierarchy(rOrg, orgRef.getOid(), session);
 		}
-
 	}
 
     private <T extends ObjectType> void fillTransitiveHierarchy(RObject newDescendant, String descendantOid,
