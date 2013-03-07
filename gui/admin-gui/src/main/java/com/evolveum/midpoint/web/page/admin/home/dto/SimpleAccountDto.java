@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.page.admin.home.dto;
 import java.io.Serializable;
 
 public class SimpleAccountDto implements Serializable {
+
 	private String accountName;
 	private String resourceName;
 	

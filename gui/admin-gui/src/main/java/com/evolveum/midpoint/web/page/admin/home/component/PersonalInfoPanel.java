@@ -35,12 +35,13 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author lazyman
  */
 public class PersonalInfoPanel extends Panel {
+
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
 
     private static final String ID_LAST_LOGIN_DATE = "lastLoginDate";
     private static final String ID_LAST_LOGIN_FROM = "lastLoginFrom";
@@ -87,11 +88,6 @@ public class PersonalInfoPanel extends Panel {
         return dto;
     }
 
-    private String getSimpleDate(Date date) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
-        return dateFormat.format(date);
-    }
-
     private void initLayout() {
         Label lastLoginDate = new Label(ID_LAST_LOGIN_DATE, new AbstractReadOnlyModel<String>() {
 
@@ -99,7 +95,7 @@ public class PersonalInfoPanel extends Panel {
             public String getObject() {
                 PersonalInfoDto dto = model.getObject();
 
-                return dto.getLastLoginDate() != null ? getSimpleDate(dto.getLastLoginDate()) :
+                return dto.getLastLoginDate() != null ? DATE_FORMAT.format(dto.getLastLoginDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
             }
         });
@@ -123,7 +119,7 @@ public class PersonalInfoPanel extends Panel {
             public String getObject() {
                 PersonalInfoDto dto = model.getObject();
 
-                return dto.getLastFailDate() != null ? getSimpleDate(dto.getLastFailDate()) :
+                return dto.getLastFailDate() != null ? DATE_FORMAT.format(dto.getLastFailDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
             }
         });
@@ -147,7 +143,7 @@ public class PersonalInfoPanel extends Panel {
             public String getObject() {
                 PersonalInfoDto dto = model.getObject();
 
-                return dto.getPasswordExp() != null ? getSimpleDate(dto.getPasswordExp()) :
+                return dto.getPasswordExp() != null ? DATE_FORMAT.format(dto.getPasswordExp()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
             }
         });
