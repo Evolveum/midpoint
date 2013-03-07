@@ -2111,6 +2111,14 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="scripts" type="tns:ProvisioningScriptsType" minOccurs="0"/>
+                    <xsd:element name="accountSynchronizationSettings"
+                                 type="tns:AccountSynchronizationSettingsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource-wide account synchronization settings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="consistency" type="tns:ResourceConsistencyType" minOccurs="0"/>
                     <xsd:element ref="tns:synchronization" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
