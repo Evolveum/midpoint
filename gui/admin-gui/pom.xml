@@ -279,6 +279,16 @@
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-datetime</artifactId>
         </dependency>
+        <dependency>
+            <groupId>wicket-tree</groupId>
+            <artifactId>wicket-tree</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>wicket-dnd</groupId>
+            <artifactId>wicket-dnd</artifactId>
+            <version>0.5.0</version>
+        </dependency>
 
         <!-- TEST -->
         <dependency>
@@ -333,16 +343,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-                <groupId>wicket-tree</groupId>
-                <artifactId>wicket-tree</artifactId>
-                <version>0.5.0</version>
-        </dependency>
-        <dependency>
-                <groupId>wicket-dnd</groupId>
-                <artifactId>wicket-dnd</artifactId>
-                <version>0.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.lowagie</groupId>
