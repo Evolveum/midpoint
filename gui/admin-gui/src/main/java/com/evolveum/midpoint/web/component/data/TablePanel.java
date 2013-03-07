@@ -67,6 +67,7 @@ public class TablePanel<T> extends Panel {
         table.setOutputMarkupId(true);
         add(table);
         topNavigator = new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)) {
+
             @Override
             protected void onAjaxEvent(AjaxRequestTarget target) {
                 super.onAjaxEvent(target);
@@ -75,6 +76,7 @@ public class TablePanel<T> extends Panel {
         };
 
         bottomNavigator = new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)) {
+
             @Override
             protected void onAjaxEvent(AjaxRequestTarget target) {
                 super.onAjaxEvent(target);
