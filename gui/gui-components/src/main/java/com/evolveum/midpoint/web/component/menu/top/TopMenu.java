@@ -45,8 +45,9 @@ public class TopMenu extends Panel {
 
     public TopMenu(String id, List<TopMenuItem> topItems, List<BottomMenuItem> bottomItems) {
         super(id);
-        Validate.notNull(topItems, "List with top menu topItems must not be null.");
-        Validate.notNull(bottomItems, "List with top menu bottomItems must not be null.");
+        Validate.notNull(topItems, "List with top menu items must not be null.");
+        Validate.notNull(bottomItems, "List with top menu items must not be null.");
+
         this.topItems = topItems;
         this.bottomItems = bottomItems;
 

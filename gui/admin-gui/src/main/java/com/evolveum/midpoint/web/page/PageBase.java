@@ -33,8 +33,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.login.LoginPanel;
-import com.evolveum.midpoint.web.component.menu.left.LeftMenu;
-import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
@@ -73,6 +71,16 @@ import java.util.List;
 public abstract class PageBase extends WebPage {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
+
+    private static final String ID_TITLE = "title";
+    private static final String ID_DEBUG_PANEL = "debugPanel";
+    private static final String ID_TOP_MENU = "topMenu";
+    private static final String ID_LOGIN_PANEL = "loginPanel";
+    private static final String ID_PAGE_TITLE = "pageTitle";
+    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_TEMP_FEEDBACK = "tempFeedback";
+
     @SpringBean(name = "modelController")
     private ModelService modelService;
     @SpringBean(name = "modelController")
@@ -135,40 +143,35 @@ public abstract class PageBase extends WebPage {
     }
 
     private void initLayout() {
-        Label title = new Label("title", createPageTitleModel());
+        Label title = new Label(ID_TITLE, createPageTitleModel());
         title.setRenderBodyOnly(true);
         add(title);
 
-        DebugBar debugPanel = new DebugBar("debugPanel");
+        DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
         List<TopMenuItem> topMenuItems = getTopMenuItems();
-        Validate.notNull(topMenuItems, "Top menu item list must not be null.");
-
         List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
-        Validate.notNull(bottomMenuItems, "Bottom menu item list must not be null.");
+        add(new TopMenu(ID_TOP_MENU, topMenuItems, bottomMenuItems));
 
-        add(new TopMenu("topMenu2", topMenuItems, bottomMenuItems));
-        add(new LeftMenu("leftMenu", getLeftMenuItems()));
-
-        LoginPanel loginPanel = new LoginPanel("loginPanel");
+        LoginPanel loginPanel = new LoginPanel(ID_LOGIN_PANEL);
         add(loginPanel);
 
-        add(new Label("pageTitle", createPageTitleModel()));
+        add(new Label(ID_PAGE_TITLE, createPageTitleModel()));
 
-        WebMarkupContainer feedbackContainer = new WebMarkupContainer("feedbackContainer");
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
         add(feedbackContainer);
 
-        MainFeedback feedback = new MainFeedback("feedback");
+        MainFeedback feedback = new MainFeedback(ID_FEEDBACK);
         feedbackContainer.add(feedback);
 
-        TempFeedback tempFeedback = new TempFeedback("tempFeedback");
+        TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
         feedbackContainer.add(tempFeedback);
     }
 
     public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get("feedbackContainer");
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 
     private void validateInjection(Object object, String message) {
@@ -189,8 +192,6 @@ public abstract class PageBase extends WebPage {
     public abstract List<TopMenuItem> getTopMenuItems();
 
     public abstract List<BottomMenuItem> getBottomMenuItems();
-
-    public abstract List<LeftMenuItem> getLeftMenuItems();
 
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();

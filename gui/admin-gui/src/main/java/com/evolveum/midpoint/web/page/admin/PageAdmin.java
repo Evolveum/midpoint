@@ -21,10 +21,6 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.evolveum.midpoint.web.component.menu.left.LeftMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -43,6 +39,9 @@ import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -77,10 +76,5 @@ public class PageAdmin extends PageBase {
     @Override
     public List<BottomMenuItem> getBottomMenuItems() {
         return new ArrayList<BottomMenuItem>();
-    }
-
-    @Override
-    public List<LeftMenuItem> getLeftMenuItems() {
-        return new ArrayList<LeftMenuItem>();
     }
 }

@@ -108,11 +108,14 @@ public class PageHome extends PageAdminHome {
                     LoggingUtils.logException(LOGGER, "Couldn't get user", ex);
 				}
 
+                AdminHomeDto dto = new AdminHomeDto();
 				if (prismUser == null) {
 					result.recordFatalError("pageHome.message.cantGetUser");
 					showResult(result);
+
+                    LOGGER.trace("Couldn't get user, skipping loading accounts, assignments and tasks.");
+                    return dto;
 				}
-				AdminHomeDto dto = new AdminHomeDto();
                 LOGGER.trace("Loading accounts.");
 				dto.getAccounts().addAll(loadAccounts(prismUser));
                 LOGGER.trace("Loading role assignments.");
