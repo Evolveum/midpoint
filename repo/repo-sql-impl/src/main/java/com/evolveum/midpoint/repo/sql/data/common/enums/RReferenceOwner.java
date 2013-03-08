@@ -57,7 +57,17 @@ public enum RReferenceOwner {
      * this constant also have to be changed in
      * {@link com.evolveum.midpoint.repo.sql.data.common.type.ROrgRootRef}
      */
-    SYSTEM_CONFIGURATION_ORG_ROOT(ROrgRootRef.class, ROrgRootRef.DISCRIMINATOR);
+    SYSTEM_CONFIGURATION_ORG_ROOT(ROrgRootRef.class, ROrgRootRef.DISCRIMINATOR),
+    /**
+     * this constant also have to be changed in
+     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef}
+     */
+    CREATE_APPROVER(RCreateApproverRef.class, RCreateApproverRef.DISCRIMINATOR),
+    /**
+     * this constant also have to be changed in
+     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef}
+     */
+    MODIFY_APPROVER(RModifyApproverRef.class, RModifyApproverRef.DISCRIMINATOR);
 
     private String discriminator;
     private Class<? extends RObjectReference> clazz;
@@ -95,6 +105,10 @@ public enum RReferenceOwner {
                 return new RAccountRef();
             case RESOURCE_BUSINESS_CONFIGURATON_APPROVER:
                 return new RResourceApproverRef();
+            case CREATE_APPROVER:
+                return new RCreateApproverRef();
+            case MODIFY_APPROVER:
+                return new RModifyApproverRef();
             default:
                 throw new IllegalArgumentException("This is unknown reference owner: " + owner);
         }

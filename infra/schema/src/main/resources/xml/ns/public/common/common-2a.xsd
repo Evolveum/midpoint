@@ -682,7 +682,7 @@
     			<xsd:annotation>
     				<xsd:documentation>
     					Reference to the user that approved the creation of the data (if there was such a user).
-    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
+    					This is multi-value reference therefore multiple approvers may be recorded. However the order and
     					hierarchy of the approvers is lost.
     				</xsd:documentation>
     				<xsd:appinfo>

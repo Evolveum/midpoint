@@ -66,6 +66,13 @@ public class RAssignment extends RContainer implements ROwnable {
     private RActivation activation;
     private String accountConstruction;
     private REmbeddedReference targetRef;
+    private RMetadata metadata;
+
+    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RMetadata getMetadata() {
+        return metadata;
+    }
 
     @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
@@ -164,6 +171,10 @@ public class RAssignment extends RContainer implements ROwnable {
         this.owner = owner;
     }
 
+    public void setMetadata(RMetadata metadata) {
+        this.metadata = metadata;
+    }
+
     @Transient
     @Override
     public RContainer getContainerOwner() {
@@ -220,6 +231,10 @@ public class RAssignment extends RContainer implements ROwnable {
         if (repo.getTargetRef() != null) {
             jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
         }
+
+        if (repo.getMetadata() != null) {
+            jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
+        }
     }
 
     public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)
@@ -258,6 +273,13 @@ public class RAssignment extends RContainer implements ROwnable {
         }
 
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
+
+        if (jaxb.getMetadata() != null) {
+            RMetadata metadata = new RMetadata();
+            metadata.setOwner(repo);
+            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
+            repo.setMetadata(metadata);
+        }
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {

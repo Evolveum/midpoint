@@ -57,9 +57,15 @@ public abstract class RObject extends RContainer {
 	private long version;
 	private Set<ROrgClosure> descendants;
 	private Set<ROrgClosure> ancestors;
-
     @QueryAttribute(name = "parentOrgRef", multiValue = true, reference = true)
     private Set<RObjectReference> parentOrgRef;
+    private RMetadata metadata;
+
+    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public RMetadata getMetadata() {
+        return metadata;
+    }
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
@@ -132,7 +138,11 @@ public abstract class RObject extends RContainer {
 		this.version = version;
 	}
 
-	@Override
+    public void setMetadata(RMetadata metadata) {
+        this.metadata = metadata;
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
@@ -181,6 +191,10 @@ public abstract class RObject extends RContainer {
 		if (!orgRefs.isEmpty()) {
 			jaxb.getParentOrgRef().addAll(orgRefs);
 		}
+
+        if (repo.getMetadata() != null) {
+            jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
+        }
 	}
 
 	public static void copyFromJAXB(ObjectType jaxb, RObject repo, PrismContext prismContext)
@@ -206,6 +220,13 @@ public abstract class RObject extends RContainer {
 		}
 
         repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext, repo, RReferenceOwner.OBJECT_PARENT_ORG));
+
+        if (jaxb.getMetadata() != null) {
+            RMetadata metadata = new RMetadata();
+            metadata.setOwner(repo);
+            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
+            repo.setMetadata(metadata);
+        }
 	}
 
 	public abstract <T extends ObjectType> T toJAXB(PrismContext prismContext) throws DtoTranslationException;
