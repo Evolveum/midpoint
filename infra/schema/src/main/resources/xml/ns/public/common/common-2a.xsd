@@ -418,9 +418,17 @@
 	        		</xsd:appinfo>
 	            </xsd:annotation>
 	        </xsd:element>
+	        
+	        <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0" maxOccurs="1">
+	        	<xsd:annotation>
+	        		<xsd:documentation>
+	        			Meta-data about object creation, modification, etc.
+	        		</xsd:documentation>
+	        	</xsd:annotation>
+	        </xsd:element>
             
         </xsd:sequence>
-
+       
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
@@ -624,9 +632,133 @@
     </xsd:complexType>
 	<xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
 
-    <!-- Property-related types -->
+    <xsd:complexType name="MetadataType">
+       	<xsd:annotation>
+    		<xsd:documentation>
+    			Meta-data about data creation, modification, etc.
+    			It may apply to objects but also parts of the object (e.g. assignments).
+    			
+    			Mata-data only apply to successful operations. That is obvious for create, but it also applies
+    			to modify. For obvious reasons there are no metadata about delete.
+    			We keep no metadata about reading. That would be a huge performance hit.
+    			
+    			These data are informational only. They should not be used for security purposes (use auditing
+    			subsystem for that). But presence of metadata simplifies system administration and may provide
+    			some basic information "at the glance" which may be later confirmed by the audit logs.
+    			
+    			Meta-data are also supposed to be searchable. Therefore they may be used to quickly find
+    			"candidate" objects for a closer examination.
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:operational>true</a:operational>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					The timestamp of data creation. It is set once and should never be changed.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="creatorRef" type="tns:ObjectReferenceType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Reference to the user that created the data.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="createApproverRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Reference to the user that approved the creation of the data (if there was such a user).
+    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
+    					hierarchy of the approvers is lost.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="createChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Channel in which the object was created.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="modifyTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					The timestamp of last data modification. It should be updated to a current time
+    					when the object is modified.
+    					The modifications that change only operational attributes may not update the
+    					modifytimestamp.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="modifierRef" type="tns:ObjectReferenceType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Reference to the user that modified the data.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="modifyApproverRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Reference to the user that approved the last modification of the data (if there was such a user).
+    					This is multi-value reference therefore multiple approvers may be recorded. Howerver the order and
+    					hierarchy of the approvers is lost.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    					<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="modifyChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Channel in which the object was last modified.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>true</a:indexed>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
+    </xsd:complexType>
 
-    
+
+    <!-- Property-related types -->
 
     <xsd:complexType name="ProtectedStringType">
         <xsd:annotation>
@@ -1897,6 +2029,8 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	
+        	<xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
         
             <xsd:choice>
 

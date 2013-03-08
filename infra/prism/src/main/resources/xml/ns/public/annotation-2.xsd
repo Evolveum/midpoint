@@ -131,7 +131,7 @@
         </xsd:annotation>
     </xsd:element>
     
-    <xsd:element name="ignore">
+    <xsd:element name="ignore" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
                 Item marker annotation: ignored item. Item that has this annotation
@@ -141,6 +141,20 @@
                 it encounters them. But any high-level processing code should ignore
                 presence of this item. E.g. it should not be displayed to the user, should
                 not be present in transformed data structures, etc.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="operational" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks operational property. Operational properties are auxiliary data
+                (or meta-data) that are usually not modifiable by the end user. They are
+                generated and maintained by the system. Operational properties are also
+                not usually displayed unless it is explicitly requested.
+                
+                The example of operation properties are modification timestamps, create timestamps,
+                user that made the last change, etc.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
