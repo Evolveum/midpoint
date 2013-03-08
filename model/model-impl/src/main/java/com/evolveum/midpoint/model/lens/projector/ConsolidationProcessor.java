@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +160,12 @@ public class ConsolidationProcessor {
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
         
+		// By getting accounts from provisioning, there might be a problem with
+		// resource availability. We need to know, if the account was read full
+		// or we have only the shadow from the repository. If we have only
+		// shadow, the weak mappings may applied even if they should not be. 
+        boolean completeAccount = true;
+        
         if (!accCtx.isFullShadow() && !accCtx.isAdd() && !accCtx.isDelete() && hasWeakMapping(squeezedAttributes)) {
         	// There is at least one weak mapping and the full account was not yet loaded. This will cause problems as
         	// the weak mapping may be applied even though it should not be applied. Therefore load the account now.
@@ -168,6 +175,10 @@ public class ConsolidationProcessor {
         	accCtx.setObjectOld(objectOld);
         	accCtx.setFullShadow(true);
         	accCtx.recompute();
+        	AccountShadowType oldShadow = objectOld.asObjectable();
+        	if (oldShadow.getFetchResult() != null && oldShadow.getFetchResult().getStatus() == OperationResultStatusType.PARTIAL_ERROR){
+        		completeAccount = false;
+        	}
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
         	}
@@ -200,7 +211,7 @@ public class ConsolidationProcessor {
             // Use this common utility method to do the computation. It does most of the work.
 			PropertyDelta<?> propDelta = (PropertyDelta<?>) LensUtil.consolidateTripleToDelta(
 					attributePath, (DeltaSetTriple)triple, attributeDefinition, existingAttributeDelta, accCtx.getObjectNew(), 
-            		addUnchangedValues || forceAddUnchangedValues, false, "account " + rat);
+            		addUnchangedValues || forceAddUnchangedValues, false, "account " + rat, completeAccount);
 			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",rat,propDelta==null?"null":propDelta.dump());

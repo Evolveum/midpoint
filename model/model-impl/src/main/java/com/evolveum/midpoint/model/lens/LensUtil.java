@@ -175,7 +175,7 @@ public class LensUtil {
 	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
     		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer,
-    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     	
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
 		
@@ -316,6 +316,13 @@ public class LensUtil {
                     		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
+                
+                if (weakOnly && !applyWeak && (itemExisting == null || itemExisting.isEmpty())){
+                	 // There is a weak mapping on a property, but we do not have full account available, so skipping deletion of the value is better way
+                    LOGGER.trace("Value {} mapping is weak and the full account could not be fetched, skipping deletion in {}",
+                    		new Object[]{value, itemPath, contextDescription});
+                    continue;
+                }
                 if (filterExistingValues && !hasValue(itemExisting, value)) {
                 	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
                 			new Object[]{value, itemPath, contextDescription});
@@ -363,12 +370,12 @@ public class LensUtil {
 		if (!hasValue(itemNew, itemDelta)) {
 			// The application of computed delta results in no value, apply weak mappings
 			Collection<? extends ItemValueWithOrigin<V>> nonNegativePvwos = triple.getNonNegativeValues();
-			Collection<V> valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS);
+			Collection<V> valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS, applyWeak);
 			if (valuesToAdd.isEmpty()) {
-				valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.OUTBOUND);
+				valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.OUTBOUND, applyWeak);
 			}
 			if (valuesToAdd.isEmpty()) {
-				valuesToAdd = addWeakValues(nonNegativePvwos, null);
+				valuesToAdd = addWeakValues(nonNegativePvwos, null, applyWeak);
 			}
 			LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
 					new Object[]{itemPath, contextDescription, valuesToAdd});
@@ -400,10 +407,10 @@ public class LensUtil {
 		}
 	}
 	
-	private static <V extends PrismValue> Collection<V> addWeakValues(Collection<? extends ItemValueWithOrigin<V>> pvwos, OriginType origin) {
+	private static <V extends PrismValue> Collection<V> addWeakValues(Collection<? extends ItemValueWithOrigin<V>> pvwos, OriginType origin, boolean applyWeak) {
 		Collection<V> values = new ArrayList<V>();
 		for (ItemValueWithOrigin<V> pvwo: pvwos) {
-			if (pvwo.getMapping().getStrength() == MappingStrengthType.WEAK) {
+			if (pvwo.getMapping().getStrength() == MappingStrengthType.WEAK && applyWeak) {
 				if (origin == null || origin == pvwo.getPropertyValue().getOriginType()) {
 					values.add((V)pvwo.getPropertyValue().clone());
 				}

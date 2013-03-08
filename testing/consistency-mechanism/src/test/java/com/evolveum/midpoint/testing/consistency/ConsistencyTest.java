@@ -91,6 +91,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -232,6 +233,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String USER_BOB_NO_FAMILY_NAME_FILENAME = REPO_DIR_NAME + "user-bob-no-family-name.xml";
 	private static final String USER_BOB_NO_FAMILY_NAME_OID = "c0c010c0-d34d-b33f-f00d-222111222999";
 	
+	private static final String USER_JOHN_WEAK_FILENAME = REPO_DIR_NAME + "user-john.xml";
+	private static final String USER_JOHN_WEAK_OID = "c0c010c0-d34d-b33f-f00d-999111111888";
+	
+	private static final String USER_DONALD_FILENAME = REPO_DIR_NAME + "user-donald.xml";
+	private static final String USER_DONALD_OID = "c0c010c0-d34d-b33f-f00d-999111111777";
+	
 	private static final String ACCOUNT_GUYBRUSH_FILENAME = REPO_DIR_NAME + "account-guybrush.xml";
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
 	
@@ -258,6 +265,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT = "src/test/resources/request/account-guybrush-modify-attributes.xml";
 	private static final String REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM = "src/test/resources/request/account-modify-attrs-communication-problem.xml";
 	private static final String REQUEST_ADD_ACCOUNT_JACKIE = "src/test/resources/request/add-account-jack.xml";
+	private static final String REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-employeeType.xml";
+	private static final String REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-employeeType-givenName.xml";
 
 	private static final String TASK_OPENDJ_RECONCILIATION_FILENAME = "src/test/resources/repo/task-opendj-reconciliation.xml";
 	private static final String TASK_OPENDJ_RECONCILIATION_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
@@ -1849,7 +1858,177 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "givenName", "Bob");
 		assertAttribute(bobResourceAccount, resourceTypeOpenDjrepo, "uid", "bob");
 		
+//		openDJController.stop();
+	}
+	
+	@Test
+	public void test30modifyObjectCommunicationProblemWeakMapping() throws Exception{
+//		openDJController.start();
+		displayTestTile("test30modifyObjectCommunicationProblemWeakMapping");
+		OperationResult result = new OperationResult("test30modifyObjectCommunicationProblemWeakMapping");
+		addObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, result);
+
+		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, result);
+		assertNotNull(addedUser);
+		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				0, accountRefs.size());
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_JOHN_WEAK_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+//		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
+
+		result.computeStatus();
+		display("add object communication problem result: ", result);
+		assertEquals("Expected success but got: " + result.getStatus(), OperationResultStatus.SUCCESS, result.getStatus());
+		
+		PrismObject<UserType> userJohn = repositoryService.getObject(UserType.class, USER_JOHN_WEAK_OID, result);
+		assertNotNull(userJohn);
+		accountRefs = userJohn.asObjectable().getAccountRef();
+		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(),
+				1, accountRefs.size());
+
+		String accountOid = accountRefs.get(0).getOid();
+		
+		PrismObject<AccountShadowType> johnAccount = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+		assertNotNull(johnAccount);
+		AccountShadowType johnAccountType = johnAccount.asObjectable();
+//		displayJaxb("Shadow after discovery: ", angelicaAccount, AccountShadowType.COMPLEX_TYPE);
+//		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
+//		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
+//		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), johnAccountType.getResourceRef().getOid());
+//		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "sn", "weak");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "cn", "john weak");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "givenName", "john");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "uid", "john");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
+		
+		//stop opendj and try to modify employeeType (weak mapping)
 		openDJController.stop();
+		
+		
+		LOGGER.info("start modifying user - account with weak mapping after stopping opendj.");
+		objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+//		Task task = taskManager.createTaskInstance();
+		
+		modifyDelta = ObjectDelta.createModifyDelta(USER_JOHN_WEAK_OID, delta.getModifications(), UserType.class, prismContext);
+		deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+
+		johnAccount = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+		//assert shadow..we expected no additional information in shadow because we modify attribute with weak mapping.
+		assertNotNull(johnAccount);
+		johnAccountType = johnAccount.asObjectable();
+		displayJaxb("Shadow after discovery: ", johnAccountType, AccountShadowType.COMPLEX_TYPE);
+		assertNull("John's account must not have failed opertion.", johnAccountType.getFailedOperationType());
+		assertNull("John's account must not have result.", johnAccountType.getResult());
+		assertNull("John's account must not have object change", johnAccountType.getObjectChange());
+		assertNotNull("John's account must contain reference on the resource", johnAccountType.getResourceRef());
+	
+	}
+
+	
+	@Test
+	public void test31modifyObjectCommunicationProblemWeakAndStrongMapping() throws Exception{
+		openDJController.start();
+		displayTestTile("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
+		OperationResult result = new OperationResult("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
+		addObjectFromFile(USER_DONALD_FILENAME, UserType.class, result);
+
+		PrismObject<UserType> addedUser = repositoryService.getObject(UserType.class, USER_DONALD_OID, result);
+		assertNotNull(addedUser);
+		List<ObjectReferenceType> accountRefs = addedUser.asObjectable().getAccountRef();
+		assertEquals("Expected that user does not have account reference, but found " + accountRefs.size(),
+				0, accountRefs.size());
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_DONALD_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+//		modelService.modifyObject(UserType.class, USER_E_OID, delta.getModifications(), task, result);
+
+		result.computeStatus();
+		display("add object communication problem result: ", result);
+		assertEquals("Expected success but got: " + result.getStatus(), OperationResultStatus.SUCCESS, result.getStatus());
+		
+		PrismObject<UserType> userJohn = repositoryService.getObject(UserType.class, USER_DONALD_OID, result);
+		assertNotNull(userJohn);
+		accountRefs = userJohn.asObjectable().getAccountRef();
+		assertEquals("Expected that user has one account reference, but found " + accountRefs.size(),
+				1, accountRefs.size());
+
+		String accountOid = accountRefs.get(0).getOid();
+		
+		PrismObject<AccountShadowType> johnAccount = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+		assertNotNull(johnAccount);
+		AccountShadowType johnAccountType = johnAccount.asObjectable();
+//		displayJaxb("Shadow after discovery: ", angelicaAccount, AccountShadowType.COMPLEX_TYPE);
+//		assertNull("Angelica's account after discovery must not have failed opertion.", angelicaAccount.getFailedOperationType());
+//		assertNull("Angelica's account after discovery must not have result.", angelicaAccount.getResult());
+//		assertNotNull("Angelica's account must contain reference on the resource", angelicaAccount.getResourceRef());
+		assertEquals(resourceTypeOpenDjrepo.getOid(), johnAccountType.getResourceRef().getOid());
+//		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "sn", "trump");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "cn", "donald trump");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "givenName", "donald");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "uid", "donald");
+		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
+		
+		//stop opendj and try to modify employeeType (weak mapping)
+		openDJController.stop();
+		
+		
+		LOGGER.info("start modifying user - account with weak mapping after stopping opendj.");
+		objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+//		Task task = taskManager.createTaskInstance();
+		
+		modifyDelta = ObjectDelta.createModifyDelta(USER_DONALD_OID, delta.getModifications(), UserType.class, prismContext);
+		deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+
+		johnAccount = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+		//assert shadow..we expected no additional information in shadow because we modify attribute with weak mapping.
+		assertNotNull(johnAccount);
+		johnAccountType = johnAccount.asObjectable();
+		displayJaxb("Shadow after discovery: ", johnAccountType, AccountShadowType.COMPLEX_TYPE);
+		assertNotNull("Donald's account must have failed opertion.", johnAccountType.getFailedOperationType());
+		assertEquals("Donald's account failed operation must be modify, but was: " + johnAccountType.getFailedOperationType(), FailedOperationTypeType.MODIFY, johnAccountType.getFailedOperationType());
+		assertNotNull("Donald's account must have result.", johnAccountType.getResult());
+		assertNotNull("Donald's account must have object change", johnAccountType.getObjectChange());
+		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
+		assertTrue("Delta stored in account must contain given name modification", deltaInAccount.hasItemDelta(new ItemPath(AccountShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"))));
+		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(new ItemPath(AccountShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
+		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
+	
+		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
 	}
 
 	/**

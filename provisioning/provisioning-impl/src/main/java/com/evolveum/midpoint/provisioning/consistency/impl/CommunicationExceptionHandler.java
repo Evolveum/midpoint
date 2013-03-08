@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
+import com.evolveum.midpoint.provisioning.impl.ResourceTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -57,6 +60,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		cacheRepositoryService = null;
 	}
 
+	private static final Trace LOGGER = TraceManager.getTrace(CommunicationExceptionHandler.class);
 	/**
 	 * Get the value of repositoryService.
 	 * 
@@ -95,6 +99,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		modifyResourceAvailabilityStatus(shadow.getResource(), AvailabilityStatusType.DOWN, operationResult);
 		
 		if (!isPostpone(shadow.getResource()) || !compensate){
+			LOGGER.trace("Postponing operation turned off.");
 			throw new CommunicationException(ex.getMessage(), ex);
 		}
 		
@@ -104,6 +109,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		switch (op) {
 		case ADD:
 			// if it is firt time, just store the whole account to the repo
+			LOGGER.trace("Postponing ADD operation for shadow {}", ObjectTypeUtil.toShortString(shadow));
 			ResourceType resource = shadow.getResource();
 			if (shadow.getFailedOperationType() == null) {
 //				ResourceType resource = shadow.getResource();
@@ -230,7 +236,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	private void modifyResourceAvailabilityStatus(ResourceType resource, AvailabilityStatusType status, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		
+				
 		if (resource.getOperationalState() == null || resource.getOperationalState().getLastAvailabilityStatus() == null || resource.getOperationalState().getLastAvailabilityStatus() != status) {
 			List<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
 			PropertyDelta statusDelta = PropertyDelta.createModificationReplaceProperty(OperationalStateType.F_LAST_AVAILABILITY_STATUS, resource.asPrismObject().getDefinition(), status);
