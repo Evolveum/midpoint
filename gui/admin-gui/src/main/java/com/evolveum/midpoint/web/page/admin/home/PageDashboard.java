@@ -21,16 +21,26 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.web.component.async.AsyncUpdatePanel;
 import com.evolveum.midpoint.web.component.dashboard.Dashboard;
 import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
+import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyAccountsDashboard;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * @author lazyman
@@ -59,30 +69,21 @@ public class PageDashboard extends PageAdminHome {
         initPersonalInfo();
         initMyWorkItems();
         initMyAccounts();
+        initAssignedRoles();
+        initAssignedResources();
+        initAssignedOrgUnits();
+    }
 
-        DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
-        add(assignedRoles);
+    private List<SimpleAccountDto> loadAccounts() throws Exception {
+        List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
 
-        DashboardPanel assignedOrgUnits = new DashboardPanel(ID_ORG_UNITS,
-                createStringResource("PageDashboard.assignedOrgUnits"),
-                new Model<Dashboard>(new Dashboard(true) {
+        Thread.sleep(5000);
+        list.add(new SimpleAccountDto("aaaaaa", "bbbbb"));
+        list.add(new SimpleAccountDto("a2", "bsd3ds"));
 
-                    private int i = 0;
+        //todo implement account loading...
 
-                    @Override
-                    public boolean isLoaded() {
-                        i++;
-                        if (i < 8) {
-                            return false;
-                        }
-                        return true;
-                    }
-                }));
-        add(assignedOrgUnits);
-
-        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
-                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
-        add(assignedResources);
+        return list;
     }
 
     private void initPersonalInfo() {
@@ -106,15 +107,56 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initMyAccounts() {
-        DashboardPanel accounts = new DashboardPanel(ID_ACCOUNTS,
-                createStringResource("PageDashboard.accounts"),
-                new Model(new MyAccountsDashboard())) {
+        AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
+                new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
+                        createStringResource("PageDashboard.accounts")) {
 
-            @Override
-            protected Component getLazyLoadComponent(String componentId) {
-                return new MyAccountsPanel(componentId);
-            }
-        };
+                    @Override
+                    protected Callable<List<SimpleAccountDto>> createCallable(IModel callableParameterModel) {
+                        return new Callable<List<SimpleAccountDto>>() {
+
+                            @Override
+                            public List<SimpleAccountDto> call() throws Exception {
+                                return loadAccounts();
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new MyAccountsPanel(markupId, getModel());
+                    }
+                };
         add(accounts);
+    }
+
+    private void initAssignedOrgUnits() {
+        DashboardPanel assignedOrgUnits = new DashboardPanel(ID_ORG_UNITS,
+                createStringResource("PageDashboard.assignedOrgUnits"),
+                new Model<Dashboard>(new Dashboard(true) {
+
+                    private int i = 0;
+
+                    @Override
+                    public boolean isLoaded() {
+                        i++;
+                        if (i < 8) {
+                            return false;
+                        }
+                        return true;
+                    }
+                }));
+        add(assignedOrgUnits);
+    }
+
+    private void initAssignedResources() {
+        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
+                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
+        add(assignedResources);
+    }
+
+    private void initAssignedRoles() {
+        DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
+        add(assignedRoles);
     }
 }

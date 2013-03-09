@@ -47,6 +47,7 @@ import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.bootstrap.Bootstrap;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
@@ -92,19 +93,6 @@ public abstract class PageBase extends WebPage {
     @SpringBean(name = "workflowManager")
     private WorkflowManager workflowManager;
 
-    //atmosphere sample
-    private static ArrayList<String> atmList = new ArrayList<String>() {
-
-        @Override
-        public boolean add(String s) {
-            super.add(s);
-            while (size() > 10) {
-                super.remove(0);
-            }
-            return true;
-        }
-    };
-
     public PageBase() {
         Injector.get().inject(this);
         validateInjection(modelService, "Model service was not injected.");
@@ -118,6 +106,7 @@ public abstract class PageBase extends WebPage {
 
         //this attaches jquery.js as first header item, which is used in our scripts.
         CoreLibrariesContributor.contribute(getApplication(), response);
+//        Bootstrap.renderHeadPlain(response);
     }
 
     @Override

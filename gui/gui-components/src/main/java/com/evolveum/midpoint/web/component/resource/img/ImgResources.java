@@ -16,28 +16,16 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2012 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.component.util;
-
-import com.evolveum.midpoint.web.page.PageBase;
-import org.apache.wicket.model.IModel;
+package com.evolveum.midpoint.web.component.resource.img;
 
 /**
+ * Just a package marker class for image resources.
+ *
  * @author lazyman
  */
-public class SimplePanel<T> extends BaseSimplePanel<T> {
+public class ImgResources {
 
-    public SimplePanel(String id) {
-        this(id, null);
-    }
-
-    public SimplePanel(String id, IModel<T> model) {
-        super(id, model);
-    }
-
-    public PageBase getPageBase() {
-        return (PageBase) getPage();
-    }
 }

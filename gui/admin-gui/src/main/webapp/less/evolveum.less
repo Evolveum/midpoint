@@ -71,6 +71,18 @@
   }
 }
 
+input {
+  border: 1px solid #8D9095;
+  padding: 2px;
+
+  &:focus {
+    border: 1px solid #267994;
+  }
+}
+
+/*
+ * TopMenu.less after wro4j is fixed
+ */
 div.top-menu {
   font: Helvetica, Arial, sans-serif;
   margin: 0;
@@ -130,7 +142,7 @@ div.top-container {
         border-right: none;
       }
 
-      span.label {
+      span.topMenuLabel {
         color: #fff;
         font-size: 18px;
       }
@@ -143,7 +155,7 @@ div.top-container {
       font: 12px;
       color: #333;
 
-      &.label {
+      &.topMenuLabel {
         display: block;
         font: 12px;
         color: #333;
@@ -207,11 +219,47 @@ div.bottom-container {
   }
 }
 
-input {
-  border: 1px solid #8D9095;
-  padding: 2px;
+/*
+ * DashboardPanel
+ */
+div.dashboard-panel {
 
-  &:focus {
-    border: 1px solid #267994;
+  div.dashboard-title {
+    background: none repeat scroll 0 0 #bbbbbb;
+    border-radius: 4px 4px 0 0;
+    border: 1px solid #757575;
+    border-bottom: none;
+
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: normal;
+    margin: 2px 0 0;
+    padding: 8px 6px;
+    position: relative;
+    width: auto;
+  }
+
+  a.dashboard-button {
+    float: right;
+    background: #ffffff;
+    border-radius: 4px;
+    display: block;
+    height: 16px;
+    width: 16px;
+    padding: 1px;
+    margin: 0 2px;
+  }
+
+  div.dashboard-content {
+    border-radius: 0 0 4px 4px;
+    border-color: #757575;
+    border-style: none solid solid solid;
+    border-width: 1px;
+
+    padding: 6px;
   }
 }
+
+
+
+

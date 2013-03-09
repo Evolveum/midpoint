@@ -3,5 +3,7 @@
     <group name="all">
         <css>/less/*.less</css>
         <css>/WEB-INF/classes/**.less</css>
+        <!--todo remove /WEB-INF css and uncomment this, but first you have to fix classpath loading in wro4j-->
+        <!--<css>classpath*:com/evolveum/midpoint/web/**/*.less</css>-->
     </group>
 </groups>

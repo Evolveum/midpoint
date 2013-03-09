@@ -16,30 +16,13 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~
-  ~ Portions Copyrighted 2012 [name of copyright owner]
+  ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<div class="top-container">
-	    <ul>
-	        <li wicket:id="topList">
-	            <a wicket:id="topLink">
-	                <span class="topMenuLabel" wicket:id="topLabel"/>
-	                <span class="description" wicket:id="topDescription"/>
-	            </a>
-	        </li>
-	    </ul>
-	</div>
-	<div class="bottom-container">
-	    <ul>
-	        <li wicket:id="bottomList">
-	            <a wicket:id="bottomLink"><span class="bottomMenuLabel" wicket:id="bottomLabel"/></a>
-	        </li>
-	    </ul>
-	    <div id="bysy_indicator"></div>
-	    <div id="error_indicator"></div>
-	</div>
+    <img wicket:id="loading"/>
+    <div wicket:id="body" />
 </wicket:panel>
 </html>

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.GuiComponents;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 import com.evolveum.midpoint.web.page.admin.help.PageSystem;
@@ -96,6 +97,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired(required = true)
     transient Protector protector;
     private WebApplicationConfiguration webApplicationConfiguration;
+
+    @Override
+    protected void onDestroy() {
+        GuiComponents.destroy();
+
+        super.onDestroy();
+    }
 
     @Override
     public Class<PageHome> getHomePage() {

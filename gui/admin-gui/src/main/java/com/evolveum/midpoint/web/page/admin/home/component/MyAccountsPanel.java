@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
@@ -36,12 +37,12 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class MyAccountsPanel extends SimplePanel {
+public class MyAccountsPanel extends SimplePanel<List<SimpleAccountDto>> {
 
     private static final String ID_ACCOUNTS_TABLE = "accountsTable";
 
-    public MyAccountsPanel(String id) {
-        super(id);
+    public MyAccountsPanel(String id, IModel<List<SimpleAccountDto>> model) {
+        super(id, model);
     }
 
     @Override
@@ -50,7 +51,7 @@ public class MyAccountsPanel extends SimplePanel {
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.name"), "accountName"));
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.resource"), "resourceName"));
 
-        ISortableDataProvider provider = new ListDataProvider(this, new Model(new ArrayList()));
+        ISortableDataProvider provider = new ListDataProvider(this, getModel());
         TablePanel accountsTable = new TablePanel<SimpleAccountDto>(ID_ACCOUNTS_TABLE, provider, columns);
         accountsTable.setShowPaging(false);
 

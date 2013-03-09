@@ -29,8 +29,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
@@ -67,14 +65,6 @@ public class DashboardPanel<T extends Serializable> extends SimplePanel<Dashboar
         setOutputMarkupId(true);
 
         initLayout(titleModel);
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        response.render(CssHeaderItem.forReference(
-                new PackageResourceReference(DashboardPanel.class, "DashboardPanel.css")));
     }
 
     private void initLayout(IModel<String> titleModel) {
