@@ -21,24 +21,35 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.web.component.async.AsyncUpdatePanel;
+import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dashboard.Dashboard;
 import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyAccountsDashboard;
+import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -47,15 +58,38 @@ import java.util.concurrent.Callable;
  */
 public class PageDashboard extends PageAdminHome {
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);
+
+    private static final String DOT_CLASS = PageDashboard.class.getName() + ".";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
+    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_WORK_ITEMS = "workItems";
     private static final String ID_ACCOUNTS = "accounts";
-    private static final String ID_ROLES = "assignedRoles";
-    private static final String ID_RESOURCES = "assignedResources";
-    private static final String ID_ORG_UNITS = "assignedOrgUnits";
+    private static final String ID_ASSIGNMENTS = "assignments";
+
+    private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
     public PageDashboard() {
+         principalModel.setObject(loadUser());
+
         initLayout();
+    }
+
+    private PrismObject<UserType> loadUser() {
+        PrincipalUser principal = SecurityUtils.getPrincipalUser();
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+        PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
+                principal.getOid(), result, PageDashboard.this);
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+
+        return user;
     }
 
     @Override
@@ -69,19 +103,48 @@ public class PageDashboard extends PageAdminHome {
         initPersonalInfo();
         initMyWorkItems();
         initMyAccounts();
-        initAssignedRoles();
-        initAssignedResources();
-        initAssignedOrgUnits();
+        initAssignments();
     }
 
     private List<SimpleAccountDto> loadAccounts() throws Exception {
+        LOGGER.debug("Loading accounts.");
         List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null) {
+            return list;
+        }
 
-        Thread.sleep(5000);
-        list.add(new SimpleAccountDto("aaaaaa", "bbbbb"));
-        list.add(new SimpleAccountDto("a2", "bsd3ds"));
+        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-        //todo implement account loading...
+        List<ObjectReferenceType> references = user.asObjectable().getAccountRef();
+        for (ObjectReferenceType reference : references) {
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
+
+            PrismObject<AccountShadowType> account = WebModelUtils.loadObjectAsync(AccountShadowType.class, reference.getOid(),
+                    options, subResult, this, user);
+            if (account == null) {
+                continue;
+            }
+
+            AccountShadowType accountType = account.asObjectable();
+
+            OperationResultType fetchResult = accountType.getFetchResult();
+            if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
+                showResult(OperationResult.createOperationResult(fetchResult));
+            }
+
+            ResourceType resource = accountType.getResource();
+            String resourceName = WebMiscUtil.getName(resource);
+            list.add(new SimpleAccountDto(WebMiscUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
+        }
+        result.recordSuccessIfUnknown();
+        result.recomputeStatus();
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
 
         return list;
     }
@@ -130,33 +193,33 @@ public class PageDashboard extends PageAdminHome {
         add(accounts);
     }
 
-    private void initAssignedOrgUnits() {
-        DashboardPanel assignedOrgUnits = new DashboardPanel(ID_ORG_UNITS,
-                createStringResource("PageDashboard.assignedOrgUnits"),
-                new Model<Dashboard>(new Dashboard(true) {
-
-                    private int i = 0;
+    private void initAssignments() {
+        AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
+                new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS,
+                        createStringResource("PageDashboard.assignments")) {
 
                     @Override
-                    public boolean isLoaded() {
-                        i++;
-                        if (i < 8) {
-                            return false;
-                        }
-                        return true;
+                    protected Callable<List<AssignmentItemDto>> createCallable(IModel callableParameterModel) {
+                        return new Callable<List<AssignmentItemDto>>() {
+
+                            @Override
+                            public List<AssignmentItemDto> call() throws Exception {
+                                return loadAssignments();
+                            }
+                        };
                     }
-                }));
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new Label(markupId, getModel());
+                    }
+                };
         add(assignedOrgUnits);
     }
 
-    private void initAssignedResources() {
-        DashboardPanel assignedResources = new DashboardPanel(ID_RESOURCES,
-                createStringResource("PageDashboard.assignedResources"), new Model<Dashboard>(new Dashboard(true)));
-        add(assignedResources);
-    }
-
-    private void initAssignedRoles() {
-        DashboardPanel assignedRoles = new DashboardPanel(ID_ROLES, createStringResource("PageDashboard.assignedRoles"));
-        add(assignedRoles);
+    private List<AssignmentItemDto> loadAssignments() throws Exception {
+        //todo implement
+        Thread.sleep(3000);
+        return new ArrayList<AssignmentItemDto>();
     }
 }

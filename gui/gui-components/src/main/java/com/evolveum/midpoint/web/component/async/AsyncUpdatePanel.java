@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
 /**
  * @author lazyman
  */
-public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel<T> {
+public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel {
 
     private static final ResourceReference PRELOADER =
             new PackageResourceReference(ImgResources.class, "preloader-panel.gif");
@@ -91,7 +91,7 @@ public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel<T> {
     protected void onPostSuccess(AjaxRequestTarget target) {
         replace(getMainComponent(ID_BODY));
 
-        target.add(AsyncUpdatePanel.this);
+        target.add(this);
     }
 
     protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
@@ -99,7 +99,7 @@ public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel<T> {
         Label errorLabel = new Label(ID_BODY, message);
         replace(errorLabel);
 
-        target.add(AsyncUpdatePanel.this);
+        target.add(this);
     }
 
     protected boolean isLoadingVisible() {

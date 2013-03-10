@@ -23,15 +23,12 @@ package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.web.component.async.AsyncUpdatePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.resource.img.ImgResources;
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.util.time.Duration;
 
 /**
@@ -41,10 +38,6 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
 
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
-//    private static final String ID_RELOAD = "reload";
-//    private static final String ID_RELOAD_ICON = "reloadIcon";
-//    private static final String ID_MINIMIZE = "minimize";
-//    private static final String ID_MINIMIZE_ICON = "minimizeIcon";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
     private static final String ID_PRELOADER = "preloader";
     private static final String ID_DASHBOARD_CONTENT = "dashboardContent";
@@ -61,7 +54,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
     public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel, Duration durationSecs) {
         super(id, callableParameterModel, durationSecs);
 
-        Label label = (Label) get(createComponentPath(ID_DASHBOARD_TITLE, ID_TITLE));
+        Label label = (Label) get(ID_DASHBOARD_TITLE +":"+ ID_TITLE);
         label.setDefaultModel(title);
     }
 
@@ -89,18 +82,23 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
         preloaderContainer.add(getLoadingComponent(ID_PRELOADER));
     }
 
+    @Override
     protected void onPostSuccess(AjaxRequestTarget target) {
         WebMarkupContainer dashboardContent = (WebMarkupContainer) get(ID_DASHBOARD_CONTENT);
         dashboardContent.replace(getMainComponent(ID_CONTENT));
 
-        target.add(this);
+        PageBase page = (PageBase) getPage();
+        target.add(this, page.getFeedbackPanel());
     }
 
+    @Override
     protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
         String message = "Error occurred while fetching data: " + ex.getMessage();
         Label errorLabel = new Label(ID_CONTENT, message);
         WebMarkupContainer dashboardContent = (WebMarkupContainer) get(ID_DASHBOARD_CONTENT);
         dashboardContent.replace(errorLabel);
-        target.add(this);
+
+        PageBase page = (PageBase) getPage();
+        target.add(this, page.getFeedbackPanel());
     }
 }

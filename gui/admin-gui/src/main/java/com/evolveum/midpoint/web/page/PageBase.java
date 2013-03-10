@@ -26,8 +26,10 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.UserTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.bootstrap.Bootstrap;
@@ -227,18 +230,28 @@ public abstract class PageBase extends WebPage {
         return createStringResource(resourceKey);
     }
 
-    public Task createSimpleTask(String operation) {
+    public Task createSimpleTask(String operation, PrismObject<UserType> owner) {
         TaskManager manager = getTaskManager();
         Task task = manager.createTaskInstance(operation);
 
-        PrincipalUser user = SecurityUtils.getPrincipalUser();
-        if (user == null) {
-            return task;
+        if (owner == null) {
+            PrincipalUser user = SecurityUtils.getPrincipalUser();
+            if (user == null) {
+                return task;
+            } else {
+                owner = user.getUser().asPrismObject();
+            }
         }
-        task.setOwner(user.getUser().asPrismObject());
+
+        task.setOwner(owner);
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 
         return task;
+    }
+
+    public Task createSimpleTask(String operation) {
+        PrincipalUser user = SecurityUtils.getPrincipalUser();
+        return createSimpleTask(operation, user != null ? user.getUser().asPrismObject() : null);
     }
 
     public void showResult(OperationResult result) {
