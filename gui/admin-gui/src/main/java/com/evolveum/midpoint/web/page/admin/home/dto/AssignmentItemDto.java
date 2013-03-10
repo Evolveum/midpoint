@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+
 import java.io.Serializable;
 
 /**
@@ -28,21 +30,24 @@ import java.io.Serializable;
  */
 public class AssignmentItemDto implements Serializable {
 
-    public static enum Type {ROLE, ORG_UNIT, ACCOUNT}
+    public static final String F_TYPE = "type";
+    public static final String F_NAME = "name";
+    public static final String F_DESCRIPTION = "description";
+    public static final String F_RELATION = "relation";
 
-    private Type type;
+    private AssignmentEditorDtoType type;
     private String name;
     private String description;
     private String relation;
 
-    public AssignmentItemDto(Type type, String name, String description, String relation) {
+    public AssignmentItemDto(AssignmentEditorDtoType type, String name, String description, String relation) {
         this.type = type;
         this.name = name;
         this.description = description;
         this.relation = relation;
     }
 
-    public Type getType() {
+    public AssignmentEditorDtoType getType() {
         return type;
     }
 
@@ -55,6 +60,14 @@ public class AssignmentItemDto implements Serializable {
     }
 
     public String getRelation() {
+        if (relation == null) {
+            return null;
+        }
+
+        return '(' + relation + ')';
+    }
+
+    public String getRealRelation() {
         return relation;
     }
 }

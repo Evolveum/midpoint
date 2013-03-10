@@ -34,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.help.PageAbout;
 import com.evolveum.midpoint.web.page.admin.help.PageSystem;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.home.PageHome;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
@@ -106,8 +105,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     @Override
-    public Class<PageHome> getHomePage() {
-        return PageHome.class;
+    public Class<PageDashboard> getHomePage() {
+        return PageDashboard.class;
     }
 
     @Override
@@ -136,8 +135,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         MidPointPageParametersEncoder encoder = new MidPointPageParametersEncoder();
         mount(new MountedMapper("/login", PageLogin.class, encoder));
 
-        mount(new MountedMapper("/admin", PageHome.class, encoder));
-        mount(new MountedMapper("/admin/home", PageHome.class, encoder));    //todo remove
+        mount(new MountedMapper("/admin", PageDashboard.class, encoder));
         mount(new MountedMapper("/admin/dashboard", PageDashboard.class, encoder));
         mount(new MountedMapper("/admin/myPasswords", PageMyPasswords.class, encoder));
 

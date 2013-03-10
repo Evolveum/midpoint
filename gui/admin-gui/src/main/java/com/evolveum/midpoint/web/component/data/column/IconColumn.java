@@ -39,6 +39,11 @@ public class IconColumn<T> extends AbstractColumn<T, String> {
     }
 
     @Override
+    public String getCssClass() {
+        return "iconColumn";
+    }
+
+    @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
         cellItem.add(new ImagePanel(componentId, createIconModel(rowModel), createTitleModel(rowModel), createAttribute(rowModel)));
     }

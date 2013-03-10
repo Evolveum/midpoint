@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2013 Evolveum
+  ~ Copyright (c) 2012 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -22,23 +22,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <div class="dashboard-title" wicket:id="dashboardTitle">
-            <span wicket:id="title"/>
-
-            <a wicket:id="minimize" class="dashboard-button">
-                <img wicket:id="minimizeIcon"/>
-            </a>
-            <a wicket:id="reload" class="dashboard-button">
-                <img wicket:id="reloadIcon" wicket:message="title:DashboardPanel.reload"/>
-            </a>
-        </div>
-        <div class="dashboard-content" wicket:id="dashboardContent">
-            <div wicket:id="preloaderContainer" style="text-align: center;">
-                <img wicket:id="preloader"/>
-            </div>
-            <div wicket:id="content"/>
-        </div>
-    </div>
+    <span wicket:id="targetName" class="targetName" />
+    <span wicket:id="targetDisplayName" class="targetDisplayName" />
+    <span wicket:id="targetRelation" class="targetRelation" />
 </wicket:panel>
 </html>

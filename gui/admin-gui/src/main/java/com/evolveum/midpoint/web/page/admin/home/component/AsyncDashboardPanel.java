@@ -54,7 +54,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
     public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel, Duration durationSecs) {
         super(id, callableParameterModel, durationSecs);
 
-        Label label = (Label) get(ID_DASHBOARD_TITLE +":"+ ID_TITLE);
+        Label label = (Label) get(createComponentPath(ID_DASHBOARD_TITLE, ID_TITLE));
         label.setDefaultModel(title);
     }
 

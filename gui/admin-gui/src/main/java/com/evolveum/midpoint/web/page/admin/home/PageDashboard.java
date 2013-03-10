@@ -22,18 +22,14 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dashboard.Dashboard;
-import com.evolveum.midpoint.web.component.dashboard.DashboardPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
-import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
-import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.page.admin.home.component.*;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -64,6 +60,8 @@ public class PageDashboard extends PageAdminHome {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
+    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
+    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_WORK_ITEMS = "workItems";
@@ -73,7 +71,7 @@ public class PageDashboard extends PageAdminHome {
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
     public PageDashboard() {
-         principalModel.setObject(loadUser());
+        principalModel.setObject(loadUser());
 
         initLayout();
     }
@@ -146,15 +144,17 @@ public class PageDashboard extends PageAdminHome {
             showResult(result);
         }
 
+        LOGGER.debug("Finished accounts loading.");
+
         return list;
     }
 
     private void initPersonalInfo() {
-        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO,
+        DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
                 createStringResource("PageDashboard.personalInfo")) {
 
             @Override
-            protected Component getLazyLoadComponent(String componentId) {
+            protected Component getMainComponent(String componentId) {
                 return new PersonalInfoPanel(componentId);
             }
         };
@@ -162,10 +162,14 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initMyWorkItems() {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setShowMinimize(true);
-        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"),
-                new Model<Dashboard>(dashboard));
+        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, null,
+                createStringResource("PageDashboard.workItems")) {
+
+            @Override
+            protected Component getMainComponent(String componentId) {
+                return new Label(componentId, new Model("TODO: MID-676"));
+            }
+        };
         add(workItems);
     }
 
@@ -211,15 +215,83 @@ public class PageDashboard extends PageAdminHome {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new Label(markupId, getModel());
+                        return new MyAssignmentsPanel(markupId, getModel());
                     }
                 };
         add(assignedOrgUnits);
     }
 
     private List<AssignmentItemDto> loadAssignments() throws Exception {
-        //todo implement
-        Thread.sleep(3000);
-        return new ArrayList<AssignmentItemDto>();
+        LOGGER.debug("Loading assignments.");
+        List<AssignmentItemDto> list = new ArrayList<AssignmentItemDto>();
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null) {
+            return list;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
+
+        PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
+        if (assignments == null) {
+            return list;
+        }
+        List<PrismContainerValue> values = assignments.getValues();
+        for (PrismContainerValue assignment : values) {
+            AssignmentItemDto item = createAssignmentItem(user, result, assignment);
+            if (item != null) {
+                list.add(item);
+            }
+        }
+        result.recordSuccessIfUnknown();
+        result.recomputeStatus();
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResult(result);
+        }
+
+        LOGGER.debug("Finished assignments loading.");
+
+        return list;
+    }
+
+    private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user, OperationResult result,
+                                                   PrismContainerValue assignment) {
+        PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
+        if (targetRef == null || targetRef.isEmpty()) {
+            //account construction
+            PrismProperty construction = assignment.findProperty(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+            String description = null;
+            if (construction != null && !construction.isEmpty()) {
+                AccountConstructionType constr = (AccountConstructionType)
+                        construction.getRealValue(AccountConstructionType.class);
+                description = constr.getDescription();
+            }
+
+            return new AssignmentItemDto(AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, null, description, null);
+        }
+
+        PrismReferenceValue refValue = targetRef.getValue();
+        PrismObject value = refValue.getObject();
+        if (value == null) {
+            //resolve reference
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
+            subResult.addParam("targetRef", refValue.getOid());
+            value = WebModelUtils.loadObjectAsync(ObjectType.class, refValue.getOid(), subResult, this, user);
+        }
+
+        if (value == null) {
+            //we couldn't resolve assignment details
+            return new AssignmentItemDto(null, null, null, null);
+        }
+
+        String name = WebMiscUtil.getName(value);
+        AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
+        String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
+        String description = null;
+        if (RoleType.class.isAssignableFrom(value.getCompileTimeClass())) {
+            description = (String) value.getPropertyRealValue(RoleType.F_DESCRIPTION, String.class);
+        }
+
+        return new AssignmentItemDto(type, name, description, relation);
     }
 }

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
@@ -39,7 +39,7 @@ import java.text.SimpleDateFormat;
 /**
  * @author lazyman
  */
-public class PersonalInfoPanel extends Panel {
+public class PersonalInfoPanel extends SimplePanel<PersonalInfoDto> {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss");
 
@@ -49,20 +49,20 @@ public class PersonalInfoPanel extends Panel {
     private static final String ID_LAST_FAIL_FROM = "lastFailFrom";
     private static final String ID_PASSWORD_EXP = "passwordExp";
 
-    private IModel<PersonalInfoDto> model;
 
     public PersonalInfoPanel(String id) {
         super(id);
+    }
 
-        model = new LoadableModel<PersonalInfoDto>(false) {
+    @Override
+    public IModel<PersonalInfoDto> createModel() {
+        return new LoadableModel<PersonalInfoDto>(false) {
 
             @Override
             protected PersonalInfoDto load() {
                 return loadPersonalInfo();
             }
         };
-
-        initLayout();
     }
 
     private PersonalInfoDto loadPersonalInfo() {
@@ -88,12 +88,13 @@ public class PersonalInfoPanel extends Panel {
         return dto;
     }
 
-    private void initLayout() {
+    @Override
+    protected void initLayout() {
         Label lastLoginDate = new Label(ID_LAST_LOGIN_DATE, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                PersonalInfoDto dto = model.getObject();
+                PersonalInfoDto dto = getModel().getObject();
 
                 return dto.getLastLoginDate() != null ? DATE_FORMAT.format(dto.getLastLoginDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
@@ -105,7 +106,7 @@ public class PersonalInfoPanel extends Panel {
 
             @Override
             public String getObject() {
-                PersonalInfoDto dto = model.getObject();
+                PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastLoginFrom()) ? dto.getLastLoginFrom() :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
@@ -117,7 +118,7 @@ public class PersonalInfoPanel extends Panel {
 
             @Override
             public String getObject() {
-                PersonalInfoDto dto = model.getObject();
+                PersonalInfoDto dto = getModel().getObject();
 
                 return dto.getLastFailDate() != null ? DATE_FORMAT.format(dto.getLastFailDate()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.never");
@@ -129,7 +130,7 @@ public class PersonalInfoPanel extends Panel {
 
             @Override
             public String getObject() {
-                PersonalInfoDto dto = model.getObject();
+                PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastFailFrom()) ? dto.getLastFailFrom() :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
@@ -141,7 +142,7 @@ public class PersonalInfoPanel extends Panel {
 
             @Override
             public String getObject() {
-                PersonalInfoDto dto = model.getObject();
+                PersonalInfoDto dto = getModel().getObject();
 
                 return dto.getPasswordExp() != null ? DATE_FORMAT.format(dto.getPasswordExp()) :
                         PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");

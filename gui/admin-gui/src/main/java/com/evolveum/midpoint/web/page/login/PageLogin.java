@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.login.LocalePanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -65,7 +65,7 @@ public class PageLogin extends PageBase {
                 PasswordTextField password = (PasswordTextField) get(ID_PASSWORD);
                 if (session.authenticate(username.getModelObject(), password.getModelObject())) {
                     //continueToOriginalDestination();
-                    setResponsePage(PageHome.class);
+                    setResponsePage(PageDashboard.class);
                 }
             }
         };

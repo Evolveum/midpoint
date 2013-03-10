@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
-import com.evolveum.midpoint.web.page.admin.home.PageHome;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageAdminReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
@@ -51,7 +51,7 @@ public class PageAdmin extends PageBase {
     @Override
     public List<TopMenuItem> getTopMenuItems() {
         List<TopMenuItem> items = new ArrayList<TopMenuItem>();
-        items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageHome.class));
+        items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageDashboard.class));
         items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description",
                 PageUsers.class, PageAdminUsers.class));
         items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description",

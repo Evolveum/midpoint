@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013 Evolveum
+  ~ Copyright (c) 2012 Evolveum
   ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
@@ -20,21 +19,16 @@
   ~ Portions Copyrighted 2013 [name of copyright owner]
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
-    <div class="colmask doublepage">
-        <div class="colleft">
-            <div class="col1">
-                <div wicket:id="personalInfo" class="dashboard-panel"/>
-                <div wicket:id="assignments" class="dashboard-panel"/>
-            </div>
-            <div class="col2">
-                <div wicket:id="workItems" class="dashboard-panel"/>
-                <div wicket:id="accounts" class="dashboard-panel"/>
-            </div>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div>
+        <div class="dashboard-title" wicket:id="dashboardTitle">
+            <span wicket:id="title"/>
+        </div>
+        <div class="dashboard-content" wicket:id="dashboardContent">
+            <div wicket:id="content"/>
         </div>
     </div>
-</wicket:extend>
-</body>
+</wicket:panel>
 </html>
