@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
@@ -27,11 +29,13 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
     private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
+    private static final String OPERATION_TEST_REPOSITORY = DOT_CLASS + "testRepository";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
+    private static final String ID_TEST_REPOSITORY = "testRepository";
 
     private LoadableModel<SystemConfigurationDto> model;
 
@@ -109,21 +113,32 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             }
         };
         mainForm.add(back);
+
+        AjaxLinkButton testRepository = new AjaxLinkButton(ID_TEST_REPOSITORY,
+                createStringResource("pageSystemConfiguration.button.testRepository")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                testRepositoryPerformed(target);
+            }
+        };
+        mainForm.add(testRepository);
     }
 
-    public void savePerformed(AjaxRequestTarget target) {
+    private void testRepositoryPerformed(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
+
+        OperationResult result = getModelDiagnosticService().repositorySelfTest(task);
+        showResult(result);
+
+        target.add(getFeedbackPanel());
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
-    public void backPerformed(AjaxRequestTarget target) {
-        //todo implement
-    }
-
-    public void removePasswordPolicyPerformed(AjaxRequestTarget target) {
-        //todo implement
-    }
-
-    public void browsePasswordPolicyPerformed(AjaxRequestTarget target) {
+    private void backPerformed(AjaxRequestTarget target) {
         //todo implement
     }
 }

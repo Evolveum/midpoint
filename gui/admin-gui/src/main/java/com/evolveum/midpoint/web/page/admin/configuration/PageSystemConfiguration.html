@@ -24,11 +24,17 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <div wicket:id="tabPanel" class="tabPanel" />
+        <div wicket:id="tabPanel" class="tabPanel"/>
 
         <div class="operatingFormButtons">
-            <a wicket:id="back"/>
-            <a wicket:id="save"/>
+
+            <div class="operatingFormBlock">
+                <a wicket:id="back"/>
+                <a wicket:id="save"/>
+            </div>
+            <div class="operatingFormBlock">
+                <a wicket:id="testRepository"/>
+            </div>
         </div>
     </form>
 </wicket:extend>
