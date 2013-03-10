@@ -71,13 +71,38 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
 
                         switch (item.getType()) {
                             case ACCOUNT_CONSTRUCTION:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.MEDAL_GOLD_3);
+                                return new SharedResourceReference(ImgResources.class, ImgResources.MEDAL_SILVER_2);
                             case ORG_UNIT:
                                 return new SharedResourceReference(ImgResources.class, ImgResources.BUILDING);
                             case ROLE:
                                 return new SharedResourceReference(ImgResources.class, ImgResources.MEDAL_GOLD_3);
                             default:
                                 return new SharedResourceReference(ImgResources.class, ImgResources.ERROR);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            protected IModel<String> createTitleModel(final IModel<AssignmentItemDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        AssignmentItemDto item = rowModel.getObject();
+                        if (item.getType() == null) {
+                            return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.error");
+                        }
+
+                        switch (item.getType()) {
+                            case ACCOUNT_CONSTRUCTION:
+                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.accountConstruction");
+                            case ORG_UNIT:
+                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.orgUnit");
+                            case ROLE:
+                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.role");
+                            default:
+                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.error");
                         }
                     }
                 };

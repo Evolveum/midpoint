@@ -22,13 +22,14 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class AssignmentItemDto implements Serializable {
+public class AssignmentItemDto implements Serializable, Comparable<AssignmentItemDto> {
 
     public static final String F_TYPE = "type";
     public static final String F_NAME = "name";
@@ -69,5 +70,35 @@ public class AssignmentItemDto implements Serializable {
 
     public String getRealRelation() {
         return relation;
+    }
+
+    @Override
+    public int compareTo(AssignmentItemDto other) {
+        Validate.notNull(other, "Can't compare assignment item dto with null.");
+
+        int value = getIndexOfType(getType()) - getIndexOfType(other.getType());
+        if (value != 0) {
+            return value;
+        }
+
+        String name1 = getName() != null ? getName() : "";
+        String name2 = other.getName() != null ? other.getName() : "";
+
+        return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
+    }
+
+    private int getIndexOfType(AssignmentEditorDtoType type) {
+        if (type == null) {
+            return 0;
+        }
+
+        AssignmentEditorDtoType[] values = AssignmentEditorDtoType.values();
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(type)) {
+                return i;
+            }
+        }
+
+        return 0;
     }
 }

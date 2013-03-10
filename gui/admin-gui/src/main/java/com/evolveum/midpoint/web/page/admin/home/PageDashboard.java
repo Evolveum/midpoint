@@ -46,6 +46,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -249,6 +250,8 @@ public class PageDashboard extends PageAdminHome {
             showResult(result);
         }
 
+        Collections.sort(list);
+
         LOGGER.debug("Finished assignments loading.");
 
         return list;
@@ -260,14 +263,25 @@ public class PageDashboard extends PageAdminHome {
         if (targetRef == null || targetRef.isEmpty()) {
             //account construction
             PrismProperty construction = assignment.findProperty(AssignmentType.F_ACCOUNT_CONSTRUCTION);
+            String name = null;
             String description = null;
             if (construction != null && !construction.isEmpty()) {
                 AccountConstructionType constr = (AccountConstructionType)
                         construction.getRealValue(AccountConstructionType.class);
                 description = constr.getDescription();
+
+                if (constr.getResourceRef() != null) {
+                    ObjectReferenceType resourceRef = constr.getResourceRef();
+                    OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
+                    subResult.addParam("targetRef", resourceRef.getOid());
+
+                    PrismObject resource = WebModelUtils.loadObjectAsync(
+                            ResourceType.class, resourceRef.getOid(), subResult, this, user);
+                    name = WebMiscUtil.getName(resource);
+                }
             }
 
-            return new AssignmentItemDto(AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, null, description, null);
+            return new AssignmentItemDto(AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION, name, description, null);
         }
 
         PrismReferenceValue refValue = targetRef.getValue();

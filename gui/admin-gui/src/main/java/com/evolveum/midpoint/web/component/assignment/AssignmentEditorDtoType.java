@@ -32,11 +32,11 @@ import javax.xml.namespace.QName;
  */
 public enum AssignmentEditorDtoType {
 
-    ACCOUNT_CONSTRUCTION(null, null),
+    ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE),
 
     ROLE(RoleType.class, RoleType.COMPLEX_TYPE),
 
-    ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE);
+    ACCOUNT_CONSTRUCTION(null, null);
 
     private Class<? extends ObjectType> type;
     private QName qname;
