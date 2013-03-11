@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -61,8 +62,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -303,7 +307,34 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
-        applySyncSettings(syncSettings);
+        applySyncSettings(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
+	}
+	
+	protected void assumeResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(policy);
+		applySyncSettings(ResourceType.class, oid, ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
+	}
+	
+	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
+		PrismObjectDefinition<ResourceType> objectDefinition = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(ResourceType.class);
+
+		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+        syncSettings.setAssignmentPolicyEnforcement(policy);
+		ItemDelta deleteAssigmentEnforcement = PropertyDelta
+				.createModificationDeleteProperty(new ItemPath(ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS),
+						objectDefinition.findPropertyDefinition(ResourceType.F_ACCOUNT_SYNCHRONIZATION_SETTINGS), syncSettings);
+
+		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		modifications.add(deleteAssigmentEnforcement);
+		
+		OperationResult result = new OperationResult("Aplying sync settings");
+
+		repositoryService.modifyObject(ResourceType.class, oid, modifications, result);
+		display("Aplying sync settings result", result);
+		result.computeStatus();
+		assertSuccess("Aplying sync settings failed (result)", result);
 	}
 	
 	protected AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(SystemConfigurationType systemConfiguration) {
@@ -314,21 +345,20 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return globalAccountSynchronizationSettings.getAssignmentPolicyEnforcement();
 	}
 	
-	protected void applySyncSettings(AccountSynchronizationSettingsType syncSettings)
+	protected void applySyncSettings(Class clazz, String oid, QName path, AccountSynchronizationSettingsType syncSettings)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(clazz);
 
 		Collection<? extends ItemDelta> modifications = PropertyDelta
 				.createModificationReplacePropertyCollection(
-						SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS,
+						path,
 						objectDefinition, syncSettings);
 
 		OperationResult result = new OperationResult("Aplying sync settings");
 
-		repositoryService.modifyObject(SystemConfigurationType.class,
-				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
+		repositoryService.modifyObject(clazz, oid, modifications, result);
 		display("Aplying sync settings result", result);
 		result.computeStatus();
 		assertSuccess("Aplying sync settings failed (result)", result);

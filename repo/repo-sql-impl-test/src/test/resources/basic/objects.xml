@@ -629,6 +629,10 @@
             </reaction>
 
         </synchronization>
+        
+         <accountSynchronizationSettings>
+   <assignmentPolicyEnforcement>positive</assignmentPolicyEnforcement>
+   </accountSynchronizationSettings>
 
     </resource>
 

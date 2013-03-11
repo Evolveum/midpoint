@@ -908,7 +908,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
-                
+                  
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
 		
@@ -1132,7 +1132,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() 
         		+ "." + TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
         purgeScriptHistory();
         
@@ -1143,6 +1143,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Let's break the delta a bit. Projector should handle this anyway
         breakAssignmentDelta(deltas);
                 
+        //change resource assigment policy to be positive..if they are not applied by projector, the test will fail
+        assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE);
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
 		
@@ -1176,6 +1178,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(1);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
+        
+        // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
+        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE);
 	}
 
 	/**

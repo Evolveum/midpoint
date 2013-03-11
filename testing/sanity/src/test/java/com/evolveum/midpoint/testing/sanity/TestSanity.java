@@ -3405,9 +3405,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     private void setAssignmentEnforcement(AssignmentPolicyEnforcementType enforcementType) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
-        syncSettings.setAssignmentPolicyEnforcement(enforcementType);
-        applySyncSettings(syncSettings);
+		assumeAssignmentPolicy(enforcementType);
+//    	AccountSynchronizationSettingsType syncSettings = new AccountSynchronizationSettingsType();
+//        syncSettings.setAssignmentPolicyEnforcement(enforcementType);
+//        applySyncSettings(SystemConfigurationType.class, syncSettings);
 	}
 
     private void assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType assignmentPolicy) throws

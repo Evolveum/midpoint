@@ -391,7 +391,18 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	
 	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
 		// TODO: per-resource assignment enforcement
-		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
+		ResourceType resource = getResource();
+		AccountSynchronizationSettingsType globalAccountSynchronizationSettings = null;
+		if (resource != null){
+			globalAccountSynchronizationSettings = resource.getAccountSynchronizationSettings();
+		} else{
+			System.out.println("resource null");
+		}
+		
+		if (globalAccountSynchronizationSettings == null) {
+			System.out.println("no sync setting found in resource, applying global enforcements.");
+			globalAccountSynchronizationSettings = getLensContext().getAccountSynchronizationSettings();
+		}
 		AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
 		return globalAssignmentPolicyEnforcement;
 	}
