@@ -42,6 +42,7 @@ import com.evolveum.midpoint.repo.sql.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,12 +62,15 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -912,7 +916,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				.setProjection(Projections.property("ancestor"))
 				.createCriteria("ancestor", "anc")
 				.add(Restrictions.and(Restrictions.eq("this.descendant", rObjectToModify),
-						Restrictions.not(Restrictions.eq("anc.oid", rObjectToModify.getOid())))).list();
+                        Restrictions.not(Restrictions.eq("anc.oid", rObjectToModify.getOid())))).list();
 
 		Criteria criteria = session.createCriteria(ROrgClosure.class);
 
@@ -1149,14 +1153,86 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getRepositoryDiag()
 	 */
-	@Override
-	public RepositoryDiag getRepositoryDiag() {
-		RepositoryDiag diag = new RepositoryDiag();
-		diag.setImplementationShortName(IMPLEMENTAION_SHORT_NAME);
-		diag.setImplementationDescription(IMPLEMENTAION_DESCRIPTION);
-		// TODO: add more information
-		return diag;
-	}
+    @Override
+    public RepositoryDiag getRepositoryDiag() {
+        RepositoryDiag diag = new RepositoryDiag();
+        diag.setImplementationShortName(IMPLEMENTAION_SHORT_NAME);
+        diag.setImplementationDescription(IMPLEMENTAION_DESCRIPTION);
+
+        SqlRepositoryConfiguration config = repositoryFactory.getSqlConfiguration();
+
+        //todo improve, find and use real values (which are used by sessionFactory) MID-1219
+        diag.setDriverShortName(config.getDriverClassName());
+        diag.setRepositoryUrl(config.getJdbcUrl());
+        diag.setEmbedded(config.isEmbedded());
+
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while ((drivers != null && drivers.hasMoreElements())) {
+            Driver driver = drivers.nextElement();
+            if (!driver.getClass().getName().equals(config.getDriverClassName())) {
+                continue;
+            }
+
+            diag.setDriverVersion(driver.getMajorVersion() + "." + driver.getMinorVersion());
+        }
+
+        List<LabeledString> details = new ArrayList<LabeledString>();
+        diag.setAdditionalDetails(details);
+        details.add(new LabeledString("dataSource", config.getDataSource()));
+        details.add(new LabeledString("hibernateDialect", config.getHibernateDialect()));
+        details.add(new LabeledString("transactionIsolation",
+                config.getTransactionIsolation() != null ? config.getTransactionIsolation().name() : null));
+        details.add(new LabeledString("hibernateHbm2ddl", config.getHibernateHbm2ddl()));
+
+        readDetailsFromConnection(details);
+
+        Collections.sort(details, new Comparator<LabeledString>() {
+
+            @Override
+            public int compare(LabeledString o1, LabeledString o2) {
+                return String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel());
+            }
+        });
+
+        return diag;
+    }
+
+    private void readDetailsFromConnection(final List<LabeledString> details) {
+        Session session = getSessionFactory().openSession();
+        try {
+            session.beginTransaction();
+            session.doWork(new Work() {
+
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    connection.getTransactionIsolation();
+
+
+                    Properties info = connection.getClientInfo();
+
+                    if (info == null) {
+                        return;
+                    }
+
+
+
+
+                    for (String name : info.stringPropertyNames()) {
+                        details.add(new LabeledString("clientInfo." + name, info.getProperty(name)));
+                    }
+                }
+            });
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+            //nowhere to report error (no operation result available
+            session.getTransaction().rollback();
+        } catch (Throwable th) {
+            //nowhere to report error (no operation result available
+            session.getTransaction().rollback();
+        } finally {
+            cleanupSessionAndResult(session, null);
+        }
+    }
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#repositorySelfTest(com.evolveum.midpoint.schema.result.OperationResult)

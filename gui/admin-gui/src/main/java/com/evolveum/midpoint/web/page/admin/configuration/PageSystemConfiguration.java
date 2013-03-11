@@ -28,14 +28,13 @@ import java.util.List;
 public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
+
     private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
-    private static final String OPERATION_TEST_REPOSITORY = DOT_CLASS + "testRepository";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
-    private static final String ID_TEST_REPOSITORY = "testRepository";
 
     private LoadableModel<SystemConfigurationDto> model;
 
@@ -113,25 +112,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             }
         };
         mainForm.add(back);
-
-        AjaxLinkButton testRepository = new AjaxLinkButton(ID_TEST_REPOSITORY,
-                createStringResource("pageSystemConfiguration.button.testRepository")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                testRepositoryPerformed(target);
-            }
-        };
-        mainForm.add(testRepository);
-    }
-
-    private void testRepositoryPerformed(AjaxRequestTarget target) {
-        Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
-
-        OperationResult result = getModelDiagnosticService().repositorySelfTest(task);
-        showResult(result);
-
-        target.add(getFeedbackPanel());
     }
 
     private void savePerformed(AjaxRequestTarget target) {

@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ import java.util.List;
  * @author Radovan Semancik
  *
  */
-public class RepositoryDiag {
+public class RepositoryDiag implements Serializable {
 	
 	/**
 	 * Short description of the implementation type, e.g. "SQL", "BaseX", "LDAP"
@@ -67,7 +68,7 @@ public class RepositoryDiag {
 	/**
 	 * Additional repository information that do not fit the structured data above.
 	 * May be anything that the implementations thinks is important.
-	 * E.g. a SQL dialect, transactiona mode, etc.
+	 * E.g. a SQL dialect, transaction mode, etc.
 	 */
 	private List<LabeledString> additionalDetails;
 

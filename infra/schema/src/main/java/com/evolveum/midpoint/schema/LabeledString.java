@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
+
 /**
  * A free-form string value with a label. Useful for displaying a free-form data in forms and tables that
  * require a label. 
@@ -29,7 +31,7 @@ package com.evolveum.midpoint.schema;
  * @author Radovan Semancik
  *
  */
-public class LabeledString {
+public class LabeledString implements Serializable {
 
 	private String label;
 	private String data;
