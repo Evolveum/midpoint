@@ -52,6 +52,8 @@ AS
 
     DELETE FROM m_org_closure;
 
+    DELETE FROM m_metadata;
+
     DELETE FROM m_object;
     DELETE FROM m_container;
 

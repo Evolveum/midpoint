@@ -229,6 +229,28 @@ CREATE TABLE m_generic_object (
   UNIQUE (name_norm)
 );
 
+CREATE TABLE m_metadata (
+  owner_oid                     NVARCHAR(36) NOT NULL,
+  owner_id                      BIGINT       NOT NULL,
+  createChannel                 NVARCHAR(255),
+  createTimestamp               DATETIME2,
+  creatorRef_description        NVARCHAR(MAX),
+  creatorRef_filter             NVARCHAR(MAX),
+  creatorRef_relationLocalPart  NVARCHAR(100),
+  creatorRef_relationNamespace  NVARCHAR(255),
+  creatorRef_targetOid          NVARCHAR(36),
+  creatorRef_type               INT,
+  modifierRef_description       NVARCHAR(MAX),
+  modifierRef_filter            NVARCHAR(MAX),
+  modifierRef_relationLocalPart NVARCHAR(100),
+  modifierRef_relationNamespace NVARCHAR(255),
+  modifierRef_targetOid         NVARCHAR(36),
+  modifierRef_type              INT,
+  modifyChannel                 NVARCHAR(255),
+  modifyTimestamp               DATETIME2,
+  PRIMARY KEY (owner_oid, owner_id)
+);
+
 CREATE TABLE m_node (
   clusteredNode          BIT,
   hostname               NVARCHAR(255),
@@ -627,6 +649,11 @@ ALTER TABLE m_generic_object
 ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
+
+ALTER TABLE m_metadata
+ADD CONSTRAINT fk_metadata_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_container;
 
 ALTER TABLE m_node
 ADD CONSTRAINT fk_node

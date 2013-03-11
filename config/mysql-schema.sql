@@ -291,6 +291,31 @@ CREATE TABLE m_generic_object (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
+CREATE TABLE m_metadata (
+  owner_oid                     VARCHAR(36) NOT NULL,
+  owner_id                      BIGINT      NOT NULL,
+  createChannel                 VARCHAR(255),
+  createTimestamp               DATETIME(6),
+  creatorRef_description        LONGTEXT,
+  creatorRef_filter             LONGTEXT,
+  creatorRef_relationLocalPart  VARCHAR(100),
+  creatorRef_relationNamespace  VARCHAR(255),
+  creatorRef_targetOid          VARCHAR(36),
+  creatorRef_type               INTEGER,
+  modifierRef_description       LONGTEXT,
+  modifierRef_filter            LONGTEXT,
+  modifierRef_relationLocalPart VARCHAR(100),
+  modifierRef_relationNamespace VARCHAR(255),
+  modifierRef_targetOid         VARCHAR(36),
+  modifierRef_type              INTEGER,
+  modifyChannel                 VARCHAR(255),
+  modifyTimestamp               DATETIME(6),
+  PRIMARY KEY (owner_oid, owner_id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
 CREATE TABLE m_node (
   clusteredNode          BOOLEAN,
   hostname               VARCHAR(255),
@@ -762,6 +787,12 @@ ADD INDEX fk_generic_object (id, oid),
 ADD CONSTRAINT fk_generic_object
 FOREIGN KEY (id, oid)
 REFERENCES m_object (id, oid);
+
+ALTER TABLE m_metadata
+ADD INDEX fk_metadata_owner (owner_id, owner_oid),
+ADD CONSTRAINT fk_metadata_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_container (id, oid);
 
 ALTER TABLE m_node
 ADD INDEX fk_node (id, oid),
