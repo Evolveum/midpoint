@@ -45,6 +45,11 @@ public class ModelExecuteOptions {
 	 * data formats (ProtectedString, ProtectedByteArray).
 	 */
 	Boolean crypt;
+	
+	/**
+	 * Option to reconcile user while executing changes. 
+	 */
+	Boolean reconcile;
 
 	public Boolean getForce() {
 		return force;
@@ -119,4 +124,27 @@ public class ModelExecuteOptions {
 		return opts;
 	}
 
+	public Boolean getReconcile() {
+		return reconcile;
+	}
+	
+	public void setReconcile(Boolean reconcile) {
+		this.reconcile = reconcile;
+	}
+	
+	public static boolean isReconcile(ModelExecuteOptions options){
+		if (options == null){
+			return false;
+		}
+		if (options.reconcile == null){
+			return false;
+		}
+		return options.reconcile;
+	}
+	
+	public static ModelExecuteOptions createReconcile(){
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setReconcile(true);
+		return opts;
+	}
 }

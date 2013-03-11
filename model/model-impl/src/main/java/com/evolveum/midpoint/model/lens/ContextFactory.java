@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -63,7 +64,7 @@ public class ContextFactory {
 	Protector protector;
 	
 	public <F extends ObjectType, P extends ObjectType> LensContext<F, P> createContext(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ObjectDelta<F> focusDelta = null;
 		Collection<ObjectDelta<P>> projectionDeltas = new ArrayList<ObjectDelta<P>>(deltas.size());
 		Class<F> focusClass = null;
@@ -101,6 +102,8 @@ public class ContextFactory {
 		}
 		LensContext<F, P> context = new LensContext<F, P>(focusClass, projectionClass, prismContext);
 		context.setChannel(task.getChannel());
+		context.setOptions(options);
+		context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
 		if (focusDelta != null) {
 			LensFocusContext<F> focusContext = context.createFocusContext();
 			focusContext.setPrimaryDelta(focusDelta);

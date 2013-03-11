@@ -378,8 +378,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 				int rewindAttempts = 0;
 				while (true) {
 					RewindException rewindException = null;
-					LensContext<?, ?> context = contextFactory.createContext(deltas, task, result);
-					context.setOptions(options);
+					LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
+//					context.setOptions(options);
 					try {
 						
 						clockwork.run(context, task, result);
@@ -541,8 +541,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 		try {
 			
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = (LensContext<F, P>) contextFactory.createContext(clonedDeltas, task, result);
-			context.setOptions(options);
+			context = (LensContext<F, P>) contextFactory.createContext(clonedDeltas, options, task, result);
+//			context.setOptions(options);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
 			}
