@@ -29,7 +29,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
+import com.evolveum.midpoint.web.component.async.CallableResult;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
+import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -37,11 +40,13 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.ArrayList;
@@ -105,15 +110,19 @@ public class PageDashboard extends PageAdminHome {
         initAssignments();
     }
 
-    private List<SimpleAccountDto> loadAccounts() throws Exception {
+    private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
         LOGGER.debug("Loading accounts.");
+
+        AccountCallableResult callableResult = new AccountCallableResult();
         List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
+        callableResult.setValue(list);
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
-            return list;
+            return callableResult;
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+        callableResult.setResult(result);
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(AccountShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
@@ -130,8 +139,9 @@ public class PageDashboard extends PageAdminHome {
             AccountShadowType accountType = account.asObjectable();
 
             OperationResultType fetchResult = accountType.getFetchResult();
-            if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
-                showResult(OperationResult.createOperationResult(fetchResult));
+
+            if (fetchResult != null) {
+                callableResult.getFetchResults().add(OperationResult.createOperationResult(fetchResult));
             }
 
             ResourceType resource = accountType.getResource();
@@ -141,13 +151,9 @@ public class PageDashboard extends PageAdminHome {
         result.recordSuccessIfUnknown();
         result.recomputeStatus();
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            showResult(result);
-        }
-
         LOGGER.debug("Finished accounts loading.");
 
-        return list;
+        return callableResult;
     }
 
     private void initPersonalInfo() {
@@ -180,11 +186,13 @@ public class PageDashboard extends PageAdminHome {
                         createStringResource("PageDashboard.accounts")) {
 
                     @Override
-                    protected Callable<List<SimpleAccountDto>> createCallable(IModel callableParameterModel) {
-                        return new Callable<List<SimpleAccountDto>>() {
+                    protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(
+                            IModel<Object> callableParameterModel) {
+
+                        return new Callable<CallableResult<List<SimpleAccountDto>>>() {
 
                             @Override
-                            public List<SimpleAccountDto> call() throws Exception {
+                            public AccountCallableResult<List<SimpleAccountDto>> call() throws Exception {
                                 return loadAccounts();
                             }
                         };
@@ -192,7 +200,32 @@ public class PageDashboard extends PageAdminHome {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new MyAccountsPanel(markupId, getModel());
+                        return new MyAccountsPanel(markupId,
+                                new PropertyModel<List<SimpleAccountDto>>(getModel(), CallableResult.F_VALUE));
+                    }
+
+                    @Override
+                    protected void onPostSuccess(AjaxRequestTarget target) {
+                        showFetchResult();
+                        super.onPostSuccess(target);
+                    }
+
+                    @Override
+                    protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
+                        showFetchResult();
+                        super.onUpdateError(target, ex);
+                    }
+
+                    private void showFetchResult() {
+                        AccountCallableResult<List<SimpleAccountDto>> result =
+                                (AccountCallableResult<List<SimpleAccountDto>>) getModel().getObject();
+
+                        PageBase page = (PageBase) getPage();
+                        for (OperationResult res : result.getFetchResults()) {
+                            if (!WebMiscUtil.isSuccessOrHandledError(res)) {
+                                page.showResult(res);
+                            }
+                        }
                     }
                 };
         add(accounts);
@@ -204,11 +237,11 @@ public class PageDashboard extends PageAdminHome {
                         createStringResource("PageDashboard.assignments")) {
 
                     @Override
-                    protected Callable<List<AssignmentItemDto>> createCallable(IModel callableParameterModel) {
-                        return new Callable<List<AssignmentItemDto>>() {
+                    protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(IModel callableParameterModel) {
+                        return new Callable<CallableResult<List<AssignmentItemDto>>>() {
 
                             @Override
-                            public List<AssignmentItemDto> call() throws Exception {
+                            public CallableResult<List<AssignmentItemDto>> call() throws Exception {
                                 return loadAssignments();
                             }
                         };
@@ -216,25 +249,30 @@ public class PageDashboard extends PageAdminHome {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new MyAssignmentsPanel(markupId, getModel());
+                        return new MyAssignmentsPanel(markupId,
+                                new PropertyModel<List<AssignmentItemDto>>(getModel(), CallableResult.F_VALUE));
                     }
                 };
         add(assignedOrgUnits);
     }
 
-    private List<AssignmentItemDto> loadAssignments() throws Exception {
+    private CallableResult<List<AssignmentItemDto>> loadAssignments() throws Exception {
         LOGGER.debug("Loading assignments.");
+        CallableResult callableResult = new CallableResult();
         List<AssignmentItemDto> list = new ArrayList<AssignmentItemDto>();
+        callableResult.setValue(list);
+
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
-            return list;
+            return callableResult;
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
+        callableResult.setResult(result);
 
         PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
         if (assignments == null) {
-            return list;
+            return callableResult;
         }
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
@@ -246,15 +284,11 @@ public class PageDashboard extends PageAdminHome {
         result.recordSuccessIfUnknown();
         result.recomputeStatus();
 
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            showResult(result);
-        }
-
         Collections.sort(list);
 
         LOGGER.debug("Finished assignments loading.");
 
-        return list;
+        return callableResult;
     }
 
     private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user, OperationResult result,

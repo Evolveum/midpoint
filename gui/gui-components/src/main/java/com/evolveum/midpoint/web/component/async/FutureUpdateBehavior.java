@@ -60,7 +60,7 @@ public abstract class FutureUpdateBehavior<T> extends AbstractAjaxTimerBehavior 
             T data = future.get();
             Component component = getComponent();
             if (component instanceof BaseSimplePanel) {
-                BaseSimplePanel panel = (BaseSimplePanel) component;
+                BaseSimplePanel<T> panel = (BaseSimplePanel<T>) component;
                 panel.getModel().setObject(data);
             } else {
                 if (component.getDefaultModel() == null) {

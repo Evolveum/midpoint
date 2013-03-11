@@ -21,9 +21,12 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.async.AsyncUpdatePanel;
+import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,7 +37,7 @@ import org.apache.wicket.util.time.Duration;
 /**
  * @author lazyman
  */
-public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
+public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, CallableResult<T>> {
 
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
@@ -88,6 +91,8 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
         dashboardContent.replace(getMainComponent(ID_CONTENT));
 
         PageBase page = (PageBase) getPage();
+        showResultIfError(page);
+
         target.add(this, page.getFeedbackPanel());
     }
 
@@ -99,6 +104,18 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, T> {
         dashboardContent.replace(errorLabel);
 
         PageBase page = (PageBase) getPage();
+        showResultIfError(page);
+
         target.add(this, page.getFeedbackPanel());
+    }
+
+    private void showResultIfError(PageBase page) {
+        CallableResult<T> result = (CallableResult<T>) getModel().getObject();
+        if (result != null && result.getResult() != null) {
+            OperationResult opResult = result.getResult();
+            if (!WebMiscUtil.isSuccessOrHandledError(opResult)) {
+                page.showResult(opResult);
+            }
+        }
     }
 }
