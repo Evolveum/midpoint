@@ -263,7 +263,7 @@ public class PageDashboard extends PageAdminHome {
         callableResult.setValue(list);
 
         PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
+        if (user == null || user.findContainer(UserType.F_ASSIGNMENT) == null) {
             return callableResult;
         }
 
@@ -271,9 +271,6 @@ public class PageDashboard extends PageAdminHome {
         callableResult.setResult(result);
 
         PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
-        if (assignments == null) {
-            return callableResult;
-        }
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
             AssignmentItemDto item = createAssignmentItem(user, result, assignment);
