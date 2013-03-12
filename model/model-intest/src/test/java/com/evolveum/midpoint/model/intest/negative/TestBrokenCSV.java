@@ -417,7 +417,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	 * This one dies on connector error.
 	 */
 	// Work in progress, MID-1108
-	@Test(enabled=false)
+	@Test
     public void test401AssignTwoResouresBroken() throws Exception {
 		testAssignTwoResoures("test401AssignTwoResouresBroken", RESOURCE_CSVFILE_BROKEN_OID);
 	}

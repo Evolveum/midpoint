@@ -136,44 +136,87 @@ public class ChangeExecutor {
 	        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
 	        	if (accCtx.getWave() != syncContext.getExecutionWave()) {
 	        		continue;
-	        	}
-	            ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
-	            if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN){
-	            	if (syncContext.getFocusContext().getDelta() != null
-							&& syncContext.getFocusContext().getDelta().isDelete() && syncContext.getOptions() != null
-							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
-						if (accDelta == null){
-							accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(), accCtx.getOid(), prismContext);
+				}
+				try {
+					ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
+					if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+						if (syncContext.getFocusContext().getDelta() != null
+								&& syncContext.getFocusContext().getDelta().isDelete()
+								&& syncContext.getOptions() != null
+								&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
+							if (accDelta == null) {
+								accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(),
+										accCtx.getOid(), prismContext);
+							}
 						}
-	            	}
-	            	if (accDelta != null && accDelta.isDelete()){
-	            	
-						 executeDelta(accDelta, accCtx, syncContext, task, result);
-			 	            
-//						accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-	            	}
-	            } else{
-	            	if (accDelta == null || accDelta.isEmpty()) {
-		                if (LOGGER.isTraceEnabled()) {
-		                	LOGGER.trace("No change for account " + accCtx.getResourceShadowDiscriminator());
-		                	LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
-		                }
-		                if (focusContext != null) {
-		                	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
-		                }
-		                continue;
-		            }
-	            	
-	            	 executeDelta(accDelta, accCtx, syncContext, task, result);
+						if (accDelta != null && accDelta.isDelete()) {
 
-	            }
-	            
-	            if (focusContext != null) {
-	            	updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
-	            }
-	        }
+							executeDelta(accDelta, accCtx, syncContext, task, result);
+
+							// accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+						}
+					} else {
+						if (accDelta == null || accDelta.isEmpty()) {
+							if (LOGGER.isTraceEnabled()) {
+								LOGGER.trace("No change for account "
+										+ accCtx.getResourceShadowDiscriminator());
+								LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
+							}
+							if (focusContext != null) {
+								updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
+										result);
+							}
+							continue;
+						}
+
+						executeDelta(accDelta, accCtx, syncContext, task, result);
+
+					}
+
+					if (focusContext != null) {
+						updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
+					}
+					
+					 result.computeStatus();
+				} catch (SchemaException e) {
+					result.recordFatalError(e);
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				} catch (ObjectNotFoundException e) {
+					result.recordFatalError(e);
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				} catch (ObjectAlreadyExistsException e) {
+					// int his case we do not need to set account context as
+					// broken, instead we need to restart projector for this
+					// context to recompute new account or find out if the
+					// account was already linked..
+//					result.computeStatus();
+//					if (!result.isSuccess()) {
+						result.recordFatalError(e);
+//					}
+//					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				} catch (CommunicationException e) {
+					result.recordFatalError(e);
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				} catch (ConfigurationException e) {
+					result.recordFatalError(e);
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				} catch (SecurityViolationException e) {
+					result.recordFatalError(e);
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				} catch (RuntimeException e) {
+					result.recordFatalError(e);
+					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+					continue;
+				}
+			}
 	        
-	        result.computeStatus();
+	       
 	        
     	} catch (SchemaException e) {
 			result.recordFatalError(e);

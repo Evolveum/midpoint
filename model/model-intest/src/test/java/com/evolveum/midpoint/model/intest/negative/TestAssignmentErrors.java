@@ -107,17 +107,18 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_WHITE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
                 
-        try {
+//        try {
 			// WHEN
 			modelService.executeChanges(deltas, null, task, result);
-			
-			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
-        } catch (SchemaException e) {
-        	// This is expected
-        	display("Expected exception", e);
-        }
+			//not expected that it fails, insted the fatal error in the result is excpected
+//			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
+//        } catch (SchemaException e) {
+//        	// This is expected
+//        	display("Expected exception", e);
+//        }
         
         result.computeStatus();
+        
         assertFailure(result);
 		
 	}
@@ -143,15 +144,15 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(userCharles);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
-        try {
+//        try {
 			// WHEN
 			modelService.executeChanges(deltas, null, task, result);
-			
-			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
-        } catch (SchemaException e) {
-        	// This is expected
-        	display("Expected exception", e);
-        }
+			//not expected that it fails, insted the fatal error in the result is excpected
+//			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
+//        } catch (SchemaException e) {
+//        	// This is expected
+//        	display("Expected exception", e);
+//        }
         
         result.computeStatus();
         assertFailure(result);
