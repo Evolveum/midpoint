@@ -209,7 +209,18 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         }
         
         for (Attribute attr : replaceAttributes) {
-        	if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+        	if (attr.is(Name.NAME)) {
+        		String newName = (String)attr.getValue().get(0);
+        		try {
+					resource.renameAccount(account.getUsername(), newName);
+				} catch (ObjectDoesNotExistException e) {
+					throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+				} catch (ObjectAlreadyExistsException e) {
+					throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+				}
+        		// We need to change the returned uid here
+        		uid = new Uid(newName);
+        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
         		changePassword(account,attr);
         	
         	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {

@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * This is a simple Java object that pretends to be a resource. It has accounts and
  * account schema. It has operations to manipulate accounts, execute scripts and so on
- * almost like a real resource. The purpose is to simulate a real resource with avery 
+ * almost like a real resource. The purpose is to simulate a real resource with a very 
  * little overhead.
  * 
  * The resource is a singleton, therefore the resource instance can be shared by
@@ -224,6 +224,20 @@ public class DummyResource {
 			DummyDelta delta = new DummyDelta(syncToken, account.getUsername(), DummyDeltaType.MODIFY);
 			deltas.add(delta);
 		}
+	}
+
+	
+	public void renameAccount(String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException {
+		DummyAccount account = accounts.get(oldUsername);
+		if (account == null) {
+			throw new ObjectDoesNotExistException("Cannot rename, account with username '"+oldUsername+"' does not exist");
+		}
+		if (accounts.containsKey(newUsername)) {
+			throw new ObjectAlreadyExistsException("Cannot rename, account with username '"+newUsername+"' already exists");
+		}
+		accounts.put(newUsername, account);
+		accounts.remove(oldUsername);
+		account.setUsername(newUsername);
 	}
 
 	/**
