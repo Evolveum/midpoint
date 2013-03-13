@@ -273,7 +273,6 @@ object.
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-					<strength>weak</strength>
 					<source>
 						<path>$user/name</path>
 					</source>
@@ -352,6 +351,7 @@ object.
 				<access>create</access>
 				<access>read</access>
 				<outbound>
+					<strength>weak</strength>
 					<source>
 						<description>Source may have description</description>
 						<path>$user/name</path>
