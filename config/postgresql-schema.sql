@@ -349,6 +349,7 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_resource (
+  accountSynchronizationSettings TEXT,
   administrativeState            INT4,
   capabilities_cachingMetadata   TEXT,
   capabilities_configured        TEXT,

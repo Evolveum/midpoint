@@ -351,6 +351,7 @@ CREATE TABLE m_reference (
 ) INITRANS 30;
 
 CREATE TABLE m_resource (
+  accountSynchronizationSettings CLOB,
   administrativeState            NUMBER(10, 0),
   capabilities_cachingMetadata   CLOB,
   capabilities_configured        CLOB,

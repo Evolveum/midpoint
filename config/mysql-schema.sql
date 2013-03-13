@@ -438,6 +438,7 @@ CREATE TABLE m_reference (
   ENGINE = InnoDB;
 
 CREATE TABLE m_resource (
+  accountSynchronizationSettings LONGTEXT,
   administrativeState            INTEGER,
   capabilities_cachingMetadata   LONGTEXT,
   capabilities_configured        LONGTEXT,
