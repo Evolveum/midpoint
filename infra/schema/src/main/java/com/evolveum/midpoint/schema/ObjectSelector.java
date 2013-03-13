@@ -21,11 +21,13 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class ObjectSelector {
+public class ObjectSelector implements Serializable {
 	
 	private ItemPath path;
 

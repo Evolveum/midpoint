@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author semancik
  *
  */
-public class SelectorOptions<T> {
+public class SelectorOptions<T> implements Serializable {
 	
 	private ObjectSelector selector;
 	private T options;
