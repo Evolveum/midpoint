@@ -177,7 +177,7 @@ public class ChangeExecutor {
 						updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
 					}
 					
-					 result.computeStatus();
+					
 				} catch (SchemaException e) {
 					result.recordFatalError(e);
 					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
@@ -215,7 +215,7 @@ public class ChangeExecutor {
 					continue;
 				}
 			}
-	        
+	        result.computeStatus();
 	       
 	        
     	} catch (SchemaException e) {
