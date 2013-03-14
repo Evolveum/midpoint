@@ -19,28 +19,19 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql;
+package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
+import org.hibernate.dialect.MySQL5InnoDBDialect;
+
+import java.sql.Types;
 
 /**
- * @see com.evolveum.midpoint.repo.sql.util.DataSourceTestBeanPostprocessor
- *
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test-datasource.xml"})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class DataSourceTest extends BaseSQLRepoTest {
+public class MidPointMySQLDialect extends MySQL5InnoDBDialect {
 
-    @Test
-    public void testUsingDataSource() {
-        Session session = getFactory().openSession();
-        session.beginTransaction();
-
-        session.getTransaction().commit();
-        session.close();
+    public MidPointMySQLDialect() {
+        registerColumnType(Types.BOOLEAN, "bit");
     }
 }
+

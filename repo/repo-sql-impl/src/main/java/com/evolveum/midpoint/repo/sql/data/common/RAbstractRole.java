@@ -270,8 +270,8 @@ public abstract class RAbstractRole extends RObject {
             repo.getExclusions().add(rExclusion);
         }
 
-        for (ObjectReferenceType accountRef : jaxb.getApproverRef()) {
-            RObjectReference ref = RUtil.jaxbRefToRepo(accountRef, prismContext, repo, RReferenceOwner.ROLE_APPROVER);
+        for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {
+            RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, prismContext, repo, RReferenceOwner.ROLE_APPROVER);
             if (ref != null) {
                 repo.getApproverRefs().add(ref);
             }
