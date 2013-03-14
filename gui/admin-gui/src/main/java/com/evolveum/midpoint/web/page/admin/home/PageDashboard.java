@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -68,6 +69,7 @@ public class PageDashboard extends PageAdminHome {
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
+    private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
 
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_WORK_ITEMS = "workItems";
@@ -168,15 +170,52 @@ public class PageDashboard extends PageAdminHome {
         add(personalInfo);
     }
 
-    private void initMyWorkItems() {
-        DashboardPanel workItems = new DashboardPanel(ID_WORK_ITEMS, null,
-                createStringResource("PageDashboard.workItems")) {
+    private CallableResult<List<MyWorkItemDto>> loadWorkItems() {
+        LOGGER.debug("Loading work items.");
 
-            @Override
-            protected Component getMainComponent(String componentId) {
-                return new Label(componentId, new Model("TODO: MID-676"));
-            }
-        };
+        AccountCallableResult callableResult = new AccountCallableResult();
+        List<MyWorkItemDto> list = new ArrayList<MyWorkItemDto>();
+        callableResult.setValue(list);
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null) {
+            return callableResult;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEMS);
+        callableResult.setResult(result);
+
+        //todo implement work items loading
+
+        result.recordSuccessIfUnknown();
+        result.recomputeStatus();
+
+        LOGGER.debug("Finished work items loading.");
+
+        return callableResult;
+    }
+
+    private void initMyWorkItems() {
+        AsyncDashboardPanel<Object, List<MyWorkItemDto>> workItems =
+                new AsyncDashboardPanel<Object, List<MyWorkItemDto>>(ID_WORK_ITEMS,
+                        createStringResource("PageDashboard.workItems")) {
+
+                    @Override
+                    protected Callable<CallableResult<List<MyWorkItemDto>>> createCallable(IModel callableParameterModel) {
+                        return new Callable<CallableResult<List<MyWorkItemDto>>>() {
+
+                            @Override
+                            public CallableResult<List<MyWorkItemDto>> call() throws Exception {
+                                return loadWorkItems();
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new MyWorkItemsPanel(markupId,
+                                new PropertyModel<List<MyWorkItemDto>>(getModel(), CallableResult.F_VALUE));
+                    }
+                };
         add(workItems);
     }
 
