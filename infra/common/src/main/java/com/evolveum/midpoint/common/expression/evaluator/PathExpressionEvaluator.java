@@ -149,7 +149,7 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	return null;
         }
         
-        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, path.last(), prismContext);
+        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, prismContext);
     }
 
 

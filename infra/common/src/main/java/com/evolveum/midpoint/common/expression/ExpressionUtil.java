@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -64,7 +65,7 @@ public class ExpressionUtil {
 	
     // Black magic hack follows. This is TODO to refactor to a cleaner state.
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(PrismValueDeltaSetTriple<V> resultTriple, 
-    		ItemDefinition outputDefinition, final ItemPathSegment lastPathSegment, final PrismContext prismContext) {
+    		ItemDefinition outputDefinition, final ItemPath residualPath, final PrismContext prismContext) {
     	Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
     	if (resultTripleValueClass == null) {
     		// triple is empty. type does not matter.
@@ -86,19 +87,19 @@ public class ExpressionUtil {
 				}
 			});
     	}
-    	if (resultTripleValueClass.equals(PolyString.class) && outputDefinition.getTypeName().equals(DOMUtil.XSD_STRING)) {
+    	if (Structured.class.isAssignableFrom(resultTripleValueClass) && outputDefinition.getTypeName().equals(DOMUtil.XSD_STRING)) {
     		// Have PolyString, want String
     		clonedTriple.accept(new Visitor() {
 				@Override
 				public void visit(Visitable visitable) {
 					if (visitable instanceof PrismPropertyValue<?>) {
 						PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>)visitable;
-						PolyString realVal = (PolyString)pval.getValue();
+						Structured realVal = (Structured)pval.getValue();
 						if (realVal != null) {
-							if (lastPathSegment != null && ItemPath.getName(lastPathSegment).equals(PrismConstants.POLYSTRING_ELEMENT_NORM_QNAME)) {
-								pval.setValue(realVal.getNorm());
+							if (residualPath != null && !residualPath.isEmpty()) {
+								pval.setValue(realVal.resolve(residualPath));
 							} else {
-								pval.setValue(realVal.getOrig());
+								pval.setValue(realVal.toString());
 							}
 						}						
 					}

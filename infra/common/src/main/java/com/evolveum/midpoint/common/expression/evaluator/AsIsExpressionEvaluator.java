@@ -78,12 +78,12 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
     				+" sources specified) in "+params.getContextDescription());
     	}
     	Source<V> source = (Source<V>) params.getSources().iterator().next();
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
+        PrismValueDeltaSetTriple<V> sourceTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
         
-        if (outputTriple == null) {
+        if (sourceTriple == null) {
         	return null;
         }
-        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, prismContext);
+        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, source.getResidualPath(), prismContext);
     }
 
 }
