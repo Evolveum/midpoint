@@ -70,6 +70,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -976,7 +980,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test146ModifyAccountLocationDelete() throws Exception {
+    public void test145ModifyAccountLocationDelete() throws Exception {
 		final String TEST_NAME = "test146ModifyAccountLocationDelete";
         displayTestTile(this, TEST_NAME);
 
@@ -1023,6 +1027,41 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
 	
+	@Test
+    public void test148ModifyUserRename() throws Exception {
+		final String TEST_NAME = "test146ModifyUserRename";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result,
+        		PrismTestUtil.createPolyString("renamedJack"));
+		
+		// THEN
+		result.computeStatus();
+        IntegrationTestTools.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		
+		assertAccountRename(userJack, "renamedJack", "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, AccountShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+	
 	
 	@Test
     public void test149ModifyUserUnassignAccountDummy() throws Exception {
@@ -1046,12 +1085,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         IntegrationTestTools.assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
+		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
                 
         // Check if dummy resource account is gone
-        assertNoDummyAccount("jack");
+        assertNoDummyAccount("renamedJack");
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1075,23 +1114,31 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, resourceCtl, task);
 	}
 	
+	private void assertAccountRename(PrismObject<UserType> userJack, String name, String expectedFullName, String expectedShip,
+			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		assertAccount(userJack, name, expectedFullName, "name", null, resourceCtl, task);
+	}
 	
-	private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String attributeName, String expectedShip,
+	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String attributeName, String expectedShip,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		// ship inbound mapping is used, it is strong 
         String accountOid = getSingleUserAccountRef(userJack);
         
 		// Check shadow
         PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, task.getResult());
-        assertShadowRepo(accountShadow, accountOid, "jack", resourceCtl.getResource().asObjectable());
+        assertShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
         
         // Check account
         // All the changes should be reflected to the account
         PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, task.getResult());
-        assertShadowModel(accountModel, accountOid, "jack", resourceCtl.getResource().asObjectable());
+        assertShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
         PrismAsserts.assertPropertyValue(accountModel, 
         		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
         		expectedFullName);
+		if ("name".equals(attributeName)) {
+			PrismAsserts.assertPropertyValue(accountModel, new ItemPath(
+					ResourceObjectShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), name);
+		}
         if (expectedShip == null) {
         	PrismAsserts.assertNoItem(accountModel, 
             		resourceCtl.getAttributePath(attributeName));        	
@@ -1102,7 +1149,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         }
         
         // Check account in dummy resource
-        assertDummyAccount(resourceCtl.getName(), USER_JACK_USERNAME, expectedFullName, true);
+        assertDummyAccount(resourceCtl.getName(), name, expectedFullName, true);
+	}
+	
+	private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String attributeName, String expectedShip,
+			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		assertAccount(userJack, "jack", expectedFullName, attributeName, expectedShip, resourceCtl, task);
 	}
 	
 

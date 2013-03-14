@@ -1216,7 +1216,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		PropertyDelta uidDelta = new PropertyDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES),
+		QName attributeName = convertAttributeNameToQName(uid.getName());
+		PropertyDelta uidDelta = new PropertyDelta(new ItemPath(ResourceObjectShadowType.F_ATTRIBUTES, attributeName),
 				uidDefinition);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
 		return uidDelta;
@@ -1569,6 +1570,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// so convert to something more friendly such as icfs:name
 			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
 		}
+		
+		if (Uid.NAME.equals(icfAttrName)) {
+			// this is ICF __NAME__ attribute. It will look ugly in XML and may
+			// even cause problems.
+			// so convert to something more friendly such as icfs:name
+			attrXsdName = ConnectorFactoryIcfImpl.ICFS_UID;
+		}
+		
 		LOGGER.trace("attr xsd name: {}", attrXsdName);
 		return attrXsdName;
 	}

@@ -55,7 +55,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -559,8 +564,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				+ ".test013ModifyObject");
 
 		try {
-
-			AccountShadowType object = parseObjectTypeFromFile(ACCOUNT_MODIFY_FILENAME, AccountShadowType.class);
+			
+			AccountShadowType object = unmarshallJaxbFromFile(ACCOUNT_MODIFY_FILENAME, AccountShadowType.class);
 
 			System.out.println(SchemaDebugUtil.prettyPrint(object));
 			System.out.println(object.asPrismObject().dump());
@@ -571,8 +576,20 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 					new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
 			ObjectDelta<AccountShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, AccountShadowType.class, PrismTestUtil.getPrismContext());
+			
+			ItemPath icfNamePath = new ItemPath(
+					ResourceObjectShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME);
+			PrismPropertyDefinition icfNameDef = object
+					.asPrismObject().getDefinition().findPropertyDefinition(icfNamePath);
+			ItemDelta renameDelta = PropertyDelta.createModificationReplaceProperty(icfNamePath, icfNameDef, "uid=rename,ou=People,dc=example,dc=com");
+//			renameDelta.addValueToDelete(new PrismPropertyValue("uid=jack,ou=People,dc=example,dc=com"));
+			((Collection)delta.getModifications()).add(renameDelta);
+			
+//			renameDelta = PropertyDelta.createModificationDeleteProperty(icfNamePath, icfNameDef, "uid=jack,ou=People,dc=example,dc=com");
+//			((Collection)delta.getModifications()).add(renameDelta);
+			
+			
 			display("Object change",delta);
-
 			provisioningService.modifyObject(AccountShadowType.class, objectChange.getOid(),
 					delta.getModifications(), null, null, taskManager.createTaskInstance(), result);
 			
@@ -595,10 +612,13 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 			String uid = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_UID);
 			List<Object> snValues = ResourceObjectShadowUtil.getAttributeValues(accountType, new QName(RESOURCE_NS, "sn"));
-			
 			assertNotNull(snValues);
 			assertFalse("Surname attributes must not be empty", snValues.isEmpty());
 			assertEquals(1, snValues.size());
+			
+			String name = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_NAME);
+			assertEquals("After rename, dn is not equal.", "uid=rename,ou=People,dc=example,dc=com", name);
+			
 			
 			String changedSn = (String) snValues.get(0);
 			
@@ -610,6 +630,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			display("LDAP account", response);
 			
 			OpenDJController.assertAttribute(response, "sn", "First");
+			
 			assertEquals("First", changedSn);
 			
 		} finally {

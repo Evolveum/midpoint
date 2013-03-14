@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -302,7 +304,15 @@ public abstract class ShadowCache {
 			
 			if (!sideEffectChanges.isEmpty()) {
 				// TODO: implement
-				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+				Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
+				try{
+				repositoryService.modifyObject(AccountShadowType.class, oid, sideEffectDelta, parentResult);
+				} catch (ObjectAlreadyExistsException ex){
+					parentResult.recordFatalError("Side effect changes could not be applied", ex);
+					LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
+					throw new SystemException("Side effect changes could not be applied. " + ex.getMessage(), ex);
+				}
+//				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
 			}
 			
 			ObjectDelta delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
@@ -312,6 +322,16 @@ public abstract class ShadowCache {
 			return oid;
 		}
 
+
+	private Collection<? extends ItemDelta> convertToPropertyDelta(
+			Collection<PropertyModificationOperation> sideEffectChanges) {
+		Collection<PropertyDelta> sideEffectDelta = new ArrayList<PropertyDelta>();
+		for (PropertyModificationOperation mod : sideEffectChanges){
+			sideEffectDelta.add(mod.getPropertyDelta());
+		}
+		
+		return sideEffectDelta;
+	}
 
 	public void deleteShadow(ObjectType objectType, ProvisioningOperationOptions options, ProvisioningScriptsType scripts,
 			ResourceType resource, Task task, OperationResult parentResult) throws CommunicationException,

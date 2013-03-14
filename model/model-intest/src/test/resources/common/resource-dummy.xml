@@ -125,7 +125,7 @@
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
 				<outbound>
-				    <strength>weak</strength>
+				    <strength>strong</strength>
 				    <source>
 				    	<path>$user/name</path>
 				    </source>
