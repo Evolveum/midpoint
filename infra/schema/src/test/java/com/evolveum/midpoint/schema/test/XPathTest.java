@@ -48,6 +48,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.bind.JAXBContext;
@@ -165,28 +166,13 @@ public class XPathTest {
     public void xPathFromDomNode1() throws ParserConfigurationException, SAXException, IOException {
 
         // Given
-
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-
-        File file = new File("src/test/resources/xpath/data.xml");
-        Document doc = builder.parse(file);
-
-        //NodeList childNodes = doc.getChildNodes();
-
-        NodeList rootNodes = doc.getElementsByTagName("root");
-        Node rootNode = rootNodes.item(0);
-
-        NodeList nodes = ((Element) rootNode).getElementsByTagNameNS("http://xx.com/", "el1");
-
-        Node el1 = nodes.item(0);
-
+        Element el1 = parseDataGetEl1();   
         String xpathString = "/root/x:el1[100]";
+        el1.setTextContent(xpathString);
 
         // When
 
-        XPathHolder xpath = new XPathHolder(xpathString, el1);
+        XPathHolder xpath = new XPathHolder(el1);
 
         // Then
 
@@ -210,11 +196,7 @@ public class XPathTest {
         AssertJUnit.assertEquals("100", segments.get(2).getValue());
     }
 
-    @Test
-    public void xPathFromDomNode2() throws ParserConfigurationException, SAXException, IOException {
-
-        // Given
-
+    private Element parseDataGetEl1() throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -230,6 +212,15 @@ public class XPathTest {
         NodeList nodes = ((Element) rootNode).getElementsByTagNameNS("http://xx.com/", "el1");
 
         Node el1 = nodes.item(0);
+        
+        return (Element)el1;
+	}
+
+	@Test
+    public void xPathFromDomNode2() throws ParserConfigurationException, SAXException, IOException {
+
+        // Given
+        Element el1 = parseDataGetEl1();
 
         String xpathString = "/:root/x:el1";
 
@@ -313,9 +304,13 @@ public class XPathTest {
     @Test
     public void pureXPathRoundTripTest() {
 
+    	Map<String, String> namespaceMap = new HashMap<String, String>();
+    	namespaceMap.put("foo", "http://foo");
+    	namespaceMap.put("bar", "http://bar");
+    	
         String xpathStr = "foo:foo/bar:bar";
 
-        XPathHolder xpath = new XPathHolder(xpathStr);
+        XPathHolder xpath = new XPathHolder(xpathStr, namespaceMap);
 
         System.out.println("Pure XPath: "+xpath.getXPath());
         AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPath());
@@ -373,6 +368,25 @@ public class XPathTest {
     	Map<String, String> nsdecls = DOMUtil.getNamespaceDeclarations(element);
     	assertEquals("Wrong declaration for prefix "+XPathHolder.DEFAULT_PREFIX, NS_FOO, nsdecls.get(XPathHolder.DEFAULT_PREFIX));
     	assertEquals("Wrong element content", XPathHolder.DEFAULT_PREFIX+":foo", element.getTextContent());
+    }
+
+    @Test
+    public void testUndefinedPrefix() throws ParserConfigurationException, SAXException, IOException {
+
+        // GIVEN
+        Element el1 = parseDataGetEl1();
+        String xpathString = "/root/undef:el1";
+        el1.setTextContent(xpathString);
+
+        try {
+	        // WHEN
+	        XPathHolder xpath = new XPathHolder(el1);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (IllegalArgumentException e) {
+        	// This is expected
+        }
+
     }
 
 }

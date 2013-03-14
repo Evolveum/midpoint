@@ -65,7 +65,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class XPathHolder {
 
 	private static final Trace LOGGER = TraceManager.getTrace(XPathHolder.class);
-//	public static final String DEFAULT_PREFIX = "xp";
 	public static final String DEFAULT_PREFIX = "c";
 	private boolean absolute;
 	private List<XPathSegment> segments;
@@ -98,24 +97,6 @@ public class XPathHolder {
 		}
 
 		parse(xpath, domElement, null);
-
-		// We are stupid now.
-		// We don't understand XPath and therefore we don't know
-		// what namespace prefixes are there. To be on the safe side
-		// just remember all applicable prefixes
-
-		// namespaceMap = new HashMap<String, String>();
-		// NamedNodeMap attributes = domElement.getAttributes();
-		// for (int i = 0; i < attributes.getLength(); i++) {
-		// Node n = attributes.item(i);
-		// if ("xmlns".equals(n.getPrefix())) {
-		// namespaceMap.put(n.getLocalName(), n.getNodeValue());
-		// }
-		// if (n.getPrefix() == null && "xmlns".equals(n.getLocalName())) {
-		// // Default namespace
-		// namespaceMap.put("",n.getNodeValue());
-		// }
-		// }
 	}
 
 	public XPathHolder(String xpath, Node domNode) {
@@ -156,7 +137,7 @@ public class XPathHolder {
 					// ignore the first empty segment of absolute path
 					continue;
 				} else {
-					throw new IllegalStateException("XPath " + xpath + " has an empty segment (number " + i
+					throw new IllegalArgumentException("XPath " + xpath + " has an empty segment (number " + i
 							+ ")");
 				}
 			}
@@ -168,7 +149,7 @@ public class XPathHolder {
             int idValuePosition = segmentStr.indexOf('[');
             if (idValuePosition >= 0) {
                 if (!segmentStr.endsWith("]")) {
-                    throw new IllegalStateException("XPath " + xpath + " has a ID segment not ending with ']': '" + segmentStr + "'");
+                    throw new IllegalArgumentException("XPath " + xpath + " has a ID segment not ending with ']': '" + segmentStr + "'");
                 }
                 String value = segmentStr.substring(idValuePosition+1, segmentStr.length()-1);
                 segmentStr = segmentStr.substring(0, idValuePosition);
@@ -188,7 +169,7 @@ public class XPathHolder {
 
             String[] qnameArray = segmentStr.split(":");
             if (qnameArray.length > 2) {
-                throw new IllegalStateException("Unsupported format: more than one colon in XPath segment: "
+                throw new IllegalArgumentException("Unsupported format: more than one colon in XPath segment: "
                         + segArray[i]);
             }
             QName qname;
@@ -198,6 +179,9 @@ public class XPathHolder {
                 qname = new QName(namespace, qnameArray[0], SchemaConstants.NS_C_PREFIX);
             } else {
                 String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
+                if (namespace == null) {
+                	throw new IllegalArgumentException("Undeclared namespace prefix '"+qnameArray[0]+"'");
+                }
                 qname = new QName(namespace, qnameArray[1], qnameArray[0]);
             }
             if (StringUtils.isEmpty(qname.getNamespaceURI())) {
