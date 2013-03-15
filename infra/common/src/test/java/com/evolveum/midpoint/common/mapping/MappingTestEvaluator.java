@@ -41,6 +41,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
 import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
@@ -160,11 +161,19 @@ public class MappingTestEvaluator {
         mappingFactory.setProtector(protector);
     }
 	
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
-		return createMapping(filename, testName, toPath(defaultTargetPropertyName), userDelta);
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+		return createMapping(filename, testName, policy, toPath(defaultTargetPropertyName), userDelta);
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
+	}
+	
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
+		return createMapping(filename, testName, null, defaultTargetPropertyName, userDelta);
+	}
+	
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException  {
     
         JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, filename), MappingType.class);
@@ -194,6 +203,28 @@ public class MappingTestEvaluator {
 		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
 		mapping.setTargetContext(userDefinition);
 		
+		
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			ItemPath outputPath;
+			ItemDefinition outputDefinition;
+			
+			@Override
+			public void setOutputPath(ItemPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				return policy;
+			}
+		};
+		
+		mapping.setStringPolicyResolver(stringPolicyResolver);
 		// Default target
 		if (defaultTargetPropertyPath != null) {
 			ItemDefinition targetDefDefinition = userDefinition.findItemDefinition(defaultTargetPropertyPath);

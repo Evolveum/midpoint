@@ -1048,34 +1048,32 @@ public class TestMappingDynamic {
     	final String TEST_NAME = "testGenerateDefault";
     	System.out.println("===[ "+TEST_NAME+"]===");
     	
+    	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
     	// GIVEN
     	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping("mapping-generate.xml", 
-    			TEST_NAME, "employeeNumber", null);
+    			TEST_NAME, stringPolicy, "employeeNumber", null);
     	
-    	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
-    	
-    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private ItemPath outputPath;
-			private ItemDefinition outputDefinition;
-			@Override
-			public void setOutputPath(ItemPath outputPath) {
-				this.outputPath = outputPath;
-			}
-			
-			@Override
-			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
-			}
-			
-			@Override
-			public StringPolicyType resolve() {
-				// No path. The the path is default
-//				assertNotNull("Null outputPath", outputPath);
-				assertNotNull("Null outputDefinition", outputDefinition);
-				return stringPolicy;
-			}
-		};
-		mapping.setStringPolicyResolver(stringPolicyResolver);
+//    	StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+//			private ItemPath outputPath;
+//			private ItemDefinition outputDefinition;
+//			@Override
+//			public void setOutputPath(ItemPath outputPath) {
+//				this.outputPath = outputPath;
+//			}
+//			
+//			@Override
+//			public void setOutputDefinition(ItemDefinition outputDefinition) {
+//				this.outputDefinition = outputDefinition;
+//			}
+//			
+//			@Override
+//			public StringPolicyType resolve() {
+//				// No path. The the path is default
+////				assertNotNull("Null outputPath", outputPath);
+//				assertNotNull("Null outputDefinition", outputDefinition);
+//				return stringPolicy;
+//			}
+//		};
     	
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -1132,14 +1130,14 @@ public class TestMappingDynamic {
     private void generatePolicy(final String TEST_NAME, String mappingFileName, String policyFileName, String pattern)
     		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	// GIVEN
-    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(mappingFileName, 
-    			TEST_NAME, "employeeNumber", null);
     	
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
     			new File(CommonTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
+    	// GIVEN
+    	Mapping<PrismPropertyValue<String>> mapping = evaluator.createMapping(mappingFileName, 
+    			TEST_NAME, stringPolicy, "employeeNumber", null);
     	    	
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
@@ -1211,16 +1209,16 @@ public class TestMappingDynamic {
     		String policyFileName, String extensionPropName, Class<T> clazz)
     		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
     	System.out.println("===[ "+TEST_NAME+"]===");
-    	// GIVEN
-    	Mapping<PrismPropertyValue<T>> mapping = evaluator.createMapping(mappingFileName, 
-    			TEST_NAME, new ItemPath(
-    					UserType.F_EXTENSION,
-    					new QName(NS_EXTENSION, extensionPropName)), null);
     	
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
     			new File(CommonTestConstants.OBJECTS_DIR, policyFileName));
     	final StringPolicyType stringPolicy = valuePolicy.asObjectable().getStringPolicy();
+    	// GIVEN
+    	Mapping<PrismPropertyValue<T>> mapping = evaluator.createMapping(mappingFileName, 
+    			TEST_NAME, stringPolicy, new ItemPath(
+    					UserType.F_EXTENSION,
+    					new QName(NS_EXTENSION, extensionPropName)), null);
     	    	
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
