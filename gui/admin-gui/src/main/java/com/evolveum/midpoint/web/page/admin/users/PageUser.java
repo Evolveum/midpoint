@@ -1286,7 +1286,7 @@ public class PageUser extends PageAdminUsers {
 
 		PrismValue oldValue = assDto.getOldValue();
 		Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
-		List<ItemPathSegment> pathSegments = oldValue.getPath(null).getSegments();
+		List<ItemPathSegment> pathSegments = oldValue.getPath().getSegments();
 
 		for (ItemDelta delta : deltas) {
 			ItemPath deltaPath = delta.getPath();

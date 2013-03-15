@@ -234,6 +234,27 @@ public class ItemPath implements Serializable {
 		return compareComplex(otherPath) == CompareResult.EQUIVALENT;
 	}
 	
+	public ItemPath substract(ItemPath otherPath) {
+		ItemPath thisNormalized = this.normalize();
+		ItemPath otherNormalized = otherPath.normalize();
+		if (thisNormalized.size() < otherNormalized.size()) {
+			throw new IllegalArgumentException("Cannot substract path '"+otherPath+"' from '"+this+"' because it is not a subset");
+		}
+		int i = 0;
+		while (i < otherNormalized.segments.size()) {
+			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
+			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
+			if (!thisSegment.equals(otherSegment)) {
+				throw new IllegalArgumentException("Cannot substract segment '"+otherSegment+"' from path '"+this+
+						"' because it does not contain corresponding segment; it has '"+thisSegment+"' instead.");
+			}
+			i++;
+		}
+		List<ItemPathSegment> substractSegments = thisNormalized.segments.subList(i, thisNormalized.segments.size());
+		return new ItemPath(substractSegments);
+	}
+
+	
 	/**
 	 * Convenience static method with checks
 	 * @throw IllegalArgumentException

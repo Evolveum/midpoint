@@ -178,14 +178,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		super.setParent(container);
 	}
 	
-	public ItemPath getPath(ItemPath pathPrefix) {
+	public ItemPath getPath() {
 		Itemable parent = getParent();
 		ItemPath parentPath = ItemPath.EMPTY_PATH;
 		if (parent != null) {
-			parentPath = getParent().getPath(pathPrefix);
-		}
-		if (parentPath == null || parentPath.isEmpty()) {
-			return parentPath;
+			parentPath = parent.getPath();
 		}
 		if (getId() != null) {
 			return ItemPath.subPath(parentPath, new IdItemPathSegment(getId()));
@@ -787,16 +784,16 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
 
 	@Override
-	void diffMatchingRepresentation(PrismValue otherValue, ItemPath pathPrefix,
+	void diffMatchingRepresentation(PrismValue otherValue,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		if (otherValue instanceof PrismContainerValue) {
-			diffRepresentation((PrismContainerValue)otherValue, pathPrefix, deltas, ignoreMetadata, isLiteral);
+			diffRepresentation((PrismContainerValue)otherValue, deltas, ignoreMetadata, isLiteral);
 		} else {
 			throw new IllegalStateException("Comparing incompatible values "+this+" - "+otherValue);
 		}		
 	}
 	
-	void diffRepresentation(PrismContainerValue<T> otherValue, ItemPath pathPrefix,
+	void diffRepresentation(PrismContainerValue<T> otherValue,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		PrismContainerValue<T> thisValue = this;
 		if (this.rawElements != null || otherValue.rawElements != null) {
@@ -812,7 +809,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 						"during a compare: "+e.getMessage(),e);
 			}
 		} 
-		diffItems(thisValue, otherValue, pathPrefix, deltas, ignoreMetadata, isLiteral);
+		diffItems(thisValue, otherValue, deltas, ignoreMetadata, isLiteral);
 	}
 	
 	@Override
@@ -848,20 +845,20 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 		
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other, ItemPath pathPrefix,
+	void diffItems(PrismContainerValue<T> thisValue, PrismContainerValue<T> other,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		
 		for (Item<?> thisItem: thisValue.getItems()) {
 			Item otherItem = other.findItem(thisItem.getName());
 			// The "delete" delta will also result from the following diff
-			thisItem.diffInternal(otherItem, pathPrefix, deltas, ignoreMetadata, isLiteral);
+			thisItem.diffInternal(otherItem, deltas, ignoreMetadata, isLiteral);
 		}
 		
 		for (Item otherItem: other.getItems()) {
 			Item thisItem = thisValue.findItem(otherItem.getName());
 			if (thisItem == null) {
 				// Other has an item that we don't have, this must be an add
-				ItemDelta itemDelta = otherItem.createDelta(otherItem.getPath(pathPrefix));
+				ItemDelta itemDelta = otherItem.createDelta();
 				itemDelta.addValuesToAdd(otherItem.getClonedValues());
 				if (!itemDelta.isEmpty()) {
 					((Collection)deltas).add(itemDelta);
@@ -954,8 +951,8 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
-		ItemPath myPath = getPath(parentPath);
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+		ItemPath myPath = getPath();
 		if (prohibitRaw && rawElements != null) {
 			throw new IllegalStateException("Raw elements in container value "+this+" ("+myPath+" in "+rootItem+")");
 		}
@@ -977,7 +974,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 					throw new IllegalStateException("Wrong parent for item "+item+" in container value "+this+" ("+myPath+" in "+rootItem+"), " +
 							"bad parent: "+ item.getParent());
 				}
-				item.checkConsistenceInternal(rootItem, myPath, requireDefinitions, prohibitRaw);
+				item.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw);
 			}
 		}
 	}
@@ -1047,7 +1044,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		Collection<? extends ItemDelta<?>> deltas = new ArrayList<ItemDelta<?>>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
 		// we only care whether some deltas are returned or not.
-		diffItems(thisValue, other, ItemPath.EMPTY_PATH, deltas, ignoreMetadata, isLiteral);
+		diffItems(thisValue, other, deltas, ignoreMetadata, isLiteral);
 		return deltas.isEmpty();
 	}
 

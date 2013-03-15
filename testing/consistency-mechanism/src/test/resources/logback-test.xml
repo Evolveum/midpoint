@@ -35,6 +35,7 @@
 	<logger name="org.springframework" level="WARN" />
 	<logger name="com.evolveum.midpoint" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
 	<!--<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />-->
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	

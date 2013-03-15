@@ -60,7 +60,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
 	private ObjectDelta<O> secondaryDelta;
-	private List<ObjectDeltaOperation<O>> executedDeltas = new ArrayList<ObjectDeltaOperation<O>>();
+	private List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<LensObjectDeltaOperation<O>>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
 	private transient boolean isFresh = false;
@@ -154,15 +154,30 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         secondaryDelta.swallow(accountPasswordDelta);
     }
 	
-	public List<ObjectDeltaOperation<O>> getExecutedDeltas() {
+	public List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
 		return executedDeltas;
 	}
 	
-	public void clearExecutedDeltas() {
-		executedDeltas.clear();
+	List<LensObjectDeltaOperation<O>> getExecutedDeltas(Boolean audited) {
+		if (audited == null) {
+			return executedDeltas;
+		}
+		List<LensObjectDeltaOperation<O>> deltas = new ArrayList<LensObjectDeltaOperation<O>>();
+		for (LensObjectDeltaOperation<O> delta: executedDeltas) {
+			if (delta.isAudited() == audited) {
+				deltas.add(delta);
+			}
+		}
+		return deltas;
 	}
 	
-	public void addToExecutedDeltas(ObjectDeltaOperation<O> executedDelta) {
+	public void markExecutedDeltasAudited() {
+		for(LensObjectDeltaOperation<O> executedDelta: executedDeltas) {
+			executedDelta.setAudited(true);
+		}
+	}
+	
+	public void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
 		executedDeltas.add(executedDelta);
 	}
 
@@ -241,6 +256,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
         objectNew = delta.computeChangedObject(objectOld);
     }
+	
+	/**
+	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
+	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
+	 * This is used to restart the context computation but keep the trace of what was already done.
+	 */
+	public void reset() {
+		secondaryDelta = null;
+		isFresh = false;
+	}
 
     public void checkConsistence() {
     	checkConsistence(null);

@@ -72,6 +72,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	protected Collection<V> valuesToDelete = null;
 
 	public ItemDelta(ItemDefinition itemDefinition) {
+		if (itemDefinition == null) {
+			throw new IllegalArgumentException("Attempt to create item delta wihout a definition");
+		}
 		this.name = itemDefinition.getName();
 		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
@@ -89,9 +92,16 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		this.definition = itemDefinition;
 	}
 
-	public ItemDelta(ItemPath propertyPath, ItemDefinition itemDefinition) {
-		this.name = ((NameItemPathSegment)propertyPath.last()).getName();
-		this.parentPath = propertyPath.allExceptLast();
+	public ItemDelta(ItemPath path, ItemDefinition itemDefinition) {
+		if (path == null) {
+			throw new IllegalArgumentException("Null path specified while creating item delta");
+		}
+		if (path.isEmpty()) {
+			this.name = null;
+		} else {
+			this.name = ((NameItemPathSegment)path.last()).getName();
+			this.parentPath = path.allExceptLast();
+		}
 		this.definition = itemDefinition;
 	}
 
@@ -111,13 +121,9 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		this.parentPath = parentPath;
 	}
 
+	@Override
 	public ItemPath getPath() {
 		return getParentPath().subPath(name);
-	}
-
-	@Override
-	public ItemPath getPath(ItemPath pathPrefix) {
-		return pathPrefix.subPath(name);
 	}
 
 	public ItemDefinition getDefinition() {
@@ -724,7 +730,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (val.getParent() != this) {
 				throw new IllegalStateException("Wrong parent for " + val + " in " + type + " values set in " + this + ": " + val.getParent());
 			}
-			val.checkConsistenceInternal(this, parentPath, requireDefinitions, prohibitRaw);
+			val.checkConsistenceInternal(this, requireDefinitions, prohibitRaw);
 		}
 	}
 

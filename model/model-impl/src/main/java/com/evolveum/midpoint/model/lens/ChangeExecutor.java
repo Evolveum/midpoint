@@ -239,6 +239,9 @@ public class ChangeExecutor {
 		} catch (SecurityViolationException e) {
 			result.recordFatalError(e);
 			throw e;
+		} catch (RewindException e) {
+			result.recordHandledError(e);
+			throw e;
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
 			throw e;
@@ -331,7 +334,7 @@ public class ChangeExecutor {
         } finally {
         	result.computeStatus();
         	ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-            ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
+        	LensObjectDeltaOperation<UserType> userDeltaOp = new LensObjectDeltaOperation<UserType>(userDelta);
             userDeltaOp.setExecutionResult(result);
     		userContext.addToExecutedDeltas(userDeltaOp);
         }
@@ -361,7 +364,7 @@ public class ChangeExecutor {
         } finally {
         	result.computeStatus();
         	ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-            ObjectDeltaOperation<UserType> userDeltaOp = new ObjectDeltaOperation<UserType>(userDelta);
+        	LensObjectDeltaOperation<UserType> userDeltaOp = new LensObjectDeltaOperation<UserType>(userDelta);
             userDeltaOp.setExecutionResult(result);
     		userContext.addToExecutedDeltas(userDeltaOp);
         }
@@ -415,6 +418,11 @@ public class ChangeExecutor {
             throw new IllegalArgumentException("Null change");
         }
         
+        if (alreadyExecuted(objectDelta, objectContext)) {
+        	LOGGER.debug("Skipping execution of delta because it was already executed: {}", objectContext);
+        	return;
+        }
+        
         if (CONSISTENCY_CHECKS) objectDelta.checkConsistence();
         
         // Other types than user type may not be definition-complete (e.g. accounts and resources are completed in provisioning)
@@ -450,7 +458,7 @@ public class ChangeExecutor {
     	} finally {
     		
     		result.computeStatus();
-    		ObjectDeltaOperation<T> objectDeltaOp = new ObjectDeltaOperation<T>(objectDelta.clone());
+    		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
 	        objectDeltaOp.setExecutionResult(result);
 	        objectContext.addToExecutedDeltas(objectDeltaOp);
         
@@ -464,6 +472,15 @@ public class ChangeExecutor {
 	    	}
     	}
     }
+	
+	private <T extends ObjectType, F extends ObjectType, P extends ObjectType> boolean alreadyExecuted(
+			ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Checking for already executed delta:\n{}\nIn deltas:\n{}",
+					objectDelta.dump(), DebugUtil.debugDump(objectContext.getExecutedDeltas()));
+		}
+		return ObjectDeltaOperation.containsDelta(objectContext.getExecutedDeltas(), objectDelta);
+	}
 	
 	private ProvisioningOperationOptions copyFromModelOptions(ModelExecuteOptions options) {
 		ProvisioningOperationOptions provisioningOptions = new ProvisioningOperationOptions();

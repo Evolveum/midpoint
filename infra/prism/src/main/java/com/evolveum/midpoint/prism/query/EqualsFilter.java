@@ -166,7 +166,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}
 
 	@Override
-	public ItemPath getPath(ItemPath pathPrefix) {
+	public ItemPath getPath() {
 		// TODO Auto-generated method stub
 		return null;
 	}

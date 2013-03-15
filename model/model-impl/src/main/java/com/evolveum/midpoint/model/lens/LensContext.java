@@ -303,6 +303,27 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 	
 	/**
+	 * Make the context as clean as new. Except for the executed deltas and other "traces" of
+	 * what was already done and cannot be undone. Also the configuration items that were loaded may remain.
+	 * This is used to restart the context computation but keep the trace of what was already done.
+	 */
+	public void reset() {
+		state = ModelState.INITIAL;
+		evaluatedAssignmentTriple = null;
+		projectionWave = 0;
+		executionWave = 0;
+		isFresh = false;
+		if (focusContext != null) {
+			focusContext.reset();
+		}
+		if (projectionContexts != null) {
+			for (LensProjectionContext<P> projectionContext: projectionContexts) {
+				projectionContext.reset();
+			}
+		}
+	}
+	
+	/**
 	 * Removes projection contexts that are not fresh.
 	 * These are usually artifacts left after the context reload. E.g. an account that used to be linked to a user before
 	 * but was removed in the meantime.
@@ -384,26 +405,41 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         }
     }
     
-    /**
+	
+	/**
      * Returns all executed deltas, user and all accounts.
      */
     public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
+    	return getExecutedDeltas(null);
+    }
+
+	/**
+     * Returns all executed deltas, user and all accounts.
+     */
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getUnauditedExecutedDeltas() throws SchemaException {
+    	return getExecutedDeltas(false);
+    }
+
+    /**
+     * Returns all executed deltas, user and all accounts.
+     */
+    Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas(Boolean audited) throws SchemaException {
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<ObjectDeltaOperation<? extends ObjectType>>();
         if (focusContext != null) {
-	        executedDeltas.addAll(focusContext.getExecutedDeltas());
+	        executedDeltas.addAll(focusContext.getExecutedDeltas(audited));
         }
         for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
-        	executedDeltas.addAll(projCtx.getExecutedDeltas());
+        	executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
         }
         return executedDeltas;
     }
     
-    public void clearExecutedDeltas()  {
+    public void markExecutedDeltasAudited()  {
         if (focusContext != null) {
-        	focusContext.clearExecutedDeltas();
+        	focusContext.markExecutedDeltasAudited();
         }
         for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
-        	projCtx.clearExecutedDeltas();
+        	projCtx.markExecutedDeltasAudited();
         }
     }
     

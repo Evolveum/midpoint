@@ -188,8 +188,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 	
     @Override
-	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
-    	ItemPath myPath = getParent().getPath(parentPath);
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+    	ItemPath myPath = getPath();
     	if (prohibitRaw && rawElement != null) {
     		throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
     	}

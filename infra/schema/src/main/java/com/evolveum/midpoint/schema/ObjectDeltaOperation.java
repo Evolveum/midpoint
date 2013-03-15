@@ -23,6 +23,7 @@ package com.evolveum.midpoint.schema;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -62,6 +63,22 @@ public class ObjectDeltaOperation<T extends ObjectType> implements Dumpable, Deb
 	
 	public void setExecutionResult(OperationResult executionResult) {
 		this.executionResult = executionResult;
+	}
+	
+	public boolean containsDelta(ObjectDelta<T> delta) {
+		return objectDelta.equals(delta);
+	}
+	
+	public static <T extends ObjectType> boolean containsDelta(Collection<? extends ObjectDeltaOperation<T>> deltaOps, ObjectDelta<T> delta) {
+		if (deltaOps == null) {
+			return false;
+		}
+		for (ObjectDeltaOperation<T> deltaOp: deltaOps) {
+			if (deltaOp.containsDelta(delta)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public ObjectDeltaOperation<T> clone() {
@@ -140,7 +157,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements Dumpable, Deb
 
 	@Override
 	public String toString() {
-		return "ObjectDeltaOperation(" + objectDelta
+		return getDebugDumpClassName() + "(" + objectDelta
 				+ ": " + executionResult + ")";
 	}
 
@@ -153,7 +170,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements Dumpable, Deb
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ObjectDeltaOperation\n");
+		sb.append(getDebugDumpClassName()).append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Delta", objectDelta, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Execution result", executionResult, indent + 1);
@@ -165,6 +182,8 @@ public class ObjectDeltaOperation<T extends ObjectType> implements Dumpable, Deb
 		return debugDump();
 	}
 	
-	
+    protected String getDebugDumpClassName() {
+        return "ObjectDeltaOperation";
+    }
 	
 }

@@ -235,8 +235,8 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	}
 	
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw) {
-		ItemPath myPath = getParent().getPath(parentPath);
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+		ItemPath myPath = getPath();
 		if (oid == null && object == null && filter == null) {
 			throw new IllegalStateException("Neither OID, object nor filter specified in reference value "+this+" ("+myPath+" in "+rootItem+")");
 		}

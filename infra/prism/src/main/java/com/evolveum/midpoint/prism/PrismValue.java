@@ -87,12 +87,12 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		this.parent = parent;
 	}
 	
-	public ItemPath getPath(ItemPath pathPrefix) {
+	public ItemPath getPath() {
 		Itemable parent = getParent();
 		if (parent == null) {
 			throw new IllegalStateException("No parent, cannot create value path for "+this); 
 		}
-		return parent.getPath(pathPrefix);
+		return parent.getPath();
 	}
 	
 	public PrismContext getPrismContext() {
@@ -142,7 +142,7 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		domElement = null;
 	}
 	
-	public abstract void checkConsistenceInternal(Itemable rootItem, ItemPath parentPath, boolean requireDefinitions, boolean prohibitRaw);
+	public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw);
 		
 	/**
 	 * Returns true if this and other value represent the same value.
@@ -285,20 +285,20 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 	 * E.g. the container with the same ID. 
 	 */
 	public Collection<? extends ItemDelta> diff(PrismValue otherValue) {
-		return diff(otherValue, null, true, false);
+		return diff(otherValue, true, false);
 	}
 	
 	/**
 	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
 	 * E.g. the container with the same ID. 
 	 */
-	public Collection<? extends ItemDelta> diff(PrismValue otherValue, ItemPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
+	public Collection<? extends ItemDelta> diff(PrismValue otherValue, boolean ignoreMetadata, boolean isLiteral) {
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
-		diffMatchingRepresentation(otherValue, pathPrefix, itemDeltas, ignoreMetadata, isLiteral);
+		diffMatchingRepresentation(otherValue, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
 	}
 	
-	void diffMatchingRepresentation(PrismValue otherValue, ItemPath pathPrefix,
+	void diffMatchingRepresentation(PrismValue otherValue,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		// Nothing to do by default
 	}

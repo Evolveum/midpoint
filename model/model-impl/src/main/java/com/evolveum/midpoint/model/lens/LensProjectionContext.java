@@ -618,6 +618,21 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	}
 
 	@Override
+	public void reset() {
+		super.reset();
+		wave = -1;
+		fullShadow = false;
+		isAssigned = false;
+		isActive = false;
+		synchronizationPolicyDecision = null;
+		accountConstructionDeltaSetTriple = null;
+		outboundAccountConstruction = null;
+		dependencies = null;
+		squeezedAttributes = null;
+		accountPasswordPolicy = null;
+	}
+
+	@Override
 	public void adopt(PrismContext prismContext) throws SchemaException {
 		super.adopt(prismContext);
 		if (syncDelta != null) {
@@ -799,6 +814,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), getSyncDelta(), indent + 1);
+        
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
 
         if (showTriples) {
         	

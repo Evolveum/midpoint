@@ -376,10 +376,9 @@ public class ModelController implements ModelService, ModelInteractionService {
 				}
 				
 				int rewindAttempts = 0;
+				LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
 				while (true) {
 					RewindException rewindException = null;
-					LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
-//					context.setOptions(options);
 					try {
 						
 						clockwork.run(context, task, result);
@@ -395,7 +394,8 @@ public class ModelController implements ModelService, ModelInteractionService {
 							result.recordFatalError(rewindException.getCause());
 							Clockwork.throwException(rewindException.getCause());
 						}
-						result.muteLastSubresultError();						
+						result.muteLastSubresultError();
+						context.reset();
 					}
 				}
 			}

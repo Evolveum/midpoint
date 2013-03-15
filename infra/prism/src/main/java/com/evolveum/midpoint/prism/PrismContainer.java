@@ -592,6 +592,11 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
     
     @Override
+	public ContainerDelta<V> createDelta() {
+    	return new ContainerDelta<V>(getPath(), getDefinition());
+	}
+    
+    @Override
 	public ContainerDelta<V> createDelta(ItemPath path) {
     	return new ContainerDelta<V>(path, getDefinition());
 	}
@@ -613,15 +618,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 	}
 		
 	@Override
-	public void checkConsistenceInternal(Itemable rootItem, ItemPath path, boolean requireDefinitions,
+	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions,
 			boolean prohibitRaw) {
 		// Containers that are from run-time schema cannot have compile-time class.
 		if (getDefinition() != null && !getDefinition().isRuntimeSchema()) {
 			if (getCompileTimeClass() == null) {
-				throw new IllegalStateException("No compile-time class in "+this+" ("+path+" in "+rootItem+")");
+				throw new IllegalStateException("No compile-time class in "+this+" ("+getPath()+" in "+rootItem+")");
 			}
 		}
-		super.checkConsistenceInternal(rootItem, path, requireDefinitions, prohibitRaw);
+		super.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw);
 	}
 
 	@Override

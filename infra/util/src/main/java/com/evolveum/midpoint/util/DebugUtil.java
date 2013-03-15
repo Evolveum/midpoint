@@ -126,6 +126,36 @@ public class DebugUtil {
 		}
 	}
 	
+	public static void debugDumpWithLabel(StringBuilder sb, String label, String val, int indent) {
+		debugDumpLabel(sb, label, indent);
+		sb.append(val);
+	}
+
+	public static void debugDumpWithLabel(StringBuilder sb, String label, boolean val, int indent) {
+		debugDumpLabel(sb, label, indent);
+		sb.append(val);
+	}
+
+	public static void debugDumpWithLabel(StringBuilder sb, String label, int val, int indent) {
+		debugDumpLabel(sb, label, indent);
+		sb.append(val);
+	}
+
+	public static void debugDumpWithLabel(StringBuilder sb, String label, long val, int indent) {
+		debugDumpLabel(sb, label, indent);
+		sb.append(val);
+	}
+
+	public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<? extends DebugDumpable> dds, int indent) {
+		debugDumpLabel(sb, label, indent);
+		if (dds == null) {
+			sb.append(" null");
+		} else {
+			sb.append("\n");
+			sb.append(debugDump(dds, indent + 1));
+		}
+	}
+	
 	public static <K, V> void debugDumpWithLabel(StringBuilder sb, String label, Map<K, V> map, int indent) {
 		debugDumpLabel(sb, label, indent);
 		if (map == null) {

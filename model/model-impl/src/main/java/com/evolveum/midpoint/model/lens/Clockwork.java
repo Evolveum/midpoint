@@ -297,18 +297,18 @@ public class Clockwork {
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setResult(result);
 			auditRecord.setOutcome(result.getComputeStatus());
-			Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
-			if ((executedDeltas == null || executedDeltas.isEmpty()) && auditRecord.getOutcome() == OperationResultStatus.SUCCESS) {
+			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
+			if ((unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty()) && auditRecord.getOutcome() == OperationResultStatus.SUCCESS) {
 				// No deltas, nothing to audit in this wave
 				return;
 			}
-			auditRecord.addDeltas(ObjectDeltaOperation.cloneCollection(executedDeltas));
+			auditRecord.addDeltas(ObjectDeltaOperation.cloneCollection(unauditedExecutedDeltas));
 		} else {
 			throw new IllegalStateException("Unknown audit stage "+stage);
 		}
 		auditService.audit(auditRecord, task);
 		// We need to clean up so these deltas will not be audited again in next wave
-		context.clearExecutedDeltas();
+		context.markExecutedDeltasAudited();
 	}
 	
 	public static void throwException(Throwable e) throws ObjectAlreadyExistsException, ObjectNotFoundException {

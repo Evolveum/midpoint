@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -199,7 +200,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		objectDelta.setOid(getOid());
 
 		Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
-		diffInternal(other, null, itemDeltas, ignoreMetadata, isLiteral);
+		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
 		objectDelta.addModifications(itemDeltas);
 
 		return objectDelta;
@@ -235,11 +236,8 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	@Override
-	public ItemPath getPath(ItemPath pathPrefix) {
-		if (pathPrefix != null && !pathPrefix.isEmpty()) {
-			throw new IllegalStateException("It makes no sense to use pathPrefix for an object");
-		}
-		return new ItemPath();
+	public ItemPath getPath() {
+		return ItemPath.EMPTY_PATH;
 	}
 	
 	/**

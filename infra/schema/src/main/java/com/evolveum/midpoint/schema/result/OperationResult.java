@@ -719,6 +719,14 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public void recordHandledError(String message) {
 		recordStatus(OperationResultStatus.HANDLED_ERROR, message);
 	}
+	
+	public void recordHandledError(String message, Throwable cause) {
+		recordStatus(OperationResultStatus.HANDLED_ERROR, message, cause);
+	}
+	
+	public void recordHandledError(Throwable cause) {
+		recordStatus(OperationResultStatus.HANDLED_ERROR, cause.getMessage(), cause);
+	}
 
 	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
 		this.status = status;

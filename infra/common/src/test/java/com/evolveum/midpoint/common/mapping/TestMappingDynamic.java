@@ -436,8 +436,7 @@ public class TestMappingDynamic {
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
 
-    // MID-1223
-    @Test(enabled=false)
+    @Test
     public void testScriptVariablesPolyStringGroovyNormReplace() throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicReplace(

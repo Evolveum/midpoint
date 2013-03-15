@@ -18,31 +18,32 @@
  *
  * Portions Copyrighted 2013 [name of copyright owner]
  */
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.delta;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author semancik
  *
  */
-public class PartiallyResolvedValue<V extends PrismValue> {
+public class PartiallyResolvedDelta<V extends PrismValue> {
 	
-	private Item<V> item;
+	private ItemDelta<V> delta;
 	private ItemPath residualPath;
 	
-	public PartiallyResolvedValue(Item<V> item, ItemPath residualPath) {
+	public PartiallyResolvedDelta(ItemDelta<V> itemDelta, ItemPath residualPath) {
 		super();
-		this.item = item;
+		this.delta = itemDelta;
 		this.residualPath = residualPath;
 	}
 
-	public Item<V> getItem() {
-		return item;
+	public ItemDelta<V> getDelta() {
+		return delta;
 	}
 
-	public void setItem(Item<V> item) {
-		this.item = item;
+	public void setDelta(ItemDelta<V> itemDelta) {
+		this.delta = itemDelta;
 	}
 
 	public ItemPath getResidualPath() {
@@ -57,7 +58,7 @@ public class PartiallyResolvedValue<V extends PrismValue> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((item == null) ? 0 : item.hashCode());
+		result = prime * result + ((delta == null) ? 0 : delta.hashCode());
 		result = prime * result + ((residualPath == null) ? 0 : residualPath.hashCode());
 		return result;
 	}
@@ -70,11 +71,11 @@ public class PartiallyResolvedValue<V extends PrismValue> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PartiallyResolvedValue other = (PartiallyResolvedValue) obj;
-		if (item == null) {
-			if (other.item != null)
+		PartiallyResolvedDelta other = (PartiallyResolvedDelta) obj;
+		if (delta == null) {
+			if (other.delta != null)
 				return false;
-		} else if (!item.equals(other.item))
+		} else if (!delta.equals(other.delta))
 			return false;
 		if (residualPath == null) {
 			if (other.residualPath != null)
@@ -86,7 +87,7 @@ public class PartiallyResolvedValue<V extends PrismValue> {
 
 	@Override
 	public String toString() {
-		return "PartiallyResolvedValue(item=" + item + ", residualPath=" + residualPath + ")";
+		return "PartiallyResolvedDelta(item=" + delta + ", residualPath=" + residualPath + ")";
 	}
 
 }

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PartiallyResolvedValue;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -246,6 +248,31 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
             return itemDelta;
         } else if (changeType == ChangeType.MODIFY) {
             return findModification(propertyPath, deltaType);
+        } else {
+            return null;
+        }
+    }
+    
+    public <V extends PrismValue> PartiallyResolvedDelta<V> findPartial(ItemPath propertyPath) {
+        if (changeType == ChangeType.ADD) {
+            PartiallyResolvedValue<V> partialValue = objectToAdd.findPartial(propertyPath);
+            if (partialValue == null || partialValue.getItem() == null) {
+                return null;
+            }
+            Item<V> item = partialValue.getItem();
+            ItemDelta<V> itemDelta = item.createDelta();
+            itemDelta.addValuesToAdd(item.getClonedValues());
+            return new PartiallyResolvedDelta<V>(itemDelta, partialValue.getResidualPath());
+        } else if (changeType == ChangeType.MODIFY) {
+        	for (ItemDelta<?> modification: modifications) {
+        		if (modification.getPath().equals(propertyPath)) {
+        			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification, null);
+        		} else if (modification.getPath().isSubPath(propertyPath)) {
+        			return new PartiallyResolvedDelta<V>((ItemDelta<V>)modification,
+        					propertyPath.substract(modification.getPath()));
+        		}
+        	}
+            return null;
         } else {
             return null;
         }

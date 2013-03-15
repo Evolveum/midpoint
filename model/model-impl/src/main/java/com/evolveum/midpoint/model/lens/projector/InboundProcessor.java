@@ -330,7 +330,7 @@ public class InboundProcessor {
 		            LOGGER.trace("Simple property comparing user property {} to computed property {} ",
 		                    new Object[]{targetUserProperty, sourceProperty});
 		            //simple property comparing if user property exists
-		            PropertyDelta<U> diffDelta = targetUserProperty.diff(sourceProperty, targetUserPropertyPath);
+		            PropertyDelta<U> diffDelta = targetUserProperty.diff(sourceProperty);
 		            if (diffDelta != null) {
 		            	diffDelta.setName(ItemPath.getName(targetUserPropertyPath.last()));
 		            	diffDelta.setParentPath(targetUserPropertyPath.allExceptLast());
@@ -473,7 +473,7 @@ public class InboundProcessor {
             throw new SchemaException(ex.getMessage(), ex);
         }
 
-        PropertyDelta<?> delta = property.diff(result, sourcePath);
+        PropertyDelta<?> delta = property.diff(result);
         if (delta != null && !delta.isEmpty()) {
         	delta.setParentPath(sourcePath.allExceptLast());
         	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);

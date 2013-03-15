@@ -1862,9 +1862,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-	public void test30modifyObjectCommunicationProblemWeakMapping() throws Exception{
+	public void test030modifyObjectCommunicationProblemWeakMapping() throws Exception{
 //		openDJController.start();
-		displayTestTile("test30modifyObjectCommunicationProblemWeakMapping");
+		displayTestTile("test030modifyObjectCommunicationProblemWeakMapping");
 		OperationResult result = new OperationResult("test30modifyObjectCommunicationProblemWeakMapping");
 		addObjectFromFile(USER_JOHN_WEAK_FILENAME, UserType.class, result);
 
@@ -1945,9 +1945,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	
 	@Test
-	public void test31modifyObjectCommunicationProblemWeakAndStrongMapping() throws Exception{
+	public void test031modifyObjectCommunicationProblemWeakAndStrongMapping() throws Exception{
 		openDJController.start();
-		displayTestTile("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
+		displayTestTile("test031modifyObjectCommunicationProblemWeakAndStrongMapping");
 		OperationResult result = new OperationResult("test31modifyObjectCommunicationProblemWeakAndStrongMapping");
 		addObjectFromFile(USER_DONALD_FILENAME, UserType.class, result);
 
@@ -2054,6 +2054,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         display("Entry from LDIF", entry);
         
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_MORGAN_FILENAME));
+        display("Adding user", user);
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
@@ -2064,9 +2065,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// THEN
 		displayThen(TEST_NAME);
 		result.computeStatus();
-        IntegrationTestTools.assertSuccess("executeChanges result", result);
+		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
+		display("User morgan after", userMorgan);
         UserType userMorganType = userMorgan.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
         ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
@@ -2094,7 +2096,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 
 		// TODO: remove this if the previous test is enabled
-		openDJController.start();
+//		openDJController.start();
 		
 		// precondition
 		assertTrue(EmbeddedUtils.isRunning());

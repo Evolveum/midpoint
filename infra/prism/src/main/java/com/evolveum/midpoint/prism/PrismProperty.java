@@ -336,10 +336,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
     	
     @Override
+	public PropertyDelta<T> createDelta() {
+		return new PropertyDelta<T>(getPath(), getDefinition());
+	}
+    
+    @Override
 	public PropertyDelta<T> createDelta(ItemPath path) {
-    	if (path == null || path.isEmpty()) {
-    		throw new IllegalArgumentException("Attempt to create delta with null or empty path");
-    	}
 		return new PropertyDelta<T>(path, getDefinition());
 	}
     
@@ -367,13 +369,13 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 		return value.findPartial(path);
 	}
 
-	public PropertyDelta<T> diff(PrismProperty<T> other, ItemPath pathPrefix) {
-    	return diff(other, pathPrefix, true, false);
+	public PropertyDelta<T> diff(PrismProperty<T> other) {
+    	return diff(other, true, false);
     }
     
-    public PropertyDelta<T> diff(PrismProperty<T> other, ItemPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
+    public PropertyDelta<T> diff(PrismProperty<T> other, boolean ignoreMetadata, boolean isLiteral) {
     	List<? extends ItemDelta> deltas = new ArrayList<ItemDelta>();
-    	diffInternal(other, pathPrefix, deltas, ignoreMetadata, isLiteral);
+    	diffInternal(other, deltas, ignoreMetadata, isLiteral);
     	if (deltas.isEmpty()) {
     		return null;
     	}
@@ -422,7 +424,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     }
 	
 	@Override
-	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem, ItemPath pathPrefix,
+	protected ItemDelta fixupDelta(ItemDelta delta, Item otherItem,
 			boolean ignoreMetadata) {
 		PrismPropertyDefinition def = getDefinition();
 		if (def != null && def.isSingleValue() && !delta.isEmpty()) {
@@ -438,7 +440,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
             propertyDelta.setValuesToReplace(replaceValues);
 			return propertyDelta;
         } else {
-        	return super.fixupDelta(delta, otherItem, pathPrefix, ignoreMetadata);
+        	return super.fixupDelta(delta, otherItem, ignoreMetadata);
         }
 	}
 

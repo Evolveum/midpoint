@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -100,7 +101,13 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 		}
 		ItemDelta<V> itemDelta= null;
 		if (delta != null) {
-			itemDelta = (ItemDelta<V>) delta.findItemDelta(path);
+			PartiallyResolvedDelta<V> partialDelta = delta.findPartial(path);
+			if (partialDelta != null) {
+				itemDelta = partialDelta.getDelta();
+				if (subResidualPath == null) {
+					subResidualPath = partialDelta.getResidualPath();
+				}
+			}
 		}
 		ItemDeltaItem<V> subIdi = new ItemDeltaItem<V>(subItemOld, itemDelta, subItemNew);
 		subIdi.setResidualPath(subResidualPath);

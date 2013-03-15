@@ -209,6 +209,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 			secondaryDeltas.normalize();
 		}
 	}
+	
+	@Override
+	public void reset() {
+		super.reset();
+		secondaryDeltas = new ObjectDeltaWaves<O>();
+	}
 
 	@Override
 	public void adopt(PrismContext prismContext) throws SchemaException {
@@ -277,6 +283,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             sb.append("\n");
             sb.append(secondaryDeltas.debugDump(indent + 2));
         }
+        
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
 
         return sb.toString();
     }

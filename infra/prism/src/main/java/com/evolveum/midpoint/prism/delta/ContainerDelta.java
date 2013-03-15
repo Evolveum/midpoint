@@ -33,10 +33,6 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 
 	public ContainerDelta(ItemPath propertyPath, PrismContainerDefinition itemDefinition) {
 		super(propertyPath, itemDefinition);
-    	// Extra check. It makes no sense to create container delta with object definition
-    	if (itemDefinition instanceof PrismObjectDefinition<?>) {
-    		throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
-    	}
 	}
 
 	public ContainerDelta(ItemPath parentPath, QName name, PrismContainerDefinition itemDefinition) {

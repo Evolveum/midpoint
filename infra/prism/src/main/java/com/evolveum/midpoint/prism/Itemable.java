@@ -40,6 +40,6 @@ public interface Itemable {
 	
 	public PrismContext getPrismContext();
 	
-	public ItemPath getPath(ItemPath pathPrefix);
+	public ItemPath getPath();
 
 }

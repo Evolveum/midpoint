@@ -201,14 +201,13 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	this.parent = parentValue;
     }
     
-    @Override
-    public ItemPath getPath(ItemPath pathPrefix) {
-    	if (pathPrefix == null) {
-    		return new ItemPath(getName());
-    	}
-    	return pathPrefix.subPath(getName());
+    public ItemPath getPath() {
+    	 if (parent == null) {
+    		 return new ItemPath(getName());
+    	 }
+    	 return parent.getPath().subPath(getName());
     }
-    
+        
     public Map<String, Object> getUserData() {
 		return userData;
 	}
@@ -435,23 +434,14 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
         
     public Collection<? extends ItemDelta> diff(Item<V> other, boolean ignoreMetadata, boolean isLiteral) {
-    	return diff(other, null, ignoreMetadata, isLiteral);
-    }
-    
-    public Collection<? extends ItemDelta> diff(Item<V> other, ItemPath pathPrefix, boolean ignoreMetadata, boolean isLiteral) {
     	Collection<? extends ItemDelta> itemDeltas = new ArrayList<ItemDelta>();
-		diffInternal(other, pathPrefix, itemDeltas, ignoreMetadata, isLiteral);
+		diffInternal(other, itemDeltas, ignoreMetadata, isLiteral);
 		return itemDeltas;
     }
         
-    protected void diffInternal(Item<V> other, ItemPath pathPrefix, Collection<? extends ItemDelta> deltas, 
+    protected void diffInternal(Item<V> other, Collection<? extends ItemDelta> deltas, 
     		boolean ignoreMetadata, boolean isLiteral) {
-    	ItemPath deltaPath = getPath(pathPrefix);
-    	ItemDelta delta = null;
-    	if (deltaPath != null && !deltaPath.isEmpty()) {
-    		// DeltaPath can be empty in objects. But in that case we don't expect to create any delta at this level anyway.
-    		delta = createDelta(deltaPath);
-    	}
+    	ItemDelta delta = createDelta();
     	if (other == null) {
     		//other doesn't exist, so delta means delete all values
             for (PrismValue value : getValues()) {
@@ -470,7 +460,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     				if (thisValue.representsSameValue(otherValue) || delta == null) {
     					found = true;
     					// Matching IDs, look inside to figure out internal deltas
-    					thisValue.diffMatchingRepresentation(otherValue, thisValue.getPath(pathPrefix), deltas, 
+    					thisValue.diffMatchingRepresentation(otherValue, deltas, 
     							ignoreMetadata, isLiteral);
     					// No need to process this value again
     					iterator.remove();
@@ -495,22 +485,24 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
             }
     		// Some deltas may need to be polished a bit. E.g. transforming
     		// add/delete delta to a replace delta.
-    		delta = fixupDelta(delta, other, pathPrefix, ignoreMetadata);
+    		delta = fixupDelta(delta, other, ignoreMetadata);
     	}
     	if (delta != null && !delta.isEmpty()) {
     		((Collection)deltas).add(delta);
     	}
     }
     
-	protected ItemDelta fixupDelta(ItemDelta delta, Item<V> other, ItemPath pathPrefix,
+	protected ItemDelta<V> fixupDelta(ItemDelta<V> delta, Item<V> other,
 			boolean ignoreMetadata) {
 		return delta;
 	}
 
 	/**
-     * Creates specific sublcass of ItemDelta appropriate for type of item that this definition
+     * Creates specific subclass of ItemDelta appropriate for type of item that this definition
      * represents (e.g. PropertyDelta, ContainerDelta, ...)
      */
+	public abstract ItemDelta<V> createDelta();
+	
 	public abstract ItemDelta<V> createDelta(ItemPath path);
 
 	@Override
@@ -595,18 +587,19 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     }
     
     public void checkConsistence(boolean requireDefinitions) {
-    	checkConsistenceInternal(this, ItemPath.EMPTY_PATH, requireDefinitions, false);
+    	checkConsistenceInternal(this, requireDefinitions, false);
     }
     
     public void checkConsistence(boolean requireDefinitions, boolean prohibitRaw) {
-    	checkConsistenceInternal(this, ItemPath.EMPTY_PATH, requireDefinitions, prohibitRaw);
+    	checkConsistenceInternal(this, requireDefinitions, prohibitRaw);
     }
     
     public void checkConsistence() {
-    	checkConsistenceInternal(this, ItemPath.EMPTY_PATH, false, false);
+    	checkConsistenceInternal(this, false, false);
     }
     
-    public void checkConsistenceInternal(Itemable rootItem, ItemPath path, boolean requireDefinitions, boolean prohibitRaw) {
+    public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
+    	ItemPath path = getPath();
     	if (name == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}
@@ -631,7 +624,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"), "+
     						"bad parent: " + val.getParent());
     			}
-    			val.checkConsistenceInternal(rootItem, path, requireDefinitions, prohibitRaw);
+    			val.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw);
     		}
     	}
     }
