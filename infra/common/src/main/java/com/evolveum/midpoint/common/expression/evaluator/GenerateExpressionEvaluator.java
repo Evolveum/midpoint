@@ -92,15 +92,20 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         
         StringPolicyType stringPolicyType = null;
         
-        if (elementStringPolicy == null) {
+//        if (elementStringPolicy == null) {
+		// if the policy was changed, the most fresh copy is needed, therefore
+		// it must be resolved all time the value is generated..if it was not
+		// resolved each time, the cached policy would be used and so bad values
+		// would be generated
+        
 	        StringPolicyResolver stringPolicyResolver = params.getStringPolicyResolver();
 	        if (stringPolicyResolver!=null) {
 	        	stringPolicyType = stringPolicyResolver.resolve();
 	        }
-        } else {
-        	stringPolicyType = elementStringPolicy;
-        }
-        
+//        } else {
+//        	stringPolicyType = elementStringPolicy;
+//        }
+//        
 		// TODO: generate value based on stringPolicyType (if not null)
 		String stringValue = null;
 		if (stringPolicyType != null) {
