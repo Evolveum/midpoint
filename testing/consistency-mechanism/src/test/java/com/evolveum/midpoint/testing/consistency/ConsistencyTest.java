@@ -2096,7 +2096,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 
 		// TODO: remove this if the previous test is enabled
-//		openDJController.start();
+		openDJController.start();
 		
 		// precondition
 		assertTrue(EmbeddedUtils.isRunning());
