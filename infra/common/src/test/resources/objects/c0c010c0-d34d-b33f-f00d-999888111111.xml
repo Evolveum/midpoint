@@ -95,6 +95,7 @@
 					<characterClass name="uppers">
 						<value>ABCD</value>
 					</characterClass>
+					<value>efgh</value>
 				</characterClass>
 				<characterClass name="numbers">
 					<value>1234</value>
