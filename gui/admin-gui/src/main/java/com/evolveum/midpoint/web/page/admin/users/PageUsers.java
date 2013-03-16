@@ -285,6 +285,20 @@ public class PageUsers extends PageAdminUsers {
         };
         columns.add(column);
 
+        column = new AbstractColumn<SelectableBean<UserType>, String>(createStringResource("pageUsers.accounts")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
+                                     String componentId, IModel<SelectableBean<UserType>> rowModel) {
+
+                UserType user = rowModel.getObject().getValue();
+                int count = user.getAccountRef().size() + user.getAccount().size();
+
+                cellItem.add(new Label(componentId, new Model<Integer>(count)));
+            }
+        };
+        columns.add(column);
+
         return columns;
     }
 
