@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
@@ -719,9 +720,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * it is in the repository after the operation.
      */
     @Test
-    public void test010AddUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException {
-        displayTestTile("test010AddUser");
+    public void test010AddUser() throws Exception {
+    	final String TEST_NAME = "test010AddUser";
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         checkRepoOpenDjResource();
@@ -3270,6 +3271,35 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         checkAllShadows();
     }
+    
+    @Test
+    public void test400ListResources() throws Exception {
+    	final String TEST_NAME = "test400ListResources";
+        displayTestTile(TEST_NAME);
+        // GIVEN
+        OperationResultType result = new OperationResultType();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
+        
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		OperationOptionsType options = new OperationOptionsType();
+		PagingType paging = new PagingType();
+		
+		// WHEN
+        modelWeb.listObjects(ObjectTypes.RESOURCE.getObjectTypeUri(), paging, options, objectListHolder , resultHolder);
+        
+        // THEN
+        
+        display("Resources", objectListHolder.value);
+        assertEquals("Unexpected number of resources", 3, objectListHolder.value.getObject().size());
+        // TODO
+        
+        for(ObjectType object: objectListHolder.value.getObject()) {
+        	// Marshalling may fail even though the Java object is OK so test for it
+        	String xml = PrismTestUtil.marshalToString(object);
+        }
+        
+    }
+    
 
 
     @Test
