@@ -25,6 +25,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.IModel;
 
+/**
+ * Don't use this component, it will be gradually removed from gui.
+ * Maybe replaced with something else later. [lazyman]
+ */
+@Deprecated
 public class AccordionItem extends Border {
 
 	private static final long serialVersionUID = 1L;

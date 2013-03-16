@@ -31,6 +31,11 @@ import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
+/**
+ * Don't use this component, it will be gradually removed from gui.
+ * Maybe replaced with something else later. [lazyman]
+ */
+@Deprecated
 public class Accordion extends Border {
 
     private static final long serialVersionUID = 7554515215048790384L;
