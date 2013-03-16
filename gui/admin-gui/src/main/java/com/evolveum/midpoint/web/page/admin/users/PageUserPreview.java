@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -111,16 +112,16 @@ public class PageUserPreview extends PageAdmin {
 	private List<SubmitAssignmentDto> assignmentsChangesList;
 	private List<SubmitUserDto> userChangesList;
 
-    //used to add force flag to operations if necessary, will be moved to some "page dto"
-    private boolean forceAction;
+    private ExecuteChangeOptionsDto executeOptions;
 
 	public PageUserPreview(ModelContext previewChanges, Collection<ObjectDelta<? extends ObjectType>> allDeltas,
-                           ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify, boolean forceAction) {
+                           ObjectDelta<UserType> userDelta, ArrayList<PrismObject> accountsBeforeModify,
+                           ExecuteChangeOptionsDto options) {
 		if (previewChanges == null || allDeltas == null || userDelta == null) {
 			getSession().error(getString("pageUserPreview.message.cantLoadData"));
 			throw new RestartResponseException(PageUsers.class);
 		}
-        this.forceAction = forceAction;
+        this.executeOptions = options;
 		this.deltasChanges = allDeltas;
 		this.previewChanges = previewChanges;
 		this.delta = userDelta;
@@ -646,10 +647,8 @@ public class PageUserPreview extends PageAdmin {
 				LOGGER.trace("Delta before save user:\n{}", new Object[] { delta.debugDump(3) });
 			}
 
-
-            ModelExecuteOptions options = new ModelExecuteOptions();
-            options.setForce(forceAction);
-            LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+            ModelExecuteOptions options = executeOptions.createOptions();
+            LOGGER.debug("Using options {}.", new Object[]{executeOptions});
 			getModelService().executeChanges(deltasChanges, options, task, result);
 
 			result.recomputeStatus();

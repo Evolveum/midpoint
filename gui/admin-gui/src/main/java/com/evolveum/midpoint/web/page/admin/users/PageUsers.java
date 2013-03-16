@@ -37,6 +37,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -98,11 +100,10 @@ public class PageUsers extends PageAdminUsers {
     private static final String OPERATION_ENABLE_USER = DOT_CLASS + "enableUser";
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
-    private static final String ID_FORCE_CHECK = "forceCheck";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
     private LoadableModel<UsersDto> model;
-    //used for
-    private boolean forceAction = false;
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
     public PageUsers() {
         model = new LoadableModel<UsersDto>(false) {
@@ -116,6 +117,14 @@ public class PageUsers extends PageAdminUsers {
                 }
 
                 return dto;
+            }
+        };
+
+        executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return new ExecuteChangeOptionsDto();
             }
         };
         initLayout();
@@ -147,6 +156,7 @@ public class PageUsers extends PageAdminUsers {
             }
         });
 
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel));
         initButtons(mainForm);
     }
 
@@ -195,25 +205,6 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         mainForm.add(delete);
-
-        //todo move model object to some dto and use PropertyModel
-        CheckBox forceCheck = new CheckBox(ID_FORCE_CHECK, new IModel<Boolean>() {
-
-            @Override
-            public Boolean getObject() {
-                return forceAction;
-            }
-
-            @Override
-            public void setObject(Boolean value) {
-                forceAction = value;
-            }
-
-            @Override
-            public void detach() {
-            }
-        });
-        mainForm.add(forceCheck);
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -469,13 +460,11 @@ public class PageUsers extends PageAdminUsers {
             ObjectDelta delta = null;
             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 
+            ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
             try {
                 delta = ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), getPrismContext());
                 deltas.add(delta);
-                ModelExecuteOptions options = null;
-                if (forceAction) {
-                    options = ModelExecuteOptions.createForce();
-                }
+                ModelExecuteOptions options = executeOptions.createOptions();
                 changes = getModelInteractionService().previewChanges(deltas, options, task, result);
             } catch (Exception ex) {
                 result.recordFatalError("Couldn't send user to submit.", ex);
@@ -486,7 +475,8 @@ public class PageUsers extends PageAdminUsers {
                 showResult(result);
                 target.add(getFeedbackPanel());
             } else {
-                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, null, forceAction);
+                PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta,
+                        null, executeOptions);
                 setResponsePage(pageUserPreview);
             }
 
@@ -512,9 +502,9 @@ public class PageUsers extends PageAdminUsers {
                 ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.DELETE, getPrismContext());
                 delta.setOid(user.getOid());
 
-                ModelExecuteOptions options = new ModelExecuteOptions();
-                options.setForce(forceAction);
-                LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ModelExecuteOptions options = executeOptions.createOptions();
+                LOGGER.debug("Using options {}.", new Object[]{executeOptions});
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, subResult);
                 subResult.recordSuccess();
             } catch (Exception ex) {
@@ -568,9 +558,9 @@ public class PageUsers extends PageAdminUsers {
 //				ObjectDelta objectDelta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
 //				objectDelta.addModification(delta);
 
-                ModelExecuteOptions options = new ModelExecuteOptions();
-                options.setForce(forceAction);
-                LOGGER.debug("Using force flag: {}.", new Object[]{forceAction});
+                ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+                ModelExecuteOptions options = executeOptions.createOptions();
+                LOGGER.debug("Using options {}.", new Object[]{executeOptions});
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(objectDelta), options, task,
                         subResult);
                 subResult.recordSuccess();

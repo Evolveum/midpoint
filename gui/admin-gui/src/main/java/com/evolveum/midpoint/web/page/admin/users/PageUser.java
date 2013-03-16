@@ -28,6 +28,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.component.ExecuteChangeOptionsPanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -152,16 +154,21 @@ public class PageUser extends PageAdminUsers {
 	private static final String ID_ASSIGNMENTS = "assignments";
 	private static final String ID_USER_FORM = "userForm";
 	private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
-	private static final String ID_FORCE_CHECK = "forceCheck";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private IModel<ObjectWrapper> userModel;
 	private IModel<List<UserAccountDto>> accountsModel;
 	private IModel<List<AssignmentEditorDto>> assignmentsModel;
 
-	// used to add force flag to operations if necessary, will be moved to some
-	// "page dto"
-	private boolean forceAction;
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
+            = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+
+                @Override
+                protected ExecuteChangeOptionsDto load() {
+                    return new ExecuteChangeOptionsDto();
+                }
+            };
 
 	// it should be sent from submit. If the user is on the preview page and
 	// than he wants to get back to the edit page, the object delta is set, so
@@ -173,7 +180,6 @@ public class PageUser extends PageAdminUsers {
 	// }
 
 	public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid) {
-
 		userModel = new LoadableModel<ObjectWrapper>(false) {
 			@Override
 			protected ObjectWrapper load() {
@@ -807,24 +813,7 @@ public class PageUser extends PageAdminUsers {
 
 		initAccountButton(mainForm);
 
-		// todo move model object to some dto and use PropertyModel
-		CheckBox forceCheck = new CheckBox(ID_FORCE_CHECK, new IModel<Boolean>() {
-
-			@Override
-			public Boolean getObject() {
-				return forceAction;
-			}
-
-			@Override
-			public void setObject(Boolean value) {
-				forceAction = value;
-			}
-
-			@Override
-			public void detach() {
-			}
-		});
-		mainForm.add(forceCheck);
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel));
 	}
 
 	private void initAccountButton(Form mainForm) {
@@ -1331,8 +1320,9 @@ public class PageUser extends PageAdminUsers {
 		ObjectDelta delta = null;
 
 		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
-		ModelExecuteOptions options = new ModelExecuteOptions();
-		options.setForce(forceAction);
+        ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
+        ModelExecuteOptions options = executeOptions.createOptions();
+        LOGGER.debug("Using options {}.", new Object[]{executeOptions});
 		// try {
 
 		try {
@@ -1344,8 +1334,6 @@ public class PageUser extends PageAdminUsers {
             if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
-
-			LOGGER.debug("Using force flag: {}.", new Object[] { forceAction });
 		} catch (Exception ex) {
 			result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
 			LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
@@ -1480,7 +1468,7 @@ public class PageUser extends PageAdminUsers {
 
 	private boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
 			OperationResult parentResult) {
-		if (forceAction) {
+		if (executeOptionsModel.getObject().isForce()) {
 			OperationResult result = parentResult.createSubresult("Force delete operation");
 			// List<UserAccountDto> accountDtos = accountsModel.getObject();
 			// List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
@@ -1585,6 +1573,8 @@ public class PageUser extends PageAdminUsers {
 		ObjectWrapper userWrapper = userModel.getObject();
 		ObjectDelta delta = null;
 		ModelContext changes = null;
+
+        boolean forceAction = executeOptionsModel.getObject().isForce();
 		ModelExecuteOptions options = forceAction ? ModelExecuteOptions.createForce() : null;
 
 		try {
@@ -1646,7 +1636,7 @@ public class PageUser extends PageAdminUsers {
 
 		if (result.isSuccess() || result.isHandledError()) {
 			PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, accountsBeforeModify,
-					forceAction);
+                    executeOptionsModel.getObject());
 			setResponsePage(pageUserPreview);
 		} else {
 			showResult(result);
