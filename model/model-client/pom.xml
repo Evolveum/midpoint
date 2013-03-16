@@ -191,44 +191,6 @@
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
-                            <!--							<xsdOptions>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/common/common-2a.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/resource/capabilities-2.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                       <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-2.xsd</xsd>
-                                           <extensionArgs>
-                                               <extensionArg>-Xts</extensionArg>
-                                               <extensionArg>-Xequals</extensionArg>
-                                               <extensionArg>-xjc-XhashCode</extensionArg>
-                                           </extensionArgs>
-                                           <extension>true</extension>
-                                       </xsdOption>
-                                   </xsdOptions> -->
                         </configuration>
                         <goals>
                             <goal>wsdl2java</goal>
@@ -253,35 +215,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            <!--
-               <plugin>
-                   <groupId>org.apache.cxf</groupId>
-                   <artifactId>cxf-xjc-plugin</artifactId>
-                   <version>${cxf-xjc.version}</version>
-                   <configuration>
-                       <extensions>
-                           <extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf-xjc.version}</extension>
-                       </extensions>
-                   </configuration>
-                   <executions>
-                       <execution>
-                           <id>generate-sources</id>
-                           <phase>generate-sources</phase>
-                           <goals>
-                               <goal>xsdtojava</goal>
-                           </goals>
-                           <configuration>
-                               <sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
-                               <xsdOptions>
-                               </xsdOptions>
-                               <extensions> -->
-            <!--extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf.version}</extension-->
-            <!--  <extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf-xjc.version}</extension>
-                               </extensions>
-                           </configuration>
-                       </execution>
-                   </executions>
-               </plugin> -->
         </plugins>
     </build>
 </project>

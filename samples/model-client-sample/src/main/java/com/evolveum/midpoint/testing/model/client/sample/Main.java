@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
@@ -109,6 +111,10 @@ public class Main {
 			RoleType sailorRole = searchRoleByName(modelPort, "Sailor");
 			System.out.println("Got Sailor role");
 			System.out.println(sailorRole);
+	
+			Collection<ResourceType> resouces = listResources(modelPort);
+			System.out.println("Resources");
+			System.out.println(resouces);
 			
 			String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
 			System.out.println("Created user, OID: "+userGuybrushoid);
@@ -147,6 +153,18 @@ public class Main {
 				objectHolder, resultHolder);
 		
 		return (SystemConfigurationType) objectHolder.value;
+	}
+	
+	private static Collection<ResourceType> listResources(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
+		OperationOptionsType options = new OperationOptionsType();
+		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		PagingType paging = new PagingType();
+		
+		modelPort.listObjects(getTypeUri(ResourceType.class), paging, options, objectListHolder, resultHolder);
+		
+		ObjectListType objectList = objectListHolder.value;
+		return (Collection) objectList.getObject();
 	}
 
 	private static String createUserGuybrush(ModelPortType modelPort, RoleType role) throws FaultMessage {

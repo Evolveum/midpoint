@@ -52,7 +52,7 @@
 
 	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
 			location="../common/fault-1.wsdl"/>
-
+			
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -61,6 +61,10 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"/>
         </xsd:schema>
     </types>
 
