@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.component.ExecuteChangeOptionsPanel;
 import org.apache.commons.lang.StringUtils;
@@ -40,7 +41,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -157,9 +157,9 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
-	private IModel<ObjectWrapper> userModel;
-	private IModel<List<UserAccountDto>> accountsModel;
-	private IModel<List<AssignmentEditorDto>> assignmentsModel;
+	private LoadableModel<ObjectWrapper> userModel;
+	private LoadableModel<List<UserAccountDto>> accountsModel;
+	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
             = new LoadableModel<ExecuteChangeOptionsDto>(false) {
@@ -178,6 +178,31 @@ public class PageUser extends PageAdminUsers {
 	// public ObjectDelta getObjectDelta() {
 	// return objectDelta;
 	// }
+
+    public PageUser() {
+        userModel = new LoadableModel<ObjectWrapper>(false) {
+
+            @Override
+            protected ObjectWrapper load() {
+                return loadUserWrapper();
+            }
+        };
+        accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
+
+            @Override
+            protected List<UserAccountDto> load() {
+                return loadAccountWrappers();
+            }
+        };
+        assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return loadAssignments();
+            }
+        };
+        initLayout();
+    }
 
 	public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid) {
 		userModel = new LoadableModel<ObjectWrapper>(false) {
@@ -368,32 +393,6 @@ public class PageUser extends PageAdminUsers {
 		}
 		return wrappers;
 
-	}
-
-	public PageUser() {
-
-		userModel = new LoadableModel<ObjectWrapper>(false) {
-
-			@Override
-			protected ObjectWrapper load() {
-				return loadUserWrapper();
-			}
-		};
-		accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
-
-			@Override
-			protected List<UserAccountDto> load() {
-				return loadAccountWrappers();
-			}
-		};
-		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-
-			@Override
-			protected List<AssignmentEditorDto> load() {
-				return loadAssignments();
-			}
-		};
-		initLayout();
 	}
 
 	private ObjectWrapper loadUserWrapper() {
@@ -654,6 +653,7 @@ public class PageUser extends PageAdminUsers {
 				if (reference.getOid() == null) {
 					continue;
 				}
+
 				PrismObject<AccountShadowType> account = getModelService().getObject(AccountShadowType.class,
 						reference.getOid(), options, task, subResult);
 				AccountShadowType accountType = account.asObjectable();
@@ -673,6 +673,15 @@ public class PageUser extends PageAdminUsers {
 				list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
 
 				subResult.recomputeStatus();
+            } catch (ObjectNotFoundException ex) {
+                // this is fix for MID-854, full user/accounts/assignments reload if accountRef reference is broken
+                // because consistency already fixed it.
+
+                userModel.reset();
+                accountsModel.reset();
+                assignmentsModel.reset();
+
+                return list;
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
