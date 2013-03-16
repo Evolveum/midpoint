@@ -62,6 +62,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
@@ -80,9 +81,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 	private static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
-	private static final String IMPLEMENTAION_SHORT_NAME = "SQL";
-	private static final String IMPLEMENTAION_DESCRIPTION = "Implementation that stores data in generic relational" +
+	private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
+	private static final String IMPLEMENTATION_DESCRIPTION = "Implementation that stores data in generic relational" +
 			" (SQL) databases. It is using ORM (hibernate) on top of JDBC to access the database.";
+    private static final String DETAILS_TRANSACTION_ISOLATION = "transactionIsolation";
+    private static final String DETAILS_CLIENT_INFO = "clientInfo.";
+    private static final String DETAILS_DATA_SOURCE = "dataSource";
+    private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
+    private static final String DETAILS_HIBERNATE_HBM_2_DDL="hibernateHbm2ddl";
 
     private SqlRepositoryFactory repositoryFactory;
 
@@ -1156,8 +1162,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public RepositoryDiag getRepositoryDiag() {
         RepositoryDiag diag = new RepositoryDiag();
-        diag.setImplementationShortName(IMPLEMENTAION_SHORT_NAME);
-        diag.setImplementationDescription(IMPLEMENTAION_DESCRIPTION);
+        diag.setImplementationShortName(IMPLEMENTATION_SHORT_NAME);
+        diag.setImplementationDescription(IMPLEMENTATION_DESCRIPTION);
 
         SqlRepositoryConfiguration config = repositoryFactory.getSqlConfiguration();
 
@@ -1178,13 +1184,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         List<LabeledString> details = new ArrayList<LabeledString>();
         diag.setAdditionalDetails(details);
-        details.add(new LabeledString("dataSource", config.getDataSource()));
-        details.add(new LabeledString("hibernateDialect", config.getHibernateDialect()));
-        details.add(new LabeledString("transactionIsolation",
-                config.getTransactionIsolation() != null ? config.getTransactionIsolation().name() : null));
-        details.add(new LabeledString("hibernateHbm2ddl", config.getHibernateHbm2ddl()));
+        details.add(new LabeledString(DETAILS_DATA_SOURCE, config.getDataSource()));
+        details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, config.getHibernateDialect()));
+        details.add(new LabeledString(DETAILS_HIBERNATE_HBM_2_DDL, config.getHibernateHbm2ddl()));
 
-        readDetailsFromConnection(details);
+        readDetailsFromConnection(diag, config);
 
         Collections.sort(details, new Comparator<LabeledString>() {
 
@@ -1197,7 +1201,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return diag;
     }
 
-    private void readDetailsFromConnection(final List<LabeledString> details) {
+    private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {
+        final List<LabeledString> details = diag.getAdditionalDetails();
+
         Session session = getSessionFactory().openSession();
         try {
             session.beginTransaction();
@@ -1205,33 +1211,70 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
                 @Override
                 public void execute(Connection connection) throws SQLException {
-                    connection.getTransactionIsolation();
+                    details.add(new LabeledString(DETAILS_TRANSACTION_ISOLATION,
+                            getTransactionIsolation(connection, config)));
 
 
                     Properties info = connection.getClientInfo();
-
                     if (info == null) {
                         return;
                     }
 
-
-
-
                     for (String name : info.stringPropertyNames()) {
-                        details.add(new LabeledString("clientInfo." + name, info.getProperty(name)));
+                        details.add(new LabeledString(DETAILS_CLIENT_INFO + name, info.getProperty(name)));
                     }
                 }
             });
             session.getTransaction().commit();
+
+            if (!(getSessionFactory() instanceof SessionFactoryImpl)) {
+                return;
+            }
+            SessionFactoryImpl factory = (SessionFactoryImpl) getSessionFactory();
+            // we try to override configuration which was read from sql repo configuration with
+            // real configuration from session factory
+            String dialect = factory.getDialect() != null ? factory.getDialect().getClass().getName() : null;
+            details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
         } catch (Exception ex) {
-            //nowhere to report error (no operation result available
+            //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
         } catch (Throwable th) {
-            //nowhere to report error (no operation result available
+            //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
         } finally {
             cleanupSessionAndResult(session, null);
         }
+    }
+
+    private String getTransactionIsolation(Connection connection, SqlRepositoryConfiguration config) {
+        String value = config.getTransactionIsolation() != null ?
+                config.getTransactionIsolation().name() + "(read from repo configuration)" : null;
+
+        try {
+            switch (connection.getTransactionIsolation()) {
+                case Connection.TRANSACTION_NONE:
+                    value = "TRANSACTION_NONE (read from connection)";
+                    break;
+                case Connection.TRANSACTION_READ_COMMITTED:
+                    value = "TRANSACTION_READ_COMMITTED (read from connection)";
+                    break;
+                case Connection.TRANSACTION_READ_UNCOMMITTED:
+                    value = "TRANSACTION_READ_UNCOMMITTED (read from connection)";
+                    break;
+                case Connection.TRANSACTION_REPEATABLE_READ:
+                    value = "TRANSACTION_REPEATABLE_READ (read from connection)";
+                    break;
+                case Connection.TRANSACTION_SERIALIZABLE:
+                    value = "TRANSACTION_SERIALIZABLE (read from connection)";
+                    break;
+                default:
+                    value = "Unknown value in connection.";
+            }
+        } catch (Exception ex) {
+            //nowhere to report error (no operation result available)
+        }
+
+        return value;
     }
 
 	/* (non-Javadoc)
