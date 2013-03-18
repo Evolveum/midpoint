@@ -597,6 +597,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 					ACCOUNT_MODIFY_OID, null, result).asObjectable();
 			
 			display("Object after change",accountType);
+			
 
 //			String changedSn = null;
 //			String uid = null;
@@ -618,7 +619,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			
 			String name = ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_NAME);
 			assertEquals("After rename, dn is not equal.", "uid=rename,ou=People,dc=example,dc=com", name);
-			
+			assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", accountType.getName().getOrig());
 			
 			String changedSn = (String) snValues.get(0);
 			

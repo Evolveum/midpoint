@@ -26,18 +26,23 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
+import org.identityconnectors.framework.impl.api.ConnectorFacadeFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -50,6 +55,9 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
+import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
@@ -83,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScripts
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public abstract class ShadowCache {
 	
@@ -251,77 +260,108 @@ public abstract class ShadowCache {
 				throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
 				ConfigurationException, SecurityViolationException {
 
-			Validate.notNull(objectType, "Object to modify must not be null.");
-			Validate.notNull(oid, "OID must not be null.");
-			Validate.notNull(modifications, "Object modification must not be null.");
+		Validate.notNull(objectType, "Object to modify must not be null.");
+		Validate.notNull(oid, "OID must not be null.");
+		Validate.notNull(modifications, "Object modification must not be null.");
 
-			if (!(objectType instanceof ResourceObjectShadowType)) {
-				throw new IllegalArgumentException("The object to modify is not a shadow, it is " + objectType);
-			}
-
-			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
-
-			if (resource == null) {
-				resource = getResource(shadow, parentResult);
-
-			}
-			
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.asPrismObject()
-						.dump());
-			}
-			
-			LOGGER.trace("modifications before merging deltas, {}", DebugUtil.debugDump(modifications));
-			
-			modifications = beforeModifyOnResource(shadow, options, modifications);
-			
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
-			}
-			
-			Collection<PropertyModificationOperation> sideEffectChanges = null;
-
-			try {
-				sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, scripts,
-						modifications, parentResult);
-			} catch (Exception ex) {
-				LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
-						new Object[] { ex.getClass(), ex.getMessage(), ex });
-				try {
-					shadow = handleError(ex, shadow, FailedOperation.MODIFY, resource, modifications, ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
-					parentResult.computeStatus();
-				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("While compensating communication problem for modify operation got: "
-							+ ex.getMessage(), ex);
-					throw new SystemException(e);
-				}
-
-				return shadow.getOid();
-			}
-			
-			afterModifyOnResource(shadow, modifications, parentResult);
-
-			
-			if (!sideEffectChanges.isEmpty()) {
-				// TODO: implement
-				Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
-				try{
-				repositoryService.modifyObject(AccountShadowType.class, oid, sideEffectDelta, parentResult);
-				} catch (ObjectAlreadyExistsException ex){
-					parentResult.recordFatalError("Side effect changes could not be applied", ex);
-					LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
-					throw new SystemException("Side effect changes could not be applied. " + ex.getMessage(), ex);
-				}
-//				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
-			}
-			
-			ObjectDelta delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.asPrismObject().getCompileTimeClass(), prismContext);
-			ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadow, resource, delta, task, parentResult);
-			operationListener.notifySuccess(operationDescription, task, parentResult);
-			parentResult.recordSuccess();
-			return oid;
+		if (!(objectType instanceof ResourceObjectShadowType)) {
+			throw new IllegalArgumentException("The object to modify is not a shadow, it is " + objectType);
 		}
 
+		ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
+
+		if (resource == null) {
+			resource = getResource(shadow, parentResult);
+
+		}
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow
+					.asPrismObject().dump());
+		}
+
+		LOGGER.trace("modifications before merging deltas, {}", DebugUtil.debugDump(modifications));
+
+		modifications = beforeModifyOnResource(shadow, options, modifications);
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
+		}
+
+		Collection<PropertyModificationOperation> sideEffectChanges = null;
+
+		try {
+			sideEffectChanges = shadowConverter.modifyShadow(resource, shadow, scripts, modifications,
+					parentResult);
+		} catch (Exception ex) {
+			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
+					new Object[] { ex.getClass(), ex.getMessage(), ex });
+			try {
+				shadow = handleError(ex, shadow, FailedOperation.MODIFY, resource, modifications,
+						ProvisioningOperationOptions.isCompletePostponed(options), task, parentResult);
+				parentResult.computeStatus();
+			} catch (ObjectAlreadyExistsException e) {
+				parentResult.recordFatalError(
+						"While compensating communication problem for modify operation got: "
+								+ ex.getMessage(), ex);
+				throw new SystemException(e);
+			}
+
+			return shadow.getOid();
+		}
+
+		afterModifyOnResource(shadow, modifications, parentResult);
+
+		PropertyDelta renameDelta = checkShadowName(modifications, shadow);
+
+		// if (!sideEffectChanges.isEmpty()) {
+		Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
+		if (renameDelta != null) {
+			((Collection) sideEffectDelta).add(renameDelta);
+		}
+		if (!sideEffectDelta.isEmpty()) {
+			try {
+
+				repositoryService.modifyObject(AccountShadowType.class, oid, sideEffectDelta, parentResult);
+			} catch (ObjectAlreadyExistsException ex) {
+				parentResult.recordFatalError("Side effect changes could not be applied", ex);
+				LOGGER.error("Side effect changes could not be applied. " + ex.getMessage(), ex);
+				throw new SystemException("Side effect changes could not be applied. " + ex.getMessage(), ex);
+			}
+		}
+		// throw new
+		// UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+		// }
+
+		ObjectDelta delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow
+				.asPrismObject().getCompileTimeClass(), prismContext);
+		ResourceOperationDescription operationDescription = createSuccessOperationDescription(shadow,
+				resource, delta, task, parentResult);
+		operationListener.notifySuccess(operationDescription, task, parentResult);
+		parentResult.recordSuccess();
+		return oid;
+	}
+
+	private PropertyDelta checkShadowName(Collection<? extends ItemDelta> modifications, ResourceObjectShadowType shadow) throws SchemaException {
+		ItemDelta nameDelta = ItemDelta.findItemDelta(modifications, new ItemPath(AccountShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
+		String newName = null;//ShadowCacheUtil.determineShadowName(shadow);
+		
+		if (nameDelta == null){
+			return null;
+		}
+		
+		if (nameDelta.isReplace()){
+			Item name = nameDelta.getItemNew();
+			newName = (String) ((PrismPropertyValue) name.getValue(0)).getValue();
+		}
+		
+		if (newName.equals(shadow.getName().getOrig())){
+			return null;
+		}
+		 
+		PropertyDelta renameDelta = PropertyDelta.createModificationReplaceProperty(AccountShadowType.F_NAME, shadow.asPrismObject().getDefinition(), new PolyStringType(newName));
+		return renameDelta;
+	}
 
 	private Collection<? extends ItemDelta> convertToPropertyDelta(
 			Collection<PropertyModificationOperation> sideEffectChanges) {
