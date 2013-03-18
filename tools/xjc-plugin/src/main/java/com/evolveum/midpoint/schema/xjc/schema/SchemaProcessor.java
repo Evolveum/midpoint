@@ -982,7 +982,7 @@ public class SchemaProcessor implements Processor {
 
         //setter method update
         if (isList) {
-            return false;
+            return true;
         }
 
         method = recreateSetter(field, classOutline);
