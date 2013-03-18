@@ -584,7 +584,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
             </xsd:any>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="optional"/>
