@@ -61,7 +61,7 @@ public class QueryDefinitionRegistry {
         StringBuilder builder = new StringBuilder();
         Collection<Definition> defCollection = definitions.values();
         for (Definition definition : defCollection) {
-            builder.append(definition).append('\n');
+            builder.append(definition.debugDump()).append('\n');
         }
 
         return builder.toString();

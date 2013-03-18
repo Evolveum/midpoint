@@ -31,4 +31,9 @@ public class AnyDefinition extends Definition {
     public AnyDefinition(QName jaxbName, QName jaxbType, String jpaName, Class jpaType) {
         super(jaxbName, jaxbType, jpaName, jpaType);
     }
+
+    @Override
+    protected String getDebugDumpClassName() {
+        return "Any";
+    }
 }

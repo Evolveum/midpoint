@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +47,7 @@ public class EntityDefinition extends Definition {
     }
 
     void setEmbedded(boolean embedded) {
-        embedded = embedded;
+        this.embedded = embedded;
     }
 
     public List<Definition> getDefinitions() {
@@ -56,23 +58,39 @@ public class EntityDefinition extends Definition {
     }
 
     @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("EntityDefinition{");
-        builder.append("jpaName=").append(getJpaName());
-        builder.append(", jaxbName=").append(getJaxbName());
-        builder.append(", embedded=").append(embedded);
-        builder.append(", definitions=[\n");
+    protected void toStringExtended(StringBuilder builder) {
+        builder.append(", embedded=").append(isEmbedded());
+        builder.append(", definitions=[");
 
         List<Definition> definitions = getDefinitions();
         for (Definition definition : definitions) {
-            builder.append("   ").append(definition);
+            builder.append(definition.getDebugDumpClassName());
+            builder.append('(').append(dumpQName(getJaxbName())).append(')');
+        }
+        builder.append(']');
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(DebugDumpable.INDENT_STRING);
+        }
+        sb.append(toString());
+
+        List<Definition> definitions = getDefinitions();
+        for (Definition definition : definitions) {
+            sb.append(definition.debugDump(indent + 1));
             if (definitions.indexOf(definition) != definitions.size() - 1) {
-                builder.append('\n');
+                sb.append('\n');
             }
         }
-        builder.append("]}");
 
-        return builder.toString();
+        return sb.toString();
+    }
+
+    @Override
+    protected String getDebugDumpClassName() {
+        return "Ent";
     }
 }

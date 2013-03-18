@@ -33,14 +33,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Index;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.Lob;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Set;
 
 /**
@@ -51,7 +52,7 @@ public class ClassDefinitionParser {
     private static final Trace LOGGER = TraceManager.getTrace(ClassDefinitionParser.class);
 
     public Definition parse(Class clazz) {
-        if (clazz.isInterface() || !clazz.isAnnotationPresent(Entity.class)) {
+        if (clazz.isInterface()){// || !clazz.isAnnotationPresent(Entity.class)) {
             return null;
         }
 
@@ -76,6 +77,8 @@ public class ClassDefinitionParser {
             Definition definition = createMethodDefinition(method);
             entityDef.getDefinitions().add(definition);
         }
+
+        Collections.sort(entityDef.getDefinitions(), new DefinitionComparator());
 
         return entityDef;
     }
@@ -113,6 +116,11 @@ public class ClassDefinitionParser {
             CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
             updateCollectionDefinition(collDef, method);
             definition = collDef;
+        } else if (isReturningEntity(method)) {
+            EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
+            //todo implement recursion
+//            updateEntityDefinition(entityDef);
+            definition = entityDef;
         } else {
             PropertyDefinition propDef = new PropertyDefinition(jaxbName, jaxbType, jpaName, jpaType);
             updatePropertyDefinition(propDef, method);
@@ -122,8 +130,24 @@ public class ClassDefinitionParser {
         return definition;
     }
 
+    private boolean isReturningEntity(Method method) {
+        Class type = method.getReturnType();
+        if (RPolyString.class.isAssignableFrom(type)) {
+            //it's hibernate entity but from prism point of view it's property
+            return false;
+        }
+
+        return type.getAnnotation(Entity.class) != null || type.getAnnotation(Embeddable.class) != null;
+    }
+
     private void updateCollectionDefinition(CollectionDefinition definition, Method method) {
-        //todo implement
+        ParameterizedType type = (ParameterizedType)method.getGenericReturnType();
+        Class clazz = (Class) type.getActualTypeArguments()[0];
+
+        ClassDefinitionParser parser = new ClassDefinitionParser();
+        Definition collDef = parser.parse(clazz);
+
+        definition.setDefinition(collDef);
     }
 
     private void updateReferenceDefinition(ReferenceDefinition definition, Method method) {
@@ -174,5 +198,38 @@ public class ClassDefinitionParser {
 
         char first = Character.toLowerCase(methodName.charAt(startIndex));
         return Character.toString(first) + StringUtils.substring(methodName, startIndex + 1, methodName.length());
+    }
+
+    private static class DefinitionComparator implements Comparator<Definition> {
+
+        @Override
+        public int compare(Definition o1, Definition o2) {
+            if (o1.getClass().equals(o2.getClass())) {
+                return String.CASE_INSENSITIVE_ORDER.compare(o1.getJaxbName().getLocalPart(),
+                        o2.getJaxbName().getLocalPart());
+            }
+
+            return getType(o1) - getType(o2);
+        }
+
+        private int getType(Definition def) {
+            if (def == null) {
+                return 0;
+            }
+
+            if (def instanceof PropertyDefinition) {
+                return 1;
+            } else if (def instanceof ReferenceDefinition) {
+                return 2;
+            } else if (def instanceof CollectionDefinition) {
+                return 3;
+            } else if (def instanceof AnyDefinition) {
+                return 4;
+            } else if (def instanceof EntityDefinition) {
+                return 5;
+            }
+
+            return 0;
+        }
     }
 }

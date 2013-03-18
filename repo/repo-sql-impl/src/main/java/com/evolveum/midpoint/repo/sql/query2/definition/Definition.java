@@ -21,12 +21,15 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.Dumpable;
+
 import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public class Definition {
+public abstract class Definition implements Dumpable, DebugDumpable {
 
     //jaxb
     private QName jaxbName;
@@ -61,14 +64,60 @@ public class Definition {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(getClass().getSimpleName());
-        builder.append('[');
-        builder.append("jaxbName=").append(jaxbName);
-        builder.append(", jaxbType=").append(jaxbType);
-        builder.append(", jpaName=").append(jpaName);
-        builder.append(", jpaType=").append((jpaType != null ? jpaType.getName() : ""));
-        builder.append(']');
+        builder.append(getDebugDumpClassName());
+        builder.append('{');
+        builder.append("jaxbN=").append(dumpQName(jaxbName));
+        builder.append(", jaxbT=").append(dumpQName(jaxbType));
+        builder.append(", jpaN=").append(jpaName);
+        builder.append(", jpaT=").append((jpaType != null ? jpaType.getName() : ""));
+        toStringExtended(builder);
+        builder.append('}');
 
         return builder.toString();
     }
+
+    protected void toStringExtended(StringBuilder builder) {
+
+    }
+
+    protected String dumpQName(QName qname) {
+        if (qname == null) {
+            return null;
+        }
+
+        String namespace = qname.getNamespaceURI();
+        namespace = namespace.replaceFirst("http://midpoint\\.evolveum\\.com/xml/ns/public", "..");
+
+        StringBuilder builder = new StringBuilder();
+        builder.append('{');
+        builder.append(namespace);
+        builder.append('}');
+        builder.append(qname.getLocalPart());
+        return builder.toString();
+    }
+
+    @Override
+    public String dump() {
+        return debugDump();
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(DebugDumpable.INDENT_STRING);
+        }
+        sb.append(toString());
+        return sb.toString();
+    }
+
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    protected abstract String getDebugDumpClassName();
 }

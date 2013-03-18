@@ -67,4 +67,16 @@ public class PropertyDefinition extends Definition {
     void setIndexed(boolean indexed) {
         this.indexed = indexed;
     }
+
+    @Override
+    protected void toStringExtended(StringBuilder builder) {
+        builder.append(", lob=").append(isLob());
+        builder.append(", enumerated=").append(isEnumerated());
+        builder.append(", indexed=").append(isIndexed());
+    }
+
+    @Override
+    protected String getDebugDumpClassName() {
+        return "Prop";
+    }
 }

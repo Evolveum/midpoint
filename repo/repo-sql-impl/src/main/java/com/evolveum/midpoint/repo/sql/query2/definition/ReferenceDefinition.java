@@ -41,4 +41,9 @@ public class ReferenceDefinition extends Definition {
     void setEmbedded(boolean embedded) {
         embedded = embedded;
     }
+
+    @Override
+    protected String getDebugDumpClassName() {
+        return "Ref";
+    }
 }

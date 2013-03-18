@@ -65,9 +65,26 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
 
+    @Test(enabled = false)//todo implement and enable
+    public void queryEnabled() throws  Exception {
+        Session session = open();
+        Criteria main = session.createCriteria(RUser.class, "u");
+        main.add(Restrictions.eq("activation.enabled", true));
+
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, UserType.class,
+                new File(TEST_DIR, "query-user-by-enabled.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+
     @Test
     public void queryGenericLong() throws Exception {
-        LOGGER.info("===[ queryGenericLong ]===");
         Session session = open();
         Criteria main = session.createCriteria(RGenericObject.class, "g");
 
@@ -99,7 +116,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryOrComposite() throws Exception {
-        LOGGER.info("===[ queryOrComposite ]===");
         Session session = open();
         Criteria main = session.createCriteria(RAccountShadow.class, "a");
 
