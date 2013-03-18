@@ -25,15 +25,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,6 +34,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -49,13 +42,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
@@ -70,10 +57,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -338,5 +329,28 @@ public class TestDeltaConverter {
     	assertTrue("Roundtrip not equals", objectDelta.equals(objectDeltaRoundtrip));
     	
     	// TODO: more checks
+    }
+
+    @Test
+    public void testTaskExtensionDeleteDelta() throws Exception {
+        PrismObject oldTask = PrismTestUtil.unmarshalObject(
+                new File(TEST_DIR, "task-old.xml"), TaskType.class).asPrismObject();
+        PrismObject newTask = PrismTestUtil.unmarshalObject(
+                new File(TEST_DIR, "task-new.xml"), TaskType.class).asPrismObject();
+
+        ObjectDelta<TaskType> delta = oldTask.diff(newTask, true, true);
+
+        final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
+
+        PrismContext context = PrismTestUtil.getPrismContext();
+        PrismJaxbProcessor jaxbProcessor = context.getPrismJaxbProcessor();
+
+        ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
+
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
+        String result = jaxbProcessor.marshalElementToString(new JAXBElement<Object>(CUSTOM_OBJECT,
+                Object.class, xmlDelta), properties);
+        assertNotNull(result);
     }
 }

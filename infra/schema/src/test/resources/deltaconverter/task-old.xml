@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2012 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      oid="91919192-76e0-59e2-86d6-3d4f02d3ffff"
+      version="5664">
+    <name>
+        <t:orig>Synchronization: Embedded Test OpenDJ (no extensions schema)</t:orig>
+        <t:norm>synchronization embedded test opendj no extensions schema</t:norm>
+    </name>
+    <description>
+        Definition of a live sychnronization task. It will poll changelog and pull in changes
+    </description>
+    <extension>
+        <gen268:token xmlns:gen268="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xmlns:qn688="http://www.w3.org/2001/XMLSchema"
+                      xsi:type="qn688:int">13</gen268:token>
+    </extension>
+    <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>suspended</executionStatus>
+    <category>LiveSynchronization</category>
+    <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+    <result xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+        <c:operation>com.evolveum.midpoint.common.operation.liveSync</c:operation>
+        <c:status>success</c:status>
+        <c:token>1000000000000000894</c:token>
+        <c:partialResults>
+            <c:operation>com.evolveum.midpoint.provisioning.api.ProvisioningService.synchronize</c:operation>
+            <c:status>success</c:status>
+            <c:params>
+                <c:entry key="task">
+                    <c:unknownJavaObject>
+                        <c:class>com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl</c:class>
+                        <c:toString>Task(id:91919191-76e0-59e2-86d6-3d4f02d3ffff, name:Synchronization: Embedded Test OpenDJ (no extensions schema), oid:91919192-76e0-59e2-86d6-3d4f02d3ffff)</c:toString>
+                    </c:unknownJavaObject>
+                </c:entry>
+                <c:entry key="oid">
+                    <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:type="xsd:string">ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
+                </c:entry>
+            </c:params>
+            <c:token>1000000000000000895</c:token>
+            <c:partialResults>
+                <c:operation>com.evolveum.midpoint.provisioning.api.ProvisioningService.getObject</c:operation>
+                <c:status>success</c:status>
+                <c:params>
+                    <c:entry key="oid">
+                        <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:string">ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
+                    </c:entry>
+                    <c:entry key="type">
+                        <c:unknownJavaObject>
+                            <c:class>java.lang.Class</c:class>
+                            <c:toString>class com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType</c:toString>
+                        </c:unknownJavaObject>
+                    </c:entry>
+                    <c:entry key="options"/>
+                </c:params>
+                <c:token>1000000000000000890</c:token>
+                <c:partialResults>
+                    <c:operation>com.evolveum.midpoint.repo.api.RepositoryService.getObject</c:operation>
+                    <c:status>success</c:status>
+                    <c:params>
+                        <c:entry key="oid">
+                            <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                     xsi:type="xsd:string">ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:value>
+                        </c:entry>
+                        <c:entry key="type">
+                            <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                     xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType</c:value>
+                        </c:entry>
+                    </c:params>
+                    <c:token>1000000000000000891</c:token>
+                </c:partialResults>
+                <c:partialResults>
+                    <c:operation>com.evolveum.midpoint.provisioning.impl.ResourceTypeManager.completeResource</c:operation>
+                    <c:status>success</c:status>
+                    <c:token>1000000000000000892</c:token>
+                    <c:partialResults>
+                        <c:operation>com.evolveum.midpoint.repo.api.RepositoryService.getObject</c:operation>
+                        <c:status>success</c:status>
+                        <c:params>
+                            <c:entry key="oid">
+                                <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                         xsi:type="xsd:string">e6162842-d841-4f7f-81f0-747547cff86c</c:value>
+                            </c:entry>
+                            <c:entry key="type">
+                                <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType</c:value>
+                            </c:entry>
+                        </c:params>
+                        <c:token>1000000000000000893</c:token>
+                    </c:partialResults>
+                </c:partialResults>
+            </c:partialResults>
+            <c:partialResults>
+                <c:operation>com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.fetchChanges</c:operation>
+                <c:status>success</c:status>
+                <c:params>
+                    <c:entry key="lastToken">
+                        <c:unknownJavaObject>
+                            <c:class>com.evolveum.midpoint.prism.PrismProperty</c:class>
+                            <c:toString>PP({.../provisioning/liveSync-1.xsd}token):[PPV(Integer:13)]</c:toString>
+                        </c:unknownJavaObject>
+                    </c:entry>
+                </c:params>
+                <c:token>1000000000000000896</c:token>
+                <c:partialResults>
+                    <c:operation>org.identityconnectors.framework.api.ConnectorFacade.sync</c:operation>
+                    <c:status>success</c:status>
+                    <c:params>
+                        <c:entry key="icfObjectClass">
+                            <c:unknownJavaObject>
+                                <c:class>org.identityconnectors.framework.common.objects.ObjectClass</c:class>
+                                <c:toString>ObjectClass: __ACCOUNT__</c:toString>
+                            </c:unknownJavaObject>
+                        </c:entry>
+                        <c:entry key="syncHandler">
+                            <c:unknownJavaObject>
+                                <c:class>com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl$1</c:class>
+                                <c:toString>com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl$1@31d46af1</c:toString>
+                            </c:unknownJavaObject>
+                        </c:entry>
+                        <c:entry key="syncToken">
+                            <c:unknownJavaObject>
+                                <c:class>org.identityconnectors.framework.common.objects.SyncToken</c:class>
+                                <c:toString>SyncToken: 13</c:toString>
+                            </c:unknownJavaObject>
+                        </c:entry>
+                    </c:params>
+                    <c:token>1000000000000000897</c:token>
+                </c:partialResults>
+                <c:partialResults>
+                    <c:operation>com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.getResourceSchema</c:operation>
+                    <c:status>success</c:status>
+                    <c:token>1000000000000000898</c:token>
+                </c:partialResults>
+            </c:partialResults>
+            <c:partialResults>
+                <c:operation>com.evolveum.midpoint.repo.api.RepositoryService.modifyObject</c:operation>
+                <c:status>success</c:status>
+                <c:params>
+                    <c:entry key="oid">
+                        <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:string">91919192-76e0-59e2-86d6-3d4f02d3ffff</c:value>
+                    </c:entry>
+                    <c:entry key="modifications">
+                        <c:unknownJavaObject>
+                            <c:class>java.util.ArrayList</c:class>
+                            <c:toString>[PropertyDelta( / {.../common/common-2a}progress, REPLACE), PropertyDelta( / {.../common/common-2a}lastRunFinishTimestamp, REPLACE)]</c:toString>
+                        </c:unknownJavaObject>
+                    </c:entry>
+                    <c:entry key="type">
+                        <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType</c:value>
+                    </c:entry>
+                </c:params>
+                <c:token>1000000000000000899</c:token>
+            </c:partialResults>
+        </c:partialResults>
+    </result>
+    <resultStatus>success</resultStatus>
+    <objectRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+               oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+               type="c:ResourceType"/>
+    <lastRunStartTimestamp>2013-02-26T16:43:05.692+01:00</lastRunStartTimestamp>
+    <lastRunFinishTimestamp>2013-02-26T16:43:38.798+01:00</lastRunFinishTimestamp>
+    <progress>4</progress>
+    <c:recurrence>recurring</c:recurrence>
+    <c:binding>tight</c:binding>
+    <c:schedule>
+        <c:interval>5</c:interval>
+    </c:schedule>
+</task>
