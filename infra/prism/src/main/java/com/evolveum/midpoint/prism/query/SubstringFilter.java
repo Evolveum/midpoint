@@ -2,12 +2,21 @@ package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class SubstringFilter extends StringValueFilter {
 
@@ -89,6 +98,43 @@ public class SubstringFilter extends StringValueFilter {
 			sb.append(getValue());
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object) {
+		ItemPath path = null;
+		if (getParentPath() != null){
+			path = new ItemPath(getParentPath(), getDefinition().getName());
+		} else{
+			path = new ItemPath(getDefinition().getName());
+		}
+		
+		Item item = object.findItem(path);
+		
+		for (Object val : item.getValues()){
+			if (val instanceof PrismPropertyValue){
+				Object value = ((PrismPropertyValue) val).getValue();
+				if (value instanceof PolyStringType){
+					if (StringUtils.contains(((PolyStringType) value).getNorm(), getValue())){
+						return true;
+					}
+				} else if (value instanceof PolyString){
+					if (StringUtils.contains(((PolyString) value).getNorm(), getValue())){
+						return true;
+					}
+				} else if (value instanceof String){
+					if (StringUtils.contains((String)value, getValue())){
+						return true;
+					}
+				}
+			}
+			if (val instanceof PrismReferenceValue) {
+				throw new UnsupportedOperationException(
+						"matching substring on the prism reference value not supported yet");
+			}
+		}
+		
+		return false;
 	}
 
 }

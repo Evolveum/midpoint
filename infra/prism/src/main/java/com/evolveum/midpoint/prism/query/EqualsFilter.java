@@ -8,11 +8,13 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -169,6 +171,11 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	public ItemPath getPath() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object) {
+		return super.match(object);
 	}
 
 }

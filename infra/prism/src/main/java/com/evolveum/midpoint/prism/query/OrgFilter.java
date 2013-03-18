@@ -2,6 +2,8 @@ package com.evolveum.midpoint.prism.query;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -129,6 +131,12 @@ public class OrgFilter extends ObjectFilter {
 			sb.append(getMaxDepth());
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 

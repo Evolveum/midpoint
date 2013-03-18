@@ -7,6 +7,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -148,6 +149,33 @@ public class RefFilter extends PropertyValueFilter{
 			}
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object) {
+//		ItemPath path = null;
+//		if (getParentPath() != null) {
+//			path = new ItemPath(getParentPath(), getDefinition().getName());
+//		} else {
+//			path = new ItemPath(getDefinition().getName());
+//		}
+//
+//		Item<?> item = object.findItem(path);
+//
+//		if (!(item.getValue(0) instanceof PrismReferenceValue)) {
+//			throw new IllegalStateException(
+//					"Could not match object for ref filter. Values are not a prism reference values");
+//		}
+//
+//		Item filterItem = getDefinition().instantiate();
+//		try {
+//			filterItem.addAll(getValues());
+//		} catch (SchemaException e) {
+//			throw new IllegalArgumentException(e.getMessage(), e);
+//		}
+//
+//		return item.equals(filterItem);
+		return super.match(object);
 	}
 
 

@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.prism.query;
 
 import java.io.Serializable;
+
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.Dumpable;
 
 public class ObjectQuery implements Dumpable, Serializable {
@@ -41,6 +44,11 @@ public class ObjectQuery implements Dumpable, Serializable {
 		query.setFilter(filter);
 		query.setPaging(paging);
 		return query;
+	}
+	
+	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter){
+		return filter.match(object);
+//		return false;
 	}
 	
 	public ObjectQuery clone() {

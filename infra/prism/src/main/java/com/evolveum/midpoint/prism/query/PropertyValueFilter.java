@@ -9,10 +9,12 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -152,6 +154,25 @@ public abstract class PropertyValueFilter extends ValueFilter{
 			clonedValues.add(value.clone());
 		}
 		return clonedValues;
+	}
+	
+	public <T extends Objectable> boolean match(PrismObject<T> object){
+		ItemPath path = null;
+		if (getParentPath() != null){
+			path = new ItemPath(getParentPath(), getDefinition().getName());
+		} else{
+			path = new ItemPath(getDefinition().getName());
+		}
+		
+		Item<?> item = object.findItem(path);
+		Item filterItem = getDefinition().instantiate();
+		try {
+			filterItem.addAll(getValues());
+		} catch (SchemaException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
+		}
+		
+		return item.equals(filterItem);
 	}
 	
 }

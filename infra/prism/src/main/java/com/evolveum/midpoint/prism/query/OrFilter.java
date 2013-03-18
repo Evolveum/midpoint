@@ -3,6 +3,8 @@ package com.evolveum.midpoint.prism.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -66,5 +68,16 @@ public class OrFilter extends NaryLogicalFilter {
 		}
 		sb.append(")");
 		return sb.toString();
+	}
+
+
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object) {
+		for (ObjectFilter filter : getCondition()){
+			if (filter.match(object)){
+				return true;
+			}
+		}
+		return false;
 	}
 }

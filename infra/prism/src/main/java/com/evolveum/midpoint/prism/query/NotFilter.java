@@ -3,7 +3,9 @@ package com.evolveum.midpoint.prism.query;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -64,5 +66,11 @@ public class NotFilter extends UnaryLogicalFilter {
 		}
 		sb.append("");
 		return sb.toString();
+	}
+
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object) {
+		return !getFilter().match(object);
+		
 	}
 }
