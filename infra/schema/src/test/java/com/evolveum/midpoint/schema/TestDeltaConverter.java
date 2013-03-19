@@ -333,20 +333,27 @@ public class TestDeltaConverter {
 
     @Test
     public void testTaskExtensionDeleteDelta() throws Exception {
+    	System.out.println("===[ testTaskExtensionDeleteDelta ]====");
+
+    	// GIVEN
         PrismObject oldTask = PrismTestUtil.unmarshalObject(
                 new File(TEST_DIR, "task-old.xml"), TaskType.class).asPrismObject();
         PrismObject newTask = PrismTestUtil.unmarshalObject(
                 new File(TEST_DIR, "task-new.xml"), TaskType.class).asPrismObject();
 
         ObjectDelta<TaskType> delta = oldTask.diff(newTask, true, true);
+        System.out.println("Delta:");
+        System.out.println(delta.dump());
 
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
         PrismContext context = PrismTestUtil.getPrismContext();
         PrismJaxbProcessor jaxbProcessor = context.getPrismJaxbProcessor();
 
+        // WHEN
         ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
 
+        // THEN
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
         String result = jaxbProcessor.marshalElementToString(new JAXBElement<Object>(CUSTOM_OBJECT,

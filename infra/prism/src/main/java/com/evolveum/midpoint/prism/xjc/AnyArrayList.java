@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -182,11 +183,11 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     }
     
     private PrismContainerDefinition getDefinition() {
-    	PrismContainer<T> container = getContainer();
-    	if (container == null) {
+    	PrismContainerable<T> parent = containerValue.getParent();
+    	if (parent == null) {
     		return null;
     	}
-    	return container.getDefinition();
+    	return parent.getDefinition();
     }
     
     private boolean isSchemaless() {
