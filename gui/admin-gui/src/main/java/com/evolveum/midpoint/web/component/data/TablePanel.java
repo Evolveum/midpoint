@@ -63,8 +63,12 @@ public class TablePanel<T> extends Panel {
 
     private void initLayout(List<IColumn<T, String>> columns, int itemsPerPage, ISortableDataProvider provider) {
         DataTable<T, String> table = new SelectableDataTable<T>(TABLE, columns, provider, itemsPerPage);
-        table.addTopToolbar(new TableHeadersToolbar(table, provider));
         table.setOutputMarkupId(true);
+
+        TableHeadersToolbar headers = new TableHeadersToolbar(table, provider);
+        headers.setOutputMarkupId(true);
+        table.addTopToolbar(headers);
+
         add(table);
         topNavigator = new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)) {
 
@@ -138,6 +142,7 @@ public class TablePanel<T> extends Panel {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
+        //todo probably can be deleted [lazyman]
         response.render(JavaScriptHeaderItem.forReference(
                 new PackageResourceReference(TablePanel.class, "TablePanel.js")));
         response.render(OnDomReadyHeaderItem.forScript("initTable()"));

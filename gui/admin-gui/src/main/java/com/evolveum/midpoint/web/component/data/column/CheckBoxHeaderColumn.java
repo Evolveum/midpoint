@@ -24,12 +24,18 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.iterator.ComponentHierarchyIterator;
 
 import java.io.Serializable;
 import java.util.List;
@@ -37,7 +43,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn {
+public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
 
@@ -47,16 +53,20 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public Component getHeader(String componentId) {
-        final Model<Boolean> model = new Model<Boolean>();
-        return new CheckBoxPanel(componentId, model, getEnabled()) {
+        final IModel<Boolean> model = new Model<Boolean>(false);
+        CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled()) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 DataTable table = findParent(DataTable.class);
                 boolean selected = model.getObject() != null ? model.getObject() : false;
+
                 onUpdateHeader(target, selected, table);
             }
         };
+        panel.setOutputMarkupId(true);
+
+        return panel;
     }
 
     @Override
@@ -64,22 +74,99 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         return "tableCheckbox";
     }
 
-    public void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
+    /**
+     * This method is called after select all checkbox is clicked
+     * @param target
+     * @param selected
+     * @param table
+     */
+    protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
         IDataProvider provider = table.getDataProvider();
         if (!(provider instanceof BaseSortableDataProvider)) {
             LOGGER.debug("Select all checkbox work only with {} provider type. Current provider is type of {}.",
                     new Object[]{BaseSortableDataProvider.class.getName(), provider.getClass().getName()});
         }
 
+        //update selected flag in model dto objects based on select all header state
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) provider;
         List<T> objects = baseProvider.getAvailableData();
         for (T object : objects) {
             if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
-
-                selectable.setSigned(selected);
             }
         }
+
+        //refresh rows with ajax
+        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+        while (iterator.hasNext()) {
+            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
+            if (!row.getOutputMarkupId()) {
+                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+                continue;
+            }
+            target.add(row);
+        }
+    }
+
+    public static <T> boolean shoulBeHeaderSelected(DataTable table) {
+        boolean selectedAll = true;
+
+        BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
+        List<T> objects = baseProvider.getAvailableData();
+        if (objects == null || objects.isEmpty()) {
+            return false;
+        }
+
+        for (T object : objects) {
+            if (object instanceof Selectable) {
+                Selectable selectable = (Selectable) object;
+                selectedAll &= selectable.isSelected();
+            }
+        }
+
+        return selectedAll;
+    }
+
+    /**
+     * This method is called after checkbox in row is updated
+     * @param target
+     * @param table
+     * @param rowModel
+     */
+    @Override
+    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
+        //update header checkbox
+        CheckBoxPanel header = findCheckBoxColumnHeader(table);
+        if (header == null) {
+            return;
+        }
+
+        header.getPanelComponent().setModelObject(shoulBeHeaderSelected(table));
+        target.add(header);
+    }
+
+    public static CheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
+        WebMarkupContainer topToolbars = table.getTopToolbars();
+        ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
+        if (!iterator.hasNext()) {
+            return null;
+        }
+
+        TableHeadersToolbar toolbar = (TableHeadersToolbar) iterator.next();
+        // simple attempt to find checkbox which is header for our column
+        // todo: this search will fail if there are more checkbox header columns (which is not supported now,
+        // because Selectable.F_SELECTED is hardcoded all over the place...
+        iterator = toolbar.visitChildren(CheckBoxPanel.class);
+        while (iterator.hasNext()) {
+            Component c = iterator.next();
+            if (!c.getOutputMarkupId()) {
+                continue;
+            }
+
+            return (CheckBoxPanel) c;
+        }
+
+        return null;
     }
 }

@@ -19,6 +19,13 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
+/*
+ * this probably can be deleted [lazyman]
+ *
+ * 1/ checkboxes are handled through wicket
+ * 2/ user preview table stuff should not be here (I don't even know if it's still used)
+ */
+
 function initTable(){
 	var cssSelectedRow = {
       'background' : '#d8f4d8',
@@ -39,7 +46,8 @@ function initTable(){
 		      'background' : '#FFD7CA',
 		      'border-color' : '#FFFFFF'
 		    };
-	
+
+/*         now handled properly through wicket
 //TODO colors and other css properties must be in LESS file (for later configuration)
 
 	$(".sortedTable table tbody tr").click(function(){
@@ -77,6 +85,7 @@ function initTable(){
 //			checkAllChecked($(this));
 //		}
 //	});
+*/
 	
 
 	$(document).find(".sortedTable .secondaryValue").each(function(){
@@ -94,7 +103,7 @@ function initTable(){
 	
 	$("thead input[type='checkbox']").click(function(){
 		if($(this).is(":checked")){
-			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
+//			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", true);
 			$(this).parents(".sortedTable").find("tbody").find("td").css("background","#d8f4d8");
 			$(this).parents(".sortedTable").find("tbody").find("td").css("border-color","#FFFFFF");
 		} else {		
@@ -119,10 +128,11 @@ function initTable(){
 					$(this).find("td").css("border-color","#F2F2F2");
 				}
 			});
-			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
+//			$(this).parents(".sortedTable").find("tbody").find("tr").find(".tableCheckbox").find("input[type='checkbox']").attr("checked", false);
 		}
 	});
-	
+
+/*
 	function checkAllChecked(parent) {
 		if(parent.find("tbody tr").find(".tableCheckbox").length > 0) {
 			var isAllChecked = false;
@@ -142,6 +152,7 @@ function initTable(){
 			}
 		}
 	}
+*/
 	
 	
 	$(".sortedTable table tbody tr").mouseenter(function(){
@@ -171,8 +182,9 @@ function initTable(){
 			$(this).find("td").css("background", "#FFFFFF");
 			$(this).find("td").css("border-color","#F2F2F2");
 		}
-	}).find(".tableCheckbox").find("input[type='checkbox']").click(function(){
-		checkAllChecked($(this).parents(".sortedTable"));
-	});
+	})
+//        .find(".tableCheckbox").find("input[type='checkbox']").click(function(){
+//		checkAllChecked($(this).parents(".sortedTable"));
+//	});
 
 }

@@ -21,8 +21,13 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.IAjaxCallListener;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -36,13 +41,13 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selectable, String> {
+public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
     private String propertyExpression;
     private IModel<Boolean> enabled = new Model<Boolean>(true);
 
     public CheckBoxColumn(IModel<String> displayModel) {
-        this(displayModel, "selected");
+        this(displayModel, Selectable.F_SELECTED);
     }
 
     public CheckBoxColumn(IModel<String> displayModel, String propertyExpression) {
@@ -51,25 +56,40 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<Selectable>> cellItem, String componentId,
-            final IModel<Selectable> rowModel) {
+    public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
+                             final IModel<T> rowModel) {
         IModel<Boolean> selected = new PropertyModel<Boolean>(rowModel, propertyExpression);
 
-        cellItem.add(new CheckBoxPanel(componentId, selected, enabled) {
+        CheckBoxPanel check = new CheckBoxPanel(componentId, selected, enabled) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 DataTable table = findParent(DataTable.class);
                 onUpdateRow(target, table, rowModel);
+
+                //updating table row
+                target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
             }
-        });
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                // this will disable javascript event propagation from checkbox to parent dom components
+                attributes.getAjaxCallListeners().add(
+                        new AjaxCallListener().onBefore("\nattrs.event.stopPropagation();"));
+            }
+        };
+        check.setOutputMarkupId(true);
+
+        cellItem.add(check);
     }
 
     @Override
     public String getCssClass() {
         return "tableCheckbox";
     }
-    
+
     protected IModel<Boolean> getEnabled() {
         return enabled;
     }
@@ -78,8 +98,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<Selec
         this.enabled.setObject(enabled);
     }
 
-    public void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<Selectable> rowModel) {
-
+    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
     }
 
     protected String getPropertyExpression() {

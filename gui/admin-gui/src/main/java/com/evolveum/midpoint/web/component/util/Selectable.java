@@ -31,7 +31,6 @@ public class Selectable implements Serializable {
     public static final String F_SELECTED = "selected";
 
     private boolean selected;
-    private boolean signed;
 
     public boolean isSelected() {
         return selected;
@@ -40,12 +39,4 @@ public class Selectable implements Serializable {
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
-    
-    public boolean isSigned() {
-		return signed;
-	}
-    
-    public void setSigned(boolean signed) {
-		this.signed = signed;
-	}
 }

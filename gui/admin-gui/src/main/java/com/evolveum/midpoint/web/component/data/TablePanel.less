@@ -1,0 +1,16 @@
+.selectedRowMixin {
+  background: #D8F4D8;
+  border-color: #FFFFFF;
+}
+
+div.sortedTable {
+  tbody {
+    tr.selectedRow {
+      .selectedRowMixin;
+    }
+
+    tr:hover {
+      .selectedRowMixin;
+    }
+  }
+}

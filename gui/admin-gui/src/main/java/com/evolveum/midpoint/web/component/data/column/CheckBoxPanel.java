@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -33,17 +34,24 @@ import org.apache.wicket.model.Model;
  */
 public class CheckBoxPanel extends Panel {
 
+    private static final String ID_CHECK = "check";
+
     public CheckBoxPanel(String id, IModel<Boolean> model) {
         this(id, model, new Model<Boolean>(true));
     }
 
     public CheckBoxPanel(String id, IModel<Boolean> model, final IModel<Boolean> enabled) {
         super(id);
-        AjaxCheckBox check = new AjaxCheckBox("check", model) {
+        AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, model) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 CheckBoxPanel.this.onUpdate(target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                CheckBoxPanel.this.updateAjaxAttributes(attributes);
             }
         };
         check.setOutputMarkupId(true);
@@ -59,7 +67,10 @@ public class CheckBoxPanel extends Panel {
     }
 
     public AjaxCheckBox getPanelComponent() {
-        return (AjaxCheckBox) get("check");
+        return (AjaxCheckBox) get(ID_CHECK);
+    }
+
+    protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
     }
 
     public void onUpdate(AjaxRequestTarget target) {

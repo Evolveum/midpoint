@@ -24,7 +24,6 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.Editable;
-import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -44,8 +43,8 @@ public class EditableCheckboxColumn<T extends Editable> extends CheckBoxColumn<T
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<Selectable>> cellItem, String componentId,
-            final IModel<Selectable> rowModel) {
+    public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
+                             final IModel<T> rowModel) {
 
         if (!isEditing(rowModel)) {
             super.populateItem(cellItem, componentId, rowModel);
@@ -54,16 +53,12 @@ public class EditableCheckboxColumn<T extends Editable> extends CheckBoxColumn<T
         }
     }
 
-    protected boolean isEditing(IModel<Selectable> rowModel) {
-        Selectable selectable = rowModel.getObject();
-        if (!(selectable instanceof Editable)) {
-            throw new IllegalStateException("Selectable object doesn't implement editable, and thus can't be edited.");
-        }
-        Editable editable = (Editable) rowModel.getObject();
+    protected boolean isEditing(IModel<T> rowModel) {
+        Editable editable = rowModel.getObject();
         return editable.isEditing();
     }
 
-    protected InputPanel createInputPanel(String componentId, IModel<Selectable> model) {
+    protected InputPanel createInputPanel(String componentId, IModel<T> model) {
         return new CheckPanel(componentId, new PropertyModel(model, getPropertyExpression()));
     }
 }
