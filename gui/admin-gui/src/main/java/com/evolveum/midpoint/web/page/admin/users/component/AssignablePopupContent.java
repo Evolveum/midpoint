@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.users;
+package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;

@@ -47,10 +47,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUserPreview;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.css.CssResources;
@@ -144,6 +141,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         mount(new MountedMapper("/admin/users", PageUsers.class, encoder));
         mount(new MountedMapper("/admin/user", PageUser.class, encoder));
 //        mount(new MountedMapper("/admin/user", PageUser.class, new OnePageParameterEncoder(PageUser.PARAM_USER_ID)));
+        mount(new MountedMapper("/admin/users/bulk", PageBulkUsers.class));
         mount(new MountedMapper("/admin/userPreview", PageUserPreview.class, encoder));
         mount(new MountedMapper("/admin/orgStruct", PageOrgStruct.class, encoder));
 

@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -762,11 +763,11 @@ public class PageUserPreview extends PageAdmin {
 
 		private ResourceReference getIcon(boolean secondaryValue, boolean deletedValue) {
 			if (deletedValue) {
-				return new PackageResourceReference(PageUserPreview.class, "DeletedValue.png");
+                return ImgResources.createReference(ImgResources.DELETED_VALUE);
 			} else if (secondaryValue) {
-				return new PackageResourceReference(PageUserPreview.class, "SecondaryValue.png");
+                return ImgResources.createReference(ImgResources.SECONDARY_VALUE);
 			} else {
-				return new PackageResourceReference(PageUserPreview.class, "PrimaryValue.png");
+                return ImgResources.createReference(ImgResources.PRIMARY_VALUE);
 			}
 		}
 	}

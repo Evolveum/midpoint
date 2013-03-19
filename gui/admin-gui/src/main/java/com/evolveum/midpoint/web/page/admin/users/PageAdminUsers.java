@@ -47,6 +47,7 @@ public class PageAdminUsers extends PageAdmin {
 
         items.add(new BottomMenuItem(createStringResource("pageAdminUsers.listUsers"), PageUsers.class));
         items.add(new BottomMenuItem(createUserLabel(), PageUser.class, createUserVisibleBehaviour()));
+        items.add(new BottomMenuItem(createStringResource("pageAdminUsers.bulkActions"), PageBulkUsers.class));
         items.add(new BottomMenuItem(createStringResource("pageAdminUsers.orgStruct"), PageOrgStruct.class,
                 new PageDisabledVisibleBehaviour(this, PageOrgStruct.class)));
 

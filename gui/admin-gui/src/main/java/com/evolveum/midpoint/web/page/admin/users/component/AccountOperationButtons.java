@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.web.page.admin.users;
+package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import org.apache.wicket.AttributeModifier;
