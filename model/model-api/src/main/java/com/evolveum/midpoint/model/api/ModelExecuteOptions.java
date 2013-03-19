@@ -21,11 +21,13 @@
 package com.evolveum.midpoint.model.api;
 
 
+import java.io.Serializable;
+
 /**
  * @author semancik
  *
  */
-public class ModelExecuteOptions {
+public class ModelExecuteOptions implements Serializable {
 	
 	/**
 	 * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
