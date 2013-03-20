@@ -4565,6 +4565,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="authorization" type="tns:AuthorizationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Set of role authorizations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="requestable" type="xsd:boolean" minOccurs="0" default="false">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -4628,6 +4635,61 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:complexType name="AuthorizationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow"/>
+        	<xsd:element name="action" type="xsd:anyURI" minOccurs="1" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Action part from the (subject,action,object) authorization triple. It is an URL to allow extension.
+        				Multiple actions may be specified. In that case the authorization applies to all of them.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+<!--  TODO        	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Object part from the (subject,action,object) authorization triple.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element> -->
+        	<!-- TODO: more elements will be added in the future: item, target, condition, parameters -->
+        </xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:simpleType name="AuthorizationDecisionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="allow">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALLOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="deny">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DENY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="RoleType">
         <xsd:annotation>
