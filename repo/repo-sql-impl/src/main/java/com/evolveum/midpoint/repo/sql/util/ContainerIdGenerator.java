@@ -72,39 +72,41 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             return container.getId();
         }
 
-        if (container instanceof ROwnable) {
-            RContainer parent = ((ROwnable) container).getContainerOwner();
+        if (!(container instanceof ROwnable)) {
+            throw new HibernateException("Couldn't create id for '"
+                    + container.getClass().getSimpleName() + "' (should not happen).");
+        }
 
-            if (parent instanceof RUser) {
-                RUser user = (RUser) parent;
+        RContainer parent = ((ROwnable) container).getContainerOwner();
+        if (parent instanceof RUser) {
+            RUser user = (RUser) parent;
 
-                Long id = getNextId(user.getAssignments());
-                LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
-                return id;
-            } else if (parent instanceof RAbstractRole) {
-                RAbstractRole role = (RAbstractRole) parent;
+            Long id = getNextId(user.getAssignments());
+            LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
+            return id;
+        } else if (parent instanceof RAbstractRole) {
+            RAbstractRole role = (RAbstractRole) parent;
 
-                Set<RContainer> containers = new HashSet<RContainer>();
-                if (role.getAssignments() != null) {
-                    containers.addAll(role.getAssignments());
-                }
-                if (role.getExclusions() != null) {
-                    containers.addAll(role.getExclusions());
-                }
+            Set<RContainer> containers = new HashSet<RContainer>();
+            if (role.getAssignments() != null) {
+                containers.addAll(role.getAssignments());
+            }
+            if (role.getExclusions() != null) {
+                containers.addAll(role.getExclusions());
+            }
+            if (role.getAuthorizations() != null) {
+                containers.addAll(role.getAuthorizations());
+            }
 
-                Long id = getNextId(containers);
-                LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
-                return id;
-            } else {
-                return null;
+            Long id = getNextId(containers);
+            LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
+            return id;
+        } else {
+            return null;
 //                throw new HibernateException("Couldn't create id for '"
 //                        + container.getClass().getSimpleName() + "' assignment have unknown parent '"
 //                        + parent + "'.");
-            }
         }
-
-        throw new HibernateException("Couldn't create id for '"
-                + container.getClass().getSimpleName() + "' (should not happen).");
     }
 
     private String toString(Object object) {

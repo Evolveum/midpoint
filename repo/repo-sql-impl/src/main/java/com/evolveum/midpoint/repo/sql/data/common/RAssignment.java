@@ -52,7 +52,10 @@ import javax.persistence.*;
 @ForeignKey(name = "fk_assignment")
 public class RAssignment extends RContainer implements ROwnable {
 
+    public static final String F_OWNER = "owner";
+
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
+
     //owner
     private RObject owner;
     private String ownerOid;
@@ -67,6 +70,14 @@ public class RAssignment extends RContainer implements ROwnable {
     private String accountConstruction;
     private REmbeddedReference targetRef;
     private RMetadata metadata;
+
+    public RAssignment() {
+        this(null);
+    }
+
+    public RAssignment(RObject owner) {
+        this.owner = owner;
+    }
 
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})

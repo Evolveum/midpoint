@@ -74,7 +74,7 @@ public class ClassDefinitionParser {
 
             LOGGER.info("# {}", new Object[]{methodName});
 
-            Definition definition = createMethodDefinition(method);
+            Definition definition = createDefinitionFromMethod(method);
             entityDef.getDefinitions().add(definition);
         }
 
@@ -98,7 +98,7 @@ public class ClassDefinitionParser {
         //todo implement
     }
 
-    private Definition createMethodDefinition(Method method) {
+    private Definition createDefinitionFromMethod(Method method) {
         QName jaxbName = getJaxbName(method);
         QName jaxbType = getJaxbType(method);
 

@@ -4665,6 +4665,7 @@
         	</xsd:element> -->
         	<!-- TODO: more elements will be added in the future: item, target, condition, parameters -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 	
 	<xsd:simpleType name="AuthorizationDecisionType">

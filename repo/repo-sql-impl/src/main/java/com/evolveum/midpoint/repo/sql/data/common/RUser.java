@@ -130,7 +130,7 @@ public class RUser extends RObject {
         return accountRefs;
     }
 
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignment> getAssignments() {

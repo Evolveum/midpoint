@@ -1062,6 +1062,18 @@
                 <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
             </accountConstruction>
         </assignment>
+        <authorization id="3">
+            <description>some authorization description</description>
+            <decision>allow</decision>
+            <action>http://example.com/uri1</action>
+            <action>http://example.com/uri2</action>
+        </authorization>
+        <authorization id="4">
+            <description>some authorization description 2</description>
+            <decision>allow</decision>
+            <action>http://example.com/uri3</action>
+            <action>http://example.com/uri4</action>
+        </authorization>
         <exclusion id="2">
             <description>A judge cannot be a pirate at the same time. At least not openly.</description>
             <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>

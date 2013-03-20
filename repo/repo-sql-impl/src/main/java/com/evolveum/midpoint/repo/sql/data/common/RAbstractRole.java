@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RReferenceOwner;
@@ -59,6 +60,17 @@ public abstract class RAbstractRole extends RObject {
     private String approvalSchema;
     private String approvalExpression;
     private String automaticallyApproved;
+    private Set<RAuthorization> authorizations;
+
+    @OneToMany(mappedBy = RAuthorization.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RAuthorization> getAuthorizations() {
+        if (authorizations == null) {
+            authorizations = new HashSet<RAuthorization>();
+        }
+        return authorizations;
+    }
 
     public Boolean getRequestable() {
         return requestable;
@@ -90,7 +102,7 @@ public abstract class RAbstractRole extends RObject {
         return approvalSchema;
     }
 
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignment> getAssignments() {
@@ -153,6 +165,10 @@ public abstract class RAbstractRole extends RObject {
         this.requestable = requestable;
     }
 
+    public void setAuthorizations(Set<RAuthorization> authorizations) {
+        this.authorizations = authorizations;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -179,6 +195,8 @@ public abstract class RAbstractRole extends RObject {
         if (automaticallyApproved != null ? !automaticallyApproved.equals(that.automaticallyApproved) : that.automaticallyApproved != null)
             return false;
         if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null)
+            return false;
+        if (authorizations != null ? !authorizations.equals(that.authorizations) : that.authorizations != null)
             return false;
 
         return true;
@@ -208,6 +226,11 @@ public abstract class RAbstractRole extends RObject {
         if (repo.getExclusions() != null) {
             for (RExclusion rExclusion : repo.getExclusions()) {
                 jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
+            }
+        }
+        if (repo.getAuthorizations() != null) {
+            for (RAuthorization rAuth : repo.getAuthorizations()) {
+                jaxb.getAuthorization().add(rAuth.toJAXB(prismContext));
             }
         }
 
@@ -242,14 +265,9 @@ public abstract class RAbstractRole extends RObject {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
         repo.setRequestable(jaxb.isRequestable());
 
-        if (jaxb.getAssignment() != null && !jaxb.getAssignment().isEmpty()) {
-            repo.setAssignments(new HashSet<RAssignment>());
-        }
-
         ContainerIdGenerator gen = new ContainerIdGenerator();
         for (AssignmentType assignment : jaxb.getAssignment()) {
-            RAssignment rAssignment = new RAssignment();
-            rAssignment.setOwner(repo);
+            RAssignment rAssignment = new RAssignment(repo);
 
             RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, prismContext);
             gen.generate(null, rAssignment);
@@ -257,17 +275,22 @@ public abstract class RAbstractRole extends RObject {
             repo.getAssignments().add(rAssignment);
         }
 
-        if (jaxb.getExclusion() != null && !jaxb.getExclusion().isEmpty()) {
-            repo.setExclusions(new HashSet<RExclusion>());
-        }
         for (ExclusionType exclusion : jaxb.getExclusion()) {
-            RExclusion rExclusion = new RExclusion();
-            rExclusion.setOwner(repo);
+            RExclusion rExclusion = new RExclusion(repo);
 
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
             gen.generate(null, rExclusion);
 
             repo.getExclusions().add(rExclusion);
+        }
+
+        for (AuthorizationType exclusion : jaxb.getAuthorization()) {
+            RAuthorization rAuth = new RAuthorization(repo);
+
+            RAuthorization.copyFromJAXB(exclusion, rAuth, jaxb, prismContext);
+            gen.generate(null, rAuth);
+
+            repo.getAuthorizations().add(rAuth);
         }
 
         for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {

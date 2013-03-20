@@ -375,6 +375,7 @@ public final class RUtil {
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RContainer.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
         for (RContainerType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
