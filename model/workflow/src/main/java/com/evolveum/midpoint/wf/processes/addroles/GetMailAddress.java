@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.wf.processes.addroles;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;

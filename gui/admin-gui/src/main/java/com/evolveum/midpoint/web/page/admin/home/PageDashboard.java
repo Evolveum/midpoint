@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -85,7 +85,7 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private PrismObject<UserType> loadUser() {
-        PrincipalUser principal = SecurityUtils.getPrincipalUser();
+    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,

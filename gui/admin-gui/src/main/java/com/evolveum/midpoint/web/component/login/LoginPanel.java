@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.web.component.login;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
@@ -86,8 +86,8 @@ public class LoginPanel extends Panel {
             return "unknown";
         }
 
-        if (principal instanceof PrincipalUser) {
-            return WebMiscUtil.getOrigStringFromPoly(((PrincipalUser) principal).getName());
+        if (principal instanceof MidPointPrincipal) {
+            return WebMiscUtil.getOrigStringFromPoly(((MidPointPrincipal) principal).getName());
         }
 
         return principal.toString();

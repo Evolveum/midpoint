@@ -23,7 +23,7 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -84,7 +84,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 		// throw new BadCredentialsException("web.security.provider.illegal");
-		PrincipalUser user = null;
+		MidPointPrincipal user = null;
 		List<GrantedAuthority> grantedAuthorities = null;
 		try {
 			user = userManagerService.getUser((String) authentication.getPrincipal());
@@ -156,7 +156,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		return false;
 	}
 
-	private void authenticateUser(PrincipalUser user, String password) throws BadCredentialsException {		
+	private void authenticateUser(MidPointPrincipal user, String password) throws BadCredentialsException {		
 		if (user == null || user.getUser() == null || user.getUser().getCredentials() == null) {
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}

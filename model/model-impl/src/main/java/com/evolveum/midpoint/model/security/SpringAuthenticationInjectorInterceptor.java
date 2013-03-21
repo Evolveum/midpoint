@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
@@ -105,7 +105,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             username = getUsernameFromSecurityHeader(securityHeader);
 
             if (username != null && username.length() > 0) {
-                PrincipalUser user = userDetailsService.getUser(username);
+            	MidPointPrincipal user = userDetailsService.getUser(username);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUser(), null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

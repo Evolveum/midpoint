@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.web.security;
 
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.security.core.Authentication;
@@ -33,7 +34,7 @@ public class SecurityUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
 
-    public static com.evolveum.midpoint.model.security.api.PrincipalUser getPrincipalUser() {
+    public static MidPointPrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             LOGGER.debug("Authentication not available in security current context holder.");
@@ -41,12 +42,12 @@ public class SecurityUtils {
         }
 
         Object principal = authentication.getPrincipal();
-        if (!(principal instanceof com.evolveum.midpoint.model.security.api.PrincipalUser)) {
+        if (!(principal instanceof MidPointPrincipal)) {
             LOGGER.warn("Principal user in security context holder is {} but not type of {}",
-                    new Object[]{principal, com.evolveum.midpoint.model.security.api.PrincipalUser.class.getName()});
+                    new Object[]{principal, MidPointPrincipal.class.getName()});
             return null;
         }
 
-        return (com.evolveum.midpoint.model.security.api.PrincipalUser) principal;
+        return (MidPointPrincipal) principal;
     }
 }

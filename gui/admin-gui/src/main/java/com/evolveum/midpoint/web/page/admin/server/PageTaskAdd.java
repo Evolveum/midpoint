@@ -56,7 +56,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -468,7 +468,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
 	private TaskType createTask(TaskAddDto dto) {
 		TaskType task = new TaskType();
-		PrincipalUser owner = SecurityUtils.getPrincipalUser();
+		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 
 		ObjectReferenceType ownerRef = new ObjectReferenceType();
 		ownerRef.setOid(owner.getOid());

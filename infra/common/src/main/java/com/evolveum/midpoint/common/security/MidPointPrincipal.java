@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2012 Evolveum
+/**
+ * Copyright (c) 2013 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,73 +16,96 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2012 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
+package com.evolveum.midpoint.common.security;
 
-package com.evolveum.midpoint.model.security.api;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.apache.commons.lang.Validate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.apache.commons.lang.Validate;
-
-import java.io.Serializable;
 
 /**
- * Temporary place, till we create special component for it
+ * @author semancik
  *
- * @author lazyman
- * @author Igor Farinic
  */
-public class PrincipalUser implements Serializable {//   } UserDetails {
-
-    private static final long serialVersionUID = 8299738301872077768L;
+public class MidPointPrincipal implements UserDetails {
+	
+	private static final long serialVersionUID = 8299738301872077768L;
     private UserType user;
+    private Collection<Authorization> authorizations = new ArrayList<Authorization>();
 
-    public PrincipalUser(UserType user) {
+    public MidPointPrincipal(UserType user) {
         Validate.notNull(user, "User must not be null.");
         this.user = user;
     }
 
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        Collection<GrantedAuthority> collection = new HashSet<GrantedAuthority>();
-//        //todo implement
-//
-//        return collection;
-//    }
-//
-//    @Override
-//    public String getPassword() {
-//        return null;  //To change body of implemented methods use File | Settings | File Templates.
-//    }
-//
-//    @Override
-//    public String getUsername() {
-//        return user.getName();
-//    }
-//
-//    @Override
-//    public boolean isAccountNonExpired() {
-//        return true;  //To change body of implemented methods use File | Settings | File Templates.
-//    }
-//
-//    @Override
-//    public boolean isAccountNonLocked() {
-//        return true;  //To change body of implemented methods use File | Settings | File Templates.
-//    }
-//
-//    @Override
-//    public boolean isCredentialsNonExpired() {
-//        return true;  //To change body of implemented methods use File | Settings | File Templates.
-//    }
-//
-//    @Override
-    public boolean isEnabled() {
-        CredentialsType credentials = user.getCredentials();
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#getAuthorities()
+	 */
+	@Override
+	public Collection<Authorization> getAuthorities() {
+		return authorizations;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#getPassword()
+	 */
+	@Override
+	public String getPassword() {
+		// We won't return password
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#getUsername()
+	 */
+	@Override
+	public String getUsername() {
+		return getUser().getName().getOrig();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonExpired()
+	 */
+	@Override
+	public boolean isAccountNonExpired() {
+		// TODO
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonLocked()
+	 */
+	@Override
+	public boolean isAccountNonLocked() {
+		// TODO
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isCredentialsNonExpired()
+	 */
+	@Override
+	public boolean isCredentialsNonExpired() {
+		// TODO
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.security.core.userdetails.UserDetails#isEnabled()
+	 */
+	@Override
+	public boolean isEnabled() {
+		CredentialsType credentials = user.getCredentials();
         if (credentials == null || credentials.getPassword() == null){ 
         	return false;
         }
@@ -110,9 +133,9 @@ public class PrincipalUser implements Serializable {//   } UserDetails {
         }
         
         return activation.isEnabled();
-    }
+	}
 
-    public UserType getUser() {
+	public UserType getUser() {
         return user;
     }
 

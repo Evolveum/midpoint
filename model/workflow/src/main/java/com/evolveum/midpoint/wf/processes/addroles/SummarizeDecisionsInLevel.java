@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.wf.processes.addroles;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

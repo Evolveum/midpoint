@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,8 +56,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private PrismContext prismContext;
 
     @Override
-    public PrincipalUser getUser(String principal) {
-        PrincipalUser user = null;
+    public MidPointPrincipal getUser(String principal) {
+    	MidPointPrincipal user = null;
         try {
             user = findByUsername(principal);
         } catch (Exception ex) {
@@ -69,7 +69,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     @Override
-    public void updateUser(PrincipalUser user) {
+    public void updateUser(MidPointPrincipal user) {
         try {
             save(user);
         } catch (RepositoryException ex) {
@@ -78,7 +78,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
     }
 
-    private PrincipalUser findByUsername(String username) throws SchemaException, ObjectNotFoundException {
+    private MidPointPrincipal findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         usernamePoly.recompute(prismContext.getDefaultPolyStringNormalizer());
 
@@ -96,10 +96,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return null;
         }
 
-        return new PrincipalUser(list.get(0).asObjectable());
+        return new MidPointPrincipal(list.get(0).asObjectable());
     }
 
-    private PrincipalUser save(PrincipalUser person) throws RepositoryException {
+    private MidPointPrincipal save(MidPointPrincipal person) throws RepositoryException {
         try {
             UserType oldUserType = getUserByOid(person.getOid());
             PrismObject<UserType> oldUser = oldUserType.asPrismObject();

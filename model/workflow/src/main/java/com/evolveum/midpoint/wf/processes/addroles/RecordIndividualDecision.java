@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.wf.processes.addroles;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,7 +57,7 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         Decision decision = new Decision();
 
-        PrincipalUser user = getPrincipalUser();
+        MidPointPrincipal user = getPrincipalUser();
         if (user != null) {
             decision.setUser(user.getName().getOrig());  //TODO: probably not correct setting
         } else {
@@ -108,16 +108,16 @@ public class RecordIndividualDecision implements JavaDelegate {
     }
 
     // todo fixme: copied from web SecurityUtils
-    public com.evolveum.midpoint.model.security.api.PrincipalUser getPrincipalUser() {
+    public MidPointPrincipal getPrincipalUser() {
         SecurityContext ctx = SecurityContextHolder.getContext();
         if (ctx != null && ctx.getAuthentication() != null && ctx.getAuthentication().getPrincipal() != null) {
             Object principal = ctx.getAuthentication().getPrincipal();
-            if (!(principal instanceof com.evolveum.midpoint.model.security.api.PrincipalUser)) {
+            if (!(principal instanceof MidPointPrincipal)) {
                 LOGGER.warn("Principal user in security context holder is {} but not type of {}",
-                        new Object[]{principal, com.evolveum.midpoint.model.security.api.PrincipalUser.class.getName()});
+                        new Object[]{principal, MidPointPrincipal.class.getName()});
                 return null;
             }
-            return (com.evolveum.midpoint.model.security.api.PrincipalUser) principal;
+            return (MidPointPrincipal) principal;
         } else {
             LOGGER.warn("No spring security context or authentication or principal.");
             return null;

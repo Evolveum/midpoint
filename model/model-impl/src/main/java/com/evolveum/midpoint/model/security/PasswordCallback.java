@@ -27,7 +27,7 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
@@ -51,7 +51,7 @@ public class PasswordCallback implements CallbackHandler {
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
-        PrincipalUser user = userDetailsService.getUser(pc.getIdentifier());
+        MidPointPrincipal user = userDetailsService.getUser(pc.getIdentifier());
         UserType userType = user.getUser();
         CredentialsType credentials = userType.getCredentials();
         if (user != null && credentials != null && credentials.getPassword() != null 

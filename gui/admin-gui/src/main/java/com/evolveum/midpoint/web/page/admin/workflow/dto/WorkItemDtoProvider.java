@@ -21,7 +21,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,7 +51,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
     boolean assigned;
 
     public static String currentUser() {
-        PrincipalUser principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (principal == null) {
             return "Unknown";
         }

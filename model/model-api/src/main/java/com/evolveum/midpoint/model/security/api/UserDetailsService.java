@@ -22,8 +22,10 @@
 
 package com.evolveum.midpoint.model.security.api;
 
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
+
 /**
- * Temporary place, till we create special component for it
+ * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends. 
  *
  * @author lazyman
  * @author Igor Farinic
@@ -34,7 +36,7 @@ public interface UserDetailsService {
     String OPERATION_GET_USER = DOT_CLASS + "getUser";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
-    public PrincipalUser getUser(String principal);
+    public MidPointPrincipal getUser(String principal);
 
-    public void updateUser(PrincipalUser user);
+    public void updateUser(MidPointPrincipal user);
 }

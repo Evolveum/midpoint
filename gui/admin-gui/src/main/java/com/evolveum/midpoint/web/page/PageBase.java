@@ -21,10 +21,10 @@
 
 package com.evolveum.midpoint.web.page;
 
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -235,7 +235,7 @@ public abstract class PageBase extends WebPage {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
-            PrincipalUser user = SecurityUtils.getPrincipalUser();
+        	MidPointPrincipal user = SecurityUtils.getPrincipalUser();
             if (user == null) {
                 return task;
             } else {
@@ -250,7 +250,7 @@ public abstract class PageBase extends WebPage {
     }
 
     public Task createSimpleTask(String operation) {
-        PrincipalUser user = SecurityUtils.getPrincipalUser();
+    	MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         return createSimpleTask(operation, user != null ? user.getUser().asPrismObject() : null);
     }
 
