@@ -39,7 +39,7 @@ public class ClientPasswordHandler implements CallbackHandler {
 		WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
         // set the password for our message.
-        pc.setPassword("5ecr3t");
+        pc.setPassword(Main.ADM_PASSWORD);
 	}
 
 }

@@ -265,12 +265,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @BeforeMethod
     public void beforeMethod() throws Exception {
-        Task task = taskManager.createTaskInstance("get administrator");
-        PrismObject<UserType> object = modelService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(),
-                null, task, task.getResult());
-
-        assertNotNull("Administrator user is null", object.asObjectable());
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
+    	setSecurityContextUser(SystemObjectsType.USER_ADMINISTRATOR.value());
     }
 
     @AfterMethod
@@ -3301,6 +3296,39 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
     
 
+//    @Test
+//    public void test900AccessUserUnauthorized() throws Exception {
+//    	final String TEST_NAME = "test900AccessUserUnauthorized";
+//        displayTestTile(TEST_NAME);
+//        // GIVEN
+//        
+//        // Make sure that the user jack is in the repo and has no authorizations
+//        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+//        UserType userType = user.asObjectable();
+//        // Encrypt Jack's password
+//        protector.encrypt(userType.getCredentials().getPassword().getValue());
+//        OperationResult opResult = new OperationResult(TestSanity.class+"."+TEST_NAME);
+//		repositoryService.addObject(user, null, opResult);
+//        
+//        setSecurityContextUser(USER_JACK_OID);
+//        
+//        OperationResultType result = new OperationResultType();
+//        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
+//        
+//        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+//		OperationOptionsType options = new OperationOptionsType();
+//		PagingType paging = new PagingType();
+//		
+//		// WHEN
+//		// this should fail
+//        modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging, options, objectListHolder , resultHolder);
+//        
+//        // THEN
+//        
+//        display("Users", objectListHolder.value);
+//        assertEquals("Unexpected number of users", 3, objectListHolder.value.getObject().size());
+//        // TODO        
+//    }
 
     @Test
     public void test999Shutdown() throws Exception {

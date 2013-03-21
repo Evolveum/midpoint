@@ -79,13 +79,20 @@ import javax.xml.bind.JAXBElement;
  */
 public class Main {
 	
+	// Configuration
+	public static final String ADM_USERNAME = "administrator";
+	public static final String ADM_PASSWORD = "5ecr3t";
+	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-1";
+	
+	// Object OIDs
+	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
+	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
+	
+	// XML constants
 	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	private static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	private static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
 	private static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
-	
-	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
-	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
 	
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
@@ -406,8 +413,7 @@ public class Main {
 	}
 
 	private static ModelPortType createModelPort(String[] args) {
-		String endpointUrl = "http://localhost:8080/midpoint/model/model-1";
-		String username = "administrator";
+		String endpointUrl = DEFAULT_ENDPOINT_URL;
 		
 		if (args.length > 0) {
 			endpointUrl = args[0];
@@ -427,7 +433,7 @@ public class Main {
 		Map<String,Object> outProps = new HashMap<String,Object>();
 		
 		outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
-		outProps.put(WSHandlerConstants.USER, username);
+		outProps.put(WSHandlerConstants.USER, ADM_USERNAME);
 		outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
 		outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
 		

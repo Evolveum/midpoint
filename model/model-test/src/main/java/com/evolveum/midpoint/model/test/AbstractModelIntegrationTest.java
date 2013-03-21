@@ -44,6 +44,8 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.schema.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -1220,6 +1222,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return result.getLastSubresult();
 		}
 		return result;
+	}
+	
+	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance("get administrator");
+        PrismObject<UserType> object = modelService.getObject(UserType.class, userOid,
+                null, task, task.getResult());
+
+        assertNotNull("User "+userOid+" is null", object.asObjectable());
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
 	}
 
 }
