@@ -215,7 +215,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 			throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()
 					+": the target type name is not specified in the reference schema");
 		}
-		PrismObjectDefinition<Objectable> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+
+        PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(object.getCompileTimeClass());
+        if (objectDefinition == null) {
+		    objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+        }
 		if (objectDefinition == null) {
 			throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()
 					+": no definition for object type "+targetTypeName);

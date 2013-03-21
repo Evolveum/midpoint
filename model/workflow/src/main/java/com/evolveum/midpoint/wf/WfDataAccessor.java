@@ -56,15 +56,12 @@ import java.util.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 28.9.2012
- * Time: 13:26
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class WfDataAccessor {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WfDataAccessor.class);
+
     private static final char PROPERTY_TYPE_SEPARATOR_CHAR = '$';
     private static final char FLAG_SEPARATOR_CHAR = '#';
 
@@ -84,6 +81,7 @@ public class WfDataAccessor {
     private static final String OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE = DOT_CLASS + "activitiToMidpointProcessInstance";
     private static final String OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE_HISTORY = DOT_CLASS + "activitiToMidpointProcessInstanceHistory";
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
+    private static final String OPERATION_APPROVE_OR_REJECT_WORK_ITEM = DOT_CLASS + "approveOrRejectWorkItem";
 
     public WfDataAccessor(WorkflowManager workflowManager) {
         this.workflowManager = workflowManager;
@@ -104,27 +102,53 @@ public class WfDataAccessor {
      * ===================
      */
 
-    public int countWorkItemsRelatedToUser(String user, boolean assigned, OperationResult parentResult) throws WorkflowException {
+    /**
+     * Counts Work Items related to a user.
+     *
+     * @param userOid OID of the user
+     * @param assigned whether to count assigned (true) or assignable (false) work items
+     * @param parentResult
+     * @return number of relevant work items
+     * @throws WorkflowException
+     */
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_WORK_ITEMS_RELATED_TO_USER);
+        result.addParam("userOid", userOid);
+        result.addParam("assigned", assigned);
         try {
-            int count = (int) createQueryForTasksRelatedToUser(user, assigned).count();
+            int count = (int) createQueryForTasksRelatedToUser(userOid, assigned).count();
             result.recordSuccess();
             return count;
         } catch (ActivitiException e) {
-            result.recordFatalError("Couldn't count work items assigned/assignable to " + user, e);
-            throw new WorkflowException("Couldn't count work items assigned/assignable to " + user + " due to Activiti exception", e);
+            result.recordFatalError("Couldn't count work items assigned/assignable to " + userOid, e);
+            throw new WorkflowException("Couldn't count work items assigned/assignable to " + userOid + " due to Activiti exception", e);
         }
     }
 
-    public List<WorkItem> listWorkItemsRelatedToUser(String user, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException {
+    /**
+     * Lists work items related to a user.
+     *
+     * @param userOid OID of the user
+     * @param assigned whether to count assigned (true) or assignable (false) work items
+     * @param first
+     * @param count
+     * @param parentResult
+     * @return list of work items
+     * @throws WorkflowException
+     */
+    public List<WorkItem> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER);
+        result.addParam("userOid", userOid);
+        result.addParam("assigned", assigned);
+        result.addParam("first", first);
+        result.addParam("count", count);
         try {
-            List<Task> tasks = createQueryForTasksRelatedToUser(user, assigned).listPage(first, count);
+            List<Task> tasks = createQueryForTasksRelatedToUser(userOid, assigned).listPage(first, count);
             result.recordSuccess();
             return tasksToWorkItems(tasks, false, result);
         } catch (ActivitiException e) {
-            result.recordFatalError("Couldn't list work items assigned/assignable to " + user, e);
-            throw new WorkflowException("Couldn't list work items assigned/assignable to " + user + " due to Activiti exception", e);
+            result.recordFatalError("Couldn't list work items assigned/assignable to " + userOid, e);
+            throw new WorkflowException("Couldn't list work items assigned/assignable to " + userOid + " due to Activiti exception", e);
         }
     }
 
@@ -140,13 +164,14 @@ public class WfDataAccessor {
     * Process instances for user
     * ==========================
     * (1) current
-    * (2) historic
+    * (2) historic (finished)
     */
 
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_PROCESS_INSTANCES_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("requestedBy", requestedBy);
+        result.addParam("requestedFor", requestedFor);
         result.addParam("finished", finished);
         try {
             int instances = (int) createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished).count();
@@ -165,6 +190,8 @@ public class WfDataAccessor {
         result.addParam("requestedBy", requestedBy);
         result.addParam("requestedFor", requestedFor);
         result.addParam("finished", finished);
+        result.addParam("first", first);
+        result.addParam("count", count);
         try {
             List<?> instances = createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished).listPage(first, count);
             List<ProcessInstance> mInstances = finished ?
@@ -209,10 +236,10 @@ public class WfDataAccessor {
      * =========================================================================
      */
 
-    public WorkItem getWorkItemByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+    public WorkItemDetailed getWorkItemByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_WORK_ITEM_BY_TASK_ID);
         result.addParam("taskId", taskId);
-        WorkItem retval = taskToWorkItem(getTaskById(taskId, result), true, result);
+        WorkItemDetailed retval = (WorkItemDetailed) taskToWorkItem(getTaskById(taskId, result), true, result);
         result.recordSuccessIfUnknown();
         return retval;
     }
@@ -221,24 +248,24 @@ public class WfDataAccessor {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_PROCESS_INSTANCE_BY_TASK_ID);
         result.addParam("taskId", taskId);
         Task task = getTaskById(taskId, result);
-        return getProcessInstanceByInstanceIdInternal(task.getProcessInstanceId(), false, result);
+        return getProcessInstanceByInstanceIdInternal(task.getProcessInstanceId(), false, false, result);
     }
 
-    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getProcessDetails, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_PROCESS_INSTANCE_BY_INSTANCE_ID);
         result.addParam("instanceId", instanceId);
         result.addParam("historic", historic);
-        return getProcessInstanceByInstanceIdInternal(instanceId, historic, result);
+        return getProcessInstanceByInstanceIdInternal(instanceId, historic, getProcessDetails, result);
     }
 
-    public ProcessInstance getProcessInstanceByInstanceIdInternal(String instanceId, boolean historic, OperationResult result) throws ObjectNotFoundException, WorkflowException {
+    private ProcessInstance getProcessInstanceByInstanceIdInternal(String instanceId, boolean historic, boolean getProcessDetails, OperationResult result) throws ObjectNotFoundException, WorkflowException {
 
         if (historic) {
             HistoricProcessInstanceQuery hpiq = getActivitiEngine().getHistoryService().createHistoricProcessInstanceQuery();
             hpiq.processInstanceId(instanceId);
             HistoricProcessInstance historicProcessInstance = hpiq.singleResult();
             if (historicProcessInstance != null) {
-                return activitiToMidpointProcessInstanceHistory(historicProcessInstance, true, result);
+                return activitiToMidpointProcessInstanceHistory(historicProcessInstance, getProcessDetails, result);
             } else {
                 result.recordFatalError("Process instance " + instanceId + " couldn't be found.");
                 throw new ObjectNotFoundException("Process instance " + instanceId + " couldn't be found.");
@@ -249,7 +276,7 @@ public class WfDataAccessor {
             org.activiti.engine.runtime.ProcessInstance instance = piq.singleResult();
 
             if (instance != null) {
-                return activitiToMidpointProcessInstance(instance, true, result);
+                return activitiToMidpointProcessInstance(instance, getProcessDetails, result);
             } else {
                 result.recordFatalError("Process instance " + instanceId + " couldn't be found.");
                 throw new ObjectNotFoundException("Process instance " + instanceId + " couldn't be found.");
@@ -257,7 +284,6 @@ public class WfDataAccessor {
         }
     }
 
-    // todo: can throw ActivitiException?
     private Task getTaskById(String taskId, OperationResult result) throws ObjectNotFoundException {
         TaskService taskService = getActivitiEngine().getTaskService();
         TaskQuery tq = taskService.createTaskQuery();
@@ -313,11 +339,11 @@ public class WfDataAccessor {
         return retval;
     }
 
-    private ProcessInstance activitiToMidpointProcessInstance(org.activiti.engine.runtime.ProcessInstance instance, boolean details, OperationResult parentResult) throws WorkflowException {
+    private ProcessInstance activitiToMidpointProcessInstance(org.activiti.engine.runtime.ProcessInstance instance, boolean getProcessDetails, OperationResult parentResult) throws WorkflowException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE);
         result.addParam("instance id", instance.getProcessInstanceId());
-        result.addParam("details", details);
+        result.addParam("getProcessDetails", getProcessDetails);
         ProcessInstance pi = new ProcessInstance();
         pi.setProcessId(instance.getProcessInstanceId());
 
@@ -345,10 +371,10 @@ public class WfDataAccessor {
 //            }
         }
 
-        if (details) {
+        if (getProcessDetails) {
             TaskService ts = getActivitiEngine().getTaskService();
             List<Task> tasks = ts.createTaskQuery().processInstanceId(instance.getProcessInstanceId()).list();
-            pi.setWorkItems(tasksToWorkItems(tasks, true, result));
+            pi.setWorkItems(tasksToWorkItems(tasks, false, result));
             pi.setDetails(getProcessSpecificDetails(instance, vars, tasks, result));
         }
 
@@ -356,7 +382,7 @@ public class WfDataAccessor {
         return pi;
     }
 
-    private ProcessInstance activitiToMidpointProcessInstanceHistory(HistoricProcessInstance instance, boolean details, OperationResult parentResult) throws WorkflowException {
+    private ProcessInstance activitiToMidpointProcessInstanceHistory(HistoricProcessInstance instance, boolean getProcessDetails, OperationResult parentResult) throws WorkflowException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE_HISTORY);
 
@@ -368,7 +394,9 @@ public class WfDataAccessor {
         try {
             Map<String,Object> vars = getHistoricVariables(instance.getId(), result);
             pi.setName((String) vars.get(WfConstants.VARIABLE_PROCESS_NAME));
-            pi.setDetails(getProcessSpecificDetails(instance, vars, result));
+            if (getProcessDetails) {
+                pi.setDetails(getProcessSpecificDetails(instance, vars, result));
+            }
         } catch (Exception e) {     // todo: was: WorkflowException but there can be e.g. NPEs there
             result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), e);
             pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
@@ -443,23 +471,24 @@ public class WfDataAccessor {
         return d;
     }
 
-    private List<WorkItem> tasksToWorkItems(List<Task> tasks, boolean extended, OperationResult result) throws WorkflowException {
+    private List<WorkItem> tasksToWorkItems(List<Task> tasks, boolean getTaskDetails, OperationResult result) throws WorkflowException {
         List<WorkItem> retval = new ArrayList<WorkItem>();
         for (Task task : tasks) {
-            retval.add(taskToWorkItem(task, extended, result));
+            retval.add(taskToWorkItem(task, getTaskDetails, result));
         }
         return retval;
     }
 
     // should not throw ActivitiException
-    private WorkItem taskToWorkItem(Task task, boolean extended, OperationResult parentResult) throws WorkflowException {
+    // returns WorkItem or WorkItemDetailed, based on the 'getTaskDetails' parameter value
+    private WorkItem taskToWorkItem(Task task, boolean getTaskDetails, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
         result.addParam("task id", task.getId());
-        result.addParam("extended", extended);
-        WorkItem wi = new WorkItem();
+        result.addParam("getTaskDetails", getTaskDetails);
+        WorkItem wi = getTaskDetails ? new WorkItemDetailed() : new WorkItem();
         wi.setTaskId(task.getId());
         wi.setAssignee(task.getAssignee());
-        if (extended) {
+        if (getTaskDetails) {
             wi.setAssigneeName(getUserNameByOid(task.getAssignee(), result));
         } else {
             wi.setAssigneeName(wi.getAssignee());
@@ -475,17 +504,16 @@ public class WfDataAccessor {
         }
         wi.setCreateTime(task.getCreateTime());
 
-
-        if (extended) {
+        if (getTaskDetails) {
             try {
                 Map<String,Object> variables = getProcessVariables(task.getId(), result);
-                wi.setRequester((PrismObject<UserType>) variables.get(WfConstants.VARIABLE_MIDPOINT_REQUESTER));
-                wi.setObjectOld((PrismObject<UserType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD));
-                wi.setObjectNew((PrismObject<UserType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW));
-                wi.setRequestCommonData(getRequestCommon(task, result));
-                wi.setRequestSpecificData(getRequestSpecific(task, variables, result));
-                wi.setTrackingData(getTrackingData(task, variables, result));
-                wi.setAdditionalData(getAdditionalData(task, variables, result));
+                ((WorkItemDetailed) wi).setRequester((PrismObject<UserType>) variables.get(WfConstants.VARIABLE_MIDPOINT_REQUESTER));
+                ((WorkItemDetailed) wi).setObjectOld((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD));
+                ((WorkItemDetailed) wi).setObjectNew((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW));
+                ((WorkItemDetailed) wi).setRequestCommonData(getRequestCommon(task, result));
+                ((WorkItemDetailed) wi).setRequestSpecificData(getRequestSpecific(task, variables, result));
+                ((WorkItemDetailed) wi).setTrackingData(getTrackingData(task, variables, result));
+                ((WorkItemDetailed) wi).setAdditionalData(getAdditionalData(task, variables, result));
             } catch (SchemaException e) {
                 throw new SystemException("Got unexpected schema exception when preparing information on Work Item", e);
             } catch (ObjectNotFoundException e) {
@@ -622,9 +650,18 @@ public class WfDataAccessor {
         return retval.toString();
     }
 
-    public void approveOrRejectWorkItem(WorkItem workItem, String approverOid, boolean decision, OperationResult result) {
+    /**
+     * Approves or rejects a work item (without supplying any further information).
+     *
+     * @param taskId identifier of activiti task backing the work item
+     * @param decision true = approve, false = reject
+     * @param parentResult
+     */
+    public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult) {
 
-        String taskId = workItem.getTaskId();
+        OperationResult result = parentResult.createSubresult(OPERATION_APPROVE_OR_REJECT_WORK_ITEM);
+        result.addParam("taskId", taskId);
+        result.addParam("decision", decision);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Approving/rejecting work item " + taskId);
@@ -643,15 +680,12 @@ public class WfDataAccessor {
     }
 
     // todo error reporting
-    public void saveWorkItemPrism(PrismObject specific, PrismObject common, boolean decision, OperationResult result) {
-
-        String taskId = (String) common.getPropertyRealValue(WORK_ITEM_TASK_ID, String.class);
+    public void saveWorkItemPrism(String taskId, PrismObject specific, boolean decision, OperationResult result) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Saving work item " + taskId);
             LOGGER.trace("Decision: " + decision);
             LOGGER.trace("WorkItem form object (process-specific) = " + specific.debugDump());
-            LOGGER.trace("WorkItem form object (process-independent) = " + common.debugDump());
         }
 
         FormService formService = getActivitiEngine().getFormService();

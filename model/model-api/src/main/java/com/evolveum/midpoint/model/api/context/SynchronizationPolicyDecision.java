@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationPolicyDecisionType;
+
 /**
  * Describes what the policy "decides" about a specific account.
  * 
@@ -55,4 +57,28 @@ public enum SynchronizationPolicyDecision {
 	 */
 	BROKEN;
 
+    public SynchronizationPolicyDecisionType toSynchronizationPolicyDecisionType() {
+        switch (this) {
+            case ADD: return SynchronizationPolicyDecisionType.ADD;
+            case DELETE: return SynchronizationPolicyDecisionType.DELETE;
+            case KEEP: return SynchronizationPolicyDecisionType.KEEP;
+            case UNLINK: return SynchronizationPolicyDecisionType.UNLINK;
+            case BROKEN: return SynchronizationPolicyDecisionType.BROKEN;
+            default: throw new AssertionError("Unknown value of SynchronizationPolicyDecision: " + this);
+        }
+    }
+
+    public static SynchronizationPolicyDecision fromSynchronizationPolicyDecisionType(SynchronizationPolicyDecisionType value) {
+        if (value == null) {
+            return null;
+        }
+        switch (value) {
+            case ADD: return ADD;
+            case DELETE: return DELETE;
+            case KEEP: return KEEP;
+            case UNLINK: return UNLINK;
+            case BROKEN: return BROKEN;
+            default: throw new AssertionError("Unknown value of SynchronizationPolicyDecisionType: " + value);
+        }
+    }
 }

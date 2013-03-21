@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public class MidPointPrismContextFactory implements PrismContextFactory {
-	
+
 	private static final File TEST_EXTRA_SCHEMA_DIR = new File("src/test/resources/schema");
 
 	public static final MidPointPrismContextFactory FACTORY = new MidPointPrismContextFactory(TEST_EXTRA_SCHEMA_DIR);
@@ -99,7 +99,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerSchemaResource("xml/ns/standard/xmldsig-core-schema.xsd", "ds");
 		schemaRegistry.registerSchemaResource("xml/ns/standard/xenc-schema.xsd", "enc");
-		
+
 		schemaRegistry.getNamespacePrefixMapper().registerPrefix(W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi", false);
 
 		
@@ -135,9 +135,11 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/import/extension-2.xsd", "impext");
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/synchronization/extension-2.xsd", "synext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow-1.xsd", "wf");
-		
-	}
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/context/model-context-2.xsd", "m",
+                com.evolveum.midpoint.xml.ns._public.model.model_context_2.ObjectFactory.class.getPackage());
+
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/extension-2.xsd", "wf");
+    }
 	
 	private void setupDebug() {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);

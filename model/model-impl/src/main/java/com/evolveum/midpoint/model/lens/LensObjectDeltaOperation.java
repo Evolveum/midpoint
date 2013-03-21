@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2013 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -22,10 +22,14 @@ package com.evolveum.midpoint.model.lens;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
 
 /**
  * @author semancik
@@ -64,5 +68,21 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
 	protected String getDebugDumpClassName() {
         return "LensObjectDeltaOperation";
     }
-	
+
+    public LensObjectDeltaOperationType toJaxb() throws SchemaException {
+        LensObjectDeltaOperationType retval = new LensObjectDeltaOperationType();
+        retval.setObjectDeltaOperation(DeltaConvertor.toObjectDeltaOperationType(this));
+        retval.setAudited(audited);
+        return retval;
+    }
+
+    public static LensObjectDeltaOperation fromJaxb(LensObjectDeltaOperationType jaxb, PrismContext prismContext) throws SchemaException {
+
+        ObjectDeltaOperation odo = DeltaConvertor.createObjectDeltaOperation(jaxb.getObjectDeltaOperation(), prismContext);
+        LensObjectDeltaOperation retval = new LensObjectDeltaOperation();
+        retval.setObjectDelta(odo.getObjectDelta());
+        retval.setExecutionResult(odo.getExecutionResult());
+        retval.setAudited(jaxb.isAudited());
+        return retval;
+    }
 }

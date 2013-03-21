@@ -19,7 +19,7 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.wf.processes;
+package com.evolveum.midpoint.wf.processes.obsolete;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,7 +57,7 @@ public class ModifyUserSecondaryProcessWrapper //implements ProcessWrapper {
     }
 
     //@Override
-//    public StartProcessInstruction startProcessIfNeeded(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
+//    public StartProcessInstruction prepareStartCommandIfApplicable(ModelOperationStageType stage, Collection<ObjectDelta<? extends ObjectType>> changes, Task task) {
 //
 //        if (true)
 //            return null;

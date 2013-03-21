@@ -129,27 +129,6 @@ public class NoOpTaskHandler implements TaskHandler {
 			}
         }
 
-        final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
-        final QName WFLASTVARIABLES_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastVariables");
-        PrismPropertyDefinition wfLastVariablesPropertyDefinition = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
-
-        PrismProperty testProp = wfLastVariablesPropertyDefinition.instantiate();
-        testProp.setValue(new PrismPropertyValue<String>("Hi"));
-        try {
-            task.setExtensionProperty(testProp);
-            task.savePendingModifications(opResult);
-        } catch(Exception e) {
-            throw new SystemException("Set property has thrown an exception", e);
-        }
-
-        testProp.setValue(new PrismPropertyValue<String>("Hi2"));
-        try {
-            task.setExtensionProperty(testProp);
-            task.savePendingModifications(opResult);
-        } catch(Exception e) {
-            throw new SystemException("Set property (2) has thrown an exception", e);
-        }
-		
 		opResult.recordSuccess();
 		
 		// This "run" is finished. But the task goes on ...

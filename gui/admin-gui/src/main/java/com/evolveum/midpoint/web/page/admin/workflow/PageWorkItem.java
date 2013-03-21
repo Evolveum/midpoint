@@ -39,11 +39,13 @@ import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.wf.ProcessInstance;
 import com.evolveum.midpoint.wf.WfDataAccessor;
 import com.evolveum.midpoint.wf.WorkItem;
+import com.evolveum.midpoint.wf.WorkItemDetailed;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -60,9 +62,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import java.text.SimpleDateFormat;
 
 /**
- *
- * TODO: make this more efficient e.g. by loading WorkItem or ProcessInstance once, and derive all models from that.
- *
  * @author mederly
  */
 public class PageWorkItem extends PageAdminWorkItems {
@@ -85,7 +84,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
 
-    private IModel<WorkItemDto> workItemDtoModel;
+    private IModel<WorkItemDetailedDto> workItemDtoModel;
 
     private IModel<ObjectWrapper> requesterModel;
     private IModel<ObjectWrapper> objectOldModel;
@@ -100,56 +99,56 @@ public class PageWorkItem extends PageAdminWorkItems {
         requesterModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getRequesterWrapper();
             }
         };
         objectOldModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getObjectOldWrapper();
             }
         };
         objectNewModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getObjectNewWrapper();
             }
         };
         requestCommonModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getRequestCommonWrapper();
             }
         };
         requestSpecificModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getRequestSpecificWrapper();
             }
         };
         additionalDataModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getAdditionalDataWrapper();
             }
         };
         trackingDataModel = new LoadableModel<ObjectWrapper>(false) {
             @Override
             protected ObjectWrapper load() {
-                loadWorkItemDtoIfNecessary();
+                loadWorkItemDetailedDtoIfNecessary();
                 return getTrackingDataWrapper();
             }
         };
-        workItemDtoModel = new LoadableModel<WorkItemDto>(false) {
+        workItemDtoModel = new LoadableModel<WorkItemDetailedDto>(false) {
             @Override
-            protected WorkItemDto load() {
-                return loadWorkItemDtoIfNecessary();
+            protected WorkItemDetailedDto load() {
+                return loadWorkItemDetailedDtoIfNecessary();
             }
         };
         processInstanceDtoModel = new LoadableModel<ProcessInstanceDto>(false) {
@@ -176,7 +175,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getObjectOldWrapper() {
-        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getObjectOld();
+        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getObjectOld();
 
         if (prism == null) {
             prism = createEmptyUserObject();
@@ -193,7 +192,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getObjectNewWrapper() {
-        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getObjectNew();
+        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getObjectNew();
 
         if (prism == null) {
             prism = createEmptyUserObject();
@@ -210,8 +209,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
 
-    private PrismObject<UserType> createEmptyUserObject() {
-        PrismObject<UserType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
+    private PrismObject<? extends ObjectType> createEmptyUserObject() {
+        PrismObject<? extends ObjectType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
         try {
             getWorkflowManager().getPrismContext().adopt(p);
         } catch (SchemaException e) {   // safe to convert; this should not occur
@@ -267,14 +266,14 @@ public class PageWorkItem extends PageAdminWorkItems {
         return wrapper;
     }
 
-    private WorkItemDto loadWorkItemDtoIfNecessary() {
+    private WorkItemDetailedDto loadWorkItemDetailedDtoIfNecessary() {
 
         if (((LoadableModel) workItemDtoModel).isLoaded()) {
             return workItemDtoModel.getObject();
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEM);
-        WorkItem workItem = null;
+        WorkItemDetailed workItem = null;
         try {
             WfDataAccessor wfm = getWorkflowDataAccessor();
             workItem = wfm.getWorkItemByTaskId(getPageParameters().get(PARAM_TASK_ID).toString(), result);
@@ -289,7 +288,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             throw new RestartResponseException(PageWorkItems.class);
         }
 
-        return new WorkItemDto(workItem);
+        return new WorkItemDetailedDto(workItem);
     }
 
     private ProcessInstanceDto loadProcessInstanceDto() {
@@ -342,7 +341,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
             @Override
             public String getObject() {
-                WorkItemDto dto = workItemDtoModel.getObject();
+                WorkItemDetailedDto dto = workItemDtoModel.getObject();
                 if (dto.getWorkItem().getCreateTime() == null) {
                     return "";
                 }
@@ -363,7 +362,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return new Model("");
+                return new Model<String>("");
             }
         };
         mainForm.add(requestSpecificForm);
@@ -523,13 +522,12 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
 
         ObjectWrapper rsWrapper = requestSpecificModel.getObject();
-        ObjectWrapper rcWrapper = requestCommonModel.getObject();
         try {
             PrismObject object = rsWrapper.getObject();
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowDataAccessor().saveWorkItemPrism(object, rcWrapper.getObject(), decision, result);
+            getWorkflowDataAccessor().saveWorkItemPrism(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
             result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);

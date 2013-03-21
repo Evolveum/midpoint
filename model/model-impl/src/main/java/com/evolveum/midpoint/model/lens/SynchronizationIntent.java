@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationIntentType;
 
 /**
  * @author semancik
@@ -73,4 +74,28 @@ public enum SynchronizationIntent {
 		throw new IllegalStateException("Unexpected value "+this);
 	}
 
+    public SynchronizationIntentType toSynchronizationIntentType() {
+        switch(this) {
+            case ADD: return SynchronizationIntentType.ADD;
+            case DELETE: return SynchronizationIntentType.DELETE;
+            case KEEP: return SynchronizationIntentType.KEEP;
+            case UNLINK: return SynchronizationIntentType.UNLINK;
+            case SYNCHRONIZE: return SynchronizationIntentType.SYNCHRONIZE;
+            default: throw new AssertionError("Unknown value of SynchronizationIntent: " + this);
+        }
+    }
+
+    public static SynchronizationIntent fromSynchronizationIntentType(SynchronizationIntentType value) {
+        if (value == null) {
+            return null;
+        }
+        switch (value) {
+            case ADD: return ADD;
+            case DELETE: return DELETE;
+            case KEEP: return KEEP;
+            case UNLINK: return UNLINK;
+            case SYNCHRONIZE: return SYNCHRONIZE;
+            default: throw new AssertionError("Unknown value of SynchronizationIntentType: " + value);
+        }
+    }
 }

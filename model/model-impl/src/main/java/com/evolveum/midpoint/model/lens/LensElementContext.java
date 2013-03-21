@@ -22,6 +22,12 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensElementContextType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -42,11 +48,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -411,4 +412,40 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	protected String getDebugDumpTitle(String suffix) {
 		return getDebugDumpTitle()+" "+suffix;
 	}
+
+    public void fillInJaxb(LensElementContextType lensElementContextType) throws SchemaException {
+        lensElementContextType.setObjectOld(objectOld != null ? objectOld.asObjectable() : null);
+        lensElementContextType.setObjectNew(objectNew != null ? objectNew.asObjectable() : null);
+        lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
+        lensElementContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
+        for (LensObjectDeltaOperation executedDelta : executedDeltas) {
+            lensElementContextType.getExecutedDeltas().add(executedDelta.toJaxb());
+        }
+        lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
+        lensElementContextType.setOid(oid);
+    }
+
+    public void fillInFromJaxb(LensElementContextType lensElementContextType) throws SchemaException {
+
+        ObjectType objectTypeOld = lensElementContextType.getObjectOld();
+        this.objectOld = objectTypeOld != null ? objectTypeOld.asPrismObject() : null;
+
+        ObjectType objectTypeNew = lensElementContextType.getObjectNew();
+        this.objectNew = objectTypeOld != null ? objectTypeNew.asPrismObject() : null;
+
+        ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();
+        this.primaryDelta = primaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, lensContext.getPrismContext()) : null;
+
+        ObjectDeltaType secondaryDeltaType = lensElementContextType.getSecondaryDelta();
+        this.secondaryDelta = secondaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
+
+        for (LensObjectDeltaOperationType eDeltaOperationType : lensElementContextType.getExecutedDeltas()) {
+            this.executedDeltas.add(LensObjectDeltaOperation.fromJaxb(eDeltaOperationType, lensContext.getPrismContext()));
+        }
+
+        this.oid = lensElementContextType.getOid();
+
+        // note: objectTypeClass is already converted (used in the constructor)
+    }
+
 }

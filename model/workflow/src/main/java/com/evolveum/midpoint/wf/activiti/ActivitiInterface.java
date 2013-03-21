@@ -64,7 +64,7 @@ public class ActivitiInterface {
      * the interface between them is designed to be more universal - based on message passing.
      */
 
-    public void idm2activiti(MidPointToActivitiMessage cmd) {
+    public void midpoint2activiti(MidPointToActivitiMessage cmd) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(" *** A command from midPoint has arrived; class = " + cmd.getClass().getName() + " ***");

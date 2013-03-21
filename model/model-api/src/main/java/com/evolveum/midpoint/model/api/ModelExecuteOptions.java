@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.model.api;
 
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelExecuteOptionsType;
+
 import java.io.Serializable;
 
 /**
@@ -149,4 +151,26 @@ public class ModelExecuteOptions implements Serializable {
 		opts.setReconcile(true);
 		return opts;
 	}
+
+    public ModelExecuteOptionsType toModelExecutionOptionsType() {
+        ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
+        retval.setForce(force);
+        retval.setRaw(raw);
+        retval.setCrypt(crypt);
+        retval.setReconcile(reconcile);
+        return retval;
+    }
+
+    public static ModelExecuteOptions fromModelExecutionOptionsType(ModelExecuteOptionsType type) {
+        if (type == null) {
+            return null;
+        }
+        ModelExecuteOptions retval = new ModelExecuteOptions();
+        retval.setForce(type.isForce());
+        retval.setRaw(type.isRaw());
+        retval.setCrypt(type.isCrypt());
+        retval.setReconcile(type.isReconcile());
+        return retval;
+    }
+
 }

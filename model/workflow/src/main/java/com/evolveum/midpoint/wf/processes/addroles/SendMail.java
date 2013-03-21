@@ -63,35 +63,35 @@ public class SendMail implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        String toVal = (String) to.getValue(execution);
-        String subjectVal = (String) subject.getValue(execution);
-        String htmlVal = (String) html.getValue(execution);
-
-        WfConfiguration configuration = getWfConfiguration();
-
-        // ugly hack - in unit tests the configuration is not available, so we have to provide defaults here (todo fix this)
-        String from = configuration.getMailServerDefaultFrom() != null ? configuration.getMailServerDefaultFrom() : "nobody@nowhere.org";
-        String host = configuration.getMailServerHost();        // null means we do not want to send mail!
-        if (host == null) {
-            LOGGER.info("Mail server is not defined, mail notification to " + toVal + " will not be sent.");
-            return;
-        }
-
-        Properties properties = System.getProperties();
-        properties.setProperty("mail.smtp.host", host);
-        Session session = Session.getDefaultInstance(properties);
-
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(toVal));
-            message.setSubject(subjectVal);
-            message.setContent(htmlVal, "text/html");
-            Transport.send(message);
-            LOGGER.info("Message sent successfully to " + toVal + ".");
-        } catch (MessagingException mex) {
-            LoggingUtils.logException(LOGGER, "Couldn't send mail message to " + toVal, mex);
-        }
+//        String toVal = (String) to.getValue(execution);
+//        String subjectVal = (String) subject.getValue(execution);
+//        String htmlVal = (String) html.getValue(execution);
+//
+//        WfConfiguration configuration = getWfConfiguration();
+//
+//        // ugly hack - in unit tests the configuration is not available, so we have to provide defaults here (todo fix this)
+//        String from = configuration.getMailServerDefaultFrom() != null ? configuration.getMailServerDefaultFrom() : "nobody@nowhere.org";
+//        String host = configuration.getMailServerHost();        // null means we do not want to send mail!
+//        if (host == null) {
+//            LOGGER.info("Mail server is not defined, mail notification to " + toVal + " will not be sent.");
+//            return;
+//        }
+//
+//        Properties properties = System.getProperties();
+//        properties.setProperty("mail.smtp.host", host);
+//        Session session = Session.getDefaultInstance(properties);
+//
+//        try {
+//            MimeMessage message = new MimeMessage(session);
+//            message.setFrom(new InternetAddress(from));
+//            message.addRecipient(Message.RecipientType.TO, new InternetAddress(toVal));
+//            message.setSubject(subjectVal);
+//            message.setContent(htmlVal, "text/html");
+//            Transport.send(message);
+//            LOGGER.info("Message sent successfully to " + toVal + ".");
+//        } catch (MessagingException mex) {
+//            LoggingUtils.logException(LOGGER, "Couldn't send mail message to " + toVal, mex);
+//        }
     }
 
     public WfConfiguration getWfConfiguration() {

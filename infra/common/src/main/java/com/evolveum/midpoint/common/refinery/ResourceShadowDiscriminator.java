@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
  * Aggregate bean containing resource OID, intent and thombstone flag.
@@ -150,5 +151,23 @@ public class ResourceShadowDiscriminator implements Serializable {
 		}
 		return a.equals(b);
 	}
-	
+
+    public ResourceShadowDiscriminatorType toResourceShadowDiscriminatorType() {
+        ResourceShadowDiscriminatorType rsdt = new ResourceShadowDiscriminatorType();
+        rsdt.setIntent(intent);
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.setOid(resourceOid);
+        resourceRef.setType(ResourceType.COMPLEX_TYPE);
+        rsdt.setResourceRef(resourceRef);
+        return rsdt;
+    }
+
+    public static ResourceShadowDiscriminator fromResourceShadowDiscriminatorType(ResourceShadowDiscriminatorType resourceShadowDiscriminatorType) {
+        if (resourceShadowDiscriminatorType == null) {
+            return null;
+        }
+        return new ResourceShadowDiscriminator(
+                resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
+                resourceShadowDiscriminatorType.getIntent());
+    }
 }

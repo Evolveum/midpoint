@@ -8,6 +8,9 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -16,6 +19,8 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.w3c.dom.Element;
 
 
@@ -66,7 +71,7 @@ import org.w3c.dom.Element;
     "oid",
     "modification"
 })
-public class ObjectDeltaType {
+public class ObjectDeltaType implements Serializable {
 
     @XmlElement(required = true)
     protected ChangeTypeType changeType;
@@ -277,7 +282,7 @@ public class ObjectDeltaType {
     @XmlType(name = "", propOrder = {
         "any"
     })
-    public static class ObjectToAdd {
+    public static class ObjectToAdd implements Serializable {
 
         @XmlAnyElement(lax = true)
         protected Object any;
@@ -308,6 +313,46 @@ public class ObjectDeltaType {
             this.any = value;
         }
 
+        // todo this method is UNTESTED for now; however, as "any" will usually be ObjectType or its subclass, it should work
+        public ObjectToAdd clone() {
+            ObjectToAdd retval = new ObjectToAdd();
+            if (any != null) {
+                try {
+                    Method clone = any.getClass().getMethod("clone");
+                    clone.setAccessible(true);
+                    retval.any = clone.invoke(any);
+                } catch (NoSuchMethodException e) {
+                    throw new SystemException("Cannot clone objectToAdd: " + any, e);
+                } catch (InvocationTargetException e) {
+                    throw new SystemException("Cannot clone objectToAdd: " + any, e);
+                } catch (IllegalAccessException e) {
+                    throw new SystemException("Cannot clone objectToAdd: " + any, e);
+                }
+            }
+            return retval;
+        }
+
+    }
+
+    /**
+     * Clones the object (objectToAdd is cloned using reflection, assuming it is a subclass of ObjectType, that has public clone() method)
+     *
+     * @return copy of the object
+     */
+
+    public ObjectDeltaType clone() {
+
+        ObjectDeltaType clone = new ObjectDeltaType();
+        clone.setOid(getOid());
+        clone.setChangeType(getChangeType());
+        clone.setObjectType(getObjectType());
+        if (getObjectToAdd() != null) {
+            clone.setObjectToAdd(getObjectToAdd().clone());
+        }
+        for (ItemDeltaType mod : getModification()) {
+            clone.getModification().add(mod.clone());
+        }
+        return clone;
     }
 
 }

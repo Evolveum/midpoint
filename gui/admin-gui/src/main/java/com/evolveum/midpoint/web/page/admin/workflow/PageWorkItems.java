@@ -255,7 +255,8 @@ public class PageWorkItems extends PageAdminWorkItems {
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
-                wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), approve, result);
+                //wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), WorkItemDtoProvider.currentUser(), approve, result);
+                wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), approve, result);
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
             }

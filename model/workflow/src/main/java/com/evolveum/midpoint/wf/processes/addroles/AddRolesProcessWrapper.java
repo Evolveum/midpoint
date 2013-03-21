@@ -107,7 +107,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
     }
 
     @Override
-    public StartProcessInstruction startProcessIfNeeded(ModelContext context, Task task, OperationResult result) {
+    public StartProcessInstruction prepareStartCommandIfApplicable(ModelContext context, Task task, OperationResult result) {
 
         if (context.getState() != ModelState.PRIMARY) {
             return null;
@@ -295,7 +295,7 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
     }
 
     @Override
-    public boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result) {
+    public void finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result) {
 
         AssignmentsApprovals assignmentsApprovals = (AssignmentsApprovals) event.getVariables().get(ASSIGNMENTS_APPROVALS);
         if (assignmentsApprovals == null) {
@@ -388,8 +388,6 @@ public class AddRolesProcessWrapper implements ProcessWrapper {
         } else {
             throw new IllegalStateException("Operation that has to be continued is neither ADD nor MODIFY; task = " + task);
         }
-
-        return true;
 
     }
 

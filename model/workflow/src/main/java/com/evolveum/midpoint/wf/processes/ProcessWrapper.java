@@ -33,11 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 11.5.2012
- * Time: 15:02
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public interface ProcessWrapper {
 
@@ -45,22 +41,22 @@ public interface ProcessWrapper {
      * Determines whether to start a workflow process (and, if so, with what properties).
      *
      * @param context Context of the model operation.
-     * @param task Enclosing task to which results of the process will be stored. (todo ????????)
+     * @param task Enclosing task to which results of the process will be stored.
      * @param result
      * @return Instruction to start the process, or null if no process should be started.
      */
-    StartProcessInstruction startProcessIfNeeded(ModelContext context, Task task, OperationResult result);
+    StartProcessInstruction prepareStartCommandIfApplicable(ModelContext context, Task task, OperationResult result);
 
     /**
-     * Does a process-specific processing of wf result (i.e. of the final message from workflow).
+     * Does a specific processing at the end of the workflow. E.g. removes roles that were not approved from the model context.
      *
-     * @param context Current context of the model operation. (todo ??????????)
-     * @param event Message from the WfMS
-     * @param task Enclosing task to which results of the process were (and are) written. (todo ?????????)
+     * @param context Current context of the model operation.
+     * @param event Message from the WfMS.
+     * @param task Enclosing task to which results of the process were (and are) written.
      * @param result
      * @return TODO xxxxxx
      */
-    boolean finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result);
+    void finishProcess(ModelContext context, ProcessEvent event, Task task, OperationResult result);
 
     String getProcessSpecificDetailsForTask(String instanceId, Map<String, Object> vars);
     String getProcessSpecificDetails(ProcessInstance instance, Map<String, Object> vars, List<org.activiti.engine.task.Task> tasks);

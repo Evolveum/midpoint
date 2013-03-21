@@ -38,6 +38,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author semancik
@@ -300,4 +302,28 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
 	}
 
+    public LensFocusContextType toJaxb() throws SchemaException {
+        LensFocusContextType lensFocusContextType = new LensFocusContextType();
+        super.fillInJaxb(lensFocusContextType);
+        lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toJaxb());
+        return lensFocusContextType;
+    }
+
+    public static LensFocusContext fromJaxb(LensFocusContextType focusContextType, LensContext lensContext) throws SchemaException {
+
+        String objectTypeClassString = focusContextType.getObjectTypeClass();
+        if (StringUtils.isEmpty(objectTypeClassString)) {
+            throw new SystemException("Object type class is undefined in LensFocusContextType");
+        }
+        LensFocusContext lensFocusContext;
+        try {
+            lensFocusContext = new LensFocusContext(Class.forName(objectTypeClassString), lensContext);
+        } catch (ClassNotFoundException e) {
+            throw new SystemException("Couldn't instantiate LensFocusContext because object type class couldn't be found", e);
+        }
+
+        lensFocusContext.fillInFromJaxb(focusContextType);
+        lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromJaxb(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
+        return lensFocusContext;
+    }
 }

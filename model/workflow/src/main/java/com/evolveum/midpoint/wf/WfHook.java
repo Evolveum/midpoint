@@ -46,6 +46,7 @@ import java.util.List;
 /**
  * Provides an interface between the model and the workflow engine:
  * catches hook calls and determines which ones require workflow invocation
+ * (actually, more-or-less just delegates to wfCore)
  *
  * @author mederly
  */
@@ -57,8 +58,7 @@ public class WfHook implements ChangeHook {
     private static final Trace LOGGER = TraceManager.getTrace(WfHook.class);
 
     @Autowired(required = true)
-    public
-    WfCore wfCore;
+    public WfCore wfCore;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
@@ -85,24 +85,21 @@ public class WfHook implements ChangeHook {
         LensContext lensContext = (LensContext) context;
 
         if (LOGGER.isTraceEnabled()) {
+
             LOGGER.trace("=====================================================================");
             LOGGER.trace("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getProjectionWave() + ", max " + lensContext.getMaxWave() + "):");
-        }
 
-        ObjectDelta pdelta = context.getFocusContext().getPrimaryDelta();
-        ObjectDelta sdelta = context.getFocusContext().getSecondaryDelta();
+            ObjectDelta pdelta = context.getFocusContext().getPrimaryDelta();
+            ObjectDelta sdelta = context.getFocusContext().getSecondaryDelta();
 
-        if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Primary delta: " + (pdelta == null ? "(null)" : pdelta.debugDump()));
             LOGGER.trace("Secondary delta: " + (sdelta == null ? "(null)" : sdelta.debugDump()));
             LOGGER.trace("Projection contexts: " + context.getProjectionContexts().size());
-        }
 
-        for (Object o : context.getProjectionContexts()) {
-            ModelProjectionContext mpc = (ModelProjectionContext) o;
-            ObjectDelta ppdelta = mpc.getPrimaryDelta();
-            ObjectDelta psdelta = mpc.getSecondaryDelta();
-            if (LOGGER.isTraceEnabled()) {
+            for (Object o : context.getProjectionContexts()) {
+                ModelProjectionContext mpc = (ModelProjectionContext) o;
+                ObjectDelta ppdelta = mpc.getPrimaryDelta();
+                ObjectDelta psdelta = mpc.getSecondaryDelta();
                 LOGGER.trace(" - Primary delta: " + (ppdelta == null ? "(null)" : ppdelta.debugDump()));
                 LOGGER.trace(" - Secondary delta: " + (psdelta == null ? "(null)" : psdelta.debugDump()));
                 LOGGER.trace(" - Sync delta:" + (mpc.getSyncDelta() == null ? "(null)" : mpc.getSyncDelta().debugDump()));
@@ -115,10 +112,5 @@ public class WfHook implements ChangeHook {
 
         return mode;
     }
-
-//    @Override
-//    @Deprecated
-//    public void postChange(Collection<ObjectDelta<? extends ObjectType>> changes, Task task, OperationResult result) {
-//    }
 
 }

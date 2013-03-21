@@ -29,11 +29,15 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 14.5.2012
- * Time: 13:34
- * To change this template use File | Settings | File Templates.
+ * Structure carrying data about a particular work item, i.e. a task that has to be carried out by a user
+ * (or an information that has to be displayed to him).
+ *
+ * In order to separate basic (easily obtainable) information from detailed one, there are two classes:
+ *  - WorkItem
+ *  - WorkItemDetailed
+ *  where the second one is the subclass of the first one (maybe not the cleverest solution on the world but...)
+ *
+ * @author mederly
  */
 public class WorkItem implements Serializable {
 
@@ -45,14 +49,6 @@ public class WorkItem implements Serializable {
     private String assigneeName;
     private String candidates;
     private Date createTime;
-
-    private PrismObject<UserType> requester;
-    private PrismObject<UserType> objectOld;
-    private PrismObject<UserType> objectNew;
-    private PrismObject<ObjectType> requestSpecificData;
-    private PrismObject<ObjectType> requestCommonData;
-    private PrismObject<ObjectType> trackingData;
-    private PrismObject<ObjectType> additionalData;
 
     public String getAssignee() {
         return assignee;
@@ -116,61 +112,5 @@ public class WorkItem implements Serializable {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
-    }
-
-    public PrismObject<UserType> getObjectNew() {
-        return objectNew;
-    }
-
-    public void setObjectNew(PrismObject<UserType> objectNew) {
-        this.objectNew = objectNew;
-    }
-
-    public PrismObject<UserType> getObjectOld() {
-        return objectOld;
-    }
-
-    public void setObjectOld(PrismObject<UserType> objectOld) {
-        this.objectOld = objectOld;
-    }
-
-    public PrismObject<ObjectType> getRequestCommonData() {
-        return requestCommonData;
-    }
-
-    public void setRequestCommonData(PrismObject<ObjectType> requestCommonData) {
-        this.requestCommonData = requestCommonData;
-    }
-
-    public PrismObject<UserType> getRequester() {
-        return requester;
-    }
-
-    public void setRequester(PrismObject<UserType> requester) {
-        this.requester = requester;
-    }
-
-    public PrismObject<ObjectType> getRequestSpecificData() {
-        return requestSpecificData;
-    }
-
-    public void setRequestSpecificData(PrismObject<ObjectType> requestSpecificData) {
-        this.requestSpecificData = requestSpecificData;
-    }
-
-    public void setTrackingData(PrismObject<ObjectType> trackingData) {
-        this.trackingData = trackingData;
-    }
-
-    public PrismObject<ObjectType> getTrackingData() {
-        return trackingData;
-    }
-
-    public void setAdditionalData(PrismObject<ObjectType> additionalData) {
-        this.additionalData = additionalData;
-    }
-
-    public PrismObject<ObjectType> getAdditionalData() {
-        return additionalData;
     }
 }

@@ -26,6 +26,8 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectDeltaOperationType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -117,7 +119,16 @@ public class DeltaConvertor {
         }
 
     }
-    
+
+    public static ObjectDeltaOperation createObjectDeltaOperation(ObjectDeltaOperationType objectDeltaOperationType,
+                                                                          PrismContext prismContext) throws SchemaException {
+        ObjectDeltaOperation retval = new ObjectDeltaOperation(createObjectDelta(objectDeltaOperationType.getObjectDelta(), prismContext));
+        if (objectDeltaOperationType.getExecutionResult() != null) {
+            retval.setExecutionResult(OperationResult.createOperationResult(objectDeltaOperationType.getExecutionResult()));
+        }
+        return retval;
+    }
+
     public static <T extends Objectable> Collection<? extends ItemDelta> toModifications(ObjectModificationType objectModification,
 			Class<T> type, PrismContext prismContext) throws SchemaException {
 		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
@@ -200,6 +211,17 @@ public class DeltaConvertor {
         }
 		return objectDeltaType;
 	}
+
+    public static ObjectDeltaOperationType toObjectDeltaOperationType(ObjectDeltaOperation objectDeltaOperation) throws SchemaException {
+        ObjectDeltaOperationType retval = new ObjectDeltaOperationType();
+        if (objectDeltaOperation.getObjectDelta() != null) {
+            retval.setObjectDelta(toObjectDeltaType(objectDeltaOperation.getObjectDelta()));
+        }
+        if (objectDeltaOperation.getExecutionResult() != null) {
+            retval.setExecutionResult(objectDeltaOperation.getExecutionResult().createOperationResultType());
+        }
+        return retval;
+    }
     
 	private static ChangeTypeType convertChangeType(ChangeType changeType) {
 		if (changeType == ChangeType.ADD) {

@@ -23,15 +23,23 @@ package com.evolveum.midpoint.model.controller;
 
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -56,7 +64,11 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
 	public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-1";
 
-	@Autowired(required = true)
+    // copied from WfTaskUtil (todo eliminate duplicity)
+    public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
+    public static final QName WFMODEL_CONTEXT_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfModelContext");
+
+    @Autowired(required = true)
 	private TaskManager taskManager;
 
 	@Autowired(required = true)
@@ -83,30 +95,31 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		 * Call the model operation body.
 		 */
 
-//		ModelOperationStateType state = task.getModelOperationState();
-//		if (state == null) {
-//			String message = "The task " + task + " cannot be processed by ModelOperationTaskHandler, as it does not contain modelOperationState element.";
-//			LOGGER.error(message);
-//			result.recordFatalError(message);
-//			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-//		} else {
-//            LensContext context;
-//            try {
-//                context = (LensContext) SerializationUtil.fromString(state.getOperationData());
-//                context.adopt(prismContext);
-//                clockwork.run(context, task, result);
-//                if (result.isUnknown()) {
-//                    result.computeStatus();
-//                }
-//                runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-//            } catch (Exception e) { // todo
-//                String message = "An exception occurred within model operation, in task " + task;
-//                LoggingUtils.logException(LOGGER, message, e);
-//                result.recordPartialError(message, e);
-//                // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
-//                runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-//			}
-//		}
+        PrismProperty<LensContextType> contextTypeProperty = task.getExtension(WFMODEL_CONTEXT_PROPERTY_NAME);
+        if (contextTypeProperty == null) {
+            throw new IllegalStateException("There's no wfModelContext information in task " + task);   // todo error handling
+        }
+
+        LensContext context = null;
+        try {
+            context = LensContext.fromJaxb(contextTypeProperty.getRealValue(), prismContext);
+        } catch (SchemaException e) {
+            throw new SystemException("Cannot recover wfModelContext from task " + task);   // todo error handling
+        }
+
+        try {
+            clockwork.run(context, task, result);
+            if (result.isUnknown()) {
+                result.computeStatus();
+            }
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
+        } catch (Exception e) { // todo
+            String message = "An exception occurred within model operation, in task " + task;
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordPartialError(message, e);
+            // TODO: here we do not know whether the error is temporary or permanent (in the future we could discriminate on the basis of particular exception caught)
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR);
+		}
 
         task.getResult().recomputeStatus();
 		runResult.setOperationResult(task.getResult());
@@ -137,217 +150,4 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		LOGGER.info("Registering with taskManager as a handler for " + MODEL_OPERATION_TASK_URI);
 		taskManager.registerHandler(MODEL_OPERATION_TASK_URI, this);
 	}
-	
-	
-	
-	/*
-	 * ============ UTILITY METHODS ============
-	 */
-	
-	/**
-	 * Retrieves model operation context from the task.
-	 * 
-	 * @param methodName only for error reporting purposes
-	 * @return null if context is not present or the operation is not to be executed (this is a bit of hack, should be put into separate method, perhaps)
-	 */
-//	static Object getContext(Task task, OperationResult parentResult, String methodName) {
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//
-//    	if (state == null) {
-//    		String message = "Model operation for task " + task + " does not carry ModelOperationState, exiting the " + methodName + " method.";
-//    		LOGGER.info(message);
-//    		parentResult.recordStatus(OperationResultStatus.FATAL_ERROR, message);
-//    		return null;
-//    	}
-//
-//    	Object data;
-//    	try {
-//
-//        	String dataAsString = state.getOperationData();
-//        	LOGGER.info("DataAsString (from task new) = " + dataAsString);
-//        	if (dataAsString == null)
-//        		throw new Exception("Operation data is not present.");
-//    		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(dataAsString)));
-//    		data = ois.readObject();
-//    		if (data == null)
-//    			throw new Exception("Operation data is not present.");
-//
-//    	} catch(Exception e) {
-////    		String message = "Model operation for task " + task + " (phase " + state.getPhase() + ") could not be executed: ";
-////    		LoggingUtils.logException(LOGGER, message, e);
-////    		parentResult.recordFatalError(message, e);
-//    		return null;
-//    	}
-//
-//    	LOGGER.info("Operation data class = " + data.getClass().getName());
-//    	return data;
-//	}
-	
-	/*
-	 * The following methods are not static, as they require the hookRegistry bean.
-	 */
-	
-    /**
-     * Executes preChangePrimary on all registered hooks.
-     * Parameters (delta, task, result) are simply passed to these hooks.
-     * 
-     * As a bit of hack, changes current phase to SECONDARY. 
-     * 
-     * @return FOREGROUND, if all hooks returns FOREGROUND; BACKGROUND if not.
-     * 
-     * TODO in the future, maybe some error status returned from hooks should be considered here.
-     * @throws ClassNotFoundException 
-     * @throws java.io.IOException
-     */
-//    HookOperationMode executePreChangePrimary(Object context, Collection<ObjectDelta<?>> objectDeltas, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	// if we are not registered as a handler for this task, register!
-//    	// (we could be registered from previous phases, therefore the check)
-//    	if (!MODEL_OPERATION_TASK_URI.equals(task.getHandlerUri()))
-//    		task.pushHandlerUri(MODEL_OPERATION_TASK_URI, result);
-//
-//    	putContextIntoTask(context, ModelOperationPhaseType.SECONDARY, task, result);
-//
-//    	HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-//        if (hookRegistry != null) {
-//        	for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-//        		HookOperationMode mode = hook.preChangePrimary(objectDeltas, task, result);
-//        		if (mode == HookOperationMode.BACKGROUND)
-//        			resultMode = HookOperationMode.BACKGROUND;
-//        	}
-//        }
-//        putHookOperationModeIntoTask(resultMode, task, result);
-//        return resultMode;
-//    }
-    
-    /**
-     * A convenience method when there is only one delta.
-     * @throws ClassNotFoundException 
-     * @throws java.io.IOException
-     */
-//    HookOperationMode executePreChangePrimary(Object context, ObjectDelta<?> objectDelta, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//    	Collection<ObjectDelta<?>> deltas = new ArrayList<ObjectDelta<?>>();
-//    	deltas.add(objectDelta);
-//    	return executePreChangePrimary(context, deltas, task, result);
-//    }
-
-    /**
-     * Executes preChangeSecondary. See above for comments.
-     * @throws ClassNotFoundException 
-     * @throws java.io.IOException
-     */
-//    HookOperationMode executePreChangeSecondary(Object context, Collection<ObjectDelta<?>> objectDeltas, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	// if we are not registered as a handler for this task, register!
-//    	// (we could be registered from previous phases, therefore the check)
-//    	if (!MODEL_OPERATION_TASK_URI.equals(task.getHandlerUri()))
-//    		task.putHandlerAsFirst(MODEL_OPERATION_TASK_URI, result);
-//
-//    	putContextIntoTask(context, ModelOperationPhaseType.EXECUTE, task, result);
-//
-//    	HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-//        if (hookRegistry != null) {
-//        	for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-//        		HookOperationMode mode = hook.preChangeSecondary(objectDeltas, task, result);
-//        		if (mode == HookOperationMode.BACKGROUND)
-//        			resultMode = HookOperationMode.BACKGROUND;
-//        	}
-//        }
-//        putHookOperationModeIntoTask(resultMode, task, result);
-//        return resultMode;
-//    }
-    
-    /**
-     * Executes postChange. See above for comments. 
-     * @throws ClassNotFoundException 
-     * @throws java.io.IOException
-     */
-//    HookOperationMode executePostChange(Object context, Collection<ObjectDelta<?>> objectDeltas, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	putContextIntoTask(context, ModelOperationPhaseType.DONE, task, result);
-//
-//    	HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-//        if (hookRegistry != null) {
-//        	for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-//        		HookOperationMode mode = hook.postChange(objectDeltas, task, result);
-//        		if (mode == HookOperationMode.BACKGROUND)
-//        			resultMode = HookOperationMode.BACKGROUND;
-//        	}
-//        }
-//        putHookOperationModeIntoTask(resultMode, task, result);	// actually, this call is not needed and should be considered for removal
-//        return resultMode;
-//    }
-
-    /**
-     * A convenience method when there is only one delta.
-     * @throws ClassNotFoundException 
-     * @throws java.io.IOException
-     */
-//    HookOperationMode executePostChange(Object context, ObjectDelta<?> objectDelta, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//    	Collection<ObjectDelta<?>> deltas = new ArrayList<ObjectDelta<?>>();
-//    	deltas.add(objectDelta);
-//    	return executePostChange(context, deltas, task, result);
-//    }
-
-//    private static PropertyDefinition syncContextPropertyDefinition;
-//    {
-//    	syncContextPropertyDefinition = new PropertyDefinition(SchemaConstants.C_TASK_SYNC_CONTEXT, DOMUtil.XSD_STRING);
-//    	syncContextPropertyDefinition.setMaxOccurs(1);
-//    	syncContextPropertyDefinition.setMinOccurs(0);
-//    }
-    
-//    private void putContextIntoTask(Object context, ModelOperationPhaseType newphase, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//    	ObjectOutputStream oos = new ObjectOutputStream(baos);
-//    	oos.writeObject(context);
-//    	String ctxAsString = Base64.encodeBase64String(baos.toByteArray());
-//    	LOGGER.info("ContextAsString (serialized new) = " + ctxAsString);
-////    	PropertyContainer ext = task.getExtension();
-////    	Property ctx = new Property(SchemaConstants.C_TASK_SYNC_CONTEXT, syncContextPropertyDefinition);
-////		ctx.setValue(new PropertyValue<Object>(ctxAsString));
-////		ext.addReplaceExisting(ctx);
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//    	if (state == null)
-//    		state = new ModelOperationStateType();
-//    	state.setOperationData(ctxAsString);
-//    	state.setPhase(newphase);
-//    	task.setModelOperationStateWithPersist(state, result);
-//    }
-
-//    private void putHookOperationModeIntoTask(HookOperationMode mode, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//    	if (state == null)
-//    		state = new ModelOperationStateType();
-//
-//    	if (HookOperationMode.BACKGROUND.equals(mode))
-//    		state.setResult(ModelOperationResultType.RUNNING_IN_BACKGROUND);
-//    	else
-//    		state.setResult(ModelOperationResultType.RUNNING_IN_FOREGROUND);
-//
-//    	task.setModelOperationStateWithPersist(state, result);
-//    }
-    
-//    void putModelOperationResultIntoTask(ModelOperationResultType mode, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//    	if (state == null)
-//    		state = new ModelOperationStateType();
-//
-//    	state.setResult(mode);
-//    	task.setModelOperationStateWithPersist(state, result);
-//    }
-
-//    void putModelOperationKindIntoTask(ModelOperationKindType kind, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//    	if (state == null)
-//    		state = new ModelOperationStateType();
-//
-//    	state.setKindOfOperation(kind);
-//    	task.setModelOperationStateWithPersist(state, result);
-//    }
-
 }

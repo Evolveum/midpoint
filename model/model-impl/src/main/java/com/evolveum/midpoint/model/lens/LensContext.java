@@ -19,20 +19,6 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -45,11 +31,15 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountSynchronizationSettingsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.namespace.QName;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author semancik
@@ -447,7 +437,8 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		recomputeFocus();
 		recomputeProjections();
 	}
-	
+
+    // mainly computes new state based on old state and delta(s)
 	public void recomputeFocus() throws SchemaException {
 		if (focusContext != null) {
 			focusContext.recompute();
@@ -663,6 +654,62 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         }
 
         return sb.toString();
+    }
+
+    public LensContextType toJaxb() throws SchemaException {
+        LensContextType lensContextType = new LensContextType();
+
+        lensContextType.setState(state != null ? state.toModelStateType() : null);
+        lensContextType.setChannel(channel);
+        lensContextType.setFocusContext(focusContext != null ? focusContext.toJaxb() : null);
+        for (LensProjectionContext lensProjectionContext : projectionContexts) {
+            lensContextType.getProjectionContext().add(lensProjectionContext.toJaxb());
+        }
+        lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
+        lensContextType.setProjectionClass(projectionClass != null ? projectionClass.getName() : null);
+        lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
+        lensContextType.setProjectionWave(projectionWave);
+        lensContextType.setExecutionWave(executionWave);
+        lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
+
+        return lensContextType;
+    }
+
+    public static LensContext fromJaxb(LensContextType lensContextType, PrismContext prismContext) throws SchemaException {
+
+        String focusClassString = lensContextType.getFocusClass();
+        String projectionClassString = lensContextType.getProjectionClass();
+
+        if (StringUtils.isEmpty(focusClassString)) {
+            throw new SystemException("Focus class is undefined in LensContextType");
+        }
+        if (StringUtils.isEmpty(projectionClassString)) {
+            throw new SystemException("Projection class is undefined in LensContextType");
+        }
+
+        LensContext lensContext;
+        try {
+            lensContext = new LensContext(Class.forName(focusClassString), Class.forName(projectionClassString), prismContext);
+        } catch (ClassNotFoundException e) {
+            throw new SystemException("Couldn't instantiate LensContext because focus or projection class couldn't be found", e);
+        }
+
+        lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
+        lensContext.setChannel(lensContextType.getChannel());
+        lensContext.setFocusContext(LensFocusContext.fromJaxb(lensContextType.getFocusContext(), lensContext));
+        for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
+            lensContext.addProjectionContext(LensProjectionContext.fromJaxb(lensProjectionContextType, lensContext));
+        }
+        lensContext.setDoReconciliationForAllProjections(lensContextType.isDoReconciliationForAllProjections() != null ?
+            lensContextType.isDoReconciliationForAllProjections() : false);
+        lensContext.setProjectionWave(lensContextType.getProjectionWave() != null ?
+                lensContextType.getProjectionWave() : 0);
+        lensContext.setExecutionWave(lensContextType.getExecutionWave() != null ?
+            lensContextType.getExecutionWave() : 0);
+        lensContext.setOptions(ModelExecuteOptions.fromModelExecutionOptionsType(lensContextType.getOptions()));
+
+        lensContext.adopt(prismContext);
+        return lensContext;
     }
 
 	@Override

@@ -19,20 +19,19 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.ObjectDeltaWavesType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author semancik
@@ -390,4 +389,23 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 	}
 
 
+    public ObjectDeltaWavesType toJaxb() throws SchemaException {
+        ObjectDeltaWavesType objectDeltaWavesType = new ObjectDeltaWavesType();
+        for (ObjectDelta wave : waves) {
+            objectDeltaWavesType.getWave().add(DeltaConvertor.toObjectDeltaType(wave));
+        }
+        return objectDeltaWavesType;
+    }
+
+    public static ObjectDeltaWaves fromJaxb(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
+        if (secondaryDeltas == null) {
+            return null;
+        }
+
+        ObjectDeltaWaves retval = new ObjectDeltaWaves();
+        for (ObjectDeltaType odt : secondaryDeltas.getWave()) {
+            retval.waves.add(DeltaConvertor.createObjectDelta(odt, prismContext));
+        }
+        return retval;
+    }
 }

@@ -22,11 +22,7 @@
 package com.evolveum.midpoint.wf;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 28.7.2012
- * Time: 16:06
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class WfConstants {
 

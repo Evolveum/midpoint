@@ -37,6 +37,9 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -245,10 +248,23 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
         	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
         	if (serialize) {
-        		String serializedContext = SerializationUtil.toString(context);
-        		context = (LensContext<UserType, AccountShadowType>) SerializationUtil.fromString(serializedContext);
-        		context.adopt(prismContext);
-        	}
+
+//              old way of serialization (disabled)
+//        		String serializedContext = SerializationUtil.toString(context);
+//        		context = (LensContext<UserType, AccountShadowType>) SerializationUtil.fromString(serializedContext);
+//                context.adopt(prismContext);
+
+                System.out.println("Context before serialization = " + context.debugDump());
+                LensContextType lensContextType = context.toJaxb();
+
+                String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(lensContextType, new QName("lensContext"));
+                System.out.println("Serialized form = " + xml);
+
+                lensContextType = prismContext.getPrismJaxbProcessor().unmarshalElement(xml, LensContextType.class).getValue();
+
+                context = LensContext.fromJaxb(lensContextType, context.getPrismContext());
+                System.out.println("Context after deserialization = " + context.debugDump());
+            }
         }
         
         // THEN

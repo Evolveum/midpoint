@@ -100,30 +100,6 @@ public class ActivitiEngine {
 
         pec = pec.setJobExecutorActivate(true);
 
-        if (configuration.getMailServerHost() != null) {
-            pec = pec.setMailServerHost(configuration.getMailServerHost());
-        }
-
-        if (configuration.getMailServerPort() != null) {
-            pec = pec.setMailServerPort(configuration.getMailServerPort());
-        }
-
-        if (configuration.getMailServerDefaultFrom() != null) {
-            pec = pec.setMailServerDefaultFrom(configuration.getMailServerDefaultFrom());
-        }
-
-        if (configuration.getMailServerUsername() != null) {
-            pec = pec.setMailServerUsername(configuration.getMailServerUsername());
-        }
-
-        if (configuration.getMailServerPassword() != null) {
-            pec = pec.setMailServerPassword(configuration.getMailServerPassword());
-        }
-
-        if (configuration.getMailServerUseTLS() != null) {
-            pec = pec.setMailServerUseTLS(configuration.getMailServerUseTLS());
-        }
-
         processEngine = pec.buildProcessEngine();
 
         LOGGER.info("Activiti engine successfully created.");
@@ -211,22 +187,6 @@ public class ActivitiEngine {
             repositoryService.createDeployment().name(name).addInputStream(name, resource.getInputStream()).deploy();
             LOGGER.info("Successfully deployed Activiti resource " + name);
         }
-
-//        Document d = DOMUtil.parse(resource.getInputStream());
-//
-//        XPathFactory factory = XPathFactory.newInstance();
-//        XPath xpath = factory.newXPath();
-//        Map<String,String> ns = new HashMap<String,String>();
-//        ns.put("bpmn", BPMN_URI);
-//        xpath.setNamespaceContext(new MidPointNamespaceContext(ns));
-//        XPathExpression expr = xpath.compile("/bpmn:definitions/bpmn:process/@id");
-//        NodeList nl = (NodeList) expr.evaluate(new DOMSource(d), XPathConstants.NODESET);
-//        LOGGER.info("Found " + nl.getLength() + " process definition(s) in " + url);
-//        for (int i = 0; i < nl.getLength(); i++) {
-//            String id = nl.item(i).getTextContent();
-//            LOGGER.info("Process definition #" + i + " has id = " + id);
-//
-//        }
     }
 
     @PreDestroy

@@ -169,6 +169,36 @@
                             <wsdlRoot>${project.directory}/src/main/resources/xml</wsdlRoot>
                             <wsdlOptions>
                                 <wsdlOption>
+                                    <!-- Ugly hack. The fake WSDL includes the XSD file we need to compile.
+                                         This is the only way I found to skip generating java classes for included
+                                         schemas (namely, common-2a); we need to use -nexclude parameter that is
+                                         available only in wsdl codegen plugin. -->
+                                    <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-model-context.wsdl</wsdl>
+                                    <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-model-context.xml</catalog>
+                                    <extraargs>
+                                        <extraarg>-impl</extraarg>
+                                        <extraarg>-verbose</extraarg>
+                                        <extraarg>-validate</extraarg>
+                                        <extraarg>-xjc-Xts</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-2a</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2001/XMLSchema</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/XML/1998/namespace</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://www.w3.org/2000/09/xmldsig</extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                                <wsdlOption>
                                     <wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
                                     <wsdlLocation>classpath:xml/ns/private/model/modelWrapper.wsdl</wsdlLocation>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog.xml</catalog>

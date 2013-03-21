@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,8 +41,6 @@ import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
-
-import org.jvnet.jaxb2_commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -64,13 +61,10 @@ public class WfCore {
     private static final Trace LOGGER = TraceManager.getTrace(WfCore.class);
 
     @Autowired(required = true)
-    private WfHook wfHook;
+    private WfTaskUtil wfTaskUtil;
 
     @Autowired(required = true)
     private TaskManager taskManager;
-
-    @Autowired(required = true)
-    private WfTaskUtil wfTaskUtil;
 
     @Autowired(required = true)
     private ActivitiInterface activitiInterface;
@@ -92,7 +86,7 @@ public class WfCore {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Trying wrapper: " + wrapper.getClass().getName());
             }
-            StartProcessInstruction startCommand = wrapper.startProcessIfNeeded(context, task, result);
+            StartProcessInstruction startCommand = wrapper.prepareStartCommandIfApplicable(context, task, result);
             if (startCommand != null) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
@@ -123,7 +117,7 @@ public class WfCore {
         }
 
         if (!task.isTransient()) {
-            throw new IllegalStateException("Workflow-related task should be transient but it is persistent; task = " + task);
+            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
         }
 
         // first, create in-memory task instance
@@ -134,7 +128,7 @@ public class WfCore {
         }
 
         wfTaskUtil.setProcessWrapper(task, wrapper);
-        wfTaskUtil.setModelOperationState(task, context);
+        wfTaskUtil.storeModelContext(task, context, parentResult);
 
         taskManager.switchToBackground(task, parentResult);
 
@@ -153,12 +147,14 @@ public class WfCore {
         spc.addVariable(WfConstants.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
 
         try {
-            activitiInterface.idm2activiti(spc);
+            activitiInterface.midpoint2activiti(spc);
         } catch (RuntimeException e) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to start a process instance to workflow management system", e);
             wfTaskUtil.recordProcessState(task, "Workflow process instance creation could not be requested: " + e, "", null, parentResult);
             parentResult.recordPartialError("Couldn't send a request to start a process instance to workflow management system: " + e.getMessage(), e);
+            wfTaskUtil.markTaskAsClosed(task, parentResult);
+            throw new SystemException("Workflow process instance creation could not be requested", e);
         }
 
         // final
@@ -180,7 +176,6 @@ public class WfCore {
     public void processWorkflowMessage(ProcessEvent event, Task task, OperationResult result) throws Exception {
 
         String pid = event.getPid();
-        //String answer = event.getWfAnswer();
 
         // let us generate description if there is none
         String description = event.getState();
@@ -237,44 +232,40 @@ public class WfCore {
             }
         }
 
-//        ModelOperationStateType state = task.getModelOperationState();
-//        if (state == null || StringUtils.isEmpty(state.getOperationData())) {
-//            throw new IllegalStateException("The task does not contain model operation context; task = " + task);
-//        }
-//        ModelContext context;
-//        try {
-//            context = (ModelContext) SerializationUtil.fromString(state.getOperationData());
-//        } catch (IOException e) {
-//            throw new IllegalStateException("Model Context could not be fetched from the task due to IOException; task = " + task, e);
-//        } catch (ClassNotFoundException e) {
-//            throw new IllegalStateException("Model Context could not be fetched from the task due to ClassNotFoundException; task = " + task, e);
-//        }
-//
-//        ProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, wrappers);
-//        wrapper.finishProcess(context, event, task, result);
-//        try {
-//            state.setOperationData(SerializationUtil.toString(context));
-//            task.setModelOperationState(state);
-//            task.finishHandler(result);
-//            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
-//                taskManager.unpauseTask(task, result);
-//            }
-//        } catch (ObjectNotFoundException e) {
-//            throw new IllegalStateException(e);         // todo fixme
-//        } catch (SchemaException e) {
-//            throw new IllegalStateException(e);         // todo fixme
-//        } catch (IOException e) {
-//            throw new SystemException(e);               // todo fixme (serialization error)
-//        }
+        ModelContext context = null;
+        try {
+            context = wfTaskUtil.getModelContext(task, result);
+        } catch (SchemaException e) {
+            // todo better error reporting
+            throw new IllegalStateException("Model Context could not be fetched from the task due to SchemaException; task = " + task, e);
+        }
 
-////		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
-////
-////		// let us mark the task result as SUCCESS
-////		OperationResult or = task.getResult();		// 'or' should really be non-null here
-////		if (or != null) {
-////			or.recordSuccess();
-////			wfTaskUtil.setTaskResult(task.getOid(), or);
-////		}
+        ProcessWrapper wrapper = wfTaskUtil.getProcessWrapper(task, wrappers);
+        wrapper.finishProcess(context, event, task, result);
+        try {
+            wfTaskUtil.storeModelContext(task, context, result);
+            task.finishHandler(result);
+            if (task.getExecutionStatus() == TaskExecutionStatus.WAITING) {
+                taskManager.unpauseTask(task, result);
+            }
+        } catch (ObjectNotFoundException e) {
+            throw new IllegalStateException(e);         // todo fixme
+        } catch (SchemaException e) {
+            throw new IllegalStateException(e);         // todo fixme
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Task after finishProcessing() = " + task.dump());
+        }
+
+//		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNING)
+
+//		// let us mark the task result as SUCCESS
+//		OperationResult or = task.getResult();		// 'or' should really be non-null here
+//		if (or != null) {
+//			or.recordSuccess();
+//			wfTaskUtil.setTaskResult(task.getOid(), or);
+//		}
     }
 
     ProcessWrapper findProcessWrapper(Map<String, Object> vars, String id, OperationResult result) throws WorkflowException {
@@ -303,5 +294,5 @@ public class WfCore {
         LOGGER.trace("Registering process wrapper: " + starter.getClass().getName());
         wrappers.add(starter);
     }
-
+    
 }

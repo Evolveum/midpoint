@@ -21,46 +21,47 @@
 
 package com.evolveum.midpoint.wf;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.util.*;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessVariable;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
+
+import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+import java.text.DateFormat;
+import java.util.*;
 
 /**
  * 
@@ -91,13 +92,18 @@ public class WfTaskUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
 
-	public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd";
+	public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
 //	public static final String WORKFLOW_COMMUNICATION_NS = "http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd";
 
-	// wfStatus - records information about process execution at WfMS
+    // wfModelContext - records current model context (i.e. context of current model operation)
+
+    public static final QName WFMODEL_CONTEXT_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfModelContext");
+    private PrismPropertyDefinition wfModelContextPropertyDefinition;
+
+    // wfStatus - records information about process execution at WfMS
     // for "smart" processes it is a user-defined message; for dump ones it is usually simple "process instance has proceeded forther"
 
-	private static final boolean USE_WFSTATUS = true;
+    private static final boolean USE_WFSTATUS = true;
 	public static final QName WFSTATUS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfStatus");
 	private PrismPropertyDefinition wfStatusPropertyDefinition;
 
@@ -132,18 +138,29 @@ public class WfTaskUtil {
 //            throw new SystemException("Cannot load workflow-related task extensions due schema exception", e);
 //        }
 
+        if (!workflowManager.isEnabled()) {
+            return;
+        }
+
+        wfModelContextPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFMODEL_CONTEXT_PROPERTY_NAME);
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFSTATUS_PROPERTY_NAME);
         wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLAST_DETAILS_PROPERTY_NAME);
         wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
 		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESS_WRAPPER_PROPERTY_NAME);
 		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESSID_PROPERTY_NAME);
 
-        if (wfLastVariablesPropertyDefinition == null || wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
-            throw new SystemException("wfLastVariables property definition was not found or is not correct (its isIndexed should be FALSE)");
+        if (wfLastVariablesPropertyDefinition == null) {
+            throw new SystemException("wfLastVariables property definition was not found");
+        }
+        if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
+            throw new SystemException("wfLastVariables property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastVariablesPropertyDefinition.isIndexed() + ")");
         }
 
-        if (wfLastDetailsPropertyDefinition == null || wfLastDetailsPropertyDefinition.isIndexed() != Boolean.FALSE) {
-            throw new SystemException("wfLastDetails property definition was not found or is not correct (its isIndexed should be FALSE)");
+        if (wfLastDetailsPropertyDefinition == null) {
+            throw new SystemException("wfLastDetails property definition was not found");
+        }
+        if (wfLastDetailsPropertyDefinition.isIndexed() != Boolean.FALSE) {
+            throw new SystemException("wfLastDetails property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastDetailsPropertyDefinition.isIndexed() + ")");
         }
 
     }
@@ -606,9 +623,31 @@ public class WfTaskUtil {
         }
     }
 
-    void setModelOperationState(Task task, ModelContext context) throws IOException {
+//    void setModelOperationState(Task task, ModelContext context) throws IOException {
 //        ModelOperationStateType state = new ModelOperationStateType();
 //        state.setOperationData(SerializationUtil.toString(context));
 //        task.setModelOperationState(state);
+//    }
+
+    public ModelContext getModelContext(Task task, OperationResult result) throws SchemaException {
+        PrismProperty modelContextProperty = task.getExtension(WFMODEL_CONTEXT_PROPERTY_NAME);
+        if (modelContextProperty == null || modelContextProperty.getRealValue() == null) {
+            throw new SystemException("No model context information in task " + task);
+        }
+        Object value = modelContextProperty.getRealValue();
+        if (value instanceof Element || value instanceof JAXBElement) {
+            value = workflowManager.getPrismContext().getPrismJaxbProcessor().unmarshalObject(value, LensContextType.class);
+        }
+        if (!(value instanceof LensContextType)) {
+            throw new SystemException("Model context information in task " + task + " is of wrong type: " + modelContextProperty.getRealValue().getClass());
+        }
+        return LensContext.fromJaxb((LensContextType) value, workflowManager.getPrismContext());
     }
+
+    public void storeModelContext(Task task, ModelContext context, OperationResult result) throws SchemaException {
+        PrismProperty modelContextProperty = wfModelContextPropertyDefinition.instantiate();
+        modelContextProperty.setRealValue(((LensContext) context).toJaxb());
+        task.setExtensionProperty(modelContextProperty);
+    }
+
 }

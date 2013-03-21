@@ -38,6 +38,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * @author mederly
+ */
 @Component
 public class WfTaskHandler implements TaskHandler, InitializingBean {
 
@@ -131,8 +134,9 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
 			LOGGER.trace("Registering with taskManager as a handler for " + WF_SHADOW_TASK_URI);
 			taskManager.registerHandler(WF_SHADOW_TASK_URI, this);
 		}
-		else
+		else {
 			LOGGER.error("Cannot register with taskManager as taskManager == null");
+        }
 	}
 
 
@@ -141,15 +145,16 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
         String taskOid = task.getOid();
         Validate.notEmpty(taskOid, "Task oid must not be null or empty (task must be persistent).");
 
-        if (parentResult == null)
+        if (parentResult == null) {
             parentResult = new OperationResult("queryProcessInstance");
+        }
 
         QueryProcessCommand qpc = new QueryProcessCommand();
         qpc.setTaskOid(taskOid);
         qpc.setPid(id);
 
         try {
-            activitiInterface.idm2activiti(qpc);
+            activitiInterface.midpoint2activiti(qpc);
         } catch (RuntimeException e) {     // FIXME
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to query a process instance to workflow management system", e);

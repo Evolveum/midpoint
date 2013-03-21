@@ -92,7 +92,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
 		try {
             StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
-            ProcessInstance processInstance = getWorkflowDataAccessor().getProcessInstanceByInstanceId(pid.toString(), finished, result);
+            ProcessInstance processInstance = getWorkflowDataAccessor().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
             return new ProcessInstanceDto(processInstance);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get process instance information.", ex);
