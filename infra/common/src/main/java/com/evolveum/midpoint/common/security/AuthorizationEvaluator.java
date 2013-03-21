@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDeniedException;
@@ -35,7 +37,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterInvocation;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -43,6 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisi
  */
 public class AuthorizationEvaluator implements AccessDecisionManager {
 	
+	private static final String WILDCARD = "*";
+
 	/* (non-Javadoc)
 	 * @see org.springframework.security.access.AccessDecisionManager#decide(org.springframework.security.core.Authentication, java.lang.Object, java.util.Collection)
 	 */
@@ -125,6 +131,9 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 	}
 
 	private boolean isAuthorized(MidPointPrincipal principal, String action) {
+		if (!isActive(principal)) {
+			return false;
+		}
 		Collection<Authorization> authorities = principal.getAuthorities();
 		if (authorities == null || authorities.isEmpty()) {
 			return false;
@@ -144,13 +153,31 @@ public class AuthorizationEvaluator implements AccessDecisionManager {
 		return false;
 	}
 
-	private boolean appliesTo(Authorization authorization, String action) {
-		List<String> autzActions = authorization.getAction();
-		if (autzActions.contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-			// This is a placeholder for all the actions
-			return true;
-		}
-		return autzActions.contains(action);
+	private boolean isActive(MidPointPrincipal principal) {
+		UserType userType = principal.getUser();
+		return (userType.getActivation() != null && userType.getActivation().isEnabled() != null && 
+    			userType.getActivation().isEnabled());
 	}
 
+	private boolean appliesTo(Authorization authorization, String action) {
+		List<String> autzActions = authorization.getAction();
+		for (String autzAction: autzActions) {
+			if (autzAction.equals(AuthorizationConstants.AUTZ_ALL_URL)) {
+				// This is a placeholder for all the actions
+				return true;
+			}
+			if (autzAction.equals(action)) {
+				return true;
+			}
+			QName autzActionQname = QNameUtil.uriToQName(autzAction);
+			if (autzActionQname.getLocalPart() != null && autzActionQname.getLocalPart().equals(WILDCARD)) {
+				QName actionQname = QNameUtil.uriToQName(action);
+				if (autzActionQname.getNamespaceURI().equals(actionQname.getNamespaceURI())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 }

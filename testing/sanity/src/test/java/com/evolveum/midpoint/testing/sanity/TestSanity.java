@@ -3295,41 +3295,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         
     }
     
-
-//    @Test
-//    public void test900AccessUserUnauthorized() throws Exception {
-//    	final String TEST_NAME = "test900AccessUserUnauthorized";
-//        displayTestTile(TEST_NAME);
-//        // GIVEN
-//        
-//        // Make sure that the user jack is in the repo and has no authorizations
-//        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
-//        UserType userType = user.asObjectable();
-//        // Encrypt Jack's password
-//        protector.encrypt(userType.getCredentials().getPassword().getValue());
-//        OperationResult opResult = new OperationResult(TestSanity.class+"."+TEST_NAME);
-//		repositoryService.addObject(user, null, opResult);
-//        
-//        setSecurityContextUser(USER_JACK_OID);
-//        
-//        OperationResultType result = new OperationResultType();
-//        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
-//        
-//        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-//		OperationOptionsType options = new OperationOptionsType();
-//		PagingType paging = new PagingType();
-//		
-//		// WHEN
-//		// this should fail
-//        modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging, options, objectListHolder , resultHolder);
-//        
-//        // THEN
-//        
-//        display("Users", objectListHolder.value);
-//        assertEquals("Unexpected number of users", 3, objectListHolder.value.getObject().size());
-//        // TODO        
-//    }
-
     @Test
     public void test999Shutdown() throws Exception {
         taskManager.shutdown();

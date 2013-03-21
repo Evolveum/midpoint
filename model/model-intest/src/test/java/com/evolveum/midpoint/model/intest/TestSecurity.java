@@ -70,7 +70,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Autowired(required=true)
 	private UserDetailsService userDetailsService;
 	
-	private AuthorizationEvaluator authorizationEvaluator = new AuthorizationEvaluator();
+	@Autowired(required=true)
+	private AuthorizationEvaluator authorizationEvaluator;
 	
 	public TestSecurity() throws JAXBException {
 		super();

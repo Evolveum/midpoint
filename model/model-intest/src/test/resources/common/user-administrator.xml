@@ -47,6 +47,6 @@
 		<allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
 	</credentials>
 	<assignment>
-		<targetRef oid="00000000-0000-0000-0000-000000000003" type="c:RoleType"/>
+		<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
 	</assignment>
 </user>

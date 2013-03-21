@@ -30,7 +30,10 @@
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>
-
+	<activation>
+		<enabled>true</enabled>
+	</activation>
+	
 <!--     <credentials> -->
 <!--         <password> -->
 <!--         	<value> -->

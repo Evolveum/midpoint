@@ -270,6 +270,9 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
+	<bean id="authorizationEvaluator" class="com.evolveum.midpoint.common.security.AuthorizationEvaluator">
+    </bean>
+    
     <jaxws:endpoint id="modelWS"
                     address="/model-1">
         <jaxws:implementor>
@@ -303,6 +306,7 @@
 
     <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.security.SpringAuthenticationInjectorInterceptor">
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
+        <constructor-arg name="authorizationEvaluator" ref="authorizationEvaluator"/>
     </bean>
 
     <bean id="springAuthenticationJanitor" class="com.evolveum.midpoint.model.security.SpringAuthenticationJanitorInterceptor">

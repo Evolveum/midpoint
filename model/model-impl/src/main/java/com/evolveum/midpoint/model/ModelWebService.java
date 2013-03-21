@@ -32,6 +32,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -396,7 +397,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
         if (authentication == null) {
             throw new SystemException("Failed to get authentication object");
         }
-        UserType userType = (UserType) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserType userType = (UserType) ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getUser();
         if (userType == null) {
             throw new SystemException("Failed to get user from authentication object");
         }

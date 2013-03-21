@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,8 +50,11 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	private static final String FILENAME_RESOURCE_DERBY = "src/test/resources/object/resource-derby.xml";
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
-	private static final String FILENAME_ACCOUNT = "src/test/resources/impl/account-derby.xml";
-	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
+	private static final String ACCOUNT_WILL_FILENAME = "src/test/resources/impl/account-derby.xml";
+	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
+	private static final String ACCOUNT_WILL_USERNAME = "will";
+	private static final String ACCOUNT_WILL_FULLNAME = "Will Turner";
+	private static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
 	private static final String DB_TABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestDBTable.class);
@@ -121,12 +127,13 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	@Test
 	public void test002AddAccount() throws Exception {
-		displayTestTile("test002AddAccount");
+		final String TEST_NAME = "test002AddAccount";
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDBTable.class.getName()
-				+ ".test002AddAccount");
+				+ "." + TEST_NAME);
 
-		AccountShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
+		AccountShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, AccountShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
 		System.out.println(account.asPrismObject().dump());
@@ -139,14 +146,14 @@ public class TestDBTable extends AbstractIntegrationTest {
 		result.computeStatus();
 		display("add object result",result);
 		assertSuccess("addObject has failed (result)",result);
-		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", accountType.getName());
+		AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, accountType.getName());
 //		assertEquals("will", accountType.getName());
 
-		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, null, result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal.", "will", provisioningAccountType.getName());
+		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, provisioningAccountType.getName());
 //		assertEquals("will", provisioningAccountType.getName());
 		
 		// Check database content
@@ -158,12 +165,43 @@ public class TestDBTable extends AbstractIntegrationTest {
 		ResultSet rs = stmt.getResultSet();
 		
 		assertTrue("The \"users\" table is empty",rs.next());
-		assertEquals("will",rs.getString(DerbyController.COLUMN_LOGIN));
-		assertEquals("3lizab3th",rs.getString(DerbyController.COLUMN_PASSWORD));
-		assertEquals("Will Turner",rs.getString(DerbyController.COLUMN_FULL_NAME));
+		assertEquals(ACCOUNT_WILL_USERNAME,rs.getString(DerbyController.COLUMN_LOGIN));
+		assertEquals(ACCOUNT_WILL_PASSWORD,rs.getString(DerbyController.COLUMN_PASSWORD));
+		assertEquals(ACCOUNT_WILL_FULLNAME,rs.getString(DerbyController.COLUMN_FULL_NAME));
 		
 		assertFalse("The \"users\" table has more than one record",rs.next());
 		rs.close();
 		stmt.close();
 	}
+	
+	// MID-1234
+	@Test(enabled=false)
+	public void test005GetAccount() throws Exception {
+		final String TEST_NAME = "test005GetAccount";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDBTable.class.getName()
+				+ "." + TEST_NAME);
+
+		Task task = taskManager.createTaskInstance();
+		// WHEN
+		PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null, result);
+		
+		// THEN
+		result.computeStatus();
+		display(result);
+		assertSuccess(result);
+
+		PrismAsserts.assertEqualsPolyString("Name not equal.", ACCOUNT_WILL_USERNAME, account.asObjectable().getName());
+
+		assertNotNull("No credentials", account.asObjectable().getCredentials());
+		assertNotNull("No password", account.asObjectable().getCredentials().getPassword());
+		assertNotNull("No password value", account.asObjectable().getCredentials().getPassword().getValue());
+		ProtectedStringType password = account.asObjectable().getCredentials().getPassword().getValue();
+		display("Password", password);
+		String clearPassword = protector.decryptString(password);
+		assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, clearPassword);
+	}
+	
+	
 }

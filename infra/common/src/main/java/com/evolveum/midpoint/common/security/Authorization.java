@@ -96,4 +96,9 @@ public class Authorization implements GrantedAuthority, Dumpable, DebugDumpable 
 		return sb.toString();
 	}
 
+	@Override
+	public String toString() {
+		return "Authorization(" + authorizationType == null ? "null" : authorizationType.getAction() + ")";
+	}
+
 }

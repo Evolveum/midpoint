@@ -5994,6 +5994,13 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000003">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PASSWORD_POLICY_DEFAULT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000004">
+                <xsd:annotation>
+                    <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ROLE_SUPERUSER"/>
                     </xsd:appinfo>
                 </xsd:annotation>

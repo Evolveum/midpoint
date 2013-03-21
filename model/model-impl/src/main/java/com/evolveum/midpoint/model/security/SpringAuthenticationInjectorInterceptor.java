@@ -20,8 +20,13 @@
  */
 package com.evolveum.midpoint.model.security;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -31,6 +36,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.phase.PhaseInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
+import org.apache.ws.commons.schema.utils.DOMUtil;
 import org.apache.ws.security.WSSecurityException;
 import org.apache.ws.security.util.WSSecurityUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,6 +46,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import java.util.Collection;
 import java.util.HashSet;
@@ -50,16 +58,21 @@ import java.util.Set;
  */
 public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor<SoapMessage> {
 
+	private static final Trace LOGGER = TraceManager.getTrace(SpringAuthenticationInjectorInterceptor.class);
+	
     private String phase;
     private Set<String> before = new HashSet<String>();
     private Set<String> after = new HashSet<String>();
     private String id;
 
     private UserDetailsService userDetailsService;
+    private AuthorizationEvaluator authorizationEvaluator;
 
-    public SpringAuthenticationInjectorInterceptor(UserDetailsService userDetailsService) {
+    public SpringAuthenticationInjectorInterceptor(UserDetailsService userDetailsService,
+    		AuthorizationEvaluator authorizationEvaluator) {
         super();
         this.userDetailsService = userDetailsService;
+        this.authorizationEvaluator = authorizationEvaluator;
         id = getClass().getName();
         phase = Phase.PRE_PROTOCOL;
         getAfter().add(WSS4JInInterceptor.class.getName());
@@ -108,19 +121,36 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 
             if (username != null && username.length() > 0) {
             	MidPointPrincipal principal = userDetailsService.getUser(username);
-            	UserType userType = principal.getUser();
-            	if (userType.getActivation() == null || userType.getActivation().isEnabled() == null || 
-            			!userType.getActivation().isEnabled()) {
-            		throw new Fault(
-            				new WSSecurityException("User is disabled"));
-            	}
-            	if (userType.getCredentials() == null || userType.getCredentials().isAllowedIdmAdminGuiAccess() == null || 
-            			!userType.getCredentials().isAllowedIdmAdminGuiAccess()) {
-            		throw new Fault(
-            				new WSSecurityException("User does not have administration privilege, cannot access web service"));
-            	}
-                Authentication authentication = new UsernamePasswordAuthenticationToken(principal.getUser(), null);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                
+                UserType userType = principal.getUser();
+                if (userType.getCredentials() != null && userType.getCredentials().isAllowedIdmAdminGuiAccess() != null) {
+                	// Legacy authorization mechanism. DEPRECATED. TODO: remove
+                	if (userType.getActivation() == null || userType.getActivation().isEnabled() == null || 
+                			!userType.getActivation().isEnabled()) {
+                		throw new Fault(
+                				new WSSecurityException("User is disabled (LEGACY)"));
+                	}
+                	if (!userType.getCredentials().isAllowedIdmAdminGuiAccess()) {
+                		throw new Fault(
+                				new WSSecurityException("User has LEGACY administration privilege set to false, cannot access web service"));
+                	}
+                } else {
+
+                	// New authorization mechanism
+	                String operationName;
+					try {
+						operationName = DOMUtil.getFirstChildElement(doc.getSOAPBody()).getLocalName();
+					} catch (SOAPException e) {
+						throw new Fault(e);
+					}
+	                String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
+	                LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
+	                if (!authorizationEvaluator.isAuthorized(action)) {
+	                	throw new Fault(new WSSecurityException("Unauthorized"));
+	                }
+                }
             }
         } catch (WSSecurityException e) {
             throw new Fault(e);

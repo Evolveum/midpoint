@@ -17,7 +17,7 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2013 [name of copyright owner]     -->
 <!--                                                         -->
-<role oid="00000000-0000-0000-0000-000000000003"
+<role oid="00000000-0000-0000-0000-000000000004"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
