@@ -1,0 +1,58 @@
+<!-- Copyright (c) 2013 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2013 [name of copyright owner]     -->
+<!--                                                         -->
+
+<role oid="abf3884a-7778-11e2-abb7-001e8c717e5b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+    <name>Full Time Employee</name>    
+    <description>Basic role for full-time employee. It contains basic access rights that every employee should get automatically.</description>
+    <assignment>
+	<description>Addressbook resource</description>
+    	<accountConstruction>
+    		<!-- The c: prefix in type must be there due to a JAXB bug -->
+    		<resourceRef oid="c1b8b075-8c45-4058-ba32-753b87ac2da0" type="c:ResourceType"/>
+		<attribute>
+                    <ref>ri:office_id</ref>
+                    <outbound>
+                    	<expression>
+                    		<value>Employee</value>
+                    	</expression>
+                    </outbound>
+                </attribute>
+    	</accountConstruction>
+    </assignment>    
+    <assignment>
+	<description>LDAP resource with implied group membership</description>
+    	<accountConstruction>
+    		<!-- The c: prefix in type must be there due to a JAXB bug -->
+    		<resourceRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="c:ResourceType"/>
+		<attribute>
+                    <ref>ri:ldapGroups</ref>
+                    <outbound>
+                    	<expression>
+                    		<value>cn=employees,ou=Groups,dc=example,dc=com</value>
+                    	</expression>
+                    </outbound>
+                </attribute>
+    	</accountConstruction>
+    </assignment>
+</role>
+

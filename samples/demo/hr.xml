@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+           xmlns:my="http://myself.me/schemas/whatever"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+	   xmlns:ext="http://prism.evolveum.com/xml/ns/demo/extension-electra">
+
+    <c:resource oid="8844dcca-775d-11e2-a0ac-001e8c717e5b">
+
+        <c:name>HR Feed</c:name>
+
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+				<q:path>c:connectorType</q:path>
+                    <q:value>org.forgerock.openicf.csvfile.CSVFileConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+
+        <c:connectorConfiguration>
+
+            <!-- Configuration specific for the CSVfile connector -->
+            <icfc:configurationProperties
+			xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
+                <icfccsvfile:filePath>/var/opt/hr/export.csv</icfccsvfile:filePath>
+                <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+                <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
+                <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+                <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+                <icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
+                <icfccsvfile:uniqueAttribute>empnum</icfccsvfile:uniqueAttribute>
+            </icfc:configurationProperties>
+
+        </c:connectorConfiguration>
+
+        <schemaHandling>
+
+            <accountType>
+                <name>default</name>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>icfs:uid</ref>
+                    <displayName>ICF UID</displayName>
+                    <access>read</access>
+                </attribute>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <displayName>Employee#</displayName>
+                    <access>read</access>
+                    <inbound>
+                        <target>
+                        	<path>$user/employeeNumber</path>
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:firstname</ref>
+                    <displayName>First Name</displayName>
+                    <description>Definition of Firstname attribute handling.</description>
+                    <access>read</access>
+                    <inbound>
+                        <target>
+                            <path>$user/givenName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:lastname</ref>
+                    <displayName>Last name</displayName>
+                    <access>read</access>
+                    <inbound>
+                        <target>
+                            <path>$user/familyName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:artname</ref>
+                    <displayName>Artisitc name</displayName>
+                    <access>read</access>
+                    <inbound>
+                        <target>
+                            <path>$user/extension/ext:artisticName</path>
+                        </target>
+                    </inbound>
+		    <inbound>
+			<strength>weak</strength>
+                        <target>
+                            <path>$user/nickName</path>
+                        </target>
+                    </inbound>
+		    <inbound>
+			<strength>weak</strength>
+			<expression>
+				<script>
+					<code>basic.norm(input)</code>
+				</script>
+			</expression>
+                        <target>
+                        	<path>$user/name</path>
+                        </target>
+                    </inbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:emptype</ref>
+                    <displayName>Employee type</displayName>
+                    <access>read</access>
+                    <inbound>
+                        <target>
+                            <path>$user/employeeType</path>
+                        </target>
+                    </inbound>
+                </attribute>
+
+		<credentials>
+                    <password>
+                        <inbound>
+                            <strength>weak</strength>
+                            <expression>
+                                <generate/>
+                            </expression>
+                        </inbound>
+                    </password>
+                </credentials>
+
+<!--		<activation>
+                    <enabled>
+                        <inbound/>
+                    </enabled>
+                </activation> -->
+
+            </accountType>
+        </schemaHandling>
+<!--       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+            <configured>
+				<cap:activation>
+					<cap:enableDisable>
+						<cap:attribute>ri:emptype</cap:attribute>
+						<cap:enableValue>FTE</cap:enableValue>
+						<cap:enableValue>PTE</cap:enableValue>
+						<cap:disableValue>RETIRED</cap:disableValue>
+						<cap:disableValue>FIRED</cap:disableValue>
+					</cap:enableDisable>
+				</cap:activation>
+			</configured>
+        </capabilities> -->
+        <synchronization>
+        	<objectSynchronization>
+	            <enabled>true</enabled>
+	
+	            <correlation>
+	                <q:description>
+	                    Correlation expression is a search query.
+	                    Following search queury will look for users that have "name"
+	                    equal to the "name" attribute of the account. Simply speaking,
+	                    it will look for match in usernames in the IDM and the resource.
+	                    The correlation rule always looks for users, so it will not match
+	                    any other object type.
+	                </q:description>
+	                <q:equal>
+	                    <q:path>c:employeeNumber</q:path>
+	                    <expression>
+	                        <path>$c:account/c:attributes/icfs:name</path>
+	                    </expression>
+	                </q:equal>
+	            </correlation>
+	
+	            <reaction>
+	                <situation>linked</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	            </reaction>
+	            <reaction>
+	                <situation>deleted</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser"/>
+	            </reaction>
+	            <reaction>
+	                <situation>unlinked</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	            </reaction>
+	            <reaction>
+	                <situation>unmatched</situation>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	            </reaction>
+			</objectSynchronization>
+        </synchronization>
+    </c:resource>
+
+    <task oid="a6fcbf14-775f-11e2-ad7f-001e8c717e5b">
+        <name>Live Sync: HR Feed</name>
+        <description>
+            Definition of a live synchronization task. It will poll changelog and pull in changes
+        </description>
+        <taskIdentifier>91919191-76e0-59e2-8888-3d4f02d3ffff</taskIdentifier>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+        <handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+        <objectRef oid="8844dcca-775d-11e2-a0ac-001e8c717e5b"/>
+        <recurrence>recurring</recurrence>
+        <binding>tight</binding>
+        <schedule>
+            <interval>5</interval>
+        </schedule>
+    </task>
+
+</c:objects>

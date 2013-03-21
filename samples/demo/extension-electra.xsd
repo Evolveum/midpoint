@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ The contents of this file are subject to the terms
+  ~ of the Common Development and Distribution License
+  ~ (the License). You may not use this file except in
+  ~ compliance with the License.
+  ~
+  ~ You can obtain a copy of the License at
+  ~ http://www.opensource.org/licenses/cddl1 or
+  ~ CDDLv1.0.txt file in the source code distribution.
+  ~ See the License for the specific language governing
+  ~ permission and limitations under the License.
+  ~
+  ~ If applicable, add the following below the CDDL Header,
+  ~ with the fields enclosed by brackets [] replaced by
+  ~ your own identifying information:
+  ~
+  ~ Portions Copyrighted 2013 [name of copyright owner]
+  -->
+
+<!-- This is a runtime schema that defines data types used in the
+<extension> part of the objects. -->
+
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://prism.evolveum.com/xml/ns/demo/extension-electra"
+            xmlns:tns="http://prism.evolveum.com/xml/ns/demo/extension-electra"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:complexType name="UserExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="artisticName" type="xsd:string" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed>true</a:indexed>
+            			<a:displayName>Artistic Name</a:displayName>
+		                <a:displayOrder>120</a:displayOrder>
+		                <a:help>The name by which is the artist commonly known in the art community</a:help>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="artMovement" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:appinfo>
+            			<a:indexed>true</a:indexed>
+            			<a:displayName>Art Movement</a:displayName>
+		                <a:displayOrder>130</a:displayOrder>
+		                <a:help>A tendency or style in art with a specific common philosophy or goal, followed by a group of artists during a restricted period of time, (usually a few months, years or decades) or, at least, with the heyday of the movement defined within a number of years.</a:help>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

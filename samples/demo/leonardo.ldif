@@ -1,0 +1,17 @@
+dn: uid=leonardo, ou=People, dc=example,dc=com
+cn: Leonardo da Vinci
+sn: da Vinci
+givenname: Leonardo
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+ou: Research
+ou: People
+l: Florence
+uid: leonardo
+mail: leonardo@vinci.it
+telephonenumber: +421 910 123456
+facsimiletelephonenumber: +1 408 555 1111
+roomnumber: 111
+userpassword: lisa
