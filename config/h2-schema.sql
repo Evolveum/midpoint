@@ -157,6 +157,22 @@ CREATE TABLE m_audit_event (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE m_authorization (
+  decision    INTEGER,
+  description CLOB,
+  owner_id    BIGINT      NOT NULL,
+  owner_oid   VARCHAR(36) NOT NULL,
+  id          BIGINT      NOT NULL,
+  oid         VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
+CREATE TABLE m_authorization_action (
+  role_id  BIGINT      NOT NULL,
+  role_oid VARCHAR(36) NOT NULL,
+  action   VARCHAR(255)
+);
+
 CREATE TABLE m_connector (
   connectorBundle              VARCHAR(255),
   connectorHostRef_description CLOB,
@@ -618,6 +634,21 @@ ALTER TABLE m_audit_delta
 ADD CONSTRAINT fk_audit_delta
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event;
+
+ALTER TABLE m_authorization
+ADD CONSTRAINT fk_authorization
+FOREIGN KEY (id, oid)
+REFERENCES m_container;
+
+ALTER TABLE m_authorization
+ADD CONSTRAINT fk_authorization_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_authorization_action
+ADD CONSTRAINT fk_authorization_action
+FOREIGN KEY (role_id, role_oid)
+REFERENCES m_authorization;
 
 CREATE INDEX iConnectorName ON m_connector (name_norm);
 

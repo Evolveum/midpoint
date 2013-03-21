@@ -14,7 +14,7 @@ CREATE TABLE m_abstract_role (
   approvalProcess       VARCHAR(255),
   approvalSchema        LONGTEXT,
   automaticallyApproved LONGTEXT,
-  requestable           BOOLEAN,
+  requestable           BIT,
   id                    BIGINT      NOT NULL,
   oid                   VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
@@ -25,7 +25,7 @@ CREATE TABLE m_abstract_role (
 
 CREATE TABLE m_account_shadow (
   accountType              VARCHAR(255),
-  allowedIdmAdminGuiAccess BOOLEAN,
+  allowedIdmAdminGuiAccess BIT,
   passwordXml              LONGTEXT,
   id                       BIGINT      NOT NULL,
   oid                      VARCHAR(36) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE m_any_clob (
   anyContainer_ownertype INTEGER      NOT NULL,
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
-  dynamicDef             BOOLEAN,
+  dynamicDef             BIT,
   clobValue              LONGTEXT,
   valueType              INTEGER,
   PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart)
@@ -72,7 +72,7 @@ CREATE TABLE m_any_date (
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
   dateValue              DATETIME(6)  NOT NULL,
-  dynamicDef             BOOLEAN,
+  dynamicDef             BIT,
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, dateValue)
 )
@@ -89,7 +89,7 @@ CREATE TABLE m_any_long (
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
   longValue              BIGINT       NOT NULL,
-  dynamicDef             BOOLEAN,
+  dynamicDef             BIT,
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, longValue)
 )
@@ -107,7 +107,7 @@ CREATE TABLE m_any_reference (
   type_localPart         VARCHAR(100) NOT NULL,
   targetoid              VARCHAR(36)  NOT NULL,
   description            LONGTEXT,
-  dynamicDef             BOOLEAN,
+  dynamicDef             BIT,
   filter                 LONGTEXT,
   relation_namespace     VARCHAR(255),
   relation_localPart     VARCHAR(100),
@@ -128,7 +128,7 @@ CREATE TABLE m_any_string (
   type_namespace         VARCHAR(255) NOT NULL,
   type_localPart         VARCHAR(100) NOT NULL,
   stringValue            VARCHAR(255) NOT NULL,
-  dynamicDef             BOOLEAN,
+  dynamicDef             BIT,
   valueType              INTEGER,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_ownertype, type_namespace, type_localPart, stringValue)
 )
@@ -138,7 +138,7 @@ CREATE TABLE m_any_string (
 
 CREATE TABLE m_assignment (
   accountConstruction         LONGTEXT,
-  enabled                     BOOLEAN,
+  enabled                     BIT,
   validFrom                   DATETIME(6),
   validTo                     DATETIME(6),
   description                 LONGTEXT,
@@ -201,6 +201,28 @@ CREATE TABLE m_audit_event (
   COLLATE utf8_general_ci
   ENGINE = InnoDB;
 
+CREATE TABLE m_authorization (
+  decision    INTEGER,
+  description LONGTEXT,
+  owner_id    BIGINT      NOT NULL,
+  owner_oid   VARCHAR(36) NOT NULL,
+  id          BIGINT      NOT NULL,
+  oid         VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
+CREATE TABLE m_authorization_action (
+  role_id  BIGINT      NOT NULL,
+  role_oid VARCHAR(36) NOT NULL,
+  action   VARCHAR(255)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_general_ci
+  ENGINE = InnoDB;
+
 CREATE TABLE m_connector (
   connectorBundle              VARCHAR(255),
   connectorHostRef_description LONGTEXT,
@@ -229,7 +251,7 @@ CREATE TABLE m_connector_host (
   name_norm         VARCHAR(255),
   name_orig         VARCHAR(255),
   port              VARCHAR(255),
-  protectConnection BOOLEAN,
+  protectConnection BIT,
   sharedSecret      LONGTEXT,
   timeout           INTEGER,
   id                BIGINT      NOT NULL,
@@ -317,7 +339,7 @@ CREATE TABLE m_metadata (
   ENGINE = InnoDB;
 
 CREATE TABLE m_node (
-  clusteredNode          BOOLEAN,
+  clusteredNode          BIT,
   hostname               VARCHAR(255),
   internalNodeIdentifier VARCHAR(255),
   jmxPort                INTEGER,
@@ -325,7 +347,7 @@ CREATE TABLE m_node (
   name_norm              VARCHAR(255),
   name_orig              VARCHAR(255),
   nodeIdentifier         VARCHAR(255),
-  running                BOOLEAN,
+  running                BIT,
   id                     BIGINT      NOT NULL,
   oid                    VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
@@ -469,11 +491,11 @@ CREATE TABLE m_resource (
   ENGINE = InnoDB;
 
 CREATE TABLE m_resource_shadow (
-  enabled                       BOOLEAN,
+  enabled                       BIT,
   validFrom                     DATETIME(6),
   validTo                       DATETIME(6),
   attemptNumber                 INTEGER,
-  dead                          BOOLEAN,
+  dead                          BIT,
   failedOperationType           INTEGER,
   intent                        VARCHAR(255),
   name_norm                     VARCHAR(255),
@@ -595,13 +617,13 @@ CREATE TABLE m_task (
   ENGINE = InnoDB;
 
 CREATE TABLE m_user (
-  enabled                  BOOLEAN,
+  enabled                  BIT,
   validFrom                DATETIME(6),
   validTo                  DATETIME(6),
   additionalName_norm      VARCHAR(255),
   additionalName_orig      VARCHAR(255),
   costCenter               VARCHAR(255),
-  allowedIdmAdminGuiAccess BOOLEAN,
+  allowedIdmAdminGuiAccess BIT,
   passwordXml              LONGTEXT,
   emailAddress             VARCHAR(255),
   employeeNumber           VARCHAR(255),
@@ -750,6 +772,24 @@ ADD INDEX fk_audit_delta (record_id),
 ADD CONSTRAINT fk_audit_delta
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event (id);
+
+ALTER TABLE m_authorization
+ADD INDEX fk_authorization (id, oid),
+ADD CONSTRAINT fk_authorization
+FOREIGN KEY (id, oid)
+REFERENCES m_container (id, oid);
+
+ALTER TABLE m_authorization
+ADD INDEX fk_authorization_owner (owner_id, owner_oid),
+ADD CONSTRAINT fk_authorization_owner
+FOREIGN KEY (owner_id, owner_oid)
+REFERENCES m_object (id, oid);
+
+ALTER TABLE m_authorization_action
+ADD INDEX fk_authorization_action (role_id, role_oid),
+ADD CONSTRAINT fk_authorization_action
+FOREIGN KEY (role_id, role_oid)
+REFERENCES m_authorization (id, oid);
 
 CREATE INDEX iConnectorName ON m_connector (name_norm);
 
