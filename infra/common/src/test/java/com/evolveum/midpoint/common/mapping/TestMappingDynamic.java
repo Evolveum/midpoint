@@ -754,6 +754,82 @@ public class TestMappingDynamic {
     }
     
     @Test
+    public void testConditionNonEmptyCaptain() throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testConditionNonEmptyCaptain";
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	user.asObjectable().getEmployeeType().clear();
+    	user.asObjectable().getEmployeeType().add("CAPTAIN");
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				"mapping-condition-nonempty.xml", 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		PrismAsserts.assertTripleNoZero(outputTriple);
+	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The CAPTAIN"));
+	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testConditionNonEmptyEmpty() throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testConditionNonEmptyEmpty";
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	user.asObjectable().getEmployeeType().clear();
+    	user.asObjectable().getEmployeeType().add("");
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				"mapping-condition-nonempty.xml", 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected value in outputTriple", outputTriple);
+    }
+    
+    @Test
+    public void testConditionNonEmptyNoValue() throws Exception {
+    	// GIVEN
+    	final String TEST_NAME = "testConditionNonEmptyNoValue";
+    	System.out.println("===[ "+TEST_NAME+"]===");
+    	
+    	PrismObject<UserType> user = evaluator.getUserOld();
+    	user.asObjectable().getEmployeeType().clear();
+    	ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(user);
+    	
+		Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createMapping(
+				"mapping-condition-nonempty.xml", 
+    			TEST_NAME, "title", delta);
+		    	        
+    	OperationResult opResult = new OperationResult(TEST_NAME);
+    	    	
+    	// WHEN
+		mapping.evaluate(opResult);
+    	
+    	// THEN
+		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+		assertNull("Unexpected value in outputTriple", outputTriple);
+    }
+    
+    @Test
     public void testScriptSystemVariablesConditionAddObjectFalseGroovy() throws Exception {
     	testScriptSystemVariablesConditionAddObjectFalse("mapping-script-system-variables-condition-groovy.xml");
     }
