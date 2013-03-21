@@ -129,7 +129,7 @@ public class NoOpTaskHandler implements TaskHandler {
 			}
         }
 
-        final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd";
+        final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
         final QName WFLASTVARIABLES_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastVariables");
         PrismPropertyDefinition wfLastVariablesPropertyDefinition = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
 

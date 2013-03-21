@@ -229,6 +229,10 @@ public class JobExecutor implements InterruptableJob {
 //                break;
 //            }
 
+            // we should record finish-related information before dealing with (potential) task closure/restart
+            // so we place this method call before the following block
+            recordCycleRunFinish(runResult, executionResult);
+
             // let us treat various exit situations here...
 
             if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
@@ -251,8 +255,6 @@ public class JobExecutor implements InterruptableJob {
             } else {
                 throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
             }
-
-			recordCycleRunFinish(runResult, executionResult);
 
 		} catch (Throwable t) {
 			LoggingUtils.logException(LOGGER, "An exception occurred during processing of task {}", t, task);
@@ -398,6 +400,9 @@ mainCycle:
 
     	TaskRunResult runResult;
     	try {
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Executing handler " + handler.getClass().getName());
+            }
     		runResult = handler.run(task);
     		if (runResult == null) {
 				// Obviously an error in task handler

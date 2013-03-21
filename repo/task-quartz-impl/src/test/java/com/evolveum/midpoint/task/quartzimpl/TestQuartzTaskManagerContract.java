@@ -899,6 +899,18 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull("Last run finish timestamp not set", task.getLastRunFinishTimestamp());
         AssertJUnit.assertFalse("Last run finish timestamp is 0", task.getLastRunFinishTimestamp().longValue() == 0);
 
+        /*
+         * Here the execution should be as follows:
+         *   progress: 0->1 on first execution of L1 handler
+         *   progress: 1->2 on first execution of L2 handler (ASAP after finishing L1)
+         *   progress: 2->3 on second execution of L2 handler (2 seconds later)
+         *   progress: 3->4 on third execution of L2 handler (2 seconds later)
+         *   progress: 4->5 on fourth execution of L2 handler (2 seconds later)
+         *   progress: 5->6 on first (and therefore last) execution of L3 handler
+         *   progress: 6->7 on last execution of L2 handler (2 seconds later, perhaps)
+         *   progress: 7->8 on last execution of L1 handler
+         */
+
         AssertJUnit.assertEquals("Task reported wrong progress", 8, task.getProgress());
 
         // Test for presence of a result. It should be there and it should
