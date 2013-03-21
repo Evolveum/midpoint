@@ -27,6 +27,9 @@ import org.apache.commons.lang.Validate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
@@ -37,7 +40,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * @author semancik
  *
  */
-public class MidPointPrincipal implements UserDetails {
+public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
 	
 	private static final long serialVersionUID = 8299738301872077768L;
     private UserType user;
@@ -161,4 +164,40 @@ public class MidPointPrincipal implements UserDetails {
     public String getOid() {
         return getUser().getOid();
     }
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.Dumpable#dump()
+	 */
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
+	 */
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
+	 */
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabel(sb, "MidPointPrincipal", indent);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "User", user.asPrismObject(), indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "Authorizations", authorizations, indent + 1);
+		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "MidPointPrincipal(" + user + ", autz=" + authorizations + ")";
+	}
+
 }

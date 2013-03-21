@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -255,6 +257,15 @@ public class AssignmentEvaluator {
 			String subSourceDescription = role+" in "+sourceDescription;
 			evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, result);
 		}
+		for(AuthorizationType authorizationType: role.getAuthorization()) {
+			Authorization authorization = createAuthorization(authorizationType);
+			assignment.addAuthorization(authorization);
+		}
+	}
+
+	private Authorization createAuthorization(AuthorizationType authorizationType) {
+		Authorization authorization = new Authorization(authorizationType);
+		return authorization;
 	}
 
 	private void assertSource(ObjectType source, Assignment assignment) {

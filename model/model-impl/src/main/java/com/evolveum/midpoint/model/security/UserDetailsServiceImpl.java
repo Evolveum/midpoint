@@ -21,7 +21,12 @@
 
 package com.evolveum.midpoint.model.security;
 
+import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.model.lens.Assignment;
+import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,16 +36,20 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,9 +59,17 @@ import java.util.List;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserDetailsServiceImpl.class);
+    
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
-    @Autowired
+    
+    @Autowired(required = true)
+    private ObjectResolver objectResolver;
+    
+    @Autowired(required = true)
+    private MappingFactory valueConstructionFactory;
+    
+    @Autowired(required = true)
     private PrismContext prismContext;
 
     @Override
@@ -96,10 +113,47 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             return null;
         }
 
-        return new MidPointPrincipal(list.get(0).asObjectable());
+        MidPointPrincipal principal = new MidPointPrincipal(list.get(0).asObjectable());
+        addAuthorizations(principal);
+        return principal;
     }
 
-    private MidPointPrincipal save(MidPointPrincipal person) throws RepositoryException {
+	private void addAuthorizations(MidPointPrincipal principal) {
+		UserType userType = principal.getUser();
+		if (userType.getAssignment().isEmpty()) {
+			return;
+		}
+
+		Collection<Authorization> authorizations = principal.getAuthorities();
+		
+		
+		AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
+        assignmentEvaluator.setRepository(repositoryService);
+        assignmentEvaluator.setUserOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
+        assignmentEvaluator.setChannel(null);
+        assignmentEvaluator.setObjectResolver(objectResolver);
+        assignmentEvaluator.setPrismContext(prismContext);
+        assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
+		
+        OperationResult result = new OperationResult(UserDetailsServiceImpl.class.getName() + ".addAuthorizations");
+        for(AssignmentType assignmentType: userType.getAssignment()) {
+        	try {
+				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), result);
+				authorizations.addAll(assignment.getAuthorizations());
+			} catch (SchemaException e) {
+				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
+						new Object[]{userType, e.getMessage(), assignmentType, e});
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}", 
+						new Object[]{userType, e.getMessage(), assignmentType, e});
+			} catch (ExpressionEvaluationException e) {
+				LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}", 
+						new Object[]{userType, e.getMessage(), assignmentType, e});
+			}
+        }
+	}
+
+	private MidPointPrincipal save(MidPointPrincipal person) throws RepositoryException {
         try {
             UserType oldUserType = getUserByOid(person.getOid());
             PrismObject<UserType> oldUser = oldUserType.asPrismObject();

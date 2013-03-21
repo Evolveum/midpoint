@@ -24,9 +24,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -52,6 +54,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 		
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR_NAME + "/user-template.xml";
 	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
@@ -110,6 +113,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-fake.xml";
 	protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
 
+	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
+	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000003";
+	
 	protected static final String ROLE_ALPHA_FILENAME = COMMON_DIR_NAME + "/role-alpha.xml";
 	protected static final String ROLE_ALPHA_OID = "12345678-d34d-b33f-f00d-55555555aaaa";
 
@@ -119,6 +125,12 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	// Assigns dummy resource, sets some attributes
 	protected static final String ROLE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-pirate.xml";
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+	
+	protected static final String ROLE_NICE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-nice-pirate.xml";
+	protected static final String ROLE_NICE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556677";
+	
+	protected static final String ROLE_CAPTAIN_FILENAME = COMMON_DIR_NAME + "/role-captain.xml";
+	protected static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-55555555cccc";
 
 	// Excludes role "pirate"
 	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
@@ -138,6 +150,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	
 	// Largo does not have a full name set, employeeType=PIRATE
 	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
@@ -238,6 +251,14 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_BAD_LUCK = new QName(NS_PIRACY, "badLuck");
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	
+	// Authorizations
+	
+	protected static final String NS_TEST_AUTZ = "http://midpoint.evolveum.com/xml/ns/test/authorization";
+	protected static final QName AUTZ_LOOT_QNAME = new QName(NS_TEST_AUTZ, "loot");
+	protected static final String AUTZ_LOOT_URL = QNameUtil.qNameToUri(AUTZ_LOOT_QNAME);
+	protected static final QName AUTZ_COMMAND_QNAME = new QName(NS_TEST_AUTZ, "command");
+	protected static final String AUTZ_COMMAND_URL = QNameUtil.qNameToUri(AUTZ_COMMAND_QNAME);
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	
 	protected PrismObject<UserType> userAdministrator;
@@ -261,6 +282,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		
 		// Users
 		userAdministrator = addObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		addObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
 		
 	}
     	

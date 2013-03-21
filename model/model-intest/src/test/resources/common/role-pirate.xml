@@ -79,5 +79,8 @@
             </attribute>
     	</accountConstruction>
     </assignment>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+    </authorization>
     <requestable>true</requestable>
 </role>

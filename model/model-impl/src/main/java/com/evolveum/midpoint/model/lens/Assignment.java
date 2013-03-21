@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,10 +42,12 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	private Collection<AccountConstruction> accountConstructions;
 	private Collection<PrismReferenceValue> orgRefVals;
+	private Collection<Authorization> authorizations;
 
 	public Assignment() {
 		accountConstructions = new ArrayList<AccountConstruction>();
 		orgRefVals = new ArrayList<PrismReferenceValue>();
+		authorizations = new ArrayList<Authorization>();
 	}
 	
 	public Collection<AccountConstruction> getAccountConstructions() {
@@ -61,6 +64,14 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
+	}
+
+	public Collection<Authorization> getAuthorizations() {
+		return authorizations;
+	}
+	
+	public void addAuthorization(Authorization authorization) {
+		authorizations.add(authorization);
 	}
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -102,12 +113,21 @@ public class Assignment implements DebugDumpable, Dumpable {
 				sb.append(org.toString());
 			}
 		}
+		if (!authorizations.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "Authorizations", indent+1);
+			for (Authorization autz: authorizations) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+2);
+				sb.append(autz.toString());
+			}
+		}
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		return "Assignment(acc=" + accountConstructions + "; org="+orgRefVals+")";
+		return "Assignment(acc=" + accountConstructions + "; org="+orgRefVals+"; autz="+authorizations+")";
 	}
 	
 }

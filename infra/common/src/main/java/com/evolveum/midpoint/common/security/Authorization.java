@@ -24,6 +24,9 @@ import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 
@@ -31,11 +34,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
  * @author semancik
  *
  */
-public class Authorization implements GrantedAuthority {
+public class Authorization implements GrantedAuthority, Dumpable, DebugDumpable {
 	
 	AuthorizationType authorizationType;
 
-	private Authorization(AuthorizationType authorizationType) {
+	public Authorization(AuthorizationType authorizationType) {
 		super();
 		this.authorizationType = authorizationType;
 	}
@@ -54,11 +57,43 @@ public class Authorization implements GrantedAuthority {
 	}
 
 	public AuthorizationDecisionType getDecision() {
-		return authorizationType.getDecision();
+		 AuthorizationDecisionType decision = authorizationType.getDecision();
+		 if (decision == null) {
+			 return AuthorizationDecisionType.ALLOW;
+		 }
+		 return decision;
 	}
 
 	public List<String> getAction() {
 		return authorizationType.getAction();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.Dumpable#dump()
+	 */
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
+	 */
+	@Override
+	public String debugDump() {
+		// TODO Auto-generated method stub
+		return debugDump(0);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
+	 */
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabel(sb, "Authorization(", indent);
+		sb.append(authorizationType);
+		return sb.toString();
 	}
 
 }

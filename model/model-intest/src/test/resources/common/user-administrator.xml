@@ -18,8 +18,10 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<user oid="00000000-0000-0000-0000-000000000002" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 	<name>administrator</name>
 	<fullName>midPoint Administrator</fullName>
 	<givenName>midPoint</givenName>
@@ -44,4 +46,7 @@
 		</password>
 		<allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
 	</credentials>
+	<assignment>
+		<targetRef oid="00000000-0000-0000-0000-000000000003" type="c:RoleType"/>
+	</assignment>
 </user>

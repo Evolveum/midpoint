@@ -19,83 +19,43 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.web.FilterInvocation;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.common.security.Authorization;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
-import com.evolveum.midpoint.model.test.DummyResourceContoller;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyAuditService;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -108,12 +68,30 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
 	@Autowired(required=true)
-	UserDetailsService userDetailsService;
+	private UserDetailsService userDetailsService;
+	
+	private AuthorizationEvaluator authorizationEvaluator = new AuthorizationEvaluator();
 	
 	public TestSecurity() throws JAXBException {
 		super();
 	}
 	
+	@Test
+    public void test010GetUserAdministrator() throws Exception {
+		final String TEST_NAME = "test010GetUserAdministrator";
+        displayTestTile(this, TEST_NAME);
+
+        // WHEN
+        MidPointPrincipal principal = userDetailsService.getUser(USER_ADMINISTRATOR_USERNAME);
+        
+        // THEN
+        display("Administrator principal", principal);
+        assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
+        assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AuthorizationConstants.AUTZ_ALL_URL);
+
+        assertAuthorized(principal, AUTZ_LOOT_URL);
+        assertAuthorized(principal, AUTZ_COMMAND_URL);
+	}
 		
 	@Test
     public void test050GetUserJack() throws Exception {
@@ -124,14 +102,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         MidPointPrincipal principal = userDetailsService.getUser(USER_JACK_USERNAME);
         
         // THEN
-        display("Principal jack", principal);
-        assertEquals("wrong username", USER_JACK_USERNAME, principal.getUsername());
-        assertEquals("wrong oid", USER_JACK_OID, principal.getOid());
+        assertJack(principal);
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
-        display("User in principal jack", principal.getUser().asPrismObject());
-        assertUserJack(principal.getUser().asPrismObject());
-        
-        principal.getUser().asPrismObject().checkConsistence(true, true);
+
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
 	
 	@Test
@@ -150,7 +125,141 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         display("User in principal barbossa", principal.getUser().asPrismObject());
         
         principal.getUser().asPrismObject().checkConsistence(true, true);
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
 	
+	@Test
+    public void test052GetUserGuybrush() throws Exception {
+		final String TEST_NAME = "test052GetUserGuybrush";
+        displayTestTile(this, TEST_NAME);
 
+        // WHEN
+        MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
+        
+        // THEN
+        display("Principal guybrush", principal);
+        assertEquals("wrong username", USER_GUYBRUSH_USERNAME, principal.getUsername());
+        assertEquals("wrong oid", USER_GUYBRUSH_OID, principal.getOid());
+        assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
+        display("User in principal guybrush", principal.getUser().asPrismObject());
+        
+        principal.getUser().asPrismObject().checkConsistence(true, true);
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+	}
+	
+	
+	@Test
+    public void test100JackRolePirate() throws Exception {
+		final String TEST_NAME = "test100JackRolePirate";
+        displayTestTile(this, TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // WHEN
+        MidPointPrincipal principal = userDetailsService.getUser(USER_JACK_USERNAME);
+        
+        // THEN
+        assertJack(principal);
+        
+        assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
+        assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AUTZ_LOOT_URL);
+        
+        assertAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+	}
+	
+	@Test
+    public void test110GuybrushRoleNicePirate() throws Exception {
+		final String TEST_NAME = "test110GuybrushRoleNicePirate";
+        displayTestTile(this, TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
+        
+        // WHEN
+        MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
+        
+        // THEN
+        display("Principal guybrush", principal);
+        assertEquals("Wrong number of authorizations", 2, principal.getAuthorities().size());
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+	}
+	
+	@Test
+    public void test111GuybrushRoleCaptain() throws Exception {
+		final String TEST_NAME = "test111GuybrushRoleCaptain";
+        displayTestTile(this, TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
+        
+        // WHEN
+        MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
+        
+        // THEN
+        display("Principal guybrush", principal);
+        assertEquals("Wrong number of authorizations", 3, principal.getAuthorities().size());
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertAuthorized(principal, AUTZ_COMMAND_URL);
+	}
+	
+	private void assertJack(MidPointPrincipal principal) {
+		display("Principal jack", principal);
+        assertEquals("wrong username", USER_JACK_USERNAME, principal.getUsername());
+        assertEquals("wrong oid", USER_JACK_OID, principal.getOid());
+		assertJack(principal.getUser());		
+	}
+	
+	private void assertJack(UserType userType) {
+        display("User in principal jack", userType.asPrismObject());
+        assertUserJack(userType.asPrismObject());
+        
+        userType.asPrismObject().checkConsistence(true, true);		
+	}
+	
+	private void assertHasAuthotizationAllow(Authorization authorization, String... action) {
+		assertNotNull("Null authorization", authorization);
+		assertEquals("Wrong decision in "+authorization, AuthorizationDecisionType.ALLOW, authorization.getDecision());
+		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
+	}
+
+	private void assertAuthorized(MidPointPrincipal principal, String action) {
+		createSecurityContext(principal);
+		assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, authorizationEvaluator.isAuthorized(action));
+		authorizationEvaluator.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
+				createConfigAttributes(action));
+	}
+	
+	private void assertNotAuthorized(MidPointPrincipal principal, String action) {
+		createSecurityContext(principal);
+		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" but he should not be", authorizationEvaluator.isAuthorized(action));
+	}
+
+	private void createSecurityContext(MidPointPrincipal principal) {
+		SecurityContext context = new SecurityContextImpl();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		context.setAuthentication(authentication);
+		SecurityContextHolder.setContext(context);
+	}
+	
+	private Object createSecureObject() {
+		return new FilterInvocation("/midpoint", "whateverServlet", "doSomething");
+	}
+
+	private Collection<ConfigAttribute> createConfigAttributes(String action) {
+		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
+		attrs.add(new SecurityConfig(action));
+		return attrs;
+	}
 }
