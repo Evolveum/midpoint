@@ -19,13 +19,45 @@
  * Portions Copyrighted 2012 [name of copyright owner]
  */
 
+
+//if returns false drop click event on column
+/**
+ * Method provides checks for full row click support - it decides which events should be dropped - we
+ * want to stop event bubbling when user clicks for example on input event (then row shouldn't change
+ * it's row selected status)
+ *
+ * @param attrs
+ * @return {boolean} true if event should be dropped
+ */
+function dropClickEvent(attrs) {
+    var evt = attrs.event;
+
+    //if clicked on <tr>
+    if (evt.target == evt.currentTarget) {
+        return false;
+    }
+    //if clicked on <td> which is a child of <tr>
+    if (evt.target.parentNode == evt.currentTarget) {
+        return false;
+    }
+
+    //we drop event if it input or link
+    var targetElement = evt.target.nodeName.toLowerCase();
+    var isInput = (targetElement == 'input' || targetElement == 'select' || targetElement == 'option');
+    var isLink = (targetElement == 'a');
+    if (isInput || isLink) {
+        return true;
+    }
+
+    return false;
+}
+
 /*
  * this probably can be deleted [lazyman]
  *
  * 1/ checkboxes are handled through wicket
  * 2/ user preview table stuff should not be here (I don't even know if it's still used)
  */
-
 function initTable(){
 	var cssSelectedRow = {
       'background' : '#d8f4d8',

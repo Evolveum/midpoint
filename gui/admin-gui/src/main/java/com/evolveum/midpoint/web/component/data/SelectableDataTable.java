@@ -5,6 +5,8 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -64,6 +66,14 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
                 headerCheck.getPanelComponent().setModelObject(
                         CheckBoxHeaderColumn.shoulBeHeaderSelected(SelectableDataTable.this));
                 target.add(headerCheck);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                attributes.getAjaxCallListeners().add(
+                        new AjaxCallListener().onPrecondition("return !dropClickEvent(attrs);"));
             }
         });
 

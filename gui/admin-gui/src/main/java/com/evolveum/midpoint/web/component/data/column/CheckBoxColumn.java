@@ -23,11 +23,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxCallListener;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.attributes.IAjaxCallListener;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -69,15 +65,6 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
 
                 //updating table row
                 target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
-            }
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-
-                // this will disable javascript event propagation from checkbox to parent dom components
-                attributes.getAjaxCallListeners().add(
-                        new AjaxCallListener().onBefore("\nattrs.event.stopPropagation();"));
             }
         };
         check.setOutputMarkupId(true);

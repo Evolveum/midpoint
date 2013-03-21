@@ -58,9 +58,8 @@ public class LinkColumn<T> extends AbstractColumn<T, String> {
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
-            final IModel<T> rowModel) {
-        cellItem.add(new LinkPanel(componentId,
-                createLinkModel(rowModel) ) {
+                             final IModel<T> rowModel) {
+        cellItem.add(new LinkPanel(componentId, createLinkModel(rowModel)) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -70,6 +69,5 @@ public class LinkColumn<T> extends AbstractColumn<T, String> {
     }
 
     public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
-
     }
 }

@@ -34,16 +34,20 @@ import java.io.Serializable;
  */
 public class LinkPanel<T extends Serializable> extends Panel {
 
+    private static final String ID_LINK = "link";
+    private static final String ID_LABEL = "label";
+
     public LinkPanel(String id, IModel<String> label) {
         super(id);
-        AjaxLink link = new AjaxLink("link") {
+
+        AjaxLink link = new AjaxLink(ID_LINK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 LinkPanel.this.onClick(target);
             }
         };
-        link.add(new Label("label", label));
+        link.add(new Label(ID_LABEL, label));
         add(link);
     }
 

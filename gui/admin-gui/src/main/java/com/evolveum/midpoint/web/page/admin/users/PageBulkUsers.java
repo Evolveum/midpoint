@@ -21,8 +21,43 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+
 /**
  * @author lazyman
  */
 public class PageBulkUsers extends PageAdminUsers {
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_START = "start";
+
+    public PageBulkUsers() {
+        initLayout();
+    }
+
+    private void initLayout() {
+        Form mainForm = new Form(ID_MAIN_FORM);
+        add(mainForm);
+
+        AjaxSubmitLinkButton start = new AjaxSubmitLinkButton(ID_START,
+                createStringResource("PageBulkUsers.button.start")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                startPerformed(target);
+            }
+        };
+        mainForm.add(start);
+    }
+
+    private void startPerformed(AjaxRequestTarget target) {
+        //todo implement
+    }
 }

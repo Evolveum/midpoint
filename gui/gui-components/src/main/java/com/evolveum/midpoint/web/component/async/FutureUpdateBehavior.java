@@ -52,7 +52,7 @@ public abstract class FutureUpdateBehavior<T> extends AbstractAjaxTimerBehavior 
 
     @Override
     protected void onTimer(final AjaxRequestTarget target) {
-        if (!future.isDone()) {
+        if (future == null || !future.isDone()) {
             return;
         }
 
