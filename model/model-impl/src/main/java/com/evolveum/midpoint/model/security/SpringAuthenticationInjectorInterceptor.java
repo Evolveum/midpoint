@@ -22,6 +22,8 @@ package com.evolveum.midpoint.model.security;
 
 import com.evolveum.midpoint.model.security.api.PrincipalUser;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.interceptor.Fault;
@@ -105,8 +107,19 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             username = getUsernameFromSecurityHeader(securityHeader);
 
             if (username != null && username.length() > 0) {
-                PrincipalUser user = userDetailsService.getUser(username);
-                Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUser(), null);
+                PrincipalUser principal = userDetailsService.getUser(username);
+            	UserType userType = principal.getUser();
+            	if (userType.getActivation() == null || userType.getActivation().isEnabled() == null || 
+            			!userType.getActivation().isEnabled()) {
+            		throw new Fault(
+            				new WSSecurityException("User is disabled"));
+            	}
+            	if (userType.getCredentials() == null || userType.getCredentials().isAllowedIdmAdminGuiAccess() == null || 
+            			!userType.getCredentials().isAllowedIdmAdminGuiAccess()) {
+            		throw new Fault(
+            				new WSSecurityException("User does not have administration privilege, cannot access web service"));
+            	}
+                Authentication authentication = new UsernamePasswordAuthenticationToken(principal.getUser(), null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (WSSecurityException e) {
