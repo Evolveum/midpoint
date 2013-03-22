@@ -50,6 +50,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.util.ModelTUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -121,7 +122,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void addUserWithoutName() throws Exception {
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
+        setSecurityContext(expectedUser);
         try {
             modelService.addObject(expectedUser, new Holder<String>(), new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
@@ -131,8 +132,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         }
         Assert.fail("add must fail.");
     }
-
-    @Test(expectedExceptions = FaultMessage.class)
+    
+	@Test(expectedExceptions = FaultMessage.class)
     public void testGetNullOid() throws FaultMessage {
         try {
             modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, new OperationOptionsType(),
@@ -184,7 +185,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
     	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
+        setSecurityContext(expectedUser);
         try {
             final String oid = "abababab-abab-abab-abab-000000000001";
             when(
@@ -234,7 +235,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
             final UserType user = PrismTestUtil.unmarshalObject(new File(
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
+            setSecurityContext(user);
 
             modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid);
         } catch (FaultMessage ex) {
@@ -283,7 +284,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
+        setSecurityContext(expectedUser);
         try {
             modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging, null,
                     new Holder<ObjectListType>(),
@@ -328,7 +329,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
+        setSecurityContext(expectedUser);
         try {
         	QueryType queryType = new QueryType();
         	queryType.setPaging(paging);
@@ -372,7 +373,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
         final UserType user = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
+        setSecurityContext(user);
 
         try {
             modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), modification);
@@ -431,7 +432,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         final String resourceOid = "abababab-abab-abab-abab-000000000001";
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
+        setSecurityContext(expectedUser);
         when(
                 repositoryService.listResourceObjectShadows(eq(resourceOid),
                         eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
@@ -452,7 +453,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void badResourceShadowTypeListResourceObjectShadows() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
     	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(expectedUser, null));
+        setSecurityContext(expectedUser);
         Holder<ResourceObjectShadowListType> listHolder = new Holder<ResourceObjectShadowListType>();
         modelService.listResourceObjectShadows(
                 "abababab-abab-abab-abab-000000000001", ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(),
@@ -485,4 +486,10 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         }
         Assert.fail("Illegal argument excetion must be thrown");
     }
+    
+	private void setSecurityContext(UserType user) {
+		SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+				new MidPointPrincipal(user), null));
+	}
+
 }
