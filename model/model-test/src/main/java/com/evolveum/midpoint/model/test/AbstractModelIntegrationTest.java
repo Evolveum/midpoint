@@ -58,6 +58,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -1230,7 +1231,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 null, task, task.getResult());
 
         assertNotNull("User "+userOid+" is null", object.asObjectable());
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
+        SecurityContextHolder.getContext().setAuthentication(
+        		new UsernamePasswordAuthenticationToken(
+        				new MidPointPrincipal(object.asObjectable()), null));
 	}
 
 }
