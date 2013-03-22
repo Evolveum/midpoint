@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,6 +45,7 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -344,5 +347,26 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void addGetSyncDescription() throws Exception {
+        PrismObjectDefinition accDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
+        PrismObject<AccountShadowType> shadow = accDef.instantiate();
+        final Date TIME = new Date();
+        AccountShadowType shadowType = shadow.asObjectable();
+        shadowType.setName(new PolyStringType("sync desc test"));
+        SynchronizationSituationDescriptionType desc = new SynchronizationSituationDescriptionType();
+        desc.setChannel("channel");
+        desc.setSituation(SynchronizationSituationType.LINKED);
+        desc.setTimestamp(XMLGregorianCalendarType.asXMLGregorianCalendar(TIME));
+        shadowType.getSynchronizationSituationDescription().add(desc);
 
+        OperationResult result = new OperationResult("sync desc test");
+        String oid = repositoryService.addObject(shadowType.asPrismObject(), null, result);
+
+        shadow = repositoryService.getObject(AccountShadowType.class, oid, result);
+        shadowType = shadow.asObjectable();
+        desc = shadowType.getSynchronizationSituationDescription().get(0);
+        AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
+    }
 }
