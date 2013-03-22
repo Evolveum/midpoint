@@ -77,4 +77,14 @@ public class RSynchronizationSituationDescriptionId implements Serializable {
         result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("RSynchronizationSituationDescriptionId{shadowOid='").append(shadowOid).append('\'');
+        sb.append(", shadowId=").append(shadowId);
+        sb.append(", checksum='").append(checksum).append("'}");
+
+        return sb.toString();
+    }
 }
