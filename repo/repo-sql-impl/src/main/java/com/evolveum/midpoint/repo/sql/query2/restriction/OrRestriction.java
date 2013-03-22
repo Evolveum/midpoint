@@ -24,20 +24,16 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author lazyman
  */
 public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
-
-    public OrRestriction(QueryContext context, ObjectQuery query, OrFilter filter) {
-        super(context, query, filter);
-    }
-
-    public OrRestriction(Restriction parent, QueryContext context, ObjectQuery query, OrFilter filter) {
-        super(parent, context, query, filter);
-    }
 
     @Override
     public boolean canHandle(ObjectFilter filter) {
@@ -46,5 +42,19 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
         }
 
         return (filter instanceof OrFilter);
+    }
+
+    @Override
+    public Criterion interpret(OrFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
+            throws QueryException {
+
+        if (!isFilterValid(filter)) {
+            //todo what to do here? probably skip and if there is one sub filter, otherwise exception...or maybe skip it all
+        }
+
+        Disjunction disjunction = Restrictions.disjunction();
+        updateJunction(filter.getCondition(), disjunction, query, context);
+
+        return disjunction;
     }
 }

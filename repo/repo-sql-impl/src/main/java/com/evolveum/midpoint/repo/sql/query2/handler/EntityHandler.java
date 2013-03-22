@@ -19,13 +19,10 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.query2.restriction;
-
-import com.evolveum.midpoint.prism.query.ValueFilter;
+package com.evolveum.midpoint.repo.sql.query2.handler;
 
 /**
  * @author lazyman
  */
-public class ReferenceRestriction<T extends ValueFilter> extends ItemRestriction<T> {
-
+public class EntityHandler implements DefinitionHandler  {
 }

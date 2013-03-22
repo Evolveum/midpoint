@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.restriction.Restriction;
 import com.evolveum.midpoint.util.ClassPathUtil;
@@ -50,6 +51,9 @@ public class QueryInterpreter {
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreter.class);
     private static final Set<Restriction> AVAILABLE_RESTRICTIONS;
 
+    /**
+     * todo maybe we create mapping manually if this reflection stuff is too slow...
+     */
     static {
         Set<Restriction> restrictions = new HashSet<Restriction>();
 
@@ -62,7 +66,7 @@ public class QueryInterpreter {
                 continue;
             }
 
-            if (!clazz.isAssignableFrom(Restriction.class)) {
+            if (!Restriction.class.isAssignableFrom(clazz)) {
                 //we don't need classes that don't inherit from Restriction
                 continue;
             }
@@ -71,7 +75,8 @@ public class QueryInterpreter {
                 Restriction restriction = (Restriction) ConstructorUtils.invokeConstructor(clazz, null);
                 restrictions.add(restriction);
 
-                LOGGER.debug("Added {} instance to available restrictions.", new Object[]{restriction});
+                LOGGER.debug("Added '{}' instance to available restrictions.",
+                        new Object[]{restriction.getClass().getName()});
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "Error occurred during query interpreter initialization", ex);
                 if (ex instanceof SystemException) {
@@ -84,24 +89,26 @@ public class QueryInterpreter {
         AVAILABLE_RESTRICTIONS = Collections.unmodifiableSet(restrictions);
     }
 
-    public QueryInterpreter(PrismContext context) {
-    }
+    public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
+                              Session session) throws QueryException {
+        Validate.notNull(query, "Object query must not be null.");
+        Validate.notNull(query.getFilter(), "Element filter must not be null.");
+        Validate.notNull(type, "Type must not be null.");
+        Validate.notNull(session, "Session must not be null.");
+        Validate.notNull(prismContext, "Prism context must not be null.");
 
-    public Criteria interpret(ObjectFilter filter, Class<? extends ObjectType> type,  Session session)
-            throws QueryException {
-        Validate.notNull(filter, "Element filter must not be null.");
+        ObjectFilter filter = query.getFilter();
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Interpreting query '{}', query on trace level.", new Object[]{filter.getClass()});
-            LOGGER.trace("Query filter:\n{}", new Object[]{filter.dump()});
+            LOGGER.trace("Interpreting query '{}', query filter:\n{}", new Object[]{filter.getClass(), filter.dump()});
         }
 
         try {
             Restriction restriction = findAndCreateRestriction(filter);
-            QueryContext context = new QueryContext(type, session);
-            Criterion criterion = restriction.interpret();
+            QueryContext context = new QueryContext(this, type, prismContext, session);
+            Criterion criterion = restriction.interpret(filter, query, context, null);
 
-            Criteria criteria = context.getMainCriteria();
+            Criteria criteria = context.getCriteria(null);
             criteria.add(criterion);
 
             return criteria;

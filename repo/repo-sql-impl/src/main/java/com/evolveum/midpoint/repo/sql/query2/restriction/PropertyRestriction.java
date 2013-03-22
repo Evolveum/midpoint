@@ -21,21 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext;
-import org.w3c.dom.Element;
 
 /**
  * @author lazyman
  */
 public class PropertyRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 
-    public PropertyRestriction(QueryContext context, ObjectQuery query, T filter) {
-        super(context, query, filter);
-    }
-
-    public PropertyRestriction(Restriction parent, QueryContext context, ObjectQuery query, T filter) {
-        super(parent, context, query, filter);
-    }
 }

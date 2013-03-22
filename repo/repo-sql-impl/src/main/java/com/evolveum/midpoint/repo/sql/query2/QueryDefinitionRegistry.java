@@ -1,13 +1,16 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.ClassDefinitionParser;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -18,7 +21,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public class QueryDefinitionRegistry {
+public class QueryDefinitionRegistry implements Dumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryDefinitionRegistry.class);
     private static final Map<QName, Definition> definitions;
@@ -57,6 +60,7 @@ public class QueryDefinitionRegistry {
         return registry;
     }
 
+    @Override
     public String dump() {
         StringBuilder builder = new StringBuilder();
         Collection<Definition> defCollection = definitions.values();
@@ -65,5 +69,9 @@ public class QueryDefinitionRegistry {
         }
 
         return builder.toString();
+    }
+
+    public <T extends ObjectType, D extends Definition> D findDefinition(Class<T> type, ItemPath path, Class<D> definitionType) {
+        return null; //todo implement
     }
 }

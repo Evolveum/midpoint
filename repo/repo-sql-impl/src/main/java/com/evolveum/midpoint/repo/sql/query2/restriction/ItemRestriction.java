@@ -28,20 +28,11 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.w3c.dom.Element;
 
 /**
  * @author lazyman
  */
 public class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
-
-    public ItemRestriction(QueryContext context, ObjectQuery query, T filter) {
-        super(context, query, filter);
-    }
-
-    public ItemRestriction(Restriction parent, QueryContext context, ObjectQuery query, T filter) {
-        super(parent, context, query, filter);
-    }
 
     protected String createPropertyName() {
         //todo implement
@@ -54,9 +45,8 @@ public class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
     }
 
     @Override
-    public Criterion interpret() {
-        //todo implement
-        return null;
+    public Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent) throws QueryException {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

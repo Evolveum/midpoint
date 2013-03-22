@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
-import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
 import org.hibernate.criterion.Criterion;
 
 /**
@@ -33,44 +32,8 @@ import org.hibernate.criterion.Criterion;
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
-    private QueryInterpreter interpreter;
-    private Restriction parent;
-    private QueryContext context;
-    private ObjectQuery query;
-    private T filter;
-
-    public Restriction(QueryContext context, ObjectQuery query, T filter) {
-        this(null, context, query, filter);
-    }
-
-    public Restriction(Restriction parent, QueryContext context, ObjectQuery query, T filter) {
-        this.parent = parent;
-        this.context = context;
-        this.query = query;
-        this.filter = filter;
-    }
-
-    public Restriction getParent() {
-        return parent;
-    }
-
-    public QueryContext getContext() {
-        return context;
-    }
-
-    public ObjectQuery getQuery() {
-        return query;
-    }
-
-    public T getFilter() {
-        return filter;
-    }
-
-    public QueryInterpreter getInterpreter() {
-        return interpreter;
-    }
-
-    public abstract Criterion interpret() throws QueryException;
+    public abstract Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent)
+            throws QueryException;
 
     public abstract boolean canHandle(ObjectFilter filter);
 }

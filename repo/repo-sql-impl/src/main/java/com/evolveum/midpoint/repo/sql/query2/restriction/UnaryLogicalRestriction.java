@@ -22,25 +22,17 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.UnaryLogicalFilter;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext;
-import org.hibernate.criterion.Criterion;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author lazyman
  */
-public class UnaryLogicalRestriction<T extends UnaryLogicalFilter> extends LogicalRestriction<T> {
+public abstract class UnaryLogicalRestriction<T extends UnaryLogicalFilter> extends LogicalRestriction<T> {
 
-    private LogicalOperation operation;
-
-    public UnaryLogicalRestriction(QueryContext context, ObjectQuery query, T filter) {
-        super(context, query, filter);
-    }
-
-    public UnaryLogicalRestriction(Restriction parent, QueryContext context, ObjectQuery query, T filter) {
-        super(parent, context, query, filter);
-    }
+    private static final Trace LOGGER = TraceManager.getTrace(UnaryLogicalRestriction.class);
 
     @Override
     public boolean canHandle(ObjectFilter filter) {
@@ -51,12 +43,12 @@ public class UnaryLogicalRestriction<T extends UnaryLogicalFilter> extends Logic
         return false;
     }
 
-    public LogicalOperation getOperation() {
-        return operation;
-    }
+    protected boolean isFilterValid(UnaryLogicalFilter filter) throws QueryException {
+        if (filter.getFilter() == null) {
+            LOGGER.trace("UnaryLogicalFilter filter must have child filter defined in it.");
+            return false;
+        }
 
-    @Override
-    public Criterion interpret() {
-        return super.interpret();    //To change body of overridden methods use File | Settings | File Templates.
+        return true;
     }
 }

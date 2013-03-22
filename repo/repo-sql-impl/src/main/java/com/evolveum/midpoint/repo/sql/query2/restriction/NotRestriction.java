@@ -24,27 +24,16 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author lazyman
  */
 public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
-
-    public NotRestriction(QueryContext context, ObjectQuery query, NotFilter filter) {
-        super(context, query, filter);
-    }
-
-    public NotRestriction(Restriction parent, QueryContext context, ObjectQuery query, NotFilter filter) {
-        super(parent, context, query, filter);
-    }
-
-    @Override
-    public Criterion interpret() {
-//        return Restrictions.not(getInterpreter().interpret(getFilter().));
-        return null;
-    }
 
     @Override
     public boolean canHandle(ObjectFilter filter) {
@@ -53,5 +42,20 @@ public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
         }
 
         return (filter instanceof NotFilter);
+    }
+
+
+    @Override
+    public Criterion interpret(NotFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
+            throws QueryException {
+        if (!isFilterValid(filter)) {
+            //todo what to do here? probably skip and if there is one sub filter, otherwise exception...or maybe skip it all
+        }
+
+        QueryInterpreter interpreter = context.getInterpreter();
+        Restriction restriction = interpreter.findAndCreateRestriction(filter.getFilter());
+        Criterion criterion = restriction.interpret(filter.getFilter(), query, context, this);
+
+        return Restrictions.not(criterion);
     }
 }

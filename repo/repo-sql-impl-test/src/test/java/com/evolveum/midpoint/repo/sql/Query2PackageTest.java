@@ -62,6 +62,9 @@ public class Query2PackageTest extends BaseSQLRepoTest {
 
     @Test
     public void testQueryRegistry() throws QueryException {
+        QueryInterpreter interpreter = new QueryInterpreter();
+
+
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         String dump = registry.dump();
 
@@ -88,7 +91,7 @@ public class Query2PackageTest extends BaseSQLRepoTest {
     private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
             QueryException, SchemaException, FileNotFoundException, JAXBException {
 
-        QueryInterpreter interpreter = new QueryInterpreter(prismContext);
+        QueryInterpreter interpreter = new QueryInterpreter();
 
         Document document = DOMUtil.parseFile(file);
         QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
@@ -102,7 +105,7 @@ public class Query2PackageTest extends BaseSQLRepoTest {
         } catch (Exception ex) {
             LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }
-        Criteria criteria = interpreter.interpret(query.getFilter(), type, session);
+        Criteria criteria = interpreter.interpret(query, type, prismContext, session);
         return HibernateToSqlTranslator.toSql(criteria);
     }
 

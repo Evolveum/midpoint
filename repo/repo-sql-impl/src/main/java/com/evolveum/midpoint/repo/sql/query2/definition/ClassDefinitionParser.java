@@ -56,6 +56,11 @@ public class ClassDefinitionParser {
             return null;
         }
 
+        //we doesn't need to check java.lang or other packages than our sql repo
+        if (!clazz.getPackage().getName().startsWith("com.evolveum.midpoint.repo.sql.data")) {
+            return null;
+        }
+
         QName jaxbName = getJaxbName(clazz);
         QName jaxbType = getJaxbType(clazz);
         EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, clazz.getName(), clazz);
@@ -72,7 +77,7 @@ public class ClassDefinitionParser {
                 continue;
             }
 
-            LOGGER.info("# {}", new Object[]{methodName});
+            LOGGER.trace("# {}", new Object[]{methodName});
 
             Definition definition = createDefinitionFromMethod(method);
             entityDef.getDefinitions().add(definition);

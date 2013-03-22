@@ -24,24 +24,24 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Junction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author lazyman
  */
-public class NaryLogicalRestriction<T extends NaryLogicalFilter> extends LogicalRestriction<T> {
+public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extends LogicalRestriction<T> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(NaryLogicalRestriction.class);
     private List<Restriction> restrictions;
-
-    public NaryLogicalRestriction(QueryContext context, ObjectQuery query, T filter) {
-        super(context, query, filter);
-    }
-
-    public NaryLogicalRestriction(Restriction parent, QueryContext context, ObjectQuery query, T filter) {
-        super(parent, context, query, filter);
-    }
 
     @Override
     public boolean canHandle(ObjectFilter filter) {
@@ -50,5 +50,36 @@ public class NaryLogicalRestriction<T extends NaryLogicalFilter> extends Logical
         }
 
         return false;
+    }
+
+    public List<Restriction> getRestrictions() {
+        if (restrictions == null) {
+            restrictions = new ArrayList<Restriction>();
+        }
+        return restrictions;
+    }
+
+    protected boolean isFilterValid(NaryLogicalFilter filter) throws QueryException {
+        if (filter.getCondition() == null || filter.getCondition().isEmpty()){
+            LOGGER.trace("NaryLogicalFilter filter must have at least two conditions in it. " +
+                    "Removing logical filter and processing simple condition.");
+            return false;
+        }
+
+        return true;
+    }
+
+    protected Junction updateJunction(List<? extends ObjectFilter> conditions, Junction junction,
+                                      ObjectQuery query, QueryContext context) throws QueryException {
+
+        QueryInterpreter interpreter = context.getInterpreter();
+
+        for (ObjectFilter condition : conditions) {
+            Restriction restriction = interpreter.findAndCreateRestriction(condition);
+            Criterion criterion = restriction.interpret(condition, query, context, this);
+            junction.add(criterion);
+        }
+
+        return junction;
     }
 }
