@@ -21,9 +21,29 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import org.hibernate.criterion.Criterion;
+
 /**
  * @author lazyman
  */
-public class AnyPropertyRestriction extends ItemRestriction {
+public class AnyPropertyRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 
+    @Override
+    public boolean canHandle(ObjectFilter filter) {
+        //todo implement
+        return false;
+    }
+
+    @Override
+    public Criterion interpretInternal(T filter, ObjectQuery query, QueryContext context, Restriction parent)
+            throws QueryException {
+        //todo implement
+
+        return null;
+    }
 }

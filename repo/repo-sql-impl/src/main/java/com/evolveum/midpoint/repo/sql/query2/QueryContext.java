@@ -69,6 +69,10 @@ public class QueryContext {
         return interpreter;
     }
 
+    public Class<? extends ObjectType> getType() {
+        return type;
+    }
+
     public Criteria getCriteria(ItemPath path) {
         return criterias.get(path);
     }
@@ -89,14 +93,7 @@ public class QueryContext {
         } else {
             if (!path.isEmpty()) {
                 //get last qname from path
-                List<ItemPathSegment> segments = path.getSegments();
-                for (int i = segments.size() - 1; i >= 0; i--) {
-                    ItemPathSegment segment = segments.get(i);
-                    if (segment instanceof NameItemPathSegment) {
-                        qname = ((NameItemPathSegment) segment).getName();
-                        break;
-                    }
-                }
+                qname = ItemPath.getName(path.last());
             } else {
                 throw new IllegalArgumentException("Item path must not be empty.");
             }

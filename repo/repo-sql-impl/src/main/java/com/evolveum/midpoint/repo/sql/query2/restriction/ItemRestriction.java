@@ -21,18 +21,106 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
+public abstract class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ItemRestriction.class);
+
+    public static enum Operation {
+        EQ, GT, GE, LT, LE, NULL, NOT_NULL, SUBSTRING, SUBSTRING_IGNORE_CASE;
+    }
+
+    @Override
+    public Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent)
+            throws QueryException {
+
+        ItemPath path = filter.getParentPath();
+        if (path != null) {
+            // at first we build criterias with aliases
+            updateQueryContext(path, context);
+        }
+
+        return interpretInternal(filter, query, context, parent);
+    }
+
+    public abstract Criterion interpretInternal(T filter, ObjectQuery query, QueryContext context, Restriction parent)
+            throws QueryException;
+
+    private void updateQueryContext(ItemPath path, QueryContext context) throws QueryException {
+        LOGGER.trace("Updating query context based on path\n{}", new Object[]{path.toString()});
+        Class<? extends ObjectType> type = context.getType();
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+
+        List<ItemPathSegment> segments = path.getSegments();
+
+        List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
+        ItemPath propPath;
+        for (ItemPathSegment segment : segments) {
+            QName qname = ItemPath.getName(segment);
+            // create new property path
+            propPathSegments.add(new NameItemPathSegment(qname));
+            propPath = new ItemPath(propPathSegments);
+            // get entity query definition
+//todo reimplement
+//            definition = definition.findDefinition(qname);
+//            if (definition == null || !definition.isEntity()) {
+//                throw new QueryException("This definition '" + definition + "' is not entity definition, "
+//                        + "we can't query attribute in attribute. Please check your path in query, or query "
+//                        + "entity/attribute mappings. Full path was '" + path + "'.");
+//            }
+
+            EntityDefinition entityDefinition = (EntityDefinition) definition;
+            if (entityDefinition.isEmbedded()) {
+                // for embedded relationships we don't have to create new
+                // criteria
+                LOGGER.trace("Skipping segment '{}' because it's embedded, sub path\n{}", new Object[]{qname,
+                        propPath.toString()});
+                continue;
+            }
+
+            LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
+                    new Object[]{definition.getJpaName(), propPath.toString()});
+            addNewCriteriaToContext(propPath, definition.getJpaName(), context);
+        }
+    }
+
+    private void addNewCriteriaToContext(ItemPath path, String realName, QueryContext context) {
+        ItemPath lastPropPath = path.allExceptLast();
+        if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
+            lastPropPath = null;
+        }
+
+        // get parent criteria
+        Criteria pCriteria = context.getCriteria(lastPropPath);
+        // create new criteria and alias for this relationship
+
+        String alias = context.addAlias(path);
+        Criteria criteria = pCriteria.createCriteria(realName, alias);
+        context.addCriteria(path, criteria);
+    }
 
     protected String createPropertyName() {
         //todo implement
@@ -44,21 +132,10 @@ public class ItemRestriction<T extends ValueFilter> extends Restriction<T> {
         return null;
     }
 
-    @Override
-    public Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent) throws QueryException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public boolean canHandle(ObjectFilter filter) {
-        //todo implement
-        return false;
-    }
-
-    protected Criterion createCriterion(RestrictionOperation operation) throws QueryException {
+    protected Criterion createCriterion(Operation operation) throws QueryException {
         String propertyName = createPropertyName();
-        Object value = (operation == RestrictionOperation.NOT_NULL
-                || operation == RestrictionOperation.NULL) ?
+        Object value = (operation == Operation.NOT_NULL
+                || operation == Operation.NULL) ?
                 null : createComparableRealValue();
 
         switch (operation) {
