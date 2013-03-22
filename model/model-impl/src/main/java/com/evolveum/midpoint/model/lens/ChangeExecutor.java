@@ -616,7 +616,7 @@ public class ChangeExecutor {
         } catch (ObjectNotFoundException ex) {
             throw ex;
         } catch (ObjectAlreadyExistsException ex) {
-            throw new RewindException(ex);
+            throw ex;
         } catch (CommunicationException ex) {
             throw ex;
         } catch (ConfigurationException e) {

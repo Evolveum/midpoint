@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.prism.polystring;
 
+import com.evolveum.midpoint.prism.Matchable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
@@ -47,7 +48,7 @@ import javax.xml.namespace.QName;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString implements Recomputable, Structured, Dumpable, DebugDumpable, Serializable {
+public class PolyString implements Matchable<PolyString>, Recomputable, Structured, Dumpable, DebugDumpable, Serializable {
 	
 	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
 	public static final QName F_NORM = new QName(PrismConstants.NS_TYPES, "norm");
@@ -215,5 +216,20 @@ public class PolyString implements Recomputable, Structured, Dumpable, DebugDump
     public static String getOrig(PolyStringType s) {
         return s != null ? s.getOrig() : null;
     }
+
+	@Override
+	public boolean match(PolyString other) {
+		if (this == other)
+			return true;
+		if (other == null)
+			return false;
+		
+		if (norm == null) {
+			if (other.norm != null)
+				return false;
+		} else if (!norm.equals(other.norm))
+			return false;
+		return true;
+	}
 	
 }

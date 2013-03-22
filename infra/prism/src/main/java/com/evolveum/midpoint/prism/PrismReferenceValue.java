@@ -428,5 +428,10 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		clone.filter = this.filter;
         clone.relation = this.relation;
 	}
+
+	@Override
+	public boolean match(PrismValue otherValue) {
+		return equalsRealValue(otherValue);
+	}
     
 }

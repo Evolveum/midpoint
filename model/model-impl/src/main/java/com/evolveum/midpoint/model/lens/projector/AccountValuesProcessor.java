@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
+import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -97,7 +99,12 @@ public class AccountValuesProcessor {
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
+	
+	@Autowired
+	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
 
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
 	
 	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, 
 			LensProjectionContext<P> projectionContext, String activityDescription, OperationResult result) 
@@ -174,7 +181,66 @@ public class AccountValuesProcessor {
 	        checker.setRepositoryService(repositoryService);
 	        checker.check(result);
 	        if (checker.isSatisfiesConstraints()) {
+	        	LOGGER.trace("Current shadow satisfy uniqueness constraints.");
 	        	break;
+	        } else{
+	        	if (checker.getConflictingShadow() != null){
+	        		PrismObject<AccountShadowType> fullConflictingShadow = null;
+	        		try{
+	        			fullConflictingShadow = provisioningService.getObject(AccountShadowType.class, checker.getConflictingShadow().getOid(), null, result);
+	        		} catch (ObjectNotFoundException ex){
+	        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
+	        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
+	        			break;
+	        		}
+	        		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(checker.getConflictingShadow().getOid(), result);
+	        		
+	        		
+	        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
+	        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())){
+//	        			accountContext.setSecondaryDelta(null);
+	        			cleanupContext(accountContext);
+	        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+	        			accountContext.setObjectOld(fullConflictingShadow);
+	        			result.computeStatus();
+						// if the result is fatal error, it may mean that the
+						// already exists expection occures before..but in this
+						// scenario it means, the exception was handled and we
+						// can mute the result to give better understanding of
+						// the situation which happend
+	        			if (result.isError()){
+	        				result.muteError();
+	        			}
+	        			break;
+	        		}
+	        		if (user == null){
+		        		
+		        		ResourceType resourceType = accountContext.getResource();
+		        		
+						boolean match = correlationConfirmationEvaluator.matchUserCorrelationRule(fullConflictingShadow, context
+								.getFocusContext().getObjectNew(), resourceType, result);
+						
+						if (match){
+							//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
+//							accountContext.setPrimaryDelta(null);
+//							accountContext.setSecondaryDelta(null);
+							cleanupContext(accountContext);
+							accountContext.setObjectOld(fullConflictingShadow);
+							accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+							LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
+							break;
+						} else{
+							LOGGER.trace("User {} does not satisfy correlation rules.", context.getFocusContext().getObjectNew());
+						}
+						
+	        		} else{
+	        			LOGGER.trace("Recomputing shadow identifier, because shadow with the some identifier exists and it belongs to other user.");
+	        		}
+	        		
+	        		
+	        	}
+	        	
+//	        	break;
 	        }
 	        
 	        iteration++;

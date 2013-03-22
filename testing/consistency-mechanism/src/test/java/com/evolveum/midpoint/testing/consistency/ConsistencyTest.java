@@ -221,8 +221,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String USER_ELAINE_FILENAME = REPO_DIR_NAME + "user-elaine.xml";
 	private static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
 	
+	private static final String USER_HERMAN_FILENAME = REPO_DIR_NAME + "user-herman.xml";
+	private static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111119999";
+	
 	private static final String USER_MORGAN_FILENAME = REQUEST_DIR_NAME + "user-morgan.xml";
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
+	
+	private static final String USER_CHUCK_FILENAME = REQUEST_DIR_NAME + "user-chuck.xml";
+	private static final String USER_CHUCK_OID = "c0c010c0-d34d-b33f-f00d-171171118888";
 	
 	private static final String USER_ANGELIKA_FILENAME = REPO_DIR_NAME + "user-angelika.xml";
 	private static final String USER_ANGELIKA_OID = "c0c010c0-d34d-b33f-f00d-111111111888";
@@ -250,6 +256,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static final String ACCOUNT_DENIELS_FILENAME = REPO_DIR_NAME + "account-deniels.xml";
 	private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
+	
+	private static final String ACCOUNT_CHUCK_FILENAME = REPO_DIR_NAME + "account-chuck.xml";
+	private static final String ACCOUNT_CHUCK_OID = "a0c010c0-d34d-b33f-f00d-111111111666";
+	
+	private static final String ACCOUNT_HERMAN_FILENAME = REPO_DIR_NAME + "account-herman.xml";
+	private static final String ACCOUNT_HERMAN_OID = "22220000-2200-0000-0000-333300003333";
 
 	private static final String ROLE_CAPTAIN_FILENAME = REPO_DIR_NAME + "role-captain.xml";
 	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
@@ -833,7 +845,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		display("LDAP account", entry);
 
-//		OpenDJController.assertAttribute(entry, "uid", "jackie");
+		OpenDJController.assertAttribute(entry, "uid", "jackie");
 		OpenDJController.assertAttribute(entry, "givenName", "Jack");
 		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
 		OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
@@ -955,7 +967,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		AssertJUnit.assertNotNull(createdShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, createdShadow.getResourceRef().getOid());
 		assertAttributeNotNull(createdShadow, ConnectorFactoryIcfImpl.ICFS_UID);
-//		assertAttribute(createdShadow, resourceTypeOpenDjrepo, "uid", "jackie");
+		//expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
+		assertAttribute(createdShadow, resourceTypeOpenDjrepo, "uid", "jackie1");
 		assertAttribute(createdShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
 		assertAttribute(createdShadow, resourceTypeOpenDjrepo, "sn", "Russel");
 		assertAttribute(createdShadow, resourceTypeOpenDjrepo, "cn", "Jack Russel");
@@ -2034,9 +2047,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
 	 * OpenDJ. The account should be linked.
-	 */
-	// DISABLED because MID-1056
-	@Test(enabled=false)
+	 */	
+	@Test
     public void test100AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test100AddUserMorganWithAssignment";
         displayTestTile(this, TEST_NAME);
@@ -2065,7 +2077,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// THEN
 		displayThen(TEST_NAME);
 		result.computeStatus();
-		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+//		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
 		display("User morgan after", userMorgan);
@@ -2086,6 +2098,142 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         // TODO: check OpenDJ Account        
 	}
 	
+	/**
+	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
+	 * OpenDJ and there is also corresponding shadow in the repo. The account should be linked.
+	 */	
+	@Test
+    public void test101AddUserChuckWithAssignment() throws Exception {
+		final String TEST_NAME = "test101AddUserChuckWithAssignment";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN	
+        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+//        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
+//        display("Entry from LDIF", entry);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_CHUCK_FILENAME));
+        String accOid = provisioningService.addObject(account, null, null, task, result);
+//        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_CHUCK_FILENAME));
+        display("Adding user", user);
+        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+                
+		// WHEN
+        displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		result.computeStatus();
+//		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_CHUCK_OID, null, task, result);
+		display("User morgan after", userMorgan);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        assertEquals("old oid not used..", accOid, accountOid);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertShadowRepo(accountShadow, accountOid, "chuck", resourceTypeOpenDjrepo);
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertShadowModel(accountModel, accountOid, "chuck", resourceTypeOpenDjrepo);
+        AccountShadowType accountTypeModel = accountModel.asObjectable();
+        
+        assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "chuck");
+		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "givenName", "Chuck");
+		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "sn", "Norris");
+		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "cn", "Chuck Norris");
+		
+        // TODO: check OpenDJ Account        
+	}
+
+	
+	/**
+	 * Assigning accoun to user, account with the same identifier exist on the resource and there is also shadow in the repository. The account should be linked.
+	 */	
+	@Test
+    public void test102assignAccountToHerman() throws Exception {
+		final String TEST_NAME = "test102assignAccountToHerman";
+        displayTestTile(this, TEST_NAME);
+
+        // GIVEN	
+        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+//        Entry entry = openDJController.addEntryFromLdifFile(LDIF_MORGAN_FILENAME);
+//        display("Entry from LDIF", entry);
+        
+        PrismObject<AccountShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_HERMAN_FILENAME));
+        String accOid = provisioningService.addObject(account, null, null, task, result);
+//        
+        addObjectFromFile(USER_HERMAN_FILENAME, UserType.class, result);
+        
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_HERMAN_FILENAME));
+        display("Adding user", user);
+        
+        
+        ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, ObjectModificationType.class);
+
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, UserType.class,
+				PrismTestUtil.getPrismContext());
+
+//		Task task = taskManager.createTaskInstance();
+		
+		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(USER_HERMAN_OID, delta.getModifications(), UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+		modelService.executeChanges(deltas, null, task, result);
+
+//        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
+//        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+//                
+//		// WHEN
+//        displayWhen(TEST_NAME);
+//		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		result.computeStatus();
+//		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
+        
+		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_HERMAN_OID, null, task, result);
+		display("User morgan after", userMorgan);
+        UserType userMorganType = userMorgan.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getAccountRef().size());
+        ObjectReferenceType accountRefType = userMorganType.getAccountRef().get(0);
+        String accountOid = accountRefType.getOid();
+        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+        assertEquals("old oid not used..", accOid, accountOid);
+        
+		// Check shadow
+        PrismObject<AccountShadowType> accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid, result);
+        assertShadowRepo(accountShadow, accountOid, "chuck", resourceTypeOpenDjrepo);
+        
+        // Check account
+        PrismObject<AccountShadowType> accountModel = modelService.getObject(AccountShadowType.class, accountOid, null, task, result);
+        assertShadowModel(accountModel, accountOid, "chuck", resourceTypeOpenDjrepo);
+        AccountShadowType accountTypeModel = accountModel.asObjectable();
+        
+        assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "ht");
+		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "givenName", "Herman");
+		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "sn", "Toothrot");
+		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "cn", "Herman Toothrot");
+		
+        // TODO: check OpenDJ Account        
+	}
+
 	
 	// This should run last. It starts a task that may interfere with other tests
 	@Test
@@ -2096,7 +2244,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
 
 		// TODO: remove this if the previous test is enabled
-		openDJController.start();
+//		openDJController.start();
 		
 		// precondition
 		assertTrue(EmbeddedUtils.isRunning());

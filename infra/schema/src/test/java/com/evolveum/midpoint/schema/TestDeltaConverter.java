@@ -331,7 +331,7 @@ public class TestDeltaConverter {
     	// TODO: more checks
     }
 
-    @Test
+    @Test(enabled = false)
     public void testTaskExtensionDeleteDelta() throws Exception {
     	System.out.println("===[ testTaskExtensionDeleteDelta ]====");
 

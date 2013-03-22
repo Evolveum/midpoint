@@ -1119,4 +1119,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         return sb.toString();
     }
 
+	@Override
+	public boolean match(PrismValue otherValue) {
+		return equalsRealValue(otherValue);
+	}
+
 }

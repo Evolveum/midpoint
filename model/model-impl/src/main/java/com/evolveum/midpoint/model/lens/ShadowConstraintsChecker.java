@@ -69,6 +69,7 @@ public class ShadowConstraintsChecker {
 	private RepositoryService repositoryService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
+	private PrismObject conflictingShadow;
 
 	public ShadowConstraintsChecker(LensProjectionContext<AccountShadowType> accountContext) {
 		this.accountContext = accountContext;
@@ -114,12 +115,16 @@ public class ShadowConstraintsChecker {
 		return messageBuilder.toString();
 	}
 
+	public PrismObject getConflictingShadow() {
+		return conflictingShadow;
+	}
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		
 		RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
 		PrismObject<AccountShadowType> accountNew = accountContext.getObjectNew();
 		if (accountNew == null) {
 			// This must be delete
+			LOGGER.trace("No new object in projection context. Current shadow satisfy constraints");
 			satisfiesConstraints = true;
 			return;
 		}
@@ -127,6 +132,7 @@ public class ShadowConstraintsChecker {
 		PrismContainer<?> attributesContainer = accountNew.findContainer(AccountShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			// No attributes no constraint violations
+			LOGGER.trace("Current shadow does not contain attributes, skipping cheching uniqueness.");
 			satisfiesConstraints = true;
 			return;
 		}
@@ -211,6 +217,7 @@ public class ShadowConstraintsChecker {
 					LOGGER.trace("Comparing with account in other context resulted to {}", match);
 				}
 			}
+			conflictingShadow = foundObjects.get(0);
 		}
 		
 		return match;

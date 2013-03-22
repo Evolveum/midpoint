@@ -135,6 +135,7 @@ This is now the only account type that midPoint can work with. -->
             will make it immutable. -->
 				<access>create</access>
 				<access>read</access>
+				<access>update</access>
 				       <!-- Outbound expression for the __NAME__ attribute.
       If account is created or updated, the __NAME__ attribute
       will be set accrding to this expression.
@@ -278,22 +279,42 @@ This is now the only account type that midPoint can work with. -->
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-                	<description>
+				<description>
                 		It is mapped from (and also to) "name" property of user. It is essentially a login name.
                 		This outbound construction is using a Groovy expression.
                 	</description>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
+<!-- 				    <strength>weak</strength> -->
+				    <source>
+						<path>$user/name</path>
+					</source>
                     <expression>
-	                    <script>
-	                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    	<script>
+                    		<language>http://www.w3.org/TR/xpath/</language>
 	                        <code>
-	                        	name;
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                            concat($i:name/t:orig, $c:iterationToken)
 	                        </code>
-	                    </script>
+                        </script>
                     </expression>
-                </outbound>
+				</outbound>
+<!-- 				<outbound> -->
+<!--                 	<description> -->
+<!--                 		It is mapped from (and also to) "name" property of user. It is essentially a login name. -->
+<!--                 		This outbound construction is using a Groovy expression. -->
+<!--                 	</description> -->
+<!--                 	<strength>weak</strength> -->
+<!--                 	<source> -->
+<!--                 		<path>$user/name</path> -->
+<!--                 	</source> -->
+<!--                     <expression> -->
+<!-- 	                    <script> -->
+<!-- 	                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language> -->
+<!-- 	                        <code> -->
+<!-- 	                        	concat(name, $c:iterationToken); -->
+<!-- 	                        </code> -->
+<!-- 	                    </script> -->
+<!--                     </expression> -->
+<!--                 </outbound> -->
                 <inbound>
                 	<description>
                 		It is mapped to (and also from) "name" property of user. It is essentially a login name	
@@ -579,7 +600,7 @@ always return at most one match, the confirmation rule is not needed. -->
         -->
         <c:reaction>
             <c:situation>linked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#synchronize"/>
+            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#nodifyUser"/>
         </c:reaction>
         <c:reaction>
             <c:situation>deleted</c:situation>
@@ -587,7 +608,7 @@ always return at most one match, the confirmation rule is not needed. -->
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#synchronize"/>
+            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
         </c:reaction>
         <c:reaction>
             <c:situation>unmatched</c:situation>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c:account oid="a0c010c0-d34d-b33f-f00d-111111111666"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	<!-- No OID for account. The OID will be generated once the account shadow 
+		is added to the repository. -->
+	<!-- No name here. We expect that it will be generated -->
+	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<c:objectClass>ri:AccountObjectClass</c:objectClass>
+	<c:attributes>
+		<icfs:name>uid=chuck,ou=People,dc=example,dc=com</icfs:name>
+		<ri:uid>chuck</ri:uid>
+		<ri:cn>Chuck Norris</ri:cn>
+		<ri:givenName>Chuck</ri:givenName>
+		<ri:sn>Norris</ri:sn>
+	</c:attributes>
+</c:account>

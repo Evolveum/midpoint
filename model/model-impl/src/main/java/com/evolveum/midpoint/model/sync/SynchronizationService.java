@@ -106,7 +106,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Autowired(required = true)
 	private ActionManager<Action> actionManager;
 	@Autowired
-	private ExpressionHandler expressionHandler;
+	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+//	private ExpressionHandler expressionHandler;
 	@Autowired
 	private ChangeNotificationDispatcher notificationManager;
 	@Autowired(required = true)
@@ -310,7 +311,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		SynchronizationSituationType state = null;
 		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
-		List<PrismObject<UserType>> users = findUsersByCorrelationRule(resourceShadow.asObjectable(),
+		List<PrismObject<UserType>> users = correlationConfirmationEvaluator.findUsersByCorrelationRule(resourceShadow.asObjectable(),
 				synchronization.getCorrelation(), resource, result);
 		if (users == null) {
 			users = new ArrayList<PrismObject<UserType>>();
@@ -321,7 +322,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
 			} else {
 				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking users from correlation with confirmation rule.");
-				users = findUserByConfirmationRule(users, resourceShadow.asObjectable(),
+				users = correlationConfirmationEvaluator.findUserByConfirmationRule(users, resourceShadow.asObjectable(), resource, 
 						synchronization.getConfirmation(), result);
 			}
 		}
@@ -543,179 +544,179 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return actions;
 	}
 
-	private List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
-			QueryType query, ResourceType resourceType, OperationResult result) throws SynchronizationException {
-
-		if (query == null) {
-			LOGGER.warn(
-					"Correlation rule for resource '{}' doesn't contain query, " + "returning empty list of users.",
-					resourceType);
-			return null;
-		}
-
-		Element element = query.getFilter();
-		if (element == null) {
-			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
-					+ "returning empty list of users.", resourceType);
-			return null;
-		}
-		
-		ObjectQuery q = null;
-		try {
-			q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
-			q = updateFilterWithAccountValues(currentShadow, q, "Correlation expression", result);
-			if (q == null) {
-				// Null is OK here, it means that the value in the filter
-				// evaluated
-				// to null and the processing should be skipped
-				return null;
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
-					SchemaDebugUtil.prettyPrint(query));
-			throw new SynchronizationException("Couldn't convert query.", ex);
-		}
-		List<PrismObject<UserType>> users = null;
-		try {
-//			query = new QueryType();
-//			query.setFilter(filter);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}", new Object[] {
-						currentShadow, SchemaDebugUtil.prettyPrint(query) });
-			}
-			PagingType paging = new PagingType();
-//			ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
-			users = repositoryService.searchObjects(UserType.class, q, result);
-
-			if (users == null) {
-				users = new ArrayList<PrismObject<UserType>>();
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't search users in repository, based on filter (simplified)\n{}.",
-					ex, q.dump());
-			throw new SynchronizationException("Couldn't search users in repository, based on filter (See logs).", ex);
-		}
-
-		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", new Object[] {
-				currentShadow, users.size(), PrettyPrinter.prettyPrint(users, 3) });
-		return users;
-	}
-
-	private List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
-			ResourceObjectShadowType currentShadow, ExpressionType expression, OperationResult result)
-			throws SynchronizationException {
-
-		List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
-		for (PrismObject<UserType> user : users) {
-			try {
-				UserType userType = user.asObjectable();
-				boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(userType, currentShadow,
-						expression, result);
-				if (user != null && confirmedUser) {
-					list.add(user);
-				}
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-				throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
-			}
-		}
-
-		LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for {} matched {} users.", new Object[] {
-				currentShadow, list.size() });
-		return list;
-	}
-
-	private ObjectQuery updateFilterWithAccountValues(ResourceObjectShadowType currentShadow, ObjectQuery query,
-			String shortDesc, OperationResult result) throws SynchronizationException {
-		LOGGER.trace("updateFilterWithAccountValues::begin");
-		if (query.getFilter() == null) {
-			return null;
-		}
-
-		try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Transforming search filter from:\n{}", query.dump());
-			}
-//			Document document = DOMUtil.getDocument();
-
-//			Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
-//			document.appendChild(and);
-//			and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
-//			Element equal = null;
-//			if (SchemaConstants.NS_QUERY.equals(filter.getNamespaceURI()) && "equal".equals(filter.getLocalName())) {
-//				equal = (Element) document.adoptNode(filter.cloneNode(true));
-//				document.appendChild(equal);
+//	private List<PrismObject<UserType>> findUsersByCorrelationRule(ResourceObjectShadowType currentShadow,
+//			QueryType query, ResourceType resourceType, OperationResult result) throws SynchronizationException {
 //
-//				Element path = findChildElement(equal, SchemaConstants.NS_QUERY, "path");
-//				if (path != null) {
-//					equal.removeChild(path);
-//				}
+//		if (query == null) {
+//			LOGGER.warn(
+//					"Correlation rule for resource '{}' doesn't contain query, " + "returning empty list of users.",
+//					resourceType);
+//			return null;
+//		}
 //
-//				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "expression");
-//				if (valueExpressionElement == null) {
-//					// Compatibility
-//					valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
-//				}
-			Element valueExpressionElement = query.getFilter().getExpression();
-			if (valueExpressionElement == null && (((PropertyValueFilter) query.getFilter()).getValues() == null
-					|| ((PropertyValueFilter) query.getFilter()).getValues().isEmpty())) {
-				LOGGER.warn("No valueExpression in rule for {}", currentShadow);
-				return null;
-			}
-//				if (valueExpressionElement != null) {
-//					equal.removeChild(valueExpressionElement);
-//					copyNamespaceDefinitions(equal, valueExpressionElement);
-
-//					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
-//					if (refElement == null) {
-//						throw new SchemaException("No <ref> element in valueExpression in correlation rule for "
-//								+ currentShadow.getResource());
-//					}
-//					QName ref = DOMUtil.resolveQName(refElement);
-
-//					Element value = document.createElementNS(SchemaConstants.NS_QUERY, "value");
-//					equal.appendChild(value);
-//					Document document = DOMUtil.getDocument();
-//					Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
-					ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
-							valueExpressionElement, ExpressionType.class);
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
-					}
-					String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
-							shortDesc, result);
-
-					if (StringUtils.isEmpty(expressionResult)) {
-						LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
-								valueExpression);
-						return null;
-					}
-					// TODO: log more context
-					LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
-							currentShadow, expressionResult });
-//					attribute.setTextContent(expressionResult);
-//					value.appendChild(attribute);
-//					and.appendChild(equal);
-					if (query.getFilter() instanceof EqualsFilter){
-						((EqualsFilter)query.getFilter()).setValue(new PrismPropertyValue(expressionResult));
-						query.getFilter().setExpression(null);
-					}
-//				} else {
-//					LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
-//				}
+//		Element element = query.getFilter();
+//		if (element == null) {
+//			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
+//					+ "returning empty list of users.", resourceType);
+//			return null;
+//		}
+//		
+//		ObjectQuery q = null;
+//		try {
+//			q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
+//			q = updateFilterWithAccountValues(currentShadow, q, "Correlation expression", result);
+//			if (q == null) {
+//				// Null is OK here, it means that the value in the filter
+//				// evaluated
+//				// to null and the processing should be skipped
+//				return null;
 //			}
-//			filter = equal;
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Transforming filter to:\n{}", query.getFilter().dump());
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
-			throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
-		}
+//		} catch (Exception ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+//					SchemaDebugUtil.prettyPrint(query));
+//			throw new SynchronizationException("Couldn't convert query.", ex);
+//		}
+//		List<PrismObject<UserType>> users = null;
+//		try {
+////			query = new QueryType();
+////			query.setFilter(filter);
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}", new Object[] {
+//						currentShadow, SchemaDebugUtil.prettyPrint(query) });
+//			}
+//			PagingType paging = new PagingType();
+////			ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
+//			users = repositoryService.searchObjects(UserType.class, q, result);
+//
+//			if (users == null) {
+//				users = new ArrayList<PrismObject<UserType>>();
+//			}
+//		} catch (Exception ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't search users in repository, based on filter (simplified)\n{}.",
+//					ex, q.dump());
+//			throw new SynchronizationException("Couldn't search users in repository, based on filter (See logs).", ex);
+//		}
+//
+//		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", new Object[] {
+//				currentShadow, users.size(), PrettyPrinter.prettyPrint(users, 3) });
+//		return users;
+//	}
 
-		LOGGER.trace("updateFilterWithAccountValues::end");
-		return query;
-	}
+//	private List<PrismObject<UserType>> findUserByConfirmationRule(List<PrismObject<UserType>> users,
+//			ResourceObjectShadowType currentShadow, ExpressionType expression, OperationResult result)
+//			throws SynchronizationException {
+//
+//		List<PrismObject<UserType>> list = new ArrayList<PrismObject<UserType>>();
+//		for (PrismObject<UserType> user : users) {
+//			try {
+//				UserType userType = user.asObjectable();
+//				boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(userType, currentShadow,
+//						expression, result);
+//				if (user != null && confirmedUser) {
+//					list.add(user);
+//				}
+//			} catch (Exception ex) {
+//				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
+//				throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
+//			}
+//		}
+//
+//		LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: expression for {} matched {} users.", new Object[] {
+//				currentShadow, list.size() });
+//		return list;
+//	}
+
+//	private ObjectQuery updateFilterWithAccountValues(ResourceObjectShadowType currentShadow, ObjectQuery query,
+//			String shortDesc, OperationResult result) throws SynchronizationException {
+//		LOGGER.trace("updateFilterWithAccountValues::begin");
+//		if (query.getFilter() == null) {
+//			return null;
+//		}
+//
+//		try {
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Transforming search filter from:\n{}", query.dump());
+//			}
+////			Document document = DOMUtil.getDocument();
+//
+////			Element and = document.createElementNS(SchemaConstants.NS_QUERY, "and");
+////			document.appendChild(and);
+////			and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
+////			Element equal = null;
+////			if (SchemaConstants.NS_QUERY.equals(filter.getNamespaceURI()) && "equal".equals(filter.getLocalName())) {
+////				equal = (Element) document.adoptNode(filter.cloneNode(true));
+////				document.appendChild(equal);
+////
+////				Element path = findChildElement(equal, SchemaConstants.NS_QUERY, "path");
+////				if (path != null) {
+////					equal.removeChild(path);
+////				}
+////
+////				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "expression");
+////				if (valueExpressionElement == null) {
+////					// Compatibility
+////					valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
+////				}
+//			Element valueExpressionElement = query.getFilter().getExpression();
+//			if (valueExpressionElement == null && (((PropertyValueFilter) query.getFilter()).getValues() == null
+//					|| ((PropertyValueFilter) query.getFilter()).getValues().isEmpty())) {
+//				LOGGER.warn("No valueExpression in rule for {}", currentShadow);
+//				return null;
+//			}
+////				if (valueExpressionElement != null) {
+////					equal.removeChild(valueExpressionElement);
+////					copyNamespaceDefinitions(equal, valueExpressionElement);
+//
+////					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
+////					if (refElement == null) {
+////						throw new SchemaException("No <ref> element in valueExpression in correlation rule for "
+////								+ currentShadow.getResource());
+////					}
+////					QName ref = DOMUtil.resolveQName(refElement);
+//
+////					Element value = document.createElementNS(SchemaConstants.NS_QUERY, "value");
+////					equal.appendChild(value);
+////					Document document = DOMUtil.getDocument();
+////					Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
+//					ExpressionType valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
+//							valueExpressionElement, ExpressionType.class);
+//					if (LOGGER.isTraceEnabled()) {
+//						LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
+//					}
+//					String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
+//							shortDesc, result);
+//
+//					if (StringUtils.isEmpty(expressionResult)) {
+//						LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
+//								valueExpression);
+//						return null;
+//					}
+//					// TODO: log more context
+//					LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
+//							currentShadow, expressionResult });
+////					attribute.setTextContent(expressionResult);
+////					value.appendChild(attribute);
+////					and.appendChild(equal);
+//					if (query.getFilter() instanceof EqualsFilter){
+//						((EqualsFilter)query.getFilter()).setValue(new PrismPropertyValue(expressionResult));
+//						query.getFilter().setExpression(null);
+//					}
+////				} else {
+////					LOGGER.warn("No valueExpression in rule for OID {}", currentShadow.getOid());
+////				}
+////			}
+////			filter = equal;
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Transforming filter to:\n{}", query.getFilter().dump());
+//			}
+//		} catch (Exception ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+//			throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
+//		}
+//
+//		LOGGER.trace("updateFilterWithAccountValues::end");
+//		return query;
+//	}
 
 	private void copyNamespaceDefinitions(Element from, Element to) {
 		NamedNodeMap attributes = from.getAttributes();

@@ -324,6 +324,64 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 		return this.rawElement.equals(other.rawElement);
 	}
+	
+
+	@Override
+	public boolean match(PrismValue otherValue) {
+		if (otherValue == null || !(otherValue instanceof PrismPropertyValue)) {
+			return false;
+		}
+		return matchComplex((PrismPropertyValue<?>)otherValue, false, false);
+	}
+
+	private boolean matchComplex(PrismPropertyValue<?> otherValue, boolean ignoreMetadata, boolean isLiteral) {
+		if (!super.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
+			return false;
+		}
+		
+        if (this.rawElement != null && otherValue.rawElement != null) {
+        	return equalsRawElements((PrismPropertyValue<T>)otherValue);
+        }
+        
+        PrismPropertyValue<T> otherProcessed = (PrismPropertyValue<T>) otherValue;
+		PrismPropertyValue<T> thisProcessed = this;
+		if (this.rawElement != null || otherValue.rawElement != null) {
+			try {
+				if (this.rawElement == null) {
+					otherProcessed = parseRawElementToNewValue((PrismPropertyValue<T>) otherValue, this);
+				} else if (otherValue.rawElement == null) {
+					thisProcessed = parseRawElementToNewValue(this, (PrismPropertyValue<T>) otherValue);
+				}
+			} catch (SchemaException e) {
+				// TODO: Maybe just return false?
+				throw new IllegalArgumentException("Error parsing the value of property "+getParent()+" using the 'other' definition "+
+						"during a compare: "+e.getMessage(),e);
+			}
+		}
+        
+        T otherRealValue = otherProcessed.getValue();
+        T thisRealValue = thisProcessed.getValue();
+        if (otherRealValue == null && thisRealValue == null) {
+        	return true;
+        }
+        if (otherRealValue == null || thisRealValue == null) {
+        	return false;
+        }
+
+		if (thisRealValue instanceof Element && 
+				otherRealValue instanceof Element) {
+			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+		}
+		
+		if (otherRealValue instanceof Matchable){
+			Matchable thisMatchableValue = (Matchable) thisRealValue;
+			Matchable otherMatchableValue = (Matchable) otherRealValue;
+			return thisMatchableValue.match(otherMatchableValue);
+		}
+		
+		return thisRealValue.equals(otherRealValue);
+
+	}
 
 	@Override
 	public boolean equals(Object obj) {

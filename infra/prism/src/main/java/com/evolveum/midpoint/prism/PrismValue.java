@@ -303,5 +303,6 @@ public abstract class PrismValue implements Visitable, Serializable, Dumpable, D
 		// Nothing to do by default
 	}
 
+	public abstract boolean match(PrismValue otherValue);
 	
 }
