@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.provisioning.ucf.util;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.xml.namespace.QName;
 
 import org.identityconnectors.common.security.GuardedString;
@@ -10,6 +13,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -17,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType
 
 public class UcfUtil {
 	
-	public static String convertAttributeNameToIcf(QName attrQName, String resourceSchemaNamespace, OperationResult parentResult)
+	public static String convertAttributeNameToIcf(QName attrQName, String resourceSchemaNamespace)
 			throws SchemaException {
 		// Attribute QNames in the resource instance namespace are converted
 		// "as is"

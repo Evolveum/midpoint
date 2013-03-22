@@ -152,8 +152,7 @@ public interface ConnectorInstance {
 	 */
 	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(
 			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute> identifiers, boolean returnDefaultAttributes,
-			Collection<? extends ResourceAttributeDefinition> attributesToReturn, OperationResult parentResult)
+			Collection<? extends ResourceAttribute> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
 	/**

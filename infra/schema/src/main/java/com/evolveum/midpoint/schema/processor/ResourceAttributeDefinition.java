@@ -50,6 +50,7 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 
 	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;
+	private Boolean returnedByDefault;
 
 	public ResourceAttributeDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
 		super(name, defaultName, typeName, prismContext);
@@ -61,6 +62,22 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 
 	public ResourceAttribute instantiate(QName name) {
 		return new ResourceAttribute(name, this, prismContext);
+	}
+
+	public Boolean getReturnedByDefault() {
+		return returnedByDefault;
+	}
+	
+	public boolean isReturnedByDefault() {
+		if (returnedByDefault == null) {
+			return true;
+		} else {
+			return returnedByDefault;
+		}
+	}
+
+	public void setReturnedByDefault(Boolean returnedByDefault) {
+		this.returnedByDefault = returnedByDefault;
 	}
 
 	/**
@@ -131,6 +148,7 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	protected void copyDefinitionData(ResourceAttributeDefinition clone) {
 		super.copyDefinitionData(clone);
 		clone.nativeAttributeName = this.nativeAttributeName;
+		clone.returnedByDefault = this.returnedByDefault;
 	}
 
 	@Override
@@ -140,6 +158,10 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 		if (getNativeAttributeName()!=null) {
 			sb.append(" native=");
 			sb.append(getNativeAttributeName());
+		}
+		if (returnedByDefault != null) {
+			sb.append(" returnedByDefault=");
+			sb.append(returnedByDefault);
 		}
 		return sb.toString();
 	}

@@ -662,6 +662,16 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 		return password.getOutbound();
 	}
     
+	public AttributeFetchStrategyType getPasswordFetchStrategy() {
+		ResourcePasswordDefinitionType password = getPasswordDefinition();
+		if (password == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		if (password.getFetchStrategy() == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		return password.getFetchStrategy();
+	}
 	
 	public ObjectReferenceType getPasswordPolicy(){
 		ResourcePasswordDefinitionType password = getPasswordDefinition();

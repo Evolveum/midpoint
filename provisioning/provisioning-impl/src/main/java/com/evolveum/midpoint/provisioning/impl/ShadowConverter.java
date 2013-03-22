@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -87,6 +88,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
@@ -99,6 +101,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 
 @Component
 public class ShadowConverter {
@@ -170,9 +173,11 @@ public class ShadowConverter {
 					+ objectClassDefinition + ": " + identifiers);
 		}
 
+		AttributesToReturn attributesToReturn = createAttributesToReturn(type, objectClassDefinition, identifiers, resource);
+		
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		
-		T resourceShadow = fetchResourceObject(type, objectClassDefinition, identifiers, connector, resource,
+		T resourceShadow = fetchResourceObject(type, objectClassDefinition, identifiers, attributesToReturn, connector, resource,
 				parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
@@ -189,6 +194,30 @@ public class ShadowConverter {
 		parentResult.recordSuccess();
 		return resultShadow;
 
+	}
+
+	private AttributesToReturn createAttributesToReturn(Class<?> type, ObjectClassComplexTypeDefinition objectClassDefinition,
+			Collection<? extends ResourceAttribute<?>> identifiers, ResourceType resource) throws SchemaException {
+		// TODO: just a simple hack now
+		if (AccountShadowType.class.isAssignableFrom(type)) {
+			CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+			if (credentialsCapabilityType != null && credentialsCapabilityType.getPassword() != null && 
+					credentialsCapabilityType.getPassword().isReturnedByDefault() != null && !credentialsCapabilityType.getPassword().isReturnedByDefault()) {
+				// There resource is capable of returning password but it does not do it by default
+				
+				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+				RefinedAccountDefinition rAccDef = refinedSchema.getDefaultAccountDefinition();
+				AttributeFetchStrategyType passwordFetchStrategy = rAccDef.getPasswordFetchStrategy();
+				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+					AttributesToReturn attributesToReturn = new AttributesToReturn();
+					attributesToReturn.setReturnPasswordExplicit(true);
+					return attributesToReturn;
+				}
+				
+			}
+		}
+		
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -376,7 +405,7 @@ public class ShadowConverter {
 			// We need to filter out the deltas that add duplicate values or remove values that are not there
 			
 			ResourceObjectShadowType currentShadow = fetchResourceObject(ResourceObjectShadowType.class, objectClassDefinition,
-					identifiers, connector, resource, parentResult);
+					identifiers, null, connector, resource, parentResult);
 			Collection<Operation> filteredOperations = new ArrayList(operations.size());
 			for (Operation origOperation: operations) {
 				if (origOperation instanceof PropertyModificationOperation) {
@@ -580,7 +609,7 @@ public class ShadowConverter {
 
 		ResourceObjectShadowType shadow = null;
 		try {
-			shadow = fetchResourceObject(ResourceObjectShadowType.class, rod, change.getIdentifiers(),
+			shadow = fetchResourceObject(ResourceObjectShadowType.class, rod, change.getIdentifiers(), null,
 					connector, resource, parentResult);
 		} catch (ObjectNotFoundException ex) {
 			parentResult
@@ -606,7 +635,9 @@ public class ShadowConverter {
 
 	private <T extends ResourceObjectShadowType> T fetchResourceObject(Class<T> type,
 			ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute<?>> identifiers, ConnectorInstance connector,
+			Collection<? extends ResourceAttribute<?>> identifiers, 
+			AttributesToReturn attributesToReturn,
+			ConnectorInstance connector,
 			ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException {
 
@@ -619,7 +650,7 @@ public class ShadowConverter {
 
 		try {
 			PrismObject<T> resourceObject = connector.fetchObject(type, objectClassDefinition, identifiers,
-					true, null, parentResult);
+					attributesToReturn, parentResult);
 			return resourceObject.asObjectable();
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(

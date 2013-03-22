@@ -2707,6 +2707,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2824,6 +2825,47 @@
     		<!-- delete does not make sense here -->
     	</xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:simpleType name="AttributeFetchStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The way how an attribute is fetched from the resource. Or more exactly a way how midPoint requests the
+                attribute from the connector.
+                
+                This setting is used if no other (more specific) setting is specified for an attribute in the run-time.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="implicit">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		MidPoint expects that the attribute will be implicitly returned by the connector
+                		in each fetch request and there is no need to explicitly request the attribute.
+                		
+                		This is the default. This strategy will be used if no other strategy is specified.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IMPLICIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="explicit">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		MidPoint expects that the attribute will NOT be implicitly returned by the connector.
+                		To fetch the attribute midPoint has to explicitly request it. Therefore midPoint will
+                		explicitly request this attribute in each fetch request.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPLICIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ResourceCredentialsDefinitionType">
         <xsd:sequence>
@@ -2839,6 +2881,7 @@
 
     <xsd:complexType name="ResourcePasswordDefinitionType">
         <xsd:sequence>
+        	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2883,6 +2926,7 @@
 
     <xsd:complexType name="ResourceActivationEnableDefinitionType">
         <xsd:sequence>
+        	<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>

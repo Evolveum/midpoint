@@ -5,10 +5,12 @@ package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -23,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -35,6 +39,7 @@ import org.w3c.dom.Element;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.*;
@@ -123,6 +128,14 @@ public class TestDBTable extends AbstractIntegrationTest {
 		
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, result).asObjectable();
 		display("Resource after test",resource);
+		display("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		
+		List<Object> nativeCapabilities = resource.getCapabilities().getNative().getAny();
+		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
+		assertNotNull("No credentials capability", credentialsCapabilityType);
+		PasswordCapabilityType passwordCapabilityType = credentialsCapabilityType.getPassword();
+		assertNotNull("No password in credentials capability", passwordCapabilityType);
+		assertEquals("Wrong password capability ReturnedByDefault", Boolean.FALSE, passwordCapabilityType.isReturnedByDefault());
 	}
 	
 	@Test

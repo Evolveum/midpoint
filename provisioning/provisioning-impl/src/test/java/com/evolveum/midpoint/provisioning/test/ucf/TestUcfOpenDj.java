@@ -306,7 +306,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		PrismObject<AccountShadowType> resObj = null;
 		try {
-			resObj = cc.fetchObject(AccountShadowType.class, accountDefinition, identifiers, true, null,
+			resObj = cc.fetchObject(AccountShadowType.class, accountDefinition, identifiers, null,
 					result);
 			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
@@ -335,7 +335,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
 		PrismObject<AccountShadowType> shadow = cc.fetchObject(AccountShadowType.class, accountDefinition,
-				identifiers, true, null, result);
+				identifiers, null, result);
 		ResourceAttributeContainer resObj = ResourceObjectShadowUtil.getAttributesContainer(shadow);
 
 		AssertJUnit.assertNull(resObj.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "givenName")));
@@ -611,7 +611,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		// WHEN
 		PrismObject<AccountShadowType> ro = cc.fetchObject(AccountShadowType.class, accountDefinition,
-				identifiers, true, null, result);
+				identifiers, null, result);
 
 		// THEN
 

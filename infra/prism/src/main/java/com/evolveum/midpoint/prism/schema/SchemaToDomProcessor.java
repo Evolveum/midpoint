@@ -76,7 +76,6 @@ import com.sun.xml.xsom.XSParticle;
 public class SchemaToDomProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaToDomProcessor.class);
-	public static final String RESOURCE_OBJECT_CLASS = "ResourceObjectClass";
 	private static final String MAX_OCCURS_UNBOUNDED = "unbounded";
 	private boolean attributeQualified = false;
 	private PrismContext prismContext;
@@ -605,7 +604,7 @@ public class SchemaToDomProcessor {
 	 * @param qname element QName
 	 * @return created DOM element
 	 */
-	private Element createElement(QName qname) {
+	public Element createElement(QName qname) {
 		QName qnameWithPrefix = namespacePrefixMapper.setQNamePrefix(qname);
 		addToImport(qname.getNamespaceURI());
 		if (rootXsdElement!=null) {

@@ -207,7 +207,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	}
 				
 	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
-			PrismContext prismContext, XSAnnotation annotation) {
+			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(elementName, elementName, typeName, prismContext);
 		
 		// nativeAttributeName
@@ -216,7 +216,27 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		if (!StringUtils.isEmpty(nativeAttributeName)) {
 			attrDef.setNativeAttributeName(nativeAttributeName);
 		}
+		
+		// returnedByDefault
+		attrDef.setReturnedByDefault(SchemaProcessorUtil.getAnnotationBoolean(annotation, MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME));
+		
 		return attrDef;
+	}
+
+	@Override
+	public void addExtraPropertyAnnotations(PrismPropertyDefinition definition, Element appinfo,
+			SchemaToDomProcessor schemaToDomProcessor) {
+		super.addExtraPropertyAnnotations(definition, appinfo, schemaToDomProcessor);
+		
+		if (definition instanceof ResourceAttributeDefinition) {
+			ResourceAttributeDefinition rad = (ResourceAttributeDefinition)definition;
+			if (rad.getNativeAttributeName() != null) {
+				schemaToDomProcessor.addAnnotation(MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME, rad.getNativeAttributeName(), appinfo);
+			}
+			if (rad.getReturnedByDefault() != null) {
+				schemaToDomProcessor.addAnnotation(MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME, rad.getReturnedByDefault().toString(), appinfo);
+			}
+		}
 	}
 
 	private boolean isResourceObject(XSAnnotation annotation) {

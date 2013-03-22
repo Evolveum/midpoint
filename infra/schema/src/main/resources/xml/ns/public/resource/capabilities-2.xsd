@@ -112,6 +112,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">
 				<xsd:sequence>
+					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
 					<!-- TODO: "disable destroys password" -->
 					<xsd:element name="attribute" type="xsd:QName" minOccurs="0">
 						<xsd:annotation>
@@ -184,7 +185,10 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">
-				<!-- TODO: password expiration -->
+				<xsd:sequence>
+					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+					<!-- TODO: password expiration -->
+				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

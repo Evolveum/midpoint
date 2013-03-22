@@ -25,9 +25,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
 								  
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->

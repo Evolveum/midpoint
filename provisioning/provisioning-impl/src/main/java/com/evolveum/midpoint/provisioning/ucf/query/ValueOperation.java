@@ -38,7 +38,7 @@ public class ValueOperation extends Operation {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = UcfUtil.convertAttributeNameToIcf(propName, getInterpreter()
-						.getResourceSchemaNamespace(), parentResult);
+						.getResourceSchemaNamespace());
 				
 				if (objectFilter instanceof EqualsFilter) {
 					EqualsFilter eq = (EqualsFilter) objectFilter;

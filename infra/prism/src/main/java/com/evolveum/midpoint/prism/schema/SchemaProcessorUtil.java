@@ -27,7 +27,9 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSType;
 
@@ -90,7 +92,19 @@ public class SchemaProcessorUtil {
 		}
 		return DOMUtil.getQNameValue(element);
 	}
-	
+
+	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {
+		Element element = getAnnotationElement(annotation, qname);
+		if (element == null) {
+			return null;
+		}
+		String textContent = element.getTextContent();
+		if (textContent == null || textContent.isEmpty()) {
+			return null;
+		}
+		return XmlTypeConverter.toJavaValue(element, Boolean.class);
+	}
+
 	public static Integer parseMultiplicity(String stringMultiplicity) {
 		if (stringMultiplicity == null) {
 			return null;
