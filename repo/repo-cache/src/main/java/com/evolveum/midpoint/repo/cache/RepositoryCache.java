@@ -266,7 +266,8 @@ public class RepositoryCache implements RepositoryService {
 
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
+			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException {
 		return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, parentResult);
 	}
 

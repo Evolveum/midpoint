@@ -1028,7 +1028,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
 			String resourceOid, Class<T> resourceObjectShadowType, Task task, OperationResult result)
-			throws ObjectNotFoundException {
+			throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 

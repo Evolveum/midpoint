@@ -1015,7 +1015,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
+			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -1048,7 +1048,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	private <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(
 			String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
-			throws ObjectNotFoundException {
+			throws ObjectNotFoundException, SchemaException {
 
 		List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
 		Session session = null;
@@ -1084,10 +1084,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return list;
 	}
 
-	private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type) {
+	private <T extends ObjectType> void validateObjectType(PrismObject<T> prismObject, Class<T> type)
+            throws SchemaException {
 		if (prismObject == null || !type.isAssignableFrom(prismObject.getCompileTimeClass())) {
-			throw new SystemException("Result ('" + prismObject.toDebugName() + "') is not assignable to '"
-					+ type.getSimpleName() + "' [really should not happen].");
+            throw new SchemaException("Expected to find '" + type.getSimpleName() + "' but found '"
+                    + prismObject.getCompileTimeClass().getSimpleName() + "' (" + prismObject.toDebugName()
+                    + "). Bad OID in a reference?");
 		}
 	}
 

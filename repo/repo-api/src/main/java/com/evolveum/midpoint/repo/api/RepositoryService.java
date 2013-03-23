@@ -336,11 +336,14 @@ public interface RepositoryService {
 	 * 
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
+     * @throws SchemaException
+     *             found object is not type of {@link ResourceObjectShadowType}
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
+			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException;
 	
     /**
 	 * Provide repository run-time configuration and diagnostic information.

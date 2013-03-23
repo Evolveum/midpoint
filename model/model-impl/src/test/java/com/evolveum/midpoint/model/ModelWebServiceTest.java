@@ -428,7 +428,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
     @SuppressWarnings("unchecked")
     @Test(expectedExceptions = FaultMessage.class)
-    public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
+    public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage,
+            ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
         final String resourceOid = "abababab-abab-abab-abab-000000000001";
         final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);

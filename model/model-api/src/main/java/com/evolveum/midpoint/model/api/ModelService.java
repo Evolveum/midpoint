@@ -402,7 +402,8 @@ public interface ModelService {
 	 * @throws ObjectNotFoundException
 	 */
 	<T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, Task task, OperationResult parentResult) throws ObjectNotFoundException;
+			Class<T> resourceObjectShadowType, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException;
 
 	/**
 	 * <p>
