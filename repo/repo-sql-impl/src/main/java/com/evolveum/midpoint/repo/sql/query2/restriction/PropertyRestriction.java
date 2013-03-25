@@ -21,11 +21,15 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
+import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import org.hibernate.criterion.Criterion;
 
 /**
@@ -34,9 +38,19 @@ import org.hibernate.criterion.Criterion;
 public class PropertyRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
-        //todo implement
-        return false;
+    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
+        if (!super.canHandle(filter, context)) {
+            return false;
+        }
+
+        ValueFilter valFilter = (ValueFilter) filter;
+
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        ItemPath fullPath = createFullPath(valFilter);
+
+        PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
+
+        return def != null;
     }
 
     @Override

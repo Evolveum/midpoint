@@ -24,15 +24,19 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -53,6 +57,15 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     }
 
     @Override
+    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
+        Validate.notNull(filter, "Object filter must not be null.");
+        if (!(filter instanceof ValueFilter)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent)
             throws QueryException {
 
@@ -68,6 +81,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     public abstract Criterion interpretInternal(T filter, ObjectQuery query, QueryContext context, Restriction parent)
             throws QueryException;
 
+    //todo reimplement, use DefinitionHandlers or maybe another great concept
     private void updateQueryContext(ItemPath path, QueryContext context) throws QueryException {
         LOGGER.trace("Updating query context based on path\n{}", new Object[]{path.toString()});
         Class<? extends ObjectType> type = context.getType();
@@ -84,26 +98,31 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
             // get entity query definition
-//todo reimplement
-//            definition = definition.findDefinition(qname);
-//            if (definition == null || !definition.isEntity()) {
-//                throw new QueryException("This definition '" + definition + "' is not entity definition, "
-//                        + "we can't query attribute in attribute. Please check your path in query, or query "
-//                        + "entity/attribute mappings. Full path was '" + path + "'.");
-//            }
 
-            EntityDefinition entityDefinition = (EntityDefinition) definition;
-            if (entityDefinition.isEmbedded()) {
-                // for embedded relationships we don't have to create new
-                // criteria
-                LOGGER.trace("Skipping segment '{}' because it's embedded, sub path\n{}", new Object[]{qname,
-                        propPath.toString()});
-                continue;
+            Definition childDef = definition.findDefinition(qname, EntityDefinition.class);
+            if (childDef == null) {
+                throw new QueryException("Definition '" + definition.getJaxbName()
+                        + "' doesn't contain child definition ''. Please check your path in query, or query "
+                        + "entity/attribute mappings. Full path was '" + path + "'.");
             }
 
-            LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
-                    new Object[]{definition.getJpaName(), propPath.toString()});
-            addNewCriteriaToContext(propPath, definition.getJpaName(), context);
+            if (childDef instanceof EntityDefinition) {
+                EntityDefinition entityDef = (EntityDefinition) childDef;
+                if (!entityDef.isEmbedded()) {
+                    //create new criteria
+                    LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
+                            new Object[]{definition.getJpaName(), propPath.toString()});
+                    addNewCriteriaToContext(propPath, definition.getJpaName(), context);
+                } else {
+                    //add dot with jpaName to property path
+
+                }
+            } else if (childDef instanceof CollectionDefinition) {
+                throw new QueryException("not implemented yet.");
+            } else {
+                //todo throw something here [lazyman]
+                throw new QueryException("not implemented yet.");
+            }
         }
     }
 

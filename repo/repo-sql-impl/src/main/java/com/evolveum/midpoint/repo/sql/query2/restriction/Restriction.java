@@ -21,11 +21,19 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import org.hibernate.criterion.Criterion;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -35,5 +43,25 @@ public abstract class Restriction<T extends ObjectFilter> {
     public abstract Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent)
             throws QueryException;
 
-    public abstract boolean canHandle(ObjectFilter filter);
+    public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
+
+    protected ItemPath createFullPath(ValueFilter filter) {
+        ItemDefinition def = filter.getDefinition();
+        ItemPath parentPath = filter.getParentPath();
+
+        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
+        if (parentPath != null) {
+            for (ItemPathSegment segment : parentPath.getSegments()) {
+                if (!(segment instanceof NameItemPathSegment)) {
+                    continue;
+                }
+
+                NameItemPathSegment named = (NameItemPathSegment) segment;
+                segments.add(new NameItemPathSegment(named.getName()));
+            }
+        }
+        segments.add(new NameItemPathSegment(def.getName()));
+
+        return new ItemPath(segments);
+    }
 }

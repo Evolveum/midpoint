@@ -34,7 +34,7 @@ import org.hibernate.criterion.Criterion;
 public class OrgRestriction extends Restriction<OrgFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
+    public boolean canHandle(ObjectFilter filter, QueryContext context) {
         if (filter instanceof OrgFilter) {
             return true;
         }

@@ -104,8 +104,9 @@ public class QueryInterpreter {
         }
 
         try {
-            Restriction restriction = findAndCreateRestriction(filter);
             QueryContext context = new QueryContext(this, type, prismContext, session);
+
+            Restriction restriction = findAndCreateRestriction(filter, context);
             Criterion criterion = restriction.interpret(filter, query, context, null);
 
             Criteria criteria = context.getCriteria(null);
@@ -120,9 +121,10 @@ public class QueryInterpreter {
         }
     }
 
-    public <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter) throws QueryException {
+    public <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter, QueryContext context)
+            throws QueryException {
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
-            if (restriction.canHandle(filter)) {
+            if (restriction.canHandle(filter, context)) {
                 return restriction;
             }
         }

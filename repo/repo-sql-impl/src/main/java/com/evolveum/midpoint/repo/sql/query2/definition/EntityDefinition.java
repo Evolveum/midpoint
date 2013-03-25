@@ -21,7 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -92,5 +95,46 @@ public class EntityDefinition extends Definition {
     @Override
     protected String getDebugDumpClassName() {
         return "Ent";
+    }
+
+    @Override
+    public <D extends Definition> D findDefinition(ItemPath path, Class<D> type) {
+        if (path == null || path.isEmpty()) {
+            if (type.isAssignableFrom(EntityDefinition.class)) {
+                return (D) this;
+            }
+        }
+
+        NameItemPathSegment first = (NameItemPathSegment) path.first();
+        ItemPath tail = path.tail();
+
+        if (tail.isEmpty()) {
+            return findDefinition(first.getName(), type);
+        } else {
+            EntityDefinition nextEntity = findDefinition(first.getName(), EntityDefinition.class);
+            if (nextEntity != null) {
+                return nextEntity.findDefinition(tail, type);
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
+        Validate.notNull(jaxbName, "Jaxb name must not be null.");
+        Validate.notNull(type, "Definition type must not be null.");
+
+        for (Definition definition : getDefinitions()) {
+            if (!jaxbName.equals(definition.getJaxbName())) {
+                continue;
+            }
+
+            if (type.isAssignableFrom(definition.getClass())) {
+                return (D) definition;
+            }
+        }
+
+        return null;
     }
 }

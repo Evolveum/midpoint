@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.UnaryLogicalFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -35,7 +36,7 @@ public abstract class UnaryLogicalRestriction<T extends UnaryLogicalFilter> exte
     private static final Trace LOGGER = TraceManager.getTrace(UnaryLogicalRestriction.class);
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
+    public boolean canHandle(ObjectFilter filter, QueryContext context) {
         if (filter instanceof UnaryLogicalFilter) {
             return true;
         }
@@ -43,12 +44,11 @@ public abstract class UnaryLogicalRestriction<T extends UnaryLogicalFilter> exte
         return false;
     }
 
-    protected boolean isFilterValid(UnaryLogicalFilter filter) throws QueryException {
+    protected void validateFilter(UnaryLogicalFilter filter) throws QueryException {
         if (filter.getFilter() == null) {
             LOGGER.trace("UnaryLogicalFilter filter must have child filter defined in it.");
-            return false;
+            throw new QueryException("UnaryLogicalFilter '" + filter.dump()
+                    + "' must have child filter defined in it.");
         }
-
-        return true;
     }
 }

@@ -34,7 +34,11 @@ import org.hibernate.criterion.Criterion;
 public class AnyPropertyRestriction<T extends ValueFilter> extends ItemRestriction<T> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
+    public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
+        if (!super.canHandle(filter, context)) {
+            return false;
+        }
+
         //todo implement
         return false;
     }

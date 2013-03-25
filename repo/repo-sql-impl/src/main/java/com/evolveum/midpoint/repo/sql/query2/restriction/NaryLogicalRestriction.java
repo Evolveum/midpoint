@@ -44,7 +44,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
     private List<Restriction> restrictions;
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
+    public boolean canHandle(ObjectFilter filter, QueryContext context) {
         if (filter instanceof NaryLogicalFilter) {
             return true;
         }
@@ -59,14 +59,13 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         return restrictions;
     }
 
-    protected boolean isFilterValid(NaryLogicalFilter filter) throws QueryException {
-        if (filter.getCondition() == null || filter.getCondition().isEmpty()){
+    protected void validateFilter(NaryLogicalFilter filter) throws QueryException {
+        if (filter.getCondition() == null || filter.getCondition().isEmpty()) {
             LOGGER.trace("NaryLogicalFilter filter must have at least two conditions in it. " +
                     "Removing logical filter and processing simple condition.");
-            return false;
+            throw new QueryException("NaryLogicalFilter filter '" + filter.dump()
+                    + "' must have at least two conditions in it. Removing logical filter and processing simple condition.");
         }
-
-        return true;
     }
 
     protected Junction updateJunction(List<? extends ObjectFilter> conditions, Junction junction,
@@ -75,7 +74,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         QueryInterpreter interpreter = context.getInterpreter();
 
         for (ObjectFilter condition : conditions) {
-            Restriction restriction = interpreter.findAndCreateRestriction(condition);
+            Restriction restriction = interpreter.findAndCreateRestriction(condition, context);
             Criterion criterion = restriction.interpret(condition, query, context, this);
             junction.add(criterion);
         }

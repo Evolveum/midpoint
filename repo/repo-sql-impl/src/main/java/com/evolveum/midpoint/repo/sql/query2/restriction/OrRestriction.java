@@ -30,14 +30,16 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
 
+import java.util.List;
+
 /**
  * @author lazyman
  */
 public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
-        if (!super.canHandle(filter)) {
+    public boolean canHandle(ObjectFilter filter, QueryContext context) {
+        if (!super.canHandle(filter, context)) {
             return false;
         }
 
@@ -48,8 +50,11 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
     public Criterion interpret(OrFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
             throws QueryException {
 
-        if (!isFilterValid(filter)) {
-            //todo what to do here? probably skip and if there is one sub filter, otherwise exception...or maybe skip it all
+        validateFilter(filter);
+
+        List<ObjectFilter> conditions = filter.getCondition();
+        if (conditions.size() == 1) {
+            return interpretChildFilter(conditions.get(0), query, context);
         }
 
         Disjunction disjunction = Restrictions.disjunction();

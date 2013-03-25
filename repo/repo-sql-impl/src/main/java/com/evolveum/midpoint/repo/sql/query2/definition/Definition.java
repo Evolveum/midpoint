@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -120,4 +121,12 @@ public abstract class Definition implements Dumpable, DebugDumpable {
      * Return a human readable name of this class suitable for logs.
      */
     protected abstract String getDebugDumpClassName();
+
+    public <D extends Definition> D findDefinition(ItemPath path, Class<D> type) {
+        return null;
+    }
+
+    public <D extends Definition> D findDefinition(QName jaxbName, Class<D> type) {
+        return null;
+    }
 }

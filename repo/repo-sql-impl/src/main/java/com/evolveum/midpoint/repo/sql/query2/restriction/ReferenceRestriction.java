@@ -34,7 +34,7 @@ import org.hibernate.criterion.Criterion;
 public class ReferenceRestriction extends ItemRestriction<RefFilter> {
 
     @Override
-    public boolean canHandle(ObjectFilter filter) {
+    public boolean canHandle(ObjectFilter filter, QueryContext context) {
         if (filter instanceof RefFilter) {
             return true;
         }
