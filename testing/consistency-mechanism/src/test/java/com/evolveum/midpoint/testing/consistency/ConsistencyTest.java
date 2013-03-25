@@ -313,13 +313,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@BeforeMethod
 	public void beforeMethod() throws Exception {
 		LOGGER.info("BEFORE METHOD");
-		OperationResult result = new OperationResult("get administrator");
-		PrismObject<UserType> object = modelService.getObject(UserType.class,
-				SystemObjectsType.USER_ADMINISTRATOR.value(), null, null, result);
-
-		assertNotNull("Administrator user is null", object.asObjectable());
-		SecurityContextHolder.getContext().setAuthentication(
-				new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
+//		OperationResult result = new OperationResult("get administrator");
+//		PrismObject<UserType> object = modelService.getObject(UserType.class,
+//				SystemObjectsType.USER_ADMINISTRATOR.value(), null, null, result);
+//
+//		assertNotNull("Administrator user is null", object.asObjectable());
+//		SecurityContextHolder.getContext().setAuthentication(
+//				new UsernamePasswordAuthenticationToken(object.asObjectable(), null));
+		setSecurityContextUser(SystemObjectsType.USER_ADMINISTRATOR.value());
 
 		LOGGER.info("BEFORE METHOD END");
 	}
