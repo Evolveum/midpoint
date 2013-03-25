@@ -27,6 +27,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -99,6 +101,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
     }
     
 	private PrismReferenceValue getValue(String oid) {
+		Validate.notEmpty(oid, "Cannot get reference value for empty OID");
 		for (PrismReferenceValue val: getValues()) {
 			if (oid.equals(val.getOid())) {
 				return val;
@@ -115,6 +118,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
     
     public boolean merge(PrismReferenceValue value) {
     	String newOid = value.getOid();
+    	Validate.notEmpty(newOid, "Cannot merge reference value with empty OID");
     	PrismReferenceValue existingValue = getValue(newOid);
 		if (existingValue == null) {
 			return add(value);
