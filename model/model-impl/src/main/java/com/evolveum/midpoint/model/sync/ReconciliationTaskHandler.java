@@ -31,7 +31,7 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -296,7 +296,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-		RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
 		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
 				resource, refinedAccountDefinition);
@@ -582,7 +582,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 //	}
 
 	private ObjectQuery createAccountSearchQuery(PrismObject<ResourceType> resource,
-			RefinedAccountDefinition refinedAccountDefinition) throws SchemaException {
+			RefinedObjectClassDefinition refinedAccountDefinition) throws SchemaException {
 		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
 		return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
 	}

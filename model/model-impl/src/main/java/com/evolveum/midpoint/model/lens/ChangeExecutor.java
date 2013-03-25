@@ -23,7 +23,7 @@ package com.evolveum.midpoint.model.lens;
 
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;

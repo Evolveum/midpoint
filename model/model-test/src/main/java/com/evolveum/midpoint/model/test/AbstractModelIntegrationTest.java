@@ -54,7 +54,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -410,7 +410,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (refinedSchema == null) {
 			throw new SchemaException("No refined schema for "+resource);
 		}
-		RefinedAccountDefinition accountDefinition = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultAccountDefinition();
 		return accountDefinition.findAttributeDefinition(attributeName);
 	}
 
@@ -629,7 +629,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedAccountDefinition rAccount = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultAccountDefinition();
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
@@ -681,7 +681,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedAccountDefinition rAccount = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultAccountDefinition();
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();

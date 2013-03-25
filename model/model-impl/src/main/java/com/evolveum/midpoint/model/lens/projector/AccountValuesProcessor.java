@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -307,7 +307,7 @@ public class AccountValuesProcessor {
 			return;
 		}
 		
-		RefinedAccountDefinition rAccountDef = accountContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition rAccountDef = accountContext.getRefinedAccountDefinition();
 		if (rAccountDef == null) {
 			throw new SchemaException("No definition for account type '"
 					+accountContext.getResourceShadowDiscriminator().getIntent()+"' in "+accountContext.getResource());

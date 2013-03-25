@@ -40,7 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -144,7 +144,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {
 		
-		RefinedAccountDefinition accountDef = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());

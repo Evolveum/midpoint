@@ -28,7 +28,7 @@ import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -129,7 +129,7 @@ public class InboundProcessor {
                     continue;
                 }
 
-                RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
+                RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it " +
                             "should be there, dumping context:\n{}", rat, context.dump());
@@ -148,7 +148,7 @@ public class InboundProcessor {
 
     private void processInboundExpressionsForAccount(LensContext<UserType,AccountShadowType> context, 
     		LensProjectionContext<AccountShadowType> accContext,
-            RefinedAccountDefinition accountDefinition, ObjectDelta<AccountShadowType> aPrioriDelta, OperationResult result)
+            RefinedObjectClassDefinition accountDefinition, ObjectDelta<AccountShadowType> aPrioriDelta, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	
         if (aPrioriDelta == null && accContext.getObjectOld() == null) {
@@ -402,7 +402,7 @@ public class InboundProcessor {
      */
     private void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
             PrismObject<UserType> newUser, LensProjectionContext<AccountShadowType> accContext, 
-            RefinedAccountDefinition accountDefinition, LensContext<UserType,AccountShadowType> context, 
+            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,AccountShadowType> context, 
             OperationResult opResult) throws SchemaException {
     	
         if (inboundMappingType == null || newUser == null || !accContext.isFullShadow()) {

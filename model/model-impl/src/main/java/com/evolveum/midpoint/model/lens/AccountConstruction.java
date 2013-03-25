@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -73,7 +73,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 	private ObjectResolver objectResolver;
 	private MappingFactory valueConstructionFactory;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeConstructions;
-	private RefinedAccountDefinition refinedAccountDefinition;
+	private RefinedObjectClassDefinition refinedAccountDefinition;
 	private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
@@ -141,7 +141,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 		if (refinedAccountDefinition == null) {
 			throw new IllegalStateException("Account type can only be fetched from evaluated AccountConstruction");
 		}
-		return refinedAccountDefinition.getAccountTypeName();
+		return refinedAccountDefinition.getIntent();
 	}
 	
 	public Object getDescription() {

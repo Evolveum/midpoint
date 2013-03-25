@@ -112,7 +112,7 @@ public class TestRefinedSchema {
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.MODEL);
 
         
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
         assertNotNull("No userPassword attribute", userPasswordAttribute);
         assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
@@ -141,7 +141,7 @@ public class TestRefinedSchema {
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL);
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION);
         
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
         assertNotNull("No userPassword attribute", userPasswordAttribute);
         assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
@@ -179,12 +179,12 @@ public class TestRefinedSchema {
     
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, LayerType sourceLayer, LayerType validationLayer) {
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
         
-        RefinedAccountDefinition accountDefByNullObjectclass = rSchema.findAccountDefinitionByObjectClass(null);
+        RefinedObjectClassDefinition accountDefByNullObjectclass = rSchema.findAccountDefinitionByObjectClass(null);
         assertTrue("findAccountDefinitionByObjectClass(null) returned wrong value", rAccount.equals(accountDefByNullObjectclass));
         
-        RefinedAccountDefinition accountDefByIcfAccountObjectclass = rSchema.findAccountDefinitionByObjectClass(
+        RefinedObjectClassDefinition accountDefByIcfAccountObjectclass = rSchema.findAccountDefinitionByObjectClass(
         		new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
         assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccount.equals(accountDefByIcfAccountObjectclass));
 
@@ -223,7 +223,7 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
-        RefinedAccountDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
 
         PrismObject<AccountShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
@@ -254,7 +254,7 @@ public class TestRefinedSchema {
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resource, prismContext);
-        RefinedAccountDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.dump());
 
@@ -281,8 +281,8 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
-        assertEquals("Wrong type of <attributes> definition in account", RefinedAccountDefinition.class, attributes.getDefinition().getClass());
-        RefinedAccountDefinition attrDef = (RefinedAccountDefinition) attributes.getDefinition();
+        assertEquals("Wrong type of <attributes> definition in account", RefinedObjectClassDefinition.class, attributes.getDefinition().getClass());
+        RefinedObjectClassDefinition attrDef = (RefinedObjectClassDefinition) attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType, null, LayerType.MODEL);
 
         PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
@@ -331,7 +331,7 @@ public class TestRefinedSchema {
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
         
         // WHEN
         PrismObject<AccountShadowType> blankShadow = rAccount.createBlankShadow();
@@ -358,10 +358,10 @@ public class TestRefinedSchema {
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
         assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedAccountDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
 
         // WHEN
-        Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedAccounts();
+        Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedObjectPatterns();
         
         // THEN
         assertNotNull("Null protectedAccounts", protectedAccounts);
@@ -372,9 +372,9 @@ public class TestRefinedSchema {
         assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com");
     }
 
-    private void assertAttributeDefs(RefinedAccountDefinition rAccount, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
+    private void assertAttributeDefs(RefinedObjectClassDefinition rAccount, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
         assertNotNull("Null account definition", rAccount);
-        assertEquals(SchemaConstants.INTENT_DEFAULT, rAccount.getAccountTypeName());
+        assertEquals(SchemaConstants.INTENT_DEFAULT, rAccount.getIntent());
         assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
         assertTrue(rAccount.isDefault());
 

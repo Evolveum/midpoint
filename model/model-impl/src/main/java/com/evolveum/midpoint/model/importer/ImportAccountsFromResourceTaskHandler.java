@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.model.importer;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.prism.*;
@@ -228,7 +228,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        RefinedAccountDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
 
         // Determine object class to import
         QName objectclass = null;

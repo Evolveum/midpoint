@@ -25,7 +25,7 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -120,7 +120,7 @@ public class ShadowConstraintsChecker {
 	}
 	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		
-		RefinedAccountDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
 		PrismObject<AccountShadowType> accountNew = accountContext.getObjectNew();
 		if (accountNew == null) {
 			// This must be delete
@@ -165,7 +165,7 @@ public class ShadowConstraintsChecker {
 		satisfiesConstraints = true;
 	}
 	
-	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedAccountDefinition accountDefinition,
+	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedObjectClassDefinition accountDefinition,
 			ResourceType resourceType, String oid, LensContext<UserType, AccountShadowType> context, OperationResult result) throws SchemaException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);

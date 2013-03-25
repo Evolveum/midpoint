@@ -27,7 +27,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -124,11 +124,11 @@ public class LensUtil {
 	
 	public static String refineAccountType(String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-		RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(intent);
+		RefinedObjectClassDefinition accountDefinition = refinedSchema.getAccountDefinition(intent);
 		if (accountDefinition == null) {
 			throw new SchemaException("No account definition for intent="+intent+" in "+resource);
 		}
-		return accountDefinition.getAccountTypeName();
+		return accountDefinition.getIntent();
 	}
 	
 	public static LensProjectionContext<AccountShadowType> getAccountContext(LensContext<UserType,AccountShadowType> context,

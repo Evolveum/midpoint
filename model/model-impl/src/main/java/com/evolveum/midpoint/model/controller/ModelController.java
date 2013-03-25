@@ -44,7 +44,7 @@ import com.evolveum.midpoint.common.CompiletimeConfig;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
@@ -1350,7 +1350,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	private <T extends AccountShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, LayerType.MODEL, prismContext);
 		QName objectClass = shadow.asObjectable().getObjectClass();
-		RefinedAccountDefinition rAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+		RefinedObjectClassDefinition rAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
 		attributesContainer.applyDefinition(rAccountDef, true);
 	}

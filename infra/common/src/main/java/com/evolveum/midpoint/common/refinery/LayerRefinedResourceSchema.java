@@ -65,8 +65,8 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.getNamespace();
 	}
 
-	public Collection<? extends RefinedAccountDefinition> getAccountDefinitions() {
-		return LayerRefinedAccountDefinition.wrapCollection(refinedResourceSchema.getAccountDefinitions(), layer);
+	public Collection<? extends RefinedObjectClassDefinition> getAccountDefinitions() {
+		return LayerRefinedObjectClassDefinition.wrapCollection(refinedResourceSchema.getAccountDefinitions(), layer);
 	}
 
 	public Collection<Definition> getDefinitions() {
@@ -81,12 +81,12 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.getDefinitions(type);
 	}
 
-	public LayerRefinedAccountDefinition getAccountDefinition(AccountShadowType shadow) {
-		return LayerRefinedAccountDefinition.wrap(refinedResourceSchema.getAccountDefinition(shadow),layer);
+	public LayerRefinedObjectClassDefinition getAccountDefinition(AccountShadowType shadow) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getAccountDefinition(shadow),layer);
 	}
 
-	public LayerRefinedAccountDefinition getAccountDefinition(String intent) {
-		return LayerRefinedAccountDefinition.wrap(refinedResourceSchema.getAccountDefinition(intent),layer);
+	public LayerRefinedObjectClassDefinition getAccountDefinition(String intent) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getAccountDefinition(intent),layer);
 	}
 
 	public void add(Definition def) {
@@ -97,8 +97,8 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.getPrismContext();
 	}
 
-	public LayerRefinedAccountDefinition getDefaultAccountDefinition() {
-		return LayerRefinedAccountDefinition.wrap(refinedResourceSchema.getDefaultAccountDefinition(),layer);
+	public LayerRefinedObjectClassDefinition getDefaultAccountDefinition() {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getDefaultAccountDefinition(),layer);
 	}
 
 	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(String accountType) {
@@ -169,8 +169,8 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.createPropertyDefinition(name, typeName);
 	}
 
-	public LayerRefinedAccountDefinition findAccountDefinitionByObjectClass(QName objectClass) {
-		return LayerRefinedAccountDefinition.wrap(refinedResourceSchema.findAccountDefinitionByObjectClass(objectClass),layer);
+	public LayerRefinedObjectClassDefinition findAccountDefinitionByObjectClass(QName objectClass) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.findAccountDefinitionByObjectClass(objectClass),layer);
 	}
 
 	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {

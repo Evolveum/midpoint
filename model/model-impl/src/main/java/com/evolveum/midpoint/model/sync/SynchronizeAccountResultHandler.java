@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -62,7 +62,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 	private ResourceObjectChangeListener objectChangeListener;
 	private Task task;
 	private ResourceType resource;
-	private RefinedAccountDefinition refinedAccountDefinition;
+	private RefinedObjectClassDefinition refinedAccountDefinition;
 	private QName sourceChannel;
 	private String processShortName;
 	private long progress;
@@ -70,7 +70,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 	private boolean stopOnError;
 	private boolean forceAdd;
 
-	public SynchronizeAccountResultHandler(ResourceType resource, RefinedAccountDefinition refinedAccountDefinition, Task task,
+	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedAccountDefinition, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
 		this.objectChangeListener = objectChangeListener;
 		this.task = task;

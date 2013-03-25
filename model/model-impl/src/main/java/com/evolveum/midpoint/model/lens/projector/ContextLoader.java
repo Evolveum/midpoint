@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -822,7 +822,7 @@ public class ContextLoader {
 				}
 				
 				//Determine refined schema and password policies for account type
-				RefinedAccountDefinition rad = projContext.getRefinedAccountDefinition();
+				RefinedObjectClassDefinition rad = projContext.getRefinedAccountDefinition();
 				if (rad != null && AccountShadowType.class.isAssignableFrom(projClass)) {
 					ObjectReferenceType passwordPolicyRef = rad.getPasswordPolicy();
 					if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -145,7 +145,7 @@ public class CredentialsProcessor {
             return;
         }
 
-        RefinedAccountDefinition refinedAccountDef = accCtx.getRefinedAccountDefinition();
+        RefinedObjectClassDefinition refinedAccountDef = accCtx.getRefinedAccountDefinition();
         if (refinedAccountDef == null){
         	LOGGER.trace("No RefinedAccountDefinition, therefore also no password outbound definition, skipping credentials processing for account " + rat);
           return;

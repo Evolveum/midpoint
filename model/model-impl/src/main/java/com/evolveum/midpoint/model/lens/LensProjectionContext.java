@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -353,7 +353,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     	return RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, getNotNullPrismContext());
     }
     
-    public RefinedAccountDefinition getRefinedAccountDefinition() throws SchemaException {
+    public RefinedObjectClassDefinition getRefinedAccountDefinition() throws SchemaException {
 		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
 		if (refinedSchema == null) {
 			return null;
@@ -431,7 +431,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         }
         
         if (oldAccount == null && accDelta.isModify()) {
-        	RefinedAccountDefinition rAccountDef = getRefinedAccountDefinition();
+        	RefinedObjectClassDefinition rAccountDef = getRefinedAccountDefinition();
         	if (rAccountDef != null) {
         		oldAccount = (PrismObject<O>) rAccountDef.createBlankShadow();
         	}
@@ -517,7 +517,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
             	// We need to convert modify delta to ADD
             	ObjectDelta<O> addDelta = new ObjectDelta<O>(getObjectTypeClass(),
                 		ChangeType.ADD, getPrismContext());
-                RefinedAccountDefinition rAccount = getRefinedAccountDefinition();
+                RefinedObjectClassDefinition rAccount = getRefinedAccountDefinition();
 
                 if (rAccount == null) {
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator() 

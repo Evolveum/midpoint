@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -206,7 +206,7 @@ public class ShadowConverter {
 				// There resource is capable of returning password but it does not do it by default
 				
 				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-				RefinedAccountDefinition rAccDef = refinedSchema.getDefaultAccountDefinition();
+				RefinedObjectClassDefinition rAccDef = refinedSchema.getDefaultAccountDefinition();
 				AttributeFetchStrategyType passwordFetchStrategy = rAccDef.getPasswordFetchStrategy();
 				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 					AttributesToReturn attributesToReturn = new AttributesToReturn();
@@ -971,14 +971,14 @@ public class ShadowConverter {
 			Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
 		// TODO: support also other types except account
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
-		RefinedAccountDefinition refinedAccountDef = refinedSchema
+		RefinedObjectClassDefinition refinedAccountDef = refinedSchema
 				.findAccountDefinitionByObjectClass(objectClass);
 		LOGGER.trace("isProtectedShadow: {} -> {}, {}", new Object[] { objectClass, refinedAccountDef,
 				attributes });
 		if (refinedAccountDef == null) {
 			return false;
 		}
-		Collection<ResourceObjectPattern> protectedAccountPatterns = refinedAccountDef.getProtectedAccounts();
+		Collection<ResourceObjectPattern> protectedAccountPatterns = refinedAccountDef.getProtectedObjectPatterns();
 		if (protectedAccountPatterns == null) {
 			return false;
 		}

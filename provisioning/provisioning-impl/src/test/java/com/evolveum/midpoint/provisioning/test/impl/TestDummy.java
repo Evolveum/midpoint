@@ -39,7 +39,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
@@ -380,7 +380,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Broken caching",
 				refinedSchema == RefinedResourceSchema.getRefinedSchema(resourceType, prismContext));
 
-		RefinedAccountDefinition accountDef = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultAccountDefinition();
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());

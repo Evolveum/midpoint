@@ -22,7 +22,7 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -149,7 +149,7 @@ public class ReconciliationProcessor {
 
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), LayerType.MODEL, 
             		prismContext);
-            RefinedAccountDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceShadowDiscriminator().getIntent());
+            RefinedObjectClassDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceShadowDiscriminator().getIntent());
             
             reconcileAccount(accContext, squeezedAttributes, accountDefinition);
         } catch (RuntimeException e) {
@@ -164,7 +164,7 @@ public class ReconciliationProcessor {
     }
 
     private void reconcileAccount(LensProjectionContext<AccountShadowType> accCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, RefinedAccountDefinition accountDefinition) throws SchemaException {
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
     	PrismObject<AccountShadowType> account = accCtx.getObjectNew();
 

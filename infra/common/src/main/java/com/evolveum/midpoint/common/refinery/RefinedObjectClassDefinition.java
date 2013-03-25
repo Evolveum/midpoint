@@ -49,9 +49,9 @@ import java.util.*;
 /**
  * @author semancik
  */
-public class RefinedAccountDefinition extends ResourceAttributeContainerDefinition implements Dumpable, DebugDumpable {
+public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefinition implements Dumpable, DebugDumpable {
 
-    private String accountType;
+    private String intent;
     private String displayName;
     private String description;
     private boolean isDefault;
@@ -59,7 +59,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     private ResourceType resourceType;
     private Collection<? extends RefinedAttributeDefinition> identifiers;
 	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
-	private Collection<ResourceObjectPattern> protectedAccounts;
+	private Collection<ResourceObjectPattern> protectedObjectPatterns;
 	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
@@ -68,17 +68,17 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 
     private List<RefinedAttributeDefinition> attributeDefinitions;
     
-    protected RefinedAccountDefinition(PrismContext prismContext) {
+    protected RefinedObjectClassDefinition(PrismContext prismContext) {
     	super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
     }
 
-    private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType) {
+    private RefinedObjectClassDefinition(PrismContext prismContext, ResourceType resourceType) {
         super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
         attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
     }
 
-    private RefinedAccountDefinition(PrismContext prismContext, ResourceType resourceType,
+    private RefinedObjectClassDefinition(PrismContext prismContext, ResourceType resourceType,
     		ObjectClassComplexTypeDefinition objectClassDefinition) {
         super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
         attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
@@ -107,11 +107,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public void setAccountType(boolean accountType) {
-        throw new UnsupportedOperationException("Parts of refined account are immutable");
-    }
-
-    @Override
     public boolean isDefaultAccountType() {
         return isDefault;
     }
@@ -122,13 +117,13 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public String getAccountTypeName() {
-        return accountType;
+    public String getIntent() {
+        return intent;
     }
 
     @Override
-    public void setAccountTypeName(String accountTypeName) {
-        this.accountType = accountTypeName;
+    public void setIntent(String intent) {
+        this.intent = intent;
     }
 
     @Override
@@ -161,11 +156,11 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 		return new ArrayList<RefinedAttributeDefinition>();
 	}
 	
-	public Collection<ResourceObjectPattern> getProtectedAccounts() {
-		if (protectedAccounts == null) {
-			protectedAccounts = new ArrayList<ResourceObjectPattern>();
+	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
+		if (protectedObjectPatterns == null) {
+			protectedObjectPatterns = new ArrayList<ResourceObjectPattern>();
 		}
-		return protectedAccounts;
+		return protectedObjectPatterns;
 	}
 	
 	public PrismContext getPrismContext() {
@@ -188,15 +183,15 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     @Override
-    public RefinedAccountDefinition clone() {
-        RefinedAccountDefinition clone = new RefinedAccountDefinition(getPrismContext(), resourceType, objectClassDefinition);
+    public RefinedObjectClassDefinition clone() {
+        RefinedObjectClassDefinition clone = new RefinedObjectClassDefinition(getPrismContext(), resourceType, objectClassDefinition);
         copyDefinitionData(clone);
         return clone;
     }
 
-    protected void copyDefinitionData(RefinedAccountDefinition clone) {
+    protected void copyDefinitionData(RefinedObjectClassDefinition clone) {
         super.copyDefinitionData(clone);
-        clone.accountType = this.accountType;
+        clone.intent = this.intent;
         clone.attributeDefinitions = this.attributeDefinitions;
         clone.description = this.description;
         clone.displayName = this.displayName;
@@ -205,17 +200,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         clone.objectDefinition = this.objectDefinition;
         clone.resourceType = this.resourceType;
     }
-
-//    @Override
-//    public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements, PropertyPath parentPath) throws SchemaException {
-//        return objectClassDefinition.parseAttributes(elements, parentPath);
-//    }
-//
-//    @Override
-//    public Collection<? extends ResourceObjectAttribute> parseIdentifiers(List<Object> elements, PropertyPath parentPath)
-//            throws SchemaException {
-//        return objectClassDefinition.parseIdentifiers(elements, parentPath);
-//    }
 
     @Override
     public RefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
@@ -227,22 +211,6 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         QName elementQName = new QName(getNamespace(), elementLocalname);
         return findAttributeDefinition(elementQName);
     }
-
-//    @Override
-//    public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
-//        throw new UnsupportedOperationException("Parts of refined account are immutable");
-//    }
-
-//    @Override
-//    public ResourceAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
-//        throw new UnsupportedOperationException("Parts of refined account are immutable");
-//    }
-//
-//    @Override
-//    public ResourceAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
-//        throw new UnsupportedOperationException("Parts of refined account are immutable");
-//    }
-
 
     @Override
     public String getDisplayName() {
@@ -352,15 +320,15 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return false;
     }
 
-    static RefinedAccountDefinition parse(ResourceAccountTypeDefinitionType accountTypeDefType,
+    static RefinedObjectClassDefinition parse(ResourceAccountTypeDefinitionType accountTypeDefType,
             ResourceType resourceType, RefinedResourceSchema rSchema,
             PrismContext prismContext, String contextDescription) throws
             SchemaException {
 
-        RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(prismContext, resourceType);
+        RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType);
 
         if (accountTypeDefType.getName() != null) {
-            rAccountDef.setAccountTypeName(accountTypeDefType.getName());
+            rAccountDef.setIntent(accountTypeDefType.getName());
         } else {
             throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
         }
@@ -427,14 +395,14 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         return rAccountDef;
     }
 
-	private static void parseProtectedAccounts(RefinedAccountDefinition rAccountDef, ResourceAccountTypeDefinitionType accountTypeDefType) throws SchemaException {
+	private static void parseProtectedAccounts(RefinedObjectClassDefinition rAccountDef, ResourceAccountTypeDefinitionType accountTypeDefType) throws SchemaException {
 		for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
 			ResourceObjectPattern protectedPattern = convertToPatten(protectedType, rAccountDef);
-			rAccountDef.getProtectedAccounts().add(protectedPattern);
+			rAccountDef.getProtectedObjectPatterns().add(protectedPattern);
 		}
 	}
 	
-	private static ResourceObjectPattern convertToPatten(ResourceObjectPatternType protectedType, RefinedAccountDefinition rAccountDef) throws SchemaException {
+	private static ResourceObjectPattern convertToPatten(ResourceObjectPatternType protectedType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern();
 		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(rAccountDef, protectedType.getAny());
 		for(Item<?> item: items) {
@@ -447,11 +415,11 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 		return resourceObjectPattern;
 	}
 
-	static RefinedAccountDefinition parse(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
+	static RefinedObjectClassDefinition parse(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
             RefinedResourceSchema rSchema,
             PrismContext prismContext, String contextDescription) throws SchemaException {
 
-        RefinedAccountDefinition rAccountDef = new RefinedAccountDefinition(prismContext, resourceType, objectClassDef);
+        RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
         String accountTypeName = null;
         if (objectClassDef.getIntent() != null) {
@@ -459,10 +427,10 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
             if (accountTypeName == null) {
             	accountTypeName = SchemaConstants.INTENT_DEFAULT;
             }
-            rAccountDef.setAccountTypeName(accountTypeName);
+            rAccountDef.setIntent(accountTypeName);
         } else {
             if (objectClassDef.isDefaultAccountType()) {
-                rAccountDef.setAccountTypeName(MidPointConstants.DEFAULT_ACCOUNT_TYPE_NAME);
+                rAccountDef.setIntent(MidPointConstants.DEFAULT_ACCOUNT_TYPE_NAME);
             } else {
                 throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
             }
@@ -582,7 +550,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
 		}
     	AccountShadowType accountShadowType = accountShadow.asObjectable();
         
-    	accountShadowType.setAccountType(getAccountTypeName());
+    	accountShadowType.setAccountType(getIntent());
         accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
         accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
         
@@ -594,7 +562,7 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
     }
 
     public ResourceShadowDiscriminator getResourceAccountType() {
-        return new ResourceShadowDiscriminator(resourceType.getOid(), getAccountTypeName());
+        return new ResourceShadowDiscriminator(resourceType.getOid(), getIntent());
     }
 
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
@@ -626,12 +594,12 @@ public class RefinedAccountDefinition extends ResourceAttributeContainerDefiniti
         List<ResourceAccountTypeDefinitionType> types = resourceType.getSchemaHandling().getAccountType();
         ResourceAccountTypeDefinitionType definition = null;
         for (ResourceAccountTypeDefinitionType account : types) {
-            if (accountType == null && account.isDefault()) {
+            if (intent == null && account.isDefault()) {
                 definition = account;
                 break;
             }
 
-            if (accountType.equals(account.getName())) {
+            if (intent.equals(account.getName())) {
                 definition = account;
                 break;
             }

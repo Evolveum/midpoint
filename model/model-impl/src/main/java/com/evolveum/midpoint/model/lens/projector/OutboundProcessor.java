@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
@@ -100,7 +100,7 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for account {} starting", rat);
 
-        RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
+        RefinedObjectClassDefinition rAccount = accCtx.getRefinedAccountDefinition();
         if (rAccount == null) {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");

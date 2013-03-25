@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
 import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -154,7 +154,7 @@ public class ConsolidationProcessor {
         ObjectDelta<AccountShadowType> objectDelta = new ObjectDelta<AccountShadowType>(AccountShadowType.class, ChangeType.MODIFY, prismContext);
         objectDelta.setOid(accCtx.getOid());
 
-        RefinedAccountDefinition rAccount = accCtx.getRefinedAccountDefinition();
+        RefinedObjectClassDefinition rAccount = accCtx.getRefinedAccountDefinition();
         if (rAccount == null) {
             LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", rat, context.dump());
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");

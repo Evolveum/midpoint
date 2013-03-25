@@ -212,12 +212,6 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return getComplexTypeDefinition().isAccountType();
 	}
 
-	public void setAccountType(boolean accountType) {
-		// We can afford to delegate a set here as we know that there is one-to-one correspondence between
-		// object class definition and attribute container
-		getComplexTypeDefinition().setAccountType(accountType);
-	}
-
 	/**
 	 * Indicates whether definition is should be used as default account type.
 	 * 
@@ -247,11 +241,11 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		getComplexTypeDefinition().setDefaultAccountType(defaultAccountType);
 	}
 	
-	public String getAccountTypeName() {
+	public String getIntent() {
 		return getComplexTypeDefinition().getIntent();
 	}
 	
-	public void setAccountTypeName(String accountTypeName) {
+	public void setIntent(String accountTypeName) {
 		getComplexTypeDefinition().setIntent(accountTypeName);
 	}
 

@@ -76,11 +76,11 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
-	public Collection<? extends RefinedAccountDefinition> getAccountDefinitions() {
-		Set<RefinedAccountDefinition> accounts = new HashSet<RefinedAccountDefinition>();
+	public Collection<? extends RefinedObjectClassDefinition> getAccountDefinitions() {
+		Set<RefinedObjectClassDefinition> accounts = new HashSet<RefinedObjectClassDefinition>();
 		for (Definition def: definitions) {
-			if (def instanceof RefinedAccountDefinition) {
-				RefinedAccountDefinition rad = (RefinedAccountDefinition)def;
+			if (def instanceof RefinedObjectClassDefinition) {
+				RefinedObjectClassDefinition rad = (RefinedObjectClassDefinition)def;
 				accounts.add(rad);
 			}
 		}
@@ -92,26 +92,26 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 
 	
-	public RefinedAccountDefinition getAccountDefinition(AccountShadowType shadow) {
+	public RefinedObjectClassDefinition getAccountDefinition(AccountShadowType shadow) {
 		return getAccountDefinition(ResourceObjectShadowUtil.getIntent(shadow));
 	}
 	
 	/**
 	 * if null accountType is provided, default account definition is returned.
 	 */
-	public RefinedAccountDefinition getAccountDefinition(String intent) {
-		for (RefinedAccountDefinition acctDef: getAccountDefinitions()) {
+	public RefinedObjectClassDefinition getAccountDefinition(String intent) {
+		for (RefinedObjectClassDefinition acctDef: getAccountDefinitions()) {
 			if (intent == null && acctDef.isDefault()) {
 				return acctDef;
 			}
-			if (acctDef.getAccountTypeName().equals(intent)) {
+			if (acctDef.getIntent().equals(intent)) {
 				return acctDef;
 			}
 		}
 		return null;
 	}
 	
-	public RefinedAccountDefinition getDefaultAccountDefinition() {
+	public RefinedObjectClassDefinition getDefaultAccountDefinition() {
 		return getAccountDefinition((String)null);
 	}
 	
@@ -123,15 +123,15 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return getObjectDefinition(ResourceObjectShadowUtil.getIntent(shadow));
 	}
 		
-	private void add(RefinedAccountDefinition refinedAccountDefinition) {
+	private void add(RefinedObjectClassDefinition refinedAccountDefinition) {
 		definitions.add(refinedAccountDefinition);
 	}
 	
-	public RefinedAccountDefinition findAccountDefinitionByObjectClass(QName objectClass) {
+	public RefinedObjectClassDefinition findAccountDefinitionByObjectClass(QName objectClass) {
 		if (objectClass == null) {
 			return getDefaultAccountDefinition();
 		}
-		for (RefinedAccountDefinition acctDef: getAccountDefinitions()) {
+		for (RefinedObjectClassDefinition acctDef: getAccountDefinitions()) {
 			if (acctDef.getObjectClassDefinition().getTypeName().equals(objectClass)) {
 				return acctDef;
 			}
@@ -271,10 +271,10 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	private static void parseAccountTypesFromSchemaHandling(RefinedResourceSchema rSchema, ResourceType resourceType,
 			SchemaHandlingType schemaHandling, PrismContext prismContext, String contextDescription) throws SchemaException {
 		
-		RefinedAccountDefinition rAccountDefDefault = null;
+		RefinedObjectClassDefinition rAccountDefDefault = null;
 		for (ResourceAccountTypeDefinitionType accountTypeDefType: schemaHandling.getAccountType()) {
 			String accountTypeName = accountTypeDefType.getName();
-			RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(accountTypeDefType, resourceType, rSchema, prismContext, "account type '"+accountTypeName+"', in "+contextDescription);
+			RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parse(accountTypeDefType, resourceType, rSchema, prismContext, "account type '"+accountTypeName+"', in "+contextDescription);
 			
 			if (rAccountDef.isDefault()) {
 				if (rAccountDefDefault == null) {
@@ -291,11 +291,11 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	private static void parseAccountTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,
 			PrismContext prismContext, String contextDescription) throws SchemaException {
 
-		RefinedAccountDefinition rAccountDefDefault = null;
+		RefinedObjectClassDefinition rAccountDefDefault = null;
 		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
 			if (objectClassDef.isAccountType()) {
 				QName objectClassname = objectClassDef.getTypeName();
-				RefinedAccountDefinition rAccountDef = RefinedAccountDefinition.parse(objectClassDef, resourceType, rSchema, prismContext, 
+				RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parse(objectClassDef, resourceType, rSchema, prismContext, 
 						"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);
 				
 				if (rAccountDef.isDefault()) {
