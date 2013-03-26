@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -293,7 +294,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 
 		RefinedObjectClassDefinition rAccountDefDefault = null;
 		for(ObjectClassComplexTypeDefinition objectClassDef: rSchema.getOriginalResourceSchema().getObjectClassDefinitions()) {
-			if (objectClassDef.isAccountType()) {
+			if (objectClassDef.getKind() == ShadowKindType.ACCOUNT) {
 				QName objectClassname = objectClassDef.getTypeName();
 				RefinedObjectClassDefinition rAccountDef = RefinedObjectClassDefinition.parse(objectClassDef, resourceType, rSchema, prismContext, 
 						"object class "+objectClassname+" (interpreted as account type definition), in "+contextDescription);

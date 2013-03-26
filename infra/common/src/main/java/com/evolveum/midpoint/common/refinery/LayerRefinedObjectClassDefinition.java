@@ -43,12 +43,14 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -153,12 +155,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.isSingleValue();
 	}
 
-	public boolean isDefaultAccountType() {
-		return refinedObjectClassDefinition.isDefaultAccountType();
+	public boolean isDefaultInAKind() {
+		return refinedObjectClassDefinition.isDefaultInAKind();
 	}
 
-	public void setDefaultAccountType(boolean defaultAccountType) {
-		refinedObjectClassDefinition.setDefaultAccountType(defaultAccountType);
+	public void setDefaultInAKind(boolean defaultAccountType) {
+		refinedObjectClassDefinition.setDefaultInAKind(defaultAccountType);
 	}
 
 	public void setCompileTimeClass(Class<ResourceObjectShadowAttributesType> compileTimeClass) {
@@ -167,6 +169,18 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	public boolean isMultiValue() {
 		return refinedObjectClassDefinition.isMultiValue();
+	}
+	
+	public ShadowKindType getKind() {
+		return refinedObjectClassDefinition.getKind();
+	}
+
+	public void setKind(ShadowKindType kind) {
+		refinedObjectClassDefinition.setKind(kind);
+	}
+
+	public AttributeFetchStrategyType getPasswordFetchStrategy() {
+		return refinedObjectClassDefinition.getPasswordFetchStrategy();
 	}
 
 	public String getIntent() {
@@ -351,10 +365,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
 		refinedObjectClassDefinition.setObjectClassDefinition(objectClassDefinition);
-	}
-
-	public boolean isAccountType() {
-		return refinedObjectClassDefinition.isAccountType();
 	}
 
 	public Collection<? extends LayerRefinedAttributeDefinition> getAttributeDefinitions() {

@@ -470,7 +470,7 @@ public class PageContentAccounts extends PageAdminResources {
         Collection<ObjectClassComplexTypeDefinition> list = resourceSchema.getObjectClassDefinitions();
         if (list != null) {
             for (ObjectClassComplexTypeDefinition def : list) {
-                if (def.isDefaultAccountType()) {
+                if (def.isDefaultInAKind()) {
                     return def;
                 }
             }

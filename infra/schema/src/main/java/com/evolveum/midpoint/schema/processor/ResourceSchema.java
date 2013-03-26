@@ -117,7 +117,7 @@ public class ResourceSchema extends PrismSchema {
 
 	public ObjectClassComplexTypeDefinition findDefaultAccountDefinition() {
 		for (ObjectClassComplexTypeDefinition attrContDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
-			if (attrContDef.isDefaultAccountType()) {
+			if (attrContDef.isDefaultInAKind()) {
 				return attrContDef;
 			}
 		}

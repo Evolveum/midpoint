@@ -462,8 +462,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// The __ACCOUNT__ objectclass in ICF is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				roDefinition.setAccountType(true);
-				roDefinition.setDefaultAccountType(true);
+				roDefinition.setKind(ShadowKindType.ACCOUNT);
+				roDefinition.setDefaultInAKind(true);
 			}
 
 			// Every object has UID in ICF, therefore add it right now

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -41,8 +42,8 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	private ResourceAttributeDefinition descriptionAttribute;
 	private ResourceAttributeDefinition displayNameAttribute;
 	private ResourceAttributeDefinition namingAttribute;
-	private boolean defaultAccountType = false;
-	private boolean accountType = false;
+	private boolean defaultInAKind = false;
+	private ShadowKindType kind;
 	private String intent;
 	private String nativeObjectClass;
 
@@ -198,61 +199,33 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		this.nativeObjectClass = nativeObjectClass;
 	}
 	
-	/**
-	 * Indicates whether definition is should be used as account type.
-	 * 
-	 * If true value is returned then the definition should be used as an
-	 * account type definition. This is a way how a resource connector may
-	 * suggest applicable object classes (resource object definitions) for
-	 * accounts.
-	 * 
-	 * If no information about account type is present, false should be
-	 * returned.
-	 * 
-	 * @return true if the definition should be used as account type.
-	 */
-	public boolean isAccountType() {
-		return accountType;
+	public ShadowKindType getKind() {
+		return kind;
 	}
 
-	public void setAccountType(boolean accountType) {
-		this.accountType = accountType;
-		if (!accountType) {
-			defaultAccountType = false;
-		}
+	public void setKind(ShadowKindType kind) {
+		this.kind = kind;
 	}
-	
+
 	/**
-	 * Indicates whether definition is should be used as default account type.
+	 * Indicates whether definition is should be used as default definition in ist kind.
+	 * E.g. if used in an "account" kind it indicates default account definition.
 	 * 
 	 * If true value is returned then the definition should be used as a default
-	 * account type definition. This is a way how a resource connector may
+	 * definition for the kind. This is a way how a resource connector may
 	 * suggest applicable object classes (resource object definitions) for
-	 * accounts.
-	 * 
-	 * If no information about account type is present, false should be
-	 * returned. This method must return true only if isAccountType() returns
-	 * true.
-	 * 
-	 * The exception should be never thrown unless there is some bug in the
-	 * code. The validation of at-most-one value should be done at the time of
-	 * schema parsing. The exception may not even be thrown at all if the
-	 * implementation is not able to determine duplicity.
+	 * individual shadow kinds (e.g. accounts).
 	 * 
 	 * @return true if the definition should be used as account type.
 	 * @throws IllegalStateException
 	 *             if more than one default account is suggested in the schema.
 	 */
-	public boolean isDefaultAccountType() {
-		return defaultAccountType;
+	public boolean isDefaultInAKind() {
+		return defaultInAKind;
 	}
 	
-	public void setDefaultAccountType(boolean defaultAccountType) {
-		this.defaultAccountType = defaultAccountType;
-		if (defaultAccountType && !accountType) {
-			throw new IllegalStateException(
-					"Can't be default account type, flat account type (boolean) not set.");
-		}
+	public void setDefaultInAKind(boolean defaultAccountType) {
+		this.defaultInAKind = defaultAccountType;
 	}
 	
 	public String getIntent() {
@@ -359,9 +332,9 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinition clone) {
 		super.copyDefinitionData(clone);
-		clone.accountType = this.accountType;
+		clone.kind = this.kind;
 		clone.intent = this.intent;
-		clone.defaultAccountType = this.defaultAccountType;
+		clone.defaultInAKind = this.defaultInAKind;
 		clone.descriptionAttribute = this.descriptionAttribute;
 		clone.displayNameAttribute = this.displayNameAttribute;
 		clone.identifiers = this.identifiers;
@@ -374,5 +347,21 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	protected String getDebugDumpClassName() {
 		return "OCD";
 	}
+
+	@Override
+	protected void extendDumpHeader(StringBuilder sb) {
+		super.extendDumpHeader(sb);
+		if (defaultInAKind) {
+			sb.append(" def");
+		}
+		if (kind != null) {
+			sb.append(" ").append(kind.value());
+		}
+		if (intent != null) {
+			sb.append(" intent=").append(intent);
+		}
+	}
+	
+	
 
 }

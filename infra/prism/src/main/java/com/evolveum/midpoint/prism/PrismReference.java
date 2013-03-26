@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -101,9 +102,9 @@ public class PrismReference extends Item<PrismReferenceValue> {
     }
     
 	private PrismReferenceValue getValue(String oid) {
-		Validate.notEmpty(oid, "Cannot get reference value for empty OID");
+		// We need to tolerate null OIDs here. Because of JAXB.
 		for (PrismReferenceValue val: getValues()) {
-			if (oid.equals(val.getOid())) {
+			if (MiscUtil.equals(oid, val.getOid())) {
 				return val;
 			}
 		}
@@ -118,7 +119,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
     
     public boolean merge(PrismReferenceValue value) {
     	String newOid = value.getOid();
-    	Validate.notEmpty(newOid, "Cannot merge reference value with empty OID");
+    	// We need to tolerate null OIDs here. Because of JAXB.
     	PrismReferenceValue existingValue = getValue(newOid);
 		if (existingValue == null) {
 			return add(value);

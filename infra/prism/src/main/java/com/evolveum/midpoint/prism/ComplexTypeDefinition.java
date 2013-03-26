@@ -277,11 +277,16 @@ public class ComplexTypeDefinition extends Definition {
 		if (xsdAnyMarker) {
 			sb.append(",Ma");
 		}
+		extendDumpHeader(sb);
 		for (ItemDefinition def : getDefinitions()) {
 			sb.append("\n");
 			sb.append(def.debugDump(indent+1));
 		}
 		return sb.toString();
+	}
+
+	protected void extendDumpHeader(StringBuilder sb) {
+		// Do nothing
 	}
 
 	/**

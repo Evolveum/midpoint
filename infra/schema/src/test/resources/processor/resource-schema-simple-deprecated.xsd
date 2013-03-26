@@ -12,9 +12,9 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<r:resourceObject/>
-						<r:kind>account</r:kind>
-						<r:intent>admin</r:intent>
-						<r:default>true</r:default>
+						<r:account/>
+						<r:accountType>admin</r:accountType>
+						<r:default/>
 						<r:identifier>tns:login</r:identifier>
 						<r:nativeObjectClass>account</r:nativeObjectClass>
 					</xsd:appinfo>

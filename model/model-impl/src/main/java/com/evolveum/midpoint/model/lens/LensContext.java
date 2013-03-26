@@ -192,7 +192,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		}
 		if (rsd.getIntent() == null && rsd.getResourceOid().equals(ctxRsd.getResourceOid())) {
 			try {
-				return projCtx.getRefinedAccountDefinition().isDefaultAccountType();
+				return projCtx.getRefinedAccountDefinition().isDefaultInAKind();
 			} catch (SchemaException e) {
 				throw new SystemException("Internal error: "+e.getMessage(), e);
 			}

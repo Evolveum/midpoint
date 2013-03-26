@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.schema.SchemaToDomProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSParticle;
@@ -56,7 +57,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 	}
 
 	private ComplexTypeDefinition createObjectClassDefinition(XSComplexType complexType,
-			PrismContext prismContext, XSAnnotation annotation) {
+			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 		
 		ObjectClassComplexTypeDefinition ocDef = new ObjectClassComplexTypeDefinition(null, typeName, prismContext);
@@ -66,24 +67,55 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		String nativeObjectClass = nativeAttrElement == null ? null : nativeAttrElement.getTextContent();
 		ocDef.setNativeObjectClass(nativeObjectClass);
 		
-		// accountType
+		ShadowKindType kind = null;
+		Element kindElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_KIND);
+		if (kindElement != null) {
+			String kindString = kindElement.getTextContent();
+			if (StringUtils.isEmpty(kindString)) {
+				throw new SchemaException("The definition of kind is empty in the annotation of object class "+typeName);
+			}
+			try {
+				kind = ShadowKindType.fromValue(kindString);
+			} catch (IllegalArgumentException e) {
+				throw new SchemaException("Definition of unknown kind '"+kindString+"' in the annotation of object class "+typeName);
+			}
+			ocDef.setKind(kind);
+		}
+		
+		boolean defaultInAKind = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, MidPointConstants.RA_DEFAULT);
+		ocDef.setDefaultInAKind(defaultInAKind);
+		
+		String intent = null;
+		Element intentElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_INTENT);
+		if (intentElement != null) {
+			intent = intentElement.getTextContent();
+			if (StringUtils.isEmpty(intent)) {
+				throw new SchemaException("The definition of intent is empty in the annotation of object class "+typeName);
+			}
+			ocDef.setIntent(intent);
+		}
+		
+		// accountType: DEPRECATED
 		if (isAccountObject(annotation)) {
-			ocDef.setAccountType(true);
+			if (kind != null && kind != ShadowKindType.ACCOUNT) {
+				throw new SchemaException("Conflicting definition of kind and legacy account annotation in the annotation of object class "+typeName);
+			}
+			ocDef.setKind(ShadowKindType.ACCOUNT);
 			Element account = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT);
-			if (account != null) {
+			if (account != null && !defaultInAKind) {
 				String defaultValue = account.getAttribute("default");
 				// Compatibility (DEPRECATED)
 				if (defaultValue != null) {
-					ocDef.setDefaultAccountType(Boolean.parseBoolean(defaultValue));
+					ocDef.setDefaultInAKind(Boolean.parseBoolean(defaultValue));
 				}
 			}
-			Element defaultAccount = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_DEFAULT);
-			if (defaultAccount != null) {
-				ocDef.setDefaultAccountType(true);
-			}
-			Element accountType = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
-			if (accountType != null) {
-				ocDef.setIntent(accountType.getTextContent());
+			Element accountTypeElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT_TYPE);
+			if (accountTypeElement != null) {
+				String accountType = accountTypeElement.getTextContent();
+				if (intent != null && !intent.equals(accountType)) {
+					throw new SchemaException("Conflicting definition of intent and legacy accountType annotation in the annotation of object class "+typeName);
+				}
+				ocDef.setIntent(accountType);
 			}
 		}
 				
@@ -163,16 +195,16 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			processor.addAnnotation(MidPointConstants.RA_NATIVE_OBJECT_CLASS, definition.getNativeObjectClass(), appinfo);
 		}
 		
-		// accountType
-		if (definition.isAccountType()) {
-			processor.addAnnotation(MidPointConstants.RA_ACCOUNT, appinfo);
-			if (definition.isDefaultAccountType()) {
-				processor.addAnnotation(MidPointConstants.RA_DEFAULT, appinfo);
-			}
-			if (definition.getIntent() != null) {
-				processor.addAnnotation(MidPointConstants.RA_ACCOUNT_TYPE, definition.getIntent(), appinfo);
-			}
-		}		
+		// kind
+		if (definition.getKind() != null) {
+			processor.addAnnotation(MidPointConstants.RA_KIND, definition.getKind().value(), appinfo);
+		}
+		if (definition.isDefaultInAKind()) {
+			processor.addAnnotation(MidPointConstants.RA_DEFAULT, true, appinfo);
+		}
+		if (definition.getIntent() != null) {
+			processor.addAnnotation(MidPointConstants.RA_INTENT, definition.getIntent(), appinfo);
+		}
 	}
 
 	@Override
@@ -244,7 +276,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_RESOURCE_OBJECT) != null) {
 			return true;
 		}
-		// annotation: accountType
+		// annotation: accountType DEPRECATED
 		if (SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_ACCOUNT) != null) {
 			// <accountType> implies <resourceObject> ... at least for now (compatibility)
 			return true;

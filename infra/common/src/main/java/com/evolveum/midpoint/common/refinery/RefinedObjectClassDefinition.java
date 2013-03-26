@@ -107,12 +107,12 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
     }
 
     @Override
-    public boolean isDefaultAccountType() {
+    public boolean isDefaultInAKind() {
         return isDefault;
     }
 
     @Override
-    public void setDefaultAccountType(boolean defaultAccountType) {
+    public void setDefaultInAKind(boolean defaultAccountType) {
         this.isDefault = defaultAccountType;
     }
 
@@ -257,11 +257,6 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
     }
     
     @Override
-    public boolean isAccountType() {
-        return true;
-    }
-
-    @Override
     public Collection<? extends RefinedAttributeDefinition> getAttributeDefinitions() {
         return attributeDefinitions;
     }
@@ -360,7 +355,7 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         if (accountTypeDefType.isDefault() != null) {
             rAccountDef.setDefault(accountTypeDefType.isDefault());
         } else {
-            rAccountDef.setDefault(objectClassDef.isDefaultAccountType());
+            rAccountDef.setDefault(objectClassDef.isDefaultInAKind());
         }
 
         for (ResourceAttributeDefinition road : objectClassDef.getAttributeDefinitions()) {
@@ -429,7 +424,7 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
             }
             rAccountDef.setIntent(accountTypeName);
         } else {
-            if (objectClassDef.isDefaultAccountType()) {
+            if (objectClassDef.isDefaultInAKind()) {
                 rAccountDef.setIntent(MidPointConstants.DEFAULT_ACCOUNT_TYPE_NAME);
             } else {
                 throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
@@ -441,7 +436,7 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
             rAccountDef.setDisplayName(objectClassDef.getDisplayName());
         }
 
-        rAccountDef.setDefault(objectClassDef.isDefaultAccountType());
+        rAccountDef.setDefault(objectClassDef.isDefaultInAKind());
 
         for (ResourceAttributeDefinition attrDef : objectClassDef.getAttributeDefinitions()) {
             String attrContextDescription = accountTypeName + ", in " + contextDescription;

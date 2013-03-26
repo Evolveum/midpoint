@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * Resource Object Definition (Object Class).
@@ -196,23 +197,6 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 
 	/**
-	 * Indicates whether definition is should be used as account type.
-	 * 
-	 * If true value is returned then the definition should be used as an
-	 * account type definition. This is a way how a resource connector may
-	 * suggest applicable object classes (resource object definitions) for
-	 * accounts.
-	 * 
-	 * If no information about account type is present, false should be
-	 * returned.
-	 * 
-	 * @return true if the definition should be used as account type.
-	 */
-	public boolean isAccountType() {
-		return getComplexTypeDefinition().isAccountType();
-	}
-
-	/**
 	 * Indicates whether definition is should be used as default account type.
 	 * 
 	 * If true value is returned then the definition should be used as a default
@@ -233,12 +217,12 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	 * @throws IllegalStateException
 	 *             if more than one default account is suggested in the schema.
 	 */
-	public boolean isDefaultAccountType() {
-		return getComplexTypeDefinition().isDefaultAccountType();
+	public boolean isDefaultInAKind() {
+		return getComplexTypeDefinition().isDefaultInAKind();
 	}
 
-	public void setDefaultAccountType(boolean defaultAccountType) {
-		getComplexTypeDefinition().setDefaultAccountType(defaultAccountType);
+	public void setDefaultInAKind(boolean defaultAccountType) {
+		getComplexTypeDefinition().setDefaultInAKind(defaultAccountType);
 	}
 	
 	public String getIntent() {
@@ -247,6 +231,14 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	
 	public void setIntent(String accountTypeName) {
 		getComplexTypeDefinition().setIntent(accountTypeName);
+	}
+	
+	public ShadowKindType getKind() {
+		return getComplexTypeDefinition().getKind();
+	}
+	
+	public void setKind(ShadowKindType kind) {
+		getComplexTypeDefinition().setKind(kind);
 	}
 
 	/**
@@ -350,7 +342,8 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	
 	public <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition() {
 		PrismObjectDefinition<T> origShadowDef = null;
-		if (isAccountType()) {
+		if (getKind() == ShadowKindType.ACCOUNT) {
+			// DEPRECATED ... FIXME HACK TODO
 			origShadowDef = (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
 					findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
 		} else {
@@ -389,11 +382,11 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
-		if (isDefaultAccountType()) {
+		if (isDefaultInAKind()) {
 			sb.append(" def");
 		}
-		if (isAccountType()) {
-			sb.append(" acct");
+		if (getKind() != null) {
+			sb.append(" ").append(getKind());
 		}
 		if (getNativeObjectClass()!=null) {
 			sb.append(" native=");

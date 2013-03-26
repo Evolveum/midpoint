@@ -497,6 +497,13 @@ public class SchemaToDomProcessor {
 		return annotation;
 	}
 	
+	public Element addAnnotation(QName qname, boolean value, Element parent) {
+		Element annotation = createElement(qname);
+		parent.appendChild(annotation);
+		annotation.setTextContent(Boolean.toString(value));
+		return annotation;
+	}
+	
 	public Element addAnnotation(QName qname, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);

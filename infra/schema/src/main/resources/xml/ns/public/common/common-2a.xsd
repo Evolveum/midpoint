@@ -4387,6 +4387,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Kind of a shadow. This means the type of shadow use. 
+                                E.g. an account, entitlement, etc.
+                                If not specified defaults to "generic".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="intent" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4412,6 +4421,40 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
+    
+    <xsd:simpleType name="ShadowKindType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the kind of a shadow. 
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="account">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCOUNT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="entitlement">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ENTITLEMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="generic">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="GENERIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+             </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="ResourceObjectShadowAttributesType">
     	<xsd:annotation>

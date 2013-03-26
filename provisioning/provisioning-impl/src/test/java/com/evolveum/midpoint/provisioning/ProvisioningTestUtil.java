@@ -61,6 +61,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 
 /**
@@ -122,8 +123,8 @@ public class ProvisioningTestUtil {
 		assertTrue("Mismatched account definition: "+accountDefinition+" <-> "+accountDef, accountDefinition == accountDef);
 		
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
-		assertTrue("Object class " + objectClassQname + " is not account", accountDefinition.isAccountType());
-		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultAccountType());
+		assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());
+		assertTrue("Object class " + objectClassQname + " is not default account", accountDefinition.isDefaultInAKind());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 		

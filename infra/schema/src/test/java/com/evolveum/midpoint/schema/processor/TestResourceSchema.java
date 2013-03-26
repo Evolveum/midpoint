@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
@@ -82,11 +83,9 @@ public class TestResourceSchema {
     private static final String TEST_DIR = "src/test/resources/processor/";
 
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
-    private static final String RESOURCE_OBJECT_SIMPLE_FILENAME = TEST_DIR + "object1.xml";
+    private static final String RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME = TEST_DIR + "resource-schema-simple-deprecated.xsd";
     
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
-    
-    private static final QName FIRST_QNAME = new QName(SCHEMA_NAMESPACE, "first");
 
     public TestResourceSchema() {
     }
@@ -98,8 +97,8 @@ public class TestResourceSchema {
 	}
     
     @Test
-    public void parseSchemaTest() throws SchemaException {
-        System.out.println("===[ parseSchemaTest ]===");
+    public void testParseSchema() throws Exception {
+        System.out.println("===[ testParseSchema ]===");
         // GIVEN
 
         Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
@@ -110,29 +109,55 @@ public class TestResourceSchema {
         		RESOURCE_SCHEMA_SIMPLE_FILENAME, PrismTestUtil.getPrismContext());
 
         // THEN
+        assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
+    }
+    
+    @Test
+    public void testParseSchemaDeprecated() throws Exception {
+        System.out.println("===[ testParseSchemaDeprecated ]===");
+        // GIVEN
 
-        assertNotNull(schema);
+        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
 
-        System.out.println("Parsed schema from " + RESOURCE_SCHEMA_SIMPLE_FILENAME + ":");
+        // WHEN
+
+        ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), 
+        		RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME, PrismTestUtil.getPrismContext());
+
+        // THEN
+        assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
+    }
+    
+    private void assertSimpleSchema(ResourceSchema schema, String filename) {
+    	assertNotNull(schema);
+        System.out.println("Parsed schema from " + filename + ":");
         System.out.println(schema.dump());
 
         ObjectClassComplexTypeDefinition accDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
-        assertTrue("Not a default account", accDef.isDefaultAccountType());
+        assertEquals("Wrong account objectclass", new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
+        assertEquals("Wrong account kind", ShadowKindType.ACCOUNT, accDef.getKind());
+        assertEquals("Wrong account intent", "admin", accDef.getIntent());
+        assertTrue("Not a default account", accDef.isDefaultInAKind());
         
-        PrismPropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginDef.getName());
-        assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
-        assertFalse("Ignored while it should not be", loginDef.isIgnored());
+        PrismPropertyDefinition loginAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "login"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getName());
+        assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
+        assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
         
-        PrismPropertyDefinition groupDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupDef.getName());
-        assertEquals(DOMUtil.XSD_INT, groupDef.getTypeName());
-        assertFalse("Ignored while it should not be", groupDef.isIgnored());
+        PrismPropertyDefinition groupAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "group"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getName());
+        assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
+        assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
         
-        PrismPropertyDefinition ufoDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
-        assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoDef.getName());
-        assertTrue("Not ignored as it should be", ufoDef.isIgnored());
+        PrismPropertyDefinition ufoAttrDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE, "ufo"));
+        assertEquals(new QName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getName());
+        assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
+        
+        ObjectClassComplexTypeDefinition groupDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "GroupObjectClass"));
+        assertEquals("Wrong group objectclass", new QName(SCHEMA_NAMESPACE, "GroupObjectClass"), groupDef.getTypeName());
+        assertEquals("Wrong group kind", ShadowKindType.ENTITLEMENT, groupDef.getKind());
+        assertEquals("Wrong group intent", null, groupDef.getIntent());
+        assertFalse("Default group but it should not be", groupDef.isDefaultInAKind());
     }
     
     // The support for the xsd:any properties is missing in JAXB generator. Otherwise this test should work.
@@ -224,8 +249,8 @@ public class TestResourceSchema {
 	private void assertResourceSchema(ResourceSchema unSchema) {
 		ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
-		assertTrue("AccountObjectClass class not an account", objectClassDef.isAccountType());
-		assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultAccountType());
+		assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
+		assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
 		
 		PrismPropertyDefinition loginDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
@@ -299,8 +324,9 @@ public class TestResourceSchema {
 		assertPrefix("xsd", xsdElement);
 		Element displayNameAnnotationElement = DOMUtil.findElementRecursive(xsdElement, PrismConstants.A_DISPLAY_NAME);
 		assertPrefix(PrismConstants.PREFIX_NS_ANNOTATION, displayNameAnnotationElement);
-		Element accountAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_ACCOUNT);
-		assertPrefix("ra", accountAnnotationElement);
+		Element kindAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_KIND);
+		assertPrefix("ra", kindAnnotationElement);
+		assertEquals(ShadowKindType.ACCOUNT.value(), kindAnnotationElement.getTextContent());
 		Element identifierAnnotationElement = DOMUtil.findElementRecursive(xsdElement, MidPointConstants.RA_IDENTIFIER);
 		assertPrefix("ra", identifierAnnotationElement);
 		QName identifier = DOMUtil.getQNameValue(identifierAnnotationElement);
@@ -320,8 +346,8 @@ public class TestResourceSchema {
 		
 		// Property container
 		ObjectClassComplexTypeDefinition containerDefinition = schema.createObjectClassDefinition("AccountObjectClass");
-		containerDefinition.setAccountType(true);
-		containerDefinition.setDefaultAccountType(true);
+		containerDefinition.setKind(ShadowKindType.ACCOUNT);
+		containerDefinition.setDefaultInAKind(true);
 		containerDefinition.setDisplayName("The Account");
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier

@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 public class SchemaProcessorTest {
 
@@ -165,8 +166,8 @@ public class SchemaProcessorTest {
 		
 		// Property container
 		ObjectClassComplexTypeDefinition containerDefinition = schema.createObjectClassDefinition("AccountObjectClass");
-		containerDefinition.setAccountType(true);
-		containerDefinition.setDefaultAccountType(true);
+		containerDefinition.setKind(ShadowKindType.ACCOUNT);
+		containerDefinition.setDefaultInAKind(true);
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
 		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
@@ -208,8 +209,8 @@ public class SchemaProcessorTest {
 			
 		ObjectClassComplexTypeDefinition newObjectClassDef = newSchema.findObjectClassDefinition(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newObjectClassDef.getTypeName());
-		assertTrue(newObjectClassDef.isAccountType());
-		assertTrue(newObjectClassDef.isDefaultAccountType());
+		assertEquals(ShadowKindType.ACCOUNT, newObjectClassDef.getKind());
+		assertTrue(newObjectClassDef.isDefaultInAKind());
 		
 		PrismPropertyDefinition loginDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());

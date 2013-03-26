@@ -92,6 +92,24 @@ public class SchemaProcessorUtil {
 		}
 		return DOMUtil.getQNameValue(element);
 	}
+	
+	/**
+	 * Parses "marker" boolean annotation. This means: 
+	 * no element: false
+	 * empty element: true
+	 * non-empty element: parse element content as boolean
+	 */
+	public static boolean getAnnotationBooleanMarker(XSAnnotation annotation, QName qname) throws SchemaException {
+		Element element = getAnnotationElement(annotation, qname);
+		if (element == null) {
+			return false;
+		}
+		String textContent = element.getTextContent();
+		if (textContent == null || textContent.isEmpty()) {
+			return true;
+		}
+		return XmlTypeConverter.toJavaValue(element, Boolean.class);
+	}
 
 	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {
 		Element element = getAnnotationElement(annotation, qname);

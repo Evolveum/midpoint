@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 
 /**
@@ -285,24 +286,11 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		return getDefinition() == null ? null : getDefinition().getNativeObjectClass();
 	}
 
-	/**
-	 * Indicates whether definition is should be used as account type.
-	 * 
-	 * If true value is returned then the definition should be used as an
-	 * account type definition. This is a way how a resource connector may
-	 * suggest applicable object classes (resource object definitions) for
-	 * accounts.
-	 * 
-	 * If no information about account type is present, false should be
-	 * returned.
-	 * 
-	 * @return true if the definition should be used as account type.
-	 */
-	public boolean isAccountType() {
+	public ShadowKindType getKind() {
 		ResourceAttributeContainerDefinition definition = getDefinition();
-		return (definition != null ? definition.isAccountType() : null);
+		return (definition != null ? definition.getKind() : null);
 	}
-
+	
 	/**
 	 * Indicates whether definition is should be used as default account type.
 	 * 
@@ -324,9 +312,9 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	 * @throws IllegalStateException
 	 *             if more than one default account is suggested in the schema.
 	 */
-	public boolean isDefaultAccountType() {
+	public boolean isDefaultInAKind() {
 		ResourceAttributeContainerDefinition definition = getDefinition();
-		return (definition != null ? definition.isDefaultAccountType() : null);
+		return (definition != null ? definition.isDefaultInAKind() : null);
 	}
 
 	/**
