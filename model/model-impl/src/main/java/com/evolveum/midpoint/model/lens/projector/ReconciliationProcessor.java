@@ -147,10 +147,7 @@ public class ReconciliationProcessor {
             	return;
             }
 
-            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(accContext.getResource(), LayerType.MODEL, 
-            		prismContext);
-            RefinedObjectClassDefinition accountDefinition = refinedSchema.getAccountDefinition(accContext.getResourceShadowDiscriminator().getIntent());
-            
+            RefinedObjectClassDefinition accountDefinition = accContext.getRefinedAccountDefinition();            
             reconcileAccount(accContext, squeezedAttributes, accountDefinition);
         } catch (RuntimeException e) {
         	subResult.recordFatalError(e);

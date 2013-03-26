@@ -67,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -124,7 +125,7 @@ public class LensUtil {
 	
 	public static String refineAccountType(String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-		RefinedObjectClassDefinition accountDefinition = refinedSchema.getAccountDefinition(intent);
+		RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
 		if (accountDefinition == null) {
 			throw new SchemaException("No account definition for intent="+intent+" in "+resource);
 		}

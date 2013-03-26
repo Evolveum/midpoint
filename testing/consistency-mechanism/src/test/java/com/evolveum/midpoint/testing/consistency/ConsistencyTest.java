@@ -146,6 +146,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -578,7 +579,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-		ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
 		Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
 		assertFalse("No account identifiers (resource from " + source + ")", identifiers == null

@@ -58,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author Radovan Semancik
@@ -230,6 +231,14 @@ public class MiscSchemaUtil {
 		}
 		return intent1.equals(intent2);
 	}
+    
+	public static boolean matchesKind(ShadowKindType expectedKind, ShadowKindType actualKind) {
+		if (expectedKind == null) {
+			return true;
+		}
+		return expectedKind.equals(actualKind);
+	}
+
 
 	public static AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(
 			AccountSynchronizationSettingsType accountSynchronizationSettings) {

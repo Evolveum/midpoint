@@ -1507,7 +1507,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, result);
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(dummyResource, prismContext);
-        PrismContainerDefinition accountDefinition = refinedSchema.getAccountDefinition((String) null);
+        PrismContainerDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
         PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new QName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));

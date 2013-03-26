@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
@@ -112,7 +113,7 @@ public class TestRefinedSchema {
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.MODEL);
 
         
-        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
         assertNotNull("No userPassword attribute", userPasswordAttribute);
         assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
@@ -141,7 +142,7 @@ public class TestRefinedSchema {
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL);
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION);
         
-        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
         assertNotNull("No userPassword attribute", userPasswordAttribute);
         assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
@@ -178,13 +179,13 @@ public class TestRefinedSchema {
     }
     
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, LayerType sourceLayer, LayerType validationLayer) {
-        assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
+        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         
-        RefinedObjectClassDefinition accountDefByNullObjectclass = rSchema.findAccountDefinitionByObjectClass(null);
+        RefinedObjectClassDefinition accountDefByNullObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, null);
         assertTrue("findAccountDefinitionByObjectClass(null) returned wrong value", rAccount.equals(accountDefByNullObjectclass));
         
-        RefinedObjectClassDefinition accountDefByIcfAccountObjectclass = rSchema.findAccountDefinitionByObjectClass(
+        RefinedObjectClassDefinition accountDefByIcfAccountObjectclass = rSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, 
         		new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
         assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccount.equals(accountDefByIcfAccountObjectclass));
 
@@ -223,7 +224,7 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
-        RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
         PrismObject<AccountShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
@@ -254,7 +255,7 @@ public class TestRefinedSchema {
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resource, prismContext);
-        RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.dump());
 
@@ -330,8 +331,8 @@ public class TestRefinedSchema {
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
-        assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
+        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         
         // WHEN
         PrismObject<AccountShadowType> blankShadow = rAccount.createBlankShadow();
@@ -357,8 +358,8 @@ public class TestRefinedSchema {
         ResourceType resourceType = resource.asObjectable();
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
-        assertFalse("No account definitions", rSchema.getAccountDefinitions().isEmpty());
-        RefinedObjectClassDefinition rAccount = rSchema.getAccountDefinition((String)null);
+        assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
+        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
 
         // WHEN
         Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedObjectPatterns();

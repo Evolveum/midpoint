@@ -105,6 +105,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
@@ -209,7 +210,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceTypeRepoAfter.toString(), prismContext);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
-		ObjectClassComplexTypeDefinition accountDefinition = parsedSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = parsedSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
 				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		assertNull("The userPassword attribute sneaked into schema", accountDefinition.findAttributeDefinition(

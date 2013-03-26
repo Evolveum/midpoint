@@ -469,7 +469,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private void checkOpenDjSchema(ResourceType resource, String source) throws SchemaException {
         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultAccountDefinition();
+        ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
         Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());
@@ -1036,7 +1036,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceTypeOpenDjrepo, prismContext);
-        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
         QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
         ObjectQuery q = ObjectQueryUtil.createResourceAndAccountQuery(resourceTypeOpenDjrepo.getOid(), objectClass, prismContext);

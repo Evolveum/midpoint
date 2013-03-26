@@ -85,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
@@ -296,7 +297,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-		RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
 		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
 				resource, refinedAccountDefinition);

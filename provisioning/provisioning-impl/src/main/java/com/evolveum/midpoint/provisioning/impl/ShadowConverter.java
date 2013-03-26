@@ -99,6 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScripts
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationEnableDisableCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
@@ -206,7 +207,8 @@ public class ShadowConverter {
 				// There resource is capable of returning password but it does not do it by default
 				
 				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-				RefinedObjectClassDefinition rAccDef = refinedSchema.getDefaultAccountDefinition();
+				// HACK, FIXME
+				RefinedObjectClassDefinition rAccDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 				AttributeFetchStrategyType passwordFetchStrategy = rAccDef.getPasswordFetchStrategy();
 				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 					AttributesToReturn attributesToReturn = new AttributesToReturn();
@@ -523,7 +525,7 @@ public class ShadowConverter {
 
 		// This is a HACK. It should not work only for default account, but also
 		// for other objectclasses (FIXME)
-		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		PrismProperty lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
@@ -556,7 +558,7 @@ public class ShadowConverter {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		// This is a HACK. It should not work only for default account, but also
 		// for other objectclasses (FIXME)
-		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition objectClass = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
 		// get changes from the connector
 		List<Change> changes = null;
@@ -971,8 +973,9 @@ public class ShadowConverter {
 			Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
 		// TODO: support also other types except account
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
+		// HACK FIXME
 		RefinedObjectClassDefinition refinedAccountDef = refinedSchema
-				.findAccountDefinitionByObjectClass(objectClass);
+				.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
 		LOGGER.trace("isProtectedShadow: {} -> {}, {}", new Object[] { objectClass, refinedAccountDef,
 				attributes });
 		if (refinedAccountDef == null) {
@@ -1076,7 +1079,8 @@ public class ShadowConverter {
 	private <T extends ResourceObjectShadowType> ObjectClassComplexTypeDefinition determineObjectClassDefinition(
 			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
 		ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findAccountDefinition(discriminator.getIntent());
+		// HACK FIXME
+		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(ShadowKindType.ACCOUNT, discriminator.getIntent());
 
 		if (objectClassDefinition == null) {
 			// Unknown objectclass

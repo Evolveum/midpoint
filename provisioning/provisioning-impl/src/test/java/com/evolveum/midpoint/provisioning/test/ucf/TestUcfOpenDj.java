@@ -300,7 +300,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 			}
 		}
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
 		cc.deleteObject(accountDefinition, null, identifiers, result);
 
@@ -330,7 +330,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		changes.add(createAddAttributeChange("street", "Wall Street"));
 		changes.add(createDeleteAttributeChange("givenName", "John"));
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -363,7 +363,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		displayTestTile(this, "testFetchChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		PrismProperty lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
 		System.out.println("Property:");
@@ -394,7 +394,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Set<Operation> changes = new HashSet<Operation>();
 		changes.add(createActivationChange(false));
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 
 		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
@@ -627,7 +627,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		displayTestTile("testSearch");
 		// GIVEN
 
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 
 		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {

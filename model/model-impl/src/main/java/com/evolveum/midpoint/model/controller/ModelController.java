@@ -132,6 +132,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -1350,7 +1351,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 	private <T extends AccountShadowType> void updateAccountShadowDefinition(PrismObject<T> shadow, ResourceType resourceType) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType, LayerType.MODEL, prismContext);
 		QName objectClass = shadow.asObjectable().getObjectClass();
-		RefinedObjectClassDefinition rAccountDef = refinedSchema.findAccountDefinitionByObjectClass(objectClass);
+		RefinedObjectClassDefinition rAccountDef = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
 		attributesContainer.applyDefinition(rAccountDef, true);
 	}

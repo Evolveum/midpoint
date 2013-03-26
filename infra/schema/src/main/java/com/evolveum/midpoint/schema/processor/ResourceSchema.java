@@ -29,8 +29,10 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -103,22 +105,22 @@ public class ResourceSchema extends PrismSchema {
 		}
 	}
 
-	public ObjectClassComplexTypeDefinition findAccountDefinition(String intent) {
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(ShadowKindType kind, String intent) {
 		if (intent == null) {
-			return findDefaultAccountDefinition();
+			return findDefaultObjectClassDefinition(kind);
 		}
-		for (ObjectClassComplexTypeDefinition attrContDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
-			if (MiscSchemaUtil.equalsIntent(intent, attrContDef.getIntent())) {
-				return attrContDef;
+		for (ObjectClassComplexTypeDefinition ocDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
+			if (MiscSchemaUtil.matchesKind(kind, ocDef.getKind()) && MiscSchemaUtil.equalsIntent(intent, ocDef.getIntent())) {
+				return ocDef;
 			}
 		}
 		return null;
 	}
 
-	public ObjectClassComplexTypeDefinition findDefaultAccountDefinition() {
-		for (ObjectClassComplexTypeDefinition attrContDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
-			if (attrContDef.isDefaultInAKind()) {
-				return attrContDef;
+	public ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition(ShadowKindType kind) {
+		for (ObjectClassComplexTypeDefinition ocDef: getDefinitions(ObjectClassComplexTypeDefinition.class)) {
+			if (MiscSchemaUtil.matchesKind(kind, ocDef.getKind()) && ocDef.isDefaultInAKind()) {
+				return ocDef;
 			}
 		}
 		return null;

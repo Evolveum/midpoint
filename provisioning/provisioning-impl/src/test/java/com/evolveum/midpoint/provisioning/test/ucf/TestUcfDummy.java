@@ -96,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -311,7 +312,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test040AddAccount");
 
-		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		AccountShadowType shadowType = new AccountShadowType();
 		PrismTestUtil.getPrismContext().adopt(shadowType);
 		shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_JACK_USERNAME));
@@ -339,7 +340,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		displayTestTile("test050Search");
 		// GIVEN
 
-		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
 		
 		final List<PrismObject<AccountShadowType>> searchResults = new ArrayList<PrismObject<AccountShadowType>>();
@@ -377,7 +378,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		displayTestTile(this, "test100FetchEmptyChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test100FetchEmptyChanges");
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
 		// WHEN
 		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, result);
@@ -403,7 +404,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		displayTestTile(this, "test101FetchAddChange");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".test101FetchAddChange");
-		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
 		PrismProperty<?> lastToken = cc.fetchCurrentToken(accountDefinition, result);
 		assertNotNull("No last sync token", lastToken);

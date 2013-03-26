@@ -119,7 +119,7 @@ public class ProvisioningTestUtil {
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
 		assertNotNull("No object class definition for "+objectClassQname+" in resource schema", accountDefinition);
-		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		assertTrue("Mismatched account definition: "+accountDefinition+" <-> "+accountDef, accountDefinition == accountDef);
 		
 		assertNotNull("No object class definition " + objectClassQname, accountDefinition);
@@ -179,7 +179,7 @@ public class ProvisioningTestUtil {
 	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
 		assertIcfResourceSchemaSanity(resourceSchema, resourceType);
 		
-		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultAccountDefinition();
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		
 		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
 		assertNotNull("No definition for fullname", fullnameDef);

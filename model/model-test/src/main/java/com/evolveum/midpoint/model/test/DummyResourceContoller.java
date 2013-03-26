@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -144,7 +145,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {
 		
-		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getIdentifiers());
 		assertFalse("Empty identifiers in account", accountDef.getIdentifiers().isEmpty());

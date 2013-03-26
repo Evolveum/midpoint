@@ -2795,6 +2795,16 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="schema">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		The lowest layer. It means that the schema is taken in almost unmodified form.
+                		This efficiently means "bottom of provisioning component" from the architectural perspective.
+                		
+                		This is the default.
+                		
+                		Note that this means that the schemaHandling is actually applied on the schema
+                		on this layer. The LayerType does not apply to the "pure" schema, therefore this
+                		is the lowest practically applicable level.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SCHEMA"/>
                     </xsd:appinfo>
@@ -2802,6 +2812,11 @@
             </xsd:enumeration>
             <xsd:enumeration value="model">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Model layer means application of schema constraints inside the IDM model.
+                		
+                		This efficiently means "bottom of IDM model component" from the architectural perspective.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MODEL"/>
                     </xsd:appinfo>
@@ -2809,6 +2824,13 @@
             </xsd:enumeration>
             <xsd:enumeration value="presentation">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		The presentation layer that is used to display information to the user but it
+                		also means presentation of the data outside midpoint. Therefore it applies both to
+                		GUI and also the web service interface and also to similar interfaces.
+                		
+                		This efficiently means "top of IDM model component" or "Model API" from the architectural perspective. 
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PRESENTATION"/>
                     </xsd:appinfo>

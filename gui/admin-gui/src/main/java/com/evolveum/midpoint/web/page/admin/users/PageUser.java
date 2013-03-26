@@ -120,6 +120,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -1704,7 +1705,7 @@ public class PageUser extends PageAdminUsers {
 					continue;
 				}
 
-				QName objectClass = refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition()
+				QName objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()
 						.getTypeName();
 				shadow.setObjectClass(objectClass);
 

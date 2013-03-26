@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.common.refinery;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -77,15 +79,16 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
-	public Collection<? extends RefinedObjectClassDefinition> getAccountDefinitions() {
-		Set<RefinedObjectClassDefinition> accounts = new HashSet<RefinedObjectClassDefinition>();
+	public Collection<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
+		Collection<RefinedObjectClassDefinition> ocDefs = new ArrayList<RefinedObjectClassDefinition>();
 		for (Definition def: definitions) {
-			if (def instanceof RefinedObjectClassDefinition) {
-				RefinedObjectClassDefinition rad = (RefinedObjectClassDefinition)def;
-				accounts.add(rad);
+			if ((def instanceof RefinedObjectClassDefinition) 
+					&& MiscSchemaUtil.matchesKind(kind, ((RefinedObjectClassDefinition) def).getKind())) {
+				RefinedObjectClassDefinition rOcDef = (RefinedObjectClassDefinition)def;
+				ocDefs.add(rOcDef);
 			}
 		}
-		return accounts;
+		return ocDefs;
 	}
 	
 	public ResourceSchema getOriginalResourceSchema() {
@@ -93,15 +96,15 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	}
 
 	
-	public RefinedObjectClassDefinition getAccountDefinition(AccountShadowType shadow) {
-		return getAccountDefinition(ResourceObjectShadowUtil.getIntent(shadow));
+	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, AccountShadowType shadow) {
+		return getRefinedDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
 	}
 	
 	/**
 	 * if null accountType is provided, default account definition is returned.
 	 */
-	public RefinedObjectClassDefinition getAccountDefinition(String intent) {
-		for (RefinedObjectClassDefinition acctDef: getAccountDefinitions()) {
+	public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent) {
+		for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
 			if (intent == null && acctDef.isDefault()) {
 				return acctDef;
 			}
@@ -112,27 +115,27 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return null;
 	}
 	
-	public RefinedObjectClassDefinition getDefaultAccountDefinition() {
-		return getAccountDefinition((String)null);
+	public RefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind) {
+		return getRefinedDefinition(kind, (String)null);
 	}
 	
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(String accountType) {
-		return getAccountDefinition(accountType).getObjectDefinition();
+	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
+		return getRefinedDefinition(kind, intent).getObjectDefinition();
 	}
 	
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(AccountShadowType shadow) {
-		return getObjectDefinition(ResourceObjectShadowUtil.getIntent(shadow));
+	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(ShadowKindType kind, AccountShadowType shadow) {
+		return getObjectDefinition(kind, ResourceObjectShadowUtil.getIntent(shadow));
 	}
 		
 	private void add(RefinedObjectClassDefinition refinedAccountDefinition) {
 		definitions.add(refinedAccountDefinition);
 	}
 	
-	public RefinedObjectClassDefinition findAccountDefinitionByObjectClass(QName objectClass) {
+	public RefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
 		if (objectClass == null) {
-			return getDefaultAccountDefinition();
+			return getDefaultRefinedDefinition(kind);
 		}
-		for (RefinedObjectClassDefinition acctDef: getAccountDefinitions()) {
+		for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
 			if (acctDef.getObjectClassDefinition().getTypeName().equals(objectClass)) {
 				return acctDef;
 			}
@@ -330,13 +333,21 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			return shadow;
 		}
 		if (shadowType instanceof AccountShadowType) {
+			// LEGACY CODE
 			// Determine definition by account type
-			String accountType = ResourceObjectShadowUtil.getIntent(shadowType);
-			definition = getAccountDefinition(accountType);
+			String intent = ResourceObjectShadowUtil.getIntent(shadowType);
+			definition = getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
 			if (definition == null) {
-				throw new SchemaException("No definition for account type "+accountType);
+				throw new SchemaException("No definition for legacy account type "+intent);
+			}
+		} else if (shadowType.getKind() != null) {
+			String intent = ResourceObjectShadowUtil.getIntent(shadowType);
+			definition = getRefinedDefinition(shadowType.getKind(), intent);
+			if (definition == null) {
+				throw new SchemaException("No definition for "+shadowType.getKind().value()+", intent "+intent);
 			}
 		} else {
+			// Fall back to objectlass-only refinement
 			ObjectClassComplexTypeDefinition ocDef = findObjectClassDefinition(objectClassQName);
 			definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES, ocDef, ocDef.getPrismContext());
 			if (definition == null) {

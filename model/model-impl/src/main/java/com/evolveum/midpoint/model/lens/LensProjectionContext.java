@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAccountType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
@@ -358,7 +359,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		if (refinedSchema == null) {
 			return null;
 		}
-		return refinedSchema.getAccountDefinition(getResourceShadowDiscriminator().getIntent());
+		return refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, getResourceShadowDiscriminator().getIntent());
 	}
 	
 	public Collection<ResourceShadowDiscriminatorType> getDependencies() {

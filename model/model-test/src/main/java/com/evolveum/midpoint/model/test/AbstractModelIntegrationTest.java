@@ -126,6 +126,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserTemplateType;
@@ -329,7 +330,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		resourceRef.setOid(resource.getOid());
 		account.asObjectable().setResourceRef(resourceRef);
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-		account.asObjectable().setObjectClass(refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition().getTypeName());
+		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
 		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -410,7 +411,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (refinedSchema == null) {
 			throw new SchemaException("No refined schema for "+resource);
 		}
-		RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultAccountDefinition();
+		RefinedObjectClassDefinition accountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		return accountDefinition.findAttributeDefinition(attributeName);
 	}
 
@@ -629,7 +630,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
@@ -681,7 +682,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();

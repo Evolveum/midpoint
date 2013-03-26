@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -65,8 +66,8 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.getNamespace();
 	}
 
-	public Collection<? extends RefinedObjectClassDefinition> getAccountDefinitions() {
-		return LayerRefinedObjectClassDefinition.wrapCollection(refinedResourceSchema.getAccountDefinitions(), layer);
+	public Collection<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
+		return LayerRefinedObjectClassDefinition.wrapCollection(refinedResourceSchema.getRefinedDefinitions(kind), layer);
 	}
 
 	public Collection<Definition> getDefinitions() {
@@ -81,12 +82,12 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.getDefinitions(type);
 	}
 
-	public LayerRefinedObjectClassDefinition getAccountDefinition(AccountShadowType shadow) {
-		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getAccountDefinition(shadow),layer);
+	public LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, AccountShadowType shadow) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getRefinedDefinition(kind, shadow),layer);
 	}
 
-	public LayerRefinedObjectClassDefinition getAccountDefinition(String intent) {
-		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getAccountDefinition(intent),layer);
+	public LayerRefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getRefinedDefinition(kind, intent),layer);
 	}
 
 	public void add(Definition def) {
@@ -97,16 +98,16 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.getPrismContext();
 	}
 
-	public LayerRefinedObjectClassDefinition getDefaultAccountDefinition() {
-		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getDefaultAccountDefinition(),layer);
+	public LayerRefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.getDefaultRefinedDefinition(kind),layer);
 	}
 
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(String accountType) {
-		return refinedResourceSchema.getObjectDefinition(accountType);
+	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
+		return refinedResourceSchema.getObjectDefinition(kind, intent);
 	}
 
-	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(AccountShadowType shadow) {
-		return refinedResourceSchema.getObjectDefinition(shadow);
+	public PrismObjectDefinition<AccountShadowType> getObjectDefinition(ShadowKindType kind, AccountShadowType shadow) {
+		return refinedResourceSchema.getObjectDefinition(kind, shadow);
 	}
 
 	public PrismContainerDefinition findContainerDefinitionByType(QName typeName) {
@@ -169,8 +170,8 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.createPropertyDefinition(name, typeName);
 	}
 
-	public LayerRefinedObjectClassDefinition findAccountDefinitionByObjectClass(QName objectClass) {
-		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.findAccountDefinitionByObjectClass(objectClass),layer);
+	public LayerRefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
+		return LayerRefinedObjectClassDefinition.wrap(refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClass),layer);
 	}
 
 	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {

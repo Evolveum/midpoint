@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -399,7 +400,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             PrismContext prismContext = getPageBase().getPrismContext();
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                     LayerType.PRESENTATION, prismContext);
-            PrismContainerDefinition definition = refinedSchema.getAccountDefinition(construction.getIntent());
+            PrismContainerDefinition definition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
 
             List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();
 

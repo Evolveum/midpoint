@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -228,7 +229,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultAccountDefinition();
+        RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
         // Determine object class to import
         QName objectclass = null;
@@ -238,8 +239,8 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
         }
 
         if (objectclass == null) {
-            if (refinedSchema.getDefaultAccountDefinition() != null) {
-                objectclass = refinedSchema.getDefaultAccountDefinition().getObjectClassDefinition().getTypeName();
+            if (refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT) != null) {
+                objectclass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName();
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Import: No objectclass specified, using default value of " + objectclass + ".");
                 }

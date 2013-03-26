@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -228,7 +229,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable {
 			throw new SchemaException("No (refined) schema for "+resource);
 		}
 		
-		refinedAccountDefinition = refinedSchema.getAccountDefinition(accountConstructionType.getIntent());
+		refinedAccountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, accountConstructionType.getIntent());
 		
 		if (refinedAccountDefinition == null) {
 			if (accountConstructionType.getIntent() != null) {
