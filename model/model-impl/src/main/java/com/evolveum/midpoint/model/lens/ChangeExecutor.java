@@ -23,6 +23,9 @@ package com.evolveum.midpoint.model.lens;
 
 import static com.evolveum.midpoint.common.CompiletimeConfig.CONSISTENCY_CHECKS;
 
+import com.evolveum.midpoint.common.expression.Expression;
+import com.evolveum.midpoint.common.expression.ExpressionEvaluationParameters;
+import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -32,12 +35,14 @@ import com.evolveum.midpoint.model.sync.SynchronizationSituation;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -56,7 +61,9 @@ import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -68,12 +75,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -99,6 +111,9 @@ public class ChangeExecutor {
     
     @Autowired(required = true)
     private PrismContext prismContext;
+    
+    @Autowired(required = true)
+	private ExpressionFactory expressionFactory;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<AccountShadowType> accountDefinition = null;
@@ -394,14 +409,19 @@ public class ChangeExecutor {
 		syncSituationDeltas.add(syncSituationDelta);
 		}
 		try {
-			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
+			String changedOid = provisioning.modifyObject(AccountShadowType.class, accountRef,
+					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
+					task, result);
+//			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
 		} catch (ObjectNotFoundException ex) {
 			// if the object not found exception is thrown, it's ok..probably
 			// the account was deleted by previous execution of changes..just
 			// log in the trace the message for the user.. 
 			LOGGER.trace("Situation in account could not be updated. Account not found on the resource. Skipping modifying situation in account");
 			return;
-		}
+		} catch (Exception ex) {
+            throw new SystemException(ex.getMessage(), ex);
+        }
 		// if everything is OK, add result of the situation modification to the
 		// parent result
 		result.recordSuccess();
@@ -445,11 +465,11 @@ public class ChangeExecutor {
     		}
     	
 	        if (objectDelta.getChangeType() == ChangeType.ADD) {
-	            executeAddition(objectDelta, provisioningOptions, task, result);
+	            executeAddition(objectDelta, context, provisioningOptions, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
-	        	executeModification(objectDelta, provisioningOptions, task, result);
+	        	executeModification(objectDelta, context, provisioningOptions, task, result);
 	        } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
-	            executeDeletion(objectDelta, provisioningOptions, task, result);
+	            executeDeletion(objectDelta, context, provisioningOptions, task, result);
 	        }
 	        
 	        // To make sure that the OID is set (e.g. after ADD operation)
@@ -518,7 +538,7 @@ public class ChangeExecutor {
 		LOGGER.debug("\n{}", sb);
 	}
 
-    private <T extends ObjectType> void executeAddition(ObjectDelta<T> change, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException,
+    private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeAddition(ObjectDelta<T> change, LensContext<F, P> context, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 
         PrismObject<T> objectToAdd = change.getObjectToAdd();
@@ -536,7 +556,7 @@ public class ChangeExecutor {
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
-            oid = addProvisioningObject(objectToAdd, options, task, result);
+            oid = addProvisioningObject(objectToAdd, context, options, task, result);
             if (oid == null) {
             	throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
             }
@@ -550,7 +570,7 @@ public class ChangeExecutor {
         change.setOid(oid);
     }
 
-    private <T extends ObjectType> void executeDeletion(ObjectDelta<T> change, ProvisioningOperationOptions options, Task task, OperationResult result) throws
+    private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeDeletion(ObjectDelta<T> change, LensContext<F,P> context, ProvisioningOperationOptions options, Task task, OperationResult result) throws
             ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException {
 
         String oid = change.getOid();
@@ -559,13 +579,13 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-            deleteProvisioningObject(objectTypeClass, oid, options, task, result);
+            deleteProvisioningObject(objectTypeClass, oid, context, options, task, result);
         } else {
             cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
         }
     }
 
-    private <T extends ObjectType> void executeModification(ObjectDelta<T> change, ProvisioningOperationOptions options, Task task, OperationResult result)
+    private <T extends ObjectType, F extends ObjectType, P extends ObjectType> void executeModification(ObjectDelta<T> change, LensContext<F, P> context, ProvisioningOperationOptions options, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, RewindException {
         if (change.isEmpty()) {
             // Nothing to do
@@ -576,7 +596,7 @@ public class ChangeExecutor {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-            String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), options, task, result);
+            String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), context, options, task, result);
             if (!oid.equals(change.getOid())){
             	change.setOid(oid);
             }
@@ -597,7 +617,7 @@ public class ChangeExecutor {
         }
     }
 
-    private String addProvisioningObject(PrismObject<? extends ObjectType> object, ProvisioningOperationOptions options, Task task, OperationResult result)
+    private <F extends ObjectType, P extends ObjectType> String addProvisioningObject(PrismObject<? extends ObjectType> object, LensContext<F, P> context, ProvisioningOperationOptions options, Task task, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
 
@@ -610,7 +630,7 @@ public class ChangeExecutor {
         }
 
         try {
-            ProvisioningScriptsType scripts = getScripts(object.asObjectable(), ProvisioningOperationTypeType.ADD, result);
+            ProvisioningScriptsType scripts = getScripts(object.asObjectable(), context, ProvisioningOperationTypeType.ADD, result);
             String oid = provisioning.addObject(object, scripts, options, task, result);
             return oid;
         } catch (ObjectNotFoundException ex) {
@@ -626,13 +646,13 @@ public class ChangeExecutor {
 		}
     }
 
-    private void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid, ProvisioningOperationOptions options, Task task, 
+    private <F extends ObjectType, P extends ObjectType> void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid, LensContext<F, P> context, ProvisioningOperationOptions options, Task task, 
             OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException {
 
         try {
         	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
-        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), ProvisioningOperationTypeType.DELETE, result);
+        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), context, ProvisioningOperationTypeType.DELETE, result);
             provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
         } catch (ObjectNotFoundException ex) {
             throw ex;
@@ -641,12 +661,12 @@ public class ChangeExecutor {
         }
     }
 
-    private String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
-            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectNotFoundException, RewindException {
+    private <F extends ObjectType, P extends ObjectType> String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
+            Collection<? extends ItemDelta> modifications, LensContext<F, P> context, ProvisioningOperationOptions options, Task task, OperationResult result) throws ObjectNotFoundException, RewindException {
 
         try {
         	PrismObject<? extends ObjectType> shadowToModify = provisioning.getObject(objectTypeClass, oid, GetOperationOptions.createNoFetch(), result);
-        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), ProvisioningOperationTypeType.MODIFY, result);
+        	ProvisioningScriptsType scripts = getScripts(shadowToModify.asObjectable(), context, ProvisioningOperationTypeType.MODIFY, result);
             String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
             return changedOid;
         } catch (ObjectNotFoundException ex) {
@@ -656,33 +676,143 @@ public class ChangeExecutor {
         }
     }
 
-    private ProvisioningScriptsType getScripts(ObjectType object, ProvisioningOperationTypeType operation, OperationResult result) throws ObjectNotFoundException,
+    private <F extends ObjectType, P extends ObjectType> ProvisioningScriptsType getScripts(ObjectType object, LensContext<F, P> context, ProvisioningOperationTypeType operation, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	ProvisioningScriptsType resourceScripts = null;
+    	ResourceType resource = null;
+    	ResourceObjectShadowType resourceObject = null;
         if (object instanceof ResourceType) {
-            ResourceType resource = (ResourceType) object;
+            resource = (ResourceType) object;
             resourceScripts = resource.getScripts();
         } else if (object instanceof ResourceObjectShadowType) {
-            ResourceObjectShadowType resourceObject = (ResourceObjectShadowType) object;
+            resourceObject = (ResourceObjectShadowType) object;
             if (resourceObject.getResource() != null) {
                 resourceScripts = resourceObject.getResource().getScripts();
             } else {
                 String resourceOid = ResourceObjectShadowUtil.getResourceOid(resourceObject);
-                ResourceType resObject = provisioning.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
-                resourceScripts = resObject.getScripts();
+                resource = provisioning.getObject(ResourceType.class, resourceOid, null, result).asObjectable();
+                resourceScripts = resource.getScripts();
             }
         }
 
-        ProvisioningScriptsType outScripts = new ProvisioningScriptsType();
-        if (resourceScripts != null) {
-        	for (ProvisioningScriptType script: resourceScripts.getScript()) {
-        		if (script.getOperation().contains(operation)) {
-        			outScripts.getScript().add(script);
-        		}
-        	}
-        }
-
-        return outScripts;
+        
+        PrismObject user = null;
+		if (context.getFocusContext() != null){
+			if (context.getFocusContext().getObjectNew() != null){
+			user = context.getFocusContext().getObjectNew();
+			} else if (context.getFocusContext().getObjectNew() != null){
+				user = context.getFocusContext().getObjectOld();
+			}	
+		}
+		UserType userType = null;
+		if (user != null && UserType.class.isAssignableFrom(user.getCompileTimeClass())){
+			userType = (UserType) user.asObjectable();
+		}
+        
+        Map<QName, Object> variables = getDefaultXPathVariables(userType, resourceObject, resource);
+        return evaluateScript(resourceScripts, operation, variables, result);
+      
     }
+//    
+//	private <F extends ObjectType, P extends ObjectType> ProvisioningScriptsType getScripts(
+//			String oid, LensContext<F, P> context, ProvisioningOperationTypeType operation,
+//			OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+//			ConfigurationException, SecurityViolationException {
+//		
+//		PrismObject user = null;
+//		if (context.getFocusContext() != null && context.getFocusContext().getClass().isAssignableFrom(UserType.class)){
+//			if (context.getFocusContext().getObjectNew() != null){
+//			user = context.getFocusContext().getObjectNew();
+//			} else if (context.getFocusContext().getObjectNew() != null){
+//				user = context.getFocusContext().getObjectOld();
+//			}
+//			
+//		}
+//		
+//		LensProjectionContext projectionContext = context.findProjectionContextByOid(oid);
+//		PrismObject<AccountShadowType> shadow = null;
+//		if (projectionContext.getObjectNew() != null){
+//			shadow = projectionContext.getObjectNew();
+//		} else if (projectionContext.getObjectOld() != null){
+//			shadow = projectionContext.getObjectOld();
+//		}
+//		
+//		ResourceType resource = projectionContext.getResource();
+//		
+//		ProvisioningScriptsType resourceScripts = resource.getScripts();
+//		
+//		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource.asPrismObject());
+//		
+//		return evaluateScript(resourceScripts, operation, variables, result);
+//	}
+	
+	
+	private ProvisioningScriptsType evaluateScript(ProvisioningScriptsType resourceScripts, ProvisioningOperationTypeType operation, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException{
+		  ProvisioningScriptsType outScripts = new ProvisioningScriptsType();
+	        if (resourceScripts != null) {
+	        	for (ProvisioningScriptType script: resourceScripts.getScript()) {
+	        		if (script.getOperation().contains(operation)) {
+	        			for (ProvisioningScriptArgumentType argument : script.getArgument()){
+	        				evaluateScript(argument, variables, result);
+	        			}
+	        			outScripts.getScript().add(script);
+	        		}
+	        	}
+	        }
+
+	        return outScripts;
+	}
+    
+    private void evaluateScript(ProvisioningScriptArgumentType argument, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException{
+    	
+    	QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
+    	
+    	PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
+				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+    	
+    	String shortDesc = "Evaluation script argument expression";
+    	Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
+    	
+    	
+    	ExpressionEvaluationParameters params = new ExpressionEvaluationParameters(null, variables, shortDesc, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = null;
+		try{
+			outputTriple = expression.evaluate(params);
+		} catch (ExpressionEvaluationException ex){
+			throw new SystemException(ex);
+		}
+		if (outputTriple == null) {
+			return;
+		}
+		
+		//replace dynamic script with static value..
+		argument.getExpressionEvaluator().clear();
+		Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
+		for (PrismPropertyValue<String> val : nonNegativeValues){
+			Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
+			value.setTextContent(val.getValue());
+			JAXBElement<Element> el = new JAXBElement(SchemaConstants.C_VALUE, Element.class, value);
+			argument.getExpressionEvaluator().add(el);
+		}
+		
+		return;
+    }
+    
+    public Map<QName, Object> getDefaultXPathVariables(UserType user, ResourceObjectShadowType shadow, ResourceType resource) {
+		
+		Map<QName, Object> variables = new HashMap<QName, Object>();
+		if (user != null) {
+			variables.put(SchemaConstants.I_USER, user);
+		}
+
+		if (shadow != null) {
+			variables.put(SchemaConstants.I_ACCOUNT, shadow);
+		}
+
+		if (resource != null) {
+			variables.put(SchemaConstants.I_RESOURCE, resource);
+		}
+		return variables;
+	}
 
 }
