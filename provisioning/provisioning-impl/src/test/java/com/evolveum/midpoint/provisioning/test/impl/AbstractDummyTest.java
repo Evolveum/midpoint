@@ -23,6 +23,7 @@ package com.evolveum.midpoint.provisioning.test.impl;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -138,6 +139,12 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResource.addAccount(dummyAccountDaemon);
 
 		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, AccountShadowType.class, initResult);
+	}
+	
+	protected <T extends ResourceObjectShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
+		for (PrismObject<T> shadow: shadows) {
+			checkConsistency(shadow);
+		}
 	}
 	
 	protected void checkConsistency(PrismObject<? extends ResourceObjectShadowType> object) throws SchemaException {

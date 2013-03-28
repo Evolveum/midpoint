@@ -301,6 +301,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		// Try to re-parse
 		ResourceSchema reparsedResourceSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(xsdSchemaDom),
 				"serialized schema", PrismTestUtil.getPrismContext());
+		display("Re-parsed resource schema", reparsedResourceSchema);
 		assertEquals("Unexpected number of definitions in re-parsed schema", 1, reparsedResourceSchema.getDefinitions().size());
 		
 		ProvisioningTestUtil.assertDummyResourceSchemaSanity(reparsedResourceSchema, resourceType);
@@ -394,7 +395,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 		
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ResourceObjectShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -418,7 +419,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		dummyResource.addAccount(newAccount);
 		
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ResourceObjectShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);

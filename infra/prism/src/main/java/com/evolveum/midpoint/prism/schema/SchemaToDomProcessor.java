@@ -429,7 +429,7 @@ public class SchemaToDomProcessor {
 		Element sequence = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "sequence"));
 		containingElement.appendChild(sequence);
 
-		Collection<ItemDefinition> definitions = definition.getDefinitions();
+		Collection<? extends ItemDefinition> definitions = definition.getDefinitions();
 		for (ItemDefinition def : definitions) {
 			if (def instanceof PrismPropertyDefinition) {
 				addPropertyDefinition((PrismPropertyDefinition) def, sequence);

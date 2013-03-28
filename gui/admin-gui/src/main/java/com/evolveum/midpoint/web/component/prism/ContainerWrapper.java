@@ -123,7 +123,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                     PrismProperty<QName> objectClassProp = parent.findProperty(AccountShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
                     
-                    definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
+                    definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
+                    		.toResourceAttributeContainerDefinition();
                     if (LOGGER.isTraceEnabled()) {
                     	LOGGER.trace("Refined account def:\n{}", definition.dump());
                     }

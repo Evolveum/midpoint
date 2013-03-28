@@ -194,10 +194,6 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		return refinedResourceSchema.isEmpty();
 	}
 
-	public <T extends ResourceObjectShadowType> PrismObject<T> refine(PrismObject<T> shadow) throws SchemaException {
-		return refinedResourceSchema.refine(shadow);
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;

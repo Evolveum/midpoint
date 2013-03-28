@@ -195,14 +195,14 @@ public class TestExtraSchema {
 		
 		// Make sure that the ordering is OK. If it is not then a serialization will produce XML that
 		// does not comply to schema
-		List<ItemDefinition> definitions = userDef.getDefinitions();
+		List<? extends ItemDefinition> definitions = userDef.getDefinitions();
 		assertDefinitionOrder(definitions, USER_NAME_QNAME, 0);
 		assertDefinitionOrder(definitions, USER_DESCRIPTION_QNAME, 1);
 		assertDefinitionOrder(definitions, USER_EXTENSION_QNAME, 2);
 		assertDefinitionOrder(definitions, USER_FULLNAME_QNAME, 3);
 	}
 
-	private void assertDefinitionOrder(List<ItemDefinition> definitions, QName elementName, int i) {
+	private void assertDefinitionOrder(List<? extends ItemDefinition> definitions, QName elementName, int i) {
 		assertEquals("Wrong definition, expected that "+PrettyPrinter.prettyPrint(elementName)+" definition will be at index " +
 				i + " but there was a "+definitions.get(i).getName()+" instead", elementName, definitions.get(i).getName());
 	}

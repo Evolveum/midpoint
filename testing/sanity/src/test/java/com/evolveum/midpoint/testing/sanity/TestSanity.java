@@ -471,7 +471,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ResourceSchema schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition accountDefinition = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("Schema does not define any account (resource from " + source + ")", accountDefinition);
-        Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+        Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
         assertFalse("No account identifiers (resource from " + source + ")", identifiers == null || identifiers.isEmpty());
         // TODO: check for naming attributes and display names, etc
 
@@ -2577,8 +2577,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         AccountShadowType account = searchAccountByOid(accountOid);
 
-        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=People,dc=example,dc=com", account.getName());
-//        assertEquals("Name doesn't match", "uid=e,ou=People,dc=example,dc=com", account.getName());
+        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=people,dc=example,dc=com", account.getName());
         
         assertAndStoreSyncTokenIncrement(syncCycle, 3);
         checkAllShadows();
@@ -2621,7 +2620,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         String accountOid = accountRefs.get(0).getOid();
         AccountShadowType account = searchAccountByOid(accountOid);
 
-        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
+        PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=" + userName + ",ou=people,dc=example,dc=com", account.getName());
 //        assertEquals("Name doesn't match", "uid=" + userName + ",ou=People,dc=example,dc=com", account.getName());
         Collection<String> localities = getAttributeValues(account, new QName(IMPORT_OBJECTCLASS.getNamespaceURI(), "l"));
         assertNotNull("null value list for attribute 'l'", localities);

@@ -258,7 +258,6 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			change.setObjectDelta(objectDelta);
 			change.setResource(shadow.getResource().asPrismObject());
 			AccountShadowType account = (AccountShadowType) shadow;
-			account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(), result));
 			change.setOldShadow(account.asPrismObject());
 		}
 

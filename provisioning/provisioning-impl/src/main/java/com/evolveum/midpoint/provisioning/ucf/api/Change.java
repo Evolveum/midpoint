@@ -33,30 +33,30 @@ import java.util.Set;
  * @author Radovan Semancik
  *
  */
-public final class Change {
+public final class Change<T extends ResourceObjectShadowType> {
 	
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
-    private ObjectDelta<? extends ResourceObjectShadowType> objectDelta;
+    private ObjectDelta<T> objectDelta;
     private PrismProperty<?> token;
-    private PrismObject<? extends ResourceObjectShadowType> oldShadow;
-    private PrismObject<? extends ResourceObjectShadowType> currentShadow;
+    private PrismObject<T> oldShadow;
+    private PrismObject<T> currentShadow;
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty<?> token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<T> change, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<? extends ResourceObjectShadowType> currentShadow, PrismProperty<?> token) {
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<T> currentShadow, PrismProperty<?> token) {
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
         this.token = token;
     }
 
-    public Change(ObjectDelta<? extends ResourceObjectShadowType> change, PrismProperty<?> token) {
+    public Change(ObjectDelta<T> change, PrismProperty<?> token) {
         this.objectDelta = change;
         this.token = token;
     }
@@ -65,7 +65,7 @@ public final class Change {
         return objectDelta;
     }
 
-    public void setObjectDelta(ObjectDelta<? extends ResourceObjectShadowType> change) {
+    public void setObjectDelta(ObjectDelta<T> change) {
         this.objectDelta = change;
     }
 
@@ -93,19 +93,19 @@ public final class Change {
 		this.token = token;
 	}
 
-	public PrismObject<? extends ResourceObjectShadowType> getOldShadow() {
+	public PrismObject<T> getOldShadow() {
 		return oldShadow;
 	}
 
-	public void setOldShadow(PrismObject<? extends ResourceObjectShadowType> oldShadow) {
+	public void setOldShadow(PrismObject<T> oldShadow) {
 		this.oldShadow = oldShadow;
 	}
 
-	public PrismObject<? extends ResourceObjectShadowType> getCurrentShadow() {
+	public PrismObject<T> getCurrentShadow() {
 		return currentShadow;
 	}
 
-	public void setCurrentShadow(PrismObject<? extends ResourceObjectShadowType> currentShadow) {
+	public void setCurrentShadow(PrismObject<T> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
 

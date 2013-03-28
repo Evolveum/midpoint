@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -30,11 +31,12 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheProvisioner.class);
 	
-	public String afterAddOnResource(ResourceObjectShadowType shadowType, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
+	@Override
+	public <T extends ResourceObjectShadowType> String afterAddOnResource(PrismObject<T> shadow, ResourceType resource, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		
-	shadowType = ShadowCacheUtil.createRepositoryShadow(shadowType, resource);
+	shadow = shadowManager.createRepositoryShadow(shadow, resource);
 
-	if (shadowType == null) {
+	if (shadow == null) {
 		parentResult
 				.recordFatalError("Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
 		throw new IllegalStateException(
@@ -44,7 +46,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	LOGGER.trace("Adding object with identifiers to the repository.");
 	String oid = null;
 	try {
-		oid = getRepositoryService().addObject(shadowType.asPrismObject(), null, parentResult);
+		oid = getRepositoryService().addObject(shadow, null, parentResult);
 
 	} catch (ObjectAlreadyExistsException ex) {
 		// This should not happen. The OID is not supplied and it is
@@ -58,17 +60,17 @@ public class ShadowCacheProvisioner extends ShadowCache{
 				"Couldn't add shadow object to the repository. Shadow object already exist. Reason: "
 						+ ex.getMessage(), ex);
 	}
-	shadowType.setOid(oid);
+	shadow.setOid(oid);
 
 	LOGGER.trace("Object added to the repository successfully.");
 
 	parentResult.recordSuccess();
 
-	return shadowType.getOid();
+	return shadow.getOid();
 	}
 
 	@Override
-	public void afterModifyOnResource(ResourceObjectShadowType shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException{
+	public <T extends ResourceObjectShadowType> void afterModifyOnResource(PrismObject<T> shadowType, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		Collection<? extends ItemDelta> shadowChanges = getShadowChanges(modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
@@ -103,8 +105,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	}
 
 	@Override
-	public Collection<? extends ItemDelta> beforeModifyOnResource(ResourceObjectShadowType shadowType,
-			ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException{
+	public <T extends ResourceObjectShadowType> Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<T> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
 		
 		// TODO: error handling
 		//do not merge deltas when complete postponed operation is set to false, because it can cause some unexpected behavior..
@@ -112,7 +113,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 			return modifications;
 		}
 		
-		ObjectDelta mergedDelta = mergeDeltas(shadowType, modifications);
+		ObjectDelta mergedDelta = mergeDeltas(shadow, modifications);
 
 		if (mergedDelta != null) {
 			modifications = mergedDelta.getModifications();
@@ -125,13 +126,14 @@ public class ShadowCacheProvisioner extends ShadowCache{
 	
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T extends ResourceObjectShadowType> ObjectDelta mergeDeltas(T shadow, Collection<? extends ItemDelta> modifications)
+	private <T extends ResourceObjectShadowType> ObjectDelta mergeDeltas(PrismObject<T> shadow, Collection<? extends ItemDelta> modifications)
 			throws SchemaException {
-		if (shadow.getObjectChange() != null) {
+		T shadowType = shadow.asObjectable();
+		if (shadowType.getObjectChange() != null) {
 
-			ObjectDeltaType deltaType = shadow.getObjectChange();
+			ObjectDeltaType deltaType = shadowType.getObjectChange();
 			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-					deltaType.getModification(), shadow.asPrismObject().getDefinition());
+					deltaType.getModification(), shadow.getDefinition());
 
 			return ObjectDelta.summarize(ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
 					ResourceObjectShadowType.class, getPrismContext()), ObjectDelta.createModifyDelta(shadow.getOid(),

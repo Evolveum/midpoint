@@ -114,7 +114,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			if (shadow.getFailedOperationType() == null) {
 //				ResourceType resource = shadow.getResource();
 				if (shadow.getName() == null) {
-					shadow.setName(ShadowCacheUtil.determineShadowName(shadow));
+					shadow.setName(ShadowCacheUtil.determineShadowName(shadow.asPrismObject()));
 				}
 				if (shadow.getResourceRef() == null || shadow.getResourceRef().getOid() == null){
 					if (resource != null){

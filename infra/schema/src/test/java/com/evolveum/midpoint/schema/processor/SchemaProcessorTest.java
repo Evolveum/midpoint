@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -171,7 +172,7 @@ public class SchemaProcessorTest {
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
 		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
-		containerDefinition.getIdentifiers().add(xloginDef);
+		((Collection)containerDefinition.getIdentifiers()).add(xloginDef);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema

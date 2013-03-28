@@ -168,7 +168,7 @@ public class TestPrismSchemaConstruction {
 		Iterator<Definition> schemaDefIter = definitions.iterator();
 		ComplexTypeDefinition weaponTypeDef = (ComplexTypeDefinition)schemaDefIter.next();
 		assertEquals("Unexpected number of definitions in weaponTypeDef", 4, weaponTypeDef.getDefinitions().size());
-		Iterator<ItemDefinition> weaponTypeDefIter = weaponTypeDef.getDefinitions().iterator();
+		Iterator<? extends ItemDefinition> weaponTypeDefIter = weaponTypeDef.getDefinitions().iterator();
 		PrismPropertyDefinition kindPropertyDef = (PrismPropertyDefinition) weaponTypeDefIter.next();
 		PrismAsserts.assertDefinition(kindPropertyDef, WEAPON_KIND_QNAME, DOMUtil.XSD_STRING, 1, 1);
 		assertEquals("Wrong kindPropertyDef displayName", "Weapon kind", kindPropertyDef.getDisplayName());

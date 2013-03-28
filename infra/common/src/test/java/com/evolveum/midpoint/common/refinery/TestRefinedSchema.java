@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -189,12 +190,9 @@ public class TestRefinedSchema {
         		new QName(resourceType.getNamespace(), SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
         assertTrue("findAccountDefinitionByObjectClass(ICF account) returned wrong value", rAccount.equals(accountDefByIcfAccountObjectclass));
 
-        assertAttributeDefs(rAccount, resourceType, sourceLayer, validationLayer);
+        assertRObjectClassDef(rAccount, resourceType, sourceLayer, validationLayer);
         System.out.println("Refined account definitionn:");
         System.out.println(rAccount.dump());
-        
-        ObjectClassComplexTypeDefinition complexTypeDefinition = rAccount.getComplexTypeDefinition();
-        assertNotNull("No complexType definition", complexTypeDefinition);
         
         Collection<? extends RefinedAttributeDefinition> attributeDefinitions = rAccount.getAttributeDefinitions();
         assertNotNull("Null attributeDefinitions", attributeDefinitions);
@@ -206,7 +204,7 @@ public class TestRefinedSchema {
         assertTrue("ds-pwp-account-disabled not ignored", disabledAttribute.isIgnored());
         
         // This is compatibility with PrismContainerDefinition, it should work well
-        Collection<PrismPropertyDefinition> propertyDefinitions = rAccount.getPropertyDefinitions();
+        Collection<? extends ItemDefinition> propertyDefinitions = rAccount.getDefinitions();
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
         assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
         assertEquals("Unexpected number of propertyDefinitions", 55, propertyDefinitions.size());
@@ -225,6 +223,7 @@ public class TestRefinedSchema {
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
 
         PrismObject<AccountShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
@@ -256,6 +255,7 @@ public class TestRefinedSchema {
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resource, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.dump());
 
@@ -265,7 +265,7 @@ public class TestRefinedSchema {
         System.out.println(attributesContainer.dump());
         
         // WHEN
-        attributesContainer.applyDefinition(defaultAccountDefinition, true);
+        attributesContainer.applyDefinition(defaultAccountDefinition.toResourceAttributeContainerDefinition(), true);
 
         // THEN
         System.out.println("Parsed account:");
@@ -282,8 +282,8 @@ public class TestRefinedSchema {
         PrismAsserts.assertPropertyValue(accObject, AccountShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
         PrismContainer<?> attributes = accObject.findOrCreateContainer(SchemaConstants.I_ATTRIBUTES);
-        assertEquals("Wrong type of <attributes> definition in account", RefinedObjectClassDefinition.class, attributes.getDefinition().getClass());
-        RefinedObjectClassDefinition attrDef = (RefinedObjectClassDefinition) attributes.getDefinition();
+        assertEquals("Wrong type of <attributes> definition in account", ResourceAttributeContainerDefinition.class, attributes.getDefinition().getClass());
+        ResourceAttributeContainerDefinition attrDef = (ResourceAttributeContainerDefinition)attributes.getDefinition();
         assertAttributeDefs(attrDef, resourceType, null, LayerType.MODEL);
 
         PrismAsserts.assertPropertyValue(attributes, SchemaTestConstants.ICFS_NAME, "uid=jack,ou=People,dc=example,dc=com");
@@ -373,10 +373,16 @@ public class TestRefinedSchema {
         assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com");
     }
 
-    private void assertAttributeDefs(RefinedObjectClassDefinition rAccount, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
-        assertNotNull("Null account definition", rAccount);
-        assertEquals(SchemaConstants.INTENT_DEFAULT, rAccount.getIntent());
-        assertEquals("AccountObjectClass", rAccount.getObjectClassDefinition().getTypeName().getLocalPart());
+    private void assertAttributeDefs(ResourceAttributeContainerDefinition attrsDef, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
+        assertNotNull("Null account definition", attrsDef);
+        assertEquals(SchemaConstants.INTENT_DEFAULT, attrsDef.getIntent());
+        assertEquals("AccountObjectClass", attrsDef.getComplexTypeDefinition().getTypeName().getLocalPart());
+        assertEquals("Wrong objectclass in the definition of <attributes> definition in account", RefinedObjectClassDefinition.class, attrsDef.getComplexTypeDefinition().getClass());
+        RefinedObjectClassDefinition rAccount = (RefinedObjectClassDefinition) attrsDef.getComplexTypeDefinition();
+        assertRObjectClassDef(rAccount, resourceType, sourceLayer, validationLayer);
+    }
+    
+    private void assertRObjectClassDef(RefinedObjectClassDefinition rAccount, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
         assertTrue(rAccount.isDefault());
 
         Collection<? extends RefinedAttributeDefinition> attrs = rAccount.getAttributeDefinitions();

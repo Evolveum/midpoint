@@ -268,6 +268,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		PrismObject<AccountShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
+		// IMPORTANT: deliberately violating the schema
 		accountType.setObjectClass(null);
 
 		display("Adding shadow", account);

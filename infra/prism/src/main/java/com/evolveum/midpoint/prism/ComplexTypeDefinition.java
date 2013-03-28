@@ -70,11 +70,15 @@ public class ComplexTypeDefinition extends Definition {
 	 * 
 	 * @return set of definitions
 	 */
-	public List<ItemDefinition> getDefinitions() {
+	public List<? extends ItemDefinition> getDefinitions() {
 		if (itemDefinitions == null) {
 			itemDefinitions = new ArrayList<ItemDefinition>();
 		}
 		return itemDefinitions;
+	}
+	
+	public void addDefinition(ItemDefinition itemDef) {
+		itemDefinitions.add(itemDef);
 	}
 	
 	public Class<?> getCompileTimeClass() {
@@ -281,12 +285,17 @@ public class ComplexTypeDefinition extends Definition {
 		for (ItemDefinition def : getDefinitions()) {
 			sb.append("\n");
 			sb.append(def.debugDump(indent+1));
+			extendDumpDefinition(sb, def);
 		}
 		return sb.toString();
 	}
 
 	protected void extendDumpHeader(StringBuilder sb) {
 		// Do nothing
+	}
+
+	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition def) {
+		// Do nothing		
 	}
 
 	/**

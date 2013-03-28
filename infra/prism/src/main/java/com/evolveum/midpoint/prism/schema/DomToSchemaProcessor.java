@@ -381,11 +381,11 @@ class DomToSchemaProcessor {
 							XSAnnotation containerAnnotation = xsType.getAnnotation();
 							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(xsType, p,
 									null, containerAnnotation, false);
-							ctd.getDefinitions().add(containerDefinition);
+							ctd.addDefinition(containerDefinition);
 						} else {
 							PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, DOMUtil.XSD_ANY,
 									ctd, annotation, p);
-							ctd.getDefinitions().add(propDef);
+							ctd.addDefinition(propDef);
 						}
 					}
 
@@ -416,7 +416,7 @@ class DomToSchemaProcessor {
 						containerDefinition.setRuntimeSchema(true);
 						containerDefinition.setDynamic(true);
 					}
-					ctd.getDefinitions().add(containerDefinition);
+					ctd.addDefinition(containerDefinition);
 										
 				} else {
 										

@@ -70,10 +70,6 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		operationResult.addParam("exception", ex.getMessage());
 
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-		if (shadow instanceof AccountShadowType) {
-			AccountShadowType account = (AccountShadowType) shadow;
-			account.setActivation(ShadowCacheUtil.completeActivation(account, account.getResource(), operationResult));
-		}
 
 		change.setResource(shadow.getResource().asPrismObject());
 		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));

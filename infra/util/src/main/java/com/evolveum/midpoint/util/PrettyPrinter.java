@@ -98,9 +98,12 @@ public class PrettyPrinter {
 		if (qname == null) {
 			return "null";
 		}
-		if (defaultNamespacePrefix != null && qname.getNamespaceURI() != null
-				&& qname.getNamespaceURI().startsWith(defaultNamespacePrefix)) {
-			return "{..."+qname.getNamespaceURI().substring(defaultNamespacePrefix.length())+"}"+qname.getLocalPart();
+		if (qname.getNamespaceURI() != null) {
+			if (qname.getNamespaceURI().equals(DOMUtil.W3C_XML_SCHEMA_XMLNS_URI)) {
+				return "{"+DOMUtil.W3C_XML_SCHEMA_XMLNS_PREFIX+":}"+qname.getLocalPart();
+			} else if (defaultNamespacePrefix != null && qname.getNamespaceURI().startsWith(defaultNamespacePrefix)) {
+				return "{..."+qname.getNamespaceURI().substring(defaultNamespacePrefix.length())+"}"+qname.getLocalPart();
+			}
 		}
 		return qname.toString();
 	}

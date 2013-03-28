@@ -28,6 +28,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Item;
@@ -353,7 +354,7 @@ public class TestResourceSchema {
 		// ... in it ordinary attribute - an identifier
 		ResourceAttributeDefinition icfUidDef = containerDefinition.createAttributeDefinition(
 				SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
-		containerDefinition.getIdentifiers().add(icfUidDef);
+		((Collection)containerDefinition.getIdentifiers()).add(icfUidDef);
 		ResourceAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());

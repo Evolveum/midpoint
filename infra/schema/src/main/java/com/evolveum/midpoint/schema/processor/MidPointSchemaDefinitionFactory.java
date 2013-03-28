@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSParticle;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -153,12 +154,12 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 		// identifier
 		attrDefinition = getAnnotationReference(annotation, MidPointConstants.RA_IDENTIFIER, ocDef);
 		if (attrDefinition != null) {
-			ocDef.getIdentifiers().add(attrDefinition);
+			((Collection<ResourceAttributeDefinition>)ocDef.getIdentifiers()).add(attrDefinition);
 		}
 		// secondaryIdentifier
 		attrDefinition = getAnnotationReference(annotation, MidPointConstants.RA_SECONDARY_IDENTIFIER, ocDef);
 		if (attrDefinition != null) {
-			ocDef.getSecondaryIdentifiers().add(attrDefinition);
+			((Collection<ResourceAttributeDefinition>)ocDef.getSecondaryIdentifiers()).add(attrDefinition);
 		}
 	}
 	

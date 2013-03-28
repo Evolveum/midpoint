@@ -108,10 +108,10 @@ public class ResourceObjectShadowUtil {
 		return emptyContainer;
 	}
 	
-	public static ResourceAttributeContainerDefinition getObjectClassDefinition(ResourceObjectShadowType shadow) {
+	public static ObjectClassComplexTypeDefinition getObjectClassDefinition(ResourceObjectShadowType shadow) {
 		// TODO: maybe we can do something more intelligent here
 		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
-		return attributesContainer.getDefinition();
+		return attributesContainer.getDefinition().getComplexTypeDefinition();
 	}
 
 	

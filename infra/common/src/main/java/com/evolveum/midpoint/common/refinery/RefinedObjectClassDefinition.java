@@ -24,10 +24,13 @@ import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -44,12 +47,15 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+
 import java.util.*;
 
 /**
  * @author semancik
  */
-public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefinition implements Dumpable, DebugDumpable {
+public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefinition implements Dumpable, DebugDumpable {
 
     private String intent;
     private String displayName;
@@ -60,27 +66,24 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
     private Collection<? extends RefinedAttributeDefinition> identifiers;
 	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
 	private Collection<ResourceObjectPattern> protectedObjectPatterns;
+	private List<RefinedAttributeDefinition> attributeDefinitions;
 	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
      */
     PrismObjectDefinition<AccountShadowType> objectDefinition = null;
-
-    private List<RefinedAttributeDefinition> attributeDefinitions;
     
-    protected RefinedObjectClassDefinition(PrismContext prismContext) {
-    	super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
-    }
-
-    private RefinedObjectClassDefinition(PrismContext prismContext, ResourceType resourceType) {
-        super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
-        attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
-        this.resourceType = resourceType;
+    /**
+     * This is needed by the LayerRefinedObjectClassDefinition class
+     */
+    protected RefinedObjectClassDefinition(QName typeName, PrismContext prismContext) {
+    	super(SchemaConstants.I_ATTRIBUTES, typeName, prismContext);
     }
 
     private RefinedObjectClassDefinition(PrismContext prismContext, ResourceType resourceType,
     		ObjectClassComplexTypeDefinition objectClassDefinition) {
-        super(SchemaConstants.I_ATTRIBUTES, null, prismContext);
+        super(SchemaConstants.I_ATTRIBUTES, objectClassDefinition.getTypeName(), prismContext);
+        Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
         attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
         this.objectClassDefinition = objectClassDefinition;
@@ -99,6 +102,11 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
     @Override
     public RefinedAttributeDefinition getNamingAttribute() {
         return substituteRefinedAttributeDefinition(objectClassDefinition.getNamingAttribute());
+    }
+    
+    @Override
+    public QName getTypeName() {
+        return objectClassDefinition.getTypeName();
     }
 
 	@Override
@@ -125,8 +133,18 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
     public void setIntent(String intent) {
         this.intent = intent;
     }
-
+    
     @Override
+	public ShadowKindType getKind() {
+		return getObjectClassDefinition().getKind();
+	}
+
+	@Override
+	public void setKind(ShadowKindType kind) {
+		throw new UnsupportedOperationException("Kind is fixed");
+	}
+
+	@Override
     public RefinedAttributeDefinition getDisplayNameAttribute() {
         return substituteRefinedAttributeDefinition(objectClassDefinition.getDisplayNameAttribute());
     }
@@ -167,21 +185,6 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
 		return resourceType.asPrismObject().getPrismContext();
 	}
 
-	@Override
-	public ObjectClassComplexTypeDefinition getComplexTypeDefinition() {
-		return objectClassDefinition;
-	}
-
-	@Override
-    public ResourceAttributeContainer instantiate() {
-        return new ResourceAttributeContainer(getNameOrDefaultName(), this, getPrismContext());
-    }
-
-    @Override
-    public ResourceAttributeContainer instantiate(QName name) {
-        return new ResourceAttributeContainer(name, this, getPrismContext());
-    }
-
     @Override
     public RefinedObjectClassDefinition clone() {
         RefinedObjectClassDefinition clone = new RefinedObjectClassDefinition(getPrismContext(), resourceType, objectClassDefinition);
@@ -208,11 +211,15 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
 
     @Override
     public RefinedAttributeDefinition findAttributeDefinition(String elementLocalname) {
-        QName elementQName = new QName(getNamespace(), elementLocalname);
+        QName elementQName = new QName(getResourceNamespace(), elementLocalname);
         return findAttributeDefinition(elementQName);
     }
 
-    @Override
+	private String getResourceNamespace() {
+		return ResourceTypeUtil.getResourceNamespace(resourceType);
+	}
+
+	@Override
     public String getDisplayName() {
         return displayName;
     }
@@ -222,11 +229,7 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         this.displayName = displayName;
     }
 
-    @Override
-    public boolean isRuntimeSchema() {
-        return true;
-    }
-
+    
     public String getDescription() {
         return description;
     }
@@ -235,11 +238,6 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         this.description = description;
     }
     
-    @Override
-	public String getNamespace() {
-    	return ResourceTypeUtil.getResourceNamespace(resourceType);
-	}
-
 	public boolean isDefault() {
         return isDefault;
     }
@@ -261,14 +259,9 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         return attributeDefinitions;
     }
     
-    @Override
-	public List<PrismPropertyDefinition> getPropertyDefinitions() {
-    	return (List)attributeDefinitions;
-	}
-
 	@Override
-    public List<ItemDefinition> getDefinitions() {
-        return (List) attributeDefinitions;
+    public List<? extends ItemDefinition> getDefinitions() {
+        return attributeDefinitions;
     }
 
     public ResourceType getResourceType() {
@@ -287,12 +280,12 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         PrismObjectDefinition<AccountShadowType> originalObjectDefinition = 
         	getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AccountShadowType.class);
         PrismObjectDefinition<AccountShadowType> refinedObjectDef = 
-        	originalObjectDefinition.cloneWithReplacedDefinition(AccountShadowType.F_ATTRIBUTES, this); 
-        	
+        	originalObjectDefinition.cloneWithReplacedDefinition(AccountShadowType.F_ATTRIBUTES, 
+        			this.toResourceAttributeContainerDefinition());
         this.objectDefinition = refinedObjectDef;
     }
 
-    public RefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
+	public RefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
         for (RefinedAttributeDefinition attrDef : attributeDefinitions) {
             if (attrDef.getName().equals(attributeName)) {
                 return attrDef;
@@ -320,14 +313,6 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
             PrismContext prismContext, String contextDescription) throws
             SchemaException {
 
-        RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType);
-
-        if (accountTypeDefType.getName() != null) {
-            rAccountDef.setIntent(accountTypeDefType.getName());
-        } else {
-            throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
-        }
-
         ObjectClassComplexTypeDefinition objectClassDef = null;
         if (accountTypeDefType.getObjectClass() != null) {
             QName objectClass = accountTypeDefType.getObjectClass();
@@ -335,11 +320,18 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
             if (objectClassDef == null) {
                 throw new SchemaException("Object class " + objectClass + " as specified in account type " + accountTypeDefType.getName() + " was not found in the resource schema of " + contextDescription);
             }
-            rAccountDef.setObjectClassDefinition(objectClassDef);
         } else {
             throw new SchemaException("Definition of account type " + accountTypeDefType.getName() + " does not have objectclass, in " + contextDescription);
         }
+        
+        RefinedObjectClassDefinition rAccountDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
 
+        if (accountTypeDefType.getName() != null) {
+            rAccountDef.setIntent(accountTypeDefType.getName());
+        } else {
+            throw new SchemaException("Account type definition does not have a name, in " + contextDescription);
+        }
+        
         if (accountTypeDefType.getDisplayName() != null) {
             rAccountDef.setDisplayName(accountTypeDefType.getDisplayName());
         } else {
@@ -392,14 +384,15 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
 
 	private static void parseProtectedAccounts(RefinedObjectClassDefinition rAccountDef, ResourceAccountTypeDefinitionType accountTypeDefType) throws SchemaException {
 		for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
-			ResourceObjectPattern protectedPattern = convertToPatten(protectedType, rAccountDef);
+			ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef);
 			rAccountDef.getProtectedObjectPatterns().add(protectedPattern);
 		}
 	}
 	
-	private static ResourceObjectPattern convertToPatten(ResourceObjectPatternType protectedType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
+	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType protectedType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern();
-		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(rAccountDef, protectedType.getAny());
+		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(
+				rAccountDef.toResourceAttributeContainerDefinition(), protectedType.getAny());
 		for(Item<?> item: items) {
 			if (item instanceof ResourceAttribute<?>) {
 				resourceObjectPattern.addIdentifier((ResourceAttribute<?>)item);
@@ -492,48 +485,7 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         return foundAttrDefType;
     }
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
-    public String debugDump(int indent) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
-        sb.append(getDebugDumpClassName()).append("(");
-        sb.append(SchemaDebugUtil.prettyPrint(getName()));
-        if (isDefault()) {
-            sb.append(",default");
-        }
-        sb.append(",");
-        sb.append(SchemaDebugUtil.prettyPrint(getObjectClassDefinition().getTypeName()));
-        sb.append(")\n");
-        Iterator<ItemDefinition> i = getDefinitions().iterator();
-        while (i.hasNext()) {
-            ItemDefinition def = i.next();
-            sb.append(def.debugDump(indent + 1));
-            if (i.hasNext()) {
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
-    }
     
-    /**
-     * Return a human readable name of this class suitable for logs.
-     */
-    @Override
-    protected String getDebugDumpClassName() {
-        return "RAccDef";
-    }
-
-    @Override
-    public String dump() {
-        return debugDump(0);
-    }
 
     public PrismObject<AccountShadowType> createBlankShadow() {
     	PrismObject<AccountShadowType> accountShadow;
@@ -550,7 +502,8 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
         
         // Setup definition
-        PrismObjectDefinition<AccountShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(AccountShadowType.F_ATTRIBUTES, this);
+        PrismObjectDefinition<AccountShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
+        		AccountShadowType.F_ATTRIBUTES, toResourceAttributeContainerDefinition());
         accountShadow.setDefinition(newDefinition);
         
         return accountShadow;
@@ -693,4 +646,53 @@ public class RefinedObjectClassDefinition extends ResourceAttributeContainerDefi
         
         return activation.getEnabled();
     }
+
+    @Override
+    public String dump() {
+        return debugDump(0);
+    }
+    
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < indent; i++) {
+            sb.append(INDENT_STRING);
+        }
+        sb.append(getDebugDumpClassName()).append("(");
+        sb.append(SchemaDebugUtil.prettyPrint(getTypeName()));
+        if (isDefault()) {
+            sb.append(",default");
+        }
+        if (getKind() != null) {
+        	sb.append(" ").append(getKind().value());
+        }
+        sb.append(",");
+        if (getIntent() != null) {
+        	sb.append("intent=").append(getIntent());
+        }
+        sb.append(")\n");
+        Iterator<? extends ItemDefinition> i = getDefinitions().iterator();
+        while (i.hasNext()) {
+            ItemDefinition def = i.next();
+            sb.append(def.debugDump(indent + 1));
+            if (i.hasNext()) {
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Return a human readable name of this class suitable for logs.
+     */
+    @Override
+    protected String getDebugDumpClassName() {
+        return "rOCD";
+    }
+    
 }

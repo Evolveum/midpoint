@@ -400,7 +400,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             PrismContext prismContext = getPageBase().getPrismContext();
             RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
                     LayerType.PRESENTATION, prismContext);
-            PrismContainerDefinition definition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent());
+            PrismContainerDefinition definition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent())
+            		.toResourceAttributeContainerDefinition();
 
             List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();
 

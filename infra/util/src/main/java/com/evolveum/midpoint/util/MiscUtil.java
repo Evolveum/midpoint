@@ -276,5 +276,34 @@ public class MiscUtil {
 		}
 		return "("+object.getClass().getSimpleName() + ")"  + object;
 	}
+	
+	public static boolean isNoValue(Collection<?> collection) {
+		if (collection == null)
+			return true;
+		if (collection.isEmpty())
+			return true;
+		for (Object val : collection) {
+			if (val == null)
+				continue;
+			if (val instanceof String && ((String) val).isEmpty())
+				continue;
+			return false;
+		}
+		return true;
+	}
+
+	public static boolean hasNoValue(Collection<?> collection) {
+		if (collection == null)
+			return true;
+		if (collection.isEmpty())
+			return true;
+		for (Object val : collection) {
+			if (val == null)
+				return true;
+			if (val instanceof String && ((String) val).isEmpty())
+				return true;
+		}
+		return false;
+	}
 
 }

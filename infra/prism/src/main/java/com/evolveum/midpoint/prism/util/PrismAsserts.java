@@ -531,16 +531,16 @@ public class PrismAsserts {
 			return;
 		}
 		assert actual != null : message + ": null value";
-		assert MiscUtil.equals(expectedOrig, actual.getOrig()) : message+"; expected orig "+expectedOrig+ " but was " + actual.getOrig();
+		assert MiscUtil.equals(expectedOrig, actual.getOrig()) : message+"; expected orig '"+expectedOrig+ "' but was '" + actual.getOrig() + "'";
 		PolyString expected = new PolyString(expectedOrig);
 		expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
-		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm "+expected.getNorm()+ " but was " + actual.getNorm();
+		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm '"+expected.getNorm()+ "' but was '" + actual.getNorm() + "'";
 	}
 	
 	public static void assertEqualsPolyString(String message, PolyStringType expected, PolyStringType actual) {
 		assert actual != null : message + ": null value";
-		assert MiscUtil.equals(expected.getOrig(), actual.getOrig()) : message+"; expected orig "+expected.getOrig()+ " but was " + actual.getOrig();
-		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm "+expected.getNorm()+ " but was " + actual.getNorm();
+		assert MiscUtil.equals(expected.getOrig(), actual.getOrig()) : message+"; expected orig '"+expected.getOrig()+ "' but was '" + actual.getOrig() + "'";
+		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm '"+expected.getNorm()+ "' but was '" + actual.getNorm() + "'";
 	} 
 
 	// Calendar asserts
@@ -552,6 +552,26 @@ public class PrismAsserts {
 		} else {
 			assert false : message+": expected instance of XMLGregorianCalendar but got "+actual.getClass().getName();
 		}
+	}
+
+	// Misc
+	
+	public static void assertClass(String message, Class<?> expectedClass, PrismObject<?> actualObject) {
+		assert actualObject != null : message + "is null";
+		Class<?> actualCompileTimeClass = actualObject.getCompileTimeClass();
+		assert actualCompileTimeClass == expectedClass : message+" wrong class, expected "+expectedClass+" but was "+actualCompileTimeClass;
+	}
+	
+	public static void assertClass(String message, Class<?> expectedClass, Objectable actualObject) {
+		assert actualObject != null : message + "is null";
+		Class<?> actualCompileTimeClass = actualObject.getClass();
+		assert actualCompileTimeClass == expectedClass : message+" wrong class, expected "+expectedClass+" but was "+actualCompileTimeClass;
+	}
+	
+	public static void assertClass(String message, Class<?> expectedClass, ObjectDelta<?> actualDelta) {
+		assert actualDelta != null : message + "is null";
+		Class<?> actualCompileTimeClass = actualDelta.getObjectTypeClass();
+		assert actualCompileTimeClass == expectedClass : message+" wrong class, expected "+expectedClass+" but was "+actualCompileTimeClass;
 	}
 	
 	// OBJECT asserts

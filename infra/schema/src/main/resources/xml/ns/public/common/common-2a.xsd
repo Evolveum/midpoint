@@ -4426,6 +4426,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="protectedObject" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Protected shadows cannot be changed. They are out of IDM control.
+                    			This is only informational property. Changing it will have no effect on
+                    			whether object is protected or not. Object protection is a strict policy that
+                    			cannot be easily overriden.
+                    			
+                    			This is "virtual" property. It is not stored in the repository.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ignored" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			Ignored shadows will not be processed during synchronization.
+                    		</xsd:documentation>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="attributes" type="tns:ResourceObjectShadowAttributesType" minOccurs="0">
                     </xsd:element>
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0">

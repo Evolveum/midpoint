@@ -315,49 +315,7 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		}
 		
 	}
-	
-	/**
-	 * Make sure that the specified shadow has definitions pointing to this refined schema.
-	 */
-	public <T extends ResourceObjectShadowType> PrismObject<T> refine(PrismObject<T> shadow) throws SchemaException {
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null) {
-			// No attributes, nothing to do
-			return shadow;
-		}
-		T shadowType = shadow.asObjectable();
-		QName objectClassQName = shadowType.getObjectClass();
-		PrismContainerDefinition<?> definition = attributesContainer.getDefinition();
-		if (definition != null && definition.getTypeName().equals(objectClassQName)) {
-			// Correct definition applied, nothing to do
-			return shadow;
-		}
-		if (shadowType instanceof AccountShadowType) {
-			// LEGACY CODE
-			// Determine definition by account type
-			String intent = ResourceObjectShadowUtil.getIntent(shadowType);
-			definition = getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
-			if (definition == null) {
-				throw new SchemaException("No definition for legacy account type "+intent);
-			}
-		} else if (shadowType.getKind() != null) {
-			String intent = ResourceObjectShadowUtil.getIntent(shadowType);
-			definition = getRefinedDefinition(shadowType.getKind(), intent);
-			if (definition == null) {
-				throw new SchemaException("No definition for "+shadowType.getKind().value()+", intent "+intent);
-			}
-		} else {
-			// Fall back to objectlass-only refinement
-			ObjectClassComplexTypeDefinition ocDef = findObjectClassDefinition(objectClassQName);
-			definition = new ResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES, ocDef, ocDef.getPrismContext());
-			if (definition == null) {
-				throw new SchemaException("No definition for object class "+objectClassQName);
-			}
-		}
-		attributesContainer.applyDefinition(definition);
-		return shadow;
-	}
-	
+		
 	public LayerRefinedResourceSchema forLayer(LayerType layer) {
 		return LayerRefinedResourceSchema.wrap(this, layer);
 	}

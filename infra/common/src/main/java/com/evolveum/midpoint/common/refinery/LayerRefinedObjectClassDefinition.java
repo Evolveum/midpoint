@@ -62,7 +62,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	private LayerType layer;
 	
 	private LayerRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedAccountDefinition, LayerType layer) {
-		super(refinedAccountDefinition.getPrismContext());
+		super(new QName("fake"), refinedAccountDefinition.getPrismContext());
 		this.refinedObjectClassDefinition = refinedAccountDefinition;
 		this.layer = layer;
 	}
@@ -79,24 +79,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return outs;
 	}
 
-	public QName getName() {
-		return refinedObjectClassDefinition.getName();
-	}
-
-	public void setName(QName name) {
-		refinedObjectClassDefinition.setName(name);
-	}
-
 	public QName getTypeName() {
 		return refinedObjectClassDefinition.getTypeName();
 	}
 
 	public QName getDefaultName() {
 		return refinedObjectClassDefinition.getDefaultName();
-	}
-
-	public QName getNameOrDefaultName() {
-		return refinedObjectClassDefinition.getNameOrDefaultName();
 	}
 
 	public void setTypeName(QName typeName) {
@@ -119,40 +107,16 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		refinedObjectClassDefinition.setDescriptionAttribute(descriptionAttribute);
 	}
 
-	public int getMinOccurs() {
-		return refinedObjectClassDefinition.getMinOccurs();
-	}
-
-	public void setMinOccurs(int minOccurs) {
-		refinedObjectClassDefinition.setMinOccurs(minOccurs);
-	}
-
 	public LayerRefinedAttributeDefinition getNamingAttribute() {
 		return LayerRefinedAttributeDefinition.wrap(refinedObjectClassDefinition.getNamingAttribute(), layer);
-	}
-
-	public int getMaxOccurs() {
-		return refinedObjectClassDefinition.getMaxOccurs();
 	}
 
 	public String getNativeObjectClass() {
 		return refinedObjectClassDefinition.getNativeObjectClass();
 	}
 
-	public void setMaxOccurs(int maxOccurs) {
-		refinedObjectClassDefinition.setMaxOccurs(maxOccurs);
-	}
-
 	public Integer getDisplayOrder() {
 		return refinedObjectClassDefinition.getDisplayOrder();
-	}
-
-	public Class<ResourceObjectShadowAttributesType> getCompileTimeClass() {
-		return refinedObjectClassDefinition.getCompileTimeClass();
-	}
-
-	public boolean isSingleValue() {
-		return refinedObjectClassDefinition.isSingleValue();
 	}
 
 	public boolean isDefaultInAKind() {
@@ -161,14 +125,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	public void setDefaultInAKind(boolean defaultAccountType) {
 		refinedObjectClassDefinition.setDefaultInAKind(defaultAccountType);
-	}
-
-	public void setCompileTimeClass(Class<ResourceObjectShadowAttributesType> compileTimeClass) {
-		refinedObjectClassDefinition.setCompileTimeClass(compileTimeClass);
-	}
-
-	public boolean isMultiValue() {
-		return refinedObjectClassDefinition.isMultiValue();
 	}
 	
 	public ShadowKindType getKind() {
@@ -195,10 +151,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		refinedObjectClassDefinition.setDisplayOrder(displayOrder);
 	}
 
-	public boolean isMandatory() {
-		return refinedObjectClassDefinition.isMandatory();
-	}
-
 	public LayerRefinedAttributeDefinition getDisplayNameAttribute() {
 		return LayerRefinedAttributeDefinition.wrap(refinedObjectClassDefinition.getDisplayNameAttribute(), layer);
 	}
@@ -207,24 +159,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getHelp();
 	}
 
-	public void setComplexTypeDefinition(ComplexTypeDefinition complexTypeDefinition) {
-		refinedObjectClassDefinition.setComplexTypeDefinition(complexTypeDefinition);
-	}
-
-	public boolean isOptional() {
-		return refinedObjectClassDefinition.isOptional();
-	}
-
 	public void setDisplayNameAttribute(QName displayName) {
 		refinedObjectClassDefinition.setDisplayNameAttribute(displayName);
 	}
 
 	public Collection<? extends LayerRefinedAttributeDefinition> getIdentifiers() {
 		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getIdentifiers(), layer);
-	}
-
-	public boolean isDynamic() {
-		return refinedObjectClassDefinition.isDynamic();
 	}
 
 	public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
@@ -243,32 +183,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getTypeClass();
 	}
 
-	public void setDynamic(boolean dynamic) {
-		refinedObjectClassDefinition.setDynamic(dynamic);
-	}
-
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		return refinedObjectClassDefinition.getProtectedObjectPatterns();
 	}
 
-	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
-		return refinedObjectClassDefinition.isValidFor(elementQName, clazz);
-	}
-
 	public PrismContext getPrismContext() {
 		return refinedObjectClassDefinition.getPrismContext();
-	}
-
-	public ObjectClassComplexTypeDefinition getComplexTypeDefinition() {
-		return refinedObjectClassDefinition.getComplexTypeDefinition();
-	}
-
-	public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
-		return refinedObjectClassDefinition.findItemDefinition(path, clazz);
-	}
-
-	public ResourceAttributeContainer instantiate() {
-		return refinedObjectClassDefinition.instantiate();
 	}
 
 	public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
@@ -283,24 +203,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		refinedObjectClassDefinition.setNamingAttribute(namingAttribute);
 	}
 
-	public ItemDefinition findItemDefinition(QName name) {
-		return refinedObjectClassDefinition.findItemDefinition(name);
-	}
-
-	public ItemDefinition findItemDefinition(ItemPath path) {
-		return refinedObjectClassDefinition.findItemDefinition(path);
-	}
-
 	public PrismPropertyDefinition findPropertyDefinition(QName name) {
 		return refinedObjectClassDefinition.findPropertyDefinition(name);
 	}
 
 	public RefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
 		return refinedObjectClassDefinition.findAttributeDefinition(elementQName);
-	}
-
-	public PrismPropertyDefinition findPropertyDefinition(ItemPath path) {
-		return refinedObjectClassDefinition.findPropertyDefinition(path);
 	}
 
 	public void setNativeObjectClass(String nativeObjectClass) {
@@ -311,32 +219,16 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return LayerRefinedAttributeDefinition.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalname), layer);
 	}
 
-	public PrismReferenceDefinition findReferenceDefinition(QName name) {
-		return refinedObjectClassDefinition.findReferenceDefinition(name);
-	}
-
 	public String getDisplayName() {
 		return refinedObjectClassDefinition.getDisplayName();
-	}
-
-	public <X extends Containerable> PrismContainerDefinition<X> findContainerDefinition(QName name) {
-		return refinedObjectClassDefinition.findContainerDefinition(name);
-	}
-
-	public <X extends Containerable> PrismContainerDefinition<X> findContainerDefinition(String name) {
-		return refinedObjectClassDefinition.findContainerDefinition(name);
-	}
-
-	public PrismContainerDefinition findContainerDefinition(ItemPath path) {
-		return refinedObjectClassDefinition.findContainerDefinition(path);
 	}
 
 	public void setDisplayName(String displayName) {
 		refinedObjectClassDefinition.setDisplayName(displayName);
 	}
-
-	public boolean isRuntimeSchema() {
-		return refinedObjectClassDefinition.isRuntimeSchema();
+	
+	public List<? extends ItemDefinition> getDefinitions() {
+		return refinedObjectClassDefinition.getDefinitions();
 	}
 
 	public String getDescription() {
@@ -345,10 +237,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	public void setDescription(String description) {
 		refinedObjectClassDefinition.setDescription(description);
-	}
-
-	public String getNamespace() {
-		return refinedObjectClassDefinition.getNamespace();
 	}
 
 	public boolean isDefault() {
@@ -371,24 +259,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
 	}
 
-	public List<PrismPropertyDefinition> getPropertyDefinitions() {
-		return refinedObjectClassDefinition.getPropertyDefinitions();
-	}
-
-	public List<ItemDefinition> getDefinitions() {
-		return refinedObjectClassDefinition.getDefinitions();
-	}
-
 	public ResourceType getResourceType() {
 		return refinedObjectClassDefinition.getResourceType();
 	}
 
 	public PrismObjectDefinition<AccountShadowType> getObjectDefinition() {
 		return refinedObjectClassDefinition.getObjectDefinition();
-	}
-
-	public void setRuntimeSchema(boolean isRuntimeSchema) {
-		refinedObjectClassDefinition.setRuntimeSchema(isRuntimeSchema);
 	}
 
 	public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
@@ -399,58 +275,12 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getAttributeDefinition(attributeName);
 	}
 
-	public ItemDelta createEmptyDelta(ItemPath path) {
-		return refinedObjectClassDefinition.createEmptyDelta(path);
-	}
-
 	public boolean containsAttributeDefinition(QName attributeName) {
 		return refinedObjectClassDefinition.containsAttributeDefinition(attributeName);
 	}
 
-	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-		return refinedObjectClassDefinition.createPropertyDefinition(name, typeName);
-	}
-
-	public ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath) {
-		return refinedObjectClassDefinition.findAttributeDefinition(elementPath);
-	}
-
-	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName, int minOccurs, int maxOccurs) {
-		return refinedObjectClassDefinition.createPropertyDefinition(name, typeName, minOccurs, maxOccurs);
-	}
-
-	public <T extends ResourceObjectShadowType> PrismObjectDefinition<T> toShadowDefinition() {
-		return refinedObjectClassDefinition.toShadowDefinition();
-	}
-
-	public PrismPropertyDefinition createPropertyDefinition(QName name) {
-		return refinedObjectClassDefinition.createPropertyDefinition(name);
-	}
-
 	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		return refinedObjectClassDefinition.createPropertyDefinition(localName, typeName);
-	}
-
-	public PrismPropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
-		return refinedObjectClassDefinition.createPropertyDefinition(localName, localTypeName);
-	}
-
-	public PrismPropertyDefinition createPropertyDefinition(String localName, String localTypeName, int minOccurs,
-			int maxOccurs) {
-		return refinedObjectClassDefinition.createPropertyDefinition(localName, localTypeName, minOccurs, maxOccurs);
-	}
-
-	public PrismContainerDefinition createContainerDefinition(QName name, QName typeName) {
-		return refinedObjectClassDefinition.createContainerDefinition(name, typeName);
-	}
-
-	public PrismContainerDefinition createContainerDefinition(QName name, QName typeName, int minOccurs, int maxOccurs) {
-		return refinedObjectClassDefinition.createContainerDefinition(name, typeName, minOccurs, maxOccurs);
-	}
-
-	public PrismContainerDefinition<ResourceObjectShadowAttributesType> createContainerDefinition(QName name,
-			ComplexTypeDefinition complexTypeDefinition, int minOccurs, int maxOccurs) {
-		return refinedObjectClassDefinition.createContainerDefinition(name, complexTypeDefinition, minOccurs, maxOccurs);
 	}
 
 	public boolean isEmpty() {

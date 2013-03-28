@@ -220,7 +220,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isEmpty());
 		assertFalse("Object class " + objectClassQname + " is empty", accountDefinition.isIgnored());
 		
-		Collection<ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
+		Collection<? extends ResourceAttributeDefinition> identifiers = accountDefinition.getIdentifiers();
 		assertNotNull("Null identifiers for " + objectClassQname, identifiers);
 		assertFalse("Empty identifiers for " + objectClassQname, identifiers.isEmpty());
 		// TODO
@@ -370,7 +370,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
 
 		System.out.println("token " + lastToken.toString());
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ResourceObjectShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
 

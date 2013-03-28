@@ -263,7 +263,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      *
      * @return set of definitions
      */
-    public List<ItemDefinition> getDefinitions() {
+    public List<? extends ItemDefinition> getDefinitions() {
         if (complexTypeDefinition == null) {
             // e.g. for xsd:any containers
             // FIXME
@@ -362,8 +362,12 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      */
     public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
         PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
-        getDefinitions().add(propDef);
+        addDefinition(propDef);
         return propDef;
+    }
+    
+    private void addDefinition(ItemDefinition itemDef) {
+    	((Collection)getDefinitions()).add(itemDef);
     }
 
     /**
@@ -382,7 +386,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
         propDef.setMinOccurs(minOccurs);
         propDef.setMaxOccurs(maxOccurs);
-        getDefinitions().add(propDef);
+        addDefinition(propDef);
         return propDef;
     }
 
@@ -391,7 +395,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     // TODO: maybe create entirely new concept of property reference?
     public PrismPropertyDefinition createPropertyDefinition(QName name) {
         PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, null, prismContext);
-        getDefinitions().add(propDef);
+        addDefinition(propDef);
         return propDef;
     }
 
@@ -467,7 +471,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     	PrismContainerDefinition<V> def = new PrismContainerDefinition<V>(name, complexTypeDefinition, prismContext);
         def.setMinOccurs(minOccurs);
         def.setMaxOccurs(maxOccurs);
-        getDefinitions().add(def);
+        addDefinition(def);
         return def;
     }
 

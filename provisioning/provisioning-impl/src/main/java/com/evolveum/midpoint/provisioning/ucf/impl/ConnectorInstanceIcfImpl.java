@@ -477,7 +477,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Set a default display name
 			uidDefinition.setDisplayName("ICF UID");
 			// Uid is a primary identifier of every object (this is the ICF way)
-			roDefinition.getIdentifiers().add(uidDefinition);
+			((Collection<ResourceAttributeDefinition>)roDefinition.getIdentifiers()).add(uidDefinition);
 
 			// Let's iterate over all attributes in this object class ...
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
@@ -517,7 +517,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// overloaded term, so let's try to make things
 					// a bit clearer
 					roaDefinition.setDisplayName("ICF NAME");
-					roDefinition.getSecondaryIdentifiers().add(roaDefinition);
+					((Collection<ResourceAttributeDefinition>)roDefinition.getSecondaryIdentifiers()).add(roaDefinition);
 				}
 
 				// Now we are going to process flags such as optional and
@@ -1394,7 +1394,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+	public <T extends ResourceObjectShadowType> List<Change<T>>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
@@ -1456,7 +1456,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		// convert changes from icf to midpoint Change
-		List<Change> changeList = null;
+		List<Change<T>> changeList = null;
 		try {
 			PrismSchema schema = getResourceSchema(subresult);
 			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, subresult);
@@ -1976,9 +1976,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	private List<Change> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
+	private <T extends ResourceObjectShadowType> List<Change<T>> getChangesFromSyncDeltas(ObjectClass objClass, Collection<SyncDelta> icfDeltas, PrismSchema schema,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException {
-		List<Change> changeList = new ArrayList<Change>();
+		List<Change<T>> changeList = new ArrayList<Change<T>>();
 
 		Validate.notNull(icfDeltas, "Sync result must not be null.");
 		for (SyncDelta icfDelta : icfDeltas) {

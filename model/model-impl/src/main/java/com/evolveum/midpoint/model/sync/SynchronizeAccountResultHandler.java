@@ -33,6 +33,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -134,6 +135,14 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 		result.addParam("object", accountShadow);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
+		AccountShadowType newShadowType = accountShadow.asObjectable();
+		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
+			LOGGER.trace("{} skipping {} because it is protected",new Object[] {
+					getProcessShortNameCapitalized(), accountShadow});
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
+			return true;
+		}
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{} starting for {} from {}",new Object[] {
 					getProcessShortNameCapitalized(), accountShadow,resource.asPrismObject()});
@@ -149,8 +158,7 @@ public class SynchronizeAccountResultHandler implements ResultHandler<AccountSha
 		// That will efficiently import them to the IDM repository
 
 		try {
-			AccountShadowType newShadowType = accountShadow.asObjectable();
-	
+			
 			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 			change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
 			change.setResource(resource.asPrismObject());

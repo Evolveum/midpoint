@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -135,6 +136,7 @@ public class TestDummy extends AbstractDummyTest {
 	
 //	private Task syncTask = null;
 	private CachingMetadataType capabilitiesCachingMetadataType;
+	private String drakeAccountOid;
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
@@ -1002,12 +1004,12 @@ public class TestDummy extends AbstractDummyTest {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
 
-		final List<AccountShadowType> foundObjects = new ArrayList<AccountShadowType>();
+		final List<PrismObject<AccountShadowType>> foundObjects = new ArrayList<PrismObject<AccountShadowType>>();
 		ResultHandler<AccountShadowType> handler = new ResultHandler<AccountShadowType>() {
 
 			@Override
 			public boolean handle(PrismObject<AccountShadowType> object, OperationResult parentResult) {
-				foundObjects.add(object.asObjectable());
+				foundObjects.add(object);
 
 				ObjectType objectType = object.asObjectable();
 				assertTrue(objectType instanceof AccountShadowType);
@@ -1025,9 +1027,9 @@ public class TestDummy extends AbstractDummyTest {
 		display("searchObjectsIterative result", result);
 		assertSuccess(result);
 
-		assertEquals(3, foundObjects.size());
-
-		checkConsistency(foundObjects.get(0).asPrismObject());
+		assertEquals(4, foundObjects.size());
+		checkConsistency(foundObjects);
+		assertProtected(foundObjects, 1);
 
 		// And again ...
 
@@ -1038,9 +1040,25 @@ public class TestDummy extends AbstractDummyTest {
 
 		// THEN
 
-		assertEquals(3, foundObjects.size());
+		assertEquals(4, foundObjects.size());
 
-		checkConsistency(foundObjects.get(0).asPrismObject());
+		checkConsistency(foundObjects);
+		assertProtected(foundObjects, 1);
+	}
+
+	private <T extends ResourceObjectShadowType> void assertProtected(List<PrismObject<T>> shadows, int expectedNumberOfProtectedShadows) {
+		int actual = countProtected(shadows);
+		assertEquals("Unexpected number of protected shadows", expectedNumberOfProtectedShadows, actual);
+	}
+
+	private <T extends ResourceObjectShadowType> int countProtected(List<PrismObject<T>> shadows) {
+		int count = 0;
+		for (PrismObject<T> shadow: shadows) {
+			if (shadow.asObjectable().isProtectedObject() != null && shadow.asObjectable().isProtectedObject()) {
+				count ++;
+			}
+		}
+		return count;
 	}
 
 	@Test
@@ -1064,6 +1082,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Found " + allShadows.size() + " shadows");
 
 		assertFalse("No shadows found", allShadows.isEmpty());
+		assertEquals("Wrong number of results", 4, allShadows.size());
 	}
 
 	@Test
@@ -1088,7 +1107,10 @@ public class TestDummy extends AbstractDummyTest {
 		display("Found " + allShadows.size() + " shadows");
 
 		assertFalse("No shadows found", allShadows.isEmpty());
-		assertEquals("Wrong number of results", 3, allShadows.size());
+		assertEquals("Wrong number of results", 4, allShadows.size());
+		
+		checkConsistency(allShadows);
+		assertProtected(allShadows, 1);
 	}
 
 	@Test
@@ -1111,7 +1133,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		display("Found " + count + " shadows");
 
-		assertEquals("Wrong number of results", 3, count);
+		assertEquals("Wrong number of results", 4, count);
 	}
 
 	@Test
@@ -1678,19 +1700,14 @@ public class TestDummy extends AbstractDummyTest {
 				+ ".test501GetProtectedAccount");
 
 		// WHEN
-		try {
-			provisioningService.getObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, result);
-			AssertJUnit.fail("Expected security exception while reading 'daemon' account");
-		} catch (SecurityViolationException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
+		PrismObject<AccountShadowType> account = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+
+		assertEquals(""+account+" is not protected", Boolean.TRUE, account.asObjectable().isProtectedObject());
+		checkConsistency(account);
 		
 		result.computeStatus();
-		display("getObject result (expected failure)", result);
-		assertFailure(result);
-
-//		checkConsistency();
+		display("getObject result", result);
+		assertSuccess(result);
 	}
 
 	@Test
@@ -1795,9 +1812,6 @@ public class TestDummy extends AbstractDummyTest {
 	public void test801LiveSyncAddBlackbeard() throws Exception {
 		displayTestTile("test801LiveSyncAddBlackbeard");
 		// GIVEN
-//		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-//				+ ".test801LiveSyncAddBlackbeard");
-//		
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test801LiveSyncAddBlackbeard");
 
@@ -1824,8 +1838,10 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
 
-		// assertNull("Old shadow present when not expecting it",
-		// lastChange.getOldShadow());
+		PrismObject<? extends ResourceObjectShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
 		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
@@ -1851,8 +1867,6 @@ public class TestDummy extends AbstractDummyTest {
 	public void test802LiveSyncModifyBlackbeard() throws Exception {
 		displayTestTile("test802LiveSyncModifyBlackbeard");
 		// GIVEN
-//		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-//				+ ".test802LiveSyncModifyBlackbeard");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test802LiveSyncModifyBlackbeard");
 
@@ -1876,18 +1890,32 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
 
-		// assertNull("Old shadow present when not expecting it",
-		// lastChange.getOldShadow());
+		PrismObject<? extends ResourceObjectShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+		PrismAsserts.assertClass("old shadow", AccountShadowType.class, oldShadow);
+		ResourceObjectShadowType oldShadowType = oldShadow.asObjectable();
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+				.getAttributesContainer(oldShadowType);
+		assertNotNull("No attributes container in old shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 2, attributes.size());
+		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
+		assertEquals("Wrong value of ICF name attribute in old  shadow", BLACKBEARD_USERNAME,
+				icfsNameAttribute.getRealValue());
+		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
 		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
 		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
 				currentShadowType instanceof AccountShadowType);
 
-		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+		attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(currentShadowType);
 		assertNotNull("No attributes container in current shadow", attributesContainer);
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes", 3, attributes.size());
 		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil
@@ -1896,17 +1924,21 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard",
 				fullnameAttribute.getRealValue());
 
+		PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, currentShadowType.getOid(), result);
+		// TODO: check the shadow
+
+		
 		checkAllShadows();
 	}
 
 	@Test
 	public void test803LiveSyncAddDrake() throws Exception {
-		displayTestTile("test803LiveSyncAddDrake");
+		final String TEST_NAME = "test803LiveSyncAddDrake";
+		displayTestTile(TEST_NAME);
 		// GIVEN
-//		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-//				+ ".test803LiveSyncAddDrake");
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test803LiveSyncAddDrake");
+				+ "." + TEST_NAME);
+
 
 		syncServiceMock.reset();
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
@@ -1931,13 +1963,15 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
 
-		// assertNull("Old shadow present when not expecting it",
-		// lastChange.getOldShadow());
+		PrismObject<? extends ResourceObjectShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
+		
 		ResourceObjectShadowType currentShadowType = lastChange.getCurrentShadow().asObjectable();
 		assertNotNull("Current shadow missing", lastChange.getCurrentShadow());
-		assertTrue("Wrong type of current shadow: " + currentShadowType.getClass().getName(),
-				currentShadowType instanceof AccountShadowType);
+		PrismAsserts.assertClass("current shadow", AccountShadowType.class, currentShadowType);
 
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
 				.getAttributesContainer(currentShadowType);
@@ -1950,7 +1984,74 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
 		assertEquals("Wrong value of fullname attribute in current shadow", "Sir Francis Drake",
 				fullnameAttribute.getRealValue());
+		
+		drakeAccountOid = currentShadowType.getOid();
+		PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, drakeAccountOid, result);
+		// TODO: check the shadow
 
+		checkAllShadows();
+	}
+	
+	@Test
+	public void test809LiveSyncDeleteDrake() throws Exception {
+		final String TEST_NAME = "test809LiveSyncDeleteDrake";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		syncServiceMock.reset();
+		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.deleteAccount(DRAKE_USERNAME);
+
+		display("Resource before sync", dummyResource.dump());
+
+		// WHEN
+		provisioningService.synchronize(RESOURCE_DUMMY_OID, syncTokenTask, result);
+
+		// THEN
+		result.computeStatus();
+		display("Synchronization result", result);
+		assertSuccess("Synchronization result is not OK", result);
+
+		syncServiceMock.assertNotifyChange();
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+		PrismObject<? extends ResourceObjectShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+		PrismAsserts.assertClass("old shadow", AccountShadowType.class, oldShadow);
+		ResourceObjectShadowType oldShadowType = oldShadow.asObjectable();
+		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil
+				.getAttributesContainer(oldShadowType);
+		assertNotNull("No attributes container in old shadow", attributesContainer);
+		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+		assertFalse("Attributes container is empty", attributes.isEmpty());
+		assertEquals("Unexpected number of attributes", 2, attributes.size());
+		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
+		assertEquals("Wrong value of ICF name attribute in old  shadow", DRAKE_USERNAME,
+				icfsNameAttribute.getRealValue());
+		
+		ObjectDelta<? extends ResourceObjectShadowType> objectDelta = lastChange.getObjectDelta();
+		assertNotNull("Delta missing", objectDelta);
+		assertEquals("Wrong delta changetype", ChangeType.DELETE, objectDelta.getChangeType());
+		PrismAsserts.assertClass("delta", AccountShadowType.class, objectDelta);
+		assertNotNull("No OID in delta", objectDelta.getOid());
+		
+		assertNull("Unexpected current shadow",lastChange.getCurrentShadow());
+		
+		try {
+			// The shadow should be gone
+			PrismObject<AccountShadowType> repoShadow = repositoryService.getObject(AccountShadowType.class, drakeAccountOid, result);
+			
+			AssertJUnit.fail("The shadow "+repoShadow+" is not gone from repo");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
 		checkAllShadows();
 	}
 
@@ -2044,7 +2145,7 @@ public class TestDummy extends AbstractDummyTest {
 					assertTrue("not enabled", shadow.getActivation().isEnabled());
 				}
 
-				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, ResourceAttributeDefinition.class);
+				assertProvisioningAccountShadow(shadow.asPrismObject(), resourceType, RefinedAttributeDefinition.class);
 			}
 
 		};

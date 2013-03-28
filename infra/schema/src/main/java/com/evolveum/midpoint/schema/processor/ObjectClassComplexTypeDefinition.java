@@ -19,16 +19,15 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
@@ -37,8 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
  */
 public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	
-	private Set<ResourceAttributeDefinition> identifiers;
-	private Set<ResourceAttributeDefinition> secondaryIdentifiers;
+	private Collection<ResourceAttributeDefinition> identifiers;
+	private Collection<ResourceAttributeDefinition> secondaryIdentifiers;
 	private ResourceAttributeDefinition descriptionAttribute;
 	private ResourceAttributeDefinition displayNameAttribute;
 	private ResourceAttributeDefinition namingAttribute;
@@ -52,7 +51,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	}
 	
 	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
-		Set<ResourceAttributeDefinition> attrs = new HashSet<ResourceAttributeDefinition>();
+		Collection<ResourceAttributeDefinition> attrs = new ArrayList<ResourceAttributeDefinition>(getDefinitions().size());
 		for (ItemDefinition def: getDefinitions()) {
 			if (def instanceof ResourceAttributeDefinition) {
 				attrs.add((ResourceAttributeDefinition)def);
@@ -75,9 +74,9 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Collection<ResourceAttributeDefinition> getIdentifiers() {
+	public Collection<? extends ResourceAttributeDefinition> getIdentifiers() {
 		if (identifiers == null) {
-			identifiers = new HashSet<ResourceAttributeDefinition>();
+			identifiers = new ArrayList<ResourceAttributeDefinition>(1);
 		}
 		return identifiers;
 	}
@@ -106,9 +105,9 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	 * @throws IllegalStateException
 	 *             if there is no definition for the referenced attributed
 	 */
-	public Set<ResourceAttributeDefinition> getSecondaryIdentifiers() {
+	public Collection<? extends ResourceAttributeDefinition> getSecondaryIdentifiers() {
 		if (secondaryIdentifiers == null) {
-			secondaryIdentifiers = new HashSet<ResourceAttributeDefinition>();
+			secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>(1);
 		}
 		return secondaryIdentifiers;
 	}
@@ -294,7 +293,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
     
 	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
 		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, name, typeName, prismContext);
-		getDefinitions().add(propDef);
+		addDefinition(propDef);
 		return propDef;
 	}
 	
@@ -308,6 +307,10 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createAttributeDefinition(name,typeName);
+	}
+	
+	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+		return toResourceAttributeContainerDefinition(ResourceObjectShadowType.F_ATTRIBUTES);
 	}
 	
 	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
@@ -361,7 +364,17 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 			sb.append(" intent=").append(intent);
 		}
 	}
-	
+
+	@Override
+	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition def) {
+		super.extendDumpDefinition(sb, def);
+		if (getIdentifiers() != null && getIdentifiers().contains(def)) {
+			sb.append(",primID");
+		}
+		if (getSecondaryIdentifiers() != null && getSecondaryIdentifiers().contains(def)) {
+			sb.append(",secID");
+		}
+	}
 	
 
 }

@@ -1353,7 +1353,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		QName objectClass = shadow.asObjectable().getObjectClass();
 		RefinedObjectClassDefinition rAccountDef = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
-		attributesContainer.applyDefinition(rAccountDef, true);
+		attributesContainer.applyDefinition(rAccountDef.toResourceAttributeContainerDefinition(), true);
 	}
 
     /**
