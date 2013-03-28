@@ -204,7 +204,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         if (StringUtils.isEmpty(config.getBaseDir())) {
-            LOGGER.warn("Base dir path in configuration was not defined.");
+            LOGGER.debug("Base dir path in configuration was not defined.");
             if (StringUtils.isNotEmpty(System.getProperty(MIDPOINT_HOME_VARIABLE))) {
                 config.setBaseDir(System.getProperty(MIDPOINT_HOME_VARIABLE));
 

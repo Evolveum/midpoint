@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
@@ -33,11 +34,14 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,7 +50,9 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -59,6 +65,38 @@ public class Query2PackageTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(Query2PackageTest.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
+
+    @Test
+    public void queryAccountByAttributesAndResourceRef() throws Exception {
+        LOGGER.info("===[{}]===", new Object[]{"queryAccountByAttributesAndResourceRef"});
+        Session session = open();
+        Criteria main = session.createCriteria(RAccountShadow.class, "a");
+
+        Criteria attributes = main.createCriteria("attributes", "a1");
+        Criteria stringAttr = attributes.createCriteria("strings", "s");
+
+        //and
+        Criterion c1 = Restrictions.eq("a.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
+        //and
+        Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
+        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(c1);
+        conjunction.add(c2);
+        main.add(conjunction);
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        String real = getInterpretedQuery(session, AccountShadowType.class,
+                new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
 
     @Test(enabled = false)//todo implement and enable
     public void queryEnabled() throws  Exception {

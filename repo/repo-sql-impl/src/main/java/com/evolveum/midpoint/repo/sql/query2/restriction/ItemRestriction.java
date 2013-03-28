@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.CollectionDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.EntityDefinition;
@@ -99,24 +100,29 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             propPath = new ItemPath(propPathSegments);
             // get entity query definition
 
-            Definition childDef = definition.findDefinition(qname, EntityDefinition.class);
+            Definition childDef = definition.findDefinition(qname, Definition.class);
             if (childDef == null) {
-                throw new QueryException("Definition '" + definition.getJaxbName()
-                        + "' doesn't contain child definition ''. Please check your path in query, or query "
-                        + "entity/attribute mappings. Full path was '" + path + "'.");
+                throw new QueryException("Definition '" + definition + "' doesn't contain child definition '"
+                        + qname + "'. Please check your path in query, or query entity/attribute mappings. "
+                        + "Full path was '" + path + "'.");
             }
 
+            //todo change this if instanceof and use DefinitionHandler [lazyman]
             if (childDef instanceof EntityDefinition) {
                 EntityDefinition entityDef = (EntityDefinition) childDef;
                 if (!entityDef.isEmbedded()) {
                     //create new criteria
                     LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
-                            new Object[]{definition.getJpaName(), propPath.toString()});
-                    addNewCriteriaToContext(propPath, definition.getJpaName(), context);
+                            new Object[]{entityDef.getJpaName(), propPath.toString()});
+                    addNewCriteriaToContext(propPath, entityDef.getJpaName(), context);
                 } else {
                     //add dot with jpaName to property path
 
                 }
+            } else if (childDef instanceof AnyDefinition) {
+                LOGGER.trace("Adding criteria '{}' to context based on sub path\n{}",
+                        new Object[]{childDef.getJpaName(), propPath.toString()});
+                addNewCriteriaToContext(propPath, childDef.getJpaName(), context);
             } else if (childDef instanceof CollectionDefinition) {
                 throw new QueryException("not implemented yet.");
             } else {
@@ -179,5 +185,37 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
 
         throw new QueryException("Unknown operation.");
+    }
+
+    protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {
+        List<Definition> definitions = new ArrayList<Definition>();
+        if (path == null) {
+            return definitions;
+        }
+
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+
+        EntityDefinition lastDefinition = registry.findDefinition(context.getType(), null, EntityDefinition.class);
+        for (ItemPathSegment segment : path.getSegments()) {
+            if (lastDefinition == null) {
+                break;
+            }
+
+            if (!(segment instanceof NameItemPathSegment)) {
+                continue;
+            }
+
+            NameItemPathSegment named = (NameItemPathSegment) segment;
+            Definition def = lastDefinition.findDefinition(named.getName(), Definition.class);
+            definitions.add(def);
+
+            if (def instanceof EntityDefinition) {
+                lastDefinition = (EntityDefinition) def;
+            } else {
+                lastDefinition = null;
+            }
+        }
+
+        return definitions;
     }
 }

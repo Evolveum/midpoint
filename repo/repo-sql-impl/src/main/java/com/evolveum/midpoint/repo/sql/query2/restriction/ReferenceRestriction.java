@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.ReferenceDefinition;
 import org.hibernate.criterion.Criterion;
 
 /**
@@ -45,6 +46,14 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     public Criterion interpretInternal(RefFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
             throws QueryException {
         //todo implement
+
+//        ReferenceDefinition refDefinition = null; //todo get this
+//
+//        if (refDefinition.isEmbedded()) {
+////            filter.getValues()
+//        } else {
+//
+//        }
 
         return null;
     }

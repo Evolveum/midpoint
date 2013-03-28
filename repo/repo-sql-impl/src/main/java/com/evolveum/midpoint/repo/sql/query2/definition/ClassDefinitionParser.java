@@ -23,6 +23,8 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -89,8 +91,12 @@ public class ClassDefinitionParser {
     }
 
     private QName getJaxbName(Class clazz) {
+        if (RObject.class.isAssignableFrom(clazz)) {
+            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
+            return objectType.getQName();
+        }
+
         //todo implement
-//        ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
         return null;
     }
 

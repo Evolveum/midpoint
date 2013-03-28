@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.hibernate.Criteria;
@@ -55,6 +56,9 @@ public class QueryContext {
         this.type = type;
         this.prismContext = prismContext;
         this.session = session;
+
+        addAlias(null);
+        addCriteria(null, session.createCriteria(ClassMapper.getHQLTypeClass(type)));
     }
 
     public PrismContext getPrismContext() {

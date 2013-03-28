@@ -21,11 +21,11 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.repo.sql.data.common.RContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -105,6 +105,19 @@ public final class ClassMapper {
         }
         for (Map.Entry<ObjectTypes, RContainerType> entry : types.entrySet()) {
             if (entry.getValue().equals(type)) {
+                return entry.getKey();
+            }
+        }
+
+        throw new IllegalArgumentException("Couldn't find qname for hql type " + type);
+    }
+
+    public static ObjectTypes getObjectTypeForHQLType(Class<? extends RContainer> type) {
+        if (type == null) {
+            return null;
+        }
+        for (Map.Entry<ObjectTypes, RContainerType> entry : types.entrySet()) {
+            if (entry.getValue().getClazz().equals(type)) {
                 return entry.getKey();
             }
         }
