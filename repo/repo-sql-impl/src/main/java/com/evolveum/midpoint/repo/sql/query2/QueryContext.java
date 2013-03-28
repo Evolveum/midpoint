@@ -23,8 +23,6 @@ package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -33,7 +31,6 @@ import org.hibernate.Session;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -129,5 +126,9 @@ public class QueryContext {
 
     private boolean hasAlias(String alias) {
         return aliases.containsValue(alias);
+    }
+
+    public boolean hasAlias(ItemPath path) {
+        return aliases.get(path) != null;
     }
 }

@@ -31,6 +31,12 @@ import java.io.Serializable;
  */
 public interface RAnyValue<T> extends Serializable {
 
+    String F_VALUE = "value";
+
+    String F_NAME = "name";
+
+    String F_TYPE = "type";
+
     void setAnyContainer(RAnyContainer anyContainer);
 
     QName getName();

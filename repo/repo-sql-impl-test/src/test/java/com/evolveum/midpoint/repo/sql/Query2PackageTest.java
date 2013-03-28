@@ -76,7 +76,8 @@ public class Query2PackageTest extends BaseSQLRepoTest {
         Criteria stringAttr = attributes.createCriteria("strings", "s");
 
         //and
-        Criterion c1 = Restrictions.eq("a.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b");
+        Criterion c1 = Restrictions.conjunction().add(
+                Restrictions.eq("a.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));

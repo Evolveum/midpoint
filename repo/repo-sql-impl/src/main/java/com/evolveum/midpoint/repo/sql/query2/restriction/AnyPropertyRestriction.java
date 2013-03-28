@@ -21,27 +21,41 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
-import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query2.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
-import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
+import com.evolveum.midpoint.repo.sql.type.QNameType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 
-import java.util.Iterator;
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author lazyman
  */
 public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AnyPropertyRestriction.class);
 
     @Override
     public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
@@ -69,8 +83,46 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     @Override
     public Criterion interpretInternal(ValueFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
             throws QueryException {
-        //todo implement
-        return null;
+
+        ItemDefinition itemDefinition = filter.getDefinition();
+        QName name = itemDefinition.getName();
+        QName type = itemDefinition.getTypeName();
+
+        if (name == null || type == null) {
+            throw new QueryException("Couldn't get name or type for queried item '" + itemDefinition + "'");
+        }
+
+        ItemPath anyItemPath = createAnyItemPath(filter.getParentPath(), filter.getDefinition());
+        if (!context.hasAlias(anyItemPath)) {
+            QName anyTypeName = ((NameItemPathSegment) anyItemPath.last()).getName();
+            LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
+                    new Object[]{anyTypeName.getLocalPart()});
+            addNewCriteriaToContext(anyItemPath, anyTypeName.getLocalPart(), context);
+        }
+        String propertyNamePrefix = context.getAlias(anyItemPath) + '.';
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(createCriterion(Operation.EQ,
+                propertyNamePrefix + RAnyValue.F_VALUE, ((PrismPropertyValue)(((PropertyValueFilter) filter).getValues().get(0))).getValue()));       //todo implement properly
+        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, QNameType.optimizeQName(name)));
+        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_TYPE, QNameType.optimizeQName(type)));
+
+        return conjunction;
+    }
+
+    private ItemPath createAnyItemPath(ItemPath path, ItemDefinition itemDef) throws QueryException {
+        try {
+            List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
+            segments.addAll(path.getSegments());
+            // get any type name (e.g. clobs, strings, dates,...) based
+            // on definition
+            String anyTypeName = RAnyConverter.getAnySetType(itemDef);
+            segments.add(new NameItemPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));
+
+            return new ItemPath(segments);
+        } catch (SchemaException ex) {
+            throw new QueryException(ex.getMessage(), ex);
+        }
     }
 
     @Override

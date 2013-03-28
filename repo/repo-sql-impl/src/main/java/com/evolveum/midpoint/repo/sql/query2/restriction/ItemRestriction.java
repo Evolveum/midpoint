@@ -132,7 +132,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
     }
 
-    private void addNewCriteriaToContext(ItemPath path, String realName, QueryContext context) {
+    protected void addNewCriteriaToContext(ItemPath path, String realName, QueryContext context) {
         ItemPath lastPropPath = path.allExceptLast();
         if (ItemPath.EMPTY_PATH.equals(lastPropPath)) {
             lastPropPath = null;
@@ -147,25 +147,16 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         context.addCriteria(path, criteria);
     }
 
-    protected String createPropertyName() {
-        //todo implement
-        return null;
-    }
-
-    protected Object createComparableRealValue() {
-        //todo implement
-        return null;
-    }
-
-    protected Criterion createCriterion(Operation operation) throws QueryException {
-        String propertyName = createPropertyName();
-        Object value = (operation == Operation.NOT_NULL
-                || operation == Operation.NULL) ?
-                null : createComparableRealValue();
+    protected Criterion createCriterion(Operation operation, String propertyName, Object value)
+            throws QueryException {
 
         switch (operation) {
             case EQ:
-                return Restrictions.eq(propertyName, value);
+                if (value == null) {
+                    return Restrictions.isNull(propertyName);
+                } else {
+                    return Restrictions.eq(propertyName, value);
+                }
             case GT:
                 return Restrictions.gt(propertyName, value);
             case GE:
@@ -184,7 +175,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                 return Restrictions.like(propertyName, "%" + value + "%").ignoreCase();
         }
 
-        throw new QueryException("Unknown operation.");
+        throw new QueryException("Unknown operation '" + operation + "'.");
     }
 
     protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {
