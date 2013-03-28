@@ -400,6 +400,17 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         // todo any other changes have to be done?
     }
 
+    public void replacePrimaryFocusDeltas(List<ObjectDelta<F>> deltas) throws SchemaException {
+        replacePrimaryFocusDelta(null);
+        if (deltas != null) {
+            for (ObjectDelta<F> delta : deltas) {
+                focusContext.addPrimaryDelta(delta);
+            }
+        }
+        // todo any other changes have to be done?
+    }
+
+
     /**
      * Returns all executed deltas, user and all accounts.
      */
@@ -720,4 +731,5 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	public String toString() {
 		return "LensContext(s=" + state + ", W(e=" + executionWave + ",p=" + projectionWave + "): "+focusContext+", "+projectionContexts+")";
 	}
+
 }

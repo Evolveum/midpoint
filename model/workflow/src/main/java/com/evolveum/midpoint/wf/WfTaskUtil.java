@@ -29,9 +29,10 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessVariable;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +128,12 @@ public class WfTaskUtil {
 	
 	public static final QName WFPROCESSID_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfProcessId");
 	private PrismPropertyDefinition wfProcessIdPropertyDefinition;
+
+    // wfDeltaToProcess
+
+    public static final QName WFDELTA_TO_PROCESS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfDeltaToProcess");
+    private PrismPropertyDefinition wfDeltaToProcessPropertyDefinition;
+
     private static final long TASK_START_DELAY = 5000L;
 
     @PostConstruct
@@ -141,6 +149,7 @@ public class WfTaskUtil {
         wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
 		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESS_WRAPPER_PROPERTY_NAME);
 		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESSID_PROPERTY_NAME);
+        wfDeltaToProcessPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFDELTA_TO_PROCESS_PROPERTY_NAME);
 
         Validate.notNull(wfModelContextPropertyDefinition, ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY + " definition was not found");
         Validate.notNull(wfStatusPropertyDefinition, WFSTATUS_PROPERTY_NAME + " definition was not found");
@@ -148,6 +157,7 @@ public class WfTaskUtil {
         Validate.notNull(wfLastVariablesPropertyDefinition, WFLASTVARIABLES_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfProcessWrapperPropertyDefinition, WFPROCESS_WRAPPER_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfProcessIdPropertyDefinition, WFPROCESSID_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfDeltaToProcessPropertyDefinition, WFDELTA_TO_PROCESS_PROPERTY_NAME + " definition was not found");
 
         if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
             throw new SystemException("wfLastVariables property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastVariablesPropertyDefinition.isIndexed() + ")");
@@ -161,65 +171,31 @@ public class WfTaskUtil {
 
 	/**
 	 * Makes a task active, i.e. a task that actively queries wf process instance about its status.
+     * We expect task to be transient at this moment!
 	 */
-	void prepareActiveTask(Task t, PolyStringType taskName, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-        if (t.getName() == null || t.getName().toPolyString().isEmpty()) {
-		    t.setName(taskName);
-        }
-
-        t.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, new ScheduleType(), null);
+	void prepareActiveWfShadowTask(Task t, PolyStringType taskName, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         ScheduleType schedule = new ScheduleType();
         schedule.setInterval(workflowManager.getWfConfiguration().getProcessCheckInterval());
         schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + TASK_START_DELAY)));
-		t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, schedule, null);
-
-        t.setCategory(TaskCategory.WORKFLOW);
-        t.setBinding(TaskBinding.LOOSE);
-
-        t.makeRunnable();
-        if (t.getOwner() == null) {
-            t.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), parentResult));
-        }
-        t.savePendingModifications(parentResult);
+		t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, schedule, TaskBinding.LOOSE);
 	}
-	
-	/**
+
+
+    /**
 	 * Creates a passive task, i.e. a task that stores information received from WfMS about a process instance.
-	 * 
+     * We expect task to be transient at this moment!
+	 *
 \	 * @param taskName
 	 * @return
 	 */
 	
-	void preparePassiveTask(Task t, PolyStringType taskName, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-//		// shutdown the task if it is already running (i.e. a run from previous phase)
-//		t.shutdown();
+	void preparePassiveWfShadowTask(Task t, PolyStringType taskName, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
 
-        if (t.getName().toPolyString().isEmpty()) {
-            t.setName(taskName);
-        }
         t.pushHandlerUri(WfTaskHandler.WF_SHADOW_TASK_URI, new ScheduleType(), null);		// note that this handler will not be used (at least for now)
-        t.setCategory(TaskCategory.WORKFLOW);
-		t.makeSingle();
         t.makeWaiting();
-        t.savePendingModifications(parentResult);
 	}
-
-//	// stores a task persistently (releases it)
-//	boolean persistTask(Task task, OperationResult parentResult) {
-//		try {
-//			taskManager.switchToBackground(task, parentResult);
-//			LOGGER.trace("Task switch to background; oid = " + task.getOid());
-//			return true;
-//		} catch (Exception ex) {
-//			LoggingUtils.logException(LOGGER, "Couldn't switch to background a workflow-process-watching task {}", ex, task);
-//			parentResult.recordFatalError("Couldn't switch to background a workflow-process-watching task " + task, ex);
-//			return false;
-//		}
-//	}
 
 	void setWfProcessId(Task task, String pid, OperationResult parentResult) {
 		String oid = task.getOid();
@@ -260,13 +236,13 @@ public class WfTaskUtil {
             task.setExtensionPropertyImmediate(prop, parentResult);
         } catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Object not found", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set process ID for task {}", ex, task);
+            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema error", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set process ID for task {}", ex, task);
+            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
 		} catch (RuntimeException ex) {
 			parentResult.recordFatalError("Internal error", ex);
-            LoggingUtils.logException(LOGGER, "Cannot set process ID for task {}", ex, task);
+            LoggingUtils.logException(LOGGER, "Cannot set {} for task {}", ex, propertyDef.getName(), task);
 		}
 		
 	}
@@ -620,7 +596,7 @@ public class WfTaskUtil {
 //        task.setModelOperationState(state);
 //    }
 
-    public ModelContext getModelContext(Task task, OperationResult result) throws SchemaException {
+    public ModelContext retrieveModelContext(Task task, OperationResult result) throws SchemaException {
         PrismProperty modelContextProperty = task.getExtension(ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY);
         if (modelContextProperty == null || modelContextProperty.getRealValue() == null) {
             throw new SystemException("No model context information in task " + task);
@@ -641,4 +617,14 @@ public class WfTaskUtil {
         task.setExtensionProperty(modelContextProperty);
     }
 
+    public void storeDeltasToProcess(List<ObjectDelta<UserType>> deltas, Task task) throws SchemaException {
+
+        PrismProperty<ObjectDeltaType> deltaToProcess = wfDeltaToProcessPropertyDefinition.instantiate();
+        for (ObjectDelta<UserType> delta : deltas) {
+            deltaToProcess.addRealValue(DeltaConvertor.toObjectDeltaType(delta));
+        }
+        task.addExtensionProperty(deltaToProcess);
+    }
+
+    // todo retrieveDeltasToProcess
 }

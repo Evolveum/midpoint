@@ -68,7 +68,7 @@ public class WfRootTaskHandler implements TaskHandler, InitializingBean {
 
         OperationResult result = task.getResult();
 
-//        ModelContext rootContext = wfTaskUtil.getModelContext(task, result);
+//        ModelContext rootContext = wfTaskUtil.retrieveModelContext(task, result);
 //        ObjectDelta<?>
 //
 //        List<Task> children = task.listSubtasks(result);
@@ -77,7 +77,7 @@ public class WfRootTaskHandler implements TaskHandler, InitializingBean {
 //            if (child.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
 //                throw new IllegalStateException("Child task " + child + " is not in CLOSED state; its state is " + child.getExecutionStatus());
 //            }
-//            ModelContext childContext = wfTaskUtil.getModelContext(child, result);
+//            ModelContext childContext = wfTaskUtil.retrieveModelContext(child, result);
 //
 //        }
 

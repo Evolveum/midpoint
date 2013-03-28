@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -42,6 +43,10 @@ import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.processes.ProcessWrapper;
 import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
+import com.evolveum.midpoint.wf.processes.UserChangeStartProcessInstruction;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -148,13 +153,9 @@ public class WfCore {
             LOGGER.trace("prepareRootTask starting; task = " + task);
         }
 
-        if (!task.isTransient()) {
-            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
-        }
-
-        if (task.getHandlerUri() != null) {
-            throw new IllegalStateException("Workflow-related task should have no handler URI at this moment; task = " + task + ", existing handler URI = " + task.getHandlerUri());
-        }
+        checkTaskCleanness(task);
+        setTaskNameIfEmpty(task, new PolyStringType("Workflow task"));      // todo meaningful name
+        task.setCategory(TaskCategory.WORKFLOW);
 
         if (rootContext != null) {
 
@@ -168,31 +169,84 @@ public class WfCore {
         }
 
         try {
-            task.waitForSubtasks(null, result);
+            task.waitForSubtasks(null, result);     // todo change subtasking mechanism
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Couldn't mark the task as waiting for subtasks: " + e, e);
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Couldn't mark the task as waiting for subtasks: " + e, e);
         }
-        taskManager.switchToBackground(task, result);
 
+        taskManager.switchToBackground(task, result);
+    }
+
+    private void checkTaskCleanness(Task task) {
+        if (!task.isTransient()) {
+            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
+        }
+
+        if (task.getHandlerUri() != null) {
+            throw new IllegalStateException("Workflow-related task should have no handler URI at this moment; task = " + task + ", existing handler URI = " + task.getHandlerUri());
+        }
+    }
+
+
+    public void prepareChildTaskNoSave(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("prepareChildTask starting; task = " + task);
+        }
+
+        checkTaskCleanness(task);
+
+        setTaskNameIfEmpty(task, instruction.getTaskName());
+        setDefaultTaskOwnerIfEmpty(task, result);
+        task.setCategory(TaskCategory.WORKFLOW);
+
+        if (instruction.isExecuteImmediately()) {
+            task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, null, null);
+        }
+        if (!instruction.isNoProcess()) {
+            if (instruction.isSimple()) {
+                wfTaskUtil.prepareActiveWfShadowTask(task, instruction.getTaskName(), result);
+            } else {
+                wfTaskUtil.preparePassiveWfShadowTask(task, instruction.getTaskName(), result);
+            }
+        }
+    }
+
+    private void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (t.getOwner() == null) {
+            t.setOwner(workflowManager.getRepositoryService().getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), result));
+        }
+    }
+
+    private void setTaskNameIfEmpty(Task t, PolyStringType taskName) {
+        if (t.getName() == null || t.getName().toPolyString().isEmpty()) {
+            t.setName(taskName);
+        }
+    }
+
+
+    public void prepareChildTask(StartProcessInstruction instruction, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        prepareChildTaskNoSave(instruction, task, result);
+        saveChildTask(task, result);
+    }
+
+    public void saveChildTask(Task task, OperationResult result) {
+        taskManager.switchToBackground(task, result);
     }
 
 
 
+
     /**
-     * Starts a process instance in WfMS.
-     */
+         * Starts a process instance in WfMS.
+         */
     private void startProcessInstance(StartProcessInstruction startInstruction, ProcessWrapper wrapper, Task task, ModelContext context,
                                       OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
 
 
         // first, create in-memory task instance
-        if (startInstruction.isSimple()) {
-            wfTaskUtil.prepareActiveTask(task, startInstruction.getTaskName(), parentResult);
-        } else {
-            wfTaskUtil.preparePassiveTask(task, startInstruction.getTaskName(), parentResult);
-        }
 
         wfTaskUtil.setProcessWrapper(task, wrapper);
         wfTaskUtil.storeModelContext(task, context, parentResult);
@@ -301,7 +355,7 @@ public class WfCore {
 
         ModelContext context = null;
         try {
-            context = wfTaskUtil.getModelContext(task, result);
+            context = wfTaskUtil.retrieveModelContext(task, result);
         } catch (SchemaException e) {
             // todo better error reporting
             throw new IllegalStateException("Model Context could not be fetched from the task due to SchemaException; task = " + task, e);
@@ -361,5 +415,13 @@ public class WfCore {
         LOGGER.trace("Registering process wrapper: " + starter.getClass().getName());
         wrappers.add(starter);
     }
-    
+
+    public WfTaskUtil getWfTaskUtil() {
+        return wfTaskUtil;
+    }
+
+    public void startProcessInstance(UserChangeStartProcessInstruction instruction, Task task, OperationResult result) {
+
+
+    }
 }

@@ -23,7 +23,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/model/workflow/extension-2"
             xmlns:tns="http://midpoint.evolveum.com/model/workflow/extension-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-            xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 
@@ -32,6 +32,15 @@
             Workflow task extensions.
         </xsd:documentation>
     </xsd:annotation>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
 
     <xsd:element name="wfStatus" type="xsd:string">
         <xsd:annotation>
@@ -94,6 +103,19 @@
                 <a:indexed>true</a:indexed>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="wfDeltaToProcess" type="t:ObjectDeltaType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>-1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

@@ -578,28 +578,12 @@ public class TaskQuartzImpl implements Task {
 
 		checkHandlerUriConsistency();
 
-//        if (binding == null) {
-//            if (schedule != null) {
-//                binding = bindingFromSchedule(schedule);
-//            } else {
-//                binding = this.getBinding();
-//            }
-//        }
-//
-//        if (schedule == null) {
-//            schedule = this.getSchedule();
-//        }
+		if (this.getHandlerUri() != null) {
 
-		if (this.getHandlerUri() == null) {
-			setHandlerUri(uri);
-            setSchedule(schedule);
-            setRecurrenceStatus(recurrenceFromSchedule(schedule));
-            setBinding(binding);
-		} else {
-		
 			UriStack stack = taskPrism.getPropertyRealValue(TaskType.F_OTHER_HANDLERS_URI_STACK, UriStack.class);
-			if (stack == null)
+			if (stack == null) {
 				stack = new UriStack();
+            }
 
             UriStackEntry use = new UriStackEntry();
             use.setHandlerUri(getHandlerUri());
@@ -610,12 +594,12 @@ public class TaskQuartzImpl implements Task {
             }
 			stack.getUriStackEntry().add(use);
             setOtherHandlersUriStack(stack);
+        }
 
-			setHandlerUri(uri);
-            setSchedule(schedule);
-            setRecurrenceStatus(recurrenceFromSchedule(schedule));
-            setBinding(binding);
-		}
+        setHandlerUri(uri);
+        setSchedule(schedule);
+        setRecurrenceStatus(recurrenceFromSchedule(schedule));
+        setBinding(binding);
 
         this.setRecreateQuartzTrigger(true);            // will be applied on modifications save
 	}

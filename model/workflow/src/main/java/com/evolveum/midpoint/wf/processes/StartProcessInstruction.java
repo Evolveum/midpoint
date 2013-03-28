@@ -24,11 +24,9 @@ package com.evolveum.midpoint.wf.processes;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -43,6 +41,8 @@ public class StartProcessInstruction implements DebugDumpable {
     private String processName;
     private PolyStringType taskName;
     private boolean simple;
+    private boolean noProcess;            // no wf process, only direct execution of specified deltas
+    private boolean executeImmediately;     // executes as soon as possible, i.e. usually directly after approval
 
     public boolean isSimple() {
         return simple;
@@ -76,6 +76,22 @@ public class StartProcessInstruction implements DebugDumpable {
         this.taskName = taskName;
     }
 
+    public boolean isExecuteImmediately() {
+        return executeImmediately;
+    }
+
+    public void setExecuteImmediately(boolean executeImmediately) {
+        this.executeImmediately = executeImmediately;
+    }
+
+    public boolean isNoProcess() {
+        return noProcess;
+    }
+
+    public void setNoProcess(boolean noProcess) {
+        this.noProcess = noProcess;
+    }
+
     public String toString() {
         return "StartProcessInstruction: processName = " + processName + ", simple: " + simple + ", variables: " + processVariables;
     }
@@ -90,7 +106,11 @@ public class StartProcessInstruction implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
 
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("StartProcessInstruction: process: " + processName + " (simple: " + simple + "), task = " + taskName + "\n");
+        sb.append("StartProcessInstruction: process: " + processName + " (" +
+                (simple ? "simple" : "smart") + ", " +
+                (executeImmediately ? "execute-immediately" : "execute-at-end") + ", " +
+                (noProcess ? "no-process" : "with-process") +
+                "), task = " + taskName + "\n");
 
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Process variables:\n");

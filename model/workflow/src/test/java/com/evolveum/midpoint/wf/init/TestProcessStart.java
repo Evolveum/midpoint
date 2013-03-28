@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.*;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -87,7 +86,7 @@ public class TestProcessStart extends AbstractInternalModelIntegrationTest {
         addObjectsFromFile(ROLES_FILENAME, RoleType.class, initResult);
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
     public void test001StartAddRoleProcess() throws Exception {
         displayTestTile(this, "test001StartAddRoleProcess");
        	assignAccountToJackAsync("test001StartAddRoleProcess");
@@ -125,7 +124,7 @@ public class TestProcessStart extends AbstractInternalModelIntegrationTest {
                 UriStack uriStack = task.getOtherHandlersUriStack();
                 assertEquals("Invalid handler at stack position 0", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, uriStack.getUriStackEntry().get(0).getHandlerUri());
                 assertEquals("Invalid handler at stack position 1", WfRootTaskHandler.HANDLER_URI, uriStack.getUriStackEntry().get(1).getHandlerUri());
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(task, result);
+                ModelContext taskModelContext = wfTaskUtil.retrieveModelContext(task, result);
                 assertNotNull("Model context is not present in root task", taskModelContext);
 
                 // delta existence etc etc
