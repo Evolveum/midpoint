@@ -32,7 +32,7 @@ import org.hibernate.criterion.Restrictions;
 /**
  * @author lazyman
  */
-public class PolyStringMatcher implements Matcher<PolyString> {
+public class PolyStringMatcher extends Matcher<PolyString> {
 
     public static final String STRICT = "strict";
     public static final String ORIG = "orig";
@@ -42,26 +42,32 @@ public class PolyStringMatcher implements Matcher<PolyString> {
     public Criterion match(ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
             throws QueryException {
 
-        if (StringUtils.isEmpty(matcher) || STRICT.equals(matcher)) {
+        if (StringUtils.isEmpty(matcher) || STRICT.equalsIgnoreCase(matcher)) {
             Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(createOrigCriterion(propertyName, value));
-            conjunction.add(createNormCriterion(propertyName, value));
+            conjunction.add(createOrigMatch(operation, propertyName, value));
+            conjunction.add(createNormMatch(operation, propertyName, value));
 
             return conjunction;
-        } else if (ORIG.equals(matcher)) {
-            return createOrigCriterion(propertyName, value);
-        } else if (NORM.equals(matcher)) {
-            return createNormCriterion(propertyName, value);
+        } else if (ORIG.equalsIgnoreCase(matcher)) {
+            return createOrigMatch(operation, propertyName, value);
+        } else if (NORM.equalsIgnoreCase(matcher)) {
+            return createNormMatch(operation, propertyName, value);
         } else {
             throw new QueryException("Unknown matcher '" + matcher + "'.");
         }
     }
 
-    private Criterion createNormCriterion(String propertyName, PolyString value) {
-        return null;
+    private Criterion createNormMatch(ItemRestrictionOperation operation, String propertyName, PolyString value)
+            throws QueryException {
+
+        String realValue = value != null ? value.getOrig() : null;
+        return basicMatch(operation, propertyName, realValue);
     }
 
-    private Criterion createOrigCriterion(String propertyName, PolyString value) {
-        return null;
+    private Criterion createOrigMatch(ItemRestrictionOperation operation, String propertyName, PolyString value)
+            throws QueryException {
+
+        String realValue = value != null ? value.getNorm() : null;
+        return basicMatch(operation, propertyName, realValue);
     }
 }

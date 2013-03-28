@@ -24,40 +24,16 @@ package com.evolveum.midpoint.repo.sql.query2.matcher;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 
 /**
  * @author lazyman
  */
-public class DefaultMatcher implements Matcher<Object> {
+public class DefaultMatcher<T> extends Matcher<T> {
 
     @Override
-    public Criterion match(ItemRestrictionOperation operation, String propertyName, Object value, String matcher)
+    public Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException {
 
-        switch (operation) {
-            case EQ:
-                if (value == null) {
-                    return Restrictions.isNull(propertyName);
-                } else {
-                    return Restrictions.eq(propertyName, value);
-                }
-            case GT:
-                return Restrictions.gt(propertyName, value);
-            case GE:
-                return Restrictions.ge(propertyName, value);
-            case LT:
-                return Restrictions.lt(propertyName, value);
-            case LE:
-                return Restrictions.le(propertyName, value);
-            case NOT_NULL:
-                return Restrictions.isNotNull(propertyName);
-            case NULL:
-                return Restrictions.isNull(propertyName);
-            case SUBSTRING:
-                return Restrictions.like(propertyName, "%" + value + "%");
-        }
-
-        throw new QueryException("Unknown operation '" + operation + "'.");
+        return basicMatch(operation, propertyName, value);
     }
 }

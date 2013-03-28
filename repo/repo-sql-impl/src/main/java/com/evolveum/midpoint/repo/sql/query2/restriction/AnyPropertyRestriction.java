@@ -100,11 +100,11 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         String propertyNamePrefix = getContext().getAlias(anyItemPath) + '.';
 
         Conjunction conjunction = Restrictions.conjunction();
-        //todo implement properly
 
         Object testedValue = getValue(((PropertyValueFilter) filter).getValues());
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
         conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
+
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, QNameType.optimizeQName(name)));
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_TYPE, QNameType.optimizeQName(type)));
 

@@ -24,12 +24,42 @@ package com.evolveum.midpoint.repo.sql.query2.matcher;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * @author lazyman
  */
-public interface Matcher<T> {
+public abstract class Matcher<T> {
 
-    Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+    public abstract Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException;
+
+    protected Criterion basicMatch(ItemRestrictionOperation operation, String propertyName, Object value)
+            throws QueryException {
+
+        switch (operation) {
+            case EQ:
+                if (value == null) {
+                    return Restrictions.isNull(propertyName);
+                } else {
+                    return Restrictions.eq(propertyName, value);
+                }
+            case GT:
+                return Restrictions.gt(propertyName, value);
+            case GE:
+                return Restrictions.ge(propertyName, value);
+            case LT:
+                return Restrictions.lt(propertyName, value);
+            case LE:
+                return Restrictions.le(propertyName, value);
+            case NOT_NULL:
+                return Restrictions.isNotNull(propertyName);
+            case NULL:
+                return Restrictions.isNull(propertyName);
+            case SUBSTRING:
+                return Restrictions.like(propertyName, "%" + value + "%");
+        }
+
+        throw new QueryException("Unknown operation '" + operation + "'.");
+    }
 }
