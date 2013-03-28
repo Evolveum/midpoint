@@ -1312,14 +1312,14 @@ private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> condit
 		cacheRepositoryService.modifyObject(ResourceObjectShadowType.class, oid,
 				shadowModification, parentResult);
 		} catch (SchemaException ex){
-			parentResult.recordFatalError("Couldn't modify object: schema violation: " + ex.getMessage(), ex);
-			throw ex;
+			parentResult.recordPartialError("Couldn't modify object: schema violation: " + ex.getMessage(), ex);
+//			throw ex;
 		} catch (ObjectNotFoundException ex){
-			parentResult.recordFatalError("Couldn't modify object: object not found: " + ex.getMessage(), ex);
-			throw ex;
+			parentResult.recordWarning("Couldn't modify object: object not found: " + ex.getMessage(), ex);
+//			throw ex;
 		} catch (ObjectAlreadyExistsException ex){
-			parentResult.recordFatalError("Couldn't modify object: object already exists: " + ex.getMessage(), ex);
-			throw ex;
+			parentResult.recordPartialError("Couldn't modify object: object already exists: " + ex.getMessage(), ex);
+//			throw ex;
 		}
 
 	}
