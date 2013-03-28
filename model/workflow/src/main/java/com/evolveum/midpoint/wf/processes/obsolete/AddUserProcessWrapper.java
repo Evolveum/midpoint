@@ -99,11 +99,11 @@ public class AddUserProcessWrapper { //implements ProcessWrapper {
     //@Override
     public void finishProcess(ProcessEvent event, Task task, OperationResult result) {
 
-        if (event.getAnswer() == Boolean.TRUE) {
-            //wfTaskUtil.markAcceptation(task, result);
-        } else {
-            //wfTaskUtil.markRejection(task, result);
-        }
+//        if (event.getAnswer() == Boolean.TRUE) {
+//            //wfTaskUtil.markAcceptation(task, result);
+//        } else {
+//            //wfTaskUtil.markRejection(task, result);
+//        }
 
     }
 }

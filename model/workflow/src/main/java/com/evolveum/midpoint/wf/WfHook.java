@@ -32,16 +32,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.processes.ProcessWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Provides an interface between the model and the workflow engine:
@@ -82,9 +76,18 @@ public class WfHook implements ChangeHook {
         OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
         result.addParam("task", task.toString());
 
-        LensContext lensContext = (LensContext) context;
+        logOperationInformation(context);
+
+        HookOperationMode retval = wfCore.startProcessesIfNeeded(context, task, result);
+        result.recordSuccessIfUnknown();
+        return retval;
+    }
+
+    private void logOperationInformation(ModelContext context) {
 
         if (LOGGER.isTraceEnabled()) {
+
+            LensContext lensContext = (LensContext) context;
 
             LOGGER.trace("=====================================================================");
             LOGGER.trace("WfHook invoked in state " + context.getState() + " (wave " + lensContext.getProjectionWave() + ", max " + lensContext.getMaxWave() + "):");
@@ -105,12 +108,6 @@ public class WfHook implements ChangeHook {
                 LOGGER.trace(" - Sync delta:" + (mpc.getSyncDelta() == null ? "(null)" : mpc.getSyncDelta().debugDump()));
             }
         }
-
-        HookOperationMode mode = wfCore.executeProcessStartIfNeeded(context, task, result);
-
-        result.recordSuccessIfUnknown();
-
-        return mode;
     }
 
 }

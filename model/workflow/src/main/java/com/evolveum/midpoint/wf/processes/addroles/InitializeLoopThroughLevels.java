@@ -35,14 +35,14 @@ public class InitializeLoopThroughLevels implements JavaDelegate {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Initialized loopLevels_stop; execution = " + execution);
         }
-        execution.setVariableLocal(AddRolesProcessWrapper.LOOP_LEVELS_STOP, Boolean.FALSE);
+        execution.setVariableLocal(AddRoleAssignmentWrapper.LOOP_LEVELS_STOP, Boolean.FALSE);
 
         AssignmentToApprove assignmentToApprove =
-                (AssignmentToApprove) execution.getVariable(AddRolesProcessWrapper.ASSIGNMENT_TO_APPROVE);
+                (AssignmentToApprove) execution.getVariable(AddRoleAssignmentWrapper.ASSIGNMENT_TO_APPROVE);
         if (assignmentToApprove == null) {
             throw new SystemException("assignmentToApprove process variable is null");
         }
-        execution.setVariableLocal(AddRolesProcessWrapper.ROLE, assignmentToApprove.getRole());
+        execution.setVariableLocal(AddRoleAssignmentWrapper.ROLE, assignmentToApprove.getRole());
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Initialized role to " + assignmentToApprove.getRole() + "; execution = " + execution);
         }

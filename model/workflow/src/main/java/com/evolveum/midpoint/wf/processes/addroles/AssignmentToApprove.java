@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class AssignmentToApprove implements Serializable {
 
@@ -72,7 +71,7 @@ public class AssignmentToApprove implements Serializable {
 
     // todo i18n
     public String getTimeInterval() {
-        return AddRolesProcessWrapper.formatTimeIntervalBrief(assignment);
+        return AddRoleAssignmentWrapper.formatTimeIntervalBrief(assignment);
     }
 
     // todo i18n

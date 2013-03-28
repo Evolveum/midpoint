@@ -21,12 +21,10 @@
 
 package com.evolveum.midpoint.model.controller;
 
-import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,16 +43,10 @@ import java.util.List;
 /**
  * Handles a "ModelOperation task" - executes a given model operation in a context
  * of the task (i.e., in most cases, asynchronously).
- * 
- * The operation and its state is described in ModelOperationState element. When sent to this handler,
- * the current state of operation is unwrapped and processed by the ModelController.
  *
- * ModelOperationState consists of:
- *  - ModelOperationKindType: add, modify, delete,
- *  - ModelOperationStageType: primary, secondary, execute,
- *  - OperationData (base64-encoded serialized data structure, specific to MOKT/MOST)
- *
- *  CURRENTLY NOT WORKING (will be revived in midpoint 2.2)
+ * The context of the model operation (i.e., model context) is stored in task extension property
+ * called "modelContext". When this handler is executed, the context is retrieved, unwrapped from
+ * its XML representation, and the model operation is (re)started.
  *
  * @author mederly
  */
@@ -62,17 +54,16 @@ import java.util.List;
 @Component
 public class ModelOperationTaskHandler implements TaskHandler {
 
-	public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-1";
+    private static final Trace LOGGER = TraceManager.getTrace(ModelOperationTaskHandler.class);
 
-    // copied from WfTaskUtil (todo eliminate duplicity)
-    public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
-    public static final QName WFMODEL_CONTEXT_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfModelContext");
+    private static final String DOT_CLASS = ModelOperationTaskHandler.class.getName() + ".";
+
+    public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/model/model-operation-handler-2";
+    public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
+    public static final QName MODEL_CONTEXT_PROPERTY = new QName(MODEL_CONTEXT_NS, "modelContext");
 
     @Autowired(required = true)
 	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private ModelController model;
 
     @Autowired(required = true)
     private PrismContext prismContext;
@@ -80,31 +71,22 @@ public class ModelOperationTaskHandler implements TaskHandler {
     @Autowired(required = true)
     private Clockwork clockwork;
 
-    @Autowired(required = false)
-    private HookRegistry hookRegistry;
-
-	private static final Trace LOGGER = TraceManager.getTrace(ModelOperationTaskHandler.class);
-
 	@Override
 	public TaskRunResult run(Task task) {
 
-		OperationResult result = task.getResult().createSubresult("ModelOperationTaskHandler.run");
+		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
-		/*
-		 * Call the model operation body.
-		 */
-
-        PrismProperty<LensContextType> contextTypeProperty = task.getExtension(WFMODEL_CONTEXT_PROPERTY_NAME);
+        PrismProperty<LensContextType> contextTypeProperty = task.getExtension(MODEL_CONTEXT_PROPERTY);
         if (contextTypeProperty == null) {
-            throw new IllegalStateException("There's no wfModelContext information in task " + task);   // todo error handling
+            throw new SystemException("There's no model context property in task " + task + " (" + MODEL_CONTEXT_PROPERTY + ")");
         }
 
         LensContext context = null;
         try {
             context = LensContext.fromJaxb(contextTypeProperty.getRealValue(), prismContext);
         } catch (SchemaException e) {
-            throw new SystemException("Cannot recover wfModelContext from task " + task);   // todo error handling
+            throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
         }
 
         try {
@@ -113,7 +95,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 result.computeStatus();
             }
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-        } catch (Exception e) { // todo
+        } catch (Exception e) { // too many various exceptions; will be fixed with java7 :)
             String message = "An exception occurred within model operation, in task " + task;
             LoggingUtils.logException(LOGGER, message, e);
             result.recordPartialError(message, e);
@@ -142,12 +124,14 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     @Override
     public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 
 	@PostConstruct
-	private void initialize() throws Exception {
-		LOGGER.info("Registering with taskManager as a handler for " + MODEL_OPERATION_TASK_URI);
+	private void initialize() {
+        if (LOGGER.isTraceEnabled()) {
+		    LOGGER.trace("Registering with taskManager as a handler for " + MODEL_OPERATION_TASK_URI);
+        }
 		taskManager.registerHandler(MODEL_OPERATION_TASK_URI, this);
 	}
 }

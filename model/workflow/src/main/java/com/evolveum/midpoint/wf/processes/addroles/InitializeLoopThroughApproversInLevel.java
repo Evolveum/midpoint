@@ -59,7 +59,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRolesProcessWrapper.LEVEL);
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRoleAssignmentWrapper.LEVEL);
 
         DecisionList decisionList = new DecisionList();
         if (level.getAutomaticallyApproved() != null) {
@@ -96,8 +96,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         } else {
             stop = Boolean.FALSE;
         }
-        execution.setVariableLocal(AddRolesProcessWrapper.APPROVERS_IN_LEVEL, new ArrayList<ObjectReferenceType>(approverRefs));
-        execution.setVariableLocal(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
+        execution.setVariableLocal(AddRoleAssignmentWrapper.APPROVERS_IN_LEVEL, new ArrayList<ObjectReferenceType>(approverRefs));
+        execution.setVariableLocal(AddRoleAssignmentWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 
     private Collection<? extends ObjectReferenceType> evaluateExpressions(List<ExpressionType> approverExpressionList, DelegateExecution execution) {
@@ -176,7 +176,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         Map<QName, Object> variables = new HashMap<QName, Object>();
 
-        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW);
+        PrismObject<UserType> user = (PrismObject<UserType>) execution.getVariable(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER);
         if (user != null) {
             variables.put(SchemaConstants.I_USER, user);
         }

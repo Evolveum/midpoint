@@ -24,9 +24,6 @@ package com.evolveum.midpoint.task.quartzimpl.handlers;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -73,25 +70,11 @@ public class WaitForSubtasksTaskHandler implements TaskHandler {
 
         LOGGER.info("WaitForSubtasksTaskHandler run starting; in task " + task.getName());
 
-//        Document document = DOMUtil.getDocument();
-//        Element filter = null;
-        ObjectFilter filter = null;
-        try {
-//            filter = QueryUtil.createEqualFilter(document, null, TaskType.F_PARENT, task.getTaskIdentifier());
-        	filter = EqualsFilter.createEqual(TaskType.class, taskManagerImpl.getPrismContext(), TaskType.F_PARENT, task.getTaskIdentifier());
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for task identifier attribute due to schema exception", e);
-        }
-//        QueryType query = new QueryType();
-//        query.setFilter(filter);
-
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        
         List<PrismObject<TaskType>> subtasks = null;
         try {
-            subtasks = taskManagerImpl.getRepositoryService().searchObjects(TaskType.class, query, opResult);
+            subtasks = task.listSubtasksRaw(opResult);
         } catch (SchemaException e) {
-            throw new SystemException("Cannot search for subtasks due to schema exception", e);
+            throw new SystemException("Couldn't list subtasks of " + task + " due to schema exception", e);
         }
 
         LOGGER.info("Number of subtasks found: " + subtasks.size() + "; task = {}", task);

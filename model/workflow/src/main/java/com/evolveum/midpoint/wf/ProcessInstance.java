@@ -26,11 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 14.5.2012
- * Time: 13:34
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class ProcessInstance implements Serializable {
 

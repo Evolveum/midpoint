@@ -51,16 +51,16 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
      */
     private boolean running;
 
-    public Boolean getAnswer() {
-        Object a = variables.get(WfConstants.VARIABLE_MIDPOINT_ANSWER);
-        if (a == null) {
-            return null;
-        } if (a instanceof Boolean) {
-            return (Boolean) a;
-        } else {
-            return "true".equals(a);
-        }
-    }
+//    public Boolean getAnswer() {
+//        Object a = variables.get(WfConstants.VARIABLE_MIDPOINT_ANSWER);
+//        if (a == null) {
+//            return null;
+//        } if (a instanceof Boolean) {
+//            return (Boolean) a;
+//        } else {
+//            return "true".equals(a);
+//        }
+//    }
 
     public String getState() {
         return (String) variables.get(WfConstants.VARIABLE_MIDPOINT_STATE);

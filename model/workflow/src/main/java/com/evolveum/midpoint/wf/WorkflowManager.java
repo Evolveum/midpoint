@@ -50,6 +50,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -91,6 +92,8 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
  * @author mederly
  */
 @Component
+//@DependsOn("repositoryService")
+@DependsOn("sqlRepositoryFactory")
 public class WorkflowManager implements BeanFactoryAware {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManager.class);
@@ -125,6 +128,7 @@ public class WorkflowManager implements BeanFactoryAware {
     @PostConstruct
     public void initialize() {
 
+        LOGGER.info("Initializing WorkflowManager...");
         wfConfiguration = new WfConfiguration();
         wfConfiguration.initialize(midpointConfiguration, beanFactory);
 

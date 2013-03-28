@@ -28,6 +28,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.*;
@@ -63,8 +66,10 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class TaskQuartzImpl implements Task {
-	
-	private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
+
+    public static final String DOT_INTERFACE = Task.class.getName() + ".";
+
+    private TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
     private static final Integer DEFAULT_SUBTASKS_WAIT_INTERVAL = 30;
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
@@ -169,7 +174,7 @@ public class TaskQuartzImpl implements Task {
         OperationResultType resultInPrism = taskPrism.asObjectable().getResult();
         if (resultInPrism == null) {
             if (operationName == null) {
-                resultInPrism = new OperationResult(Task.class.getName() + ".run").createOperationResultType();
+                resultInPrism = new OperationResult(DOT_INTERFACE + "run").createOperationResultType();
             } else {
                 resultInPrism = new OperationResult(operationName).createOperationResultType();
             }
@@ -1216,7 +1221,7 @@ public class TaskQuartzImpl implements Task {
 			}
 		}
 				
-		OperationResult result = parentResult.createSubresult(Task.class.getName()+".getObject");
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE+"getObject");
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 		
@@ -1735,7 +1740,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(Task.class.getName()+".refresh");
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE+"refresh");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		if (!isPersistent()) {
@@ -1870,7 +1875,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        OperationResult result = parentResult.createSubresult(Task.class.getName()+".waitForSubtasks");
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "waitForSubtasks");
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
         result.addContext(OperationResult.CONTEXT_OID, getOid());
 
@@ -1891,4 +1896,42 @@ public class TaskQuartzImpl implements Task {
 
         return trr;
     }
+
+    @Override
+    public List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasksRaw");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+
+        ObjectFilter filter = null;
+        try {
+            filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_PARENT, getTaskIdentifier());
+        } catch (SchemaException e) {
+            throw new SystemException("Cannot create filter for task identifier attribute due to schema exception", e);
+        }
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+        List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, result);
+        result.recordSuccessIfUnknown();
+        return list;
+    }
+
+    @Override
+    public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasks");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+
+        List<PrismObject<TaskType>> taskPrisms = listSubtasksRaw(result);
+
+        List<Task> tasks = new ArrayList<Task>(taskPrisms.size());
+        for (PrismObject<TaskType> taskPrism : taskPrisms) {
+            tasks.add(taskManager.createTaskInstance(taskPrism, result));
+        }
+
+        result.recordSuccessIfUnknown();
+        return tasks;
+    }
+
 }

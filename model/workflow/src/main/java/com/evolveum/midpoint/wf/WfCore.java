@@ -23,6 +23,7 @@ package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,47 +66,119 @@ public class WfCore {
     private WfTaskUtil wfTaskUtil;
 
     @Autowired(required = true)
+    private WorkflowManager workflowManager;
+
+    @Autowired(required = true)
     private TaskManager taskManager;
 
     @Autowired(required = true)
     private ActivitiInterface activitiInterface;
 
+    private List<ChangeProcessor> changeProcessors = new ArrayList<ChangeProcessor>();
+
     private List<ProcessWrapper> wrappers = new ArrayList<ProcessWrapper>();
+
+
+    // point of configuration [in future, it will be done more intelligently ;)]
+    // beware, the order of change processors might be important!
+
+    @PostConstruct
+    public void initialize() {
+        changeProcessors.add(new PrimaryUserChangeProcessor(workflowManager));
+    }
 
     /**
      * Looks whether wf process instance should be started. If so, starts it and returns "background" HookOperationMode.
-     * Uses first applicable wrapper.
+     * Uses first applicable change processor.
      *
      * @param context ModelContext describing current operation
      * @param task
      * @param result
      * @return HookOperationMode.BACKGROUND if a process was started; .FOREGROUND if not; .ERROR in case of error
      */
-    HookOperationMode executeProcessStartIfNeeded(ModelContext context, Task task, OperationResult result) {
+    HookOperationMode startProcessesIfNeeded(ModelContext context, Task task, OperationResult result) {
 
-        for (ProcessWrapper wrapper : wrappers) {
+        for (ChangeProcessor changeProcessor : changeProcessors) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Trying wrapper: " + wrapper.getClass().getName());
+                LOGGER.trace("Trying change processor: " + changeProcessor.getClass().getName());
             }
-            StartProcessInstruction startCommand = wrapper.prepareStartCommandIfApplicable(context, task, result);
-            if (startCommand != null) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
+            try {
+                HookOperationMode hookOperationMode = changeProcessor.startProcessesIfNeeded(context, task, result);
+                if (hookOperationMode != null) {
+                    return hookOperationMode;
                 }
-                try {
-                    startProcessInstance(startCommand, wrapper, task, context, result);
-                } catch (Exception e) { // TODO better error handling here
-                    LoggingUtils.logException(LOGGER, "Workflow process instance couldn't be started", e);
-                    result.recordFatalError("Workflow process instance couldn't be started", e);
-                    return HookOperationMode.ERROR;
-                }
-                return HookOperationMode.BACKGROUND;
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Schema exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                result.recordFatalError("Schema exception while running change processor " + changeProcessor.getClass(), e);
+                return HookOperationMode.ERROR;
+            } catch (RuntimeException e) {
+                LoggingUtils.logException(LOGGER, "Runtime exception while running change processor {}", e, changeProcessor.getClass().getName());   // todo message
+                result.recordFatalError("Runtime exception while running change processor " + changeProcessor.getClass(), e);
+                return HookOperationMode.ERROR;
             }
         }
 
-        LOGGER.trace("No wrapper served this request, returning the FOREGROUND flag.");
+//            StartProcessInstruction startCommand = wrapper.prepareStartCommandIfApplicable(context, task, result);
+//            if (startCommand != null) {
+//                if (LOGGER.isDebugEnabled()) {
+//                    LOGGER.debug("Wrapper " + wrapper.getClass().getName() + " prepared the following wf process start command: " + startCommand);
+//                }
+//                try {
+//                    startProcessInstance(startCommand, wrapper, task, context, result);
+//                    result.recordSuccessIfUnknown();
+//                    return HookOperationMode.BACKGROUND;
+//                } catch (Exception e) { // TODO better error handling here (will be done with java7)
+//                    LoggingUtils.logException(LOGGER, "Workflow process instance couldn't be started", e);
+//                    result.recordFatalError("Workflow process instance couldn't be started", e);
+//                    return HookOperationMode.ERROR;
+//                }
+//            }
+//        }
+
+        LOGGER.trace("No change processor caught this request, returning the FOREGROUND flag.");
+        result.recordSuccess();
         return HookOperationMode.FOREGROUND;
     }
+
+
+    // if rootContext == null, we do not put ModelOperationTaskHandler & WfRootTaskHandler onto the stack
+    public void prepareRootTask(ModelContext rootContext, Task task, OperationResult result) throws SchemaException {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("prepareRootTask starting; task = " + task);
+        }
+
+        if (!task.isTransient()) {
+            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
+        }
+
+        if (task.getHandlerUri() != null) {
+            throw new IllegalStateException("Workflow-related task should have no handler URI at this moment; task = " + task + ", existing handler URI = " + task.getHandlerUri());
+        }
+
+        if (rootContext != null) {
+
+            task.pushHandlerUri(ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, null, null);
+            task.pushHandlerUri(WfRootTaskHandler.HANDLER_URI, null, null);
+            try {
+                wfTaskUtil.storeModelContext(task, rootContext, result);
+            } catch (SchemaException e) {
+                throw new SchemaException("Couldn't put model context into root workflow task " + task, e);
+            }
+        }
+
+        try {
+            task.waitForSubtasks(null, result);
+        } catch (ObjectNotFoundException e) {
+            throw new SystemException("Couldn't mark the task as waiting for subtasks: " + e, e);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Couldn't mark the task as waiting for subtasks: " + e, e);
+        }
+        taskManager.switchToBackground(task, result);
+
+    }
+
+
 
     /**
      * Starts a process instance in WfMS.
@@ -112,13 +186,6 @@ public class WfCore {
     private void startProcessInstance(StartProcessInstruction startInstruction, ProcessWrapper wrapper, Task task, ModelContext context,
                                       OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(" === startProcessInstance starting ===");
-        }
-
-        if (!task.isTransient()) {
-            throw new IllegalStateException("Workflow-related task should be transient but this one is persistent; task = " + task);
-        }
 
         // first, create in-memory task instance
         if (startInstruction.isSimple()) {

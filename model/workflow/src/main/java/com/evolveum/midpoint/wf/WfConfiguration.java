@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.wf;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.init.RepositoryFactory;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
@@ -48,14 +50,11 @@ public class WfConfiguration {
 
     private boolean activitiSchemaUpdate;
 
-//    private String database;
     private String jdbcDriver;
     private String jdbcUrl;
     private String jdbcUser;
     private String jdbcPassword;
 
-//    private String hibernateDialect;
-//    private boolean databaseIsEmbedded;
     private int processCheckInterval;
     private String autoDeploymentFrom;
 
@@ -72,10 +71,18 @@ public class WfConfiguration {
         SqlRepositoryConfiguration sqlConfig = null;
         String defaultJdbcUrlPrefix = null;
         try {
-            SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) beanFactory.getBean("sqlRepositoryFactory");
-            sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
-            if (sqlConfig.isEmbedded()) {
-                defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+            RepositoryFactory repositoryFactory = (RepositoryFactory) beanFactory.getBean("repositoryFactory");
+            if (!(repositoryFactory.getFactory() instanceof SqlRepositoryFactory)) {    // it may be null as well
+                LOGGER.debug("SQL configuration cannot be found; Activiti database configuration (if any) will be taken from 'workflow' configuration section only");
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("repositoryFactory.getFactory() = " + repositoryFactory);
+                }
+            } else {
+                SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) repositoryFactory.getFactory();
+                sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
+                if (sqlConfig.isEmbedded()) {
+                    defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+                }
             }
         } catch(NoSuchBeanDefinitionException e) {
             LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");
@@ -126,18 +133,6 @@ public class WfConfiguration {
             throw new SystemException(message);
         }
     }
-
-//    private void mustBeTrue(boolean condition, String message) {
-//        if (!condition) {
-//            throw new SystemException(message);
-//        }
-//    }
-//
-//    private void mustBeFalse(boolean condition, String message) {
-//        if (condition) {
-//            throw new SystemException(message);
-//        }
-//    }
 
     public boolean isActivitiSchemaUpdate() {
         return activitiSchemaUpdate;

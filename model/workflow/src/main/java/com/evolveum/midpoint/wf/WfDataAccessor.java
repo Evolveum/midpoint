@@ -508,8 +508,8 @@ public class WfDataAccessor {
             try {
                 Map<String,Object> variables = getProcessVariables(task.getId(), result);
                 ((WorkItemDetailed) wi).setRequester((PrismObject<UserType>) variables.get(WfConstants.VARIABLE_MIDPOINT_REQUESTER));
-                ((WorkItemDetailed) wi).setObjectOld((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD));
-                ((WorkItemDetailed) wi).setObjectNew((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW));
+                ((WorkItemDetailed) wi).setObjectOld((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_BEFORE));
+                ((WorkItemDetailed) wi).setObjectNew((PrismObject<ObjectType>) variables.get(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER));
                 ((WorkItemDetailed) wi).setRequestCommonData(getRequestCommon(task, result));
                 ((WorkItemDetailed) wi).setRequestSpecificData(getRequestSpecific(task, variables, result));
                 ((WorkItemDetailed) wi).setTrackingData(getTrackingData(task, variables, result));

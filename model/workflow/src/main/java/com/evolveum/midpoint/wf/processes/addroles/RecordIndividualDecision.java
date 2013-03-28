@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -51,9 +50,9 @@ public class RecordIndividualDecision implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        AssignmentToApprove assignmentToApprove = (AssignmentToApprove) execution.getVariable(AddRolesProcessWrapper.ASSIGNMENT_TO_APPROVE);
+        AssignmentToApprove assignmentToApprove = (AssignmentToApprove) execution.getVariable(AddRoleAssignmentWrapper.ASSIGNMENT_TO_APPROVE);
         Boolean yesOrNo = (Boolean) execution.getVariable(WfConstants.FORM_FIELD_DECISION);
-        String comment = (String) execution.getVariable(AddRolesProcessWrapper.FORM_FIELD_COMMENT);
+        String comment = (String) execution.getVariable(AddRoleAssignmentWrapper.FORM_FIELD_COMMENT);
 
         Decision decision = new Decision();
 
@@ -72,17 +71,17 @@ public class RecordIndividualDecision implements JavaDelegate {
         decision.setComment(comment == null ? "" : comment);
         decision.setAssignmentToApprove(assignmentToApprove);
         decision.setDate(new Date());
-        DecisionList decisionList = (DecisionList) execution.getVariable(AddRolesProcessWrapper.DECISION_LIST);
+        DecisionList decisionList = (DecisionList) execution.getVariable(AddRoleAssignmentWrapper.DECISION_LIST);
         decisionList.addDecision(decision);
-        execution.setVariable(AddRolesProcessWrapper.DECISION_LIST, decisionList);
+        execution.setVariable(AddRoleAssignmentWrapper.DECISION_LIST, decisionList);
 
-        List<Decision> allDecisions = (List<Decision>) execution.getVariable(AddRolesProcessWrapper.ALL_DECISIONS);
+        List<Decision> allDecisions = (List<Decision>) execution.getVariable(AddRoleAssignmentWrapper.ALL_DECISIONS);
         allDecisions.add(decision);
-        execution.setVariable(AddRolesProcessWrapper.ALL_DECISIONS, allDecisions);
+        execution.setVariable(AddRoleAssignmentWrapper.ALL_DECISIONS, allDecisions);
 
         // here we carry out level evaluation strategy
 
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRolesProcessWrapper.LEVEL);
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRoleAssignmentWrapper.LEVEL);
         if (level == null) {
             throw new SystemException("Process variable 'level' is not present; execution = " + execution);
         }
@@ -90,14 +89,14 @@ public class RecordIndividualDecision implements JavaDelegate {
 
         if (levelEvaluationStrategyType == LevelEvaluationStrategyType.FIRST_DECIDES) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Setting " + AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level evaluation strategy is 'firstDecides'.");
+                LOGGER.trace("Setting " + AddRoleAssignmentWrapper.LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level evaluation strategy is 'firstDecides'.");
             }
-            execution.setVariable(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.TRUE);
+            execution.setVariable(AddRoleAssignmentWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.TRUE);
         } else if (levelEvaluationStrategyType == LevelEvaluationStrategyType.ALL_MUST_AGREE && !decision.isApproved()) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Setting " + AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level eval strategy is 'allMustApprove' and the decision was 'reject'.");
+                LOGGER.trace("Setting " + AddRoleAssignmentWrapper.LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level eval strategy is 'allMustApprove' and the decision was 'reject'.");
             }
-            execution.setVariable(AddRolesProcessWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.TRUE);
+            execution.setVariable(AddRoleAssignmentWrapper.LOOP_APPROVERS_IN_LEVEL_STOP, Boolean.TRUE);
         }
 
         if (LOGGER.isTraceEnabled()) {

@@ -22,10 +22,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class JobExecutor implements InterruptableJob {
 
 	private static TaskManagerQuartzImpl taskManagerImpl;
-	
-	/*
-	 * Ugly hack - this class is instantiated not by Spring but explicity by Quartz.
-	 */
+    private static final String DOT_CLASS = JobExecutor.class.getName();
+
+    /*
+     * Ugly hack - this class is instantiated not by Spring but explicity by Quartz.
+     */
 	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl tmqi) {
 		taskManagerImpl = tmqi;
 	}
@@ -404,29 +405,41 @@ mainCycle:
                 LOGGER.trace("Executing handler " + handler.getClass().getName());
             }
     		runResult = handler.run(task);
-    		if (runResult == null) {
-				// Obviously an error in task handler
-				LOGGER.error("Unable to record run finish: task returned null result");
-				runResult = new TaskRunResult();
-				OperationResult dummyResult = createOperationResult("error");
-				dummyResult.recordFatalError("Unable to record run finish: task returned null result");
-				runResult.setOperationResult(dummyResult);
-				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			}
-    		return runResult;
+    		if (runResult == null) {				// Obviously an error in task handler
+                LOGGER.error("Unable to record run finish: task returned null result");
+				return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+			} else {
+    		    return runResult;
+            }
     	} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
-			runResult = new TaskRunResult();
-			OperationResult dummyResult = createOperationResult("error");
-			dummyResult.recordFatalError("Task handler threw unexpected exception: "+t.getMessage(),t);
-			runResult.setOperationResult(dummyResult);
-			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-			return runResult;
+			LOGGER.error("Task handler threw unexpected exception: {}: {}", new Object[] { t.getClass().getName(), t.getMessage(), t});
+            return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
     	}
 	}
 
-	private OperationResult createOperationResult(String methodName) {
-		return new OperationResult(JobExecutor.class.getName() + "." + methodName);
+    private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
+        TaskRunResult runResult = new TaskRunResult();
+        OperationResult mainResult, currentResult;
+        if (task.getResult() != null) {
+            mainResult = task.getResult();
+            currentResult = mainResult.createSubresult(DOT_CLASS + "executeHandler");
+        } else {
+            mainResult = createOperationResult("executeHandler");
+            currentResult = mainResult;
+        }
+        if (t != null) {
+            currentResult.recordFatalError(message, t);
+        } else {
+            currentResult.recordFatalError(message);
+        }
+        runResult.setOperationResult(mainResult);
+        runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+        return runResult;
+    }
+
+
+    private OperationResult createOperationResult(String methodName) {
+		return new OperationResult(DOT_CLASS + methodName);
 	}
 	
 	private void logRunStart() {

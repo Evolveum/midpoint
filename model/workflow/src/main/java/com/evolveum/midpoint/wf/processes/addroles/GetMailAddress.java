@@ -30,7 +30,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.IdmExecutionListener;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -38,10 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Date;
 
 /**
  * @author mederly
@@ -61,10 +56,10 @@ public class GetMailAddress implements JavaDelegate {
 //            LOGGER.info(" - " + v);
 //        }
 
-        RoleType role = (RoleType) execution.getVariable(AddRolesProcessWrapper.ROLE);
+        RoleType role = (RoleType) execution.getVariable(AddRoleAssignmentWrapper.ROLE);
         String mail = getMail(execution, role);
         LOGGER.info("Approver's mail for role " + role + " is " + mail);
-        execution.setVariableLocal(AddRolesProcessWrapper.APPROVER_MAIL_ADDRESS, mail);
+        execution.setVariableLocal(AddRoleAssignmentWrapper.APPROVER_MAIL_ADDRESS, mail);
     }
 
     private String getMail(DelegateExecution execution, RoleType role) {

@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.api;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -570,4 +571,7 @@ public interface Task extends Dumpable {
     void finishHandler(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
 
+    List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException;
+
+    List<Task> listSubtasks(OperationResult parentResult) throws SchemaException;
 }

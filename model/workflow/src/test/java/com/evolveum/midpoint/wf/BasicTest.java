@@ -27,12 +27,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
-import com.evolveum.midpoint.wf.processes.StartProcessInstruction;
 import com.evolveum.midpoint.wf.processes.addroles.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.*;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -132,7 +129,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 
         variableMap.put(WfConstants.VARIABLE_PROCESS_NAME, "Adding some roles to a user");
         variableMap.put(WfConstants.VARIABLE_START_TIME, new Date());
-        variableMap.put(AddRolesProcessWrapper.USER_NAME, "jack");
+        variableMap.put(AddRoleAssignmentWrapper.USER_NAME, "jack");
 
         List<AssignmentToApprove> assignmentToApproveList = new ArrayList<AssignmentToApprove>();
         assignmentToApproveList.add(createAssignmentToApprove("1", result));
@@ -141,20 +138,20 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 
         LOGGER.info("AssignmentsToApprove = " + assignmentToApproveList);
 
-        variableMap.put(AddRolesProcessWrapper.ASSIGNMENTS_TO_APPROVE, assignmentToApproveList);
-        variableMap.put(AddRolesProcessWrapper.ASSIGNMENTS_APPROVALS, new AssignmentsApprovals());
-        variableMap.put(AddRolesProcessWrapper.ALL_DECISIONS, new ArrayList<Decision>());
+        variableMap.put(AddRoleAssignmentWrapper.ASSIGNMENTS_TO_APPROVE, assignmentToApproveList);
+        variableMap.put(AddRoleAssignmentWrapper.ASSIGNMENTS_APPROVALS, new AssignmentsApprovals());
+        variableMap.put(AddRoleAssignmentWrapper.ALL_DECISIONS, new ArrayList<Decision>());
         variableMap.put(WfConstants.VARIABLE_UTIL, new ActivitiUtil());
 
 //        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_OID, objectOid);
-//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_OLD, fc.getObjectOld());
-//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_NEW, fc.getObjectNew());
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_BEFORE, fc.getObjectOld());
+//        variableMap.put(WfConstants.VARIABLE_MIDPOINT_OBJECT_AFTER, fc.getObjectNew());
 //        //spi.addProcessVariable(WfConstants.VARIABLE_MIDPOINT_DELTA, change);
 //        variableMap.put(WfConstants.VARIABLE_MIDPOINT_REQUESTER, requester);
 //        variableMap.put(WfConstants.VARIABLE_MIDPOINT_REQUESTER_OID, task.getOwner().getOid());
         variableMap.put(WfConstants.VARIABLE_MIDPOINT_ADDITIONAL_DATA, "@role");
 
-        ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey(AddRolesProcessWrapper.ADD_ROLE_PROCESS, variableMap);
+        ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey(AddRoleAssignmentWrapper.ADD_ROLE_PROCESS, variableMap);
         assertNotNull(processInstance.getId());
         System.out.println("test010: id " + processInstance.getId() + " " + processInstance.getProcessDefinitionId());
 
@@ -181,7 +178,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
                 .list();
         for (HistoricDetail historicDetail : historicVariableUpdateList) {
             HistoricVariableUpdate historicVariableUpdate = (HistoricVariableUpdate) historicDetail;
-            if(AddRolesProcessWrapper.ALL_DECISIONS.equals(historicVariableUpdate.getVariableName())) {
+            if(AddRoleAssignmentWrapper.ALL_DECISIONS.equals(historicVariableUpdate.getVariableName())) {
                 decisionListTested = true;
                 List<Decision> decisionList = (List<Decision>) historicVariableUpdate.getValue();
                 assertEquals("There are not 3 answers", 3, decisionList.size());
@@ -237,7 +234,7 @@ public class BasicTest extends AbstractTestNGSpringContextTests {
 
         Map<String,String> outputItems = new HashMap<String,String>();
         outputItems.put(WfConstants.FORM_FIELD_DECISION, decision);
-        outputItems.put(AddRolesProcessWrapper.FORM_FIELD_COMMENT, comment);
+        outputItems.put(AddRoleAssignmentWrapper.FORM_FIELD_COMMENT, comment);
         processEngine.getFormService().submitTaskFormData(task.getId(), outputItems);
     }
 

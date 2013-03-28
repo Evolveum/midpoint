@@ -33,20 +33,20 @@ public class RecordAssignmentApproval implements JavaDelegate {
 
     public void execute(DelegateExecution execution) {
 
-        if (!execution.hasVariable(AddRolesProcessWrapper.ASSIGNMENTS_APPROVALS)) {
-            throw new SystemException("Process variable " + AddRolesProcessWrapper.ASSIGNMENTS_APPROVALS + " does not exist.");
+        if (!execution.hasVariable(AddRoleAssignmentWrapper.ASSIGNMENTS_APPROVALS)) {
+            throw new SystemException("Process variable " + AddRoleAssignmentWrapper.ASSIGNMENTS_APPROVALS + " does not exist.");
         }
 
-        AssignmentsApprovals result = (AssignmentsApprovals) execution.getVariable(AddRolesProcessWrapper.ASSIGNMENTS_APPROVALS);
+        AssignmentsApprovals result = (AssignmentsApprovals) execution.getVariable(AddRoleAssignmentWrapper.ASSIGNMENTS_APPROVALS);
 
-        AssignmentToApprove assignmentToApprove = (AssignmentToApprove) execution.getVariable(AddRolesProcessWrapper.ASSIGNMENT_TO_APPROVE);
-        Boolean approved = !((Boolean) execution.getVariable(AddRolesProcessWrapper.LOOP_LEVELS_STOP));
+        AssignmentToApprove assignmentToApprove = (AssignmentToApprove) execution.getVariable(AddRoleAssignmentWrapper.ASSIGNMENT_TO_APPROVE);
+        Boolean approved = !((Boolean) execution.getVariable(AddRoleAssignmentWrapper.LOOP_LEVELS_STOP));
         result.addResult(assignmentToApprove.getAssignment(), approved);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Resulting AA = " + result);
         }
-        execution.setVariable(AddRolesProcessWrapper.ASSIGNMENTS_APPROVALS, result);
+        execution.setVariable(AddRoleAssignmentWrapper.ASSIGNMENTS_APPROVALS, result);
     }
 
 }

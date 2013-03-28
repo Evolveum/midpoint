@@ -64,7 +64,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
             LOGGER.info("Repository factory class name from configuration '{}'.", new Object[]{className});
 
             Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(className);
-            factory = getFactory(clazz);
+            factory = getFactoryBean(clazz);
             factory.init(config);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to " +
@@ -86,7 +86,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
         return className;
     }
 
-    private RepositoryServiceFactory getFactory(Class<RepositoryServiceFactory> clazz) throws
+    private RepositoryServiceFactory getFactoryBean(Class<RepositoryServiceFactory> clazz) throws
             RepositoryServiceFactoryException {
         LOGGER.info("Getting factory bean '{}'", new Object[]{clazz.getName()});
         return applicationContext.getBean(clazz);
@@ -125,11 +125,15 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
         return repositoryService;
     }
 
+    public RepositoryServiceFactory getFactory() {
+        return factory;
+    }
+
     public synchronized RepositoryService getCacheRepositoryService() {
         if (cacheRepositoryService == null) {
             try {
                 Class<RepositoryServiceFactory> clazz = (Class<RepositoryServiceFactory>) Class.forName(REPOSITORY_FACTORY_CACHE_CLASS);
-                cacheFactory = getFactory(clazz);
+                cacheFactory = getFactoryBean(clazz);
                 //TODO decompose this dependency, remove class casting !!!
                 RepositoryCache repositoryCache = (RepositoryCache) cacheFactory.getRepositoryService();
                 repositoryCache.setRepository(getRepositoryService());

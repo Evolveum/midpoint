@@ -24,6 +24,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
@@ -380,6 +381,18 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:element name="modelContext" type="tns:LensContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
 

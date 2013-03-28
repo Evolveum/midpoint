@@ -27,14 +27,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Date;
 
 /**
  * Created with IntelliJ IDEA.
@@ -50,7 +45,7 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
     public void execute(DelegateExecution execution) {
 
         DecisionList decisionList = (DecisionList) execution.getVariable(WfConstants.VARIABLE_DECISION_LIST);
-        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRolesProcessWrapper.LEVEL);
+        ApprovalLevelType level = (ApprovalLevelType) execution.getVariable(AddRoleAssignmentWrapper.LEVEL);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("****************************************** Summarizing decisions in level " + level.getName() + " (level evaluation strategy = " + level.getEvaluationStrategy() + "): ");
@@ -75,6 +70,6 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("approved at this level = " + approved);
         }
-        execution.setVariable(AddRolesProcessWrapper.LOOP_LEVELS_STOP, !approved);
+        execution.setVariable(AddRoleAssignmentWrapper.LOOP_LEVELS_STOP, !approved);
     }
 }

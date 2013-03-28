@@ -24,16 +24,20 @@ package com.evolveum.midpoint.wf.processes;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 11.5.2012
- * Time: 15:11
- * To change this template use File | Settings | File Templates.
+ * A generic instruction to start a workflow process.
+ * May be subclassed in order to add further information.
+ *
+ * @author mederly
  */
-public class StartProcessInstruction {
+public class StartProcessInstruction implements DebugDumpable {
 
     private Map<String,Object> processVariables = new HashMap<String,Object>();
     private String processName;
@@ -73,7 +77,38 @@ public class StartProcessInstruction {
     }
 
     public String toString() {
-        return "ProcessStartCommand: processName = " + processName + ", simple: " + simple + ", variables: " + processVariables;
+        return "StartProcessInstruction: processName = " + processName + ", simple: " + simple + ", variables: " + processVariables;
     }
 
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("StartProcessInstruction: process: " + processName + " (simple: " + simple + "), task = " + taskName + "\n");
+
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Process variables:\n");
+
+        for (Map.Entry<String, Object> entry : processVariables.entrySet()) {
+            DebugUtil.indentDebugDump(sb, indent);
+            sb.append(" - " + entry.getKey() + " = ");
+            Object value = entry.getValue();
+            if (value instanceof DebugDumpable) {
+                sb.append("\n" + ((DebugDumpable) value).debugDump(indent+1));
+            } else if (value instanceof Dumpable) {
+                sb.append("\n" + ((Dumpable) value).dump());
+            } else {
+                sb.append(value != null ? value.toString() : "null");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+
+    }
 }

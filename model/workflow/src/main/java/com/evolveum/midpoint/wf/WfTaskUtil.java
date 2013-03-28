@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -92,16 +93,14 @@ public class WfTaskUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
 
-	public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
-//	public static final String WORKFLOW_COMMUNICATION_NS = "http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd";
+    public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
 
     // wfModelContext - records current model context (i.e. context of current model operation)
 
-    public static final QName WFMODEL_CONTEXT_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfModelContext");
     private PrismPropertyDefinition wfModelContextPropertyDefinition;
 
     // wfStatus - records information about process execution at WfMS
-    // for "smart" processes it is a user-defined message; for dump ones it is usually simple "process instance has proceeded forther"
+    // for "smart" processes it is a user-defined message; for dump ones it is usually simple "process instance has proceeded further"
 
     private static final boolean USE_WFSTATUS = true;
 	public static final QName WFSTATUS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfStatus");
@@ -113,7 +112,7 @@ public class WfTaskUtil {
     public static final QName WFLAST_DETAILS_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastDetails");
     private PrismPropertyDefinition wfLastDetailsPropertyDefinition;
 
-	// wfLastEvent - stores last event received from WfMS
+	// wfLastVariables - stores dump of lastly received process instance variables
 
 	public static final QName WFLASTVARIABLES_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "wfLastVariables");
 	private PrismPropertyDefinition wfLastVariablesPropertyDefinition;
@@ -132,32 +131,26 @@ public class WfTaskUtil {
     @PostConstruct
     public void prepareDefinitions() {
 
-//        try {
-//            prismContext.getSchemaRegistry().loadPrismSchemaResource("schema/workflows-in-task.xsd");
-//        } catch (SchemaException e) {
-//            throw new SystemException("Cannot load workflow-related task extensions due schema exception", e);
-//        }
-
         if (!workflowManager.isEnabled()) {
             return;
         }
 
-        wfModelContextPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFMODEL_CONTEXT_PROPERTY_NAME);
+        wfModelContextPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY);
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFSTATUS_PROPERTY_NAME);
         wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLAST_DETAILS_PROPERTY_NAME);
         wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFLASTVARIABLES_PROPERTY_NAME);
 		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESS_WRAPPER_PROPERTY_NAME);
 		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFPROCESSID_PROPERTY_NAME);
 
-        if (wfLastVariablesPropertyDefinition == null) {
-            throw new SystemException("wfLastVariables property definition was not found");
-        }
+        Validate.notNull(wfModelContextPropertyDefinition, ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY + " definition was not found");
+        Validate.notNull(wfStatusPropertyDefinition, WFSTATUS_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfLastDetailsPropertyDefinition, WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfLastVariablesPropertyDefinition, WFLASTVARIABLES_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfProcessWrapperPropertyDefinition, WFPROCESS_WRAPPER_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfProcessIdPropertyDefinition, WFPROCESSID_PROPERTY_NAME + " definition was not found");
+
         if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
             throw new SystemException("wfLastVariables property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastVariablesPropertyDefinition.isIndexed() + ")");
-        }
-
-        if (wfLastDetailsPropertyDefinition == null) {
-            throw new SystemException("wfLastDetails property definition was not found");
         }
         if (wfLastDetailsPropertyDefinition.isIndexed() != Boolean.FALSE) {
             throw new SystemException("wfLastDetails property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastDetailsPropertyDefinition.isIndexed() + ")");
@@ -171,8 +164,6 @@ public class WfTaskUtil {
 	 */
 	void prepareActiveTask(Task t, PolyStringType taskName, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-//		// shutdown the task if it is already running (i.e. a run from previous phase)
-//		t.shutdown();
 
         if (t.getName() == null || t.getName().toPolyString().isEmpty()) {
 		    t.setName(taskName);
@@ -495,8 +486,8 @@ public class WfTaskUtil {
 		StringBuffer sb = new StringBuffer();
 		boolean first = true;
 		
-		if (event.getAnswer() != null)
-			sb.append("[answer from workflow: " + event.getAnswer() + "] ");
+//		if (event.getAnswer() != null)
+//			sb.append("[answer from workflow: " + event.getAnswer() + "] ");
 		
 		Map<String,Object> variables = getVariablesSorted(event);
 //		for (WfProcessVariable var : event.getVariables())
@@ -630,7 +621,7 @@ public class WfTaskUtil {
 //    }
 
     public ModelContext getModelContext(Task task, OperationResult result) throws SchemaException {
-        PrismProperty modelContextProperty = task.getExtension(WFMODEL_CONTEXT_PROPERTY_NAME);
+        PrismProperty modelContextProperty = task.getExtension(ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY);
         if (modelContextProperty == null || modelContextProperty.getRealValue() == null) {
             throw new SystemException("No model context information in task " + task);
         }

@@ -352,6 +352,10 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 	}
 
+    public void resetValuesToAdd() {
+        valuesToAdd = null;
+    }
+
 	public void setValuesToReplace(Collection<V> newValues) {
 		if (valuesToAdd != null) {
 			throw new IllegalStateException("Delta " + this
