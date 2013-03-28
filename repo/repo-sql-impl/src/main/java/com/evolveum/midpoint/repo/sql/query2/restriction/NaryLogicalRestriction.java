@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryInterpreter;
@@ -68,14 +67,15 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         }
     }
 
-    protected Junction updateJunction(List<? extends ObjectFilter> conditions, Junction junction,
-                                      ObjectQuery query, QueryContext context) throws QueryException {
+    protected Junction updateJunction(List<? extends ObjectFilter> conditions, Junction junction)
+            throws QueryException {
 
+        QueryContext context = getContext();
         QueryInterpreter interpreter = context.getInterpreter();
 
         for (ObjectFilter condition : conditions) {
-            Restriction restriction = interpreter.findAndCreateRestriction(condition, context);
-            Criterion criterion = restriction.interpret(condition, query, context, this);
+            Restriction restriction = interpreter.findAndCreateRestriction(condition, context, this, getQuery());
+            Criterion criterion = restriction.interpret(condition);
             junction.add(criterion);
         }
 

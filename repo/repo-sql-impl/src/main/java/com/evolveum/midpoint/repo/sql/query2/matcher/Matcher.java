@@ -19,35 +19,17 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.query2.restriction;
+package com.evolveum.midpoint.repo.sql.query2.matcher;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext;
+import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
 
 /**
  * @author lazyman
  */
-public class OrgRestriction extends Restriction<OrgFilter> {
+public interface Matcher<T> {
 
-    @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
-        if (filter instanceof OrgFilter) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Criterion interpret(OrgFilter filter) throws QueryException {
-        //todo implement
-        return null;
-    }
-
-    @Override
-    public OrgRestriction cloneInstance() {
-        return new OrgRestriction();
-    }
+    Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+            throws QueryException;
 }

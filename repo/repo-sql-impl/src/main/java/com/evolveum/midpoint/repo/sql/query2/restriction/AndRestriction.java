@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import org.hibernate.criterion.Conjunction;
@@ -45,13 +44,10 @@ public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
     }
 
     @Override
-    public Criterion interpret(AndFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
-            throws QueryException {
-
+    public Criterion interpret(AndFilter filter) throws QueryException {
         validateFilter(filter);
-
         Conjunction conjunction = Restrictions.conjunction();
-        updateJunction(filter.getCondition(), conjunction, query, context);
+        updateJunction(filter.getCondition(), conjunction);
 
         return conjunction;
     }

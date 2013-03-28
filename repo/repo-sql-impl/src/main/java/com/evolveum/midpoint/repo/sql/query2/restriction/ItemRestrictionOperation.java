@@ -21,33 +21,10 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.QueryContext;
-import org.hibernate.criterion.Criterion;
-
 /**
  * @author lazyman
  */
-public class OrgRestriction extends Restriction<OrgFilter> {
+public enum ItemRestrictionOperation {
 
-    @Override
-    public boolean canHandle(ObjectFilter filter, QueryContext context) {
-        if (filter instanceof OrgFilter) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Criterion interpret(OrgFilter filter) throws QueryException {
-        //todo implement
-        return null;
-    }
-
-    @Override
-    public OrgRestriction cloneInstance() {
-        return new OrgRestriction();
-    }
+    EQ, GT, GE, LT, LE, NULL, NOT_NULL, SUBSTRING;
 }

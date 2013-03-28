@@ -23,7 +23,6 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import org.hibernate.criterion.Criterion;
@@ -45,12 +44,9 @@ public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
 
 
     @Override
-    public Criterion interpret(NotFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
-            throws QueryException {
-
+    public Criterion interpret(NotFilter filter) throws QueryException {
         validateFilter(filter);
-
-        Criterion criterion = interpretChildFilter(filter.getFilter(), query, context);
+        Criterion criterion = interpretChildFilter(filter.getFilter());
 
         return Restrictions.not(criterion);
     }

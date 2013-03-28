@@ -40,15 +40,42 @@ import java.util.List;
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
-    public abstract Criterion interpret(T filter, ObjectQuery query, QueryContext context, Restriction parent)
-            throws QueryException;
+    private QueryContext context;
+    private Restriction parent;
+    private ObjectQuery query;
+
+    public QueryContext getContext() {
+        return context;
+    }
+
+    public void setContext(QueryContext context) {
+        this.context = context;
+    }
+
+    public Restriction getParent() {
+        return parent;
+    }
+
+    public void setParent(Restriction parent) {
+        this.parent = parent;
+    }
+
+    public ObjectQuery getQuery() {
+        return query;
+    }
+
+    public void setQuery(ObjectQuery query) {
+        this.query = query;
+    }
+
+    public abstract Criterion interpret(T filter) throws QueryException;
 
     public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
 
     /**
      * This method creates full {@link ItemPath} from {@link ValueFilter} created from
      * main item path and last element, which is now definition.
-     *
+     * <p/>
      * Will be deleted after query api update (that will be after query v2 interpreter release)
      *
      * @param filter

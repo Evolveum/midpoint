@@ -23,12 +23,10 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry;
-import com.evolveum.midpoint.repo.sql.query2.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query2.definition.PropertyDefinition;
 import org.hibernate.criterion.Criterion;
 
@@ -54,7 +52,7 @@ public class PropertyRestriction<T extends ValueFilter> extends ItemRestriction<
     }
 
     @Override
-    public Criterion interpretInternal(T filter, ObjectQuery query, QueryContext context, Restriction parent)
+    public Criterion interpretInternal(T filter)
             throws QueryException {
         //todo implement
 

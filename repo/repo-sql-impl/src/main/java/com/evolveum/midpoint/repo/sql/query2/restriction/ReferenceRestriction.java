@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -55,8 +54,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     }
 
     @Override
-    public Criterion interpretInternal(RefFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
-            throws QueryException {
+    public Criterion interpretInternal(RefFilter filter) throws QueryException {
         //todo implement
 
         List<? extends PrismValue> values = filter.getValues();
@@ -69,7 +67,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
             throw new QueryException("Ref filter '" + filter + "' doesn't contain reference value.");
         }
 
-        String prefix = createPropertyNamePrefix(filter, context);
+        String prefix = createPropertyNamePrefix(filter);
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(handleEqOrNull(prefix + ObjectReference.F_TARGET_OID, refValue.getOid()));
@@ -94,7 +92,9 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         return new ReferenceRestriction();
     }
 
-    private String createPropertyNamePrefix(RefFilter filter, QueryContext context) throws QueryException {
+    private String createPropertyNamePrefix(RefFilter filter) throws QueryException {
+        QueryContext context = getContext();
+
         StringBuilder sb = new StringBuilder();
         String alias = context.getAlias(filter.getParentPath());
         if (StringUtils.isNotEmpty(alias)) {

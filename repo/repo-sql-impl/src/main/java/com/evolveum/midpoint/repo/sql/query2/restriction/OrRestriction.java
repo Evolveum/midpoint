@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
@@ -45,13 +44,13 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
     }
 
     @Override
-    public Criterion interpret(OrFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
+    public Criterion interpret(OrFilter filter)
             throws QueryException {
 
         validateFilter(filter);
 
         Disjunction disjunction = Restrictions.disjunction();
-        updateJunction(filter.getCondition(), disjunction, query, context);
+        updateJunction(filter.getCondition(), disjunction);
 
         return disjunction;
     }

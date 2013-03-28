@@ -22,13 +22,12 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyConverter;
@@ -81,8 +80,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     }
 
     @Override
-    public Criterion interpretInternal(ValueFilter filter, ObjectQuery query, QueryContext context, Restriction parent)
-            throws QueryException {
+    public Criterion interpretInternal(ValueFilter filter) throws QueryException {
 
         ItemDefinition itemDefinition = filter.getDefinition();
         QName name = itemDefinition.getName();
@@ -93,21 +91,38 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ItemPath anyItemPath = createAnyItemPath(filter.getParentPath(), filter.getDefinition());
-        if (!context.hasAlias(anyItemPath)) {
+        if (!getContext().hasAlias(anyItemPath)) {
             QName anyTypeName = ((NameItemPathSegment) anyItemPath.last()).getName();
             LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",
                     new Object[]{anyTypeName.getLocalPart()});
-            addNewCriteriaToContext(anyItemPath, anyTypeName.getLocalPart(), context);
+            addNewCriteriaToContext(anyItemPath, anyTypeName.getLocalPart());
         }
-        String propertyNamePrefix = context.getAlias(anyItemPath) + '.';
+        String propertyNamePrefix = getContext().getAlias(anyItemPath) + '.';
 
         Conjunction conjunction = Restrictions.conjunction();
-        conjunction.add(createCriterion(Operation.EQ,
-                propertyNamePrefix + RAnyValue.F_VALUE, ((PrismPropertyValue)(((PropertyValueFilter) filter).getValues().get(0))).getValue()));       //todo implement properly
+        //todo implement properly
+
+        Object testedValue = getValue(((PropertyValueFilter) filter).getValues());
+        Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
+        conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, QNameType.optimizeQName(name)));
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_TYPE, QNameType.optimizeQName(type)));
 
         return conjunction;
+    }
+
+    private Object getValue(List<? extends PrismValue> values) {
+        if (values == null || values.isEmpty()) {
+            return null;
+        }
+
+        PrismValue val = values.get(0);
+        if (val instanceof PrismPropertyValue) {
+            PrismPropertyValue propertyValue = (PrismPropertyValue) val;
+            return propertyValue.getValue();
+        }
+
+        return null;
     }
 
     private ItemPath createAnyItemPath(ItemPath path, ItemDefinition itemDef) throws QueryException {

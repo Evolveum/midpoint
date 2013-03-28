@@ -22,9 +22,13 @@
 package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
+import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
+import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.restriction.Restriction;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -39,9 +43,7 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -50,10 +52,8 @@ public class QueryInterpreter {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreter.class);
     private static final Set<Restriction> AVAILABLE_RESTRICTIONS;
+    private static final Map<Class, Matcher> AVAILABLE_MATCHERS;
 
-    /**
-     * todo maybe we create mapping manually if this reflection stuff is too slow...
-     */
     static {
         Set<Restriction> restrictions = new HashSet<Restriction>();
 
@@ -89,6 +89,16 @@ public class QueryInterpreter {
         AVAILABLE_RESTRICTIONS = Collections.unmodifiableSet(restrictions);
     }
 
+    static {
+        Map<Class, Matcher> matchers = new HashMap<Class, Matcher>();
+        //default matcher with null key
+        matchers.put(null, new DefaultMatcher());
+        matchers.put(PolyString.class, new PolyStringMatcher());
+
+
+        AVAILABLE_MATCHERS = Collections.unmodifiableMap(matchers);
+    }
+
     public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type, PrismContext prismContext,
                               Session session) throws QueryException {
         Validate.notNull(query, "Object query must not be null.");
@@ -106,8 +116,8 @@ public class QueryInterpreter {
         try {
             QueryContext context = new QueryContext(this, type, prismContext, session);
 
-            Restriction restriction = findAndCreateRestriction(filter, context);
-            Criterion criterion = restriction.interpret(filter, query, context, null);
+            Restriction restriction = findAndCreateRestriction(filter, context, null, query);
+            Criterion criterion = restriction.interpret(filter);
 
             Criteria criteria = context.getCriteria(null);
             criteria.add(criterion);
@@ -121,11 +131,32 @@ public class QueryInterpreter {
         }
     }
 
-    public <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter, QueryContext context)
+    public <T extends Object> Matcher<T> findMatcher(T value) {
+        return findMatcher(value != null ? (Class<T>) value.getClass() : null);
+    }
+
+    public <T extends Object> Matcher<T> findMatcher(Class<T> type) {
+        Matcher<T> matcher = AVAILABLE_MATCHERS.get(type);
+        if (matcher == null) {
+            //we return default matcher
+            matcher = AVAILABLE_MATCHERS.get(null);
+        }
+
+        return matcher;
+    }
+
+    public <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter, QueryContext context,
+                                                                         Restriction parent, ObjectQuery query)
             throws QueryException {
+
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
             if (restriction.canHandle(filter, context)) {
-                return restriction.cloneInstance();
+                Restriction<T> res = restriction.cloneInstance();
+                res.setContext(context);
+                res.setParent(parent);
+                res.setQuery(query);
+
+                return res;
             }
         }
 
