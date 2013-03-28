@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -292,7 +294,10 @@ public class PageUsers extends PageAdminUsers {
                                      String componentId, IModel<SelectableBean<UserType>> rowModel) {
 
                 UserType user = rowModel.getObject().getValue();
-                int count = user.getAccountRef().size() + user.getAccount().size();
+
+                PrismObject<UserType> object = user.asPrismObject();
+                PrismReference accountRef = object.findReference(UserType.F_ACCOUNT_REF);
+                int count = accountRef != null ? accountRef.size() : 0;
 
                 cellItem.add(new Label(componentId, new Model<Integer>(count)));
             }
