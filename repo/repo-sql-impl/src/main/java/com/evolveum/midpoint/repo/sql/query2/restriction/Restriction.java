@@ -74,4 +74,7 @@ public abstract class Restriction<T extends ObjectFilter> {
 
         return new ItemPath(segments);
     }
+
+    // todo don't know if cloning is necessary.. [lazyman]
+    public abstract Restriction cloneInstance();
 }

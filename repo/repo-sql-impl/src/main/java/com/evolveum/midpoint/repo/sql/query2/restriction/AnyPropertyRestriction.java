@@ -72,4 +72,9 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         //todo implement
         return null;
     }
+
+    @Override
+    public AnyPropertyRestriction cloneInstance() {
+        return new AnyPropertyRestriction();
+    }
 }

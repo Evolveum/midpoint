@@ -54,4 +54,9 @@ public class NotRestriction extends UnaryLogicalRestriction<NotFilter> {
 
         return Restrictions.not(criterion);
     }
+
+    @Override
+    public NotRestriction cloneInstance() {
+        return new NotRestriction();
+    }
 }

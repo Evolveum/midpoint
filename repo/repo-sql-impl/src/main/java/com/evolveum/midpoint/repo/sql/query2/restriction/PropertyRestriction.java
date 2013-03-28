@@ -60,4 +60,9 @@ public class PropertyRestriction<T extends ValueFilter> extends ItemRestriction<
 
         return null;
     }
+
+    @Override
+    public PropertyRestriction cloneInstance() {
+        return new PropertyRestriction();
+    }
 }

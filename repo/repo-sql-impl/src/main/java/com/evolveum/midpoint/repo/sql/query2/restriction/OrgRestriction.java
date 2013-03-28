@@ -47,4 +47,9 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         //todo implement
         return null;
     }
+
+    @Override
+    public OrgRestriction cloneInstance() {
+        return new OrgRestriction();
+    }
 }

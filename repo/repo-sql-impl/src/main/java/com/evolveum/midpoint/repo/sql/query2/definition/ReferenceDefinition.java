@@ -39,7 +39,12 @@ public class ReferenceDefinition extends Definition {
     }
 
     void setEmbedded(boolean embedded) {
-        embedded = embedded;
+        this.embedded = embedded;
+    }
+
+    @Override
+    protected void toStringExtended(StringBuilder builder) {
+        builder.append(", embedded=").append(isEmbedded());
     }
 
     @Override

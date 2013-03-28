@@ -57,8 +57,8 @@ public class QueryContext {
         this.prismContext = prismContext;
         this.session = session;
 
-        addAlias(null);
-        addCriteria(null, session.createCriteria(ClassMapper.getHQLTypeClass(type)));
+        String alias = addAlias(null);
+        addCriteria(null, session.createCriteria(ClassMapper.getHQLTypeClass(type), alias));
     }
 
     public PrismContext getPrismContext() {

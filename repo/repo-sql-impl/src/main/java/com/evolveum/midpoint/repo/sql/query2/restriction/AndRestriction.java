@@ -30,8 +30,6 @@ import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
-import java.util.List;
-
 /**
  * @author lazyman
  */
@@ -52,14 +50,14 @@ public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
 
         validateFilter(filter);
 
-        List<ObjectFilter> conditions = filter.getCondition();
-        if (conditions.size() == 1) {
-            return interpretChildFilter(conditions.get(0), query, context);
-        }
-
         Conjunction conjunction = Restrictions.conjunction();
         updateJunction(filter.getCondition(), conjunction, query, context);
 
         return conjunction;
+    }
+
+    @Override
+    public AndRestriction cloneInstance() {
+        return new AndRestriction();
     }
 }

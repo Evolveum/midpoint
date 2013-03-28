@@ -125,7 +125,7 @@ public class QueryInterpreter {
             throws QueryException {
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
             if (restriction.canHandle(filter, context)) {
-                return restriction;
+                return restriction.cloneInstance();
             }
         }
 
