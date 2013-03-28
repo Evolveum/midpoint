@@ -2020,7 +2020,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	private void assertDummyScriptsAdd() {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
 				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
-		script.addArgSingle("size", "3");
+		script.addArgSingle("size", "after add");
 		script.setLanguage("Logo");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
 	}

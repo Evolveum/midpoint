@@ -319,12 +319,14 @@
 			<host>resource</host>
 			<language>Logo</language>
 			<argument>
-<!-- 				<script>
+<!-- 			<path>$user/name</path> -->
+				<script>
 					<code>
-						user.getName().length()
+					'after' + ' add'
 					</code>
-				</script>  see MID-1194 -->
-				<value>3</value>
+				</script> 
+<!-- 				 see MID-1194 -->
+<!-- 				<value>3</value> -->
 				<name>size</name>
 			</argument>
 			<code>
