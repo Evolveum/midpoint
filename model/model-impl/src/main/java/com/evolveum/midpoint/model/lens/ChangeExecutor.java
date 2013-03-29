@@ -262,7 +262,7 @@ public class ChangeExecutor {
 			result.recordHandledError(e);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			result.recordHandledError(e);
+			result.recordFatalError(e);
 			throw e;
 		} catch (RuntimeException e) {
 			result.recordFatalError(e);
