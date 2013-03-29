@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -277,7 +278,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -697,7 +698,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd();
+        // The user is not associated with the account
+        assertDummyScriptsAdd(null, accountModel, resourceDummyType);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -932,7 +934,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1002,7 +1004,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, 
         		"Queen Anne's Revenge");
         
-        assertDummyScriptsModify();
+        assertDummyScriptsModify(userJack);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1107,7 +1109,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1345,7 +1347,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         IntegrationTestTools.assertSuccess("executeChanges result", result);
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1467,7 +1469,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "smell");
         assertNull("Unexpected loot", dummyAccount.getAttributeValue("loot", Integer.class));
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userJack, accountModel, resourceDummyType);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1565,7 +1567,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountAttribute(null, USER_JACK_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "q");
         //assertEquals("Missing or incorrect attribute value", "soda", dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, String.class));
 
-        assertDummyScriptsModify();
+        assertDummyScriptsModify(userJack);
         
 //        // Check audit
 //        display("Audit", dummyAuditService);
@@ -1614,7 +1616,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
-        assertDummyScriptsModify();
+        assertDummyScriptsModify(userJack);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1663,7 +1665,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
         
-        assertDummyScriptsModify();
+        assertDummyScriptsModify(userJack);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1849,7 +1851,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         DummyAccount dummyAccount = getDummyAccount(null, "blackbeard");
         assertEquals("Wrong loot", (Integer)10000, dummyAccount.getAttributeValue("loot", Integer.class));
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userBlackbeard, accountModel, resourceDummyType);
         
         // Check audit        
         display("Audit", dummyAuditService);
@@ -1906,7 +1908,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDummyAccount("morgan", "Sir Henry Morgan", true);
         
-        assertDummyScriptsAdd();
+        assertDummyScriptsAdd(userMorgan, accountModel, resourceDummyType);
         
      // Check audit
         display("Audit", dummyAuditService);
@@ -2017,18 +2019,44 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		}
 	}
 
-	private void assertDummyScriptsAdd() {
+	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ResourceObjectShadowType> account, ResourceType resource) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
 				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
-		script.addArgSingle("size", "after add");
+		
+		String userName = null;
+		if (user != null) {
+			userName = user.asObjectable().getName().getOrig();
+		}
+		script.addArgSingle("usr", "user: "+userName);
+		
+		// Note: We cannot test for account name as name is only assigned in provisioning
+		String accountEnabled = null;
+		if (account != null && account.asObjectable().getActivation() != null 
+				&& account.asObjectable().getActivation().isEnabled() != null) {
+			accountEnabled = account.asObjectable().getActivation().isEnabled().toString();
+		}
+		script.addArgSingle("acc", "account: "+accountEnabled);
+
+		String resourceName = null;
+		if (resource != null) {
+			resourceName = resource.getName().getOrig();
+		}
+		script.addArgSingle("res", "resource: "+resourceName);
+
+		script.addArgSingle("size", "3");
 		script.setLanguage("Logo");
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
 	}
 
-	private void assertDummyScriptsModify() {
+	private void assertDummyScriptsModify(PrismObject<UserType> user) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("Beware the Jabberwock, my son!");
 		script.addArgSingle("howMuch", "a lot");
 		script.addArgSingle("howLong", "from here to there");
+		String name = null;
+		if (user != null) {
+			name = user.asObjectable().getName().getOrig();
+		}
+		script.addArgSingle("who", name);
 		IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), script);
 	}
 
