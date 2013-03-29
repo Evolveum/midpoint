@@ -237,7 +237,7 @@ public class Clockwork {
 		context.setState(ModelState.SECONDARY);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException {
+	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;

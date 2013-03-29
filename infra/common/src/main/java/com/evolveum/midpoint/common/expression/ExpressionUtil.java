@@ -236,7 +236,7 @@ public class ExpressionUtil {
         } else if (object instanceof ItemDelta<?>) {
         	return new ItemDeltaItem<V>(null, (ItemDelta<V>)object, null);
         } else {
-        	throw new IllegalArgumentException("Unexpected object "+object);
+        	throw new IllegalArgumentException("Unexpected object "+object+" "+object.getClass());
         }
         
 	}

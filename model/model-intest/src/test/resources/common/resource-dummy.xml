@@ -319,14 +319,32 @@
 			<host>resource</host>
 			<language>Logo</language>
 			<argument>
-<!-- 			<path>$user/name</path> -->
 				<script>
 					<code>
-					'after' + ' add'
+					'user: ' + user?.getName()
 					</code>
 				</script> 
-<!-- 				 see MID-1194 -->
-<!-- 				<value>3</value> -->
+				<name>usr</name>
+			</argument>
+			<argument>
+				<script>
+					<!-- Note: We cannot test for account name as name is only assigned in provisioning -->
+					<code>
+					'account: ' + account?.getActivation()?.isEnabled()
+					</code>
+				</script> 
+				<name>acc</name>
+			</argument>
+			<argument>
+				<script>
+					<code>
+					'resource: ' + resource?.getName()
+					</code>
+				</script> 
+				<name>res</name>
+			</argument>
+			<argument>
+ 				<value>3</value>
 				<name>size</name>
 			</argument>
 			<code>
@@ -349,6 +367,10 @@ end
 			<argument>
 				<value>from here to there</value>
 				<name>howLong</name>
+			</argument>
+			<argument>
+				<path>$user/name</path>
+				<name>who</name>
 			</argument>
 			<code>Beware the Jabberwock, my son!</code>
 		</script>
