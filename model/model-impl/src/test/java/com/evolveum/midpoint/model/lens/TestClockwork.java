@@ -29,6 +29,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
@@ -113,6 +114,30 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
+
+    @Test(enabled = false)
+    public void test010SerializeAddUserBarbossa() throws Exception {
+
+        displayTestTile(this, "test010SerializeAddUserBarbossa");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".test020AssignAccountToJackSync");
+        OperationResult result = task.getResult();
+
+        LensContext<UserType, AccountShadowType> context = createUserAccountContext();
+        PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
+        fillContextWithAddUserDelta(context, bill);
+
+        // WHEN
+
+        clockwork.click(context, task, result);     // one round - compute projections
+
+        System.out.println("Context before serialization = " + context.debugDump());
+        System.out.println("Serialized form = " + context.toJaxb());
+
+        // THEN
+        // (nothing here -- we want to test whether context could be serialized)
+    }
 
 	@Test
     public void test020AssignAccountToJackSync() throws Exception {
@@ -248,11 +273,6 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
         	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
         	if (serialize) {
-
-//              old way of serialization (disabled)
-//        		String serializedContext = SerializationUtil.toString(context);
-//        		context = (LensContext<UserType, AccountShadowType>) SerializationUtil.fromString(serializedContext);
-//                context.adopt(prismContext);
 
                 System.out.println("Context before serialization = " + context.debugDump());
                 LensContextType lensContextType = context.toJaxb();
