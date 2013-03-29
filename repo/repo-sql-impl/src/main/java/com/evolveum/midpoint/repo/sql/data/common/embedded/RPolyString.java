@@ -35,6 +35,9 @@ import java.io.Serializable;
 @Embeddable
 public class RPolyString implements Serializable {
 
+    public static final String F_NORM = "norm";
+    public static final String F_ORIG = "orig";
+
     private String orig;
     private String norm;
 

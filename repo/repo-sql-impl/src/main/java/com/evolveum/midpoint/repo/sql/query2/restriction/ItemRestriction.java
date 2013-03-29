@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -191,5 +193,19 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
 
         return definitions;
+    }
+
+    protected Object getValue(List<? extends PrismValue> values) {
+        if (values == null || values.isEmpty()) {
+            return null;
+        }
+
+        PrismValue val = values.get(0);
+        if (val instanceof PrismPropertyValue) {
+            PrismPropertyValue propertyValue = (PrismPropertyValue) val;
+            return propertyValue.getValue();
+        }
+
+        return null;
     }
 }

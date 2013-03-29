@@ -111,20 +111,6 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         return conjunction;
     }
 
-    private Object getValue(List<? extends PrismValue> values) {
-        if (values == null || values.isEmpty()) {
-            return null;
-        }
-
-        PrismValue val = values.get(0);
-        if (val instanceof PrismPropertyValue) {
-            PrismPropertyValue propertyValue = (PrismPropertyValue) val;
-            return propertyValue.getValue();
-        }
-
-        return null;
-    }
-
     private ItemPath createAnyItemPath(ItemPath path, ItemDefinition itemDef) throws QueryException {
         try {
             List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();

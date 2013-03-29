@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.query2.matcher;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.apache.commons.lang.StringUtils;
@@ -61,13 +62,13 @@ public class PolyStringMatcher extends Matcher<PolyString> {
             throws QueryException {
 
         String realValue = value != null ? value.getOrig() : null;
-        return basicMatch(operation, propertyName, realValue);
+        return basicMatch(operation, propertyName + '.' + RPolyString.F_NORM, realValue);
     }
 
     private Criterion createOrigMatch(ItemRestrictionOperation operation, String propertyName, PolyString value)
             throws QueryException {
 
         String realValue = value != null ? value.getNorm() : null;
-        return basicMatch(operation, propertyName, realValue);
+        return basicMatch(operation, propertyName + '.' + RPolyString.F_ORIG, realValue);
     }
 }

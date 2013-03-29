@@ -23,6 +23,8 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.StringValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.QueryContext;
@@ -33,7 +35,7 @@ import org.hibernate.criterion.Criterion;
 /**
  * @author lazyman
  */
-public class PropertyRestriction<T extends ValueFilter> extends ItemRestriction<T> {
+public class PropertyRestriction extends ItemRestriction<ValueFilter> {
 
     @Override
     public boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException {
@@ -52,11 +54,26 @@ public class PropertyRestriction<T extends ValueFilter> extends ItemRestriction<
     }
 
     @Override
-    public Criterion interpretInternal(T filter)
+    public Criterion interpretInternal(ValueFilter filter)
             throws QueryException {
         //todo implement
+        QueryContext context = getContext();
 
-        return null;
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        ItemPath fullPath = createFullPath(filter);
+        PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
+
+        String propertyName = def.getJpaName();
+        Object value    ;
+        if (filter instanceof PropertyValueFilter) {
+            value = getValue(((PropertyValueFilter) filter).getValues());
+        } else if (filter instanceof StringValueFilter) {
+            value = ((StringValueFilter) filter).getValue();
+        } else {
+            throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
+        }
+
+        return createCriterion(propertyName, value, filter);
     }
 
     @Override
