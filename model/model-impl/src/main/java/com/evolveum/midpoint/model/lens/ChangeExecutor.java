@@ -222,6 +222,8 @@ public class ChangeExecutor {
 							updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
 									subResult);
 						}
+						subResult.computeStatus();
+						subResult.recordNotApplicableIfUnknown();
 						continue;
 					}
 
@@ -234,6 +236,7 @@ public class ChangeExecutor {
 				}
 				
 				subResult.computeStatus();
+				subResult.recordNotApplicableIfUnknown();
 				
 			} catch (SchemaException e) {
 				subResult.recordFatalError(e);

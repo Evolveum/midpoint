@@ -585,6 +585,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			recordSuccess();
 		}
 	}
+	
+	public void recordNotApplicableIfUnknown() {
+		if (isUnknown()) {
+			status = OperationResultStatus.NOT_APPLICABLE;
+		}
+	}
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are

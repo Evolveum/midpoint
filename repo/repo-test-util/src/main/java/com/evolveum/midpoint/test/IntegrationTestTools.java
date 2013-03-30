@@ -197,14 +197,17 @@ public class IntegrationTestTools {
 	
 	public static void assertFailure(String message, OperationResult result) {
 		assertTrue(message, result.isError());
+		assertNoUnknown(result);
 	}
 	
 	public static void assertFailure(OperationResult result) {
 		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), result.isError());
+		assertNoUnknown(result);
 	}
 	
 	public static void assertPartialError(OperationResult result) {
 		assertTrue("Expected that operation "+result.getOperation()+" fails partially, but the result was "+result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
+		assertNoUnknown(result);
 	}
 	
 	public static void assertFailure(OperationResultType result) {
@@ -216,6 +219,27 @@ public class IntegrationTestTools {
 				"Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), 
 				OperationResultStatusType.FATAL_ERROR == result.getStatus() || 
 				OperationResultStatusType.PARTIAL_ERROR == result.getStatus()) ;
+		assertNoUnknown(result);
+	}
+	
+	public static void assertNoUnknown(OperationResult result) {
+		// FIXME: temprarily disabled
+//		if (result.isUnknown()) {
+//			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+//		}
+//		for (OperationResult subresult: result.getSubresults()) {
+//			assertNoUnknown(subresult);
+//		}
+	}
+	
+	public static void assertNoUnknown(OperationResultType result) {
+		// FIXME: temprarily disabled
+//		if (result.getStatus() == OperationResultStatusType.UNKNOWN) {
+//			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+//		}
+//		for (OperationResultType subresult: result.getPartialResults()) {
+//			assertNoUnknown(subresult);
+//		}
 	}
 	
 	/**
