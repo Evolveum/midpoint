@@ -30,7 +30,7 @@ public class ReferenceDefinition extends Definition {
 
     private boolean embedded;
 
-    public ReferenceDefinition(QName jaxbName, QName jaxbType, String jpaName, Class jpaType) {
+    public ReferenceDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
         super(jaxbName, jaxbType, jpaName, jpaType);
     }
 

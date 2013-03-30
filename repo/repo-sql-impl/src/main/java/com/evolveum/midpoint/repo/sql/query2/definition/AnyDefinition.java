@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
  */
 public class AnyDefinition extends Definition {
 
-    public AnyDefinition(QName jaxbName, QName jaxbType, String jpaName, Class jpaType) {
+    public AnyDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
         super(jaxbName, jaxbType, jpaName, jpaType);
     }
 

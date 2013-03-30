@@ -36,39 +36,54 @@ import org.hibernate.criterion.Restrictions;
 public class PolyStringMatcher extends Matcher<PolyString> {
 
     public static final String STRICT = "strict";
+    public static final String STRICT_IGNORE_CASE = "strictIgnoreCase";
     public static final String ORIG = "orig";
+    public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
     public static final String NORM = "norm";
+    public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
     @Override
     public Criterion match(ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
             throws QueryException {
 
-        if (StringUtils.isEmpty(matcher) || STRICT.equalsIgnoreCase(matcher)) {
+        boolean ignoreCase = STRICT_IGNORE_CASE.equalsIgnoreCase(matcher)
+                || ORIG_IGNORE_CASE.equalsIgnoreCase(matcher)
+                || NORM_IGNORE_CASE.equalsIgnoreCase(matcher);
+
+        if (StringUtils.isEmpty(matcher) || startsWith(STRICT, matcher)) {
             Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(createOrigMatch(operation, propertyName, value));
-            conjunction.add(createNormMatch(operation, propertyName, value));
+            conjunction.add(createOrigMatch(operation, propertyName, value, ignoreCase));
+            conjunction.add(createNormMatch(operation, propertyName, value, ignoreCase));
 
             return conjunction;
-        } else if (ORIG.equalsIgnoreCase(matcher)) {
-            return createOrigMatch(operation, propertyName, value);
-        } else if (NORM.equalsIgnoreCase(matcher)) {
-            return createNormMatch(operation, propertyName, value);
+        } else if (startsWith(ORIG, matcher)) {
+            return createOrigMatch(operation, propertyName, value, ignoreCase);
+        } else if (startsWith(NORM, matcher)) {
+            return createNormMatch(operation, propertyName, value, ignoreCase);
         } else {
             throw new QueryException("Unknown matcher '" + matcher + "'.");
         }
     }
 
-    private Criterion createNormMatch(ItemRestrictionOperation operation, String propertyName, PolyString value)
-            throws QueryException {
+    private boolean startsWith(String startsWith, String text) {
+        if (StringUtils.isEmpty(text)) {
+            return false;
+        }
 
-        String realValue = value != null ? value.getOrig() : null;
-        return basicMatch(operation, propertyName + '.' + RPolyString.F_NORM, realValue);
+        return text.toLowerCase().startsWith(startsWith.toLowerCase());
     }
 
-    private Criterion createOrigMatch(ItemRestrictionOperation operation, String propertyName, PolyString value)
-            throws QueryException {
+    private Criterion createNormMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
+                                      boolean ignoreCase) throws QueryException {
+
+        String realValue = value != null ? value.getOrig() : null;
+        return basicMatch(operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
+    }
+
+    private Criterion createOrigMatch(ItemRestrictionOperation operation, String propertyName, PolyString value,
+                                      boolean ignoreCase) throws QueryException {
 
         String realValue = value != null ? value.getNorm() : null;
-        return basicMatch(operation, propertyName + '.' + RPolyString.F_ORIG, realValue);
+        return basicMatch(operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
     }
 }

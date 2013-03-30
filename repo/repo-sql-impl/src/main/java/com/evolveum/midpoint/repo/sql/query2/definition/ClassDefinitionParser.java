@@ -23,10 +23,8 @@ package com.evolveum.midpoint.repo.sql.query2.definition;
 
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query2.restriction.AnyPropertyRestriction;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -37,11 +35,9 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.xml.namespace.QName;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
@@ -54,7 +50,7 @@ public class ClassDefinitionParser {
     private static final Trace LOGGER = TraceManager.getTrace(ClassDefinitionParser.class);
 
     public Definition parse(Class clazz) {
-        if (clazz.isInterface()){// || !clazz.isAnnotationPresent(Entity.class)) {
+        if (clazz.isInterface()) {// || !clazz.isAnnotationPresent(Entity.class)) {
             return null;
         }
 
@@ -64,8 +60,8 @@ public class ClassDefinitionParser {
         }
 
         QName jaxbName = getJaxbName(clazz);
-        QName jaxbType = getJaxbType(clazz);
-        EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, clazz.getName(), clazz);
+        Class jaxbType = getJaxbType(clazz);
+        EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, clazz.getSimpleName(), clazz);
         updateEntityDefinition(entityDef, clazz);
 
         Method[] methods = clazz.getMethods();
@@ -100,9 +96,18 @@ public class ClassDefinitionParser {
         return null;
     }
 
-    private QName getJaxbType(Class clazz) {
-        //todo implement
-        return null;
+    private Class getJaxbType(Class clazz) {
+        if (RObject.class.isAssignableFrom(clazz)) {
+            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(clazz);
+            return objectType.getClassDefinition();
+        }
+
+        if (clazz.getAnnotation(JaxbType.class) != null) {
+            JaxbType type = (JaxbType) clazz.getAnnotation(JaxbType.class);
+            return type.type();
+        }
+
+        return clazz;
     }
 
     private void updateEntityDefinition(EntityDefinition definition, Class clazz) {
@@ -111,7 +116,7 @@ public class ClassDefinitionParser {
 
     private Definition createDefinitionFromMethod(Method method) {
         QName jaxbName = getJaxbName(method);
-        QName jaxbType = getJaxbType(method);
+        Class jaxbType = getJaxbType(method);
 
         String jpaName = getJpaName(method.getName());
         Class jpaType = method.getReturnType();
@@ -152,7 +157,7 @@ public class ClassDefinitionParser {
     }
 
     private void updateCollectionDefinition(CollectionDefinition definition, Method method) {
-        ParameterizedType type = (ParameterizedType)method.getGenericReturnType();
+        ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
         Class clazz = (Class) type.getActualTypeArguments()[0];
 
         ClassDefinitionParser parser = new ClassDefinitionParser();
@@ -192,9 +197,8 @@ public class ClassDefinitionParser {
         return name;
     }
 
-    private QName getJaxbType(Method method) {
-        //todo implement, maybe unnecessary, will be probably unused
-        return null;
+    private Class getJaxbType(Method method) {
+        return getJaxbType(method.getReturnType());
     }
 
     private String getJpaName(String methodName) {

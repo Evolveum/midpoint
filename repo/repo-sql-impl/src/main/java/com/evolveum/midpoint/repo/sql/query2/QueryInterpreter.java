@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.Matcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
+import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.restriction.Restriction;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -94,6 +95,7 @@ public class QueryInterpreter {
         //default matcher with null key
         matchers.put(null, new DefaultMatcher());
         matchers.put(PolyString.class, new PolyStringMatcher());
+        matchers.put(String.class, new StringMatcher());
 
 
         AVAILABLE_MATCHERS = Collections.unmodifiableMap(matchers);

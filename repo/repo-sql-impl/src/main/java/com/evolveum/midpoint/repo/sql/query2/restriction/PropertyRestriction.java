@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.StringValueFilter;
@@ -64,13 +65,23 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
 
         String propertyName = def.getJpaName();
-        Object value    ;
+        Object value;
         if (filter instanceof PropertyValueFilter) {
             value = getValue(((PropertyValueFilter) filter).getValues());
         } else if (filter instanceof StringValueFilter) {
             value = ((StringValueFilter) filter).getValue();
         } else {
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
+        }
+
+        //attempt to fix value type for polystring (if it was string we create polystring from it)
+        if (PolyString.class.equals(def.getJaxbType()) && (value instanceof String)) {
+            value = new PolyString((String) value, (String) value);
+        }
+
+        if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {
+            throw new QueryException("Value should by type of '" + def.getJaxbType() + "' but it's '"
+                    + value.getClass() + "', filter '" + filter + "'.");
         }
 
         return createCriterion(propertyName, value, filter);

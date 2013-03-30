@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.SimpleExpression;
 
 /**
  * @author lazyman
@@ -34,32 +35,46 @@ public abstract class Matcher<T> {
     public abstract Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
             throws QueryException;
 
-    protected Criterion basicMatch(ItemRestrictionOperation operation, String propertyName, Object value)
-            throws QueryException {
-
+    protected Criterion basicMatch(ItemRestrictionOperation operation, String propertyName, Object value,
+                                   boolean ignoreCase) throws QueryException {
+        Criterion criterion;
         switch (operation) {
             case EQ:
                 if (value == null) {
-                    return Restrictions.isNull(propertyName);
+                    criterion = Restrictions.isNull(propertyName);
                 } else {
-                    return Restrictions.eq(propertyName, value);
+                    criterion = Restrictions.eq(propertyName, value);
                 }
+                break;
             case GT:
-                return Restrictions.gt(propertyName, value);
+                criterion = Restrictions.gt(propertyName, value);
+                break;
             case GE:
-                return Restrictions.ge(propertyName, value);
+                criterion = Restrictions.ge(propertyName, value);
+                break;
             case LT:
-                return Restrictions.lt(propertyName, value);
+                criterion = Restrictions.lt(propertyName, value);
+                break;
             case LE:
-                return Restrictions.le(propertyName, value);
+                criterion = Restrictions.le(propertyName, value);
+                break;
             case NOT_NULL:
-                return Restrictions.isNotNull(propertyName);
+                criterion = Restrictions.isNotNull(propertyName);
+                break;
             case NULL:
-                return Restrictions.isNull(propertyName);
+                criterion = Restrictions.isNull(propertyName);
+                break;
             case SUBSTRING:
-                return Restrictions.like(propertyName, "%" + value + "%");
+                criterion = Restrictions.like(propertyName, "%" + value + "%");
+                break;
+            default:
+                throw new QueryException("Unknown operation '" + operation + "'.");
         }
 
-        throw new QueryException("Unknown operation '" + operation + "'.");
+        if (ignoreCase && (value instanceof String) && (criterion instanceof SimpleExpression)) {
+            criterion = ((SimpleExpression) criterion).ignoreCase();
+        }
+
+        return criterion;
     }
 }

@@ -41,7 +41,7 @@ public class EntityDefinition extends Definition {
     private List<Definition> definitions;
     private boolean embedded;
 
-    public EntityDefinition(QName jaxbName, QName jaxbType, String jpaName, Class jpaType) {
+    public EntityDefinition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
         super(jaxbName, jaxbType, jpaName, jpaType);
     }
 

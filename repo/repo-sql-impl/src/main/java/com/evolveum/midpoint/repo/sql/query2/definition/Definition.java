@@ -34,12 +34,12 @@ public abstract class Definition implements Dumpable, DebugDumpable {
 
     //jaxb
     private QName jaxbName;
-    private QName jaxbType;
+    private Class jaxbType;
     //jpa
     private String jpaName;
     private Class jpaType;
 
-    public Definition(QName jaxbName, QName jaxbType, String jpaName, Class jpaType) {
+    public Definition(QName jaxbName, Class jaxbType, String jpaName, Class jpaType) {
         this.jaxbName = jaxbName;
         this.jaxbType = jaxbType;
         this.jpaName = jpaName;
@@ -50,7 +50,7 @@ public abstract class Definition implements Dumpable, DebugDumpable {
         return jaxbName;
     }
 
-    public QName getJaxbType() {
+    public Class getJaxbType() {
         return jaxbType;
     }
 
@@ -68,9 +68,9 @@ public abstract class Definition implements Dumpable, DebugDumpable {
         builder.append(getDebugDumpClassName());
         builder.append('{');
         builder.append("jaxbN=").append(dumpQName(jaxbName));
-        builder.append(", jaxbT=").append(dumpQName(jaxbType));
+        builder.append(", jaxbT=").append((jaxbType != null ? jaxbType.getSimpleName() : ""));
         builder.append(", jpaN=").append(jpaName);
-        builder.append(", jpaT=").append((jpaType != null ? jpaType.getName() : ""));
+        builder.append(", jpaT=").append((jpaType != null ? jpaType.getSimpleName() : ""));
         toStringExtended(builder);
         builder.append('}');
 

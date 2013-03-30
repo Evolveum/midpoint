@@ -19,21 +19,22 @@
  * Portions Copyrighted 2013 [name of copyright owner]
  */
 
-package com.evolveum.midpoint.repo.sql.query2.matcher;
+package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.restriction.ItemRestrictionOperation;
-import org.hibernate.criterion.Criterion;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * @author lazyman
  */
-public class DefaultMatcher<T> extends Matcher<T> {
+@Target({TYPE, METHOD, FIELD})
+@Retention(RUNTIME)
+public @interface JaxbType {
 
-    @Override
-    public Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
-            throws QueryException {
-
-        return basicMatch(operation, propertyName, value, false);
-    }
+    Class type();
 }

@@ -22,7 +22,9 @@
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryAttribute;
+import com.evolveum.midpoint.repo.sql.query2.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import org.apache.commons.lang.Validate;
@@ -37,6 +39,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * @author lazyman
  */
 @Embeddable
+@JaxbType(type = ActivationType.class)
 public class RActivation {
 
     @QueryAttribute

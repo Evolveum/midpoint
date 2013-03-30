@@ -36,7 +36,7 @@ public class PropertyDefinition extends Definition {
     //jpa special things
     private boolean indexed;
 
-    public PropertyDefinition(QName jaxbName, QName jaxbType, String propertyName, Class propertyType) {
+    public PropertyDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType) {
         super(jaxbName, jaxbType, propertyName, propertyType);
     }
 

@@ -28,12 +28,17 @@ import org.hibernate.criterion.Criterion;
 /**
  * @author lazyman
  */
-public class DefaultMatcher<T> extends Matcher<T> {
+public class StringMatcher extends Matcher<String> {
+
+    public static final String CASE_SENSITIVE = "caseSensitive";
+    public static final String IGNORE_CASE = "ignoreCase";
 
     @Override
-    public Criterion match(ItemRestrictionOperation operation, String propertyName, T value, String matcher)
+    public Criterion match(ItemRestrictionOperation operation, String propertyName, String value, String matcher)
             throws QueryException {
 
-        return basicMatch(operation, propertyName, value, false);
+        boolean ignoreCase = IGNORE_CASE.equalsIgnoreCase(matcher);
+
+        return basicMatch(operation, propertyName, value, ignoreCase);
     }
 }

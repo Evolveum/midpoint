@@ -32,7 +32,7 @@ public class CollectionDefinition extends Definition {
 
     private Definition definition;
 
-    public CollectionDefinition(QName jaxbName, QName jaxbType, String propertyName, Class propertyType) {
+    public CollectionDefinition(QName jaxbName, Class jaxbType, String propertyName, Class propertyType) {
         super(jaxbName, jaxbType, propertyName, propertyType);
     }
 
