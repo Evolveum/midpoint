@@ -96,6 +96,9 @@ public class ChangeExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
 
 	private static final String OPERATION_EXECUTE_DELTA = ChangeExecutor.class.getName() + ".executeDelta";
+	private static final String OPERATION_EXECUTE = ChangeExecutor.class.getName() + ".execute";
+	private static final String OPERATION_EXECUTE_FOCUS = OPERATION_EXECUTE + ".focus";
+	private static final String OPERATION_EXECUTE_PROJECTION = OPERATION_EXECUTE + ".projection";
 	private static final String OPERATION_LINK_ACCOUNT = ChangeExecutor.class.getName() + ".linkAccount";
 	private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkAccount";
 
@@ -127,142 +130,155 @@ public class ChangeExecutor {
     public <F extends ObjectType, P extends ObjectType> void executeChanges(LensContext<F,P> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RewindException, ExpressionEvaluationException {
     	
-    	OperationResult result = parentResult.createSubresult(ChangeExecutor.class+".executeChanges");
+    	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
     	
-    	try {
-	    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
-	    	if (focusContext != null) {
-		        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
-		        if (userDelta != null) {
-		
-		            executeDelta(userDelta, focusContext, syncContext, null, task, result);
-		
-                    if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
-                        task.setRequesteeOidImmediate(userDelta.getOid(), result);
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Set requestee OID to " + userDelta.getOid() + "; task = " + task.dump());
-                        }
-                    }
-		        } else {
-		            LOGGER.trace("Skipping change execute, because user delta is null");
-		        }
-	    	}
+    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
+    	if (focusContext != null) {
+	        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
+	        if (userDelta != null) {
 	
-	        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
-	        	if (accCtx.getWave() != syncContext.getExecutionWave()) {
-	        		continue;
-	        	}
+	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS);
+	        	try {
+	        		
+		            executeDelta(userDelta, focusContext, syncContext, null, task, subResult);
+		
+	                if (UserType.class.isAssignableFrom(userDelta.getObjectTypeClass()) && task.getRequesteeOid() == null) {
+	                    task.setRequesteeOidImmediate(userDelta.getOid(), subResult);
+	                    if (LOGGER.isTraceEnabled()) {
+	                        LOGGER.trace("Set requestee OID to " + userDelta.getOid() + "; task = " + task.dump());
+	                    }
+	                }
+	                
+	                subResult.computeStatus();
+	                
+	        	} catch (SchemaException e) {
+	        		subResult.recordFatalError(e);
+	    			throw e;
+	    		} catch (ObjectNotFoundException e) {
+	    			subResult.recordFatalError(e);
+	    			throw e;
+	    		} catch (ObjectAlreadyExistsException e) {
+	    			subResult.computeStatus();
+	    			if (!subResult.isSuccess()) {
+	    				subResult.recordFatalError(e);
+	    			}
+	    			throw e;
+	    		} catch (CommunicationException e) {
+	    			subResult.recordFatalError(e);
+	    			throw e;
+	    		} catch (ConfigurationException e) {
+	    			subResult.recordFatalError(e);
+	    			throw e;
+	    		} catch (SecurityViolationException e) {
+	    			subResult.recordFatalError(e);
+	    			throw e;
+	    		} catch (RewindException e) {
+	    			subResult.recordHandledError(e.getMessage());
+	    			throw e;
+	    		} catch (ExpressionEvaluationException e) {
+	    			subResult.recordFatalError(e);
+	    			throw e;
+	    		} catch (RuntimeException e) {
+	    			subResult.recordFatalError(e);
+	    			throw e;
+	    		}  
+	        } else {
+	            LOGGER.trace("Skipping focus change execute, because user delta is null");
+	        }
+    	}
+
+        for (LensProjectionContext<P> accCtx : syncContext.getProjectionContexts()) {
+        	if (accCtx.getWave() != syncContext.getExecutionWave()) {
+        		continue;
+			}
+        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_PROJECTION);
+        	subResult.addContext("discriminator", accCtx.getResourceShadowDiscriminator());
 			try {
-	            ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
-	            if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN){
-	            	if (syncContext.getFocusContext().getDelta() != null
-							&& syncContext.getFocusContext().getDelta().isDelete() && syncContext.getOptions() != null
+				ObjectDelta<P> accDelta = accCtx.getExecutableDelta();
+				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+					if (syncContext.getFocusContext().getDelta() != null
+							&& syncContext.getFocusContext().getDelta().isDelete()
+							&& syncContext.getOptions() != null
 							&& ModelExecuteOptions.isForce(syncContext.getOptions())) {
-						if (accDelta == null){
-							accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(), accCtx.getOid(), prismContext);
+						if (accDelta == null) {
+							accDelta = ObjectDelta.createDeleteDelta(accCtx.getObjectTypeClass(),
+									accCtx.getOid(), prismContext);
 						}
-	            	}
-	            	if (accDelta != null && accDelta.isDelete()){
-	            	
-							executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, result);
+					}
+					if (accDelta != null && accDelta.isDelete()) {
 
-							// accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+						executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, subResult);
+
+						// accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+					}
+				} else {
+					if (accDelta == null || accDelta.isEmpty()) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("No change for account "
+									+ accCtx.getResourceShadowDiscriminator());
+							LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
 				}
-					} else {
-						if (accDelta == null || accDelta.isEmpty()) {
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("No change for account "
-										+ accCtx.getResourceShadowDiscriminator());
-								LOGGER.trace("Delta:\n{}", accDelta == null ? null : accDelta.dump());
-							}
-							if (focusContext != null) {
-								updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
-										result);
-							}
-							continue;
+						if (focusContext != null) {
+							updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
+									subResult);
 						}
-
-						executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, result);
-
+						subResult.computeStatus();
+						subResult.recordNotApplicableIfUnknown();
+						continue;
 					}
 
-					if (focusContext != null) {
-						updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, result);
-					}
-					
-					
-				} catch (SchemaException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (ObjectNotFoundException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (ObjectAlreadyExistsException e) {
-					// int his case we do not need to set account context as
-					// broken, instead we need to restart projector for this
-					// context to recompute new account or find out if the
-					// account was already linked..
-//					result.computeStatus();
-//					if (!result.isSuccess()) {
-						result.recordFatalError(e);
-//					}
-//					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (CommunicationException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (ConfigurationException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (SecurityViolationException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (ExpressionEvaluationException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
-				} catch (RuntimeException e) {
-					result.recordFatalError(e);
-					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-					continue;
+					executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, subResult);
+
 				}
+
+				if (focusContext != null) {
+					updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, subResult);
+				}
+				
+				subResult.computeStatus();
+				subResult.recordNotApplicableIfUnknown();
+				
+			} catch (SchemaException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
+			} catch (ObjectNotFoundException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
+			} catch (ObjectAlreadyExistsException e) {
+				// in his case we do not need to set account context as
+				// broken, instead we need to restart projector for this
+				// context to recompute new account or find out if the
+				// account was already linked..
+				subResult.recordFatalError(e);
+				continue;
+			} catch (CommunicationException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
+			} catch (ConfigurationException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
+			} catch (SecurityViolationException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
+			} catch (ExpressionEvaluationException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
+			} catch (RuntimeException e) {
+				subResult.recordFatalError(e);
+				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				continue;
 			}
-	        result.computeStatus();
-	        
-    	} catch (SchemaException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			result.computeStatus();
-			if (!result.isSuccess()) {
-				result.recordFatalError(e);
-			}
-			throw e;
-		} catch (CommunicationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ExpressionEvaluationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (RuntimeException e) {
-			result.recordFatalError(e);
-			throw e;
-		}  
+		}
         
+        // Result computation here needs to be slightly different
+        result.computeStatusComposite();
+
     }
 
     /**

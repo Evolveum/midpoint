@@ -75,6 +75,7 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 			//this should not happen. But if it happens, we should return original exception
 		}
 		
+		parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
 		throw new ConfigurationException("Configuration error: "+ex.getMessage(), ex);
 	}
 

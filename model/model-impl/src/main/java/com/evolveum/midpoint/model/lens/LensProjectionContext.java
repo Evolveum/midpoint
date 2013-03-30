@@ -551,9 +551,15 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		super.checkConsistence(contextDesc);
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			// OID is all we need for broken context
-			if (getOid() == null) {
-				throw new IllegalStateException("No OID in broken context in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-			}
+//			System.out.println("is add delta: " + isAdd());
+//		System.out.println("primaty delta: " + getPrimaryDelta().dump());
+//		System.out.println("secondary delta: " + getSecondaryDelta().dump());
+//			if (isAdd()){
+//				return;
+//			}
+//			if (getOid() == null) {
+//				throw new IllegalStateException("No OID in broken context in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+//			}
 			return;
 		}
     	if (fresh && !force) {
