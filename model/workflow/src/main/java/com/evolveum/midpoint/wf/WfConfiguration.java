@@ -62,7 +62,7 @@ public class WfConfiguration {
 
         Configuration c = masterConfig.getConfiguration(WF_CONFIG_SECTION);
 
-        enabled = true; //c.getBoolean("enabled", false);
+        enabled = c.getBoolean("enabled", true);
         if (!enabled) {
             return;
         }

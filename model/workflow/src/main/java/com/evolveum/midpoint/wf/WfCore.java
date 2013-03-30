@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -62,21 +63,13 @@ import java.util.Map;
  * @author mederly
  */
 
-@Component
 public class WfCore {
 
     private static final Trace LOGGER = TraceManager.getTrace(WfCore.class);
 
-    @Autowired(required = true)
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired(required = true)
     private WorkflowManager workflowManager;
-
-    @Autowired(required = true)
+    private WfTaskUtil wfTaskUtil;
     private TaskManager taskManager;
-
-    @Autowired(required = true)
     private ActivitiInterface activitiInterface;
 
     private List<ChangeProcessor> changeProcessors = new ArrayList<ChangeProcessor>();
@@ -87,9 +80,13 @@ public class WfCore {
     // point of configuration [in future, it will be done more intelligently ;)]
     // beware, the order of change processors might be important!
 
-    @PostConstruct
-    public void initialize() {
-        changeProcessors.add(new PrimaryUserChangeProcessor(workflowManager));
+    public WfCore(WorkflowManager workflowManager, WfTaskUtil wfTaskUtil, TaskManager taskManager, ActivitiInterface activitiInterface) {
+        this.workflowManager = workflowManager;
+        this.wfTaskUtil = wfTaskUtil;
+        this.taskManager = taskManager;
+        this.activitiInterface = activitiInterface;
+
+        changeProcessors.add(new PrimaryUserChangeProcessor(workflowManager, this, wfTaskUtil));
     }
 
     /**

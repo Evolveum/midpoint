@@ -30,12 +30,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConstants;
 import com.evolveum.midpoint.wf.WfCore;
+import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.messages.*;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.history.*;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -45,17 +47,17 @@ import java.util.Map;
  *  Transports messages between midPoint and Activiti. (Originally via Camel, currently using direct java calls.)
  */
 
-@Component
 public class ActivitiInterface {
 
-    @Autowired(required = true)
     ActivitiEngine activitiEngine;
-
-    @Autowired(required = true)
     TaskManager taskManager;
-
-    @Autowired(required = true)
     WfCore wfCore;
+
+    public ActivitiInterface(WorkflowManager workflowManager, WfCore wfCore) {
+        activitiEngine = workflowManager.getActivitiEngine();
+        taskManager = workflowManager.getTaskManager();
+        this.wfCore = wfCore;
+    }
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiInterface.class);
 

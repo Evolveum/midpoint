@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.WorkflowManager;
 import com.evolveum.midpoint.wf.activiti.users.MidPointUserManagerFactory;
 import org.activiti.engine.*;
 import org.activiti.engine.identity.Group;
@@ -61,7 +62,6 @@ import java.util.*;
  * Time: 22:30
  * To change this template use File | Settings | File Templates.
  */
-@Component
 public class ActivitiEngine {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiEngine.class);
@@ -72,11 +72,9 @@ public class ActivitiEngine {
     private WfConfiguration wfConfiguration;
     private static final String BPMN_URI = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
-    public void initialize(WfConfiguration configuration) {
+    public ActivitiEngine(WorkflowManager workflowManager, WfConfiguration wfConfiguration) {
 
-        Validate.notNull(configuration);
-
-        wfConfiguration = configuration;
+        this.wfConfiguration = wfConfiguration;
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Attempting to create Activiti engine.");
@@ -87,14 +85,14 @@ public class ActivitiEngine {
 
         ProcessEngineConfiguration pec =
                 ((StandaloneProcessEngineConfiguration) ProcessEngineConfiguration.createStandaloneProcessEngineConfiguration())
-                .setDatabaseSchemaUpdate(configuration.isActivitiSchemaUpdate() ?
+                .setDatabaseSchemaUpdate(wfConfiguration.isActivitiSchemaUpdate() ?
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE :
                         ProcessEngineConfiguration.DB_SCHEMA_UPDATE_FALSE)
                 .setCustomSessionFactories(sessionFactories)
-                .setJdbcUrl(configuration.getJdbcUrl())
-                .setJdbcDriver(configuration.getJdbcDriver())
-                .setJdbcUsername(configuration.getJdbcUser())
-                .setJdbcPassword(configuration.getJdbcPassword())
+                .setJdbcUrl(wfConfiguration.getJdbcUrl())
+                .setJdbcDriver(wfConfiguration.getJdbcDriver())
+                .setJdbcUsername(wfConfiguration.getJdbcUser())
+                .setJdbcPassword(wfConfiguration.getJdbcPassword())
                 .setJobExecutorActivate(false)
                 .setHistory(ProcessEngineConfiguration.HISTORY_FULL);
 

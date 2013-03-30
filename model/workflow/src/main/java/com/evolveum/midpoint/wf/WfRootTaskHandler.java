@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Evolveum
+ * Copyright (c) 2013 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2012 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.wf;
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -44,24 +45,16 @@ import java.util.List;
  *
  * @author mederly
  */
-@Component
-public class WfRootTaskHandler implements TaskHandler, InitializingBean {
+public class WfRootTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = "http://midpoint.evolveum.com/wf-root-task-uri";
 
-//    @Autowired(required = true)
-//    private WfTaskUtil wfTaskUtil;
-
-    @Autowired(required = true)
-	private TaskManager taskManager;
-
-//    @Autowired(required = true)
-//    private WorkflowManager workflowManager;
-
-//    @Autowired(required = true)
-//    private ActivitiInterface activitiInterface;
-
     private static final Trace LOGGER = TraceManager.getTrace(WfRootTaskHandler.class);
+
+    WfRootTaskHandler(WorkflowManager workflowManager) {
+        LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
+        workflowManager.getTaskManager().registerHandler(HANDLER_URI, this);
+    }
 
 	@Override
 	public TaskRunResult run(Task task) {
@@ -104,17 +97,5 @@ public class WfRootTaskHandler implements TaskHandler, InitializingBean {
     public List<String> getCategoryNames() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
-
-
-    @Override
-	public void afterPropertiesSet() throws Exception {
-		if (taskManager != null) {
-			LOGGER.trace("Registering with taskManager as a handler for " + HANDLER_URI);
-			taskManager.registerHandler(HANDLER_URI, this);
-		}
-		else {
-			LOGGER.error("Cannot register with taskManager as taskManager == null");
-        }
-	}
 
 }

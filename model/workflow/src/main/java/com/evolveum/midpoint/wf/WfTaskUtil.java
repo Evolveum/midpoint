@@ -57,6 +57,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
@@ -72,25 +73,11 @@ import java.util.*;
  *
  */
 
-@Component
 public class WfTaskUtil {
 
-//	@Autowired(required = true)
-//	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-
-    @Autowired(required = true)
     private WorkflowManager workflowManager;
-
-    @Autowired(required = true)
-    private WfCore wfCore;
-
-//    @Autowired(required = true)
-//    private ModelController modelController;
-
-    @Autowired(required = true)
+    private RepositoryService repositoryService;
+    //private WfCore wfCore;
     private PrismContext prismContext;
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
@@ -136,12 +123,12 @@ public class WfTaskUtil {
 
     private static final long TASK_START_DELAY = 5000L;
 
-    @PostConstruct
-    public void prepareDefinitions() {
+    public WfTaskUtil(WorkflowManager workflowManager, RepositoryService repositoryService, PrismContext prismContext) {
 
-        if (!workflowManager.isEnabled()) {
-            return;
-        }
+        this.workflowManager = workflowManager;
+        this.repositoryService = repositoryService;
+        //this.wfCore = wfCore;
+        this.prismContext = prismContext;
 
         wfModelContextPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ModelOperationTaskHandler.MODEL_CONTEXT_PROPERTY);
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WFSTATUS_PROPERTY_NAME);
@@ -314,25 +301,25 @@ public class WfTaskUtil {
              */
 
             boolean recordStatus = true;
-            String details = "";
-
-            if (event != null && pid != null) {
-                ProcessWrapper wrapper = wfCore.findProcessWrapper(variables, pid, parentResult);
-                if (wrapper != null) {
-                    details = wrapper.getProcessSpecificDetailsForTask(pid, variables);
-
-                    String lastDetails = getLastDetails(task);
-				    if (lastDetails != null) {
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("currentDetails = " + details);
-                            LOGGER.trace("lastDetails = " + lastDetails);
-                        }
-					    if (lastDetails.equals(details)) {
-						    recordStatus = false;
-					    }
-				    }
-			    }
-            }
+//            String details = "";
+//
+//            if (event != null && pid != null) {
+//                ProcessWrapper wrapper = wfCore.findProcessWrapper(variables, pid, parentResult);
+//                if (wrapper != null) {
+//                    details = wrapper.getProcessSpecificDetailsForTask(pid, variables);
+//
+//                    String lastDetails = getLastDetails(task);
+//				    if (lastDetails != null) {
+//                        if (LOGGER.isTraceEnabled()) {
+//                            LOGGER.trace("currentDetails = " + details);
+//                            LOGGER.trace("lastDetails = " + lastDetails);
+//                        }
+//					    if (lastDetails.equals(details)) {
+//						    recordStatus = false;
+//					    }
+//				    }
+//			    }
+//            }
 
 			if (recordStatus) {
 
@@ -350,10 +337,10 @@ public class WfTaskUtil {
                  * (5) Add Last Details information.
                  */
 
-                PrismProperty wfLastDetailsProperty = wfLastDetailsPropertyDefinition.instantiate();
-                PrismPropertyValue<String> newValue = new PrismPropertyValue<String>(details);
-                wfLastDetailsProperty.setValue(newValue);
-                task.setExtensionProperty(wfLastDetailsProperty);
+//                PrismProperty wfLastDetailsProperty = wfLastDetailsPropertyDefinition.instantiate();
+//                PrismPropertyValue<String> newValue = new PrismPropertyValue<String>(details);
+//                wfLastDetailsProperty.setValue(newValue);
+//                task.setExtensionProperty(wfLastDetailsProperty);
 
 				/*
 				 * (6) Create an operationResult sub-result with the status line and details from wrapper
@@ -368,7 +355,7 @@ public class WfTaskUtil {
 					or = new OperationResult("Task");
 
 				OperationResult sub = or.createSubresult(statusDt);
-				sub.recordStatus(OperationResultStatus.SUCCESS, details);
+//				sub.recordStatus(OperationResultStatus.SUCCESS, details);
 
 //				LOGGER.info("-------------------------------------------------------------------");
 //				LOGGER.info("Setting new operation result: " + or.dump());

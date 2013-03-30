@@ -24,28 +24,13 @@ package com.evolveum.midpoint.wf;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
 
-import org.activiti.engine.FormService;
-import org.activiti.engine.TaskService;
-import org.activiti.engine.form.FormProperty;
-import org.activiti.engine.form.FormType;
-import org.activiti.engine.form.TaskFormData;
-import org.activiti.engine.task.IdentityLink;
-import org.activiti.engine.task.Task;
-import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -54,13 +39,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * Some notes about the workflow package and its classes/subpackages:
@@ -91,18 +69,12 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
  *
  * @author mederly
  */
-@Component
+@Component("workflowManager")
 //@DependsOn("repositoryService")
-@DependsOn("sqlRepositoryFactory")
+@DependsOn({ "sqlRepositoryFactory", "taskManager" })
 public class WorkflowManager implements BeanFactoryAware {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManager.class);
-
-    @Autowired(required = true)
-    private ActivitiEngine activitiEngine;
-
-    @Autowired(required = true)
-    private WfHook wfHook;
 
     @Autowired(required = true)
     private PrismContext prismContext;
@@ -117,11 +89,17 @@ public class WorkflowManager implements BeanFactoryAware {
     private RepositoryService repositoryService;
 
     @Autowired(required = true)
-    private WfCore wfCore;
+    private TaskManager taskManager;
 
     private WfConfiguration wfConfiguration;
-
+    private WfTaskUtil wfTaskUtil;
+    private WfCore wfCore;
     private WfDataAccessor wfDataAccessor;
+    private WfHook wfHook;
+    private WfRootTaskHandler wfRootTaskHandler;
+    private ActivitiInterface activitiInterface;
+    private WfTaskHandler wfTaskHandler;
+    private ActivitiEngine activitiEngine;
 
     private BeanFactory beanFactory;
 
@@ -135,11 +113,21 @@ public class WorkflowManager implements BeanFactoryAware {
         if (!wfConfiguration.isEnabled()) {
             LOGGER.info("Workflow management is not enabled.");
         } else {
-            activitiEngine.initialize(wfConfiguration);
-            wfHook.register(hookRegistry);
-        }
 
-        wfDataAccessor = new WfDataAccessor(this);
+            wfTaskUtil = new WfTaskUtil(this, repositoryService, prismContext);
+            wfCore = new WfCore(this, wfTaskUtil, taskManager, activitiInterface);
+            wfDataAccessor = new WfDataAccessor(this, wfCore);
+            wfHook = new WfHook(this, wfCore);
+            activitiEngine = new ActivitiEngine(this, wfConfiguration);
+            wfRootTaskHandler = new WfRootTaskHandler(this);
+            activitiInterface = new ActivitiInterface(this, wfCore);
+            wfTaskHandler = new WfTaskHandler(this, wfTaskUtil, activitiInterface);
+            activitiEngine = new ActivitiEngine(this, wfConfiguration);
+
+            wfHook.register(hookRegistry);
+
+            LOGGER.info("WorkflowManager is initialized.");
+        }
     }
 
     @Override
@@ -173,5 +161,17 @@ public class WorkflowManager implements BeanFactoryAware {
 
     public WfCore getWfCore() {
         return wfCore;
+    }
+
+    public WfTaskUtil getWfTaskUtil() {
+        return wfTaskUtil;
+    }
+
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
+
+    public ActivitiInterface getActivitiInterface() {
+        return activitiInterface;
     }
 }

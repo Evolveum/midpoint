@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,18 +45,20 @@ import org.springframework.stereotype.Component;
  *
  * @author mederly
  */
-@Component
 public class WfHook implements ChangeHook {
 
     public static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";
 
     private static final Trace LOGGER = TraceManager.getTrace(WfHook.class);
 
-    @Autowired(required = true)
     public WfCore wfCore;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
+
+    public WfHook(WorkflowManager workflowManager, WfCore wfCore) {
+        this.wfCore = wfCore;
+    }
 
     public void register(HookRegistry hookRegistry) {
         LOGGER.trace("Registering workflow hook");

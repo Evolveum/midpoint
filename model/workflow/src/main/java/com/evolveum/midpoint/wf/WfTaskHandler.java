@@ -27,38 +27,37 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
 import com.evolveum.midpoint.wf.messages.QueryProcessCommand;
 import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * @author mederly
  */
-@Component
-public class WfTaskHandler implements TaskHandler, InitializingBean {
+public class WfTaskHandler implements TaskHandler {
 
 	public static final String WF_SHADOW_TASK_URI = "http://evolveum.com/wf-shadow-task-uri";
 
-    @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
-
-    @Autowired(required = true)
 	private TaskManager taskManager;
-
-    @Autowired(required = true)
     private WorkflowManager workflowManager;
-
-    @Autowired(required = true)
     private ActivitiInterface activitiInterface;
 
     private static final Trace LOGGER = TraceManager.getTrace(WfTaskHandler.class);
+
+    WfTaskHandler(WorkflowManager workflowManager, WfTaskUtil wfTaskUtil, ActivitiInterface activitiInterface) {
+        this.workflowManager = workflowManager;
+        this.wfTaskUtil = wfTaskUtil;
+        this.taskManager = workflowManager.getTaskManager();
+        this.activitiInterface = activitiInterface;
+
+        LOGGER.trace("Registering with taskManager as a handler for " + WF_SHADOW_TASK_URI);
+        taskManager.registerHandler(WF_SHADOW_TASK_URI, this);
+    }
 
     /*
      * There are two kinds of wf process-watching tasks: passive and active.
@@ -126,18 +125,6 @@ public class WfTaskHandler implements TaskHandler, InitializingBean {
     public List<String> getCategoryNames() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
-
-
-    @Override
-	public void afterPropertiesSet() throws Exception {
-		if (taskManager != null) {
-			LOGGER.trace("Registering with taskManager as a handler for " + WF_SHADOW_TASK_URI);
-			taskManager.registerHandler(WF_SHADOW_TASK_URI, this);
-		}
-		else {
-			LOGGER.error("Cannot register with taskManager as taskManager == null");
-        }
-	}
 
 
     void queryProcessInstance(String id, Task task, OperationResult parentResult) {

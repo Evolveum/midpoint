@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -48,16 +49,17 @@ import java.util.Collection;
  * Time: 15:06
  * To change this template use File | Settings | File Templates.
  */
-@Component
+//@Component
+//@DependsOn("workflowManager")
 public class AddUserProcessWrapper { //implements ProcessWrapper {
 
-    @Autowired(required = true)
+//    @Autowired(required = true)
     private WfHook wfHook;
 
-    @Autowired(required = true)
+//    @Autowired(required = true)
     private WfTaskUtil wfTaskUtil;
 
-    @PostConstruct
+//    @PostConstruct
     public void register() {
         //wfHook.registerWfProcessWrapper(this);
     }

@@ -83,9 +83,9 @@ public class WfDataAccessor {
     private static final String OPERATION_ACTIVITI_TASK_TO_WORK_ITEM = DOT_CLASS + "activitiTaskToWorkItem";
     private static final String OPERATION_APPROVE_OR_REJECT_WORK_ITEM = DOT_CLASS + "approveOrRejectWorkItem";
 
-    public WfDataAccessor(WorkflowManager workflowManager) {
+    public WfDataAccessor(WorkflowManager workflowManager, WfCore wfCore) {
         this.workflowManager = workflowManager;
-        this.wfCore = workflowManager.getWfCore();
+        this.wfCore = wfCore;
     }
 
     private ActivitiEngine getActivitiEngine() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Evolveum
+ * Copyright (c) 2013 Evolveum
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2012 [name of copyright owner]
+ * Portions Copyrighted 2013 [name of copyright owner]
  */
 
 package com.evolveum.midpoint.wf.processes.addroles;
