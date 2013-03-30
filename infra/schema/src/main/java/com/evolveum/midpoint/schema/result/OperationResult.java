@@ -454,35 +454,18 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			}
 			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
 				newStatus = OperationResultStatus.PARTIAL_ERROR;
-//				if (message == null) {
-//					message = sub.getMessage();
-//				} else {
-//					message = message + ": " + sub.getMessage();
-//				}
 				newMessage = sub.getMessage();
-//				newMessage = sub.getMessage();
-//				return;
 			}
 			if (newStatus != OperationResultStatus.PARTIAL_ERROR){
 			if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
 				newStatus = OperationResultStatus.HANDLED_ERROR;
-//				if (message == null) {
-					newMessage = sub.getMessage();
-//				} else {
-//					message = message + ": " + sub.getMessage();
-//				}
-//				return;
+				newMessage = sub.getMessage();
 			}
 			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
-//					&& sub.getStatus() != OperationResultStatus.HANDLED_ERROR
 					&& sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}
-//			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
-//				newStatus = OperationResultStatus.PARTIAL_ERROR;
-//				newMessage = sub.getMessage();
-//			}
 			if (newStatus != OperationResultStatus.HANDLED_ERROR) {
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
@@ -503,6 +486,63 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			} else {
 				message = message + ": " + newMessage;
 			}
+		}
+	}
+
+	/**
+	 * Used when the result contains several composite sub-result that are of equivalent meaning.
+	 * If all of them fails the result will be fatal error as well. If only some of them fail the
+	 * result will be partial error. Handled error is considered a success.
+	 */
+	public void computeStatusComposite() {
+		if (getSubresults().isEmpty()) {
+			if (status == OperationResultStatus.UNKNOWN) {
+				status = OperationResultStatus.SUCCESS;
+			}
+			return;
+		}
+
+		boolean allOk = true;
+		boolean allNotApplicable = true;
+		boolean hasInProgress = false;
+		for (OperationResult sub : getSubresults()) {
+			if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
+				allNotApplicable = false;
+			}
+			if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
+				allOk = false;
+				if (message == null) {
+					message = sub.getMessage();
+				} else {
+					message = message + ", " + sub.getMessage();
+				}
+			}
+			if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
+				hasInProgress = true;
+				if (message == null) {
+					message = sub.getMessage();
+				} else {
+					message = message + ", " + sub.getMessage();
+				}
+			}
+			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
+				allOk = false;
+				if (message == null) {
+					message = sub.getMessage();
+				} else {
+					message = message + ", " + sub.getMessage();
+				}
+			}
+		}
+		
+		if (allNotApplicable) {
+			status = OperationResultStatus.NOT_APPLICABLE;
+		} else if (allOk) {
+			status = OperationResultStatus.SUCCESS;
+		} else if (hasInProgress) {
+			status = OperationResultStatus.IN_PROGRESS;
+		} else {
+			status = OperationResultStatus.PARTIAL_ERROR;
 		}
 	}
 	

@@ -107,19 +107,15 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_WHITE_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
                 
-//        try {
-			// WHEN
-			modelService.executeChanges(deltas, null, task, result);
-			//not expected that it fails, insted the fatal error in the result is excpected
-//			AssertJUnit.fail("Unexpected success of modelService.executeChanges(), expected an exception");
-//        } catch (SchemaException e) {
-//        	// This is expected
-//        	display("Expected exception", e);
-//        }
+		// WHEN
+		//not expected that it fails, insted the fatal error in the result is excpected
+		modelService.executeChanges(deltas, null, task, result);
         
         result.computeStatus();
         
-        assertFailure(result);
+        display(result);
+        // This has to be a partial error as some changes were executed (user) and others were not (account)
+        IntegrationTestTools.assertPartialError(result);
 		
 	}
 	

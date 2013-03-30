@@ -188,6 +188,9 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 	
 	public static LayerRefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, LayerType layer, PrismContext prismContext) throws SchemaException {
 		RefinedResourceSchema refinedSchema = getRefinedSchema(resource, prismContext);
+		if (refinedSchema == null) {
+			return null;
+		}
 		return refinedSchema.forLayer(layer);
 	}
 	

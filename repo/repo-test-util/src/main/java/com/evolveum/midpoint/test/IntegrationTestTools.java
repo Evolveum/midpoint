@@ -203,6 +203,10 @@ public class IntegrationTestTools {
 		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), result.isError());
 	}
 	
+	public static void assertPartialError(OperationResult result) {
+		assertTrue("Expected that operation "+result.getOperation()+" fails partially, but the result was "+result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
+	}
+	
 	public static void assertFailure(OperationResultType result) {
 		assertFailure(null, result);
 	}

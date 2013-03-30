@@ -404,7 +404,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	 * 
 	 * This one dies on the lack of schema.
 	 */
-	// Work in progress, MID-1108
+	// MID-1248
 	@Test(enabled=false)
     public void test400AssignTwoResouresNotFound() throws Exception {
 		testAssignTwoResoures("test400AssignTwoResoures", RESOURCE_CSVFILE_NOTFOUND_OID);
@@ -416,7 +416,6 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	 * 
 	 * This one dies on connector error.
 	 */
-	// Work in progress, MID-1108
 	@Test
     public void test401AssignTwoResouresBroken() throws Exception {
 		testAssignTwoResoures("test401AssignTwoResouresBroken", RESOURCE_CSVFILE_BROKEN_OID);
@@ -426,7 +425,6 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	 * Assign two resources to a user. One of them is looney, the other is not. The result should be that
 	 * the account on the good resource is created.
 	 */
-	// Work in progress, MID-1108
 	private void testAssignTwoResoures(final String TEST_NAME, String badResourceOid) throws Exception {
         displayTestTile(this, TEST_NAME);
 
@@ -446,7 +444,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("executeChanges result", result);
-//		assertEquals("Expected partial errror in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+		assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
         
         DummyAccount jackDummyAccount = dummyResource.getAccountByUsername(USER_JACK_USERNAME);
         assertNotNull("No jack dummy account", jackDummyAccount);
