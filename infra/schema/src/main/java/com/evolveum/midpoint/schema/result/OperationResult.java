@@ -505,6 +505,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		boolean allOk = true;
 		boolean allNotApplicable = true;
 		boolean hasInProgress = false;
+		boolean hasHandledError = false;
 		for (OperationResult sub : getSubresults()) {
 			if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allNotApplicable = false;
@@ -533,12 +534,24 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 					message = message + ", " + sub.getMessage();
 				}
 			}
+			if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
+				hasHandledError = true;
+				if (message == null) {
+					message = sub.getMessage();
+				} else {
+					message = message + ", " + sub.getMessage();
+				}
+			}
 		}
 		
 		if (allNotApplicable) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		} else if (allOk) {
-			status = OperationResultStatus.SUCCESS;
+			if (hasHandledError) {
+				status = OperationResultStatus.HANDLED_ERROR;
+			} else {
+				status = OperationResultStatus.SUCCESS;
+			}
 		} else if (hasInProgress) {
 			status = OperationResultStatus.IN_PROGRESS;
 		} else {
