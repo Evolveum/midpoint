@@ -35,7 +35,8 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 @Component
 public class GenericErrorHandler extends ErrorHandler{
 
-	
+	private static final String COMPENSATE_OPERATION = GenericErrorHandler.class.getName()+".compensate";
+
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 
@@ -58,7 +59,9 @@ public class GenericErrorHandler extends ErrorHandler{
 //		OperationResult result = OperationResult.createOperationResult(shadow.getResult());
 		String operation = (shadow.getFailedOperationType() == null ? "null" : shadow.getFailedOperationType().name());
 		
-		OperationResult result = parentResult.createSubresult("Compensating operation: " + operation + " while executing operation: "+ op.name());
+		OperationResult result = parentResult.createSubresult(COMPENSATE_OPERATION);
+		result.addContext("compensatedOperation", operation);
+		result.addContext("operationType",op.name());
 		result.addParam("shadow", shadow);
 		result.addParam("currentOperation", op);
 		result.addParam("reconciled", true);
@@ -73,14 +76,15 @@ public class GenericErrorHandler extends ErrorHandler{
 //					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
 //				}
 				result.recordStatus(OperationResultStatus.PARTIAL_ERROR, "Unable to get account from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-				parentResult.computeStatus();
+				result.computeStatus();
 				shadow.setFetchResult(parentResult.createOperationResultType());
 				return shadow;
 			}
 			
 			if (shadow.getFailedOperationType() == null){
-				throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
-						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+				String message = "Generic error in the connector. Can't process shadow " + ObjectTypeUtil.toShortString(shadow) + ". ";
+				result.recordFatalError(message, ex);
+				throw new GenericFrameworkException(message, ex);
 			}
 //				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()){
 					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
@@ -108,8 +112,9 @@ public class GenericErrorHandler extends ErrorHandler{
 //					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
 		case MODIFY:
 			if (shadow.getFailedOperationType() == null) {
-				throw new GenericFrameworkException("Generic error in the connector. Can't process shadow "
-						+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+				String message = "Generic error in the connector. Can't process shadow " + ObjectTypeUtil.toShortString(shadow) + ". ";
+				result.recordFatalError(message, ex);
+				throw new GenericFrameworkException(message, ex);
 			}
 				// get the modifications from the shadow before the account
 				// is created, because after successful creation of account,
@@ -165,8 +170,9 @@ public class GenericErrorHandler extends ErrorHandler{
 			Collection<ItemDelta> modification = createAttemptModification(shadow, null);
 			cacheRepositoryService.modifyObject(shadow.asPrismObject().getCompileTimeClass(), shadow.getOid(), modification, parentResult);
 			
-			throw new GenericFrameworkException("Can't process "
-					+ ObjectTypeUtil.toShortString(shadow) + ". ", ex);
+			String message = "Can't process " + ObjectTypeUtil.toShortString(shadow) + ". ";
+			result.recordFatalError(message, ex);
+			throw new GenericFrameworkException(message, ex);
 		}		
 	}
 

@@ -115,6 +115,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	private boolean summarizeErrors;
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
+	private boolean minor = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
@@ -190,6 +191,12 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public OperationResult createSubresult(String operation) {
 		OperationResult subresult = new OperationResult(operation);
 		addSubresult(subresult);
+		return subresult;
+	}
+	
+	public OperationResult createMinorSubresult(String operation) {
+		OperationResult subresult = createSubresult(operation);
+		subresult.minor = true;
 		return subresult;
 	}
 
@@ -497,7 +504,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public void computeStatusComposite() {
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
-				status = OperationResultStatus.SUCCESS;
+				status = OperationResultStatus.NOT_APPLICABLE;
 			}
 			return;
 		}
@@ -1094,6 +1101,36 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 		return similar;
 	}
+	
+	/**
+	 * Removes all the successful minor results. Also checks if the result is roughly consistent
+	 * and complete. (e.g. does not have unknown operation status, etc.) 
+	 */
+	public void cleanupResult() {
+		if (status == OperationResultStatus.UNKNOWN) {
+			throw new IllegalStateException("Attempt to cleanup result of opertation "+operation+" that is still UNKNOWN");
+		}
+		if (subresults == null) {
+			return;
+		}
+		Iterator<OperationResult> iterator = subresults.iterator();
+		while (iterator.hasNext()) {
+			OperationResult subresult = iterator.next();
+			if (subresult.getStatus() == OperationResultStatus.UNKNOWN) {
+				throw new IllegalStateException("Subresult "+subresult.getOperation()+" of operation "+operation+" is still UNKNOWN during cleanup");
+			}
+			if (subresult.canCleanup()) {
+				iterator.remove();
+			}
+		}
+	}
+
+	private boolean canCleanup() {
+		if (!minor) {
+			return false;
+		}
+		return status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE;
+	}
 
 	@Override
 	public String debugDump() {
@@ -1125,6 +1162,9 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		sb.append(operation);
 		sb.append(", st: ");
 		sb.append(status);
+		if (minor) {
+			sb.append(", MINOR");
+		}
 		sb.append(", msg: ");
 		sb.append(message);
 		if (count > 1) {

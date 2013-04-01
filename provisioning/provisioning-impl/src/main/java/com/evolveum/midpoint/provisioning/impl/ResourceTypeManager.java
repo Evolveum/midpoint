@@ -146,7 +146,7 @@ public class ResourceTypeManager {
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..
-		OperationResult result = parentResult.createSubresult(ResourceTypeManager.class.getName() + ".completeResource");
+		OperationResult result = parentResult.createMinorSubresult(ResourceTypeManager.class.getName() + ".completeResource");
 		applyConnectorSchemaToResource(resource, result);
 
 		// Check presence of a schema

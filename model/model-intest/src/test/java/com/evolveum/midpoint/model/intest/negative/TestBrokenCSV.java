@@ -206,6 +206,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 	        AssertJUnit.fail("Expected SystemException but the operation was successful");
         } catch (SystemException e) {
         	// This is expected
+        	display("Expected exception", e);
         	result.computeStatus();
     		display("getObject result", result);
             IntegrationTestTools.assertFailure("getObject result", result);

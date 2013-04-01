@@ -163,7 +163,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		final String operation = "getting";
 		int attempt = 1;
 
-		OperationResult subResult = result.createSubresult(GET_OBJECT);
+		OperationResult subResult = result.createMinorSubresult(GET_OBJECT);
 		subResult.addParam("type", type.getName());
 		subResult.addParam("oid", oid);
 
@@ -609,7 +609,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			LOGGER.trace("Full query\n{}", new Object[] { (query == null ? "undefined" : query.dump()) });
 		}
 
-		OperationResult subResult = result.createSubresult(COUNT_OBJECTS);
+		OperationResult subResult = result.createMinorSubresult(COUNT_OBJECTS);
 		subResult.addParam("type", type.getName());
 		subResult.addParam("query", query);
 

@@ -223,23 +223,21 @@ public class IntegrationTestTools {
 	}
 	
 	public static void assertNoUnknown(OperationResult result) {
-		// FIXME: temprarily disabled
-//		if (result.isUnknown()) {
-//			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
-//		}
-//		for (OperationResult subresult: result.getSubresults()) {
-//			assertNoUnknown(subresult);
-//		}
+		if (result.isUnknown()) {
+			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+		}
+		for (OperationResult subresult: result.getSubresults()) {
+			assertNoUnknown(subresult);
+		}
 	}
 	
 	public static void assertNoUnknown(OperationResultType result) {
-		// FIXME: temprarily disabled
-//		if (result.getStatus() == OperationResultStatusType.UNKNOWN) {
-//			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
-//		}
-//		for (OperationResultType subresult: result.getPartialResults()) {
-//			assertNoUnknown(subresult);
-//		}
+		if (result.getStatus() == OperationResultStatusType.UNKNOWN) {
+			AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+		}
+		for (OperationResultType subresult: result.getPartialResults()) {
+			assertNoUnknown(subresult);
+		}
 	}
 	
 	/**

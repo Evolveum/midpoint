@@ -157,10 +157,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
-	public static final String SEARCH_OBJECTS_IN_REPOSITORY = CLASS_NAME_WITH_DOT
-			+ "searchObjectsInRepository";
-	public static final String SEARCH_OBJECTS_IN_PROVISIONING = CLASS_NAME_WITH_DOT
-			+ "searchObjectsInProvisioning";
+	public static final String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
 	public static final String ADD_OBJECT_WITH_EXCLUSION = CLASS_NAME_WITH_DOT + "addObjectWithExclusion";
 	public static final String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME_WITH_DOT
 			+ "modifyObjectWithExclusion";
@@ -231,33 +228,36 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws ObjectNotFoundException,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
-		Validate.notNull(result, "Operation result must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
 		RepositoryCache.enter();
 
 		PrismObject<T> object = null;
-		try {
-			OperationResult subResult = result.createSubresult(GET_OBJECT);
-			subResult.addParams(new String[] { "oid", "options", "class" }, oid, options, clazz);
+		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
+		result.addParams(new String[] { "oid", "options", "class" }, oid, options, clazz);
+		
+		try {	
 
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-			object = objectResolver.getObject(clazz, oid, rootOptions, subResult).asPrismObject();
+			object = objectResolver.getObject(clazz, oid, rootOptions, result).asPrismObject();
 
             if (!GetOperationOptions.isRaw(rootOptions)) {
-			    updateDefinition(object, result);
+			    updateDefinition(object, parentResult);
             }
 
 			// todo will be fixed after another interface cleanup
 			// fix for resolving object properties.
-			resolve(object, options, task, subResult);
+			resolve(object, options, task, result);
+			
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 		if (CompiletimeConfig.CONSISTENCY_CHECKS) object.checkConsistence(true, false);
 		return object;
@@ -449,6 +449,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			throw e;
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 	}
 
@@ -596,6 +597,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		
 		// TODO: ERROR HANDLING
 		result.computeStatus();
+		result.cleanupResult();
 
 		return context;
 	}
@@ -671,6 +673,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 
 		return oid;
@@ -707,15 +710,20 @@ public class ModelController implements ModelService, ModelInteractionService {
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
-		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
 		if (query != null) {
 			ModelUtils.validatePaging(query.getPaging());
 		}
 		RepositoryCache.enter();
 
+		boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
+		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		result.addParams(new String[] { "query", "paging", "searchInProvisioning" },
+                query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
+		
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		List<PrismObject<T>> list = null;
@@ -729,41 +737,35 @@ public class ModelController implements ModelService, ModelInteractionService {
                                     query.getPaging().getDirection(), query.getPaging().getOrderBy() });
                 }
 			}
-			boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
-			String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
-					: SEARCH_OBJECTS_IN_REPOSITORY;
-			OperationResult subResult = result.createSubresult(operationName);
-			subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" },
-                    query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
-
+			
 			try {
 				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
-					list = provisioning.searchObjects(type, query, subResult);
+					list = provisioning.searchObjects(type, query, result);
 				} else {
-					list = cacheRepositoryService.searchObjects(type, query, subResult);
+					list = cacheRepositoryService.searchObjects(type, query, result);
 				}
-				subResult.recordSuccess();
+				result.recordSuccess();
 			} catch (CommunicationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
 			} catch (ConfigurationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
 			} catch (ObjectNotFoundException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
 			} catch (SchemaException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
 			} catch (SecurityViolationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
 			} catch (RuntimeException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, subResult);
+				processSearchException(e, rootOptions, searchInProvisioning, result);
 				throw e;
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(subResult.dump(false));
+					LOGGER.trace(result.dump(false));
 				}
 			}
 
@@ -772,11 +774,12 @@ public class ModelController implements ModelService, ModelInteractionService {
 			}
 
             if (!GetOperationOptions.isRaw(rootOptions)) {
-			    updateDefinitions(list, result);
+			    updateDefinitions(list, parentResult);
             }
 
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 		
 		if (CompiletimeConfig.CONSISTENCY_CHECKS) {
@@ -804,20 +807,61 @@ public class ModelController implements ModelService, ModelInteractionService {
 	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
-		// TODO: implement properly
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
 
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		RepositoryCache.enter();
+		
+		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
+		result.addParams(new String[] { "query", "paging"},
+                query, (query != null ? query.getPaging() : "undefined"));
+
+		int count;
 		try {
+			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+			
 			if (!GetOperationOptions.isRaw(rootOptions)
                     && ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
-				return provisioning.countObjects(type, query, parentResult);
+				count = provisioning.countObjects(type, query, parentResult);
 			} else {
-				return cacheRepositoryService.countObjects(type, query, parentResult);
+				count = cacheRepositoryService.countObjects(type, query, parentResult);
 			}
-		} catch (Exception ex) {
-			throw new SystemException(ex.getMessage(), ex);
+		} catch (ConfigurationException e) {
+			recordFatalError(result, e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			recordFatalError(result, e);
+			throw e;
+		} catch (SchemaException e) {
+			recordFatalError(result, e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			recordFatalError(result, e);
+			throw e;
+		} catch (CommunicationException e) {
+			recordFatalError(result, e);
+			throw e;
+		} catch (RuntimeException e) {
+			recordFatalError(result, e);
+			throw e;
+		} finally {
+			RepositoryCache.exit();
 		}
+		
+		result.computeStatus();
+		result.cleanupResult();
+		return count;
+        
+	}
+
+	
+	private void recordFatalError(OperationResult result, Throwable e) {
+		recordFatalError(result, e.getMessage(), e);
+	}
+
+	private void recordFatalError(OperationResult result, String message, Throwable e) {
+		LOGGER.error(message, e);
+		result.recordFatalError(message, e);
+		result.cleanupResult();
 	}
 
 	
@@ -986,41 +1030,43 @@ public class ModelController implements ModelService, ModelInteractionService {
 	}
 
 	@Override
-	public PrismObject<UserType> listAccountShadowOwner(String accountOid, Task task, OperationResult result)
+	public PrismObject<UserType> listAccountShadowOwner(String accountOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
-		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
 
 		RepositoryCache.enter();
 
 		PrismObject<UserType> user = null;
+		
+		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
+
+		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
+		result.addParams(new String[] { "accountOid" }, accountOid);
 
 		try {
-			LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
-
-			OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
-			subResult.addParams(new String[] { "accountOid" }, accountOid);
-
+			
 			try {
-				user = cacheRepositoryService.listAccountShadowOwner(accountOid, subResult);
-				subResult.recordSuccess();
+				user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
+				result.recordSuccess();
 			} catch (ObjectNotFoundException ex) {
 				LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
-				subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
+				result.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
 				throw ex;
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 						+ " for account with oid {}", ex, accountOid);
-				subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
+				result.recordFatalError("Couldn't list account shadow owner for account with oid '"
 						+ accountOid + "'.", ex);
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(subResult.dump(false));
+					LOGGER.trace(result.dump(false));
 				}
 			}
 
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 
 		return user;
@@ -1028,41 +1074,42 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 	@Override
 	public <T extends ResourceObjectShadowType> List<PrismObject<T>> listResourceObjectShadows(
-			String resourceOid, Class<T> resourceObjectShadowType, Task task, OperationResult result)
+			String resourceOid, Class<T> resourceObjectShadowType, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(parentResult, "Result type must not be null.");
 
 		RepositoryCache.enter();
 
 		List<PrismObject<T>> list = null;
 
-		try {
-			LOGGER.trace("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
-					resourceObjectShadowType, resourceOid });
+		LOGGER.trace("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
+				resourceObjectShadowType, resourceOid });
 
-			OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
-			subResult.addParams(new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
-					resourceObjectShadowType);
+		OperationResult result = parentResult.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
+		result.addParams(new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
+				resourceObjectShadowType);
+		
+		try {
 
 			try {
 				list = cacheRepositoryService.listResourceObjectShadows(resourceOid,
-						resourceObjectShadowType, subResult);
-				subResult.recordSuccess();
+						resourceObjectShadowType, result);
+				result.recordSuccess();
 			} catch (ObjectNotFoundException ex) {
-				subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
+				result.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
 				RepositoryCache.exit();
 				throw ex;
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
 						+ "{} from repository for resource, oid {}", ex, resourceObjectShadowType,
 						resourceOid);
-				subResult.recordFatalError("Couldn't list resource object shadows type '"
+				result.recordFatalError("Couldn't list resource object shadows type '"
 						+ resourceObjectShadowType + "' from repository for resource, oid '" + resourceOid
 						+ "'.", ex);
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace(subResult.dump(false));
+					LOGGER.trace(result.dump(false));
 				}
 			}
 
@@ -1072,6 +1119,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 
 		return list;
@@ -1129,6 +1177,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			}
 		} finally {
 			RepositoryCache.exit();
+			result.cleanupResult();
 		}
 		return list;
 	}
@@ -1228,6 +1277,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 			result.recordSuccess();
 		}
 		RepositoryCache.exit();
+		result.cleanupResult();
 	}
 
 	@Override
@@ -1253,6 +1303,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		// No need to compute status. The validator inside will do it.
 		// result.computeStatus("Couldn't import object from input stream.");
 		RepositoryCache.exit();
+		result.cleanupResult();
 	}
 
 	/*
@@ -1278,6 +1329,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 		}
 		result.computeStatus("Connector discovery failed");
 		RepositoryCache.exit();
+		result.cleanupResult();
 		return discoverConnectors;
 	}
 
@@ -1320,6 +1372,7 @@ public class ModelController implements ModelService, ModelInteractionService {
         }
 
 		RepositoryCache.exit();
+		result.cleanupResult();
 	}
 	
 	private <T extends ObjectType> void updateDefinitions(Collection<PrismObject<T>> objects, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -1355,29 +1408,5 @@ public class ModelController implements ModelService, ModelInteractionService {
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(AccountShadowType.F_ATTRIBUTES);
 		attributesContainer.applyDefinition(rAccountDef.toResourceAttributeContainerDefinition(), true);
 	}
-
-    /**
-     * Methods to invoke old-style hooks, necessary for keeping SystemConfigurationHandler updated.
-     * (Will disappear after non-user-related model actions will be migrated to new 'lens' paradigm.)
-     */
-//    @Deprecated
-//    private void executePostChange(ObjectDelta<? extends ObjectType> objectDelta, Task task,
-//                                                OperationResult result) {
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-//        deltas.add(objectDelta);
-//        executePostChange(deltas, task, result);
-//    }
-
-//    @Deprecated
-//    private void executePostChange(Collection<ObjectDelta<? extends ObjectType>> objectDeltas,
-//                                                Task task, OperationResult result) {
-//
-//        HookOperationMode resultMode = HookOperationMode.FOREGROUND;
-//        if (hookRegistry != null) {
-//            for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
-//                hook.postChange(objectDeltas, task, result);
-//            }
-//        }
-//    }
 
 }

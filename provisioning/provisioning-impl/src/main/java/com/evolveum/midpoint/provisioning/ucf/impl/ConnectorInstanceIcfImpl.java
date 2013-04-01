@@ -368,6 +368,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 		} catch (UnsupportedOperationException ex) {
 			// The connector does no support schema() operation.
+			icfResult.recordStatus(OperationResultStatus.HANDLED_ERROR, ex.getMessage());
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
 			resourceSchema = null;
 			initialized = true;
@@ -382,19 +383,24 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof CommunicationException) {
-				//communication error is not critical.do not add it to the result as 
-//				result.recordFatalError("ICF communication error: " + midpointEx.getMessage(), midpointEx);
+				//communication error is not critical.do not add it to the result as fatal error
+				icfResult.recordPartialError(midpointEx.getMessage(), midpointEx);
+				result.recordPartialError("ICF communication error: " + midpointEx.getMessage(), midpointEx);
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof ConfigurationException) {
+				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				result.recordFatalError("ICF configuration error: " + midpointEx.getMessage(), midpointEx);
 				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
+				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				result.recordFatalError("ICF error: " + midpointEx.getMessage(), midpointEx);
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
+				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				result.recordFatalError("ICF error: " + midpointEx.getMessage(), midpointEx);
 				throw (RuntimeException) midpointEx;
 			} else {
+				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				result.recordFatalError("Internal error: " + midpointEx.getMessage(), midpointEx);
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -626,7 +632,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
+		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
 				+ ".getCapabilities");
 		result.addContext("connector", connectorType);
 
@@ -659,7 +665,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			SchemaException, SecurityViolationException {
 
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
+		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
 				+ ".fetchObject");
 		result.addParam("resourceObjectDefinition", objectClassDefinition);
 		result.addParam("identifiers", identifiers);
@@ -742,7 +748,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
-		OperationResult icfResult = parentResult.createSubresult(ConnectorFacade.class.getName()
+		OperationResult icfResult = parentResult.createMinorSubresult(ConnectorFacade.class.getName()
 				+ ".getObject");
 		icfResult.addParam("objectClass", icfObjectClass.toString());
 		icfResult.addParam("uid", uid.getUidValue());

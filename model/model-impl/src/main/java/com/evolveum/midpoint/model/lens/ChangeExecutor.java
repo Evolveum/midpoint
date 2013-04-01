@@ -152,34 +152,36 @@ public class ChangeExecutor {
 	                subResult.computeStatus();
 	                
 	        	} catch (SchemaException e) {
-	        		subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} catch (ObjectNotFoundException e) {
-	    			subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} catch (ObjectAlreadyExistsException e) {
 	    			subResult.computeStatus();
 	    			if (!subResult.isSuccess()) {
 	    				subResult.recordFatalError(e);
 	    			}
+	    			result.computeStatusComposite();
 	    			throw e;
 	    		} catch (CommunicationException e) {
-	    			subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} catch (ConfigurationException e) {
-	    			subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} catch (SecurityViolationException e) {
-	    			subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} catch (RewindException e) {
 	    			subResult.recordHandledError(e);
+	    			result.computeStatusComposite();
 	    			throw e;
 	    		} catch (ExpressionEvaluationException e) {
-	    			subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		} catch (RuntimeException e) {
-	    			subResult.recordFatalError(e);
+	        		recordFatalError(subResult, result, null, e);
 	    			throw e;
 	    		}  
 	        } else {
@@ -281,7 +283,17 @@ public class ChangeExecutor {
 
     }
 
-    /**
+	private void recordFatalError(OperationResult subResult, OperationResult result, String message, Throwable e) {
+		if (message == null) {
+			message = e.getMessage();
+		}
+		subResult.recordFatalError(e);
+		if (result != null) {
+			result.computeStatusComposite();
+		}
+	}
+
+	/**
      * Make sure that the account is linked (or unlinked) as needed.
      */
     private <F extends ObjectType, P extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject,

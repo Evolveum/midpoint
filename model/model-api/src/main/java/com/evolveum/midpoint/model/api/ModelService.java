@@ -87,6 +87,7 @@ public interface ModelService {
 	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 	String ADD_USER = CLASS_NAME_WITH_DOT + "addUser";
 	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+	String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
 	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
 	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
@@ -529,7 +530,8 @@ public interface ModelService {
 	
 
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+            Task task, OperationResult parentResult) 
+            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
 
 	/**
 	 * <p>
