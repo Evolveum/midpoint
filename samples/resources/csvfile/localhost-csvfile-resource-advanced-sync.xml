@@ -213,7 +213,7 @@ object.
                 </activation>
             </accountType>
         </schemaHandling>
-       <!-- <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
             <configured>
 				<cap:activation>
 					<cap:enableDisable>
@@ -223,7 +223,7 @@ object.
 					</cap:enableDisable>
 				</cap:activation>
 			</configured>
-        </capabilities> -->
+        </capabilities>
         <synchronization>
         	<objectSynchronization>
 	            <!--
