@@ -646,6 +646,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         
         return activation.getEnabled();
     }
+    
+    public AttributeFetchStrategyType getActivationEnableFetchStrategy() {
+    	ResourceActivationEnableDefinitionType enableDef = getActivationEnableDefinition();
+		if (enableDef == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		if (enableDef.getFetchStrategy() == null) {
+			return AttributeFetchStrategyType.IMPLICIT;
+		}
+		return enableDef.getFetchStrategy();
+	}
 
     @Override
     public String dump() {

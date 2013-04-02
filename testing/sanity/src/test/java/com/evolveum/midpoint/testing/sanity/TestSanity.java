@@ -39,6 +39,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -681,24 +682,24 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertFalse("Empty capabilities returned", capabilities.isEmpty());
 
         for (Object capability : nativeCapabilities.getAny()) {
-            System.out.println("Native Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " + capability);
+            System.out.println("Native Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
         if (resource.getCapabilities() != null) {
             for (Object capability : resource.getCapabilities().getConfigured().getAny()) {
-                System.out.println("Configured Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " + capability);
+                System.out.println("Configured Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
             }
         }
 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
-            System.out.println("Efective Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : " + capability);
+            System.out.println("Efective Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
-        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities, CredentialsCapabilityType.class);
         assertNotNull("password capability not present", capCred.getPassword());
         // Connector cannot do activation, this should be null
-        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(capabilities, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it", capAct);
 
         capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);

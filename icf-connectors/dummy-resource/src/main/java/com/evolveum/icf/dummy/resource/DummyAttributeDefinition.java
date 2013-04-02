@@ -29,6 +29,7 @@ public class DummyAttributeDefinition {
 	private Class<?> attributeType;
 	private boolean isRequired;
 	private boolean isMulti;
+	private boolean isReturnedByDefault = true;
 	
 	public DummyAttributeDefinition(String attributeName, Class<?> attributeType) {
 		super();
@@ -50,26 +51,41 @@ public class DummyAttributeDefinition {
 	public String getAttributeName() {
 		return attributeName;
 	}
+	
 	public void setAttributeName(String attributeName) {
 		this.attributeName = attributeName;
 	}
+	
 	public Class<?> getAttributeType() {
 		return attributeType;
 	}
+	
 	public void setAttributeType(Class<?> attributeType) {
 		this.attributeType = attributeType;
 	}
+	
 	public boolean isRequired() {
 		return isRequired;
 	}
+	
 	public void setRequired(boolean isRequired) {
 		this.isRequired = isRequired;
 	}
+	
 	public boolean isMulti() {
 		return isMulti;
 	}
+	
 	public void setMulti(boolean isMulti) {
 		this.isMulti = isMulti;
+	}
+
+	public boolean isReturnedByDefault() {
+		return isReturnedByDefault;
+	}
+
+	public void setReturnedByDefault(boolean isReturnedByDefault) {
+		this.isReturnedByDefault = isReturnedByDefault;
 	}
 
 }

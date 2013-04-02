@@ -26,6 +26,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +36,9 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -71,6 +76,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 public class ProvisioningTestUtil {
 	
 	public static final String COMMON_TEST_DIR_FILENAME = "src/test/resources/object/";
+	
+	
+	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	public static final String RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME = "fullname";
+	public static final QName RESOURCE_DUMMY_ATTR_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME);
+	public static final ItemPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);	
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME = "title";
+	public static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+	public static final ItemPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME = "ship";
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME = "weapon";
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME = "loot";
+	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME = "treasure";
 
 	public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
 		XmlSchemaType xmlSchemaType = conn.getSchema();
@@ -175,21 +193,6 @@ public class ProvisioningTestUtil {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 	}
-	
-	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		assertIcfResourceSchemaSanity(resourceSchema, resourceType);
-		
-		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-		
-		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
-		assertNotNull("No definition for fullname", fullnameDef);
-		assertEquals(1, fullnameDef.getMaxOccurs());
-		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue("No fullname create", fullnameDef.canCreate());
-		assertTrue("No fullname update", fullnameDef.canUpdate());
-		assertTrue("No fullname read", fullnameDef.canRead());
-		
-	}
 
 	public static void checkRepoShadow(PrismObject<AccountShadowType> repoShadow) {
 		AccountShadowType repoShadowType = repoShadow.asObjectable();
@@ -201,6 +204,46 @@ public class ProvisioningTestUtil {
 		List<Item<?>> attributes = attributesContainer.getValue().getItems();
 		assertFalse("Empty attributes in repo shadow", attributes.isEmpty());
 		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
+	}
+
+	public static void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		ProvisioningTestUtil.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
+		
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		
+		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		assertNotNull("No definition for fullname", fullnameDef);
+		assertEquals(1, fullnameDef.getMaxOccurs());
+		assertEquals(1, fullnameDef.getMinOccurs());
+		assertTrue("No fullname create", fullnameDef.canCreate());
+		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname read", fullnameDef.canRead());
+	}
+	
+	public static void extendSchema(DummyResource dummyResource) throws ConnectException, FileNotFoundException {
+		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();		
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, String.class, false, true);
+		DummyAttributeDefinition lootAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, Integer.class, false, false);
+		lootAttrDef.setReturnedByDefault(false);
+		DummyAttributeDefinition treasureAttrDef = addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME, String.class, false, false);
+		treasureAttrDef.setReturnedByDefault(false);
+	}
+	
+	private static DummyAttributeDefinition addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
+		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
+		accountObjectClass.add(attrDef);
+		return attrDef;
+	}
+	
+	public static void assertDummyResourceSchemaSanityExteded(ResourceSchema resourceSchema, ResourceType resourceType) {
+		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
+		
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);		
+		assertEquals("Unexpected number of defnitions", 10, accountDef.getDefinitions().size());
+		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
+		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 	}
 
 }

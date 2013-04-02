@@ -35,6 +35,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
@@ -66,13 +67,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 
 @Component
-public class ResourceTypeManager {
+public class ResourceManager {
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
-	private ResourceSchemaCache resourceSchemaCache;
+	private ResourceCache resourceCache;
 	@Autowired(required = true)
 	private ConnectorTypeManager connectorTypeManager;
 	@Autowired(required = true)
@@ -80,10 +81,10 @@ public class ResourceTypeManager {
 
 //	private PrismObjectDefinition<ResourceType> resourceTypeDefinition = null;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
 	
-	public ResourceTypeManager() {
+	public ResourceManager() {
 		repositoryService = null;
 	}
 
@@ -125,7 +126,7 @@ public class ResourceTypeManager {
 	 * Note: This is not really the best place for this method. Need to figure
 	 * out correct place later.
 	 * 
-	 * @param resource
+	 * @param repoResource
 	 *            Resource to check
 	 * @param resourceSchema
 	 *            schema that was freshly pre-fetched (or null)
@@ -139,49 +140,72 @@ public class ResourceTypeManager {
 	 *             cannot fetch resource schema
 	 * @throws ConfigurationException
 	 */
-	public ResourceType completeResource(ResourceType resource, ResourceSchema resourceSchema,
+	private PrismObject<ResourceType> completeResource(PrismObject<ResourceType> repoResource, ResourceSchema resourceSchema,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException {
 
+		ResourceType repoResourceType = repoResource.asObjectable();
 		// do not add as a subresult..it will be added later, if the completing
 		// of resource will be successfull.if not, it will be only set as a
 		// fetch result in the resource..
-		OperationResult result = parentResult.createMinorSubresult(ResourceTypeManager.class.getName() + ".completeResource");
-		applyConnectorSchemaToResource(resource, result);
+		OperationResult result = parentResult.createMinorSubresult(ResourceManager.class.getName() + ".completeResource");
+		applyConnectorSchemaToResource(repoResource, result);
 
 		// Check presence of a schema
-		XmlSchemaType xmlSchemaType = resource.getSchema();
+		XmlSchemaType xmlSchemaType = repoResourceType.getSchema();
 		if (xmlSchemaType == null) {
 			xmlSchemaType = new XmlSchemaType();
-			resource.setSchema(xmlSchemaType);
+			repoResourceType.setSchema(xmlSchemaType);
 		}
-		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(resource);
+		Element xsdElement = ResourceTypeUtil.getResourceXsdSchema(repoResource);
 
 		ResourceType newResource = null;
 		ConnectorInstance connector = null;
 		try {
-			connector = getConnectorInstance(resource, false, result);
+			connector = getConnectorInstance(repoResourceType, false, result);
 		} catch (ObjectNotFoundException e) {
-			String message = "Error resolving connector reference in " + resource
+			String message = "Error resolving connector reference in " + repoResource
 								+ ": Error creating connector instace: " + e.getMessage();
 			// Catch the exceptions. There are not critical. We need to catch them all because the connector may
 			// throw even undocumented runtime exceptions.
 			// Even non-complete resource may still be usable. The fetchResult indicates that there was an error
 			result.recordPartialError(message, e);
-			return resource;
+			return repoResource;
+		} catch (CommunicationException e) {
+			// The resource won't work, the connector was not initialized (most likely it cannot reach the schema)
+			// But we still want to return the resource object that is (partailly) working. At least for reconfiguration.
+			String message = "Error communicating with the " + repoResource
+					+ ": " + e.getMessage();
+			result.recordPartialError(message, e);
+			return repoResource;
+		} catch (ConfigurationException e) {
+			String message = "Connector configuration error for the " + repoResource
+					+ ": " + e.getMessage();
+			result.recordPartialError(message, e);
+			return repoResource;
+		} catch (SchemaException e) {
+			String message = "Schema error for the " + repoResource
+					+ ": " + e.getMessage();
+			result.recordPartialError(message, e);
+			return repoResource;
+		} catch (RuntimeException e) {
+			String message = "Generic connector error for the " + repoResource
+					+ ": " + e.getMessage();
+			result.recordPartialError(message, e);
+			return repoResource;
 		}
 
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource
 			
-			completeSchema(resource, resourceSchema, connector, result);
+			completeSchema(repoResource, resourceSchema, connector, result);
 
-			newResource = resourceSchemaCache.put(resource);
+			newResource = resourceCache.put(repoResourceType);
 		}
 
 		if (newResource == null) {
 			// try to fetch schema from cache
-			newResource = resourceSchemaCache.get(resource);
+			newResource = resourceCache.get(repoResourceType);
 		}
 
 		try {
@@ -197,18 +221,18 @@ public class ResourceTypeManager {
 		result.recordSuccessIfUnknown();
 
 		parentResult.recordSuccess();
-		return newResource;
+		return newResource.asPrismObject();
 	}
 
-	private void completeSchema(ResourceType resource, ResourceSchema resourceSchema,
+	private void completeSchema(PrismObject<ResourceType> resource, ResourceSchema resourceSchema,
 			ConnectorInstance connector, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (resourceSchema == null) { // unless it has been already pulled
-			LOGGER.trace("Fetching resource schema for " + ObjectTypeUtil.toShortString(resource));
+			LOGGER.trace("Fetching resource schema for {}", resource);
 			
 			try {
 				// Fetch schema from connector, UCF will convert it to
 				// Schema Processor format and add all necessary annotations
-				resourceSchema = connector.getResourceSchema(result);
+				resourceSchema = connector.fetchResourceSchema(result);
 
 			} catch (Exception ex) {
 				// Catch the exceptions. There are not critical. We need to catch them all because the connector may
@@ -226,8 +250,7 @@ public class ResourceTypeManager {
 			if (resourceSchema == null) {
 				LOGGER.warn("No resource schema generated for {}", resource);
 			} else {
-				LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
-					+ resourceSchema.getDefinitions().size() + " definitions");
+				LOGGER.debug("Generated resource schema for {}: {} definitions", resource, resourceSchema.getDefinitions().size());
 			}
 		}
 		
@@ -241,19 +264,18 @@ public class ResourceTypeManager {
 		Document xsdDoc = null;
 		try {
 			// Convert to XSD
-			LOGGER.trace("Serializing XSD resource schema for {} to DOM",
-					ObjectTypeUtil.toShortString(resource));
+			LOGGER.trace("Serializing XSD resource schema for {} to DOM", resource);
 
 			xsdDoc = resourceSchema.serializeToXsd();
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Serialized XSD resource schema for {}:\n{}",
-						ObjectTypeUtil.toShortString(resource), DOMUtil.serializeDOMToString(xsdDoc));
+						resource, DOMUtil.serializeDOMToString(xsdDoc));
 			}
 
 		} catch (SchemaException e) {
 			throw new SchemaException("Error processing resource schema for "
-					+ ObjectTypeUtil.toShortString(resource) + ": " + e.getMessage(), e);
+					+ resource + ": " + e.getMessage(), e);
 		}
 
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
@@ -264,7 +286,7 @@ public class ResourceTypeManager {
 
 		// Store generated schema into repository (modify the original
 		// Resource)
-		LOGGER.info("Storing generated schema in resource " + ObjectTypeUtil.toShortString(resource));
+		LOGGER.info("Storing generated schema in resource {}", resource);
 
 		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext,
 				ResourceType.class, ResourceType.F_SCHEMA);
@@ -288,14 +310,14 @@ public class ResourceTypeManager {
 		// Store generated schema into the resource (this will be kept in
 		// the in-memory cache)
 		ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
-		resource.getSchema().setCachingMetadata(cachingMetadata);
+		resource.asObjectable().getSchema().setCachingMetadata(cachingMetadata);
 		// Note: do not switch order of the operations. Storing schema in
 		// repo must happend first. The same
 		// DOM element is used here. Its ownership must remain with the
 		// in-memory resource
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Putting resource in cache:\n{}", resource.asPrismObject().dump());
+			LOGGER.trace("Putting resource in cache:\n{}", resource.dump());
 			LOGGER.trace("Schema:\n{}",
 					DOMUtil.serializeDOMToString(ResourceTypeUtil.getResourceXsdSchema(resource)));
 		}
@@ -322,7 +344,7 @@ public class ResourceTypeManager {
 			if (connector == null) {
 				connector = getConnectorInstance(resource, false, result);
 			}
-			capabilities = connector.getCapabilities(result);
+			capabilities = connector.fetchCapabilities(result);
 
 		} catch (CommunicationException ex) {
 			throw new CommunicationException("Cannot fetch resource native capabilities: " + ex.getMessage(),
@@ -364,10 +386,10 @@ public class ResourceTypeManager {
 	/**
 	 * Apply proper definition (connector schema) to the resource.
 	 */
-	private void applyConnectorSchemaToResource(ResourceType resource, OperationResult result)
+	private void applyConnectorSchemaToResource(PrismObject<ResourceType> resource, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		
-		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource, result);
+		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource.asObjectable(), result);
 		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
 				.findConfigurationContainerDefintion(connectorType, prismContext);
 		if (configurationContainerDefintion == null) {
@@ -465,7 +487,7 @@ public class ResourceTypeManager {
 			// Try to fetch schema from the connector. The UCF will convert it
 			// to Schema Processor
 			// format, so it is already structured
-			schema = connector.getResourceSchema(schemaResult);
+			schema = connector.fetchResourceSchema(schemaResult);
 		} catch (CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: " + e.getMessage(), e);
 			return;
@@ -500,7 +522,7 @@ public class ResourceTypeManager {
 		// generate the resource schema - until we have full schema caching
 		// capability.
 		try {
-			completeResource(resourceType, schema, schemaResult);
+			completeResource(resourceType.asPrismObject(), schema, schemaResult);
 		} catch (ObjectNotFoundException e) {
 			schemaResult.recordFatalError(
 					"Object not found (unexpected error, probably a bug): " + e.getMessage(), e);
@@ -555,11 +577,12 @@ public class ResourceTypeManager {
 	 * Adjust scheme with respect to capabilities. E.g. disable attributes that
 	 * are used for special purpose (such as account activation simulation).
 	 */
-	private void adjustSchemaForCapabilities(ResourceType resource, ResourceSchema resourceSchema) {
-		if (resource.getCapabilities() == null || resource.getCapabilities().getConfigured() == null) {
+	private void adjustSchemaForCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema) {
+		ResourceType resourceType = resource.asObjectable();
+		if (resourceType.getCapabilities() == null || resourceType.getCapabilities().getConfigured() == null) {
 			return;
 		}
-		ActivationCapabilityType activationCapability = ResourceTypeUtil.getCapability(resource
+		ActivationCapabilityType activationCapability = CapabilityUtil.getCapability(resourceType
 				.getCapabilities().getConfigured().getAny(), ActivationCapabilityType.class);
 		if (activationCapability != null && activationCapability.getEnableDisable() != null) {
 			QName attributeName = activationCapability.getEnableDisable().getAttribute();
@@ -599,7 +622,7 @@ public class ResourceTypeManager {
 								+ " for objectclass "
 								+ objectClassDefinition.getTypeName()
 								+ " in "
-								+ ObjectTypeUtil.toShortString(resource)
+								+ resource
 								+ " does not exist in the resource schema. This may work well, but it is not clean. Connector exposing such schema should be fixed.");
 					}
 				}
@@ -616,7 +639,7 @@ public class ResourceTypeManager {
 			// Make sure that the schema is retrieved from the resource
 			// this will also retrieve the schema from cache and/or parse it if
 			// needed
-			ResourceType completeResource = completeResource(resource, null, parentResult);
+			ResourceType completeResource = completeResource(resource.asPrismObject(), null, parentResult).asObjectable();
 			schema = RefinedResourceSchema.getResourceSchema(completeResource, prismContext);
 
 		} catch (SchemaException e) {
@@ -673,7 +696,7 @@ public class ResourceTypeManager {
 		
 		if (delta.isAdd()) {
 			PrismObject<ResourceType> resource = delta.getObjectToAdd();
-			applyConnectorSchemaToResource(resource.asObjectable(), objectResult);
+			applyConnectorSchemaToResource(resource, objectResult);
 			return;
 			
 		} else if (delta.isModify()) {
@@ -770,12 +793,16 @@ public class ResourceTypeManager {
         }
 	}
 
-	private PrismObject<ResourceType> getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
-		PrismObject<ResourceType> prismResource = getRepositoryService().getObject(ResourceType.class, oid, parentResult);
-		return prismResource;
+	public PrismObject<ResourceType> getResource(PrismObject<ResourceType> repositoryObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
+		return completeResource(repositoryObject, null, parentResult);
+	}
+	
+	public PrismObject<ResourceType> getResource(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException{
+		PrismObject<ResourceType> repositoryObject = getRepositoryService().getObject(ResourceType.class, oid, parentResult);
+		return completeResource(repositoryObject, null, parentResult);
 	}
 
 	public void applyDefinition(PrismObject<ResourceType> resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		applyConnectorSchemaToResource(resource.asObjectable(), parentResult);
+		applyConnectorSchemaToResource(resource, parentResult);
 	}
 }

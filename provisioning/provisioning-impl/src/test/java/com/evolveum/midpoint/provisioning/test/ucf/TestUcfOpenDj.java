@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -185,10 +186,10 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult("initUcf");
 		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
-		cc.initialize(result);
+		cc.initialize(null, null, result);
 		// TODO: assert something
 
-		resourceSchema = cc.getResourceSchema(result);
+		resourceSchema = cc.fetchResourceSchema(result);
 		display("Resource schema", resourceSchema);
 
 		AssertJUnit.assertNotNull(resourceSchema);
@@ -576,13 +577,13 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		// WHEN
 
-		Collection<Object> capabilities = cc.getCapabilities(result);
+		Collection<Object> capabilities = cc.fetchCapabilities(result);
 
 		// THEN
 		result.computeStatus("getCapabilities failed");
 		assertSuccess("getCapabilities failed (result)", result);
 		assertFalse("Empty capabilities returned", capabilities.isEmpty());
-		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities,
+		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(capabilities,
 				CredentialsCapabilityType.class);
 		assertNotNull("password capability not present", capCred.getPassword());
 

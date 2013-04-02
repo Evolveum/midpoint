@@ -142,6 +142,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
+		ProvisioningTestUtil.extendSchema(dummyResource);
 		
 		manager = connectorFactoryIcfImpl;
 
@@ -286,13 +287,13 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		cc.configure(configContainer, result);
 		
 		// WHEN
-		resourceSchema = cc.getResourceSchema(result);
+		resourceSchema = cc.fetchResourceSchema(result);
 		
 		// THEN
 		display("Generated resource schema", resourceSchema);
 		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
 		
-		ProvisioningTestUtil.assertDummyResourceSchemaSanity(resourceSchema, resourceType);
+		ProvisioningTestUtil.assertDummyResourceSchemaSanityExteded(resourceSchema, resourceType);
 		
 		Document xsdSchemaDom = resourceSchema.serializeToXsd();
 		assertNotNull("No serialized resource schema", xsdSchemaDom);
@@ -304,7 +305,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		display("Re-parsed resource schema", reparsedResourceSchema);
 		assertEquals("Unexpected number of definitions in re-parsed schema", 1, reparsedResourceSchema.getDefinitions().size());
 		
-		ProvisioningTestUtil.assertDummyResourceSchemaSanity(reparsedResourceSchema, resourceType);
+		ProvisioningTestUtil.assertDummyResourceSchemaSanityExteded(reparsedResourceSchema, resourceType);
 	}
 	
 	@Test

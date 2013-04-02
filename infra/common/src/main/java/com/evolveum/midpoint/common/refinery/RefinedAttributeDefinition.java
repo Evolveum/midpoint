@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.DepreactedAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
@@ -52,6 +53,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private String description;
     private boolean tolerant = true;
     private ResourceAttributeDefinition attributeDefinition;
+    private AttributeFetchStrategyType fetchStrategy;
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
     private Map<LayerType,PropertyLimitations> limitationsMap = new HashMap<LayerType, PropertyLimitations>();
@@ -219,8 +221,16 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     public Object[] getAllowedValues() {
         return attributeDefinition.getAllowedValues();
     }
+    
+    public boolean isReturnedByDefault() {
+		return attributeDefinition.isReturnedByDefault();
+	}
 
-    @Override
+	public void setReturnedByDefault(Boolean returnedByDefault) {
+		throw new UnsupportedOperationException("Cannot change returnedByDefault");
+	}
+
+	@Override
     public int getMaxOccurs() {
     	return getMaxOccurs(DEFAULT_LAYER);
     }
@@ -262,18 +272,30 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         return attributeDefinition.getHelp();
     }
 
-    static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
+    public AttributeFetchStrategyType getFetchStrategy() {
+		return fetchStrategy;
+	}
+
+	public void setFetchStrategy(AttributeFetchStrategyType fetchStrategy) {
+		this.fetchStrategy = fetchStrategy;
+	}
+
+	static RefinedAttributeDefinition parse(ResourceAttributeDefinition schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
     		ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext, 
                                             String contextDescription) throws SchemaException {
 
         RefinedAttributeDefinition rAttrDef = new RefinedAttributeDefinition(schemaAttrDef, prismContext);
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayName() != null) {
-            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
+	            rAttrDef.setDisplayName(schemaHandlingAttrDefType.getDisplayName());
         } else {
             if (schemaAttrDef.getDisplayName() != null) {
                 rAttrDef.setDisplayName(schemaAttrDef.getDisplayName());
             }
+        }
+
+        if (schemaHandlingAttrDefType != null) {
+        	rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
         }
         
         PropertyLimitations schemaLimitations = getOrCreateLimitations(rAttrDef.limitationsMap, LayerType.SCHEMA);

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.impl.ResourceTypeManager;
+import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;

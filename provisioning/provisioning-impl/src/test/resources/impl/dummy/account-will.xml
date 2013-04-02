@@ -30,6 +30,9 @@
 	<attributes>
 		<icfs:name>will</icfs:name>
 		<ri:fullname>Will Turner</ri:fullname>
+		<ri:ship>Flying Dutchman</ri:ship>
+		<ri:loot>42</ri:loot>
+		<ri:treasure>Not silver and gold</ri:treasure>
 	</attributes>
 	<credentials>
 		<password>

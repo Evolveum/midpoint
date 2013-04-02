@@ -72,6 +72,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -274,16 +275,16 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
         assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
-        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
+        CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
         assertNotNull("credentials capability not found",capCred);
         assertNotNull("password capability not present",capCred.getPassword());
         // Connector cannot do activation, this should be null
-        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
+        ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
         assertNull("Found activation capability while not expecting it",capAct);
         
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
-        	System.out.println("Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        	System.out.println("Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
         }
         
         capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);

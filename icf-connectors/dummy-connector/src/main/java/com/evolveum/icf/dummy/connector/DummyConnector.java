@@ -32,6 +32,7 @@ import static com.evolveum.icf.dummy.connector.Utils.*;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -371,6 +372,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
         	attrBuilder.setMultiValued(dummyAttrDef.isMulti());
         	attrBuilder.setRequired(dummyAttrDef.isRequired());
+        	attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
         	objClassBuilder.addAttributeInfo(attrBuilder.build());
         }
         
@@ -449,7 +451,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         
         Collection<DummyAccount> accounts = resource.listAccounts();
         for (DummyAccount account : accounts) {
-        	ConnectorObject co = convertToConnectorObject(account);
+        	ConnectorObject co = convertToConnectorObject(account, options);
         	handler.handle(co);
         }
         
@@ -473,7 +475,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
         		deltaType = SyncDeltaType.CREATE_OR_UPDATE;
         		DummyAccount account = resource.getAccountByUsername(delta.getAccountId());
-        		ConnectorObject cobject = convertToConnectorObject(account);
+        		ConnectorObject cobject = convertToConnectorObject(account, options);
 				builder.setObject(cobject);
         	} else if (delta.getType() == DummyDeltaType.DELETE) {
         		deltaType = SyncDeltaType.DELETE;
@@ -533,23 +535,54 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("test::end");
     }
     
-	private ConnectorObject convertToConnectorObject(DummyAccount account) {
+	private ConnectorObject convertToConnectorObject(DummyAccount account, OperationOptions options) {
 		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
+		Collection<String> attributesToGet = null;
+		if (options != null) {
+			String[] attributesToGetArray = options.getAttributesToGet();
+			if (attributesToGetArray != null && attributesToGetArray.length != 0) {
+				attributesToGet = Arrays.asList(attributesToGetArray);
+			}
+		}
+		
 		builder.setUid(account.getUsername());
 		builder.addAttribute(Name.NAME, account.getUsername());
 		
 		for (String name : account.getAttributeNames()) {
+			if (attributesToGet != null) {
+				if (!attributesToGet.contains(name)) {
+					continue;
+				}
+			} else {
+				DummyAttributeDefinition attrDef;
+				try {
+					attrDef = resource.getAccountObjectClass().getAttributeDefinition(name);
+				} catch (ConnectException e) {
+					log.error(e, e.getMessage());
+					throw new ConnectionFailedException(e.getMessage(), e);
+				} catch (FileNotFoundException e) {
+					log.error(e, e.getMessage());
+					throw new ConnectorIOException(e.getMessage(), e);
+				}
+				if (!attrDef.isReturnedByDefault()) {
+					continue;
+				}
+			}
 			Set<Object> values = account.getAttributeValues(name, Object.class);
 			builder.addAttribute(name, values);
 		}
 		
-		if (account.getPassword() != null && configuration.getReadablePassword()) {
+		// Password is not returned by default (hardcoded ICF specification)
+		if (account.getPassword() != null && configuration.getReadablePassword() && 
+				attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
 			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
 			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 		}
 		
-		builder.addAttribute(OperationalAttributes.ENABLE_NAME, account.isEnabled());
+		if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
+			builder.addAttribute(OperationalAttributes.ENABLE_NAME, account.isEnabled());
+		}
 
         return builder.build();
 	}

@@ -44,14 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
  *
  */
 @Component
-public class ResourceSchemaCache {
+public class ResourceCache {
 
 	private Map<String,ResourceSchemaCacheEntry> cache;
     @Autowired(required = true)
 	private PrismContext prismContext;
 
-    ResourceSchemaCache() {
-        cache = new HashMap<String, ResourceSchemaCache.ResourceSchemaCacheEntry>();
+    ResourceCache() {
+        cache = new HashMap<String, ResourceCache.ResourceSchemaCacheEntry>();
     }
 	
 	public synchronized ResourceType put(ResourceType resourceType) throws SchemaException {

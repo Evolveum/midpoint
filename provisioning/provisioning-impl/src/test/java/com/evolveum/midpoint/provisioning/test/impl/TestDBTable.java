@@ -9,8 +9,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -131,7 +131,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		display("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
 		
 		List<Object> nativeCapabilities = resource.getCapabilities().getNative().getAny();
-		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
+		CredentialsCapabilityType credentialsCapabilityType = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);
 		assertNotNull("No credentials capability", credentialsCapabilityType);
 		PasswordCapabilityType passwordCapabilityType = credentialsCapabilityType.getPassword();
 		assertNotNull("No password in credentials capability", passwordCapabilityType);

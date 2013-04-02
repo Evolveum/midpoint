@@ -33,6 +33,7 @@ public class AttributesToReturn implements Serializable {
 	
 	private boolean returnDefaultAttributes = true;
 	private boolean returnPasswordExplicit = false;
+	private boolean returnEnabledExplicit = false;
 	Collection<? extends ResourceAttributeDefinition> attributesToReturn = null;
 	
 	public boolean isReturnDefaultAttributes() {
@@ -59,10 +60,19 @@ public class AttributesToReturn implements Serializable {
 		this.returnPasswordExplicit = returnPasswordExplicit;
 	}
 
+	public boolean isReturnEnabledExplicit() {
+		return returnEnabledExplicit;
+	}
+
+	public void setReturnEnabledExplicit(boolean returnEnabledExplicit) {
+		this.returnEnabledExplicit = returnEnabledExplicit;
+	}
+
 	@Override
 	public String toString() {
 		return "AttributesToReturn(returnDefaultAttributes=" + returnDefaultAttributes + ", returnPasswordExplicit="
-				+ returnPasswordExplicit + ", attributesToReturn=" + attributesToReturn + ")";
+				+ returnPasswordExplicit + ", returnEnabledExplicit="
+						+ returnEnabledExplicit + ", attributesToReturn=" + attributesToReturn + ")";
 	}
 
 }

@@ -146,7 +146,7 @@ public abstract class ShadowCache {
 	@Autowired(required = true)
 	private ErrorHandlerFactory errorHandlerFactory;
 	@Autowired(required = true)
-	private ResourceTypeManager resourceTypeManager;
+	private ResourceManager resourceTypeManager;
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	@Autowired(required = true)
@@ -547,7 +547,7 @@ public abstract class ShadowCache {
 			return;
 		}
 		if (shadow == null) {
-			ResourceType resource = getResource(discriminator.getResourceOid(), parentResult);
+			ResourceType resource = resourceTypeManager.getResource(discriminator.getResourceOid(), parentResult).asObjectable();
 			applyAttributesDefinition(delta, discriminator, resource);
 		} else {
 			ResourceType resource = getResource(shadow, parentResult);
@@ -568,19 +568,9 @@ public abstract class ShadowCache {
 		if (resourceOid == null) {
 			throw new SchemaException("Shadow " + shadow + " does not have an resource OID");
 		}
-		return getResource(resourceOid, parentResult);
+		return resourceTypeManager.getResource(resourceOid, parentResult).asObjectable();
 	}
 
-	private ResourceType getResource(String resourceOid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException {
-
-		// TODO: add some caching ?
-		PrismObject<ResourceType> resource = getRepositoryService().getObject(ResourceType.class, resourceOid,
-				parentResult);
-
-		return resourceTypeManager.completeResource(resource.asObjectable(), null, parentResult);
-	}
-	
 	@SuppressWarnings("rawtypes")
 	protected <T extends ResourceObjectShadowType> PrismObject<T> handleError(Exception ex, PrismObject<T> shadow, FailedOperation op,
 			ResourceType resource, Collection<? extends ItemDelta> modifications, boolean compensate, Task task, 

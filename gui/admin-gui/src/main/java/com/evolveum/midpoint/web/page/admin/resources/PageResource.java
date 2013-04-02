@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -231,7 +232,7 @@ public class PageResource extends PageAdminResources {
 
             if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
                 for (int i = 0; i < capabilitiesList.size(); i++) {
-                    capabilitiesName.add(ResourceTypeUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
+                    capabilitiesName.add(CapabilityUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
                 }
             }
         } catch (Exception ex) {

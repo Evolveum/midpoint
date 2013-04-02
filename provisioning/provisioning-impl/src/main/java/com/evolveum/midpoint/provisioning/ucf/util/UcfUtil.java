@@ -2,11 +2,15 @@ package com.evolveum.midpoint.provisioning.ucf.util;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
@@ -15,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -81,6 +86,26 @@ public class UcfUtil {
 			throw new SystemException("Unable to dectypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);
 		}
+	}
+
+	public static String dumpOptions(OperationOptions options) {
+		if (options == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("OperationOptions(");
+		Map<String, Object> map = options.getOptions();
+		if (map == null) {
+			sb.append("null");
+		} else {
+			for (Entry<String,Object> entry: map.entrySet()) {
+				sb.append(entry.getKey());
+				sb.append("=");
+				sb.append(PrettyPrinter.prettyPrint(entry.getValue()));
+				sb.append(",");
+			}
+		}
+		return sb.toString();
 	}
 
 

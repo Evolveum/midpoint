@@ -28,6 +28,7 @@ import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -368,17 +369,17 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		System.out.println("resource: " + resourceType.asPrismObject().dump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
 		assertNotNull("password native capability not present", capCred.getPassword());
-		ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
 		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
-		TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
-		ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ScriptCapabilityType.class);
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());
@@ -396,7 +397,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
 		for (Object capability : effectiveCapabilities) {
-			System.out.println("Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : "
+			System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);
 		}
 	}

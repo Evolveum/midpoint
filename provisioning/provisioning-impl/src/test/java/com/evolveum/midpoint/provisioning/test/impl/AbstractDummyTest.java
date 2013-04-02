@@ -20,9 +20,14 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,13 +44,18 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -56,6 +66,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -65,15 +76,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected static final String TEST_DIR = "src/test/resources/impl/dummy/";
 	
-	protected static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
-	protected static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	protected static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	protected static final String RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME = "fullname";
-	protected static final QName RESOURCE_DUMMY_ATTR_FULLNAME_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME);
-	protected static final ItemPath RESOURCE_DUMMY_ATTR_FULLNAME_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_FULLNAME_QNAME);
-	protected static final String RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME = "title";
-	protected static final QName RESOURCE_DUMMY_ATTR_TITLE_QNAME = new QName(RESOURCE_DUMMY_NS, RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME);
-	protected static final ItemPath RESOURCE_DUMMY_ATTR_TITLE_PATH = new ItemPath(AccountShadowType.F_ATTRIBUTES, RESOURCE_DUMMY_ATTR_TITLE_QNAME);
+	public static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
+	public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	
 	protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
 
@@ -129,9 +133,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
-		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		DummyAttributeDefinition titleAttrDef = new DummyAttributeDefinition(RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, String.class, false, true);
-		accountObjectClass.add(titleAttrDef);
+		ProvisioningTestUtil.extendSchema(dummyResource);
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
 		dummyAccountDaemon.setEnabled(true);
@@ -140,7 +142,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 		addObjectFromFile(ACCOUNT_DAEMON_FILENAME, AccountShadowType.class, initResult);
 	}
-	
+
 	protected <T extends ResourceObjectShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
 		for (PrismObject<T> shadow: shadows) {
 			checkConsistency(shadow);
@@ -172,5 +174,16 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		assertEquals("Wrong number of shadows for ICF UID \"" + ACCOUNT_WILL_ICF_UID + "\"", 1, objects.size());
 
 	}
+	
+	protected <T> void assertAttribute(ResourceObjectShadowType shadow, String attrName, T... expectedValues) {
+		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
+		List<T> actualValues = ResourceObjectShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+		ProvisioningTestUtil.assertDummyResourceSchemaSanityExteded(resourceSchema, resourceType);
+	}
+
 
 }

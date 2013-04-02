@@ -190,11 +190,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		display("getObject(resource) result", result);
 		assertFailure(result);
 		assertFailure(resource.asObjectable().getFetchResult());
-
 		
-		ConnectorInstance configuredConnectorInstance = connectorTypeManager.getConfiguredConnectorInstance(
-				resource.asObjectable(), false, result);
-		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		assertNull("Resource schema found", resourceSchema);
 		
@@ -218,12 +214,6 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 
 		ResourceSchema resourceSchemaAgain = RefinedResourceSchema.getResourceSchema(resourceAgain, prismContext);
 		assertNull("Resource schema (again)", resourceSchemaAgain);
-		
-		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
-		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorTypeManager.getConfiguredConnectorInstance(
-				resourceTypeAgain, false, result);
-		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 	}
 	
 	/**

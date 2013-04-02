@@ -151,10 +151,10 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 		clone.returnedByDefault = this.returnedByDefault;
 	}
 
+	
 	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString());
+	protected void extendToString(StringBuilder sb) {
+		super.extendToString(sb);
 		if (getNativeAttributeName()!=null) {
 			sb.append(" native=");
 			sb.append(getNativeAttributeName());
@@ -163,7 +163,6 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 			sb.append(" returnedByDefault=");
 			sb.append(returnedByDefault);
 		}
-		return sb.toString();
 	}
 	
 	/**

@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ShadowCacheUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -148,29 +150,55 @@ public class ResouceObjectConverter {
 
 	}
 
-	private AttributesToReturn createAttributesToReturn(Class<?> type, ObjectClassComplexTypeDefinition objectClassDefinition,
+	private AttributesToReturn createAttributesToReturn(Class<?> type, RefinedObjectClassDefinition objectClassDefinition,
 			Collection<? extends ResourceAttribute<?>> identifiers, ResourceType resource) throws SchemaException {
-		// TODO: just a simple hack now
-		if (AccountShadowType.class.isAssignableFrom(type)) {
-			CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
-			if (credentialsCapabilityType != null && credentialsCapabilityType.getPassword() != null && 
-					credentialsCapabilityType.getPassword().isReturnedByDefault() != null && !credentialsCapabilityType.getPassword().isReturnedByDefault()) {
-				// There resource is capable of returning password but it does not do it by default
-				
-				RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-				// HACK, FIXME
-				RefinedObjectClassDefinition rAccDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-				AttributeFetchStrategyType passwordFetchStrategy = rAccDef.getPasswordFetchStrategy();
-				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-					AttributesToReturn attributesToReturn = new AttributesToReturn();
-					attributesToReturn.setReturnPasswordExplicit(true);
-					return attributesToReturn;
-				}
-				
+		boolean apply = false;
+		AttributesToReturn attributesToReturn = new AttributesToReturn();
+		attributesToReturn.setReturnDefaultAttributes(true);
+		
+		// Attributes
+		Collection<ResourceAttributeDefinition> explicit = new ArrayList<ResourceAttributeDefinition>();
+		for (RefinedAttributeDefinition attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {
+			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
+			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				explicit.add(attributeDefinition);
 			}
 		}
 		
-		return null;
+		if (!explicit.isEmpty()) {
+			attributesToReturn.setAttributesToReturn(explicit);
+			apply = true;
+		}
+		
+		// Password
+		if (AccountShadowType.class.isAssignableFrom(type)) {
+			CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+			if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
+				// There resource is capable of returning password but it does not do it by default
+				AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition.getPasswordFetchStrategy();
+				if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+					attributesToReturn.setReturnPasswordExplicit(true);
+					apply = true;
+				}
+			}
+		}
+		
+		// Activation/enabled
+		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (CapabilityUtil.isEnabledReturnedByDefault(activationCapabilityType)) {
+			// There resource is capable of returning enable flag but it does not do it by default
+			AttributeFetchStrategyType enableFetchStrategy = objectClassDefinition.getActivationEnableFetchStrategy();
+			if (enableFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnEnabledExplicit(true);
+				apply = true;
+			}
+		}
+		
+		if (apply) {
+			return attributesToReturn;
+		} else {
+			return null;
+		}
 	}
 
 	public <T extends ResourceObjectShadowType> PrismObject<T> addResourceObject(ConnectorInstance connector, ResourceType resource, 

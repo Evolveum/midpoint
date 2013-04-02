@@ -265,14 +265,14 @@ public class SchemaToDomProcessor {
 		if (definition.isIndexed() != null) {
 			addAnnotation(A_INDEXED, XmlTypeConverter.toXmlTextContent(definition.isIndexed(), A_INDEXED), appinfo);
 		}
+				
+		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
+		definitionFactory.addExtraPropertyAnnotations(definition, appinfo, this);
 		
 		if (!appinfo.hasChildNodes()) {
 			// remove unneeded <annotation> element
 			property.removeChild(annotation);
 		}
-				
-		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
-		definitionFactory.addExtraPropertyAnnotations(definition, appinfo, this);
 	}
 	
 	/**

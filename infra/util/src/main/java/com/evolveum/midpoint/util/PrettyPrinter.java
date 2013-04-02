@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -99,8 +100,8 @@ public class PrettyPrinter {
 			return "null";
 		}
 		if (qname.getNamespaceURI() != null) {
-			if (qname.getNamespaceURI().equals(DOMUtil.W3C_XML_SCHEMA_XMLNS_URI)) {
-				return "{"+DOMUtil.W3C_XML_SCHEMA_XMLNS_PREFIX+":}"+qname.getLocalPart();
+			if (qname.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
+				return "{"+DOMUtil.NS_W3C_XML_SCHEMA_PREFIX+":}"+qname.getLocalPart();
 			} else if (defaultNamespacePrefix != null && qname.getNamespaceURI().startsWith(defaultNamespacePrefix)) {
 				return "{..."+qname.getNamespaceURI().substring(defaultNamespacePrefix.length())+"}"+qname.getLocalPart();
 			}
@@ -248,11 +249,9 @@ public class PrettyPrinter {
 		if (value instanceof Collection) {
 			return PrettyPrinter.prettyPrint((Collection<?>)value);
 		}
-//		if (value instanceof ObjectType) {
-//			// ObjectType has many subtypes, difficult to sort out using reflection
-//			// therefore we special-case it
-//			return prettyPrint((ObjectType)value);
-//		}
+		if (value.getClass().isArray()) {
+			return PrettyPrinter.prettyPrint((Object[])value);
+		}
 		if (value instanceof Node) {
 			// This is interface, won't catch it using reflection
 			return PrettyPrinter.prettyPrint((Node)value);

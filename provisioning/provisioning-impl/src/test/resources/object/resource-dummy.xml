@@ -54,6 +54,10 @@
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
 			</attribute>
+			<attribute>
+				<ref>ri:loot</ref>
+				<fetchStrategy>explicit</fetchStrategy>
+			</attribute>
 			<protected>
 				<icfs:name>root</icfs:name>
 			</protected>

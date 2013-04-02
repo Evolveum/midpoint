@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -396,20 +397,20 @@ public class TestResourceSchema {
 		if (resourceType.getCapabilities() != null) { 
 			if (resourceType.getCapabilities().getNative() != null) {
 				for (Object capability : resourceType.getCapabilities().getNative().getAny()) {
-		        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+		        	System.out.println("Native Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
 		        }
 			}
 	
 	        if (resourceType.getCapabilities().getConfigured() != null) {
 		        for (Object capability : resourceType.getCapabilities().getConfigured().getAny()) {
-		        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+		        	System.out.println("Configured Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
 		        }
 	        }
 		}
         
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
         for (Object capability : effectiveCapabilities) {
-        	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        	System.out.println("Efective Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
         }
 
         assertNotNull("null native capabilities", resourceType.getCapabilities().getNative());

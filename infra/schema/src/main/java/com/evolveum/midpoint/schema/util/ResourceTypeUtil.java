@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -34,15 +32,14 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
@@ -55,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -125,21 +121,23 @@ public class ResourceTypeUtil {
 		
 	}
 
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
-		for (Object cap : capabilities) {
-			if (cap instanceof JAXBElement) {
-				JAXBElement jaxe = (JAXBElement) cap;
-				if (capabilityClass.isAssignableFrom(jaxe.getDeclaredType())) {
-					return (T) jaxe.getValue();
-				}
-			} else if (capabilityClass.isAssignableFrom(cap.getClass())) {
-				return (T) cap;
-			}
+	/**
+	 * Returns collection of capabilities. Note: there is difference between empty set and null.
+	 * Empty set means that we know the resource has no capabilities. Null means that the
+	 * capabilities were not yet determined.
+	 */
+	public static Collection<Object> getNativeCapabilitiesCollection(ResourceType resource) {
+		if (resource.getCapabilities() == null) {
+			// No capabilities, not initialized
+			return null;
 		}
-		return null;
+		CapabilityCollectionType nativeCap = resource.getCapabilities().getNative();
+		if (nativeCap == null) {
+			return null;
+		}
+		return nativeCap.getAny();
 	}
+
 
 	/**
 	 * Assumes that native capabilities are already cached. 
@@ -149,9 +147,9 @@ public class ResourceTypeUtil {
 			return null;
 		}
 		if (resource.getCapabilities().getConfigured() != null) {
-			T configuredCapability = getCapability(resource.getCapabilities().getConfigured().getAny(), capabilityClass);
+			T configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), capabilityClass);
 			if (configuredCapability != null) {
-				if (isCapabilityEnabled(configuredCapability)) {
+				if (CapabilityUtil.isCapabilityEnabled(configuredCapability)) {
 					return configuredCapability;
 				} else {
 					// Disabled capability, pretend that it is not there
@@ -161,11 +159,11 @@ public class ResourceTypeUtil {
 			// No configured capability entry, fallback to native capability
 		}
 		if (resource.getCapabilities().getNative() != null) {
-			T nativeCapability = getCapability(resource.getCapabilities().getNative().getAny(), capabilityClass);
+			T nativeCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(), capabilityClass);
 			if (nativeCapability == null) {
 				return null;
 			}
-			if (isCapabilityEnabled(nativeCapability)) {
+			if (CapabilityUtil.isCapabilityEnabled(nativeCapability)) {
 				return nativeCapability;
 			} else {
 				// Disabled capability, pretend that it is not there
@@ -179,50 +177,6 @@ public class ResourceTypeUtil {
 		return getEffectiveCapability(resource, capabilityClass) != null;
 	}
 	
-	public static boolean isCapabilityEnabled(Object capability) throws SchemaException {
-		if (capability == null) {
-			return false;
-		}
-		if (capability instanceof JAXBElement<?>) {
-			capability = ((JAXBElement<?>)capability).getValue();
-		}
-		
-		if (capability instanceof CapabilityType) {
-			return isCapabilityEnabled((CapabilityType)capability);
-		} else if (capability instanceof Element) {
-			return isCapabilityEnabled((Element)capability);
-		} else {
-			throw new IllegalArgumentException("Unexpected capability type "+capability.getClass());
-		}
-	}
-	
-	public static boolean isCapabilityEnabled(Element capability) throws SchemaException {
-		if (capability == null) {
-			return false;
-		}
-		ObjectFactory capabilitiesObjectFactory = new ObjectFactory();
-		QName enabledElementName = capabilitiesObjectFactory.createEnabled(true).getName();
-		Element enabledElement = DOMUtil.getChildElement(capability, enabledElementName);
-		if (enabledElement == null) {
-			return true;
-		}
-		Boolean enabled = XmlTypeConverter.convertValueElementAsScalar(enabledElement, Boolean.class);
-		if (enabled == null) {
-			return true;
-		}
-		return enabled;
-	}
-	
-	public static <T extends CapabilityType> boolean isCapabilityEnabled(T capability) {
-		if (capability == null) {
-			return false;
-		}
-		if (capability.isEnabled() == null) {
-			return true;
-		}
-		return capability.isEnabled();
-	}
-
 	/**
 	 * Assumes that native capabilities are already cached. 
 	 */
@@ -233,14 +187,14 @@ public class ResourceTypeUtil {
 		if (resource.getCapabilities().getConfigured() != null) {
 			List<Object> effectiveCapabilities = new ArrayList<Object>();
 			for (Object configuredCapability: resource.getCapabilities().getConfigured().getAny()) {
-				if (isCapabilityEnabled(configuredCapability)) {
+				if (CapabilityUtil.isCapabilityEnabled(configuredCapability)) {
 					effectiveCapabilities.add(configuredCapability);
 				}
 			}
 			if (resource.getCapabilities().getNative() != null) {
 				for (Object nativeCapability: resource.getCapabilities().getNative().getAny()) {
-					if (isCapabilityEnabled(nativeCapability) && 
-							!containsCapabilityWithSameElementName(resource.getCapabilities().getConfigured().getAny(), nativeCapability)) {
+					if (CapabilityUtil.isCapabilityEnabled(nativeCapability) && 
+							!CapabilityUtil.containsCapabilityWithSameElementName(resource.getCapabilities().getConfigured().getAny(), nativeCapability)) {
 						effectiveCapabilities.add(nativeCapability);
 					}
 				}
@@ -251,34 +205,6 @@ public class ResourceTypeUtil {
 		} else {
 			return new ArrayList<Object>();
 		}		
-	}
-
-	private static boolean containsCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
-		if (capabilities == null) {
-			return false;
-		}
-		QName capabilityElementName = JAXBUtil.getElementQName(capability);
-		for (Object cap: capabilities) {
-			QName capElementName = JAXBUtil.getElementQName(cap);
-			if (capabilityElementName.equals(capElementName)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static String getCapabilityDisplayName(Object capability) {
-		// TODO: look for schema annotation
-		String className = null;
-		if (capability instanceof JAXBElement) {
-			className = ((JAXBElement) capability).getDeclaredType().getSimpleName();
-		} else {
-			className = capability.getClass().getSimpleName();
-		}
-		if (className.endsWith("CapabilityType")) {
-			return className.substring(0, className.length() - "CapabilityType".length());
-		}
-		return className;
 	}
 
 	public static boolean hasActivationCapability(ResourceType resource) {
@@ -294,7 +220,7 @@ public class ResourceTypeUtil {
 		// check resource native capabilities. if resource cannot do
 		// activation, it sholud be null..
 		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
-			activationCapability = ResourceTypeUtil.getCapability(resource.getCapabilities().getNative().getAny(),
+			activationCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(),
 					ActivationCapabilityType.class);
 		}
 		if (activationCapability == null) {

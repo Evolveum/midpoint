@@ -296,9 +296,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		sb.append(getDebugDumpClassName());
 		sb.append(":");
 		sb.append(PrettyPrinter.prettyPrint(getName()));
-		sb.append(" (");
-		sb.append(PrettyPrinter.prettyPrint(getTypeName()));
-		sb.append(")");
+		sb.append(" ");
 		debugDumpShortToString(sb);
 		return sb.toString();
 	}

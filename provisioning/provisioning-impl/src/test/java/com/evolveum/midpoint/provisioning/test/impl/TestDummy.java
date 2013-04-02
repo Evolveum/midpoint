@@ -3,9 +3,13 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
+import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.RESOURCE_DUMMY_ATTR_FULLNAME_LOCALNAME;
+import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.RESOURCE_DUMMY_ATTR_FULLNAME_PATH;
+import static com.evolveum.midpoint.provisioning.ProvisioningTestUtil.RESOURCE_DUMMY_ATTR_TITLE_PATH;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
@@ -18,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +29,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -34,16 +36,11 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,22 +53,18 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
-import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -83,11 +76,8 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
@@ -362,7 +352,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertTrue("Broken caching",
 				returnedSchema == RefinedResourceSchema.getResourceSchema(resourceType, prismContext));
 
-		ProvisioningTestUtil.assertDummyResourceSchemaSanity(returnedSchema, resourceType);
+		assertSchemaSanity(returnedSchema, resourceType);
 
 	}
 
@@ -442,21 +432,21 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
-		System.out.println("resource: " + resourceType.asPrismObject().dump());
+		display("Native capabilities", PrismTestUtil.marshalWrap(nativeCapabilities));
+		display("Resource", resourceType);
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
 		assertNotNull("password native capability not present", capCred.getPassword());
-		ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
 		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
-		TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
-		ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ScriptCapabilityType.class);
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());
@@ -479,7 +469,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
 		for (Object capability : effectiveCapabilities) {
-			System.out.println("Capability: " + ResourceTypeUtil.getCapabilityDisplayName(capability) + " : "
+			System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : "
 					+ capability);
 		}
 	}
@@ -512,17 +502,17 @@ public class TestDummy extends AbstractDummyTest {
 		System.out.println("resource: " + resourceType.asPrismObject().dump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-		CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				CredentialsCapabilityType.class);
 		assertNotNull("password native capability not present", capCred.getPassword());
-		ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ActivationCapabilityType.class);
 		assertNotNull("native activation capability not present", capAct);
 		assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
-		TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
-		ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(nativeCapabilitiesList,
+		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ScriptCapabilityType.class);
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());
@@ -922,18 +912,26 @@ public class TestDummy extends AbstractDummyTest {
 
 		assertNotNull("No dummy account", shadow);
 
-		checkShadow(shadow, result);
+		checkAccountWill(shadow, result);
 
 		checkConsistency(shadow.asPrismObject());
 	}
 
+	private void checkAccountWill(AccountShadowType shadow, OperationResult result) {
+		checkShadow(shadow, result);
+		Collection<ResourceAttribute<?>> attributes = ResourceObjectShadowUtil.getAttributes(shadow);
+		assertEquals("Unexpected number of attributes", 5, attributes.size());
+		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
+		assertAttribute(shadow, ProvisioningTestUtil.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+	}
+
 	@Test
-	public void test102GetAccountNoFetch() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException, SecurityViolationException {
-		displayTestTile("test102GetAccountNoFetch");
+	public void test103GetAccountNoFetch() throws Exception {
+		final String TEST_NAME="test103GetAccountNoFetch";
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test102GetAccountNoFetch");
+				+ "."+TEST_NAME);
 
 		GetOperationOptions options = new GetOperationOptions();
 		options.setNoFetch(true);
@@ -1330,7 +1328,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate");
+		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1361,7 +1359,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Pirate", "Captain");
+		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1392,7 +1390,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
+		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1427,7 +1425,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAttributeValues("will", RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, "Captain");
+		assertDummyAttributeValues("will", DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -1446,7 +1444,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		DummyAccount willDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_ICF_UID);
-		willDummyAccount.replaceAttributeValue(RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME, null);
+		willDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, null);
 
 		// WHEN
 		PrismObject<AccountShadowType> accountWill = provisioningService.getObject(AccountShadowType.class, ACCOUNT_WILL_OID, null, result);
@@ -1457,7 +1455,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertSuccess(result);
 		
 		ResourceAttributeContainer attributesContainer = ResourceObjectShadowUtil.getAttributesContainer(accountWill);
-		ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), RESOURCE_DUMMY_ATTR_TITLE_LOCALNAME));
+		ResourceAttribute<Object> titleAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
 		assertNull("Title attribute sneaked in", titleAttribute);
 		
 		accountWill.checkConsistence();		

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShado
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Connector instance configured for a specific resource.
@@ -70,7 +71,7 @@ public interface ConnectorInstance {
 	 * @param configuration
 	 * @throws ConfigurationException 
 	 */
-	public void configure(PrismContainerValue configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
 	
 	public PrismSchema generateConnectorSchema();
@@ -83,12 +84,16 @@ public interface ConnectorInstance {
 	 * is called again. It must be called after configure() and before any other method that is accessing the
 	 * resource.
 	 * 
+	 * If resource schema and capabilities are already cached by midPoint they may be passed to the connector instance.
+	 * Otherwise the instance may need to fetch them from the resource which may be less efficient.
+	 * 
 	 * @param parentResult
 	 * @throws CommunicationException
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public void initialize(OperationResult parentResult)  throws CommunicationException, GenericFrameworkException, ConfigurationException;
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, OperationResult parentResult)  
+			throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
 	 * Retrieves native connector capabilities.
@@ -105,7 +110,7 @@ public interface ConnectorInstance {
 	 * @throws GenericFrameworkException
 	 * @throws ConfigurationException 
 	 */
-	public Collection<Object> getCapabilities(OperationResult parentResult) throws CommunicationException,
+	public Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, ConfigurationException;
 	
     /**
@@ -124,7 +129,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
      * @throws ConfigurationException 
 	 */
-	public ResourceSchema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
+	public ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
@@ -152,7 +157,7 @@ public interface ConnectorInstance {
 	 */
 	public <T extends ResourceObjectShadowType> PrismObject<T> fetchObject(
 			Class<T> type, ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
+			Collection<? extends ResourceAttribute<?>> identifiers, AttributesToReturn attributesToReturn, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
 	/**
@@ -236,9 +241,13 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, Collection<? extends ResourceAttribute> identifiers, Collection<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
+	public Collection<PropertyModificationOperation> modifyObject(ObjectClassComplexTypeDefinition objectClass, 
+			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException;
 	
-	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, 
+			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult parentResult)
+					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.

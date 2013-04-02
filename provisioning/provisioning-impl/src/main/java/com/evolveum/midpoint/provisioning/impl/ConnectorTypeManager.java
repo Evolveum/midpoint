@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -150,6 +153,12 @@ public class ConnectorTypeManager {
 		}
 		try {
 			connector.configure(resource.getConnectorConfiguration().asPrismContainerValue(), result);
+			
+			ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(resource);
+			
+			connector.initialize(resourceSchema, capabilities, result);
+			
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);

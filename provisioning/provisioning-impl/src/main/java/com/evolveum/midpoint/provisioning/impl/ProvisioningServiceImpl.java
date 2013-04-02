@@ -110,7 +110,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired(required = true)
 	private ShadowCacheFactory shadowCacheFactory;
 	@Autowired(required = true)
-	private ResourceTypeManager resourceTypeManager;
+	private ResourceManager resourceTypeManager;
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
@@ -130,11 +130,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return shadowCacheFactory.getShadowCache(mode);
 	}
 
-	public ResourceTypeManager getResourceTypeManager() {
+	public ResourceManager getResourceTypeManager() {
 		return resourceTypeManager;
 	}
 
-	public void setResourceTypeManager(ResourceTypeManager resourceTypeManager) {
+	public void setResourceTypeManager(ResourceManager resourceTypeManager) {
 		this.resourceTypeManager = resourceTypeManager;
 	}
 
@@ -246,9 +246,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Make sure that the object is complete, e.g. there is a (fresh)
 			// schema
 			try {
-				ResourceType completeResource = getResourceTypeManager().completeResource(
-						(ResourceType) repositoryObject.asObjectable(), null, result);
-				resultingObject = completeResource.asPrismObject();
+				resultingObject = (PrismObject<T>) getResourceTypeManager().getResource(
+						(PrismObject<ResourceType>) repositoryObject, result);
 			} catch (ObjectNotFoundException ex) {
 				recordFatalError(LOGGER, result, "Resource object not found", ex);
 				throw ex;
@@ -575,60 +574,59 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("unchecked")
 	private <T extends ObjectType> List<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query, OperationResult result) throws SchemaException {
 
-		List<PrismObject<T>> objListType = null;
+		List<PrismObject<T>> repoObjects = null;
 
 		// TODO: should searching connectors trigger rediscovery?
 
-		objListType = getCacheRepositoryService().searchObjects(type, query, result);
+		repoObjects = getCacheRepositoryService().searchObjects(type, query, result);
 
 		if (ResourceType.class.equals(type)) {
 			List<PrismObject<T>> newObjListType = new ArrayList<PrismObject<T>>();
-			for (PrismObject<T> obj : objListType) {
+			for (PrismObject<T> repoObject : repoObjects) {
 				OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
 						+ ".searchObjects.object");
-				PrismObject<ResourceType> resource = (PrismObject<ResourceType>) obj;
-				ResourceType completeResource;
+				PrismObject<ResourceType> repoResource = (PrismObject<ResourceType>) repoObject;
 
 				try {
 
-					completeResource = getResourceTypeManager().completeResource(resource.asObjectable(), null,
+					PrismObject<ResourceType> completeResource = getResourceTypeManager().getResource(repoResource,
 							objResult);
-					newObjListType.add(completeResource.asPrismObject());
+					newObjListType.add((PrismObject<T>) completeResource);
 					// TODO: what do to with objResult??
 
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							resource, e.getMessage(), e });
+							repoResource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(obj);
+					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(repoObject);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
 
 				} catch (SchemaException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							resource, e.getMessage(), e });
+							repoResource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(obj);
+					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(repoObject);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
 
 				} catch (CommunicationException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							resource, e.getMessage(), e });
+							repoResource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(obj);
+					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(repoObject);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
 
 				} catch (ConfigurationException e) {
 					LOGGER.error("Error while completing {}: {}. Using non-complete resource.", new Object[] {
-							resource, e.getMessage(), e });
+							repoResource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(obj);
+					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(repoObject);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
 
@@ -641,10 +639,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					// So this provides
 					// a better robustness now.
 					LOGGER.error("System error while completing {}: {}. Using non-complete resource.", new Object[] {
-							resource, e.getMessage(), e });
+							repoResource, e.getMessage(), e });
 					objResult.recordFatalError(e);
-					obj.asObjectable().setFetchResult(objResult.createOperationResultType());
-					newObjListType.add(obj);
+					repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
+					newObjListType.add(repoObject);
 					result.addSubresult(objResult);
 					result.recordPartialError(e);
 				}
@@ -652,7 +650,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return newObjListType;
 		}
 
-		return objListType;
+		return repoObjects;
 
 	}
 
